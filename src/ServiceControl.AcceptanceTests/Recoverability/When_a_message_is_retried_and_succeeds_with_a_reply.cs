@@ -3,13 +3,13 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
 
 
     class When_a_message_is_retried_and_succeeds_with_a_reply : AcceptanceTest
@@ -63,18 +63,14 @@
 
         class Originator : EndpointConfigurationBuilder
         {
-            public Originator() => EndpointSetup<DefaultServer>(c =>
+            public Originator() => EndpointSetup<DefaultServerWithoutAudit>(c =>
             {
                 var routing = c.ConfigureRouting();
                 routing.RouteToEndpoint(typeof(OriginalMessage), typeof(Receiver));
             });
 
-            public class ReplyMessageHandler : IHandleMessages<ReplyMessage>
+            public class ReplyMessageHandler(RetryReplyContext testContext) : IHandleMessages<ReplyMessage>
             {
-                readonly RetryReplyContext testContext;
-
-                public ReplyMessageHandler(RetryReplyContext testContext) => this.testContext = testContext;
-
                 public Task Handle(ReplyMessage message, IMessageHandlerContext context)
                 {
                     testContext.ReplyHandledBy = "Originating Endpoint";
@@ -85,19 +81,11 @@
 
         class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver() => EndpointSetup<DefaultServer>(c => c.NoRetries());
+            public Receiver() => EndpointSetup<DefaultServerWithoutAudit>(c => c.NoRetries());
 
-            public class OriginalMessageHandler : IHandleMessages<OriginalMessage>
+            public class OriginalMessageHandler(RetryReplyContext testContext, IReadOnlySettings settings)
+                : IHandleMessages<OriginalMessage>
             {
-                readonly IReadOnlySettings settings;
-                readonly RetryReplyContext testContext;
-
-                public OriginalMessageHandler(RetryReplyContext testContext, IReadOnlySettings settings)
-                {
-                    this.testContext = testContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(OriginalMessage message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
@@ -113,12 +101,8 @@
                 }
             }
 
-            public class ReplyMessageHandler : IHandleMessages<ReplyMessage>
+            public class ReplyMessageHandler(RetryReplyContext testContext) : IHandleMessages<ReplyMessage>
             {
-                readonly RetryReplyContext testContext;
-
-                public ReplyMessageHandler(RetryReplyContext testContext) => this.testContext = testContext;
-
                 public Task Handle(ReplyMessage message, IMessageHandlerContext context)
                 {
                     testContext.ReplyHandledBy = "Receiving Endpoint";

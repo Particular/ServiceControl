@@ -7,6 +7,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Contracts.CustomChecks;
     using EventLog;
     using Microsoft.AspNetCore.SignalR.Client;
@@ -17,7 +18,6 @@
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     [TestFixture]
@@ -69,7 +69,7 @@
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
         {
-            public EndpointThatUsesSignalR() => EndpointSetup<DefaultServer>(c => c.EnableFeature<EnableSignalR>());
+            public EndpointThatUsesSignalR() => EndpointSetup<DefaultServerWithoutAudit>(c => c.EnableFeature<EnableSignalR>());
 
             class EnableSignalR : Feature
             {
@@ -121,12 +121,11 @@
 
         public class WithCustomCheck : EndpointConfigurationBuilder
         {
-            public WithCustomCheck() => EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
+            public WithCustomCheck() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
 
-            class FailingCustomCheck : NServiceBus.CustomChecks.CustomCheck
+            class FailingCustomCheck(MyContext context)
+                : NServiceBus.CustomChecks.CustomCheck("MyCustomCheckId", "MyCategory", TimeSpan.FromSeconds(5))
             {
-                public FailingCustomCheck(MyContext context) : base("MyCustomCheckId", "MyCategory", TimeSpan.FromSeconds(5)) => this.context = context;
-
                 public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
                 {
                     if (executed && context.SignalrStarted)
@@ -139,7 +138,6 @@
                     return Task.FromResult(CheckResult.Pass);
                 }
 
-                readonly MyContext context;
                 bool executed;
             }
         }

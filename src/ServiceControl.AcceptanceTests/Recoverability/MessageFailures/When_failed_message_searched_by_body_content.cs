@@ -3,12 +3,12 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using CompositeViews.Messages;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
 
     class When_failed_message_searched_by_body_content : AcceptanceTest
     {
@@ -82,7 +82,7 @@
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
@@ -92,19 +92,10 @@
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver() =>
-                EndpointSetup<DefaultServer>(c =>
-                {
-                    var recoverability = c.Recoverability();
-                    recoverability.Immediate(s => s.NumberOfRetries(0));
-                    recoverability.Delayed(s => s.NumberOfRetries(0));
-                });
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.NoRetries());
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(MyContext scenarioContext) : IHandleMessages<MyMessage>
             {
-                readonly MyContext scenarioContext;
-
-                public MyMessageHandler(MyContext scenarioContext) => this.scenarioContext = scenarioContext;
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     scenarioContext.MessageId = context.MessageId;

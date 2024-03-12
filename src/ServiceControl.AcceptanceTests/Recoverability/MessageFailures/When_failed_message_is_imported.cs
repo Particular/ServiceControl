@@ -3,9 +3,9 @@
     using System;
     using System.Linq;
     using System.Text;
-    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using CompositeViews.Messages;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -13,7 +13,6 @@
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.Persistence;
-    using TestSupport.EndpointTemplates;
 
 
     class When_failed_message_is_imported : AcceptanceTest
@@ -84,7 +83,7 @@
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
@@ -94,7 +93,7 @@
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(x => x.NumberOfRetries(0));

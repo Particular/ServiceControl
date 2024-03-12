@@ -4,13 +4,13 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.Persistence;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     [TestFixture]
@@ -59,23 +59,15 @@
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
+                : IHandleMessages<MyMessage>
             {
-                readonly MyContext testContext;
-                readonly IReadOnlySettings settings;
-
-                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
-                {
-                    this.testContext = testContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
@@ -84,9 +76,7 @@
             }
         }
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
 
         public class MyContext : ScenarioContext
         {

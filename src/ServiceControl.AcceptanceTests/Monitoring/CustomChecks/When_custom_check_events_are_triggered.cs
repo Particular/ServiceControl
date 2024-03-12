@@ -5,13 +5,13 @@
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using EventLog;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
-    using TestSupport.EndpointTemplates;
 
     [TestFixture]
     class When_custom_check_events_are_triggered : AcceptanceTest
@@ -41,18 +41,11 @@
 
         public class EndpointWithCustomCheck : EndpointConfigurationBuilder
         {
-            public EndpointWithCustomCheck()
-            {
-                EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
-            }
+            public EndpointWithCustomCheck() => EndpointSetup<DefaultServerWithoutAudit>(c => c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)));
 
-            public class EventuallyFailingCustomCheck : CustomCheck
+            public class EventuallyFailingCustomCheck()
+                : CustomCheck("EventuallyFailingCustomCheck", "Testing", TimeSpan.FromSeconds(1))
             {
-                public EventuallyFailingCustomCheck()
-                    : base("EventuallyFailingCustomCheck", "Testing", TimeSpan.FromSeconds(1))
-                {
-                }
-
                 public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
                 {
 #pragma warning disable IDE0047 // Remove unnecessary parentheses

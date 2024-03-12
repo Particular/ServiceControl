@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -11,7 +12,6 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures.Api;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_SagaComplete_message_fails : AcceptanceTest
@@ -36,7 +36,7 @@
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
-            public FailureEndpoint() => EndpointSetup<DefaultServer>(c => { c.NoDelayedRetries(); });
+            public FailureEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoDelayedRetries(); });
 
             public class SendFailedMessage : DispatchRawMessages<MyContext>
             {

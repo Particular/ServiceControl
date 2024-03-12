@@ -4,11 +4,11 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Http.Diagrams;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
 
 
     class When_querying_queue_length_data : AcceptanceTest
@@ -99,17 +99,13 @@
         class SendingEndpoint : EndpointConfigurationBuilder
         {
             public SendingEndpoint() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.LimitMessageProcessingConcurrencyTo(1);
                 });
 
-            class Handler : IHandleMessages<SampleMessage>
+            class Handler(TestContext testContext) : IHandleMessages<SampleMessage>
             {
-                TestContext testContext;
-
-                public Handler(TestContext testContext) => this.testContext = testContext;
-
                 public Task Handle(SampleMessage message, IMessageHandlerContext context) =>
                     //Concurrency limit 1 and this should block any processing on input queue
                     Task.WhenAny(
@@ -129,7 +125,7 @@
 
         class TestContext : ScenarioContext
         {
-            public TaskCompletionSource<bool> TestEnded = new TaskCompletionSource<bool>();
+            public TaskCompletionSource<bool> TestEnded = new();
         }
     }
 }

@@ -4,6 +4,7 @@
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using AcceptanceTests;
     using Infrastructure;
     using NServiceBus;
@@ -12,7 +13,6 @@
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
-    using TestSupport.EndpointTemplates;
 
     class When_edited_message_fails_to_process : AcceptanceTest
     {
@@ -90,16 +90,11 @@
 
         class FailingEditedMessageReceiver : EndpointConfigurationBuilder
         {
-            public FailingEditedMessageReceiver() => EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
+            public FailingEditedMessageReceiver() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
 
-            class FailingMessageHandler : IHandleMessages<FailingMessage>
+            class FailingMessageHandler(EditMessageFailureContext testContext, IReadOnlySettings settings)
+                : IHandleMessages<FailingMessage>
             {
-                public FailingMessageHandler(EditMessageFailureContext testContext, IReadOnlySettings settings)
-                {
-                    this.testContext = testContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(FailingMessage message, IMessageHandlerContext context)
                 {
                     if (message.HasBeenEdited)
@@ -113,9 +108,6 @@
 
                     throw new SimulatedException();
                 }
-
-                readonly EditMessageFailureContext testContext;
-                readonly IReadOnlySettings settings;
             }
         }
 

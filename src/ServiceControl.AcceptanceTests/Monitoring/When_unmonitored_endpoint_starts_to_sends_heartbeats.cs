@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Contracts.EndpointControl;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -10,7 +11,6 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Operations;
     using ServiceControl.Persistence;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     [TestFixture]
@@ -72,18 +72,16 @@
             Assert.IsTrue(endpoint.IsSendingHeartbeats, "Should be emitting heartbeats");
         }
 
-        public class MyContext : ScenarioContext
-        {
-        }
+        public class MyContext : ScenarioContext;
 
         public class WithoutHeartbeat : EndpointConfigurationBuilder
         {
-            public WithoutHeartbeat() => EndpointSetup<DefaultServer>();
+            public WithoutHeartbeat() => EndpointSetup<DefaultServerWithoutAudit>();
         }
 
         public class WithHeartbeat : EndpointConfigurationBuilder
         {
-            public WithHeartbeat() => EndpointSetup<DefaultServer>(c => { c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME); }).CustomEndpointName(EndpointName);
+            public WithHeartbeat() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME); }).CustomEndpointName(EndpointName);
         }
     }
 }

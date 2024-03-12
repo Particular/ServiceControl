@@ -4,13 +4,13 @@ namespace ServiceControl.Audit.AcceptanceTests.Auditing
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Audit.Auditing.MessagesView;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_message_processed_successfully_from_sendonly : AcceptanceTest

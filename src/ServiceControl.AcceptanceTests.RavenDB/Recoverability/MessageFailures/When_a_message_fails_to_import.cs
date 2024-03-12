@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Contracts.MessageFailures;
     using Infrastructure;
     using Infrastructure.DomainEvents;
@@ -14,7 +15,6 @@
     using NUnit.Framework;
     using Operations;
     using ServiceControl.MessageFailures;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_message_fails_to_import : AcceptanceTest
@@ -95,7 +95,7 @@
 
         public class ErrorLogSpy : EndpointConfigurationBuilder
         {
-            public ErrorLogSpy() => EndpointSetup<DefaultServer>();
+            public ErrorLogSpy() => EndpointSetup<DefaultServerWithoutAudit>();
 
             public class MyMessageHandler(MyContext scenarioContext) : IHandleMessages<MyMessage>
             {
@@ -110,7 +110,7 @@
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
@@ -120,7 +120,7 @@
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(x => x.NumberOfRetries(0));
@@ -138,9 +138,7 @@
             }
         }
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
 
         public class MyContext : ScenarioContext
         {

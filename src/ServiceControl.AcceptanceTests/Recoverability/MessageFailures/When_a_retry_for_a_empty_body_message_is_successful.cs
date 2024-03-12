@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
@@ -14,7 +15,6 @@
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_retry_for_a_empty_body_message_is_successful : AcceptanceTest
@@ -69,7 +69,7 @@
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
             public FailureEndpoint() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoDelayedRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
@@ -112,10 +112,8 @@
                 }
             }
 
-            public class LookForControlMessage : Behavior<IIncomingPhysicalMessageContext>
+            public class LookForControlMessage(MyContext myContext) : Behavior<IIncomingPhysicalMessageContext>
             {
-                public LookForControlMessage(MyContext context) => myContext = context;
-
                 public override Task Invoke(IIncomingPhysicalMessageContext context, Func<Task> next)
                 {
                     if (context.Message.Headers[Headers.MessageId] == myContext.MessageId)
@@ -125,8 +123,6 @@
 
                     return next();
                 }
-
-                readonly MyContext myContext;
             }
         }
 

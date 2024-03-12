@@ -9,9 +9,9 @@
     using NUnit.Framework;
     using Contracts;
     using ServiceControl.MessageFailures;
-    using TestSupport.EndpointTemplates;
     using System.Collections.Generic;
     using System.Text.Json;
+    using AcceptanceTesting.EndpointTemplates;
 
     class When_a_failed_message_is_unarchived : ExternalIntegrationAcceptanceTest
     {
@@ -74,7 +74,7 @@
         {
             public ExternalProcessor()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(FailedMessagesUnArchived).Assembly, Settings.DEFAULT_SERVICE_NAME);

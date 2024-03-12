@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -10,7 +11,6 @@
     using NUnit.Framework;
     using ServiceControl.Persistence;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_message_is_imported_twice : AcceptanceTest

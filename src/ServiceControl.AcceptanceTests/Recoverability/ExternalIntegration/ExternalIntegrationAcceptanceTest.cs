@@ -4,12 +4,12 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     abstract class ExternalIntegrationAcceptanceTest : AcceptanceTest
@@ -17,7 +17,7 @@
         public class ErrorSender : EndpointConfigurationBuilder
         {
             public ErrorSender() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoDelayedRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
@@ -60,7 +60,7 @@
             }
         }
 
-        public class AMessage : ICommand { }
+        public class AMessage : ICommand;
 
         public class Context : ScenarioContext, ISequenceContext
         {

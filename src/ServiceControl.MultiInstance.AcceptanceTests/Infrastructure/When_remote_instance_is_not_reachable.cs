@@ -5,6 +5,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using CompositeViews.Messages;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
@@ -13,7 +14,6 @@
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
 
     class When_remote_instance_is_not_reachable : AcceptanceTest
     {

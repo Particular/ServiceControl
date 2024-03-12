@@ -2,6 +2,7 @@
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using CompositeViews.Messages;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -9,7 +10,6 @@
     using NServiceBus.Settings;
     using NUnit.Framework;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
 
     class When_message_searched_by_messageid : AcceptanceTest
     {

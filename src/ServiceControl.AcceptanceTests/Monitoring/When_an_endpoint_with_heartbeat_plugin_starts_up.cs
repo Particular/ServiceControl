@@ -2,13 +2,12 @@
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Microsoft.Extensions.DependencyInjection;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     [TestFixture]
@@ -55,13 +54,11 @@
             Assert.True(endpoint.Monitored, "An endpoint discovered from heartbeats should be monitored");
         }
 
-        public class MyContext : ScenarioContext
-        {
-        }
+        public class MyContext : ScenarioContext;
 
         public class StartingEndpoint : EndpointConfigurationBuilder
         {
-            public StartingEndpoint() => EndpointSetup<DefaultServer>(c => c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME));
+            public StartingEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME));
         }
     }
 }

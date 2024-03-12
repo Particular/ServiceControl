@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using MessageFailures;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -11,7 +12,6 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Settings;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
 
     // Tests https://docs.particular.net/servicecontrol/servicecontrol-instances/distributed-instances#advanced-scenarios-multi-region-deployments
     class When_issuing_retry_by_specifying_instance_id : AcceptanceTest

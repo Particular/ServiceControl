@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using CompositeViews.Messages;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -12,7 +13,6 @@
     using NUnit.Framework;
     using ServiceControl.Infrastructure.Settings;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_message_searched_by_endpoint_by_messages : AcceptanceTest

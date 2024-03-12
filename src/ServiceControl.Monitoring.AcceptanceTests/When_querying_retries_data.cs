@@ -3,11 +3,11 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Http.Diagrams;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
 
     class When_querying_retries_data : AcceptanceTest
     {
@@ -44,17 +44,13 @@
         class EndpointWithRetries : EndpointConfigurationBuilder
         {
             public EndpointWithRetries() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
                 });
 
-            class Handler : IHandleMessages<SampleMessage>
+            class Handler(TestContext testContext) : IHandleMessages<SampleMessage>
             {
-                TestContext testContext;
-
-                public Handler(TestContext testContext) => this.testContext = testContext;
-
                 public Task Handle(SampleMessage message, IMessageHandlerContext context)
                 {
                     if (testContext.ShuttingDown)
@@ -72,12 +68,8 @@
             public bool ShuttingDown { get; set; }
         }
 
-        class SampleMessage : SampleBaseMessage
-        {
-        }
+        class SampleMessage : SampleBaseMessage;
 
-        class SampleBaseMessage : IMessage
-        {
-        }
+        class SampleBaseMessage : IMessage;
     }
 }

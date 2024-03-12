@@ -3,11 +3,11 @@
     using System.Net;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Audit.Auditing.MessagesView;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
 
     class When_messages_with_big_bodies_are_ingested : AcceptanceTest
     {
@@ -141,17 +141,13 @@
         {
             public FatMessageEndpoint() => EndpointSetup<DefaultServerWithAudit>();
 
-            public class BigFatMessageHandler : IHandleMessages<BigFatMessage>
+            public class BigFatMessageHandler(Context testContext) : IHandleMessages<BigFatMessage>
             {
-                public BigFatMessageHandler(Context testContext) => this.testContext = testContext;
-
                 public Task Handle(BigFatMessage message, IMessageHandlerContext context)
                 {
                     testContext.MessageId = context.MessageHeaders["NServiceBus.MessageId"];
                     return Task.CompletedTask;
                 }
-
-                readonly Context testContext;
             }
         }
 

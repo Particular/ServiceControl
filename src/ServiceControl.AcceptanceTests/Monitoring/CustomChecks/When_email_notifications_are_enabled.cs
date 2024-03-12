@@ -14,7 +14,7 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using TestSupport.EndpointTemplates;
+    using AcceptanceTesting.EndpointTemplates;
 
     [TestFixture]
     class When_email_notifications_are_enabled : AcceptanceTest
@@ -84,7 +84,7 @@
 
         public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
         {
-            public EndpointWithFailingCustomCheck() => EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
+            public EndpointWithFailingCustomCheck() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
 
             class FailingCustomCheck() : CustomCheck("MyCustomCheckId", "MyCategory")
             {

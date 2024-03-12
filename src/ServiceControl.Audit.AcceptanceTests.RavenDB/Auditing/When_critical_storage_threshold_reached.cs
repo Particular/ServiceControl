@@ -3,13 +3,13 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using AcceptanceTesting.EndpointTemplates;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using Persistence.RavenDB;
     using ServiceControl.AcceptanceTesting;
-    using ServiceControl.Audit.AcceptanceTests.TestSupport.EndpointTemplates;
     using ServiceControl.Audit.Auditing.MessagesView;
 
 
@@ -102,10 +102,7 @@
 
         public class Sender : EndpointConfigurationBuilder
         {
-            public Sender()
-            {
-                EndpointSetup<DefaultServerWithAudit>();
-            }
+            public Sender() => EndpointSetup<DefaultServerWithAudit>();
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
@@ -113,8 +110,6 @@
             }
         }
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
     }
 }

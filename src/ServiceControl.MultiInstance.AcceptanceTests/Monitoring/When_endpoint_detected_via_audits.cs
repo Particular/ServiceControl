@@ -4,13 +4,13 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.Monitoring;
     using ServiceControl.Persistence;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
 
 
     class When_endpoint_detected_via_audits : AcceptanceTest

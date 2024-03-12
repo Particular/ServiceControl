@@ -4,12 +4,12 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using MessageFailures.Api;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
-    using TestSupport.EndpointTemplates;
 
     [TestFixture]
     class When_critical_storage_threshold_reached : AcceptanceTest
@@ -94,14 +94,12 @@
 
         public class Sender : EndpointConfigurationBuilder
         {
-            public Sender()
-            {
-                EndpointSetup<DefaultServer>(c =>
+            public Sender() =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1));
                     c.NoRetries();
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {

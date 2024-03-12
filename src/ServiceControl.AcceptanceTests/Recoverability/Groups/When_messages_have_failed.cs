@@ -6,6 +6,7 @@
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -13,7 +14,6 @@
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
-    using TestSupport.EndpointTemplates;
 
     class When_messages_have_failed : AcceptanceTest
     {
@@ -93,7 +93,7 @@
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver() => EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
+            public Receiver() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
 
             public class MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings) :
                 IHandleMessages<MyMessageA>,
@@ -114,13 +114,9 @@
             }
         }
 
-        public class MyMessageA : ICommand
-        {
-        }
+        public class MyMessageA : ICommand;
 
-        public class MyMessageB : ICommand
-        {
-        }
+        public class MyMessageB : ICommand;
 
         public class MyContext : ScenarioContext
         {

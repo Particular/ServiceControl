@@ -7,6 +7,7 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using CompositeViews.Messages;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
@@ -15,7 +16,6 @@
     using NUnit.Framework;
     using ServiceControl.Infrastructure.Settings;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
 
     class When_requesting_a_message_body : AcceptanceTest
     {

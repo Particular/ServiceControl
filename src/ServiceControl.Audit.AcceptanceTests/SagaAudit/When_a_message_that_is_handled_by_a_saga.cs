@@ -5,14 +5,13 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Audit.Auditing.MessagesView;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Pipeline;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
-
 
     class When_a_message_that_is_handled_by_a_saga : AcceptanceTest
     {
@@ -87,12 +86,9 @@
                 //we need to enable the plugin for it to enrich the audited messages, state changes will go to input queue and just be discarded
                 EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Conventions.EndpointNamingConvention(typeof(SagaAuditProcessorFake))));
 
-            public class Saga1 : Saga<Saga1.Saga1Data>, IAmStartedByMessages<InitiateSaga>, IHandleMessages<UpdateSaga1>, IHandleMessages<CompleteSaga1>
+            public class Saga1(MyContext testContext) : Saga<Saga1.Saga1Data>, IAmStartedByMessages<InitiateSaga>,
+                IHandleMessages<UpdateSaga1>, IHandleMessages<CompleteSaga1>
             {
-                MyContext testContext;
-
-                public Saga1(MyContext testContext) => this.testContext = testContext;
-
                 public Task Handle(InitiateSaga message, IMessageHandlerContext context) => context.SendLocal(new UpdateSaga1 { MyId = message.Saga1Id });
 
                 public Task Handle(CompleteSaga1 message, IMessageHandlerContext context)
@@ -117,12 +113,9 @@
                 }
             }
 
-            public class Saga2 : Saga<Saga2.Saga2Data>, IAmStartedByMessages<InitiateSaga>, IHandleMessages<UpdateSaga2>, IHandleMessages<CompleteSaga2>
+            public class Saga2(MyContext testContext) : Saga<Saga2.Saga2Data>, IAmStartedByMessages<InitiateSaga>,
+                IHandleMessages<UpdateSaga2>, IHandleMessages<CompleteSaga2>
             {
-                MyContext testContext;
-
-                public Saga2(MyContext testContext) => this.testContext = testContext;
-
                 public Task Handle(InitiateSaga message, IMessageHandlerContext context) => context.SendLocal(new UpdateSaga2 { MyId = message.Saga2Id });
 
                 public Task Handle(CompleteSaga2 message, IMessageHandlerContext context)
@@ -180,7 +173,6 @@
             public bool Saga2Complete { get; set; }
             public Guid Saga1Id { get; set; }
             public Guid Saga2Id { get; set; }
-            public string Messages { get; set; }
         }
     }
 }

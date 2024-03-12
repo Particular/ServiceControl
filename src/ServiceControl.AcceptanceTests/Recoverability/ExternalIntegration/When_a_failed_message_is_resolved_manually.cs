@@ -9,8 +9,8 @@
     using NUnit.Framework;
     using Contracts;
     using ServiceControl.MessageFailures;
-    using TestSupport.EndpointTemplates;
     using System.Collections.Generic;
+    using AcceptanceTesting.EndpointTemplates;
     using JsonSerializer = System.Text.Json.JsonSerializer;
 
     class When_a_failed_message_is_resolved_manually : ExternalIntegrationAcceptanceTest
@@ -66,7 +66,7 @@
         public class ExternalProcessor : EndpointConfigurationBuilder
         {
             public ExternalProcessor() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailureResolvedManually).Assembly, Settings.DEFAULT_SERVICE_NAME);

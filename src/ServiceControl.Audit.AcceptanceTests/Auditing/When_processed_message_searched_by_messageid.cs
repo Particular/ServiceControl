@@ -2,13 +2,13 @@
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Audit.Auditing.MessagesView;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
 
     class When_processed_message_searched_by_messageid : AcceptanceTest
     {
@@ -34,17 +34,9 @@
         {
             public Receiver() => EndpointSetup<DefaultServerWithAudit>();
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
+                : IHandleMessages<MyMessage>
             {
-                MyContext testContext;
-                IReadOnlySettings settings;
-
-                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
-                {
-                    this.testContext = testContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
@@ -54,9 +46,7 @@
             }
         }
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
 
         public class MyContext : ScenarioContext
         {

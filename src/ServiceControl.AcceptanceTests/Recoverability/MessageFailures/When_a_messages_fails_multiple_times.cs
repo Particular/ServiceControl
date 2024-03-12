@@ -10,7 +10,7 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using TestSupport.EndpointTemplates;
+    using AcceptanceTesting.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -51,7 +51,7 @@
 
         class AnEndpoint : EndpointConfigurationBuilder
         {
-            public AnEndpoint() => EndpointSetup<DefaultServer>();
+            public AnEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
 
             class FailedMessagesSender : DispatchRawMessages<TestContext>
             {
@@ -94,9 +94,7 @@
                 }
             }
 
-            class MyMessage : ICommand
-            {
-            }
+            class MyMessage : ICommand;
         }
     }
 }

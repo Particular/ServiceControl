@@ -4,6 +4,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
@@ -11,7 +12,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_message_groups_are_sorted_by_a_web_api_call : AcceptanceTest
@@ -80,11 +80,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    var recoverability = c.Recoverability();
-                    recoverability.Immediate(x => x.NumberOfRetries(0));
-                    recoverability.Delayed(x => x.NumberOfRetries(0));
+                    c.NoRetries();
                     c.LimitMessageProcessingConcurrencyTo(1);
                 });
 

@@ -2,12 +2,12 @@
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Audit.Auditing.MessagesView;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
 
     class When_processed_message_searched_by_body_content : AcceptanceTest
     {

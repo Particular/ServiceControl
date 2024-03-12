@@ -2,12 +2,11 @@
 {
     using System;
     using System.Threading.Tasks;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Logging;
     using NUnit.Framework;
     using ServiceControl.AcceptanceTesting;
-    using ServiceControl.Monitoring.AcceptanceTests.TestSupport.EndpointTemplates;
 
     class When_querying_disconnected_count : AcceptanceTest
     {
@@ -50,7 +49,6 @@
 
                     if (!result.IsSuccessStatusCode)
                     {
-                        logger.Info(result.ReasonPhrase);
                         await Task.Delay(1000);
                         return false;
                     }
@@ -88,10 +86,7 @@
 
         class MonitoredEndpoint : EndpointConfigurationBuilder
         {
-            public MonitoredEndpoint()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public MonitoredEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
         }
 
         class TestContext : ScenarioContext
@@ -105,7 +100,5 @@
             public int AfterFirstStoppedCount { get; set; } = int.MinValue;
             public int AfterSecondStoppedCount { get; set; } = int.MinValue;
         }
-
-        static readonly ILog logger = LogManager.GetLogger<When_querying_disconnected_count>();
     }
 }

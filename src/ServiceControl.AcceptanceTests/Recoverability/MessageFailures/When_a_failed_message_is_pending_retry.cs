@@ -4,6 +4,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -13,7 +14,6 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
-    using TestSupport.EndpointTemplates;
 
     class When_a_failed_message_is_pending_retry : AcceptanceTest
     {
@@ -56,7 +56,7 @@
         public class FailingEndpoint : EndpointConfigurationBuilder
         {
             public FailingEndpoint() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.GetSettings().Get<TransportDefinition>().TransportTransactionMode =
                         TransportTransactionMode.ReceiveOnly;
@@ -81,17 +81,9 @@
                 }
             }
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
+                : IHandleMessages<MyMessage>
             {
-                public MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
-                {
-                    this.scenarioContext = scenarioContext;
-                    this.settings = settings;
-                }
-
-                readonly Context scenarioContext;
-                readonly IReadOnlySettings settings;
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message Handled");
@@ -117,8 +109,6 @@
             public bool AboutToSendRetry { get; set; }
         }
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
     }
 }

@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using MessageFailures;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -10,7 +11,6 @@
     using NUnit.Framework;
     using ServiceControl.Infrastructure;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
 
 
     class When_a_message_retry_audit_is_sent_to_audit_instance : AcceptanceTest

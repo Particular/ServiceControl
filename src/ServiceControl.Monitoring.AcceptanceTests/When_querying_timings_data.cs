@@ -3,11 +3,11 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Http.Diagrams;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
 
     class When_querying_timings_data : AcceptanceTest
     {
@@ -35,7 +35,7 @@
         class EndpointWithTimings : EndpointConfigurationBuilder
         {
             public EndpointWithTimings() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
                 });
@@ -49,19 +49,13 @@
 
         class MonitoringEndpoint : EndpointConfigurationBuilder
         {
-            public MonitoringEndpoint() => EndpointSetup<DefaultServer>();
+            public MonitoringEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
 
-        class SampleMessage : SampleBaseMessage
-        {
-        }
+        class SampleMessage : SampleBaseMessage;
 
-        class SampleBaseMessage : IMessage
-        {
-        }
+        class SampleBaseMessage : IMessage;
     }
 }

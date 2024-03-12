@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -11,7 +12,6 @@
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
-    using TestSupport.EndpointTemplates;
 
     class When_a_pending_retry_is_resolved_by_queue_and_timeframe : AcceptanceTest
     {
@@ -59,7 +59,7 @@
         public class Failing : EndpointConfigurationBuilder
         {
             public Failing() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     //Do not inform SC that the message has been already successfully handled
                     c.DisableFeature<PlatformRetryNotifications>();
@@ -67,19 +67,12 @@
                     c.NoOutbox();
                 });
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(
+                Context scenarioContext,
+                IReadOnlySettings settings,
+                ReceiveAddresses receiveAddresses)
+                : IHandleMessages<MyMessage>
             {
-                readonly Context scenarioContext;
-                readonly IReadOnlySettings settings;
-                readonly ReceiveAddresses receiveAddresses;
-
-                public MyMessageHandler(Context scenarioContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
-                {
-                    this.scenarioContext = scenarioContext;
-                    this.settings = settings;
-                    this.receiveAddresses = receiveAddresses;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message Handled");
@@ -107,8 +100,6 @@
             public int Step { get; set; }
         }
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
     }
 }

@@ -6,6 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using AcceptanceTests;
     using CompositeViews.Messages;
     using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +16,6 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using Operations;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_single_message_fails_in_batch : AcceptanceTest
@@ -52,10 +52,8 @@
                 .Run();
         }
 
-        class FailOnceEnricher : IEnrichImportedErrorMessages
+        class FailOnceEnricher(MyContext testContext) : IEnrichImportedErrorMessages
         {
-            public FailOnceEnricher(MyContext context) => testContext = context;
-
             public void Enrich(ErrorEnricherContext context)
             {
                 if (context.Headers[Headers.MessageId] == testContext.MessageId && Interlocked.Increment(ref attempt) == 1)
@@ -67,13 +65,12 @@
                 TestContext.WriteLine("Message processed correctly");
             }
 
-            readonly MyContext testContext;
             int attempt;
         }
 
         class Sendonly : EndpointConfigurationBuilder
         {
-            public Sendonly() => EndpointSetup<DefaultServer>();
+            public Sendonly() => EndpointSetup<DefaultServerWithoutAudit>();
 
             class SendMessage : DispatchRawMessages<MyContext>
             {

@@ -2,11 +2,11 @@
 {
     using System.Linq;
     using System.Threading.Tasks;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_new_endpoint_is_detected : AcceptanceTest
@@ -39,8 +39,6 @@
             }
         }
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
     }
 }

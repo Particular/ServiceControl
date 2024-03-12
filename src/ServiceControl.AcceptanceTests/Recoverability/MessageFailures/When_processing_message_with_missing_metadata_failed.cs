@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -11,7 +12,6 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures.Api;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_processing_message_with_missing_metadata_failed : AcceptanceTest
@@ -76,7 +76,7 @@
 
         public class Failing : EndpointConfigurationBuilder
         {
-            public Failing() => EndpointSetup<DefaultServer>(c => { c.Recoverability().Delayed(x => x.NumberOfRetries(0)); });
+            public Failing() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.Recoverability().Delayed(x => x.NumberOfRetries(0)); });
 
             class SendFailedMessage : DispatchRawMessages<MyContext>
             {

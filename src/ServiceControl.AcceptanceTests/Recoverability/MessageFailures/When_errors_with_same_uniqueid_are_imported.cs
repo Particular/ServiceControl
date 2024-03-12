@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
@@ -15,7 +16,6 @@
     using NUnit.Framework;
     using Operations;
     using ServiceControl.MessageFailures;
-    using TestSupport.EndpointTemplates;
 
     class When_errors_with_same_uniqueid_are_imported : AcceptanceTest
     {
@@ -63,12 +63,8 @@
             CollectionAssert.AreEquivalent(context.FailureTimes, attempts.Select(a => a.AttemptedAt));
         }
 
-        class CounterEnricher : IEnrichImportedErrorMessages
+        class CounterEnricher(MyContext testContext) : IEnrichImportedErrorMessages
         {
-            readonly MyContext testContext;
-
-            public CounterEnricher(MyContext testContext) => this.testContext = testContext;
-
             public void Enrich(ErrorEnricherContext context)
             {
                 if (context.Headers.TryGetValue("Counter", out var counter))
@@ -84,7 +80,7 @@
 
         public class SourceEndpoint : EndpointConfigurationBuilder
         {
-            public SourceEndpoint() => EndpointSetup<DefaultServer>();
+            public SourceEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
 
             class SendMultipleFailedMessagesWithSameUniqueId : DispatchRawMessages<MyContext>
             {
@@ -140,7 +136,7 @@
 
             public void OnMessage(string counter) => receivedMessages.AddOrUpdate(counter, true, (id, old) => true);
 
-            readonly ConcurrentDictionary<string, bool> receivedMessages = new ConcurrentDictionary<string, bool>();
+            readonly ConcurrentDictionary<string, bool> receivedMessages = new();
         }
     }
 }

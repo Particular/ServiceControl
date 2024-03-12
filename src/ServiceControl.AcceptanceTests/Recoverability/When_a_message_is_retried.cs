@@ -5,6 +5,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Pipeline;
@@ -12,7 +13,6 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures.Api;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_message_is_retried : AcceptanceTest
@@ -105,7 +105,7 @@
         class VerifyHeader : EndpointConfigurationBuilder
         {
             public VerifyHeader() =>
-                EndpointSetup<DefaultServer>(
+                EndpointSetup<DefaultServerWithoutAudit>(
                     (c, r) => c.Pipeline.Register(new CaptureIncomingMessage((TestContext)r.ScenarioContext), "Captures the incoming message"));
 
             class FakeSender : DispatchRawMessages<TestContext>

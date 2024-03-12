@@ -4,13 +4,13 @@
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using ServiceBus.Management.Infrastructure.Settings;
     using NUnit.Framework;
     using ServiceControl.Contracts;
     using ServiceControl.MessageFailures;
-    using TestSupport.EndpointTemplates;
 
     class When_a_group_is_archived : ExternalIntegrationAcceptanceTest
     {
@@ -72,7 +72,7 @@
         public class ExternalProcessor : EndpointConfigurationBuilder
         {
             public ExternalProcessor() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(FailedMessagesArchived).Assembly, Settings.DEFAULT_SERVICE_NAME);

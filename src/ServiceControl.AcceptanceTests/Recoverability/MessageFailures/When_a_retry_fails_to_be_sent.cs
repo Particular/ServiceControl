@@ -5,6 +5,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
@@ -18,7 +19,6 @@
     using ServiceControl.Persistence;
     using ServiceControl.Recoverability;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
 
     class When_a_retry_fails_to_be_sent : AcceptanceTest
     {
@@ -71,23 +71,15 @@
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
             public FailureEndpoint() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
 
-            public class MessageThatWillFailHandler : IHandleMessages<MessageThatWillFail>
+            public class MessageThatWillFailHandler(MyContext scenarioContext, IReadOnlySettings settings)
+                : IHandleMessages<MessageThatWillFail>
             {
-                readonly MyContext scenarioContext;
-                readonly IReadOnlySettings settings;
-
-                public MessageThatWillFailHandler(MyContext scenarioContext, IReadOnlySettings settings)
-                {
-                    this.scenarioContext = scenarioContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(MessageThatWillFail message, IMessageHandlerContext context)
                 {
                     scenarioContext.MessageThatWillFailUniqueMessageId = DeterministicGuid.MakeId(context.MessageId, settings.EndpointName()).ToString();
@@ -144,9 +136,7 @@
         }
 
 
-        public class MessageThatWillFail : ICommand
-        {
-        }
+        public class MessageThatWillFail : ICommand;
 
         public class FakeReturnToSender(IErrorMessageDataStore errorMessageStore, MyContext myContext)
             : ReturnToSender(errorMessageStore)

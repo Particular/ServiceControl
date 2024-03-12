@@ -2,6 +2,7 @@
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Audit.Auditing;
     using Audit.Auditing.MessagesView;
     using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +10,6 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
 
@@ -112,9 +112,7 @@
             }
         }
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
 
         public class MyContext : ScenarioContext
         {
