@@ -1,42 +1,30 @@
 ﻿namespace Particular.ThroughputCollector.Persistence.Tests.RavenDb
 {
-    using System;
     using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using NUnit.Framework;
-    using Particular.ThroughputCollector.Persistence.RavenDb;
+    using Raven.Client.Documents;
     using Raven.Client.ServerWide.Operations;
     using TestHelper;
 
     static class SharedEmbeddedServer
     {
-        public static async Task<EmbeddedDatabase> GetInstance(CancellationToken cancellationToken = default)
+        public static async Task<IDocumentStore> GetInstance(CancellationToken cancellationToken = default)
         {
-            if (embeddedDatabase != null)
-            {
-                return embeddedDatabase;
-            }
-
             await semaphoreSlim.WaitAsync(cancellationToken);
 
             try
             {
-                if (embeddedDatabase != null)
-                {
-                    return embeddedDatabase;
-                }
-
                 var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
                 var logPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Audit");
-                var logsMode = "Operations";
                 var serverUrl = $"http://localhost:{PortUtility.FindAvailablePort(33334)}";
 
-                embeddedDatabase = EmbeddedDatabase.Start(new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, new ServerConfiguration(dbPath, serverUrl, logPath, logsMode)));
+                //embeddedDatabase = EmbeddedDatabase.Start(new DatabaseConfiguration("audit"));
 
                 //make sure that the database is up
-                using var documentStore = await embeddedDatabase.Connect(cancellationToken);
+                IDocumentStore documentStore = null; //await embeddedDatabase.Connect(cancellationToken);
 
                 var cleanupDatabases = new DirectoryInfo(dbPath)
                     .GetDirectories()
@@ -50,7 +38,7 @@
                     await documentStore.Maintenance.Server.SendAsync(cleanupOperation, CancellationToken.None);
                 }
 
-                return embeddedDatabase;
+                return documentStore;
             }
             finally
             {
@@ -63,8 +51,8 @@
             await semaphoreSlim.WaitAsync(cancellationToken);
             try
             {
-                embeddedDatabase?.Dispose();
-                embeddedDatabase = null;
+                //embeddedDatabase?.Dispose();
+                //embeddedDatabase = null;
             }
             finally
             {
@@ -72,7 +60,6 @@
             }
         }
 
-        static EmbeddedDatabase embeddedDatabase;
         static readonly SemaphoreSlim semaphoreSlim = new(1, 1);
     }
 }

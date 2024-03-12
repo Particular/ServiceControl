@@ -5,7 +5,7 @@
     public interface IPersistence
     {
         void Configure(IServiceCollection serviceCollection);
-        IPersistenceInstaller CreateInstaller();
+        void ConfigureInstaller(IServiceCollection serviceCollection);
         void ConfigureLifecycle(IServiceCollection serviceCollection);
     }
 }
