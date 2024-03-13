@@ -148,6 +148,7 @@
             var endpoint = new Endpoint
             {
                 Name = "Endpoint",
+                SanitizedName = "Endpoint",
                 ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
             };
@@ -157,26 +158,23 @@
             var foundEndpoint = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
             Assert.That(foundEndpoint, Is.Not.Null);
             Assert.That(foundEndpoint.DailyThroughput.Count, Is.EqualTo(1));
-            Assert.That(foundEndpoint.UserIndicatedSendOnly, Is.Null);
-            Assert.That(foundEndpoint.UserIndicatedToIgnore, Is.Null);
-            ;
+            Assert.That(foundEndpoint.UserIndicator, Is.Null);
 
+            var userIndicator = "someIndicator";
             var endpointWithUserIndicators = new Endpoint
             {
                 Name = "Endpoint",
-                ThroughputSource = ThroughputSource.Audit,
-                UserIndicatedSendOnly = true,
-                UserIndicatedToIgnore = true,
+                SanitizedName = "Endpoint",
+                UserIndicator = userIndicator
             };
 
-            await DataStore.UpdateUserIndicationOnEndpoints([endpointWithUserIndicators]);
+            await DataStore.UpdateUserIndicatorOnEndpoints([endpointWithUserIndicators]);
 
             foundEndpoint = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
 
             Assert.That(foundEndpoint, Is.Not.Null);
             Assert.That(foundEndpoint.DailyThroughput.Count, Is.EqualTo(1));
-            Assert.That(foundEndpoint.UserIndicatedSendOnly, Is.EqualTo(true));
-            Assert.That(foundEndpoint.UserIndicatedToIgnore, Is.EqualTo(true));
+            Assert.That(foundEndpoint.UserIndicator, Is.EqualTo(userIndicator));
         }
 
         [Test]
@@ -185,12 +183,12 @@
             var endpointWithUserIndicators = new Endpoint
             {
                 Name = "Endpoint",
+                SanitizedName = "Endpoint",
                 ThroughputSource = ThroughputSource.Audit,
-                UserIndicatedSendOnly = true,
-                UserIndicatedToIgnore = true,
+                UserIndicator = "someIndicator",
             };
 
-            await DataStore.UpdateUserIndicationOnEndpoints([endpointWithUserIndicators]);
+            await DataStore.UpdateUserIndicatorOnEndpoints([endpointWithUserIndicators]);
 
             var foundEndpoint = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
             var allEndpoints = await DataStore.GetAllEndpoints();
@@ -205,6 +203,7 @@
             var endpointAudit = new Endpoint
             {
                 Name = "Endpoint",
+                SanitizedName = "Endpoint",
                 ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
             };
@@ -213,43 +212,57 @@
             var endpointMonitoring = new Endpoint
             {
                 Name = "Endpoint",
+                SanitizedName = "Endpoint",
                 ThroughputSource = ThroughputSource.Monitoring,
                 DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 70 }]
             };
             await DataStore.RecordEndpointThroughput(endpointMonitoring);
 
+
             var foundEndpointAudit = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
             Assert.That(foundEndpointAudit, Is.Not.Null);
             Assert.That(foundEndpointAudit.DailyThroughput.Count, Is.EqualTo(1));
-            Assert.That(foundEndpointAudit.UserIndicatedSendOnly, Is.Null);
-            Assert.That(foundEndpointAudit.UserIndicatedToIgnore, Is.Null);
+            Assert.That(foundEndpointAudit.UserIndicator, Is.Null);
 
             var foundEndpointMonitoring = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Monitoring);
             Assert.That(foundEndpointMonitoring, Is.Not.Null);
             Assert.That(foundEndpointMonitoring.DailyThroughput.Count, Is.EqualTo(1));
-            Assert.That(foundEndpointMonitoring.UserIndicatedSendOnly, Is.Null);
-            Assert.That(foundEndpointMonitoring.UserIndicatedToIgnore, Is.Null);
+            Assert.That(foundEndpointMonitoring.UserIndicator, Is.Null);
 
-
+            var userIndicator = "someIndicator";
             var endpointWithUserIndicators = new Endpoint
             {
                 Name = "Endpoint",
-                UserIndicatedSendOnly = true,
-                UserIndicatedToIgnore = true,
+                SanitizedName = "Endpoint",
+                UserIndicator = userIndicator
             };
-            await DataStore.UpdateUserIndicationOnEndpoints([endpointWithUserIndicators]);
+
+            await DataStore.UpdateUserIndicatorOnEndpoints([endpointWithUserIndicators]);
 
             foundEndpointAudit = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
             Assert.That(foundEndpointAudit, Is.Not.Null);
             Assert.That(foundEndpointAudit.DailyThroughput.Count, Is.EqualTo(1));
-            Assert.That(foundEndpointAudit.UserIndicatedSendOnly, Is.EqualTo(true));
-            Assert.That(foundEndpointAudit.UserIndicatedToIgnore, Is.EqualTo(true));
+            Assert.That(foundEndpointAudit.UserIndicator, Is.EqualTo(userIndicator));
 
             foundEndpointMonitoring = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Monitoring);
             Assert.That(foundEndpointMonitoring, Is.Not.Null);
             Assert.That(foundEndpointMonitoring.DailyThroughput.Count, Is.EqualTo(1));
-            Assert.That(foundEndpointMonitoring.UserIndicatedSendOnly, Is.EqualTo(true));
-            Assert.That(foundEndpointMonitoring.UserIndicatedToIgnore, Is.EqualTo(true));
+            Assert.That(foundEndpointMonitoring.UserIndicator, Is.EqualTo(userIndicator));
+        }
+
+        [Test]
+        public async Task Should_correctly_report_throughput_existence_for_X_days()
+        {
+            var endpointAudit = new Endpoint
+            {
+                Name = "Endpoint",
+                ThroughputSource = ThroughputSource.Audit,
+                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date.AddDays(-10), TotalThroughput = 50 }]
+            };
+            await DataStore.RecordEndpointThroughput(endpointAudit);
+
+            Assert.That(await DataStore.IsThereThroughputForLastXDays(5), Is.False);
+            Assert.That(await DataStore.IsThereThroughputForLastXDays(20), Is.True);
         }
     }
 }
