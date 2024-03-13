@@ -24,7 +24,7 @@
         {
             var connectionString = transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out var subscriptionTableName);
 
-            var transport = new AzureStorageQueueTransport(connectionString)
+            var transport = new AzureStorageQueueTransport(connectionString, useNativeDelayedDeliveries: false)
             {
                 QueueNameSanitizer = BackwardsCompatibleQueueNameSanitizer.Sanitize,
                 MessageInvisibleTime = TimeSpan.FromMinutes(1)
@@ -36,7 +36,6 @@
             }
 
             transport.MessageWrapperSerializationDefinition = new NewtonsoftJsonSerializer();
-            transport.DelayedDelivery.DelayedDeliveryPoisonQueue = transportSettings.ErrorQueue;
 
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 
