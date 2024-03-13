@@ -103,23 +103,7 @@
             }
 
             var configuration = new EndpointConfiguration(instanceName);
-
-            configuration.GetSettings().Set("SC.ScenarioContext", context);
-            configuration.GetSettings().Set(context);
-
-            configuration.RegisterComponents(r =>
-            {
-                r.AddSingleton(context.GetType(), context);
-                r.AddSingleton(typeof(ScenarioContext), context);
-            });
-
-            configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
-            configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
-            configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");
-            configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
-
-            var assemblyScanner = configuration.AssemblyScanner();
-            assemblyScanner.ExcludeAssemblies(Path.GetFileName(typeof(ServiceControlComponentRunner).Assembly.Location));
+            configuration.CustomizeServiceControlEndpointTesting(context);
 
             customConfiguration(configuration);
 
@@ -136,25 +120,7 @@
                 });
                 hostBuilder.AddServiceControl(settings, configuration, loggingSettings);
 
-                // Do not register additional test controllers or hosted services here. Instead, in the test that needs them, use (for example):
-                // CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) => services.AddHostedService<SetupNotificationSettings>());
-                hostBuilder.Logging.AddScenarioContextLogging();
-
-                // TODO: the following four lines could go into a AddServiceControlTesting() extension
-                hostBuilder.WebHost.UseTestServer(options => options.BaseAddress = new Uri(settings.RootUrl));
-                hostBuilder.Services.AddSingleton<IHostLifetime, TestServerHostLifetime>();
-
-                // This facilitates receiving the test server anywhere where DI is available
-                hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());
-
-                // By default ASP.NET Core uses entry point assembly to discover controllers from. When running
-                // inside a test runner the runner exe becomes the entry point which obviously has no controllers in it ;)
-                // so we are explicitly registering all necessary application parts.
-                var addControllers = hostBuilder.Services.AddControllers();
-                addControllers.AddApplicationPart(typeof(WebApiHostBuilderExtensions).Assembly);
-                addControllers.AddApplicationPart(typeof(AcceptanceTest).Assembly);
-
-                hostBuilder.Services.OverrideHttpClientDefaults(settings);
+                hostBuilder.AddServiceControlTesting(settings);
 
                 hostBuilderCustomization(hostBuilder);
 
