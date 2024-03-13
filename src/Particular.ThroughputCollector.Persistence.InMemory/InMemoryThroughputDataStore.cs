@@ -1,5 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.Persistence.InMemory;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -69,24 +70,28 @@ class InMemoryThroughputDataStore : IThroughputDataStore
         await Task.CompletedTask;
     }
 
-    public async Task UpdateUserIndicationOnEndpoints(List<Endpoint> endpointsWithUserIndicator)
+    public async Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator)
     {
-        endpointsWithUserIndicator.DistinctBy(b => b.Name).ToList().ForEach(e =>
+        endpointsWithUserIndicator.DistinctBy(b => b.SanitizedName).ToList().ForEach(e =>
         {
             //if there are multiple sources of throughput for the endpoint, update them all
-            var existingEndpoints = GetAllEndpointThroughput(e.Name);
+            var existingEndpoints = GetAllEndpointThroughput(e.SanitizedName);
 
             existingEndpoints.ForEach(u =>
             {
-                u.UserIndicatedSendOnly = e.UserIndicatedSendOnly;
-                u.UserIndicatedToIgnore = e.UserIndicatedToIgnore;
+                u.UserIndicator = e.UserIndicator;
             });
         });
 
         await Task.CompletedTask;
     }
 
-    private List<Endpoint> GetAllEndpointThroughput(string name) => endpoints.Where(w => w.Name == name).ToList();
+    public async Task<bool> IsThereThroughputForLastXDays(int days)
+    {
+        return await Task.FromResult(endpoints.Any(e => e.DailyThroughput.Any(t => t.DateUTC >= DateTime.UtcNow.Date.AddDays(-days) && t.DateUTC <= DateTime.UtcNow.Date.AddDays(-1))));
+    }
+
+    private List<Endpoint> GetAllEndpointThroughput(string name) => endpoints.Where(w => w.SanitizedName == name).ToList();
 
     public Task Setup() => Task.CompletedTask;
 }
