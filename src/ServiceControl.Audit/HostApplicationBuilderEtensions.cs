@@ -24,9 +24,9 @@ using NServiceBus.Transport;
 using Persistence;
 using Transports;
 
-static class WebApplicationBuilderExtension
+static class HostApplicationBuilderEtensions
 {
-    public static void AddServiceControlAudit(this WebApplicationBuilder builder,
+    public static void AddServiceControlAudit(this IHostApplicationBuilder builder,
         Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError,
         Settings settings,
         EndpointConfiguration configuration,
@@ -90,8 +90,6 @@ static class WebApplicationBuilderExtension
             services.AddHostedService<AuditIngestion>();
         }
 
-        builder.AddWebApi(settings.RootUrl);
-
         builder.Services.AddWindowsService();
     }
 
@@ -108,7 +106,7 @@ static class WebApplicationBuilderExtension
 
     static void RecordStartup(Settings settings, LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration, IPersistenceConfiguration persistenceConfiguration)
     {
-        var version = FileVersionInfo.GetVersionInfo(typeof(WebApplicationBuilderExtension).Assembly.Location).ProductVersion;
+        var version = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderEtensions).Assembly.Location).ProductVersion;
 
         var startupMessage = $@"
 -------------------------------------------------------------
@@ -121,7 +119,7 @@ Persistence Customization:          {settings.PersistenceType},
 Persistence:                        {persistenceConfiguration.Name}
 -------------------------------------------------------------";
 
-        var logger = LogManager.GetLogger(typeof(WebApplicationBuilderExtension));
+        var logger = LogManager.GetLogger(typeof(HostApplicationBuilderEtensions));
         logger.Info(startupMessage);
         endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
         {

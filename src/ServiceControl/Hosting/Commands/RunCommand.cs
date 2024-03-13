@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Hosting.Commands
 {
     using System.Threading.Tasks;
+    using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
     using NServiceBus;
     using Particular.ServiceControl;
@@ -22,10 +23,11 @@
 
             var hostBuilder = WebApplication.CreateBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration, loggingSettings);
+            hostBuilder.AddServiceControlApi();
 
             var app = hostBuilder.Build();
             app.UseServiceControl();
-            await app.RunAsync();
+            await app.RunAsync(settings.RootUrl);
         }
     }
 }

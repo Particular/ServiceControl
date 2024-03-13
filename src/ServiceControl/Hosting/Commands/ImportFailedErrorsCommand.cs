@@ -3,8 +3,8 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NLog;
     using NServiceBus;
     using Operations;
@@ -24,12 +24,10 @@
 
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info);
 
-            // TODO: Ideally we would never want to actually bootstrap the web api. Figure out how
-            var hostBuilder = WebApplication.CreateBuilder();
+            var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration, loggingSettings);
 
             using var app = hostBuilder.Build();
-            app.UseServiceControl();
             await app.StartAsync();
 
             var importFailedErrors = app.Services.GetRequiredService<ImportFailedErrors>();

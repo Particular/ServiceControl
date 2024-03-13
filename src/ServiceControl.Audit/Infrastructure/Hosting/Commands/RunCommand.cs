@@ -4,6 +4,7 @@
     using Microsoft.AspNetCore.Builder;
     using NServiceBus;
     using Settings;
+    using WebApi;
 
     class RunCommand : AbstractCommand
     {
@@ -21,10 +22,11 @@
                 //Do nothing. The transports in NSB 8 are designed to handle broker outages. Audit ingestion will be paused when broker is unavailable.
                 return Task.CompletedTask;
             }, settings, endpointConfiguration, loggingSettings);
+            hostBuilder.AddServiceControlAuditApi();
 
             var app = hostBuilder.Build();
             app.UseServiceControlAudit();
-            await app.RunAsync();
+            await app.RunAsync(settings.RootUrl);
         }
     }
 }

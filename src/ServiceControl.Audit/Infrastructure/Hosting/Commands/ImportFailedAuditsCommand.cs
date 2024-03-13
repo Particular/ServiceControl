@@ -4,8 +4,8 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Auditing;
-    using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NLog;
     using NServiceBus;
     using Settings;
@@ -21,8 +21,7 @@
 
             using var tokenSource = new CancellationTokenSource();
 
-            // TODO: Ideally we would never want to actually bootstrap the web api. Figure out how
-            var hostBuilder = WebApplication.CreateBuilder();
+            var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControlAudit((_, __) =>
             {
                 tokenSource.Cancel();
@@ -30,7 +29,6 @@
             }, settings, endpointConfiguration, loggingSettings);
 
             using var app = hostBuilder.Build();
-            app.UseServiceControlAudit();
             await app.StartAsync(tokenSource.Token);
 
             var importer = app.Services.GetRequiredService<ImportFailedAudits>();

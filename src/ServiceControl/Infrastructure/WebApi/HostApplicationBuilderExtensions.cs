@@ -1,26 +1,20 @@
 ﻿namespace ServiceControl.Infrastructure.WebApi
 {
-    using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Microsoft.Extensions.Hosting;
     using ServiceControl.CompositeViews.Messages;
 
-    static class WebApiHostBuilderExtensions
+    static class HostApplicationBuilderExtensions
     {
-        public static void AddWebApi(this WebApplicationBuilder builder, List<Assembly> apiAssemblies, string rootUrl)
+        public static void AddServiceControlApi(this IHostApplicationBuilder builder)
         {
-            builder.WebHost.UseUrls(rootUrl);
-
-            foreach (var apiAssembly in apiAssemblies)
-            {
-                // This registers concrete classes that implement IApi. Currently it is hard to find out to what
-                // component those APIs should belong to so we leave it here for now.
-                builder.Services.RegisterApiTypes(apiAssembly);
-            }
+            // This registers concrete classes that implement IApi. Currently it is hard to find out to what
+            // component those APIs should belong to so we leave it here for now.
+            builder.Services.RegisterApiTypes(Assembly.GetExecutingAssembly());
 
             builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
 
@@ -35,6 +29,7 @@
                 options.ModelBinderProviders.Insert(0, new PagingInfoModelBindingProvider());
                 options.ModelBinderProviders.Insert(0, new SortInfoModelBindingProvider());
             });
+            controllers.AddApplicationPart(Assembly.GetExecutingAssembly());
             controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
 
             var signalR = builder.Services.AddSignalR();

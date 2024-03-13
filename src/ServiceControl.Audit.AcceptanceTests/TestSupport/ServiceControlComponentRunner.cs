@@ -9,21 +9,16 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Auditing;
-    using Infrastructure;
     using Infrastructure.Hosting;
     using Infrastructure.Hosting.Commands;
     using Infrastructure.Settings;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.AspNetCore.TestHost;
-    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Configuration.AdvancedExtensibility;
 
     public class ServiceControlComponentRunner(
         ITransportIntegration transportToUse,
@@ -128,6 +123,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     context.Logs.Enqueue(logitem);
                     return criticalErrorContext.Stop(cancellationToken);
                 }, settings, configuration, loggingSettings);
+
+                hostBuilder.AddServiceControlAuditApi();
 
                 hostBuilder.AddServiceControlAuditTesting(settings);
 

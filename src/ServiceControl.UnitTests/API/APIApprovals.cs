@@ -178,7 +178,7 @@
         {
             var settings = (object)new Settings();
 
-            var serviceControlTypes = typeof(WebApplicationBuilderExtension).Assembly
+            var serviceControlTypes = typeof(Settings).Assembly
                 .GetTypes()
                 .Where(t => t.IsAbstract == false);
 
