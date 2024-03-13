@@ -30,7 +30,7 @@
         {
             try
             {
-                await TestGetServerName(cancellationToken).ConfigureAwait(false);
+                await TestGetServerName(cancellationToken);
             }
             catch (SqlException x) when (IsConnectionOrLoginIssue(x))
             {
@@ -84,7 +84,7 @@
 
         async Task TestGetServerName(CancellationToken cancellationToken)
         {
-            await using var conn = await OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+            await using var conn = await OpenConnectionAsync(cancellationToken);
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = "select @@SERVERNAME";
 
@@ -114,10 +114,10 @@
         {
             var table = new QueueTableSnapshot(queueTableName);
 
-            await using var conn = await OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+            await using var conn = await OpenConnectionAsync(cancellationToken);
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = $"select IDENT_CURRENT('{table.FullName}')";
-            object? value = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            object? value = await cmd.ExecuteScalarAsync(cancellationToken);
 
             if (value is decimal decimalValue) // That's the return type of IDENT_CURRENT
             {
@@ -130,7 +130,7 @@
         private async Task<SqlConnection> OpenConnectionAsync(CancellationToken cancellationToken = default)
         {
             var conn = new SqlConnection(connectionString);
-            await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await conn.OpenAsync(cancellationToken);
             return conn;
         }
 
