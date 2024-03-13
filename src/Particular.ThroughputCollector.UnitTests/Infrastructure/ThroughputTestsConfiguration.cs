@@ -1,7 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests.Infrastructure
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using Particular.ThroughputCollector.Contracts;
@@ -14,7 +13,7 @@
         public IThroughputCollector ThroughputCollector { get; protected set; }
         public ThroughputSettings ThroughputSettings { get; protected set; }
 
-        public Task Configure(Action<ThroughputSettings> setThroughputSettings, List<Endpoint> endpointsWithThroughput)
+        public Task Configure(Action<ThroughputSettings> setThroughputSettings)
         {
             var config = new InMemoryPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
@@ -35,11 +34,6 @@
             ThroughputDataStore = serviceProvider.GetRequiredService<IThroughputDataStore>();
             ThroughputCollector = serviceProvider.GetRequiredService<IThroughputCollector>();
             ThroughputSettings = serviceProvider.GetRequiredService<ThroughputSettings>();
-
-            endpointsWithThroughput.ForEach(async e =>
-            {
-                await ThroughputDataStore.RecordEndpointThroughput(e);
-            });
 
             return Task.CompletedTask;
         }
