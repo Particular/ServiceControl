@@ -23,7 +23,7 @@
         [HttpPost]
         public async Task<IActionResult> UpdateUserSelectionOnEndpointThroughput(List<EndpointThroughputSummary> endpointThroughputs)
         {
-            await throughputCollector.UpdateUserSelectionOnEndpointThroughput(endpointThroughputs);
+            await throughputCollector.UpdateUserIndicatorsOnEndpoints(endpointThroughputs);
             return Ok();
         }
 

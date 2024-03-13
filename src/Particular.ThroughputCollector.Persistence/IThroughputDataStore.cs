@@ -7,6 +7,7 @@ public interface IThroughputDataStore
     //Task<IReadOnlyList<Endpoint>> GetAllNonBrokerEndpoints();
     Task<Endpoint?> GetEndpointByName(string name, ThroughputSource throughputSource);
     Task RecordEndpointThroughput(Endpoint endpoint);
-    Task UpdateUserIndicationOnEndpoints(List<Endpoint> endpointsWithUserIndicator);
+    Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator);
     Task AppendEndpointThroughput(Endpoint endpoint);
+    Task<bool> IsThereThroughputForLastXDays(int days);
 }

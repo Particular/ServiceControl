@@ -1,7 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests.Infrastructure
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
     using NUnit.Framework;
     using Particular.ThroughputCollector.Contracts;
@@ -12,16 +11,13 @@
     {
         //public Action<PersistenceSettings> SetPersistenceSettings = _ => { };
         public Action<ThroughputSettings> SetThroughputSettings = _ => { };
-        public List<Endpoint> EndpointsWithThroughput = [];
 
         [SetUp]
         public virtual Task Setup()
         {
             configuration = new ThroughputTestsConfiguration();
 
-            return configuration.Configure(SetThroughputSettings, EndpointsWithThroughput);
-
-            //return Task.CompletedTask;
+            return configuration.Configure(SetThroughputSettings);
         }
 
         [TearDown]
