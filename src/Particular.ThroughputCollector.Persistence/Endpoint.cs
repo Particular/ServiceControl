@@ -8,8 +8,7 @@ public record Endpoint
     public string SanitizedName { get; set; }
     public ThroughputSource ThroughputSource { get; set; }
     public string[] EndpointIndicators { get; set; }
-    public bool? UserIndicatedSendOnly { get; set; }
-    public bool? UserIndicatedToIgnore { get; set; }
+    public string UserIndicator { get; set; }
 
     public List<EndpointThroughput> DailyThroughput { get; set; } = [];
 }
