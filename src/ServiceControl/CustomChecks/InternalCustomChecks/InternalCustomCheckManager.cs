@@ -28,7 +28,7 @@
             timer = scheduler.Schedule(
                 Run,
                 TimeSpan.Zero,
-                check.Interval ?? TimeSpan.MaxValue,
+                check.Interval ?? Timeout.InfiniteTimeSpan,
                 e => { /* Should not happen */ }
             );
         }
