@@ -11,6 +11,8 @@ public interface IThroughputQuery
         CancellationToken cancellationToken = default);
 
     IAsyncEnumerable<IQueueName> GetQueueNames(CancellationToken cancellationToken = default);
+
+    string? ScopeType { get; }
 }
 
 public interface IQueueName

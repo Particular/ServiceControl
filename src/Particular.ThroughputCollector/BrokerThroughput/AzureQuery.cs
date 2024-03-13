@@ -129,4 +129,6 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery
 
         throw new Exception($"Could not find a ServiceBus named \"{serviceBusName}\"");
     }
+
+    public string? ScopeType { get; }
 }

@@ -13,4 +13,6 @@ public class RabbitMQQuery : IThroughputQuery
 
     public IAsyncEnumerable<IQueueName> GetQueueNames(CancellationToken cancellationToken = default) =>
         throw new NotImplementedException();
+
+    public string? ScopeType { get; }
 }
