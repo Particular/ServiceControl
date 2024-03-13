@@ -48,6 +48,7 @@ public class SqlServerQuery(ILogger<SqlServerQuery> logger) : IThroughputQuery
 
         yield return new EndpointThroughput
         {
+            Scope = queueTableName.GetScope(),
             DateUTC = DateTime.UtcNow.Date,
             TotalThroughput = endData.RowVersion - startData.RowVersion
         };
@@ -56,15 +57,44 @@ public class SqlServerQuery(ILogger<SqlServerQuery> logger) : IThroughputQuery
     public async IAsyncEnumerable<IQueueName> GetQueueNames(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        var tables = new List<QueueTableName>();
+
         foreach (var db in databases)
         {
             await db.TestConnection(cancellationToken);
-            var tables = await db.GetTables(cancellationToken);
+            tables.AddRange(await db.GetTables(cancellationToken));
+        }
 
-            foreach (var tableName in tables)
+        int catalogCount = tables.Select(t => t.DatabaseDetails.DatabaseName).Distinct().Count();
+        int schemaCount = tables.Select(t => $"{t.DatabaseDetails.DatabaseName}/{t.Schema}").Distinct().Count();
+
+        if (catalogCount > 1)
+        {
+            ScopeType = schemaCount > 1 ? "Catalog & Schema" : "Catalog";
+        }
+        else if (schemaCount > 1)
+        {
+            ScopeType = "Schema";
+        }
+
+        foreach (var tableName in tables)
+        {
+            switch (ScopeType)
             {
-                yield return tableName;
+                case "Schema":
+                    tableName.GetScope = () => tableName.Schema;
+                    break;
+                case "Catalog":
+                    tableName.GetScope = () => tableName.DatabaseDetails.DatabaseName;
+                    break;
+                case "Catalog & Schema":
+                    tableName.GetScope = () => tableName.DatabaseNameAndSchema;
+                    break;
             }
+
+            yield return tableName;
         }
     }
+
+    public string? ScopeType { get; set; }
 }
