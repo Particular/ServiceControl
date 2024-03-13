@@ -116,4 +116,6 @@ public class AmazonSQSQuery : IThroughputQuery
             }
         }
     }
+
+    public string? ScopeType { get; }
 }
