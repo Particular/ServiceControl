@@ -6,8 +6,7 @@
     {
         public string Name { get; set; }
         public bool IsKnownEndpoint { get; set; }
-        public bool? UserIndicatedSendOnly { get; set; }
-        public bool? UserIndicatedToIgnore { get; set; }
+        public string UserIndicator { get; set; }
         public long MaxDailyThroughput { get; set; }
     }
 }
