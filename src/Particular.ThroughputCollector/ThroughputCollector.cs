@@ -31,15 +31,15 @@
             return await Task.FromResult(new BrokerSettingsTestResult { Broker = throughputSettings.Broker, ConnectionSuccessful = true });
         }
 
-        public async Task UpdateUserSelectionOnEndpointThroughput(List<EndpointThroughputSummary> endpointThroughputs)
+        public async Task UpdateUserIndicatorsOnEndpoints(List<EndpointThroughputSummary> endpointThroughputs)
         {
-            await dataStore.UpdateUserIndicationOnEndpoints(endpointThroughputs.Select(e =>
+            await dataStore.UpdateUserIndicatorOnEndpoints(endpointThroughputs.Select(e =>
             {
                 return new Endpoint
                 {
                     Name = e.Name,
-                    UserIndicatedSendOnly = e.UserIndicatedSendOnly,
-                    UserIndicatedToIgnore = e.UserIndicatedToIgnore,
+                    SanitizedName = e.Name,
+                    UserIndicator = e.UserIndicator,
                 };
             }).ToList());
 
@@ -59,8 +59,7 @@
                 {
                     //want to display the endpoint name to the user if it's different to the sanitized endpoint name
                     Name = endpoint.Any(w => w.Name != w.SanitizedName) ? endpoint.First(w => w.Name != w.SanitizedName).Name : endpoint.Key,
-                    UserIndicatedSendOnly = UserIndicatedSendOnly(endpoint),
-                    UserIndicatedToIgnore = UserIndicatedToIgnore(endpoint),
+                    UserIndicator = UserIndicator(endpoint) ?? string.Empty,
                     IsKnownEndpoint = IsKnownEndpoint(endpoint),
                     MaxDailyThroughput = MaxDailyThroughput(endpoint) ?? 0
                 };
@@ -73,15 +72,16 @@
 
         public async Task<ReportGenerationState> GetReportGenerationState()
         {
-            //TODO
             var reportGenerationState = new ReportGenerationState
             {
                 Broker = throughputSettings.Broker,
                 ConnectionToBrokerWorking = (await TestBrokerSettings()).ConnectionSuccessful,
-                EnoughDataToReportOn = true //todo 
+                EnoughDataToReportOn = await dataStore.IsThereThroughputForLastXDays(30),
             };
 
-            return await Task.FromResult(reportGenerationState);
+            reportGenerationState.ReportCanBeGenerated = reportGenerationState.ConnectionToBrokerWorking && reportGenerationState.EnoughDataToReportOn;
+
+            return reportGenerationState;
         }
 
         public async Task<SignedReport> GenerateThroughputReport(string? prefix, string[]? masks, string? spVersion)
@@ -130,8 +130,7 @@
             return string.Empty; //TODO
         }
 
-        bool UserIndicatedSendOnly(IGrouping<string, Endpoint> endpoint) => endpoint.Any(s => s.UserIndicatedSendOnly == true);
-        bool UserIndicatedToIgnore(IGrouping<string, Endpoint> endpoint) => endpoint.Any(s => s.UserIndicatedToIgnore == true);
+        string? UserIndicator(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => string.IsNullOrEmpty(s.UserIndicator))?.UserIndicator;
         bool IsKnownEndpoint(IGrouping<string, Endpoint> endpoint) => endpoint.Any(s => s.EndpointIndicators != null && s.EndpointIndicators.Contains(EndpointIndicator.KnownEndpoint.ToString()));
 
         //get the max throughput recorded for the endpoints - shouldn't matter where it comes from (ie broker or service control)
