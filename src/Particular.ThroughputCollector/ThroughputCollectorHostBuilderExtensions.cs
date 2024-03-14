@@ -48,7 +48,6 @@
                 serviceControlAPI = serviceControlAPI.Replace("http://0.0.0.0", "http://localhost");
             }
 
-            //TODO could get ILoggerFactory loggerFactory here and create the one for throughput collector and inject the ilogger into the services - that way won't have to create it every time.
             services.AddSingleton(new ThroughputSettings(broker: broker, transportConnectionString: transportConnectionString, serviceControlAPI: serviceControlAPI, serviceControlQueue: serviceControlQueue, errorQueue: errorQueue, persistenceType: persistenceType, customerName: customerName, serviceControlVersion: serviceControlVersion, auditQueue: auditQueue));
             services.AddHostedService<AuditThroughputCollectorHostedService>();
             services.AddSingleton<IThroughputCollector, ThroughputCollector>();
