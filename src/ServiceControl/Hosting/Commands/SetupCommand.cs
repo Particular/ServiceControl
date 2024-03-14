@@ -10,6 +10,8 @@
     using LicenseManagement;
     using Persistence;
     using Transports;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.DependencyInjection;
 
     class SetupCommand : AbstractCommand
     {
@@ -23,23 +25,29 @@
                 return;
             }
 
+            var hostBuilder = Host.CreateApplicationBuilder();
+
             var componentSetupContext = new ComponentInstallationContext();
 
             foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
             {
+                component.ConfigureInstallation(settings, hostBuilder);
                 component.Setup(settings, componentSetupContext);
             }
 
+            var persistence = PersistenceFactory.Create(settings);
+            persistence.ConfigureInstaller(hostBuilder.Services);
+
+            var host = hostBuilder.Build();
+
+            await host.Services
+                .GetRequiredService<IPersistenceInstaller>()
+                .Install();
+
             foreach (var installationTask in componentSetupContext.InstallationTasks)
             {
-                await installationTask();
+                await installationTask(host.Services);
             }
-
-            var persistence = PersistenceFactory.Create(settings);
-
-            var installer = persistence.CreateInstaller();
-
-            await installer.Install();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -60,7 +68,7 @@
             }
         }
 
-        bool ValidateLicense(Settings settings)
+        static bool ValidateLicense(Settings settings)
         {
             if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
             {
