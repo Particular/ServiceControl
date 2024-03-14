@@ -4,14 +4,13 @@
     using System.Linq;
     using System.Threading.Tasks;
     using NUnit.Framework;
-    using Particular.ThroughputCollector.Contracts;
     using Particular.ThroughputCollector.Persistence;
     using Particular.ThroughputCollector.UnitTests.Infrastructure;
 
     [TestFixture]
     class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixture
     {
-        readonly Broker broker = Broker.AzureServiceBus;
+        readonly Contracts.Broker broker = Contracts.Broker.AzureServiceBus;
         public override Task Setup()
         {
             SetThroughputSettings = s =>
