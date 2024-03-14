@@ -10,4 +10,6 @@ public interface IThroughputDataStore
     Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator);
     Task AppendEndpointThroughput(Endpoint endpoint);
     Task<bool> IsThereThroughputForLastXDays(int days);
+    Task<BrokerData?> GetBrokerData(Broker broker);
+    Task SaveBrokerData(Broker broker, string? scopeType, string? Version);
 }
