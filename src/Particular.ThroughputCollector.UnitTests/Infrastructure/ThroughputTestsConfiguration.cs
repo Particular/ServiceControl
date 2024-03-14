@@ -22,7 +22,7 @@
             var persistence = config.Create(settings);
             persistence.Configure(serviceCollection);
 
-            var throughputSettings = new ThroughputSettings(broker: Broker.ServiceControl, transportConnectionString: "", serviceControlAPI: "http://localhost:33333/api", serviceControlQueue: "Particular.ServiceControl", errorQueue: "error", persistenceType: "InMemory", customerName: "TestCustomer", serviceControlVersion: "5.0.1", auditQueue: "audit");
+            var throughputSettings = new ThroughputSettings(broker: Contracts.Broker.None, transportConnectionString: "", serviceControlAPI: "http://localhost:33333/api", serviceControlQueue: "Particular.ServiceControl", errorQueue: "error", persistenceType: "InMemory", customerName: "TestCustomer", serviceControlVersion: "5.0.1", auditQueue: "audit");
             setThroughputSettings(throughputSettings);
             serviceCollection.AddSingleton(throughputSettings);
             serviceCollection.AddSingleton<IThroughputCollector, ThroughputCollector>();
