@@ -41,7 +41,7 @@
             //for each broker try and grab the required settings from config/env, and if they don't exist try to get them from the transportConnectionString
             switch (brokerSettings.Broker)
             {
-                case Broker.ServiceControl:
+                case Broker.None:
                     brokerSettingValues[ServiceControlSettings.API] = GetConfigSetting(ServiceControlSettings.API);
                     if (string.IsNullOrEmpty(brokerSettingValues[ServiceControlSettings.API]))
                     {

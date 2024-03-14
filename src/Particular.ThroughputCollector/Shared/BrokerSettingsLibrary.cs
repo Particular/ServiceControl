@@ -9,10 +9,10 @@ public static class BrokerSettingsLibrary
 
     static BrokerSettingsLibrary()
     {
-        //Service Control
+        //No broker used - ie need to use service control to gather data
         AllBrokerSettings.Add(new BrokerSettings
         {
-            Broker = Broker.ServiceControl,
+            Broker = Broker.None,
             Settings = [new BrokerSetting { Name = ServiceControlSettings.API, Description = ServiceControlSettings.APIDescription },
                 new BrokerSetting { Name = ServiceControlSettings.Queue, Description = ServiceControlSettings.QueueDescription }
             ]

@@ -16,7 +16,7 @@
 
             var services = hostBuilder.Services;
 
-            var broker = Contracts.Broker.ServiceControl;
+            var broker = Contracts.Broker.None;
             switch (transportType)
             {
                 case "NetStandardAzureServiceBus":
