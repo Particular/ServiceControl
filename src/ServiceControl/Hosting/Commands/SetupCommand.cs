@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Hosting.Commands
+namespace ServiceControl.Hosting.Commands
 {
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
@@ -10,6 +10,8 @@
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
     using Transports;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.DependencyInjection;
 
     class SetupCommand : AbstractCommand
     {
