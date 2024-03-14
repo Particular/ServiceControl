@@ -9,9 +9,9 @@
 
     class AuditThroughputCollectorHostedService : IHostedService
     {
-        public AuditThroughputCollectorHostedService(ILoggerFactory loggerFactory, ThroughputSettings throughputSettings, IThroughputDataStore dataStore)
+        public AuditThroughputCollectorHostedService(ILogger<AuditThroughputCollectorHostedService> logger, ThroughputSettings throughputSettings, IThroughputDataStore dataStore)
         {
-            logger = loggerFactory.CreateLogger<AuditThroughputCollectorHostedService>();
+            this.logger = logger;
             this.throughputSettings = throughputSettings;
             this.dataStore = dataStore;
         }
