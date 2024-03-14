@@ -11,7 +11,7 @@
     [TestFixture]
     class ThroughputCollector_Indicator_Tests : ThroughputCollectorTestFixture
     {
-        readonly Broker broker = Broker.AzureServiceBus;
+        readonly Contracts.Broker broker = Contracts.Broker.AzureServiceBus;
         public override Task Setup()
         {
             SetThroughputSettings = s =>
