@@ -8,11 +8,15 @@ using System.Threading.Tasks;
 class InMemoryThroughputDataStore : IThroughputDataStore
 {
     private readonly List<Endpoint> endpoints;
+    private List<BrokerData> brokerData;
 
     public InMemoryThroughputDataStore()
     {
         endpoints = [];
+        brokerData = [];
     }
+
+    public Task Setup() => Task.CompletedTask;
 
     public async Task<IReadOnlyList<Endpoint>> GetAllEndpoints()
     {
@@ -93,5 +97,22 @@ class InMemoryThroughputDataStore : IThroughputDataStore
 
     private List<Endpoint> GetAllEndpointThroughput(string name) => endpoints.Where(w => w.SanitizedName == name).ToList();
 
-    public Task Setup() => Task.CompletedTask;
+    public async Task SaveBrokerData(Broker broker, string? scopeType, string? version)
+    {
+        var existingBrokerData = await GetBrokerData(broker);
+        if (existingBrokerData == null)
+        {
+            existingBrokerData = new BrokerData { Broker = broker };
+            brokerData.Add(existingBrokerData);
+        }
+        existingBrokerData.ScopeType = scopeType ?? existingBrokerData.ScopeType;
+        existingBrokerData.Version = version ?? existingBrokerData.Version;
+
+        await Task.CompletedTask;
+    }
+
+    public async Task<BrokerData?> GetBrokerData(Broker broker)
+    {
+        return await Task.FromResult(brokerData.FirstOrDefault(w => w.Broker == broker));
+    }
 }
