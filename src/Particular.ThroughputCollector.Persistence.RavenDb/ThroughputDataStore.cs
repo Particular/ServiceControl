@@ -19,4 +19,6 @@ class ThroughputDataStore(IDocumentStore store, DatabaseConfiguration databaseCo
     public Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator) => throw new NotImplementedException();
     public Task AppendEndpointThroughput(Endpoint endpoint) => throw new NotImplementedException();
     public Task<bool> IsThereThroughputForLastXDays(int days) => throw new NotImplementedException();
+    public Task<BrokerData?> GetBrokerData(Broker broker) => throw new NotImplementedException();
+    public Task SaveBrokerData(Broker broker, string? scopeType, string? Version) => throw new NotImplementedException();
 }
