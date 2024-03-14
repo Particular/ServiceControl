@@ -7,7 +7,7 @@
     using Particular.ThroughputCollector.Shared;
     using Persistence;
 
-    class AuditThroughputCollectorHostedService : IHostedService
+    class AuditThroughputCollectorHostedService : BackgroundService
     {
         public AuditThroughputCollectorHostedService(ILogger<AuditThroughputCollectorHostedService> logger, ThroughputSettings throughputSettings, IThroughputDataStore dataStore)
         {
@@ -16,18 +16,23 @@
             this.dataStore = dataStore;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             logger.LogInformation("Starting AuditThroughputCollector Service");
-            auditThroughputGatherTimer = new Timer(async _ => await GatherThroughput(cancellationToken), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1)); //TODO this will change to every hour (or every few hours?)
-            return Task.CompletedTask;
-        }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            logger.LogInformation("Stopping AuditThroughputCollector Service");
-            auditThroughputGatherTimer?.Dispose();
-            return Task.CompletedTask;
+            using PeriodicTimer timer = new(TimeSpan.FromDays(1));
+
+            try
+            {
+                do
+                {
+                    await GatherThroughput(stoppingToken);
+                } while (await timer.WaitForNextTickAsync(stoppingToken));
+            }
+            catch (OperationCanceledException)
+            {
+                logger.LogInformation("Stopping AuditThroughputCollector Service");
+            }
         }
 
         async Task GatherThroughput(CancellationToken cancellationToken)
@@ -83,7 +88,6 @@
 
         readonly ILogger logger;
         ThroughputSettings throughputSettings;
-        Timer? auditThroughputGatherTimer;
         IThroughputDataStore dataStore;
     }
 }
