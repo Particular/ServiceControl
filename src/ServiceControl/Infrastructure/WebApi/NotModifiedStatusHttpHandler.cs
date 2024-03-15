@@ -37,7 +37,6 @@
 
             if (ifNoneMatch || ifNotModifiedSince)
             {
-                // TODO previously we were creating a brand new response, now we're adding more headers than before
                 context.Result = new StatusCodeResult((int)HttpStatusCode.NotModified);
             }
         }
