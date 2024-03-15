@@ -141,7 +141,6 @@
         public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
 
         public bool EnableFullTextSearchOnBodies { get; set; }
-        public bool ExposeApi { get; set; } = true;
 
         public ITransportCustomization LoadTransportCustomization()
         {

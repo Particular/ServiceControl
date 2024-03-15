@@ -56,9 +56,7 @@ public static class WebApplicationBuilderExtensions
 
         services.AddHttpLogging(options =>
         {
-            // TODO Do we need to expose the host?
-            // we could also include the time it took to process the request
-            options.LoggingFields = HttpLoggingFields.RequestPath | HttpLoggingFields.RequestMethod | HttpLoggingFields.ResponseStatusCode;
+            options.LoggingFields = HttpLoggingFields.RequestPath | HttpLoggingFields.RequestMethod | HttpLoggingFields.ResponseStatusCode | HttpLoggingFields.Duration;
         });
 
         // Core registers the message dispatcher to be resolved from the transport seam. The dispatcher
@@ -70,7 +68,6 @@ public static class WebApplicationBuilderExtensions
         ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, settings);
         hostBuilder.UseNServiceBus(endpointConfiguration);
 
-        // TODO Verify if that we need to check the expose API flag
         // We also don't do this in the primary instance
         hostBuilder.WebHost.UseUrls(settings.RootUrl);
         var controllers = hostBuilder.Services.AddControllers(options =>

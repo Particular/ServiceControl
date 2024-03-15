@@ -48,7 +48,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 TransportConnectionString = transportToUse.ConnectionString,
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
-                ExposeApi = false,
                 ServiceControlQueueAddress = "SHOULDNOTBEUSED",
                 MessageFilter = messageContext =>
                 {
