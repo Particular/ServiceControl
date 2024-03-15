@@ -1,7 +1,6 @@
 namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport;
 
 using System;
-using Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.TestHost;

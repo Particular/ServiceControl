@@ -3,7 +3,6 @@ namespace Particular.ServiceControl
     using System;
     using System.Diagnostics;
     using System.Net;
-    using System.Reflection;
     using System.Runtime.InteropServices;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
@@ -17,7 +16,6 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Persistence;
     using global::ServiceControl.Transports;
     using Licensing;
-    using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.HttpLogging;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;

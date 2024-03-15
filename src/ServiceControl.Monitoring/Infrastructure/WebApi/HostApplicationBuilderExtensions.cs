@@ -1,8 +1,9 @@
 namespace ServiceControl.Monitoring.Infrastructure.WebApi;
 
+using System.Reflection;
+using Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Infrastructure;
 
 public static class HostApplicationBuilderExtensions
 {
@@ -13,7 +14,7 @@ public static class HostApplicationBuilderExtensions
             options.Filters.Add<XParticularVersionHttpHandler>();
             options.Filters.Add<CachingHttpHandler>();
         });
-        controllers.AddApplicationPart(typeof(Settings).Assembly);
+        controllers.AddApplicationPart(Assembly.GetExecutingAssembly());
         controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
     }
 }

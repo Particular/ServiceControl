@@ -4,7 +4,6 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Hosting.WindowsServices;
-    using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
     using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -28,7 +27,7 @@
             }
 
             // TODO: Update to use the same pattern as the main Bootstrapper
-            using var host = hostBuilder.Build();
+            var host = hostBuilder.Build();
 
             await host.RunAsync();
         }

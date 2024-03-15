@@ -9,8 +9,6 @@ using Auditing;
 using Infrastructure;
 using Infrastructure.Metrics;
 using Infrastructure.Settings;
-using Infrastructure.WebApi;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,7 +22,7 @@ using NServiceBus.Transport;
 using Persistence;
 using Transports;
 
-static class HostApplicationBuilderEtensions
+static class HostApplicationBuilderExtensions
 {
     public static void AddServiceControlAudit(this IHostApplicationBuilder builder,
         Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError,
@@ -106,7 +104,7 @@ static class HostApplicationBuilderEtensions
 
     static void RecordStartup(Settings settings, LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration, IPersistenceConfiguration persistenceConfiguration)
     {
-        var version = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderEtensions).Assembly.Location).ProductVersion;
+        var version = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
 
         var startupMessage = $@"
 -------------------------------------------------------------
@@ -119,7 +117,7 @@ Persistence Customization:          {settings.PersistenceType},
 Persistence:                        {persistenceConfiguration.Name}
 -------------------------------------------------------------";
 
-        var logger = LogManager.GetLogger(typeof(HostApplicationBuilderEtensions));
+        var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
         logger.Info(startupMessage);
         endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
         {
