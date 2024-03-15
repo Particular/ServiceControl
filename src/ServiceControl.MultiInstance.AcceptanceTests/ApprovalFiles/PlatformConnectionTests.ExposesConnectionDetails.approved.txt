@@ -1,5 +1,5 @@
 {
-  "settings": {
+  "Settings": {
     "Heartbeats": {
       "Enabled": true,
       "HeartbeatsQueue": "Particular.ServiceControl",
@@ -20,5 +20,5 @@
       "CustomChecksQueue": "Particular.ServiceControl"
     }
   },
-  "errors": []
+  "Errors": []
 }
