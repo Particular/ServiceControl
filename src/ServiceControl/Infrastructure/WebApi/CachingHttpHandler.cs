@@ -12,7 +12,6 @@
                 return;
             }
 
-            // TODO do we even need to do this
             var response = context.HttpContext.Response;
             if (!response.Headers.ContainsKey("Cache-Control"))
             {
