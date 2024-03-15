@@ -15,14 +15,12 @@
     {
         IFailedAuditStorage failedAuditStorage;
         string logPath;
-        Func<FailedTransportMessage, object> messageBuilder;
         ImportFailureCircuitBreaker failureCircuitBreaker;
 
-        public AuditIngestionFaultPolicy(IFailedAuditStorage failedAuditStorage, LoggingSettings settings, Func<FailedTransportMessage, object> messageBuilder, Func<string, Exception, Task> onCriticalError)
+        public AuditIngestionFaultPolicy(IFailedAuditStorage failedAuditStorage, LoggingSettings settings, Func<string, Exception, Task> onCriticalError)
         {
             logPath = Path.Combine(settings.LogPath, @"FailedImports\Audit");
             this.failedAuditStorage = failedAuditStorage;
-            this.messageBuilder = messageBuilder;
 
             failureCircuitBreaker = new ImportFailureCircuitBreaker(onCriticalError);
 
@@ -43,17 +41,21 @@
 
         Task StoreFailedMessageDocument(ErrorContext errorContext, CancellationToken cancellationToken)
         {
-            var failure = (dynamic)messageBuilder(new FailedTransportMessage
+            var failure = new FailedAuditImport
             {
-                Id = errorContext.Message.MessageId,
-                Headers = errorContext.Message.Headers,
-                Body = errorContext.Message.Body.ToArray() //TODO Can this be adjusted?
-            });
+                Id = Guid.NewGuid().ToString(),
+                Message = new FailedTransportMessage
+                {
+                    Id = errorContext.Message.MessageId,
+                    Headers = errorContext.Message.Headers,
+                    Body = errorContext.Message.Body.ToArray() //TODO Can this be adjusted?
+                }
+            };
 
             return Handle(errorContext.Exception, failure, cancellationToken);
         }
 
-        async Task Handle(Exception exception, dynamic failure, CancellationToken cancellationToken)
+        async Task Handle(Exception exception, FailedAuditImport failure, CancellationToken cancellationToken)
         {
             try
             {
@@ -65,19 +67,14 @@
             }
         }
 
-#pragma warning disable IDE0060
-        async Task DoLogging(Exception exception, dynamic failure, CancellationToken cancellationToken)
-#pragma warning restore IDE0060
+        async Task DoLogging(Exception exception, FailedAuditImport failure, CancellationToken cancellationToken)
         {
-            var id = Guid.NewGuid().ToString();
-            failure.Id = id;
-
             // Write to storage
-            await failedAuditStorage.Store(failure);
+            await failedAuditStorage.SaveFailedAuditImport(failure);
 
             // Write to Log Path
             var filePath = Path.Combine(logPath, failure.Id + ".txt");
-            File.WriteAllText(filePath, exception.ToFriendlyString());
+            await File.WriteAllTextAsync(filePath, exception.ToFriendlyString(), cancellationToken);
 
             // Write to Event Log
             WriteEvent("A message import has failed. A log file has been written to " + filePath);

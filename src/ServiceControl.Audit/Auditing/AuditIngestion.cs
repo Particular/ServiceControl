@@ -53,7 +53,7 @@
                 FullMode = BoundedChannelFullMode.Wait
             });
 
-            errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, loggingSettings, FailedMessageFactory, OnCriticalError);
+            errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, loggingSettings, OnCriticalError);
 
             watchdog = new Watchdog("audit message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, logger);
 
@@ -72,14 +72,6 @@
             {
                 await transportInfrastructure.Shutdown(cancellationToken);
             }
-        }
-
-        FailedAuditImport FailedMessageFactory(FailedTransportMessage msg)
-        {
-            return new FailedAuditImport
-            {
-                Message = msg
-            };
         }
 
         Task OnCriticalError(string failure, Exception exception)
