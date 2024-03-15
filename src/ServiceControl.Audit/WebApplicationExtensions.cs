@@ -1,7 +1,7 @@
 namespace ServiceControl.Audit;
 
+using Infrastructure.WebApi;
 using Microsoft.AspNetCore.Builder;
-using Infrastructure.OWIN;
 
 public static class WebApplicationExtensions
 {

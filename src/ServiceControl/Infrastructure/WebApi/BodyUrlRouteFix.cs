@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Infrastructure.OWIN
+namespace ServiceControl.Infrastructure.WebApi
 {
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;

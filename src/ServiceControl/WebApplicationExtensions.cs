@@ -1,7 +1,7 @@
 namespace ServiceControl;
 
-using Infrastructure.OWIN;
 using Infrastructure.SignalR;
+using Infrastructure.WebApi;
 using Microsoft.AspNetCore.Builder;
 
 public static class WebApplicationExtensions

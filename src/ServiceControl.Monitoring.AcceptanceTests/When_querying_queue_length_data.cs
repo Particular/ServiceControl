@@ -82,7 +82,7 @@
                          return false;
                      }
 
-                     // TODO this should be using camalCase (the same for a few other monitoring acceptance tests, something sounds off with the json options
+                     // Metric names are fixed names and therefore are not following the casing rules of the chosen serializer
                      if (monitoredEndpointDetails.Digest.Metrics.TryGetValue("QueueLength", out var queueLength) && queueLength.Average == 0.0)
                      {
                          return false;
