@@ -3,7 +3,6 @@ namespace Particular.ServiceControl
     using System;
     using System.Diagnostics;
     using System.Net;
-    using System.Reflection;
     using System.Runtime.InteropServices;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
@@ -17,7 +16,6 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Persistence;
     using global::ServiceControl.Transports;
     using Licensing;
-    using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.HttpLogging;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -32,9 +30,9 @@ namespace Particular.ServiceControl
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    static class WebApplicationBuilderExtension
+    static class HostApplicationBuilderExtensions
     {
-        public static void AddServiceControl(this WebApplicationBuilder hostBuilder, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
+        public static void AddServiceControl(this IHostApplicationBuilder hostBuilder, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
         {
             ArgumentNullException.ThrowIfNull(configuration);
 
@@ -101,8 +99,6 @@ namespace Particular.ServiceControl
                 hostBuilder.AddExternalIntegrationEvents();
             }
 
-            hostBuilder.AddWebApi([Assembly.GetExecutingAssembly()], settings.RootUrl);
-
             hostBuilder.AddServicePulseSignalRNotifier();
             hostBuilder.AddEmailNotifications();
             hostBuilder.AddAsyncTimer();
@@ -141,7 +137,7 @@ namespace Particular.ServiceControl
 
         static void RecordStartup(Settings settings, LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
         {
-            var version = FileVersionInfo.GetVersionInfo(typeof(WebApplicationBuilderExtension).Assembly.Location).ProductVersion;
+            var version = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
 
             var startupMessage = $@"
 -------------------------------------------------------------
@@ -154,7 +150,7 @@ ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 Selected Transport Customization:   {settings.TransportType}
 -------------------------------------------------------------";
 
-            var logger = LogManager.GetLogger(typeof(WebApplicationBuilderExtension));
+            var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
             logger.Info(startupMessage);
             endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
             {

@@ -2,6 +2,7 @@ namespace ServiceControl.Monitoring
 {
     using System.Threading.Tasks;
     using Infrastructure;
+    using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
     using NServiceBus;
 
@@ -13,10 +14,11 @@ namespace ServiceControl.Monitoring
 
             var hostBuilder = WebApplication.CreateBuilder();
             hostBuilder.AddServiceControlMonitoring((_, __) => Task.CompletedTask, settings, endpointConfiguration);
+            hostBuilder.AddServiceControlMonitoringApi();
 
             var app = hostBuilder.Build();
             app.UseServiceControlMonitoring();
-            await app.RunAsync();
+            await app.RunAsync(settings.RootUrl);
         }
     }
 }

@@ -1,15 +1,14 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
+    using System.Reflection;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
 
-    static class WebApplicationBuilderExtensions
+    static class HostApplicationBuilderExtensions
     {
-        public static void AddWebApi(this WebApplicationBuilder builder, string rootUrl)
+        public static void AddServiceControlAuditApi(this IHostApplicationBuilder builder)
         {
-            builder.WebHost.UseUrls(rootUrl);
-
             builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
 
             // We're not explicitly adding Gzip here because it's already in the default list of supported compressors
@@ -23,6 +22,7 @@
                 options.ModelBinderProviders.Insert(0, new PagingInfoModelBindingProvider());
                 options.ModelBinderProviders.Insert(0, new SortInfoModelBindingProvider());
             });
+            controllers.AddApplicationPart(Assembly.GetExecutingAssembly());
             controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
         }
     }

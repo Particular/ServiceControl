@@ -11,7 +11,6 @@
     using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -19,7 +18,6 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Configuration.AdvancedExtensibility;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
     using RavenDB.Shared;
@@ -118,6 +116,7 @@
                     EnvironmentName = Environments.Development
                 });
                 hostBuilder.AddServiceControl(settings, configuration, loggingSettings);
+                hostBuilder.AddServiceControlApi();
 
                 hostBuilder.AddServiceControlTesting(settings);
 

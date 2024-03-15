@@ -8,8 +8,8 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
+    using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -17,7 +17,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
 
     class ServiceControlComponentRunner(
@@ -106,6 +105,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                     context.Logs.Enqueue(logitem);
                     return criticalErrorContext.Stop(cancellationToken);
                 }, settings, configuration);
+                hostBuilder.AddServiceControlMonitoringApi();
 
                 hostBuilder.AddServiceControlMonitoringTesting(settings);
 

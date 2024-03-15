@@ -3,7 +3,7 @@
     using System.Linq;
     using NServiceBus;
     using NUnit.Framework;
-    using Particular.ServiceControl;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     [TestFixture]
     class EventHierarchy
@@ -11,13 +11,14 @@
         [TestCase]
         public void EnsureEventHierarchyIsFlat()
         {
-            var serviceControlAssembly = typeof(WebApplicationBuilderExtension).Assembly;
+            var serviceControlAssembly = typeof(Settings).Assembly;
             var eventTypes = serviceControlAssembly.GetTypes().Where(typeof(IEvent).IsAssignableFrom).Where(x => !x.IsAbstract).ToArray();
 
             var flatEvents = eventTypes.Where(t => t.BaseType == typeof(object)).ToArray();
 
             var nonFlatEvents = eventTypes.Except(flatEvents).ToArray();
 
+            Assert.IsNotEmpty(eventTypes);
             Assert.IsEmpty(nonFlatEvents, "Complex Event Hierarchy causes duplicate event handling with Azure ServiceBus and SubscribeToOwnEvents");
         }
     }

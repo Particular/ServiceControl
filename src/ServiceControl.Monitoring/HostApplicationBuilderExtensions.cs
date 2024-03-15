@@ -6,11 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Infrastructure;
 using Infrastructure.Extensions;
-using Infrastructure.WebApi;
 using Licensing;
 using Messaging;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,9 +21,9 @@ using QueueLength;
 using Timings;
 using Transports;
 
-public static class WebApplicationBuilderExtensions
+public static class HostApplicationBuilderExtensions
 {
-    public static void AddServiceControlMonitoring(this WebApplicationBuilder hostBuilder,
+    public static void AddServiceControlMonitoring(this IHostApplicationBuilder hostBuilder,
         Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, Settings settings,
         EndpointConfiguration endpointConfiguration)
     {
@@ -56,7 +53,9 @@ public static class WebApplicationBuilderExtensions
 
         services.AddHttpLogging(options =>
         {
-            options.LoggingFields = HttpLoggingFields.RequestPath | HttpLoggingFields.RequestMethod | HttpLoggingFields.ResponseStatusCode | HttpLoggingFields.Duration;
+            // TODO Do we need to expose the host?
+            // we could also include the time it took to process the request
+            options.LoggingFields = HttpLoggingFields.RequestPath | HttpLoggingFields.RequestMethod | HttpLoggingFields.ResponseStatusCode;
         });
 
         // Core registers the message dispatcher to be resolved from the transport seam. The dispatcher
@@ -67,15 +66,6 @@ public static class WebApplicationBuilderExtensions
 
         ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, settings);
         hostBuilder.UseNServiceBus(endpointConfiguration);
-
-        // We also don't do this in the primary instance
-        hostBuilder.WebHost.UseUrls(settings.RootUrl);
-        var controllers = hostBuilder.Services.AddControllers(options =>
-        {
-            options.Filters.Add<XParticularVersionHttpHandler>();
-            options.Filters.Add<CachingHttpHandler>();
-        });
-        controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
     }
 
     internal static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, Settings settings)
