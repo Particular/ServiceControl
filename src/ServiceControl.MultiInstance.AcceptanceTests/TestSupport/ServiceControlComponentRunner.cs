@@ -66,7 +66,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 }, auditEndpointConfiguration =>
                 {
                     var scanner = auditEndpointConfiguration.AssemblyScanner();
-                    // TODO Maybe we need to find a more robust way to do this. For example excluding assemblies we find by convention
                     var excludedAssemblies = new[]
                     {
                         "ServiceControl.Persistence.RavenDB.dll",
@@ -100,7 +99,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 primaryEndpointConfiguration =>
                 {
                     var scanner = primaryEndpointConfiguration.AssemblyScanner();
-                    // TODO Maybe we need to find a more robust way to do this. For example excluding assemblies we find by convention
                     var excludedAssemblies = new[]
                     {
                         "ServiceControl.Persistence.RavenDB.dll",
