@@ -48,7 +48,10 @@
                 {
                     Id = errorContext.Message.MessageId,
                     Headers = errorContext.Message.Headers,
-                    Body = errorContext.Message.Body.ToArray() //TODO Can this be adjusted?
+                    // At the moment we are taking a defensive copy of the body to avoid issues with the message body
+                    // buffers being returned to the pool and potentially being overwritten. Once we know how RavenDB
+                    // handles byte[] to ReadOnlyMemory<byte> conversion we might be able to remove this.
+                    Body = errorContext.Message.Body.ToArray()
                 }
             };
 
