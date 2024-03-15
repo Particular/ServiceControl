@@ -13,9 +13,9 @@
 
     class AuditIngestionFaultPolicy
     {
-        IFailedAuditStorage failedAuditStorage;
-        string logPath;
-        ImportFailureCircuitBreaker failureCircuitBreaker;
+        readonly IFailedAuditStorage failedAuditStorage;
+        readonly string logPath;
+        readonly ImportFailureCircuitBreaker failureCircuitBreaker;
 
         public AuditIngestionFaultPolicy(IFailedAuditStorage failedAuditStorage, LoggingSettings settings, Func<string, Exception, Task> onCriticalError)
         {
