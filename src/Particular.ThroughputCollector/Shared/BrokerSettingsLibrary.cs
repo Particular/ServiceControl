@@ -67,6 +67,11 @@ public static class BrokerSettingsLibrary
     public static BrokerSettings Find(Broker broker) => AllBrokerSettings.First(w => w.Broker == broker);
 }
 
+public static class CommonSettings
+{
+    public static string TransportConnectionString = "ThroughputCollector/TransportConnectionString";
+}
+
 public static class ServiceControlSettings
 {
     public static string API = "ThroughputCollector/ServiceControl/ApiUrl";
