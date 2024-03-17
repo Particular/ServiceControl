@@ -8,7 +8,6 @@ using Azure.Monitor.Query.Models;
 using Azure.ResourceManager;
 using Azure.ResourceManager.ServiceBus;
 using Microsoft.Extensions.Logging;
-using Persistence;
 using Shared;
 
 public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery
@@ -61,7 +60,7 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery
         }
     }
 
-    public async IAsyncEnumerable<EndpointThroughput> GetThroughputPerDay(IQueueName queueName, DateTime startDate,
+    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateTime startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         logger.LogInformation($"Gathering metrics for \"{queueName}\" queue");
@@ -72,7 +71,7 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery
 
         foreach (var metricValue in metrics)
         {
-            yield return new EndpointThroughput
+            yield return new QueueThroughput
             {
                 TotalThroughput = (long)(metricValue.Total ?? 0),
                 DateUTC = metricValue.TimeStamp.UtcDateTime.Date
@@ -131,4 +130,6 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery
     }
 
     public string? ScopeType { get; }
+
+    public bool SupportsHistoricalMetrics => true;
 }

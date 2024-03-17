@@ -68,17 +68,23 @@ internal class BrokerThroughputCollectorHostedService(
                 endpoint = new Endpoint
                 {
                     Name = queueName.QueueName,
-                    ThroughputSource = ThroughputSource.Broker
+                    ThroughputSource = ThroughputSource.Broker,
+                    Scope = queueThroughput.Scope
                 };
                 endpoint.DailyThroughput.Add(new EndpointThroughput
                 {
                     TotalThroughput = queueThroughput.TotalThroughput,
                     DateUTC = queueThroughput.DateUTC
+                });
+
+                if (throughputQuery.SupportsHistoricalMetrics)
+                {
+                    await dataStore.RecordEndpointThroughput(endpoint);
                 }
-                );
-
-
-                await dataStore.AppendEndpointThroughput(endpoint);
+                else
+                {
+                    await dataStore.AppendEndpointThroughput(endpoint);
+                }
             }
         }
     }
