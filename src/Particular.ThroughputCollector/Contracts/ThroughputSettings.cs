@@ -57,13 +57,11 @@
                     brokerSettingValues[AmazonSQSSettings.Profile] = GetConfigSetting(AmazonSQSSettings.Profile);
                     brokerSettingValues[AmazonSQSSettings.Region] = GetConfigSetting(AmazonSQSSettings.Region);
                     brokerSettingValues[AmazonSQSSettings.Prefix] = GetConfigSetting(AmazonSQSSettings.Prefix);
-                    //TODO if those settings don't exist - try and get them from transportConnectionString 
                     break;
                 case Broker.RabbitMQ:
                     brokerSettingValues[RabbitMQSettings.API] = GetConfigSetting(RabbitMQSettings.API);
                     brokerSettingValues[RabbitMQSettings.UserName] = GetConfigSetting(RabbitMQSettings.UserName);
                     brokerSettingValues[RabbitMQSettings.Password] = GetConfigSetting(RabbitMQSettings.Password);
-                    //TODO if those settings don't exist - try and get them from transportConnectionString 
                     break;
                 case Broker.AzureServiceBus:
                     brokerSettingValues[AzureServiceBusSettings.ServiceBusName] =
@@ -82,15 +80,12 @@
                 case Broker.SqlServer:
                     brokerSettingValues[SqlServerSettings.ConnectionString] =
                         GetConfigSetting(SqlServerSettings.ConnectionString);
-                    if (string.IsNullOrEmpty(brokerSettingValues[SqlServerSettings.ConnectionString]))
-                    {
-                        brokerSettingValues[SqlServerSettings.ConnectionString] = TransportConnectionString;
-                    }
-
                     brokerSettingValues[SqlServerSettings.AdditionalCatalogs] =
                         GetConfigSetting(SqlServerSettings.AdditionalCatalogs);
                     break;
             }
+
+            brokerSettingValues[CommonSettings.TransportConnectionString] = TransportConnectionString;
 
             return brokerSettingValues;
         }
