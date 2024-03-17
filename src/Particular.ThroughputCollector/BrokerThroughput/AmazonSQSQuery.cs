@@ -10,7 +10,6 @@ using Amazon.Runtime;
 using Amazon.Runtime.CredentialManagement;
 using Amazon.SQS;
 using Amazon.SQS.Model;
-using Persistence;
 using Shared;
 
 public class AmazonSQSQuery : IThroughputQuery
@@ -44,7 +43,21 @@ public class AmazonSQSQuery : IThroughputQuery
         }
         else
         {
-            credentials = new BasicAWSCredentials(settings[AmazonSQSSettings.AccessKey], settings[AmazonSQSSettings.SecretKey]);
+            settings.TryGetValue(AmazonSQSSettings.AccessKey, out string? accessKey);
+            settings.TryGetValue(AmazonSQSSettings.SecretKey, out string? secretKey);
+            if (accessKey != null && secretKey != null)
+            {
+                credentials = new BasicAWSCredentials(accessKey, secretKey);
+            }
+            else
+            {
+                try
+                {
+                    credentials = new EnvironmentVariablesAWSCredentials();
+                }
+                catch (InvalidOperationException)
+                { }
+            }
         }
 
         RegionEndpoint? regionEndpoint = null;
@@ -59,7 +72,7 @@ public class AmazonSQSQuery : IThroughputQuery
         settings.TryGetValue(AmazonSQSSettings.Prefix, out prefix);
     }
 
-    public async IAsyncEnumerable<EndpointThroughput> GetThroughputPerDay(IQueueName queueName, DateTime startDate,
+    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateTime startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var endDate = DateTime.UtcNow.Date.AddDays(-1);
@@ -81,7 +94,7 @@ public class AmazonSQSQuery : IThroughputQuery
 
         foreach (var datapoint in resp.Datapoints)
         {
-            yield return new EndpointThroughput
+            yield return new QueueThroughput
             {
                 TotalThroughput = (long)datapoint.Sum,
                 DateUTC = datapoint.Timestamp.ToUniversalTime().Date
@@ -118,4 +131,6 @@ public class AmazonSQSQuery : IThroughputQuery
     }
 
     public string? ScopeType { get; }
+
+    public bool SupportsHistoricalMetrics => true;
 }
