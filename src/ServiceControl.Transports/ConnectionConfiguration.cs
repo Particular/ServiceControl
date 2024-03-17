@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Transports.RabbitMQ
+﻿namespace ServiceControl.Transports
 {
     using System;
     using System.Collections.Generic;
@@ -10,7 +10,7 @@
     using NServiceBus;
     using NServiceBus.Support;
 
-    class ConnectionConfiguration
+    public class RabbitMQConnectionConfiguration
     {
         const bool defaultUseTls = false;
         const int defaultPort = 5672;
@@ -45,7 +45,7 @@
 
         public Dictionary<string, string> ClientProperties { get; }
 
-        ConnectionConfiguration(
+        RabbitMQConnectionConfiguration(
             string host,
             int port,
             string virtualHost,
@@ -71,7 +71,7 @@
             ClientProperties = clientProperties;
         }
 
-        public static ConnectionConfiguration Create(string connectionString, string endpointName)
+        public static RabbitMQConnectionConfiguration Create(string connectionString, string endpointName)
         {
             Dictionary<string, string> dictionary;
             var invalidOptionsMessage = new StringBuilder();
@@ -107,7 +107,8 @@
             var nsbVersion = FileVersionInfo.GetVersionInfo(typeof(Endpoint).Assembly.Location);
             var nsbFileVersion = $"{nsbVersion.FileMajorPart}.{nsbVersion.FileMinorPart}.{nsbVersion.FileBuildPart}";
 
-            var rabbitMQVersion = FileVersionInfo.GetVersionInfo(typeof(ConnectionConfiguration).Assembly.Location);
+            var rabbitMQVersion =
+                FileVersionInfo.GetVersionInfo(typeof(RabbitMQConnectionConfiguration).Assembly.Location);
             var rabbitMQFileVersion = $"{rabbitMQVersion.FileMajorPart}.{rabbitMQVersion.FileMinorPart}.{rabbitMQVersion.FileBuildPart}";
 
             var applicationNameAndPath = Environment.GetCommandLineArgs()[0];
@@ -128,7 +129,7 @@
                 { "endpoint_name", endpointName },
             };
 
-            return new ConnectionConfiguration(
+            return new RabbitMQConnectionConfiguration(
                 host, port, virtualHost, userName, password, requestedHeartbeat, retryDelay, useTls, certPath, certPassPhrase, clientProperties);
         }
 
