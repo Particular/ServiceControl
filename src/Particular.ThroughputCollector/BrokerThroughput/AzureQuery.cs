@@ -21,7 +21,7 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery, IBrokerI
 
     public void Initialise(FrozenDictionary<string, string> settings)
     {
-        settings.TryGetValue(AzureServiceBusSettings.ManagementUrl, out string? managementUrl);
+        settings.TryGetValue(AzureServiceBusSettings.ManagementUrl, out var managementUrl);
 
         serviceBusName = settings[AzureServiceBusSettings.ServiceBusName];
         subscriptionId = settings[AzureServiceBusSettings.SubscriptionId];

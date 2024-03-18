@@ -101,8 +101,8 @@
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
             {
-                string schema = reader.GetString(0);
-                string name = reader.GetString(1);
+                var schema = reader.GetString(0);
+                var name = reader.GetString(1);
                 tables.Add(new QueueTableName(this, schema, name));
             }
 
@@ -117,7 +117,7 @@
             await using var conn = await OpenConnectionAsync(cancellationToken);
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = $"select IDENT_CURRENT('{table.FullName}')";
-            object? value = await cmd.ExecuteScalarAsync(cancellationToken);
+            var value = await cmd.ExecuteScalarAsync(cancellationToken);
 
             if (value is decimal decimalValue) // That's the return type of IDENT_CURRENT
             {
