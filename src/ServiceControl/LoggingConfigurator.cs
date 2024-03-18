@@ -1,18 +1,18 @@
 namespace Particular.ServiceControl
 {
+    using System;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using NLog;
     using NLog.Config;
+    using NLog.Extensions.Logging;
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus.Extensions.Logging;
-    using LogManager = NServiceBus.Logging.LogManager;
-    using LogLevel = NLog.LogLevel;
-    using NLog.Extensions.Logging;
-    using NLog;
-    using System;
     using ServiceBus.Management.Infrastructure.Settings;
+    using LogLevel = NLog.LogLevel;
+    using LogManager = NServiceBus.Logging.LogManager;
 
     static class LoggingConfigurator
     {
