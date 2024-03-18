@@ -3,18 +3,19 @@ namespace Particular.ThroughputCollector.Broker;
 using System.Collections.Frozen;
 using System.Runtime.CompilerServices;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Logging;
-using Persistence;
 using Shared;
 using ThroughputQuery.SqlTransport;
 
-public class SqlServerQuery(ILogger<SqlServerQuery> logger) : IThroughputQuery
+public class SqlServerQuery : IThroughputQuery
 {
     private readonly List<DatabaseDetails> databases = [];
 
     public void Initialise(FrozenDictionary<string, string> settings)
     {
-        string connectionString = settings[SqlServerSettings.ConnectionString];
+        if (!settings.TryGetValue(SqlServerSettings.ConnectionString, out string? connectionString))
+        {
+            connectionString = settings[CommonSettings.TransportConnectionString];
+        }
         if (!settings.TryGetValue(SqlServerSettings.AdditionalCatalogs, out string? catalogs))
         {
             databases.Add(new DatabaseDetails(connectionString));
@@ -31,27 +32,30 @@ public class SqlServerQuery(ILogger<SqlServerQuery> logger) : IThroughputQuery
         }
     }
 
-    public async IAsyncEnumerable<EndpointThroughput> GetThroughputPerDay(IQueueName queueName, DateTime startDate,
+    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateTime startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Sampling queue table initial values...");
         var queueTableName = (QueueTableName)queueName;
         var startData =
             await queueTableName.DatabaseDetails.GetSnapshot(queueTableName, cancellationToken);
 
-        logger.LogInformation("Waiting to collect final values...");
-        await Task.Delay(TimeSpan.FromHours(1), cancellationToken);
-
-        logger.LogInformation("Sampling queue table final values...");
-        var endData =
-            await queueTableName.DatabaseDetails.GetSnapshot(queueTableName, cancellationToken);
-
-        yield return new EndpointThroughput
+        // looping for 24 hours
+        for (int i = 0; i < 24; i++)
         {
-            Scope = queueTableName.GetScope(),
-            DateUTC = DateTime.UtcNow.Date,
-            TotalThroughput = endData.RowVersion - startData.RowVersion
-        };
+            await Task.Delay(TimeSpan.FromHours(1), cancellationToken);
+
+            var endData =
+                await queueTableName.DatabaseDetails.GetSnapshot(queueTableName, cancellationToken);
+
+            yield return new QueueThroughput
+            {
+                Scope = queueTableName.GetScope(),
+                DateUTC = DateTime.UtcNow.Date,
+                TotalThroughput = endData.RowVersion - startData.RowVersion
+            };
+
+            startData = endData;
+        }
     }
 
     public async IAsyncEnumerable<IQueueName> GetQueueNames(
@@ -79,22 +83,19 @@ public class SqlServerQuery(ILogger<SqlServerQuery> logger) : IThroughputQuery
 
         foreach (var tableName in tables)
         {
-            switch (ScopeType)
+            tableName.GetScope = ScopeType switch
             {
-                case "Schema":
-                    tableName.GetScope = () => tableName.Schema;
-                    break;
-                case "Catalog":
-                    tableName.GetScope = () => tableName.DatabaseDetails.DatabaseName;
-                    break;
-                case "Catalog & Schema":
-                    tableName.GetScope = () => tableName.DatabaseNameAndSchema;
-                    break;
-            }
+                "Schema" => () => tableName.Schema,
+                "Catalog" => () => tableName.DatabaseDetails.DatabaseName,
+                "Catalog & Schema" => () => tableName.DatabaseNameAndSchema,
+                _ => tableName.GetScope
+            };
 
             yield return tableName;
         }
     }
 
     public string? ScopeType { get; set; }
+
+    public bool SupportsHistoricalMetrics => false;
 }
