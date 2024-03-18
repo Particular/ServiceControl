@@ -6,7 +6,7 @@ using Microsoft.Data.SqlClient;
 using Shared;
 using ThroughputQuery.SqlTransport;
 
-public class SqlServerQuery : IThroughputQuery
+public class SqlServerQuery : IThroughputQuery, IBrokerInfo
 {
     private readonly List<DatabaseDetails> databases = [];
 
@@ -65,7 +65,8 @@ public class SqlServerQuery : IThroughputQuery
 
         foreach (var db in databases)
         {
-            await db.TestConnection(cancellationToken);
+            string version = await db.TestConnection(cancellationToken);
+            Data["SqlVersion"] = version;
             tables.AddRange(await db.GetTables(cancellationToken));
         }
 
@@ -98,4 +99,6 @@ public class SqlServerQuery : IThroughputQuery
     public string? ScopeType { get; set; }
 
     public bool SupportsHistoricalMetrics => false;
+    public Dictionary<string, string> Data { get; } = [];
+    public string MessageTransport => "RabbitMQ";
 }

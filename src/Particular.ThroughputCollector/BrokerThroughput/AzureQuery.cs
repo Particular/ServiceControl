@@ -10,7 +10,7 @@ using Azure.ResourceManager.ServiceBus;
 using Microsoft.Extensions.Logging;
 using Shared;
 
-public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery
+public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery, IBrokerInfo
 {
     private string serviceBusName = "";
     private string subscriptionId = "";
@@ -132,4 +132,6 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery
     public string? ScopeType { get; }
 
     public bool SupportsHistoricalMetrics => true;
+    public Dictionary<string, string> Data { get; } = [];
+    public string MessageTransport => "AzureServiceBus";
 }
