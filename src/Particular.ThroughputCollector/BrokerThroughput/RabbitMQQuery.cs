@@ -10,7 +10,7 @@ using ServiceControl.Transports;
 using ServiceControl.Transports.RabbitMQ;
 using Shared;
 
-public class RabbitMQQuery : IThroughputQuery
+public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
 {
     private HttpClient httpClient = new();
 
@@ -88,13 +88,35 @@ public class RabbitMQQuery : IThroughputQuery
         }
     }
 
+    public async Task<(string rabbitVersion, string managementVersion)> GetRabbitDetails(CancellationToken cancellationToken = default)
+    {
+        string overviewUrl = "/api/overview";
+
+        var obj = await httpClient.GetFromJsonAsync<JsonObject>(overviewUrl, cancellationToken) ?? throw new QueryException(QueryFailureReason.InvalidEnvironment, "The RabbitMQ broker is configured with `management.disable_stats = true` or `management_agent.disable_metrics_collector = true` and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker.");
+        bool statsDisabled = obj["disable_stats"]?.GetValue<bool>() ?? false;
+
+        if (statsDisabled)
+        {
+            throw new QueryException(QueryFailureReason.InvalidEnvironment, "The RabbitMQ broker is configured with `management.disable_stats = true` or `management_agent.disable_metrics_collector = true` and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker.");
+        }
+
+        var rabbitVersion = obj["rabbitmq_version"] ?? obj["product_version"];
+        var mgmtVersion = obj["management_version"];
+
+        return (rabbitVersion?.GetValue<string>() ?? "Unknown", mgmtVersion?.GetValue<string>() ?? "Unknown");
+    }
+
     public async IAsyncEnumerable<IQueueName> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         int page = 1;
-        bool morePages = true;
+        bool morePages;
         var vHosts = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
 
-        while (morePages)
+        (string rabbitVersion, string managementVersion) = await GetRabbitDetails(cancellationToken);
+        Data["RabbitMQVersion"] = rabbitVersion;
+        Data["RabbitMQManagementVersionVersion"] = managementVersion;
+
+        do
         {
             (var queues, morePages) = await GetPage(page, cancellationToken);
 
@@ -109,7 +131,7 @@ public class RabbitMQQuery : IThroughputQuery
             }
 
             page++;
-        }
+        } while (morePages);
 
         ScopeType = vHosts.Count > 1 ? "VirtualHost" : null;
     }
@@ -198,4 +220,6 @@ public class RabbitMQQuery : IThroughputQuery
 
     public string? ScopeType { get; set; }
     public bool SupportsHistoricalMetrics => false;
+    public Dictionary<string, string> Data { get; } = [];
+    public string MessageTransport => "SqlTransport";
 }
