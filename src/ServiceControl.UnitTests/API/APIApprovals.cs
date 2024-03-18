@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.UnitTests.API
+namespace ServiceControl.UnitTests.API
 {
     using System;
     using System.Collections.Generic;
