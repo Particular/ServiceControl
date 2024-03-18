@@ -10,14 +10,15 @@
   <Import Project="..\ProjectReferences.Persisters.ThroughputCollector.props" />
   
   <ItemGroup>
-    <PackageReference Include="AWSSDK.CloudWatch"/>
-    <PackageReference Include="AWSSDK.SQS"/>
+    <PackageReference Include="AWSSDK.CloudWatch" />
+    <PackageReference Include="AWSSDK.SQS" />
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.Monitor.Query" />
     <PackageReference Include="Azure.ResourceManager.ServiceBus" />
-    <PackageReference Include="Microsoft.Data.SqlClient"/>
+    <PackageReference Include="Microsoft.Data.SqlClient" />
     <PackageReference Include="System.Configuration.ConfigurationManager" />
     <ProjectReference Include="..\Particular.ThroughputCollector.Persistence\Particular.ThroughputCollector.Persistence.csproj" />
+    <ProjectReference Include="..\ServiceControl.Api\ServiceControl.Api.csproj" />
     <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
   </ItemGroup>
 
