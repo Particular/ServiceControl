@@ -12,11 +12,11 @@ public class SqlServerQuery : IThroughputQuery, IBrokerInfo
 
     public void Initialise(FrozenDictionary<string, string> settings)
     {
-        if (!settings.TryGetValue(SqlServerSettings.ConnectionString, out string? connectionString))
+        if (!settings.TryGetValue(SqlServerSettings.ConnectionString, out var connectionString))
         {
             connectionString = settings[CommonSettings.TransportConnectionString];
         }
-        if (!settings.TryGetValue(SqlServerSettings.AdditionalCatalogs, out string? catalogs))
+        if (!settings.TryGetValue(SqlServerSettings.AdditionalCatalogs, out var catalogs))
         {
             databases.Add(new DatabaseDetails(connectionString));
             return;
@@ -24,8 +24,8 @@ public class SqlServerQuery : IThroughputQuery, IBrokerInfo
 
         var builder = new SqlConnectionStringBuilder { ConnectionString = connectionString };
 
-        foreach (string catalog in catalogs.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries
-                                                                      | StringSplitOptions.TrimEntries))
+        foreach (var catalog in catalogs.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries
+                                                                   | StringSplitOptions.TrimEntries))
         {
             builder.InitialCatalog = catalog;
             databases.Add(new DatabaseDetails(builder.ToString()));
@@ -40,7 +40,7 @@ public class SqlServerQuery : IThroughputQuery, IBrokerInfo
             await queueTableName.DatabaseDetails.GetSnapshot(queueTableName, cancellationToken);
 
         // looping for 24 hours
-        for (int i = 0; i < 24; i++)
+        for (var i = 0; i < 24; i++)
         {
             await Task.Delay(TimeSpan.FromHours(1), cancellationToken);
 
@@ -65,13 +65,13 @@ public class SqlServerQuery : IThroughputQuery, IBrokerInfo
 
         foreach (var db in databases)
         {
-            string version = await db.TestConnection(cancellationToken);
+            var version = await db.TestConnection(cancellationToken);
             Data["SqlVersion"] = version;
             tables.AddRange(await db.GetTables(cancellationToken));
         }
 
-        int catalogCount = tables.Select(t => t.DatabaseDetails.DatabaseName).Distinct().Count();
-        int schemaCount = tables.Select(t => $"{t.DatabaseDetails.DatabaseName}/{t.Schema}").Distinct().Count();
+        var catalogCount = tables.Select(t => t.DatabaseDetails.DatabaseName).Distinct().Count();
+        var schemaCount = tables.Select(t => $"{t.DatabaseDetails.DatabaseName}/{t.Schema}").Distinct().Count();
 
         if (catalogCount > 1)
         {
