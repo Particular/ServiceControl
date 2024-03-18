@@ -10,79 +10,56 @@
     using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Commands.Batches;
 
-    class RavenFailedAuditStorage : IFailedAuditStorage
+    class RavenFailedAuditStorage(IRavenSessionProvider sessionProvider) : IFailedAuditStorage
     {
-        public RavenFailedAuditStorage(IRavenSessionProvider sessionProvider)
-        {
-            this.sessionProvider = sessionProvider;
-        }
-
-        public async Task Store(dynamic failure)
-        {
-            using (var session = sessionProvider.OpenSession())
-            {
-                await session.StoreAsync(failure);
-
-                await session.SaveChangesAsync();
-            }
-        }
-
         public async Task SaveFailedAuditImport(FailedAuditImport message)
         {
-            using (var session = sessionProvider.OpenSession())
-            {
-                await session.StoreAsync(message);
-                await session.SaveChangesAsync();
-            }
+            using var session = sessionProvider.OpenSession();
+            await session.StoreAsync(message);
+            await session.SaveChangesAsync();
         }
 
         public async Task ProcessFailedMessages(
             Func<FailedTransportMessage, Func<CancellationToken, Task>, CancellationToken, Task> onMessage,
             CancellationToken cancellationToken)
         {
-            using (var session = sessionProvider.OpenSession())
+            using var session = sessionProvider.OpenSession();
+            var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
+
+            IAsyncEnumerator<StreamResult<FailedAuditImport>> stream = default;
+            try
             {
-                var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
-
-                IAsyncEnumerator<StreamResult<FailedAuditImport>> stream = default;
-                try
+                stream = await session.Advanced.StreamAsync(query, cancellationToken);
+                while (!cancellationToken.IsCancellationRequested &&
+                       await stream.MoveNextAsync())
                 {
-                    stream = await session.Advanced.StreamAsync(query, cancellationToken);
-                    while (!cancellationToken.IsCancellationRequested &&
-                           await stream.MoveNextAsync())
+                    FailedTransportMessage transportMessage = stream.Current.Document.Message;
+                    var localSession = session;
+
+                    await onMessage(transportMessage, (token) =>
                     {
-                        FailedTransportMessage transportMessage = stream.Current.Document.Message;
-                        var localSession = session;
-
-                        await onMessage(transportMessage, (token) =>
-                        {
-                            localSession.Advanced.Defer(
-                                new DeleteCommandData(stream.Current.Id, stream.Current.ChangeVector));
-                            return Task.CompletedTask;
-                        }, cancellationToken);
-                    }
-
-                    await session.SaveChangesAsync(cancellationToken);
+                        localSession.Advanced.Defer(
+                            new DeleteCommandData(stream.Current.Id, stream.Current.ChangeVector));
+                        return Task.CompletedTask;
+                    }, cancellationToken);
                 }
-                finally
+
+                await session.SaveChangesAsync(cancellationToken);
+            }
+            finally
+            {
+                if (stream != null)
                 {
-                    if (stream != null)
-                    {
-                        await stream.DisposeAsync();
-                    }
+                    await stream.DisposeAsync();
                 }
             }
         }
 
         public async Task<int> GetFailedAuditsCount()
         {
-            using (var session = sessionProvider.OpenSession())
-            {
-                return await session.Query<FailedAuditImport, FailedAuditImportIndex>()
-                    .CountAsync();
-            }
+            using var session = sessionProvider.OpenSession();
+            return await session.Query<FailedAuditImport, FailedAuditImportIndex>()
+                .CountAsync();
         }
-
-        readonly IRavenSessionProvider sessionProvider;
     }
 }

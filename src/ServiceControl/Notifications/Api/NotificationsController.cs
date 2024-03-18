@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Notifications.Api
 {
     using System;
+    using System.Net;
     using System.Threading.Tasks;
     using Email;
     using Microsoft.AspNetCore.Mvc;
@@ -16,9 +17,9 @@
         public async Task<EmailNotifications> GetEmailNotificationsSettings()
         {
             using var manager = await store.CreateNotificationsManager();
-            var settings = await manager.LoadSettings();
+            var notificationsSettings = await manager.LoadSettings();
 
-            return settings.Email;
+            return notificationsSettings.Email;
         }
 
         [Route("notifications/email/toggle")]
@@ -26,9 +27,9 @@
         public async Task<IActionResult> ToggleEmailNotifications(ToggleEmailNotifications request)
         {
             using var manager = await store.CreateNotificationsManager();
-            var settings = await manager.LoadSettings();
+            var notificationsSettings = await manager.LoadSettings();
 
-            settings.Email.Enabled = request.Enabled;
+            notificationsSettings.Email.Enabled = request.Enabled;
 
             await manager.SaveChanges();
 
@@ -40,9 +41,9 @@
         public async Task<IActionResult> UpdateSettings(UpdateEmailNotificationsSettingsRequest request)
         {
             using var manager = await store.CreateNotificationsManager();
-            var settings = await manager.LoadSettings();
+            var notificationsSettings = await manager.LoadSettings();
 
-            var emailSettings = settings.Email;
+            var emailSettings = notificationsSettings.Email;
 
             emailSettings.SmtpServer = request.SmtpServer;
             emailSettings.SmtpPort = request.SmtpPort;
@@ -64,24 +65,24 @@
         public async Task<IActionResult> SendTestEmail()
         {
             using var manager = await store.CreateNotificationsManager();
-            var settings = await manager.LoadSettings();
+            var notificationsSettings = await manager.LoadSettings();
 
             try
             {
                 await EmailSender.Send(
-                        settings.Email,
-                        $"[{instanceName}] health check notification check successful",
-                        $"[{instanceName}] health check notification check successful.");
+                        notificationsSettings.Email,
+                        $"[{settings.ServiceName}] health check notification check successful",
+                        $"[{settings.ServiceName}] health check notification check successful.");
             }
             catch (Exception e)
             {
-                //TODO compare this to the HttpResponseMessage version that was here
-                return Problem($"{e.Message} {e.InnerException?.Message}", title: "Error sending test email notification");
+                // This is currently done in awkward ways to not having to introduce problem details etc to SP just yet.
+                Response.Headers["X-Particular-Reason"] = "Error sending test email notification";
+                Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                return Content($"{e.Message} {e.InnerException?.Message}");
             }
 
             return Accepted();
         }
-
-        readonly string instanceName = settings.ServiceName;
     }
 }

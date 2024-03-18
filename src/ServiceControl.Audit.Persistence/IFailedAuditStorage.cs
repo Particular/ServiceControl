@@ -7,8 +7,6 @@
 
     public interface IFailedAuditStorage
     {
-        Task Store(dynamic failure);
-
         Task SaveFailedAuditImport(FailedAuditImport message);
 
         Task ProcessFailedMessages(

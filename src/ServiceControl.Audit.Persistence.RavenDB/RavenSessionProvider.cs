@@ -2,19 +2,10 @@
 {
     using Raven.Client.Documents.Session;
 
-    class RavenSessionProvider : IRavenSessionProvider
+    class RavenSessionProvider(IRavenDocumentStoreProvider documentStoreProvider) : IRavenSessionProvider
     {
-        public RavenSessionProvider(IRavenDocumentStoreProvider documentStoreProvider)
-        {
-            this.documentStoreProvider = documentStoreProvider;
-        }
-
-        public IAsyncDocumentSession OpenSession()
-        {
-            return documentStoreProvider.GetDocumentStore()
+        public IAsyncDocumentSession OpenSession() =>
+            documentStoreProvider.GetDocumentStore()
                 .OpenAsyncSession();
-        }
-
-        readonly IRavenDocumentStoreProvider documentStoreProvider;
     }
 }

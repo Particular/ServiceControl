@@ -121,8 +121,6 @@ namespace ServiceControl.Recoverability
                 stopCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 registration = cancellationToken.Register(() => _ = syncEvent.TrySetResult(true));
 
-                // TODO Workaround for Learning transport message pump not working after you've stopped it once
-                await messageReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), Handle, faultManager.OnError, CancellationToken.None);
                 await messageReceiver.StartReceive(cancellationToken);
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} started receiving messages from {messageReceiver.ReceiveAddress}.");
@@ -204,7 +202,10 @@ namespace ServiceControl.Recoverability
 
             public async Task<ErrorHandleResult> OnError(ErrorContext errorContext, CancellationToken cancellationToken = default)
             {
-                _ = cancellationToken; //TODO we should probably use this somewhere?
+                // We are currently not propagating the cancellation token further since it would require to change
+                // the data store APIs and domain handlers to take a cancellation token. If this is needed it can be done
+                // at a later time.
+                _ = cancellationToken;
 
                 try
                 {
