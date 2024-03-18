@@ -287,8 +287,11 @@
 
         void TryLoadLicenseFromConfig() => LicenseFileText = SettingsReader.Read<string>(SettingsRootNamespace, "LicenseText");
 
-        ILog logger = LogManager.GetLogger(typeof(Settings));
+        // logger is intentionally not static to prevent it from being initialized before LoggingConfigurator.ConfigureLogging has been called
+        readonly ILog logger = LogManager.GetLogger(typeof(Settings));
+
         int maxBodySizeToStore = SettingsReader.Read(SettingsRootNamespace, "MaxBodySizeToStore", MaxBodySizeToStoreDefault);
+
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
         public static readonly SettingsRootNamespace SettingsRootNamespace = new("ServiceControl.Audit");
 

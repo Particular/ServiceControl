@@ -17,7 +17,7 @@ namespace ServiceControl.Monitoring
         static async Task Main(string[] args)
         {
             AssemblyLoadContext.Default.Resolving += ResolveAssembly;
-            AppDomain.CurrentDomain.UnhandledException += (s, e) => Logger.Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => LogManager.GetLogger(typeof(Program)).Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
 
             ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
@@ -65,7 +65,5 @@ namespace ServiceControl.Monitoring
 
             return null;
         }
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
     }
 }
