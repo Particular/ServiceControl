@@ -50,4 +50,8 @@
     <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.dll.config;nsb*.txt" DirExclude=".db;.logs" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Contracts\WebAPI\" />
+  </ItemGroup>
+
 </Project>

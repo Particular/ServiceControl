@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Api
+namespace ServiceControl.Api
 {
     using System.Collections.Generic;
     using System.Threading;

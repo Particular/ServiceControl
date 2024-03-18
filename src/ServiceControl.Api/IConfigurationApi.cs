@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Api
+namespace ServiceControl.Api
 {
     using System.Threading;
     using System.Threading.Tasks;

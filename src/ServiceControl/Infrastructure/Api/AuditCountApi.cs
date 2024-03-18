@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.Api;
+namespace ServiceControl.Infrastructure.Api;
 
 using System.Collections.Generic;
 using System.Threading;

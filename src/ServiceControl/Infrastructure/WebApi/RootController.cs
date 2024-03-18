@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.WebApi
+namespace ServiceControl.Infrastructure.WebApi
 {
     using System.Threading;
     using System.Threading.Tasks;
