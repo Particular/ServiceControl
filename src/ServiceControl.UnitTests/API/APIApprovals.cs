@@ -16,6 +16,7 @@
     using Particular.ServiceControl;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.Api;
     using ServiceControl.Infrastructure.WebApi;
 
     [TestFixture]
@@ -28,10 +29,11 @@
             var actionContext = new ActionContext { HttpContext = httpContext, RouteData = new RouteData(), ActionDescriptor = new ControllerActionDescriptor() };
             var controllerContext = new ControllerContext(actionContext);
 
-            var controller = new RootController(
+            var controller = new RootController(new ConfigurationApi(
                 new ActiveLicense { IsValid = true },
                 new Settings(),
                 httpClientFactory: null
+                )
                 )
             {
                 ControllerContext = controllerContext,
