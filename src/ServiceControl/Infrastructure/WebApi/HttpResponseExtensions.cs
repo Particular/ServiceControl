@@ -7,7 +7,7 @@ namespace ServiceControl.Infrastructure.WebApi
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Extensions.Primitives;
-    using ServiceControl.Persistence.Infrastructure;
+    using Persistence.Infrastructure;
 
     static class HttpResponseExtensions
     {

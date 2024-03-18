@@ -2,8 +2,10 @@ namespace ServiceControl.SagaAudit
 {
     using System;
     using System.Threading.Tasks;
+    using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
-    using ServiceControl.Persistence.Infrastructure;
+    using Persistence.Infrastructure;
 
     [ApiController]
     [Route("api")]
@@ -11,6 +13,13 @@ namespace ServiceControl.SagaAudit
     {
         [Route("sagas/{id}")]
         [HttpGet]
-        public Task<SagaHistory> Sagas([FromQuery] PagingInfo pagingInfo, Guid id) => getSagaByIdApi.Execute(new SagaByIdContext(pagingInfo, id));
+        public async Task<SagaHistory> Sagas([FromQuery] PagingInfo pagingInfo, Guid id)
+        {
+            QueryResult<SagaHistory> result =
+                await getSagaByIdApi.Execute(new SagaByIdContext(pagingInfo, id), Request.GetEncodedPathAndQuery());
+
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            return result.Results;
+        }
     }
 }

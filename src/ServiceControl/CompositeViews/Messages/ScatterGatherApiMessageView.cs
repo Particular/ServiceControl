@@ -3,9 +3,8 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
-    using Microsoft.AspNetCore.Http;
+    using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Persistence.Infrastructure;
 
     public record ScatterGatherApiMessageViewWithSystemMessagesContext(
         PagingInfo PagingInfo,
@@ -17,7 +16,8 @@ namespace ServiceControl.CompositeViews.Messages
     public abstract class ScatterGatherApiMessageView<TDataStore, TInput> : ScatterGatherApi<TDataStore, TInput, IList<MessagesView>>
         where TInput : ScatterGatherApiMessageViewContext
     {
-        protected ScatterGatherApiMessageView(TDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor) : base(dataStore, settings, httpClientFactory, httpContextAccessor)
+        protected ScatterGatherApiMessageView(TDataStore dataStore, Settings settings,
+            IHttpClientFactory httpClientFactory) : base(dataStore, settings, httpClientFactory)
         {
         }
 

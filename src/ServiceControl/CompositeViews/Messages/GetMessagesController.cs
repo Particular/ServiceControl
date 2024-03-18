@@ -4,15 +4,15 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Infrastructure;
+    using Infrastructure.WebApi;
+    using MessageCounting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus.Logging;
+    using Operations.BodyStorage;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.CompositeViews.MessageCounting;
-    using ServiceControl.Operations.BodyStorage;
     using Yarp.ReverseProxy.Forwarder;
 
     // All routes matching `messages/*` must be in this controller as WebAPI cannot figure out the overlapping routes
@@ -33,21 +33,45 @@ namespace ServiceControl.CompositeViews.Messages
     {
         [Route("messages")]
         [HttpGet]
-        public Task<IList<MessagesView>> Messages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo,
-            [FromQuery(Name = "include_system_messages")] bool includeSystemMessages) => allMessagesApi.Execute(
-            new(pagingInfo, sortInfo, includeSystemMessages));
+        public async Task<IList<MessagesView>> Messages([FromQuery] PagingInfo pagingInfo,
+            [FromQuery] SortInfo sortInfo,
+            [FromQuery(Name = "include_system_messages")]
+            bool includeSystemMessages)
+        {
+            QueryResult<IList<MessagesView>> result = await allMessagesApi.Execute(
+                new ScatterGatherApiMessageViewWithSystemMessagesContext(pagingInfo, sortInfo, includeSystemMessages),
+                Request.GetEncodedPathAndQuery());
+
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            return result.Results;
+        }
 
         [Route("endpoints/{endpoint}/messages")]
         [HttpGet]
-        public Task<IList<MessagesView>> MessagesForEndpoint([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo,
-            [FromQuery(Name = "include_system_messages")] bool includeSystemMessages, string endpoint) =>
-            allMessagesForEndpointApi.Execute(new(pagingInfo, sortInfo, includeSystemMessages, endpoint));
+        public async Task<IList<MessagesView>> MessagesForEndpoint([FromQuery] PagingInfo pagingInfo,
+            [FromQuery] SortInfo sortInfo,
+            [FromQuery(Name = "include_system_messages")]
+            bool includeSystemMessages, string endpoint)
+        {
+            QueryResult<IList<MessagesView>> result = await allMessagesForEndpointApi.Execute(
+                new AllMessagesForEndpointContext(pagingInfo, sortInfo, includeSystemMessages, endpoint),
+                Request.GetEncodedPathAndQuery());
+
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            return result.Results;
+        }
 
         // the endpoint name is needed in the route to match the route and forward it as path and query to the remotes
         [Route("endpoints/{endpoint}/audit-count")]
         [HttpGet]
-        public Task<IList<AuditCount>> GetEndpointAuditCounts([FromQuery] PagingInfo pagingInfo, string endpoint) =>
-            auditCountsForEndpointApi.Execute(new(pagingInfo, endpoint));
+        public async Task<IList<AuditCount>> GetEndpointAuditCounts([FromQuery] PagingInfo pagingInfo, string endpoint)
+        {
+            QueryResult<IList<AuditCount>> result = await auditCountsForEndpointApi.Execute(
+                new AuditCountsForEndpointContext(pagingInfo, endpoint), Request.GetEncodedPathAndQuery());
+
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            return result.Results;
+        }
 
         [Route("messages/{id}/body")]
         [HttpGet]
@@ -89,22 +113,52 @@ namespace ServiceControl.CompositeViews.Messages
 
         [Route("messages/search")]
         [HttpGet]
-        public Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string q) => api.Execute(new(pagingInfo, sortInfo, q));
+        public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo,
+            string q)
+        {
+            QueryResult<IList<MessagesView>> result = await api.Execute(new SearchApiContext(pagingInfo, sortInfo, q),
+                Request.GetEncodedPathAndQuery());
+
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            return result.Results;
+        }
 
         [Route("messages/search/{keyword}")]
         [HttpGet]
-        public Task<IList<MessagesView>> SearchByKeyWord([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string keyword) =>
-            api.Execute(new(pagingInfo, sortInfo, keyword?.Replace("/", @"\")));
+        public async Task<IList<MessagesView>> SearchByKeyWord([FromQuery] PagingInfo pagingInfo,
+            [FromQuery] SortInfo sortInfo, string keyword)
+        {
+            QueryResult<IList<MessagesView>> result = await api.Execute(
+                new SearchApiContext(pagingInfo, sortInfo, keyword?.Replace("/", @"\")),
+                Request.GetEncodedPathAndQuery());
+
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            return result.Results;
+        }
 
         [Route("endpoints/{endpoint}/messages/search")]
         [HttpGet]
-        public Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string q) =>
-            endpointApi.Execute(new(pagingInfo, sortInfo, endpoint, q));
+        public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo,
+            string endpoint, string q)
+        {
+            QueryResult<IList<MessagesView>> result = await endpointApi.Execute(
+                new SearchEndpointContext(pagingInfo, sortInfo, endpoint, q), Request.GetEncodedPathAndQuery());
+
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            return result.Results;
+        }
 
         [Route("endpoints/{endpoint}/messages/search/{keyword}")]
         [HttpGet]
-        public Task<IList<MessagesView>> SearchByKeyword([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string keyword) =>
-            endpointApi.Execute(new(pagingInfo, sortInfo, endpoint, keyword));
+        public async Task<IList<MessagesView>> SearchByKeyword([FromQuery] PagingInfo pagingInfo,
+            [FromQuery] SortInfo sortInfo, string endpoint, string keyword)
+        {
+            QueryResult<IList<MessagesView>> result = await endpointApi.Execute(
+                new SearchEndpointContext(pagingInfo, sortInfo, endpoint, keyword), Request.GetEncodedPathAndQuery());
+
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            return result.Results;
+        }
 
         static ILog logger = LogManager.GetLogger(typeof(GetMessagesController));
     }

@@ -4,11 +4,10 @@
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Http;
+    using Messages;
+    using Persistence;
+    using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.Persistence;
-    using ServiceControl.Persistence.Infrastructure;
 
     // The endpoint is included for consistency reasons but is actually not required here because the query
     // is forwarded to the remote instance. But this at least enforces us to declare the controller action
@@ -19,10 +18,10 @@
     public class GetAuditCountsForEndpointApi(
         IErrorMessageDataStore dataStore,
         Settings settings,
-        IHttpClientFactory httpClientFactory,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpClientFactory httpClientFactory
+    )
         : ScatterGatherApi<IErrorMessageDataStore, AuditCountsForEndpointContext, IList<AuditCount>>(dataStore, settings,
-            httpClientFactory, httpContextAccessor)
+            httpClientFactory)
     {
         static readonly IList<AuditCount> Empty = new List<AuditCount>(0).AsReadOnly();
 
