@@ -69,7 +69,8 @@ public class RabbitMQQuery : IThroughputQuery
                     yield return new QueueThroughput
                     {
                         DateUTC = DateTime.UtcNow.Date,
-                        TotalThroughput = newReading.Value - queue.AckedMessages.Value
+                        TotalThroughput = newReading.Value - queue.AckedMessages.Value,
+                        Scope = queue.VHost
                     };
                 }
                 queue.AckedMessages = newReading;
@@ -91,6 +92,7 @@ public class RabbitMQQuery : IThroughputQuery
     {
         int page = 1;
         bool morePages = true;
+        var vHosts = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
 
         while (morePages)
         {
@@ -100,11 +102,64 @@ public class RabbitMQQuery : IThroughputQuery
             {
                 foreach (var rabbitMQQueueDetails in queues)
                 {
+                    vHosts.Add(rabbitMQQueueDetails.VHost);
+                    await AddAdditionalQueueDetails(rabbitMQQueueDetails, cancellationToken);
                     yield return rabbitMQQueueDetails;
                 }
             }
 
             page++;
+        }
+
+        ScopeType = vHosts.Count > 1 ? "VirtualHost" : null;
+    }
+
+    private async Task AddAdditionalQueueDetails(RabbitMQQueueDetails queue, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            string bindingsUrl = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}/bindings";
+            var bindings = await httpClient.GetFromJsonAsync<JsonArray>(bindingsUrl, cancellationToken);
+            bool conventionalBindingFound = bindings?.Any(binding => binding!["source"]?.GetValue<string>() == queue.QueueName
+                                                                     && binding["vhost"]?.GetValue<string>() == queue.VHost
+                                                                     && binding["destination"]?.GetValue<string>() == queue.QueueName
+                                                                     && binding["destination_type"]?.GetValue<string>() == "queue"
+                                                                     && binding["routing_key"]?.GetValue<string>() == string.Empty
+                                                                     && binding["properties_key"]?.GetValue<string>() == "~") ?? false;
+
+            if (conventionalBindingFound)
+            {
+                queue.EndpointIndicators.Add("ConventionalTopologyBinding");
+            }
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            // Clearly no conventional topology binding here
+        }
+
+        try
+        {
+            string exchangeUrl = $"/api/exchanges/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}/bindings/destination";
+            var bindings = await httpClient.GetFromJsonAsync<JsonArray>(exchangeUrl, cancellationToken);
+            bool delayBindingFound = bindings?.Any(binding =>
+            {
+                string? source = binding!["source"]?.GetValue<string>();
+
+                return source is "nsb.v2.delay-delivery" or "nsb.delay-delivery"
+                    && binding["vhost"]?.GetValue<string>() == queue.VHost
+                    && binding["destination"]?.GetValue<string>() == queue.QueueName
+                    && binding["destination_type"]?.GetValue<string>() == "exchange"
+                    && binding["routing_key"]?.GetValue<string>() == $"#.{queue.QueueName}";
+            }) ?? false;
+
+            if (delayBindingFound)
+            {
+                queue.EndpointIndicators.Add("DelayBinding");
+            }
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            // Clearly no delay binding here
         }
     }
 
