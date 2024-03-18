@@ -7,6 +7,7 @@ namespace ServiceControl.Monitoring
     using Infrastructure.DomainEvents;
     using NLog.Fluent;
     using NServiceBus.Logging;
+    using ServiceControl.Api.Contracts;
     using ServiceControl.Operations;
     using ServiceControl.Persistence;
 
