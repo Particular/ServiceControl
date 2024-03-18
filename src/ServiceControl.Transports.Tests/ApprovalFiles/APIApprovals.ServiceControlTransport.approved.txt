@@ -32,6 +32,21 @@ namespace ServiceControl.Transports
         public long DateTicks { get; set; }
         public long Value { get; set; }
     }
+    public class RabbitMQConnectionConfiguration
+    {
+        public string CertPassphrase { get; }
+        public string CertPath { get; }
+        public System.Collections.Generic.Dictionary<string, string> ClientProperties { get; }
+        public string Host { get; }
+        public string Password { get; }
+        public int Port { get; }
+        public System.TimeSpan RequestedHeartbeat { get; }
+        public System.TimeSpan RetryDelay { get; }
+        public bool UseTls { get; }
+        public string UserName { get; }
+        public string VirtualHost { get; }
+        public static ServiceControl.Transports.RabbitMQConnectionConfiguration Create(string connectionString, string endpointName) { }
+    }
     public abstract class TransportCustomization<TTransport> : ServiceControl.Transports.ITransportCustomization
         where TTransport : NServiceBus.Transport.TransportDefinition
     {
