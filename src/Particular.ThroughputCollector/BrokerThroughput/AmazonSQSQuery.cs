@@ -30,7 +30,7 @@ public class AmazonSQSQuery : IThroughputQuery, IBrokerInfo
     public void Initialise(FrozenDictionary<string, string> settings)
     {
         AWSCredentials credentials = new EnvironmentVariablesAWSCredentials();
-        if (settings.TryGetValue(AmazonSQSSettings.Profile, out string? profile))
+        if (settings.TryGetValue(AmazonSQSSettings.Profile, out var profile))
         {
             var credentialsFile = new NetSDKCredentialsFile();
             if (credentialsFile.TryGetProfile(profile, out var credentialProfile))
@@ -43,8 +43,8 @@ public class AmazonSQSQuery : IThroughputQuery, IBrokerInfo
         }
         else
         {
-            settings.TryGetValue(AmazonSQSSettings.AccessKey, out string? accessKey);
-            settings.TryGetValue(AmazonSQSSettings.SecretKey, out string? secretKey);
+            settings.TryGetValue(AmazonSQSSettings.AccessKey, out var accessKey);
+            settings.TryGetValue(AmazonSQSSettings.SecretKey, out var secretKey);
             if (accessKey != null && secretKey != null)
             {
                 credentials = new BasicAWSCredentials(accessKey, secretKey);
@@ -61,7 +61,7 @@ public class AmazonSQSQuery : IThroughputQuery, IBrokerInfo
         }
 
         RegionEndpoint? regionEndpoint = null;
-        if (settings.TryGetValue(AmazonSQSSettings.Region, out string? region))
+        if (settings.TryGetValue(AmazonSQSSettings.Region, out var region))
         {
             regionEndpoint = RegionEndpoint.GetBySystemName(region);
         }
@@ -114,7 +114,7 @@ public class AmazonSQSQuery : IThroughputQuery, IBrokerInfo
         {
             var response = await sqs!.ListQueuesAsync(request, cancellationToken);
 
-            foreach (string queue in response.QueueUrls.Select(url => url.Split('/')[4]))
+            foreach (var queue in response.QueueUrls.Select(url => url.Split('/')[4]))
             {
                 yield return new DefaultQueueName(queue);
             }

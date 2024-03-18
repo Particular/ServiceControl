@@ -16,22 +16,22 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
 
     public void Initialise(FrozenDictionary<string, string> settings)
     {
-        string connectionString = settings[CommonSettings.TransportConnectionString];
+        var connectionString = settings[CommonSettings.TransportConnectionString];
         var connectionConfiguration = RabbitMQConnectionConfiguration.Create(connectionString, "");
 
-        if (!settings.TryGetValue(RabbitMQSettings.UserName, out string? username))
+        if (!settings.TryGetValue(RabbitMQSettings.UserName, out var username))
         {
             username = connectionConfiguration.UserName;
         }
 
-        if (!settings.TryGetValue(RabbitMQSettings.Password, out string? password))
+        if (!settings.TryGetValue(RabbitMQSettings.Password, out var password))
         {
             password = connectionConfiguration.UserName;
         }
 
         var defaultCredential = new NetworkCredential(username, password);
 
-        if (!settings.TryGetValue(RabbitMQSettings.API, out string? apiUrl))
+        if (!settings.TryGetValue(RabbitMQSettings.API, out var apiUrl))
         {
             apiUrl = $"{(connectionConfiguration.UseTls ? "https://" : "http://")}{connectionConfiguration.Host}:{connectionConfiguration.Port}";
         }
@@ -50,18 +50,18 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var queue = (RabbitMQQueueDetails)queueName;
-        string url = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}";
+        var url = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}";
 
         var token = await httpClient.GetFromJsonAsync<JsonNode>(url, cancellationToken);
         queue.AckedMessages = GetAck();
 
         // looping for 24hrs, in 4 increments of 15 minutes
-        for (int i = 0; i < 24 * 4; i++)
+        for (var i = 0; i < 24 * 4; i++)
         {
             await Task.Delay(TimeSpan.FromMinutes(15), cancellationToken);
 
             token = await httpClient.GetFromJsonAsync<JsonNode>(url, cancellationToken);
-            long? newReading = GetAck();
+            var newReading = GetAck();
             if (newReading is not null)
             {
                 if (newReading > queue.AckedMessages)
@@ -90,10 +90,10 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
 
     public async Task<(string rabbitVersion, string managementVersion)> GetRabbitDetails(CancellationToken cancellationToken = default)
     {
-        string overviewUrl = "/api/overview";
+        var overviewUrl = "/api/overview";
 
         var obj = await httpClient.GetFromJsonAsync<JsonObject>(overviewUrl, cancellationToken) ?? throw new QueryException(QueryFailureReason.InvalidEnvironment, "The RabbitMQ broker is configured with `management.disable_stats = true` or `management_agent.disable_metrics_collector = true` and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker.");
-        bool statsDisabled = obj["disable_stats"]?.GetValue<bool>() ?? false;
+        var statsDisabled = obj["disable_stats"]?.GetValue<bool>() ?? false;
 
         if (statsDisabled)
         {
@@ -108,11 +108,11 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
 
     public async IAsyncEnumerable<IQueueName> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        int page = 1;
+        var page = 1;
         bool morePages;
         var vHosts = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
 
-        (string rabbitVersion, string managementVersion) = await GetRabbitDetails(cancellationToken);
+        (var rabbitVersion, var managementVersion) = await GetRabbitDetails(cancellationToken);
         Data["RabbitMQVersion"] = rabbitVersion;
         Data["RabbitMQManagementVersionVersion"] = managementVersion;
 
@@ -140,14 +140,14 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
     {
         try
         {
-            string bindingsUrl = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}/bindings";
+            var bindingsUrl = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}/bindings";
             var bindings = await httpClient.GetFromJsonAsync<JsonArray>(bindingsUrl, cancellationToken);
-            bool conventionalBindingFound = bindings?.Any(binding => binding!["source"]?.GetValue<string>() == queue.QueueName
-                                                                     && binding["vhost"]?.GetValue<string>() == queue.VHost
-                                                                     && binding["destination"]?.GetValue<string>() == queue.QueueName
-                                                                     && binding["destination_type"]?.GetValue<string>() == "queue"
-                                                                     && binding["routing_key"]?.GetValue<string>() == string.Empty
-                                                                     && binding["properties_key"]?.GetValue<string>() == "~") ?? false;
+            var conventionalBindingFound = bindings?.Any(binding => binding!["source"]?.GetValue<string>() == queue.QueueName
+                                                                    && binding["vhost"]?.GetValue<string>() == queue.VHost
+                                                                    && binding["destination"]?.GetValue<string>() == queue.QueueName
+                                                                    && binding["destination_type"]?.GetValue<string>() == "queue"
+                                                                    && binding["routing_key"]?.GetValue<string>() == string.Empty
+                                                                    && binding["properties_key"]?.GetValue<string>() == "~") ?? false;
 
             if (conventionalBindingFound)
             {
@@ -161,11 +161,11 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
 
         try
         {
-            string exchangeUrl = $"/api/exchanges/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}/bindings/destination";
+            var exchangeUrl = $"/api/exchanges/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}/bindings/destination";
             var bindings = await httpClient.GetFromJsonAsync<JsonArray>(exchangeUrl, cancellationToken);
-            bool delayBindingFound = bindings?.Any(binding =>
+            var delayBindingFound = bindings?.Any(binding =>
             {
-                string? source = binding!["source"]?.GetValue<string>();
+                var source = binding!["source"]?.GetValue<string>();
 
                 return source is "nsb.v2.delay-delivery" or "nsb.delay-delivery"
                     && binding["vhost"]?.GetValue<string>() == queue.VHost
@@ -187,15 +187,15 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
 
     private async Task<(RabbitMQQueueDetails[]?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
     {
-        string url = $"/api/queues?page={page}&page_size=500&name=&use_regex=false&pagination=true";
+        var url = $"/api/queues?page={page}&page_size=500&name=&use_regex=false&pagination=true";
 
         var container = await httpClient.GetFromJsonAsync<JsonNode>(url, cancellationToken);
         switch (container)
         {
             case JsonObject obj:
                 {
-                    int pageCount = obj["page_count"]!.GetValue<int>();
-                    int pageReturned = obj["page"]!.GetValue<int>();
+                    var pageCount = obj["page_count"]!.GetValue<int>();
+                    var pageReturned = obj["page"]!.GetValue<int>();
 
                     if (obj["items"] is not JsonArray items)
                     {
