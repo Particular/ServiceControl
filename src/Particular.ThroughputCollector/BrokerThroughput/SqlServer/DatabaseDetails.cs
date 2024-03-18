@@ -26,11 +26,11 @@
             }
         }
 
-        public async Task TestConnection(CancellationToken cancellationToken = default)
+        public Task<string> TestConnection(CancellationToken cancellationToken = default)
         {
             try
             {
-                await TestGetServerName(cancellationToken);
+                return GetSqlVersion(cancellationToken);
             }
             catch (SqlException x) when (IsConnectionOrLoginIssue(x))
             {
@@ -82,13 +82,13 @@
             };
         }
 
-        async Task TestGetServerName(CancellationToken cancellationToken)
+        private async Task<string> GetSqlVersion(CancellationToken cancellationToken)
         {
             await using var conn = await OpenConnectionAsync(cancellationToken);
             await using var cmd = conn.CreateCommand();
-            cmd.CommandText = "select @@SERVERNAME";
+            cmd.CommandText = "select @@VERSION";
 
-            await cmd.ExecuteScalarAsync(cancellationToken);
+            return (string)await cmd.ExecuteScalarAsync(cancellationToken);
         }
 
         public async Task<List<QueueTableName>> GetTables(CancellationToken cancellationToken = default)
