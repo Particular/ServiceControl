@@ -115,6 +115,8 @@ namespace Particular.ServiceControl
             }
 
             hostBuilder.AddServiceControlComponents(settings, ServiceControlMainInstance.Components);
+
+            hostBuilder.AddServiceControlApis();
         }
 
         static TransportSettings MapSettings(Settings settings)
