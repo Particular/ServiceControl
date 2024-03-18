@@ -91,10 +91,10 @@ Selected Transport:					{settings.TransportType}
 
         public static LogLevel InitializeLevel()
         {
-            var level = LogLevel.Warn;
+            var level = LogLevel.Info;
             try
             {
-                level = LogLevel.FromString(SettingsReader.Read(Settings.SettingsRootNamespace, LogLevelKey, LogLevel.Warn.Name));
+                level = LogLevel.FromString(SettingsReader.Read(Settings.SettingsRootNamespace, LogLevelKey, LogLevel.Info.Name));
             }
             catch
             {
