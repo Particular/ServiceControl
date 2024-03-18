@@ -11,3 +11,4 @@ dotnet_diagnostic.IDE0040.severity = none
 dotnet_diagnostic.IDE0010.severity = suggestion
 
 csharp_style_var_elsewhere = true:error
+csharp_style_var_for_built_in_types = true:error
