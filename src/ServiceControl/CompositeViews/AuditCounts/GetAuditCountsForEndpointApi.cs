@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Api.Contracts;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;

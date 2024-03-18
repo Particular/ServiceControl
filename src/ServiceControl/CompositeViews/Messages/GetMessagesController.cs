@@ -4,14 +4,14 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Infrastructure;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus.Logging;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.CompositeViews.MessageCounting;
+    using ServiceControl.Api;
+    using ServiceControl.Api.Contracts;
     using ServiceControl.Operations.BodyStorage;
     using Yarp.ReverseProxy.Forwarder;
 
@@ -26,7 +26,7 @@ namespace ServiceControl.CompositeViews.Messages
         IHttpForwarder forwarder,
         GetAllMessagesApi allMessagesApi,
         GetAllMessagesForEndpointApi allMessagesForEndpointApi,
-        GetAuditCountsForEndpointApi auditCountsForEndpointApi,
+        IAuditCountApi auditCountApi,
         SearchApi api,
         SearchEndpointApi endpointApi)
         : ControllerBase
@@ -47,7 +47,7 @@ namespace ServiceControl.CompositeViews.Messages
         [Route("endpoints/{endpoint}/audit-count")]
         [HttpGet]
         public Task<IList<AuditCount>> GetEndpointAuditCounts([FromQuery] PagingInfo pagingInfo, string endpoint) =>
-            auditCountsForEndpointApi.Execute(new(pagingInfo, endpoint));
+            auditCountApi.GetEndpointAuditCounts(pagingInfo.Page, pagingInfo.PageSize, endpoint);
 
         [Route("messages/{id}/body")]
         [HttpGet]

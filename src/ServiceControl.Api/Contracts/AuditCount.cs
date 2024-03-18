@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.CompositeViews.MessageCounting
+﻿namespace ServiceControl.Api.Contracts
 {
     using System;
 
