@@ -11,8 +11,6 @@ public class RabbitMQQueueDetails : IQueueName
         VHost = token["vhost"]!.GetValue<string>();
     }
 
-    public string Id => $"{VHost}:{QueueName}";
-
     public string QueueName { get; }
     public string VHost { get; }
     public long? AckedMessages { get; set; }

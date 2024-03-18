@@ -69,7 +69,8 @@ internal class BrokerThroughputCollectorHostedService(
                 {
                     Name = queueName.QueueName,
                     ThroughputSource = ThroughputSource.Broker,
-                    Scope = queueThroughput.Scope
+                    Scope = queueThroughput.Scope,
+                    EndpointIndicators = queueThroughput.EndpointIndicators
                 };
                 endpoint.DailyThroughput.Add(new EndpointThroughput
                 {
