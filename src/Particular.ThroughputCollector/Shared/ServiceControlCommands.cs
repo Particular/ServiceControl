@@ -77,9 +77,7 @@ namespace Particular.ThroughputCollector.Shared
                 }
                 else
                 {
-                    var configUrl = primary.GetFullUrl("/configuration/remotes");
-                    var remoteConfigMsg = $"Unable to determine the version of one or more ServiceControl Audit instances. For the instance with URI {remote.Uri}, the status was '{remote.Status}' and the version string returned was '{remote.VersionString}'. If you are not able to resolve this issue on your own, send the contents of {configUrl} to Particular when requesting help.";
-                    throw new HaltException(HaltReason.InvalidEnvironment, remoteConfigMsg);
+                    logger.LogWarning($"Unable to determine the version of one or more ServiceControl Audit instances. For the instance with URI {remote.Uri}, the status was '{remote.Status}' and the version string returned was '{remote.VersionString}'.");
                 }
             }
 
@@ -104,18 +102,6 @@ namespace Particular.ThroughputCollector.Shared
                     {
                         logger.LogWarning(ex, $"Audit count not available on endpoint {endpoint.Name} at {path}");
                     }
-
-                    //if (useAuditCounts)
-                    //{
-                    //    var path = $"/endpoints/{endpoint.UrlName}/audit-count";
-                    //    endpoint.AuditCounts = await primary.GetData<AuditCount[]>(path, 2, cancellationToken);
-                    //}
-                    //else
-                    //{
-                    //    var path = $"/endpoints/{endpoint.UrlName}/messages/?per_page=1";
-                    //    var recentMessages = await primary.GetData<JArray>(path, 2, cancellationToken);
-                    //    endpoint.NoAuditCounts = recentMessages.Any();
-                    //}
                 }
             }
 
