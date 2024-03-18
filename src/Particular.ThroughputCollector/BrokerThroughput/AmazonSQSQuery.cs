@@ -12,7 +12,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Shared;
 
-public class AmazonSQSQuery : IThroughputQuery
+public class AmazonSQSQuery : IThroughputQuery, IBrokerInfo
 {
     private AmazonCloudWatchClient? cloudWatch;
     private AmazonSQSClient? sqs;
@@ -133,4 +133,6 @@ public class AmazonSQSQuery : IThroughputQuery
     public string? ScopeType { get; }
 
     public bool SupportsHistoricalMetrics => true;
+    public Dictionary<string, string> Data { get; } = [];
+    public string MessageTransport => "AmazonSQS";
 }
