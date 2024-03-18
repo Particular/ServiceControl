@@ -5,15 +5,18 @@
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Persistence;
-    using Shared;
+    using ServiceControl.Api;
 
     class AuditThroughputCollectorHostedService : BackgroundService
     {
-        public AuditThroughputCollectorHostedService(ILogger<AuditThroughputCollectorHostedService> logger, ThroughputSettings throughputSettings, IThroughputDataStore dataStore)
+        public AuditThroughputCollectorHostedService(ILogger<AuditThroughputCollectorHostedService> logger, ThroughputSettings throughputSettings, IThroughputDataStore dataStore, IConfigurationApi configurationApi, IEndpointsApi endpointsApi, IAuditCountApi auditCountApi)
         {
             this.logger = logger;
             this.throughputSettings = throughputSettings;
             this.dataStore = dataStore;
+            this.configurationApi = configurationApi;
+            this.auditCountApi = auditCountApi;
+            this.endpointsApi = endpointsApi;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -26,7 +29,7 @@
             {
                 do
                 {
-                    await GatherThroughput(stoppingToken);
+                    await GatherThroughput();
                 } while (await timer.WaitForNextTickAsync(stoppingToken));
             }
             catch (OperationCanceledException)
@@ -35,16 +38,18 @@
             }
         }
 
-        async Task GatherThroughput(CancellationToken cancellationToken)
+        async Task GatherThroughput()
         {
             var utcYesterday = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
             logger.LogInformation($"Gathering throughput from audit for {utcYesterday.ToShortDateString}");
 
             try
             {
-                var httpFactory = await HttpAuth.CreateHttpClientFactory(throughputSettings.BrokerSettingValues[ServiceControlSettings.API], logger, configureNewClient: c => c.Timeout = TimeSpan.FromSeconds(30), cancellationToken: cancellationToken);
-                var primary = new ServiceControlClient("ServiceControl", throughputSettings.BrokerSettingValues[ServiceControlSettings.API], httpFactory, logger);
-                var knownEndpoints = await ServiceControlCommands.GetKnownEndpoints(primary, logger, cancellationToken);
+                //var httpFactory = await HttpAuth.CreateHttpClientFactory(throughputSettings.BrokerSettingValues[ServiceControlSettings.API], logger, configureNewClient: c => c.Timeout = TimeSpan.FromSeconds(30), cancellationToken: cancellationToken);
+                //var primary = new ServiceControlClient("ServiceControl", throughputSettings.BrokerSettingValues[ServiceControlSettings.API], httpFactory, logger);
+                //await primary.CheckEndpoint(content => content.Contains("\"known_endpoints_url\"") && content.Contains("\"endpoints_messages_url\""), cancellationToken); //TODO do we need this since we know the SC url?
+                //var knownEndpoints = await ServiceControlCommands.GetKnownEndpoints(primary, logger, cancellationToken);
+                var knownEndpoints = await ServiceControlCommands.GetKnownEndpoints(configurationApi, endpointsApi, auditCountApi, logger);
 
                 if (!knownEndpoints.Any())
                 {
@@ -88,5 +93,8 @@
         readonly ILogger logger;
         ThroughputSettings throughputSettings;
         IThroughputDataStore dataStore;
+        IConfigurationApi configurationApi;
+        IAuditCountApi auditCountApi;
+        IEndpointsApi endpointsApi;
     }
 }
