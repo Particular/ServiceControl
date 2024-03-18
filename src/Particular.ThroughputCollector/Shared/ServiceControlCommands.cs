@@ -42,16 +42,16 @@ namespace Particular.ThroughputCollector.Shared
             var remotesInfoJson = await primary.GetData<JsonArray>("/configuration/remotes", cancellationToken);
             var remoteInfo = remotesInfoJson.Select(remote =>
             {
-                string? uri = remote?.AsObject().TryGetPropertyValue("api_uri", out var apiUrl) == true
+                var uri = remote?.AsObject().TryGetPropertyValue("api_uri", out var apiUrl) == true
                     ? apiUrl?.GetValue<string>()
                     : null;
-                string? status = remote?.AsObject().TryGetPropertyValue("status", out var statusVal) == true
+                var status = remote?.AsObject().TryGetPropertyValue("status", out var statusVal) == true
                     ? statusVal?.GetValue<string>()
                     : null;
-                string? versionString = remote?.AsObject().TryGetPropertyValue("version", out var version) == true
+                var versionString = remote?.AsObject().TryGetPropertyValue("version", out var version) == true
                     ? version?.GetValue<string>()
                     : null;
-                string? retentionString =
+                var retentionString =
                     remote?.AsObject().TryGetPropertyValue("configuration", out var configuration) == true &&
                     configuration?.AsObject().TryGetPropertyValue("data_retention", out _) == true &&
                     configuration?.AsObject()
