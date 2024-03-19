@@ -35,7 +35,6 @@
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             Port = SettingsReader.Read(SettingsRootNamespace, "Port", 44444);
             MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", 32);
-            HttpDefaultConnectionLimit = SettingsReader.Read(SettingsRootNamespace, "HttpDefaultConnectionLimit", 100);
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
@@ -131,7 +130,6 @@
 
         public string ServiceName { get; }
 
-        public int HttpDefaultConnectionLimit { get; set; }
         public string TransportConnectionString { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
         public int DataSpaceRemainingThreshold { get; set; }

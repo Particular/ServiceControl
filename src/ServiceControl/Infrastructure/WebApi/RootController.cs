@@ -78,7 +78,6 @@
                 },
                 PerformanceTunning = new
                 {
-                    settings.HttpDefaultConnectionLimit,
                     settings.ExternalIntegrationsDispatchingBatchSize
                 },
                 PersistenceSettings = settings.PersisterSpecificSettings,

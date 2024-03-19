@@ -49,7 +49,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
             MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", 10);
             RetryHistoryDepth = SettingsReader.Read(SettingsRootNamespace, "RetryHistoryDepth", 10);
-            HttpDefaultConnectionLimit = SettingsReader.Read(SettingsRootNamespace, "HttpDefaultConnectionLimit", 100);
             AllowMessageEditing = SettingsReader.Read<bool>(SettingsRootNamespace, "AllowMessageEditing");
             NotificationsFilter = SettingsReader.Read<string>(SettingsRootNamespace, "NotificationsFilter");
             RemoteInstances = GetRemoteInstances().ToArray();
@@ -156,7 +155,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public TimeSpan EventsRetentionPeriod { get; }
         public string ServiceName { get; }
 
-        public int HttpDefaultConnectionLimit { get; set; }
         public string TransportConnectionString { get; set; }
         public TimeSpan ProcessRetryBatchesFrequency { get; set; }
         public TimeSpan TimeToRestartErrorIngestionAfterFailure { get; set; }

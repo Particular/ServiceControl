@@ -63,7 +63,6 @@
                 PerformanceTunning = new
                 {
                     settings.MaxBodySizeToStore,
-                    settings.HttpDefaultConnectionLimit,
                 },
                 Transport = new
                 {

@@ -48,9 +48,6 @@ namespace Particular.ServiceControl
                 EventSourceCreator.Create();
             }
 
-            // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
-            ServicePointManager.DefaultConnectionLimit = settings.HttpDefaultConnectionLimit;
-
             var transportCustomization = settings.LoadTransportCustomization();
             var transportSettings = MapSettings(settings);
 
