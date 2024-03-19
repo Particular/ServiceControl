@@ -90,10 +90,7 @@ class InMemoryThroughputDataStore : IThroughputDataStore
         await Task.CompletedTask;
     }
 
-    public async Task<bool> IsThereThroughputForLastXDays(int days)
-    {
-        return await Task.FromResult(endpoints.Any(e => e.DailyThroughput.Any(t => t.DateUTC >= DateTime.UtcNow.Date.AddDays(-days) && t.DateUTC <= DateTime.UtcNow.Date.AddDays(-1))));
-    }
+    public async Task<bool> IsThereThroughputForLastXDays(int days) => await Task.FromResult(endpoints.Any(e => e.DailyThroughput.Any(t => t.DateUTC >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) && t.DateUTC <= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1))));
 
     private List<Endpoint> GetAllEndpointThroughput(string name) => endpoints.Where(w => w.SanitizedName == name).ToList();
 

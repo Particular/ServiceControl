@@ -5,7 +5,7 @@
     class AuditCount
     {
         [JsonPropertyName("utc_date")]
-        public DateTime UtcDate { get; set; }
+        public DateOnly UtcDate { get; set; }
         [JsonPropertyName("count")]
         public long Count { get; set; }
     }

@@ -1,5 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using NUnit.Framework;
@@ -55,20 +56,20 @@
 
         List<Endpoint> EndpointsWithNoThroughputInLast30Days =
         [
-            new Endpoint { Name = "Endpoint1", SanitizedName = "Endpoint1", ThroughputSource = ThroughputSource.Audit, DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-31), TotalThroughput = 50 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-32), TotalThroughput = 50 }] },
-            new Endpoint { Name = "Endpoint2", SanitizedName = "Endpoint2", ThroughputSource = ThroughputSource.Audit, DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-31), TotalThroughput = 50 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-32), TotalThroughput = 50 }] }
+            new Endpoint { Name = "Endpoint1", SanitizedName = "Endpoint1", ThroughputSource = ThroughputSource.Audit, DailyThroughput = [new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-31), TotalThroughput = 50 }, new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-32), TotalThroughput = 50 }] },
+            new Endpoint { Name = "Endpoint2", SanitizedName = "Endpoint2", ThroughputSource = ThroughputSource.Audit, DailyThroughput = [new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-31), TotalThroughput = 50 }, new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-32), TotalThroughput = 50 }] }
         ];
 
         List<Endpoint> EndpointsWithThroughputInLast30Days =
         [
-            new Endpoint { Name = "Endpoint1", SanitizedName = "Endpoint1", ThroughputSource = ThroughputSource.Audit, DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 50 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-2), TotalThroughput = 50 }] },
-            new Endpoint { Name = "Endpoint2", SanitizedName = "Endpoint2", ThroughputSource = ThroughputSource.Audit, DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 50 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-2), TotalThroughput = 50 }] }
+            new Endpoint { Name = "Endpoint1", SanitizedName = "Endpoint1", ThroughputSource = ThroughputSource.Audit, DailyThroughput = [new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 50 }] },
+            new Endpoint { Name = "Endpoint2", SanitizedName = "Endpoint2", ThroughputSource = ThroughputSource.Audit, DailyThroughput = [new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 50 }] }
         ];
 
         List<Endpoint> EndpointsWithThroughputOnlyForToday =
         [
-            new Endpoint { Name = "Endpoint1", SanitizedName = "Endpoint1", ThroughputSource = ThroughputSource.Audit, DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date, TotalThroughput = 50 }] },
-            new Endpoint { Name = "Endpoint2", SanitizedName = "Endpoint2", ThroughputSource = ThroughputSource.Audit, DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date, TotalThroughput = 50 }] }
+            new Endpoint { Name = "Endpoint1", SanitizedName = "Endpoint1", ThroughputSource = ThroughputSource.Audit, DailyThroughput = [new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow), TotalThroughput = 50 }] },
+            new Endpoint { Name = "Endpoint2", SanitizedName = "Endpoint2", ThroughputSource = ThroughputSource.Audit, DailyThroughput = [new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow), TotalThroughput = 50 }] }
         ];
     }
 }

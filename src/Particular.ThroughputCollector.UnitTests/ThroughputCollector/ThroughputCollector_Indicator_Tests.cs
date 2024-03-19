@@ -1,5 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -60,14 +61,14 @@
 
         List<Endpoint> EndpointsWithNoUserIndicatorsFromMultipleSources =
         [
-            new Endpoint { Name = "Endpoint1", SanitizedName = "Endpoint1", ThroughputSource = ThroughputSource.Broker, DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 50 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-2), TotalThroughput = 75 }] },
-            new Endpoint { Name = "Endpoint1", SanitizedName = "Endpoint1", ThroughputSource = ThroughputSource.Monitoring, DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 60 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-2), TotalThroughput = 65 }] },
+            new Endpoint { Name = "Endpoint1", SanitizedName = "Endpoint1", ThroughputSource = ThroughputSource.Broker, DailyThroughput = [new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 75 }] },
+            new Endpoint { Name = "Endpoint1", SanitizedName = "Endpoint1", ThroughputSource = ThroughputSource.Monitoring, DailyThroughput = [new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
         ];
 
         List<Endpoint> EndpointsWithMultipleSourcesAndEndpointIndicator =
         [
-            new Endpoint { Name = "Endpoint1", SanitizedName = "Endpoint1", ThroughputSource = ThroughputSource.Broker, DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 50 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-2), TotalThroughput = 75 }] },
-            new Endpoint { Name = "Endpoint1_", SanitizedName = "Endpoint1", ThroughputSource = ThroughputSource.Audit, EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()], DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 60 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-2), TotalThroughput = 65 }] },
+            new Endpoint { Name = "Endpoint1", SanitizedName = "Endpoint1", ThroughputSource = ThroughputSource.Broker, DailyThroughput = [new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 75 }] },
+            new Endpoint { Name = "Endpoint1_", SanitizedName = "Endpoint1", ThroughputSource = ThroughputSource.Audit, EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()], DailyThroughput = [new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
         ];
     }
 }

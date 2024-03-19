@@ -14,7 +14,14 @@
             {
                 Name = "Endpoint",
                 ThroughputSource = ThroughputSource.Audit,
-                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
+                DailyThroughput =
+                [
+                    new EndpointThroughput
+                    {
+                        DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
+                        TotalThroughput = 50
+                    }
+                ]
             };
 
             await DataStore.RecordEndpointThroughput(endpoint);
@@ -35,7 +42,14 @@
             {
                 Name = "Endpoint1",
                 ThroughputSource = ThroughputSource.Audit,
-                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
+                DailyThroughput =
+                [
+                    new EndpointThroughput
+                    {
+                        DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
+                        TotalThroughput = 50
+                    }
+                ]
             };
             await DataStore.RecordEndpointThroughput(endpoint1);
 
@@ -43,7 +57,14 @@
             {
                 Name = "Endpoint1",
                 ThroughputSource = ThroughputSource.Broker,
-                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 600 }]
+                DailyThroughput =
+                [
+                    new EndpointThroughput
+                    {
+                        DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1),
+                        TotalThroughput = 600
+                    }
+                ]
             };
             await DataStore.RecordEndpointThroughput(endpoint2);
 
@@ -60,7 +81,14 @@
             {
                 Name = "Endpoint1",
                 ThroughputSource = ThroughputSource.Audit,
-                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
+                DailyThroughput =
+                [
+                    new EndpointThroughput
+                    {
+                        DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
+                        TotalThroughput = 50
+                    }
+                ]
             };
             await DataStore.RecordEndpointThroughput(endpoint1);
 
@@ -68,7 +96,14 @@
             {
                 Name = "Endpoint1",
                 ThroughputSource = ThroughputSource.Audit,
-                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 100 }]
+                DailyThroughput =
+                [
+                    new EndpointThroughput
+                    {
+                        DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1),
+                        TotalThroughput = 100
+                    }
+                ]
             };
             await DataStore.RecordEndpointThroughput(endpoint2);
 
@@ -88,7 +123,14 @@
             {
                 Name = "Endpoint1",
                 ThroughputSource = ThroughputSource.Audit,
-                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 100 }]
+                DailyThroughput =
+                [
+                    new EndpointThroughput
+                    {
+                        DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1),
+                        TotalThroughput = 100
+                    }
+                ]
             };
             await DataStore.RecordEndpointThroughput(endpoint1);
 
@@ -115,7 +157,14 @@
             {
                 Name = "Endpoint",
                 ThroughputSource = ThroughputSource.Audit,
-                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
+                DailyThroughput =
+                [
+                    new EndpointThroughput
+                    {
+                        DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
+                        TotalThroughput = 50
+                    }
+                ]
             };
 
             await DataStore.RecordEndpointThroughput(endpoint);
@@ -132,7 +181,14 @@
             {
                 Name = "Endpoint",
                 ThroughputSource = ThroughputSource.Audit,
-                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
+                DailyThroughput =
+                [
+                    new EndpointThroughput
+                    {
+                        DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
+                        TotalThroughput = 50
+                    }
+                ]
             };
 
             await DataStore.RecordEndpointThroughput(endpoint);
@@ -150,7 +206,14 @@
                 Name = "Endpoint",
                 SanitizedName = "Endpoint",
                 ThroughputSource = ThroughputSource.Audit,
-                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
+                DailyThroughput =
+                [
+                    new EndpointThroughput
+                    {
+                        DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
+                        TotalThroughput = 50
+                    }
+                ]
             };
 
             await DataStore.RecordEndpointThroughput(endpoint);
@@ -205,7 +268,14 @@
                 Name = "Endpoint",
                 SanitizedName = "Endpoint",
                 ThroughputSource = ThroughputSource.Audit,
-                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
+                DailyThroughput =
+                [
+                    new EndpointThroughput
+                    {
+                        DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
+                        TotalThroughput = 50
+                    }
+                ]
             };
             await DataStore.RecordEndpointThroughput(endpointAudit);
 
@@ -214,7 +284,14 @@
                 Name = "Endpoint",
                 SanitizedName = "Endpoint",
                 ThroughputSource = ThroughputSource.Monitoring,
-                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 70 }]
+                DailyThroughput =
+                [
+                    new EndpointThroughput
+                    {
+                        DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
+                        TotalThroughput = 70
+                    }
+                ]
             };
             await DataStore.RecordEndpointThroughput(endpointMonitoring);
 
@@ -257,7 +334,14 @@
             {
                 Name = "Endpoint",
                 ThroughputSource = ThroughputSource.Audit,
-                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date.AddDays(-10), TotalThroughput = 50 }]
+                DailyThroughput =
+                [
+                    new EndpointThroughput
+                    {
+                        DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-10),
+                        TotalThroughput = 50
+                    }
+                ]
             };
             await DataStore.RecordEndpointThroughput(endpointAudit);
 

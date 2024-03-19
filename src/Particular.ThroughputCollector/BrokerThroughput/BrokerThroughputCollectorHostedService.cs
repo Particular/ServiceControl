@@ -45,7 +45,7 @@ internal class BrokerThroughputCollectorHostedService(
                 continue;
             }
 
-            var startDate = DateTime.UtcNow.Date.AddDays(-30);
+            var startDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-30);
 
             waitingTasks.Add(Exec(queueName, startDate));
         }
@@ -53,7 +53,7 @@ internal class BrokerThroughputCollectorHostedService(
         await Task.WhenAll(waitingTasks);
         return;
 
-        async Task Exec(IQueueName queueName, DateTime startDate)
+        async Task Exec(IQueueName queueName, DateOnly startDate)
         {
             var endpoint = await dataStore.GetEndpointByName(queueName.QueueName, ThroughputSource.Broker);
             if (endpoint != null)
