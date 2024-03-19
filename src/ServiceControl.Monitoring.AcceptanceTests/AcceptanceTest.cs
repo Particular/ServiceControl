@@ -3,7 +3,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests
     using System;
     using System.Diagnostics;
     using System.IO;
-    using System.Net;
     using System.Net.Http;
     using System.Text.Json;
     using AcceptanceTesting;
@@ -18,16 +17,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests
     [TestFixture]
     abstract class AcceptanceTest : NServiceBusAcceptanceTest, IAcceptanceTestInfrastructureProvider
     {
-        protected AcceptanceTest()
-        {
-            ServicePointManager.DefaultConnectionLimit = int.MaxValue;
-            ServicePointManager.MaxServicePoints = int.MaxValue;
-            ServicePointManager.UseNagleAlgorithm = false; // Improvement for small tcp packets traffic, get buffered up to 1/2-second. If your storage communication is for small (less than ~1400 byte) payloads, this setting should help (especially when dealing with things like Azure Queues, which tend to have very small messages).
-            ServicePointManager.Expect100Continue = false; // This ensures tcp ports are free up quicker by the OS, prevents starvation of ports
-            ServicePointManager.SetTcpKeepAlive(true, 5000, 1000); // This is good for Azure because it reuses connections
-        }
-
-
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
         public JsonSerializerOptions SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
 
