@@ -5,7 +5,6 @@ namespace ServiceControl.SagaAudit
     using System.Net.Http;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
-    using Microsoft.AspNetCore.Http;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
@@ -14,7 +13,7 @@ namespace ServiceControl.SagaAudit
 
     public class GetSagaByIdApi : ScatterGatherApi<ISagaAuditDataStore, SagaByIdContext, SagaHistory>
     {
-        public GetSagaByIdApi(ISagaAuditDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor) : base(dataStore, settings, httpClientFactory, httpContextAccessor)
+        public GetSagaByIdApi(ISagaAuditDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory) : base(dataStore, settings, httpClientFactory)
         {
         }
 

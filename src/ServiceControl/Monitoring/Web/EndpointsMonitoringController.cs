@@ -3,9 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Primitives;
     using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
@@ -56,7 +58,13 @@
 
         [Route("endpoints/known")]
         [HttpGet]
-        public Task<IList<KnownEndpointsView>> KnownEndpoints([FromQuery] PagingInfo pagingInfo) => knownEndpointsApi.Execute(new ScatterGatherContext(pagingInfo));
+        public async Task<IList<KnownEndpointsView>> KnownEndpoints([FromQuery] PagingInfo pagingInfo)
+        {
+            QueryResult<IList<KnownEndpointsView>> result = await knownEndpointsApi.Execute(new ScatterGatherContext(pagingInfo), Request.GetEncodedPathAndQuery());
+
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            return result.Results;
+        }
 
         [Route("endpoints/{endpointId}")]
         [HttpPatch]
