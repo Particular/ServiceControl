@@ -6,7 +6,7 @@ public interface IThroughputQuery
 {
     void Initialise(FrozenDictionary<string, string> settings);
 
-    IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateTime startDate,
+    IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateOnly startDate,
         CancellationToken cancellationToken = default);
 
     IAsyncEnumerable<IQueueName> GetQueueNames(CancellationToken cancellationToken = default);
@@ -18,7 +18,7 @@ public interface IThroughputQuery
 
 public class QueueThroughput
 {
-    public DateTime DateUTC { get; set; }
+    public DateOnly DateUTC { get; set; }
     public long TotalThroughput { get; set; }
     public string? Scope { get; set; }
     public string[] EndpointIndicators { get; set; } = [];
