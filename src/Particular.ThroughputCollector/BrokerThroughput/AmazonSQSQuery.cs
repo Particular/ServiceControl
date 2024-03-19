@@ -76,6 +76,12 @@ public class AmazonSQSQuery : IThroughputQuery, IBrokerInfo
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var endDate = DateTime.UtcNow.Date.AddDays(-1);
+
+        if (endDate <= startDate)
+        {
+            yield break;
+        }
+
         var req = new GetMetricStatisticsRequest
         {
             Namespace = "AWS/SQS",
