@@ -11,5 +11,5 @@ public interface IThroughputDataStore
     Task AppendEndpointThroughput(Endpoint endpoint);
     Task<bool> IsThereThroughputForLastXDays(int days);
     Task<BrokerData?> GetBrokerData(Broker broker);
-    Task SaveBrokerData(Broker broker, string? scopeType, string? Version);
+    Task SaveBrokerData(Broker broker, string? scopeType, string? version);
 }
