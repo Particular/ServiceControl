@@ -22,6 +22,8 @@
         {
             logger.LogInformation("Starting AuditThroughputCollector Service");
 
+            await Task.Delay(30000, stoppingToken);
+
             using PeriodicTimer timer = new(TimeSpan.FromDays(1));
 
             try
