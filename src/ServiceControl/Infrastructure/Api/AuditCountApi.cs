@@ -11,7 +11,10 @@
     {
         public async Task<IList<AuditCount>> GetEndpointAuditCounts(int? page, int? pageSize, string endpoint)
         {
-            return await auditCountsForEndpointApi.Execute(new(new PagingInfo(page, pageSize), endpoint));
+            var pagingInfo = new PagingInfo(page, pageSize);
+            QueryResult<IList<AuditCount>> result = await auditCountsForEndpointApi.Execute(new AuditCountsForEndpointContext(pagingInfo, endpoint), $"/api/endpoints/{endpoint}/audit-count");
+
+            return result.Results;
         }
     }
 }
