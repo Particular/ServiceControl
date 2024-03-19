@@ -60,12 +60,12 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery, IBrokerI
         }
     }
 
-    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateTime startDate,
+    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         logger.LogInformation($"Gathering metrics for \"{queueName}\" queue");
 
-        var endDate = DateTime.UtcNow.Date.AddDays(-1);
+        var endDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
         if (endDate <= startDate)
         {
             yield break;
@@ -79,12 +79,12 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery, IBrokerI
             yield return new QueueThroughput
             {
                 TotalThroughput = (long)(metricValue.Total ?? 0),
-                DateUTC = metricValue.TimeStamp.UtcDateTime.Date
+                DateUTC = DateOnly.FromDateTime(metricValue.TimeStamp.UtcDateTime)
             };
         }
     }
 
-    private async Task<IReadOnlyList<MetricValue>> GetMetrics(string queueName, DateTime startTime, DateTime endTime,
+    private async Task<IReadOnlyList<MetricValue>> GetMetrics(string queueName, DateOnly startTime, DateOnly endTime,
         CancellationToken cancellationToken = default)
     {
         var client = new MetricsQueryClient(environment.Endpoint, clientCredentials);
@@ -94,7 +94,7 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery, IBrokerI
             new MetricsQueryOptions
             {
                 Filter = $"EntityName eq '{queueName}'",
-                TimeRange = new QueryTimeRange(startTime, endTime),
+                TimeRange = new QueryTimeRange(startTime.ToDateTime(TimeOnly.MinValue), endTime.ToDateTime(TimeOnly.MinValue)),
                 Granularity = TimeSpan.FromDays(1)
             },
             cancellationToken);

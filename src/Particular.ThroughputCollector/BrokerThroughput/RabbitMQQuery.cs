@@ -46,7 +46,7 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
         };
     }
 
-    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateTime startDate,
+    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var queue = (RabbitMQQueueDetails)queueName;
@@ -68,7 +68,7 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
                 {
                     yield return new QueueThroughput
                     {
-                        DateUTC = DateTime.UtcNow.Date,
+                        DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
                         TotalThroughput = newReading.Value - queue.AckedMessages.Value,
                         Scope = queue.VHost
                     };
