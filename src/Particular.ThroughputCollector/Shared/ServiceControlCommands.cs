@@ -32,6 +32,7 @@ namespace Particular.ThroughputCollector.Shared
             var remotes = await configurationApi.GetRemoteConfigs();
             var remotesInfo = new List<RemoteInstanceInformation>();
             var valueType = remotes.GetType();
+
             if (remotes != null && valueType.IsArray)
             {
                 var remoteObjects = (object[])remotes;
