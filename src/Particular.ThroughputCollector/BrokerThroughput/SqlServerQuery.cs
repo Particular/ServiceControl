@@ -32,7 +32,7 @@ public class SqlServerQuery : IThroughputQuery, IBrokerInfo
         }
     }
 
-    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateTime startDate,
+    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var queueTableName = (QueueTableName)queueName;
@@ -50,7 +50,7 @@ public class SqlServerQuery : IThroughputQuery, IBrokerInfo
             yield return new QueueThroughput
             {
                 Scope = queueTableName.GetScope(),
-                DateUTC = DateTime.UtcNow.Date,
+                DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
                 TotalThroughput = endData.RowVersion - startData.RowVersion
             };
 

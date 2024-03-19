@@ -72,10 +72,10 @@ public class AmazonSQSQuery : IThroughputQuery, IBrokerInfo
         settings.TryGetValue(AmazonSQSSettings.Prefix, out prefix);
     }
 
-    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateTime startDate,
+    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var endDate = DateTime.UtcNow.Date.AddDays(-1);
+        var endDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
 
         if (endDate <= startDate)
         {
@@ -86,8 +86,8 @@ public class AmazonSQSQuery : IThroughputQuery, IBrokerInfo
         {
             Namespace = "AWS/SQS",
             MetricName = "NumberOfMessagesDeleted",
-            StartTimeUtc = startDate,
-            EndTimeUtc = endDate,
+            StartTimeUtc = startDate.ToDateTime(TimeOnly.MinValue),
+            EndTimeUtc = endDate.ToDateTime(TimeOnly.MinValue),
             Period = 86400, // 1 day
             Statistics = ["Sum"],
             Dimensions = [
@@ -103,7 +103,7 @@ public class AmazonSQSQuery : IThroughputQuery, IBrokerInfo
             yield return new QueueThroughput
             {
                 TotalThroughput = (long)datapoint.Sum,
-                DateUTC = datapoint.Timestamp.ToUniversalTime().Date
+                DateUTC = DateOnly.FromDateTime(datapoint.Timestamp.ToUniversalTime())
             };
         }
     }
