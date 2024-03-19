@@ -4,8 +4,8 @@
     using Infrastructure;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using Particular.ThroughputCollector.Shared;
     using Persistence;
+    using Shared;
 
     class AuditThroughputCollectorHostedService : BackgroundService
     {
@@ -37,7 +37,7 @@
 
         async Task GatherThroughput(CancellationToken cancellationToken)
         {
-            var utcYesterday = DateTime.UtcNow.Date.AddDays(-1);
+            var utcYesterday = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
             logger.LogInformation($"Gathering throughput from audit for {utcYesterday.ToShortDateString}");
 
             try
@@ -66,7 +66,7 @@
             }
         }
 
-        async Task<bool> ThroughputRecordedForYesterday(string endpointName, DateTime utcDateTime)
+        private async Task<bool> ThroughputRecordedForYesterday(string endpointName, DateOnly utcDateTime)
         {
             var endpoint = await dataStore.GetEndpointByName(endpointName, ThroughputSource.Audit);
 
@@ -80,7 +80,7 @@
                 Name = scEndpoint.Name,
                 SanitizedName = EndpointNameSanitizer.SanitizeEndpointName(scEndpoint.Name, throughputSettings.Broker),
                 ThroughputSource = ThroughputSource.Audit,
-                EndpointIndicators = new string[] { EndpointIndicator.KnownEndpoint.ToString() },
+                EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()],
                 DailyThroughput = scEndpoint.AuditCounts.Any() ? scEndpoint.AuditCounts.Select(c => new EndpointThroughput { DateUTC = c.UtcDate, TotalThroughput = c.Count }).ToList() : []
             };
         }
