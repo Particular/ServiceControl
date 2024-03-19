@@ -6,6 +6,7 @@
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using Persistence.Infrastructure;
+    using ServiceControl.Infrastructure.WebApi;
 
     [ApiController]
     [Route("api")]
