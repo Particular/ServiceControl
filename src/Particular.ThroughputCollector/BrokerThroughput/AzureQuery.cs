@@ -66,6 +66,11 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery, IBrokerI
         logger.LogInformation($"Gathering metrics for \"{queueName}\" queue");
 
         var endDate = DateTime.UtcNow.Date.AddDays(-1);
+        if (endDate <= startDate)
+        {
+            yield break;
+        }
+
         var metrics = await GetMetrics(queueName.QueueName, startDate,
             endDate, cancellationToken);
 
