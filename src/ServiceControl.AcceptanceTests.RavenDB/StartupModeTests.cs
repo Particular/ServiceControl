@@ -6,7 +6,6 @@
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NUnit.Framework;
-    using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
     using Persistence;
     using Persistence.RavenDB;
