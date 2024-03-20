@@ -6,6 +6,6 @@
 
     abstract class AbstractCommand
     {
-        public abstract Task Execute(HostArguments args, Settings settings);
+        public abstract Task Execute(HostArguments args, Settings settings, LoggingSettings loggingSettings);
     }
 }

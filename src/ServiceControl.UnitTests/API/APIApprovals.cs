@@ -30,7 +30,7 @@
 
             var controller = new RootController(
                 new ActiveLicense { IsValid = true },
-                new LoggingSettings("testEndpoint"),
+                new LoggingSettings(),
                 new Settings(),
                 httpClientFactory: null
                 )

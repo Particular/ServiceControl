@@ -88,10 +88,15 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 ConfigurationManager.AppSettings.Set($"ServiceControl.Audit/{persisterSpecificSetting.Key}", persisterSpecificSetting.Value);
             }
 
+            var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(logPath);
+
+            var loggingSettings = new LoggingSettings(defaultLevel: NLog.LogLevel.Debug, logPath: logPath);
+
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupCommand = new SetupCommand();
-                await setupCommand.Execute(new HostArguments(Array.Empty<string>()), settings);
+                await setupCommand.Execute(new HostArguments([]), settings, loggingSettings);
             }
 
             var configuration = new EndpointConfiguration(instanceName);
@@ -101,10 +106,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Starting ServiceControl {instanceName}"))
             {
-                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Directory.CreateDirectory(logPath);
-
-                var loggingSettings = new LoggingSettings(settings.ServiceName, defaultLevel: NLog.LogLevel.Debug, logPath: logPath);
                 var hostBuilder = WebApplication.CreateBuilder(new WebApplicationOptions
                 {
                     // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved

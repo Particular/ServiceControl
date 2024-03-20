@@ -6,18 +6,16 @@
     using Auditing;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using NLog;
     using NServiceBus;
     using Settings;
 
     class ImportFailedAuditsCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings)
+        public override async Task Execute(HostArguments args, Settings settings, LoggingSettings loggingSettings)
         {
             settings.IngestAuditMessages = false;
 
             var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
-            var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info);
 
             using var tokenSource = new CancellationTokenSource();
 

@@ -31,7 +31,7 @@
             var settings = CreateTestSettings();
 
             var controller = new RootController(
-                new LoggingSettings("testEndpoint"),
+                new LoggingSettings(),
                 settings
             )
             {

@@ -8,13 +8,11 @@
 
     class RunCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings)
+        public override async Task Execute(HostArguments args, Settings settings, LoggingSettings loggingSettings)
         {
             var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = endpointConfiguration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
-
-            var loggingSettings = new LoggingSettings(settings.ServiceName);
 
             var hostBuilder = WebApplication.CreateBuilder();
             hostBuilder.AddServiceControlAudit((_, __) =>

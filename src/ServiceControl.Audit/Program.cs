@@ -33,12 +33,12 @@
                 return;
             }
 
-            var loggingSettings = new LoggingSettings(arguments.ServiceName);
+            var loggingSettings = new LoggingSettings();
             LoggingConfigurator.ConfigureLogging(loggingSettings);
 
             settings = Settings.FromConfiguration(arguments.ServiceName);
 
-            await new CommandRunner(arguments.Commands).Execute(arguments, settings);
+            await new CommandRunner(arguments.Commands).Execute(arguments, settings, loggingSettings);
         }
 
         static Assembly ResolveAssembly(AssemblyLoadContext loadContext, AssemblyName assemblyName)

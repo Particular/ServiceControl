@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using NLog;
     using NServiceBus;
     using Operations;
     using Particular.ServiceControl;
@@ -14,15 +13,13 @@
 
     class ImportFailedErrorsCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings)
+        public override async Task Execute(HostArguments args, Settings settings, LoggingSettings loggingSettings)
         {
             settings.IngestErrorMessages = false;
             settings.RunRetryProcessor = false;
             settings.DisableHealthChecks = true;
 
             EndpointConfiguration endpointConfiguration = CreateEndpointConfiguration(settings);
-
-            var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info);
 
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration, loggingSettings);

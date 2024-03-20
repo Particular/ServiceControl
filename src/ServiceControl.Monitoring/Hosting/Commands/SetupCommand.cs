@@ -34,7 +34,7 @@ namespace ServiceControl.Monitoring
             return transportCustomization.ProvisionQueues(transportSettings, []);
         }
 
-        bool ValidateLicense(Monitoring.Settings settings)
+        bool ValidateLicense(Settings settings)
         {
             if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
             {
