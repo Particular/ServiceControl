@@ -2,6 +2,7 @@ namespace Particular.ThroughputCollector.Broker;
 
 using System.Collections.Frozen;
 using System.Runtime.CompilerServices;
+using Azure.Core.Pipeline;
 using Azure.Identity;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
@@ -13,10 +14,8 @@ using Shared;
 public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery, IBrokerInfo
 {
     private string serviceBusName = "";
-    private string subscriptionId = "";
-    private ArmEnvironment environment;
-    private ClientSecretCredential? clientCredentials;
-
+    private MetricsQueryClient? client;
+    private ArmClient? armClient;
     private string? resourceId;
 
     public void Initialise(FrozenDictionary<string, string> settings)
@@ -24,11 +23,18 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery, IBrokerI
         settings.TryGetValue(AzureServiceBusSettings.ManagementUrl, out var managementUrl);
 
         serviceBusName = settings[AzureServiceBusSettings.ServiceBusName];
-        subscriptionId = settings[AzureServiceBusSettings.SubscriptionId];
-        environment = GetEnvironment();
 
-        clientCredentials = new ClientSecretCredential(settings[AzureServiceBusSettings.TenantId],
+        var subscriptionId = settings[AzureServiceBusSettings.SubscriptionId];
+        var environment = GetEnvironment();
+        var clientCredentials = new ClientSecretCredential(settings[AzureServiceBusSettings.TenantId],
             settings[AzureServiceBusSettings.ClientId], settings[AzureServiceBusSettings.ClientSecret]);
+
+        client = new MetricsQueryClient(environment.Endpoint, clientCredentials, new MetricsQueryClientOptions
+        {
+            Transport = new HttpClientTransport(new HttpClient(new SocketsHttpHandler { PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2) }))
+        });
+        armClient = new ArmClient(clientCredentials, subscriptionId,
+            new ArmClientOptions { Environment = environment, Transport = new HttpClientTransport(new HttpClient(new SocketsHttpHandler { PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2) })) });
         return;
 
         ArmEnvironment GetEnvironment()
@@ -87,9 +93,7 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery, IBrokerI
     private async Task<IReadOnlyList<MetricValue>> GetMetrics(string queueName, DateOnly startTime, DateOnly endTime,
         CancellationToken cancellationToken = default)
     {
-        var client = new MetricsQueryClient(environment.Endpoint, clientCredentials);
-
-        var response = await client.QueryResourceAsync(resourceId,
+        var response = await client!.QueryResourceAsync(resourceId,
             new[] { "CompleteMessage" },
             new MetricsQueryOptions
             {
@@ -108,10 +112,7 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery, IBrokerI
     public async IAsyncEnumerable<IQueueName> GetQueueNames(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var armClient = new ArmClient(clientCredentials, subscriptionId,
-            new ArmClientOptions { Environment = environment });
-        var subscription =
-            await armClient.GetDefaultSubscriptionAsync(cancellationToken).ConfigureAwait(false);
+        var subscription = await armClient!.GetDefaultSubscriptionAsync(cancellationToken).ConfigureAwait(false);
         var namespaces =
             subscription.GetServiceBusNamespacesAsync(cancellationToken);
 
