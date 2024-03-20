@@ -10,7 +10,7 @@
 
     class MaintenanceModeCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings, LoggingSettings loggingSettings)
+        public override async Task Execute(HostArguments args, Settings settings)
         {
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.Services.AddPersistence(settings, maintenanceMode: true);

@@ -27,7 +27,7 @@
             };
 
             var setupCommand = new SetupCommand();
-            await setupCommand.Execute(new HostArguments([]), settings, new LoggingSettings());
+            await setupCommand.Execute(new HostArguments([]), settings);
 
             CollectionAssert.AreEquivalent(new[]
             {

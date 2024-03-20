@@ -11,7 +11,7 @@
 
     class ImportFailedAuditsCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings, LoggingSettings loggingSettings)
+        public override async Task Execute(HostArguments args, Settings settings)
         {
             settings.IngestAuditMessages = false;
 
@@ -24,7 +24,7 @@
             {
                 tokenSource.Cancel();
                 return Task.CompletedTask;
-            }, settings, endpointConfiguration, loggingSettings);
+            }, settings, endpointConfiguration);
 
             using var app = hostBuilder.Build();
             await app.StartAsync(tokenSource.Token);

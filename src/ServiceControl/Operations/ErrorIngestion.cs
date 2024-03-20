@@ -27,7 +27,6 @@
             TransportSettings transportSettings,
             Metrics metrics,
             IErrorMessageDataStore dataStore,
-            LoggingSettings loggingSettings,
             ErrorIngestionCustomCheck.State ingestionState,
             ErrorIngestor ingestor,
             IIngestionUnitOfWorkFactory unitOfWorkFactory,
@@ -53,7 +52,7 @@
                 FullMode = BoundedChannelFullMode.Wait
             });
 
-            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, loggingSettings, OnCriticalError);
+            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, settings.LoggingSettings, OnCriticalError);
 
             watchdog = new Watchdog("failed message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartErrorIngestionAfterFailure, Logger);
 

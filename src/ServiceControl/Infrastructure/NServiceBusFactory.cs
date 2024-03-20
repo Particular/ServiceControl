@@ -9,12 +9,11 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceControl.Notifications.Email;
     using ServiceControl.Operations;
     using ServiceControl.Transports;
-    using Settings;
 
     static class NServiceBusFactory
     {
         public static void Configure(Settings.Settings settings, ITransportCustomization transportCustomization,
-            TransportSettings transportSettings, LoggingSettings loggingSettings, EndpointConfiguration configuration)
+            TransportSettings transportSettings, EndpointConfiguration configuration)
         {
             if (configuration == null)
             {
@@ -27,8 +26,8 @@ namespace ServiceBus.Management.Infrastructure
 
             transportCustomization.CustomizePrimaryEndpoint(configuration, transportSettings);
 
-            configuration.GetSettings().Set(loggingSettings);
-            configuration.SetDiagnosticsPath(loggingSettings.LogPath);
+            configuration.GetSettings().Set(settings.LoggingSettings);
+            configuration.SetDiagnosticsPath(settings.LoggingSettings.LogPath);
 
             if (settings.DisableExternalIntegrationsPublishing)
             {

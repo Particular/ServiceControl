@@ -7,12 +7,12 @@
 
     class CommandRunner(List<Type> commands)
     {
-        public async Task Execute(HostArguments args, Settings settings, LoggingSettings loggingSettings)
+        public async Task Execute(HostArguments args, Settings settings)
         {
             foreach (var commandType in commands)
             {
                 var command = (AbstractCommand)Activator.CreateInstance(commandType);
-                await command.Execute(args, settings, loggingSettings);
+                await command.Execute(args, settings);
             }
         }
     }

@@ -50,8 +50,8 @@ namespace ServiceControl.Audit.Infrastructure
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget));
 
             // Defaults
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LoggingLevel, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LoggingLevel < LogLevel.Info ? loggingSettings.LoggingLevel : LogLevel.Info, consoleTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, fileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel < LogLevel.Info ? loggingSettings.LogLevel : LogLevel.Info, consoleTarget));
 
             NLog.LogManager.Configuration = nlogConfig;
 
@@ -59,7 +59,7 @@ namespace ServiceControl.Audit.Infrastructure
 
             var logger = LogManager.GetLogger("LoggingConfiguration");
             var logEventInfo = new LogEventInfo { TimeStamp = DateTime.UtcNow };
-            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", fileTarget.FileName.Render(logEventInfo), loggingSettings.LoggingLevel.Name);
+            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", fileTarget.FileName.Render(logEventInfo), loggingSettings.LogLevel.Name);
         }
 
         const long megaByte = 1024 * 1024;

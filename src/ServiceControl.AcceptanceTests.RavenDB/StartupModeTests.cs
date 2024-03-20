@@ -54,7 +54,7 @@
 
         [Test]
         public async Task CanRunImportFailedMessagesMode()
-            => await new TestableImportFailedErrorsCommand().Execute(new HostArguments(Array.Empty<string>()), settings, new LoggingSettings());
+            => await new TestableImportFailedErrorsCommand().Execute(new HostArguments(Array.Empty<string>()), settings);
 
         class TestableImportFailedErrorsCommand : ImportFailedErrorsCommand
         {

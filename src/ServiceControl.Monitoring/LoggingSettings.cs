@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.Infrastructure.Settings
+﻿namespace ServiceControl.Monitoring
 {
     using System;
     using System.IO;

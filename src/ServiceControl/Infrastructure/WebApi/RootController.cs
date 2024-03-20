@@ -6,7 +6,6 @@
     using System.Text.Json.Nodes;
     using System.Threading.Tasks;
     using Configuration;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using Particular.ServiceControl.Licensing;
@@ -16,7 +15,6 @@
     [Route("api")]
     public class RootController(
         ActiveLicense license,
-        LoggingSettings loggingSettings,
         Settings settings,
         IHttpClientFactory httpClientFactory)
         : ControllerBase
@@ -67,8 +65,8 @@
                     settings.ServiceName,
                     Logging = new
                     {
-                        loggingSettings.LogPath,
-                        LoggingLevel = loggingSettings.LoggingLevel.Name,
+                        settings.LoggingSettings.LogPath,
+                        LoggingLevel = settings.LoggingSettings.LogLevel.Name,
                     }
                 },
                 DataRetention = new

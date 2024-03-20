@@ -1,4 +1,11 @@
 {
+  "LoggingSettings": {
+    "LogLevel": {
+      "Name": "Info",
+      "Ordinal": 2
+    },
+    "LogPath": "C:\\Logs"
+  },
   "MessageFilter": null,
   "ValidateConfiguration": true,
   "SkipQueueCreation": false,

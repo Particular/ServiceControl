@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
-    using System;
     using Configuration;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
@@ -10,10 +9,9 @@
     [Route("api")]
     public class RootController : ControllerBase
     {
-        public RootController(LoggingSettings loggingSettings, Settings settings)
+        public RootController(Settings settings)
         {
             this.settings = settings;
-            this.loggingSettings = loggingSettings;
         }
 
         [Route("")]
@@ -52,8 +50,8 @@
                     settings.ServiceName,
                     Logging = new
                     {
-                        loggingSettings.LogPath,
-                        LoggingLevel = loggingSettings.LoggingLevel.Name,
+                        settings.LoggingSettings.LogPath,
+                        LoggingLevel = settings.LoggingSettings.LogLevel.Name
                     }
                 },
                 DataRetention = new
@@ -83,7 +81,6 @@
             return Ok(content);
         }
 
-        readonly LoggingSettings loggingSettings;
         readonly Settings settings;
 
         public class RootUrls

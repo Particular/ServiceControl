@@ -9,7 +9,7 @@
 
     class MaintenanceModeCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings, LoggingSettings loggingSettings)
+        public override async Task Execute(HostArguments args, Settings settings)
         {
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);

@@ -9,13 +9,12 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using ServiceControl.Infrastructure;
-    using Settings;
     using Transports;
 
     static class NServiceBusFactory
     {
         public static void Configure(Settings.Settings settings, ITransportCustomization transportCustomization,
-            TransportSettings transportSettings, LoggingSettings loggingSettings,
+            TransportSettings transportSettings,
             Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, EndpointConfiguration configuration)
         {
             var endpointName = settings.ServiceName;
@@ -47,8 +46,8 @@ namespace ServiceControl.Audit.Infrastructure
                 configuration.ReportCustomChecksTo(settings.ServiceControlQueueAddress);
             }
 
-            configuration.GetSettings().Set(loggingSettings);
-            configuration.SetDiagnosticsPath(loggingSettings.LogPath);
+            configuration.GetSettings().Set(settings.LoggingSettings);
+            configuration.SetDiagnosticsPath(settings.LoggingSettings.LogPath);
 
             configuration.UseSerialization<NewtonsoftJsonSerializer>();
 

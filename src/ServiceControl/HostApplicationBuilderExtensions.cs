@@ -2,7 +2,6 @@ namespace Particular.ServiceControl
 {
     using System;
     using System.Diagnostics;
-    using System.Net;
     using System.Runtime.InteropServices;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
@@ -32,11 +31,11 @@ namespace Particular.ServiceControl
 
     static class HostApplicationBuilderExtensions
     {
-        public static void AddServiceControl(this IHostApplicationBuilder hostBuilder, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
+        public static void AddServiceControl(this IHostApplicationBuilder hostBuilder, Settings settings, EndpointConfiguration configuration)
         {
             ArgumentNullException.ThrowIfNull(configuration);
 
-            RecordStartup(settings, loggingSettings, configuration);
+            RecordStartup(settings, configuration);
 
             if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
             {
@@ -55,7 +54,7 @@ namespace Particular.ServiceControl
             logging.ClearProviders();
             //HINT: configuration used by NLog comes from LoggingConfigurator.cs
             logging.AddNLog();
-            logging.SetMinimumLevel(loggingSettings.ToHostLogLevel());
+            logging.SetMinimumLevel(settings.LoggingSettings.ToHostLogLevel());
 
             var services = hostBuilder.Services;
             services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
@@ -64,7 +63,6 @@ namespace Particular.ServiceControl
             services.AddSingleton(transportCustomization);
 
             services.AddSingleton<MessageStreamerHub>();
-            services.AddSingleton(loggingSettings);
             services.AddSingleton(settings);
 
             services.AddHttpLogging(options =>
@@ -88,7 +86,7 @@ namespace Particular.ServiceControl
             services.AddPersistence(settings);
             services.AddMetrics(settings.PrintMetrics);
 
-            NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
+            NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, configuration);
             hostBuilder.UseNServiceBus(configuration);
 
             if (!settings.DisableExternalIntegrationsPublishing)
@@ -132,7 +130,7 @@ namespace Particular.ServiceControl
             return transportSettings;
         }
 
-        static void RecordStartup(Settings settings, LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
+        static void RecordStartup(Settings settings, EndpointConfiguration endpointConfiguration)
         {
             var version = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
 
@@ -143,7 +141,7 @@ Audit Retention Period (optional):  {settings.AuditRetentionPeriod}
 Error Retention Period:             {settings.ErrorRetentionPeriod}
 Ingest Error Messages:              {settings.IngestErrorMessages}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
-ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
+ServiceControl Logging Level:       {settings.LoggingSettings.LogLevel}
 Selected Transport Customization:   {settings.TransportType}
 -------------------------------------------------------------";
 
@@ -152,7 +150,6 @@ Selected Transport Customization:   {settings.TransportType}
             endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
             {
                 Settings = settings,
-                LoggingSettings = loggingSettings
             });
         }
     }

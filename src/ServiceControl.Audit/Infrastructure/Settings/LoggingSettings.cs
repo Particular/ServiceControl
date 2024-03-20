@@ -8,7 +8,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
 
     public class LoggingSettings(LogLevel defaultLevel = null, string logPath = null)
     {
-        public LogLevel LoggingLevel { get; } = InitializeLogLevel(defaultLevel);
+        public LogLevel LogLevel { get; } = InitializeLogLevel(defaultLevel);
 
         public string LogPath { get; } = SettingsReader.Read(Settings.SettingsRootNamespace, "LogPath", Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogLocation()));
 
@@ -38,14 +38,14 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe
         static string DefaultLogLocation() => Path.Combine(AppContext.BaseDirectory, ".logs");
 
-        public Microsoft.Extensions.Logging.LogLevel ToHostLogLevel() => LoggingLevel switch
+        public Microsoft.Extensions.Logging.LogLevel ToHostLogLevel() => LogLevel switch
         {
-            _ when LoggingLevel == LogLevel.Trace => Microsoft.Extensions.Logging.LogLevel.Trace,
-            _ when LoggingLevel == LogLevel.Debug => Microsoft.Extensions.Logging.LogLevel.Debug,
-            _ when LoggingLevel == LogLevel.Info => Microsoft.Extensions.Logging.LogLevel.Information,
-            _ when LoggingLevel == LogLevel.Warn => Microsoft.Extensions.Logging.LogLevel.Warning,
-            _ when LoggingLevel == LogLevel.Error => Microsoft.Extensions.Logging.LogLevel.Error,
-            _ when LoggingLevel == LogLevel.Fatal => Microsoft.Extensions.Logging.LogLevel.Critical,
+            _ when LogLevel == LogLevel.Trace => Microsoft.Extensions.Logging.LogLevel.Trace,
+            _ when LogLevel == LogLevel.Debug => Microsoft.Extensions.Logging.LogLevel.Debug,
+            _ when LogLevel == LogLevel.Info => Microsoft.Extensions.Logging.LogLevel.Information,
+            _ when LogLevel == LogLevel.Warn => Microsoft.Extensions.Logging.LogLevel.Warning,
+            _ when LogLevel == LogLevel.Error => Microsoft.Extensions.Logging.LogLevel.Error,
+            _ when LogLevel == LogLevel.Fatal => Microsoft.Extensions.Logging.LogLevel.Critical,
             _ => Microsoft.Extensions.Logging.LogLevel.None
         };
 

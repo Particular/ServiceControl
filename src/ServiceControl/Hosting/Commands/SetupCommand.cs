@@ -13,7 +13,7 @@
 
     class SetupCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings, LoggingSettings loggingSettings)
+        public override async Task Execute(HostArguments args, Settings settings)
         {
             settings.SkipQueueCreation = args.SkipQueueCreation;
 

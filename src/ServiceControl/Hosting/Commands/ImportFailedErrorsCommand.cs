@@ -13,7 +13,7 @@
 
     class ImportFailedErrorsCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings, LoggingSettings loggingSettings)
+        public override async Task Execute(HostArguments args, Settings settings)
         {
             settings.IngestErrorMessages = false;
             settings.RunRetryProcessor = false;
@@ -22,7 +22,7 @@
             EndpointConfiguration endpointConfiguration = CreateEndpointConfiguration(settings);
 
             var hostBuilder = Host.CreateApplicationBuilder();
-            hostBuilder.AddServiceControl(settings, endpointConfiguration, loggingSettings);
+            hostBuilder.AddServiceControl(settings, endpointConfiguration);
 
             using var app = hostBuilder.Build();
             await app.StartAsync();

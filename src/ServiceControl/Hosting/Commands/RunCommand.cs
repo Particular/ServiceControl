@@ -11,7 +11,7 @@
 
     class RunCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings, LoggingSettings loggingSettings)
+        public override async Task Execute(HostArguments args, Settings settings)
         {
             var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = endpointConfiguration.AssemblyScanner();
@@ -20,7 +20,7 @@
             settings.RunCleanupBundle = true;
 
             var hostBuilder = WebApplication.CreateBuilder();
-            hostBuilder.AddServiceControl(settings, endpointConfiguration, loggingSettings);
+            hostBuilder.AddServiceControl(settings, endpointConfiguration);
             hostBuilder.AddServiceControlApi();
 
             var app = hostBuilder.Build();

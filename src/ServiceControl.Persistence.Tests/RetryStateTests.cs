@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.PersistenceTests
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -277,7 +276,7 @@
         class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
         {
             public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore store, IDomainEvents domainEvents, string endpointName)
-                : base(returnToSender, store, domainEvents, null, null, new Settings(endpointName))
+                : base(returnToSender, store, domainEvents, null, null, new Settings(serviceName: endpointName))
             {
             }
 

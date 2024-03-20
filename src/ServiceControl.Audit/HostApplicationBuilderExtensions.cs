@@ -2,7 +2,6 @@ namespace ServiceControl.Audit;
 
 using System;
 using System.Diagnostics;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Auditing;
@@ -27,14 +26,13 @@ static class HostApplicationBuilderExtensions
     public static void AddServiceControlAudit(this IHostApplicationBuilder builder,
         Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError,
         Settings settings,
-        EndpointConfiguration configuration,
-        LoggingSettings loggingSettings)
+        EndpointConfiguration configuration)
     {
         var persistenceConfiguration =
             PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
         var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
 
-        RecordStartup(settings, loggingSettings, configuration, persistenceConfiguration);
+        RecordStartup(settings, configuration, persistenceConfiguration);
 
         if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
         {
@@ -46,7 +44,7 @@ static class HostApplicationBuilderExtensions
 
         builder.Logging.ClearProviders();
         builder.Logging.AddNLog();
-        builder.Logging.SetMinimumLevel(loggingSettings.ToHostLogLevel());
+        builder.Logging.SetMinimumLevel(settings.LoggingSettings.ToHostLogLevel());
 
         var services = builder.Services;
 
@@ -54,7 +52,6 @@ static class HostApplicationBuilderExtensions
         services.AddSingleton(transportSettings);
         services.AddSingleton(transportCustomization);
 
-        services.AddSingleton(loggingSettings);
         services.AddSingleton(settings);
         services.AddSingleton<EndpointInstanceMonitoring>();
         services.AddSingleton<AuditIngestor>();
@@ -76,7 +73,7 @@ static class HostApplicationBuilderExtensions
 
         services.AddPersistence(persistenceSettings, persistenceConfiguration);
 
-        NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, configuration);
+        NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, onCriticalError, configuration);
         builder.UseNServiceBus(configuration);
 
         // Configure after the NServiceBus hosted service to ensure NServiceBus is already started
@@ -99,7 +96,7 @@ static class HostApplicationBuilderExtensions
         return transportSettings;
     }
 
-    static void RecordStartup(Settings settings, LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration, IPersistenceConfiguration persistenceConfiguration)
+    static void RecordStartup(Settings settings, EndpointConfiguration endpointConfiguration, IPersistenceConfiguration persistenceConfiguration)
     {
         var version = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
 
@@ -108,7 +105,7 @@ static class HostApplicationBuilderExtensions
 ServiceControl Audit Version:       {version}
 Audit Retention Period:             {settings.AuditRetentionPeriod}
 Forwarding Audit Messages:          {settings.ForwardAuditMessages}
-ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
+ServiceControl Logging Level:       {settings.LoggingSettings.LogLevel}
 Transport Customization:            {settings.TransportType},
 Persistence Customization:          {settings.PersistenceType},
 Persistence:                        {persistenceConfiguration.Name}
@@ -118,8 +115,7 @@ Persistence:                        {persistenceConfiguration.Name}
         logger.Info(startupMessage);
         endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
         {
-            Settings = settings,
-            LoggingSettings = loggingSettings
+            Settings = settings
         });
     }
 }

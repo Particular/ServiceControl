@@ -20,10 +20,13 @@ namespace ServiceBus.Management.Infrastructure.Settings
             string serviceName = null,
             string transportType = null,
             string persisterType = null,
+            LoggingSettings loggingSettings = null,
             bool? forwardErrorMessages = default,
             TimeSpan? errorRetentionPeriod = default
             )
         {
+            LoggingSettings = loggingSettings ?? new();
+
             ServiceName = serviceName;
 
             if (string.IsNullOrEmpty(serviceName))
@@ -56,6 +59,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
         }
+
+        public LoggingSettings LoggingSettings { get; }
 
         public string NotificationsFilter { get; set; }
 

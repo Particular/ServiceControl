@@ -34,7 +34,7 @@ public static class HostApplicationBuilderExtensions
 
         hostBuilder.Logging.ClearProviders();
         hostBuilder.Logging.AddNLog();
-        hostBuilder.Logging.SetMinimumLevel(settings.ToHostLogLevel());
+        hostBuilder.Logging.SetMinimumLevel(settings.LoggingSettings.ToHostLogLevel());
 
         var services = hostBuilder.Services;
         services.AddSingleton(settings);
@@ -92,7 +92,7 @@ public static class HostApplicationBuilderExtensions
         config.DefineCriticalErrorAction(onCriticalError);
 
         config.GetSettings().Set(settings);
-        config.SetDiagnosticsPath(settings.LogPath);
+        config.SetDiagnosticsPath(settings.LoggingSettings.LogPath);
         config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
         config.UseSerialization<NewtonsoftJsonSerializer>();

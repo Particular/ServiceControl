@@ -1,15 +1,17 @@
 {
   "EndpointName": "Particular.Monitoring",
+  "LoggingSettings": {
+    "LogLevel": {
+      "Name": "Info",
+      "Ordinal": 2
+    },
+    "LogPath": "C:\\Logs"
+  },
   "Portable": false,
   "ServiceName": "Particular.Monitoring",
   "TransportType": "NServiceBus.ServiceControlLearningTransport, ServiceControl.Transports.LearningTransport",
   "ConnectionString": null,
   "ErrorQueue": "error",
-  "LogPath": "C:\\Logs",
-  "LogLevel": {
-    "Name": "Warn",
-    "Ordinal": 3
-  },
   "Username": null,
   "EnableInstallers": false,
   "HttpHostName": "localhost",

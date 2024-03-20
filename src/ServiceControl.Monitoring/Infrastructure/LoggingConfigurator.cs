@@ -12,7 +12,7 @@
 
     static class LoggingConfigurator
     {
-        public static void Configure(Settings settings)
+        public static void ConfigureLogging(LoggingSettings loggingSettings)
         {
             if (NLog.LogManager.Configuration != null)
             {
@@ -26,8 +26,8 @@
             {
                 Name = "file",
                 ArchiveEvery = FileArchivePeriod.Day,
-                FileName = Path.Combine(settings.LogPath, "logfile.${shortdate}.txt"),
-                ArchiveFileName = Path.Combine(settings.LogPath, "logfile.{#}.txt"),
+                FileName = Path.Combine(loggingSettings.LogPath, "logfile.${shortdate}.txt"),
+                ArchiveFileName = Path.Combine(loggingSettings.LogPath, "logfile.{#}.txt"),
                 ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
@@ -48,8 +48,8 @@
             nlogConfig.LoggingRules.Add(new LoggingRule("ServiceControl.Monitoring.Licensing.*", LogLevel.Info, consoleTarget));
 
             // Defaults
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", settings.LogLevel, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", settings.LogLevel < LogLevel.Info ? settings.LogLevel : LogLevel.Info, consoleTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, fileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel < LogLevel.Info ? loggingSettings.LogLevel : LogLevel.Info, consoleTarget));
 
             NLog.LogManager.Configuration = nlogConfig;
 
@@ -57,7 +57,7 @@
 
             var logger = LogManager.GetLogger("LoggingConfiguration");
             var logEventInfo = new LogEventInfo { TimeStamp = DateTime.UtcNow };
-            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", fileTarget.FileName.Render(logEventInfo), settings.LogLevel.Name);
+            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", fileTarget.FileName.Render(logEventInfo), loggingSettings.LogLevel.Name);
         }
 
         const long megaByte = 1024 * 1024;

@@ -35,9 +35,9 @@
             var loggingSettings = new LoggingSettings();
             LoggingConfigurator.ConfigureLogging(loggingSettings);
 
-            settings = new Settings(arguments.ServiceName);
+            settings = new Settings(arguments.ServiceName, loggingSettings: loggingSettings);
 
-            await new CommandRunner(arguments.Commands).Execute(arguments, settings, loggingSettings);
+            await new CommandRunner(arguments.Commands).Execute(arguments, settings);
         }
 
         static Assembly ResolveAssembly(AssemblyLoadContext loadContext, AssemblyName assemblyName)

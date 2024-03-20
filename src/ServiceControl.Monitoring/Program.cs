@@ -22,18 +22,13 @@ namespace ServiceControl.Monitoring
 
             var arguments = new HostArguments(args);
 
-            LoadSettings(arguments);
+            var loggingSettings = new LoggingSettings();
+            LoggingConfigurator.ConfigureLogging(loggingSettings);
 
-            LoggingConfigurator.Configure(settings);
+            settings = new Settings(loggingSettings);
+            arguments.ApplyOverridesTo(settings);
 
             await new CommandRunner(arguments.Commands).Execute(settings);
-        }
-
-        static void LoadSettings(HostArguments args)
-        {
-            var _settings = new Settings();
-            args.ApplyOverridesTo(_settings);
-            settings = _settings;
         }
 
         static Assembly ResolveAssembly(AssemblyLoadContext loadContext, AssemblyName assemblyName)

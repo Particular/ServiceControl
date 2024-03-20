@@ -8,7 +8,7 @@
 
     class RunCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings, LoggingSettings loggingSettings)
+        public override async Task Execute(HostArguments args, Settings settings)
         {
             var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = endpointConfiguration.AssemblyScanner();
@@ -19,7 +19,7 @@
             {
                 //Do nothing. The transports in NSB 8 are designed to handle broker outages. Audit ingestion will be paused when broker is unavailable.
                 return Task.CompletedTask;
-            }, settings, endpointConfiguration, loggingSettings);
+            }, settings, endpointConfiguration);
             hostBuilder.AddServiceControlAuditApi();
 
             var app = hostBuilder.Build();

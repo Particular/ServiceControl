@@ -10,16 +10,19 @@
 
     public class Settings
     {
-        // Service name is what the user chose when installing the instance or is passing on the command line.
-        // We use this as the default endpoint name.
-        public static Settings FromConfiguration(string serviceName) =>
-            new(
-                SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", serviceName) // endpoint name can also be overriden via config
-            );
-
-        public Settings(string serviceName, string transportType = null, string persisterType = null)
+        public Settings(string serviceName = null, string transportType = null, string persisterType = null, LoggingSettings loggingSettings = null)
         {
+            LoggingSettings = loggingSettings ?? new();
+
             ServiceName = serviceName;
+
+            if (string.IsNullOrEmpty(serviceName))
+            {
+                ServiceName = DEFAULT_SERVICE_NAME;
+            }
+
+            // Overwrite the service name if it is specified in ENVVAR, reg, or config file
+            ServiceName = SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", ServiceName);
 
             TransportType = transportType ?? SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
 
@@ -66,6 +69,8 @@
                 AuditLogQueue = Subscope(AuditQueue);
             }
         }
+
+        public LoggingSettings LoggingSettings { get; }
 
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }

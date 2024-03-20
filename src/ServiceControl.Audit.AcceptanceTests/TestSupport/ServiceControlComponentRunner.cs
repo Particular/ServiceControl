@@ -38,7 +38,12 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         async Task InitializeServiceControl(ScenarioContext context)
         {
-            settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType)
+            var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(logPath);
+
+            var loggingSettings = new LoggingSettings(defaultLevel: NLog.LogLevel.Debug, logPath: logPath);
+
+            settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType, loggingSettings)
             {
                 TransportConnectionString = transportToUse.ConnectionString,
                 MaximumConcurrencyLevel = 2,
@@ -88,15 +93,10 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 ConfigurationManager.AppSettings.Set($"ServiceControl.Audit/{persisterSpecificSetting.Key}", persisterSpecificSetting.Value);
             }
 
-            var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            Directory.CreateDirectory(logPath);
-
-            var loggingSettings = new LoggingSettings(defaultLevel: NLog.LogLevel.Debug, logPath: logPath);
-
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupCommand = new SetupCommand();
-                await setupCommand.Execute(new HostArguments([]), settings, loggingSettings);
+                await setupCommand.Execute(new HostArguments([]), settings);
             }
 
             var configuration = new EndpointConfiguration(instanceName);
@@ -122,7 +122,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     return criticalErrorContext.Stop(cancellationToken);
-                }, settings, configuration, loggingSettings);
+                }, settings, configuration);
 
                 hostBuilder.AddServiceControlAuditApi();
 
