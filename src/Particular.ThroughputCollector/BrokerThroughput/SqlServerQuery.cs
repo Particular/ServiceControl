@@ -6,7 +6,7 @@ using Microsoft.Data.SqlClient;
 using Shared;
 using ThroughputQuery.SqlTransport;
 
-public class SqlServerQuery : IThroughputQuery, IBrokerInfo
+public class SqlServerQuery : IThroughputQuery
 {
     private readonly List<DatabaseDetails> databases = [];
 
