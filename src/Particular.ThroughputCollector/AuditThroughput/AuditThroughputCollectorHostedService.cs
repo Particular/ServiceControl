@@ -1,13 +1,15 @@
 ﻿namespace Particular.ThroughputCollector.Audit
 {
-    using System.Text.Json.Nodes;
     using Contracts;
+    using Infrastructure;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using Particular.ThroughputCollector.Infrastructure;
     using Persistence;
     using ServiceControl.Api;
+    using ServiceControl.Api.Contracts;
     using Shared;
+    using AuditCount = Contracts.AuditCount;
+    using Endpoint = Contracts.Endpoint;
 
     class AuditThroughputCollectorHostedService : BackgroundService
     {
@@ -125,58 +127,25 @@
         {
             // Verify audit instances also have audit counts
             var remotes = await configurationApi.GetRemoteConfigs();
-            var remotesInfo = new List<RemoteInstanceInformation>();
-            var valueType = remotes.GetType();
 
-            if (remotes != null && valueType.IsArray)
+            var remotesInfo = remotes.Select(configuration => new RemoteInstanceInformation
             {
-                var remoteObjects = (object[])remotes;
-                if (remoteObjects.Length > 0)
-                {
-                    var props = remoteObjects[0].GetType().GetProperties();
-
-                    var apiUriProp = props.FirstOrDefault(w => w.Name == "ApiUri");
-                    var versionProp = props.FirstOrDefault(w => w.Name == "Version");
-                    var statusProp = props.FirstOrDefault(w => w.Name == "Status");
-                    var configurationProp = props.FirstOrDefault(w => w.Name == "Configuration");
-
-                    foreach (var remote in remoteObjects)
-                    {
-                        var config = configurationProp != null ? configurationProp.GetValue(remote) as JsonNode : null;
-                        string? retention = null;
-                        if (config != null)
-                        {
-                            retention = config?.AsObject().TryGetPropertyValue("data_retention", out var dataRetention) == true &&
-                                        dataRetention?.AsObject().TryGetPropertyValue("audit_retention_period", out var auditRetentionPeriod) == true
-                                        ? auditRetentionPeriod!.GetValue<string>()
-                                        : null;
-                        }
-
-                        var remoteInstance = new RemoteInstanceInformation
-                        {
-                            ApiUri = apiUriProp != null ? apiUriProp.GetValue(remote)?.ToString() : "",
-                            VersionString = versionProp != null ? versionProp.GetValue(remote)?.ToString() : "",
-                            Status = statusProp != null ? statusProp.GetValue(remote)?.ToString() : "",
-                            Retention = TimeSpan.TryParse(retention, out var ts) ? ts : TimeSpan.Zero
-                        };
-
-                        remoteInstance.SemVer = SemVerVersion.TryParse(remoteInstance.VersionString, out var v) ? v : null;
-
-                        remotesInfo.Add(remoteInstance);
-                    }
-                }
-            }
+                ApiUri = configuration.ApiUri,
+                VersionString = configuration.Version,
+                Status = configuration.Status,
+                Retention = configuration.Configuration.DataRetention.AuditRetentionPeriod,
+                SemVer = SemVerVersion.TryParse(configuration.Version, out var v) ? v : null
+            }).ToArray();
 
             foreach (var remote in remotesInfo)
             {
-                if (remote.Status == "online" || remote.SemVer is not null)
+                if (remote.Status == RemoteStatus.Online || remote.SemVer is not null)
                 {
                     logger.LogInformation($"ServiceControl Audit instance at {remote.ApiUri} detected running version {remote.SemVer}");
                 }
                 else
                 {
                     logger.LogWarning($"Unable to determine the version of one or more ServiceControl Audit instances. For the instance with URI {remote.ApiUri}, the status was '{remote.Status}' and the version string returned was '{remote.VersionString}'.");
-                    ;
                 }
             }
 

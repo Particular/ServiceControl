@@ -5,6 +5,6 @@
 public record BrokerData
 {
     public Broker Broker { get; set; }
-    public string ScopeType { get; set; }
-    public string Version { get; set; }
+    public string? ScopeType { get; set; }
+    public Dictionary<string, string> Data { get; set; }
 }

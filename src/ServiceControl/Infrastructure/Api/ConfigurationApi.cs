@@ -1,13 +1,13 @@
 ﻿namespace ServiceControl.Infrastructure.Api
 {
-    using System.Net.Http;
-    using System.Threading.Tasks;
-    using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Configuration;
-    using Particular.ServiceControl.Licensing;
-    using System.Linq;
-    using System.Text.Json.Nodes;
     using System;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Net.Http.Json;
+    using System.Threading.Tasks;
+    using Configuration;
+    using Particular.ServiceControl.Licensing;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Api;
     using ServiceControl.Api.Contracts;
 
@@ -88,35 +88,35 @@
             return content;
         }
 
-        public async Task<object> GetRemoteConfigs()
+        public async Task<RemoteConfiguration[]> GetRemoteConfigs()
         {
             var remotes = settings.RemoteInstances;
             var tasks = remotes
                 .Select(async remote =>
                 {
-                    var status = remote.TemporarilyUnavailable ? "unavailable" : "online";
+                    string status =
+                        remote.TemporarilyUnavailable ? RemoteStatus.Unavailable : RemoteStatus.Online;
                     var version = "Unknown";
-                    var httpClient = httpClientFactory.CreateClient(remote.InstanceId);
-                    JsonNode config = null;
+                    using HttpClient httpClient = httpClientFactory.CreateClient(remote.InstanceId);
+                    InstanceConfiguration config = null;
 
                     try
                     {
-                        var response = await httpClient.GetAsync("/api/configuration");
+                        using HttpResponseMessage response = await httpClient.GetAsync("/api/configuration");
 
                         if (response.Headers.TryGetValues("X-Particular-Version", out var values))
                         {
                             version = values.FirstOrDefault() ?? "Missing";
                         }
 
-                        await using var stream = await response.Content.ReadAsStreamAsync();
-                        config = await JsonNode.ParseAsync(stream);
+                        config = await response.Content.ReadFromJsonAsync<InstanceConfiguration>();
                     }
                     catch (Exception)
                     {
-                        status = "error";
+                        status = RemoteStatus.Error;
                     }
 
-                    return new
+                    return new RemoteConfiguration
                     {
                         ApiUri = remote.BaseAddress,
                         Version = version,
