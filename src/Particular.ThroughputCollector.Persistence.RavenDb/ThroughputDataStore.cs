@@ -1,7 +1,7 @@
 ﻿namespace Particular.ThroughputCollector.Persistence.RavenDb;
 
+using Contracts;
 using Raven.Client.Documents;
-using Particular.ThroughputCollector.Contracts;
 
 class ThroughputDataStore(IDocumentStore store, DatabaseConfiguration databaseConfiguration) : IThroughputDataStore
 {
@@ -21,5 +21,7 @@ class ThroughputDataStore(IDocumentStore store, DatabaseConfiguration databaseCo
     public Task AppendEndpointThroughput(Endpoint endpoint) => throw new NotImplementedException();
     public Task<bool> IsThereThroughputForLastXDays(int days) => throw new NotImplementedException();
     public Task<BrokerData?> GetBrokerData(Broker broker) => throw new NotImplementedException();
-    public Task SaveBrokerData(Broker broker, string? scopeType, string? version) => throw new NotImplementedException();
+
+    public Task SaveBrokerData(Broker broker, string? scopeType, Dictionary<string, string> data) =>
+        throw new NotImplementedException();
 }

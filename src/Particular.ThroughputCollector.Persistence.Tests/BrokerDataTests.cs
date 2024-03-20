@@ -1,8 +1,9 @@
 ﻿namespace Particular.ThroughputCollector.Persistence.Tests
 {
+    using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Contracts;
     using NUnit.Framework;
-    using Particular.ThroughputCollector.Contracts;
 
     [TestFixture]
     class BrokerDataTests : PersistenceTestFixture
@@ -16,7 +17,7 @@
 
             Assert.That(existingBrokerData, Is.Null);
 
-            await DataStore.SaveBrokerData(broker, null, "1.2");
+            await DataStore.SaveBrokerData(broker, null, []);
 
             existingBrokerData = await DataStore.GetBrokerData(broker);
 
@@ -32,18 +33,18 @@
 
             Assert.That(existingBrokerData, Is.Null);
 
-            await DataStore.SaveBrokerData(broker, null, "1.2");
+            await DataStore.SaveBrokerData(broker, null, new Dictionary<string, string> { { "Version", "1.2" } });
             existingBrokerData = await DataStore.GetBrokerData(broker);
 
             Assert.That(existingBrokerData, Is.Not.Null);
-            Assert.That(existingBrokerData.Version, Is.EqualTo("1.2"));
+            Assert.That(existingBrokerData.Data["Version"], Is.EqualTo("1.2"));
             Assert.That(existingBrokerData.ScopeType, Is.Null);
 
-            await DataStore.SaveBrokerData(broker, "scope", null);
+            await DataStore.SaveBrokerData(broker, "scope", new Dictionary<string, string> { { "Version", "2.2" } });
             existingBrokerData = await DataStore.GetBrokerData(broker);
 
             Assert.That(existingBrokerData, Is.Not.Null);
-            Assert.That(existingBrokerData.Version, Is.EqualTo("1.2"));
+            Assert.That(existingBrokerData.Data["Version"], Is.EqualTo("2.2"));
             Assert.That(existingBrokerData.ScopeType, Is.EqualTo("scope"));
         }
     }
