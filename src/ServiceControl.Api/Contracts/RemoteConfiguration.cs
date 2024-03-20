@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Api.Contracts
+namespace ServiceControl.Api.Contracts
 {
     using System.Text.Json.Nodes;
 
