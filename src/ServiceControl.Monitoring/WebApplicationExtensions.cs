@@ -10,9 +10,6 @@ public static class WebApplicationExtensions
 
         appBuilder.UseCors(policyBuilder =>
         {
-            // TODO verify that the default is no headers and no methods allowed
-            //builder.AllowAnyHeader();
-            //builder.AllowAnyMethod();
             policyBuilder.AllowAnyOrigin();
             policyBuilder.WithExposedHeaders(["ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version"]);
             policyBuilder.WithHeaders(["Origin", "X-Requested-With", "Content-Type", "Accept"]);
