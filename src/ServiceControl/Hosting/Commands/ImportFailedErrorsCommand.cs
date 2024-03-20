@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Hosting.Commands
+namespace ServiceControl.Hosting.Commands
 {
     using System;
     using System.Threading;
@@ -10,6 +10,7 @@
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.WebApi;
 
     class ImportFailedErrorsCommand : AbstractCommand
     {
@@ -23,6 +24,7 @@
 
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
+            hostBuilder.AddServiceControlApi();
 
             using var app = hostBuilder.Build();
             await app.StartAsync();
