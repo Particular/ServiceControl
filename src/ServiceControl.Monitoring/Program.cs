@@ -5,7 +5,6 @@ namespace ServiceControl.Monitoring
     using System.Reflection;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Hosting.WindowsServices;
     using NServiceBus.Logging;
     using ServiceControl.Configuration;
     using ServiceControl.Transports;
@@ -25,7 +24,7 @@ namespace ServiceControl.Monitoring
 
             LoadSettings(arguments);
 
-            LoggingConfigurator.Configure(settings, !WindowsServiceHelpers.IsWindowsService());
+            LoggingConfigurator.Configure(settings);
 
             await new CommandRunner(arguments.Commands)
                 .Run(settings);

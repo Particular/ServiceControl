@@ -9,18 +9,15 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
     public class LoggingSettings
     {
-        public LoggingSettings(string serviceName, LogLevel defaultLevel = null, string logPath = null, bool logToConsole = true)
+        public LoggingSettings(string serviceName, LogLevel defaultLevel = null, string logPath = null)
         {
             LoggingLevel = InitializeLevel("LogLevel", defaultLevel ?? LogLevel.Info);
             LogPath = SettingsReader.Read(Settings.SettingsRootNamespace, "LogPath", Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogLocation()));
-            LogToConsole = logToConsole;
         }
 
         public LogLevel LoggingLevel { get; }
 
         public string LogPath { get; }
-
-        public bool LogToConsole { get; }
 
         LogLevel InitializeLevel(string key, LogLevel defaultLevel)
         {
