@@ -6,6 +6,6 @@
 
     public interface IAuditCountApi
     {
-        public Task<IList<AuditCount>> GetEndpointAuditCounts(int? page, int? pageSize, string endpoint);
+        public Task<IList<AuditCount>> GetEndpointAuditCounts(string endpoint);
     }
 }

@@ -115,7 +115,7 @@
 
         async Task<List<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName)
         {
-            return (await auditCountApi.GetEndpointAuditCounts(page: null, pageSize: null, endpoint: endpointUrlName)).Select(s =>
+            return (await auditCountApi.GetEndpointAuditCounts(endpointUrlName)).Select(s =>
             {
                 return new AuditCount { Count = s.Count, UtcDate = DateOnly.FromDateTime(s.UtcDate) };
             }).ToList();
