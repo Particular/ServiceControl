@@ -1,6 +1,7 @@
 ﻿namespace Particular.ThroughputCollector.Persistence.RavenDb;
 
 using Raven.Client.Documents;
+using Particular.ThroughputCollector.Contracts;
 
 class ThroughputDataStore(IDocumentStore store, DatabaseConfiguration databaseConfiguration) : IThroughputDataStore
 {

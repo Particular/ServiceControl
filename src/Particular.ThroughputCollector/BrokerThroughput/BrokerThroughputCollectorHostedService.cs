@@ -3,6 +3,7 @@ namespace Particular.ThroughputCollector.Broker;
 using Contracts;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Particular.ThroughputCollector.Infrastructure;
 using Persistence;
 
 internal class BrokerThroughputCollectorHostedService(

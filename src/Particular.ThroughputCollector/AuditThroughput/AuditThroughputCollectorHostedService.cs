@@ -2,9 +2,9 @@
 {
     using System.Text.Json.Nodes;
     using Contracts;
-    using Infrastructure;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Particular.ThroughputCollector.Infrastructure;
     using Persistence;
     using ServiceControl.Api;
     using Shared;
