@@ -2,7 +2,6 @@ namespace Particular.ThroughputCollector.Broker;
 
 using System.Collections.Frozen;
 using System.Runtime.CompilerServices;
-using System.Threading.RateLimiting;
 using Amazon;
 using Amazon.CloudWatch;
 using Amazon.CloudWatch.Model;
@@ -16,15 +15,6 @@ public class AmazonSQSQuery : IThroughputQuery, IBrokerInfo
 {
     private AmazonCloudWatchClient? cloudWatch;
     private AmazonSQSClient? sqs;
-    private readonly FixedWindowRateLimiter rateLimiter = new(new FixedWindowRateLimiterOptions
-    {
-        AutoReplenishment = true,
-        // 1/4 the AWS default quota value (400) for cloudwatch, still do 20k queues in 3 minutes
-        PermitLimit = 100,
-        Window = TimeSpan.FromSeconds(1),
-        // Otherwise AcquireAsync() will return a lease immediately with IsAcquired = false
-        QueueLimit = int.MaxValue
-    });
     private string? prefix;
 
     public void Initialise(FrozenDictionary<string, string> settings)
@@ -66,10 +56,16 @@ public class AmazonSQSQuery : IThroughputQuery, IBrokerInfo
             regionEndpoint = RegionEndpoint.GetBySystemName(region);
         }
 
-        sqs = new AmazonSQSClient(credentials, regionEndpoint);
-        cloudWatch = new AmazonCloudWatchClient(credentials, regionEndpoint);
+        sqs = new AmazonSQSClient(credentials, new AmazonSQSConfig { RegionEndpoint = regionEndpoint, RetryMode = RequestRetryMode.Adaptive, HttpClientFactory = new AwsHttpClientFactory() });
+        cloudWatch = new AmazonCloudWatchClient(credentials, new AmazonCloudWatchConfig { RegionEndpoint = regionEndpoint, RetryMode = RequestRetryMode.Adaptive, HttpClientFactory = new AwsHttpClientFactory() });
 
         settings.TryGetValue(AmazonSQSSettings.Prefix, out prefix);
+    }
+
+    private class AwsHttpClientFactory : HttpClientFactory
+    {
+        public override HttpClient CreateHttpClient(IClientConfig clientConfig) => new(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) });
+        public override bool DisposeHttpClientsAfterUse(IClientConfig clientConfig) => false;
     }
 
     public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateOnly startDate,
@@ -95,7 +91,6 @@ public class AmazonSQSQuery : IThroughputQuery, IBrokerInfo
             ]
         };
 
-        using var lease = await rateLimiter.AcquireAsync(cancellationToken: cancellationToken);
         var resp = await cloudWatch!.GetMetricStatisticsAsync(req, cancellationToken);
 
         foreach (var datapoint in resp.Datapoints)
