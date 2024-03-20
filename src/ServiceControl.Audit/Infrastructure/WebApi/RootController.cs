@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
-    using System;
     using Configuration;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;

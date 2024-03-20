@@ -1,16 +1,15 @@
 ﻿namespace Particular.ThroughputCollector.Persistence;
-using Particular.ThroughputCollector.Contracts;
+
+using Contracts;
 
 public interface IThroughputDataStore
 {
     Task<IReadOnlyList<Endpoint>> GetAllEndpoints();
-    //Task<IReadOnlyList<Endpoint>> GetAllBrokerEndpoints();
-    //Task<IReadOnlyList<Endpoint>> GetAllNonBrokerEndpoints();
     Task<Endpoint?> GetEndpointByName(string name, ThroughputSource throughputSource);
     Task RecordEndpointThroughput(Endpoint endpoint);
     Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator);
     Task AppendEndpointThroughput(Endpoint endpoint);
     Task<bool> IsThereThroughputForLastXDays(int days);
     Task<BrokerData?> GetBrokerData(Broker broker);
-    Task SaveBrokerData(Broker broker, string? scopeType, string? version);
+    Task SaveBrokerData(Broker broker, string? scopeType, Dictionary<string, string> data);
 }

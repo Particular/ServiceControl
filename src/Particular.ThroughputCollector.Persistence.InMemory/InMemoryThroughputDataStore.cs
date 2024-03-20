@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Particular.ThroughputCollector.Contracts;
+using Contracts;
 
 class InMemoryThroughputDataStore : IThroughputDataStore
 {
@@ -96,7 +96,7 @@ class InMemoryThroughputDataStore : IThroughputDataStore
 
     private List<Endpoint> GetAllEndpointThroughput(string name) => endpoints.Where(w => w.SanitizedName == name).ToList();
 
-    public async Task SaveBrokerData(Broker broker, string? scopeType, string? version)
+    public async Task SaveBrokerData(Broker broker, string? scopeType, Dictionary<string, string> data)
     {
         var existingBrokerData = await GetBrokerData(broker);
         if (existingBrokerData == null)
@@ -104,8 +104,8 @@ class InMemoryThroughputDataStore : IThroughputDataStore
             existingBrokerData = new BrokerData { Broker = broker };
             brokerData.Add(existingBrokerData);
         }
-        existingBrokerData.ScopeType = scopeType ?? existingBrokerData.ScopeType;
-        existingBrokerData.Version = version ?? existingBrokerData.Version;
+        existingBrokerData.ScopeType = scopeType;
+        existingBrokerData.Data = data;
 
         await Task.CompletedTask;
     }
