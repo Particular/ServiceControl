@@ -104,8 +104,6 @@ namespace Particular.ServiceControl
             hostBuilder.Services.AddWindowsService();
 
             hostBuilder.AddServiceControlComponents(settings, ServiceControlMainInstance.Components);
-
-            hostBuilder.AddServiceControlApis();
         }
 
         public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder, Settings settings)
