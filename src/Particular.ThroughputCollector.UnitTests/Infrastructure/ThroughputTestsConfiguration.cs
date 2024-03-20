@@ -3,7 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
-    using Particular.ThroughputCollector.Contracts;
+    using Particular.ThroughputCollector.Infrastructure;
     using Particular.ThroughputCollector.Persistence;
     using Particular.ThroughputCollector.Persistence.InMemory;
 

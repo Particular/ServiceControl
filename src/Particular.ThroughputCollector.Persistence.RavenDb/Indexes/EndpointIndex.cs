@@ -2,6 +2,7 @@ namespace Particular.ThroughputCollector.Persistence.RavenDb;
 
 using System.Linq;
 using Raven.Client.Documents.Indexes;
+using Particular.ThroughputCollector.Contracts;
 
 class EndpointIndex : AbstractIndexCreationTask<Endpoint>
 {

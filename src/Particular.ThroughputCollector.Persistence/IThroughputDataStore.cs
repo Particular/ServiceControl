@@ -1,4 +1,5 @@
 ﻿namespace Particular.ThroughputCollector.Persistence;
+using Particular.ThroughputCollector.Contracts;
 
 public interface IThroughputDataStore
 {
