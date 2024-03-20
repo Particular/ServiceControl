@@ -1,9 +1,9 @@
 namespace Particular.ThroughputCollector.Broker;
 
 using Contracts;
+using Infrastructure;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Particular.ThroughputCollector.Infrastructure;
 using Persistence;
 
 internal class BrokerThroughputCollectorHostedService(
@@ -60,6 +60,7 @@ internal class BrokerThroughputCollectorHostedService(
         }
 
         await Task.WhenAll(waitingTasks);
+        await dataStore.SaveBrokerData(throughputSettings.Broker, throughputQuery.ScopeType, throughputQuery.Data);
         return;
 
         async Task Exec(IQueueName queueName, DateOnly startDate)
