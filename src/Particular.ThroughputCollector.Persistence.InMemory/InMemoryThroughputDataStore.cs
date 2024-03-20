@@ -40,7 +40,8 @@ class InMemoryThroughputDataStore : IThroughputDataStore
         }
         else
         {
-            existingEndpoint.DailyThroughput.AddRange(endpoint.DailyThroughput);
+            //ensure we are not adding a date entry more than once
+            existingEndpoint.DailyThroughput.AddRange(endpoint.DailyThroughput.Where(w => !existingEndpoint.DailyThroughput.Any(a => a.DateUTC == w.DateUTC)));
         }
 
         await Task.CompletedTask;
