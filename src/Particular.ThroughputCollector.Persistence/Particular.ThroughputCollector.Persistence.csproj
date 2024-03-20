@@ -12,4 +12,8 @@
     <PackageReference Include="NServiceBus" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Particular.ThroughputCollector.Contracts\Particular.ThroughputCollector.Contracts.csproj" />
+  </ItemGroup>
+
 </Project>
