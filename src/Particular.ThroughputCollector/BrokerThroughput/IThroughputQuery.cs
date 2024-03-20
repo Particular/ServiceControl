@@ -11,6 +11,8 @@ public interface IThroughputQuery
 
     IAsyncEnumerable<IQueueName> GetQueueNames(CancellationToken cancellationToken = default);
 
+    Dictionary<string, string> Data { get; }
+    string MessageTransport { get; }
     string? ScopeType { get; }
 
     bool SupportsHistoricalMetrics { get; }

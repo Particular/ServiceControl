@@ -11,7 +11,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Shared;
 
-public class AmazonSQSQuery : IThroughputQuery, IBrokerInfo
+public class AmazonSQSQuery : IThroughputQuery
 {
     private AmazonCloudWatchClient? cloudWatch;
     private AmazonSQSClient? sqs;

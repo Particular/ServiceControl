@@ -11,7 +11,7 @@ using Azure.ResourceManager.ServiceBus;
 using Microsoft.Extensions.Logging;
 using Shared;
 
-public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery, IBrokerInfo
+public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery
 {
     private string serviceBusName = "";
     private MetricsQueryClient? client;

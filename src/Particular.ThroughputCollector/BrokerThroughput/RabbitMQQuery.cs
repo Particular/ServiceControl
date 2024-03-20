@@ -12,7 +12,7 @@ using ServiceControl.Transports;
 using ServiceControl.Transports.RabbitMQ;
 using Shared;
 
-public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
+public class RabbitMQQuery : IThroughputQuery
 {
     private HttpClient? httpClient;
     private readonly ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
