@@ -24,7 +24,14 @@ internal class BrokerThroughputCollectorHostedService(
         {
             do
             {
-                await GatherThroughput(stoppingToken);
+                try
+                {
+                    await GatherThroughput(stoppingToken);
+                }
+                catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
+                {
+                    logger.LogError(ex, "Failed to gather throughput from broker");
+                }
             } while (await timer.WaitForNextTickAsync(stoppingToken));
         }
         catch (OperationCanceledException)
@@ -38,6 +45,7 @@ internal class BrokerThroughputCollectorHostedService(
         logger.LogInformation("Gathering throughput from broker");
 
         var waitingTasks = new List<Task>();
+
         await foreach (var queueName in throughputQuery.GetQueueNames(stoppingToken))
         {
             if (IgnoreQueue(queueName.QueueName))
