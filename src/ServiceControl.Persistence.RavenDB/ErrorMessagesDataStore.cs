@@ -609,33 +609,25 @@
             await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null), session.Advanced.Context);
         }
 
-        // TODO: Once using .NET, consider using IAsyncEnumerable here as this is an unbounded query
         public async Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress)
         {
-            var ids = new List<string>();
-
             using var session = documentStore.OpenAsyncSession();
-            var query = session.Advanced
-                .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
-                .AndAlso()
-                .WhereBetween(options => options.LastModified, from.Ticks, to.Ticks)
-                .AndAlso()
-                .WhereEquals(o => o.QueueAddress, queueAddress)
-                .SelectFields<FailedMessage>()
-                .ToQueryable()
-                .TransformToFailedMessageView();
+            var query = session
+                .Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                .Where(o => o.Status == FailedMessageStatus.RetryIssued && o.LastModified >= from.Ticks && o.LastModified <= to.Ticks && o.QueueAddress == queueAddress)
+                .OfType<FailedMessageProjection>();
 
-            await using (var ie = await session.Advanced.StreamAsync(query))
+            int index = 0;
+            await using var streamResults = await session.Advanced.StreamAsync(query, out var streamQueryStatistics);
+            string[] ids = new string[streamQueryStatistics.TotalResults];
+            while (await streamResults.MoveNextAsync())
             {
-                while (await ie.MoveNextAsync())
-                {
-                    ids.Add(ie.Current.Document.Id);
-                }
+                ids[index++] = streamResults.Current.Document.UniqueMessageId;
             }
-
-            return ids.ToArray();
+            return ids;
         }
+
+        record struct FailedMessageProjection(string UniqueMessageId);
 
         public async Task<byte[]> FetchFromFailedMessage(string uniqueMessageId)
         {
