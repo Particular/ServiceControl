@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.WebApi
+namespace ServiceControl.Infrastructure.WebApi
 {
     using System.Linq;
     using System.Reflection;
