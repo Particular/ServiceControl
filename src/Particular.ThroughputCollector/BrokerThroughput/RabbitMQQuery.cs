@@ -6,6 +6,8 @@ using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Nodes;
 using System.Web;
+using Polly;
+using Polly.Retry;
 using ServiceControl.Transports;
 using ServiceControl.Transports.RabbitMQ;
 using Shared;
@@ -13,6 +15,10 @@ using Shared;
 public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
 {
     private HttpClient? httpClient;
+    private readonly ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
+        .AddRetry(new RetryStrategyOptions()) // Add retry using the default options
+        .AddTimeout(TimeSpan.FromMinutes(2)) // Add timeout if it keeps failing
+        .Build();
 
     public void Initialise(FrozenDictionary<string, string> settings)
     {
@@ -42,8 +48,7 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
             PooledConnectionLifetime = TimeSpan.FromMinutes(2)
         })
         {
-            BaseAddress = new Uri(apiUrl),
-            Timeout = TimeSpan.FromSeconds(10)
+            BaseAddress = new Uri(apiUrl)
         };
     }
 
@@ -53,7 +58,7 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
         var queue = (RabbitMQQueueDetails)queueName;
         var url = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}";
 
-        var token = await httpClient!.GetFromJsonAsync<JsonNode>(url, cancellationToken);
+        var token = await pipeline.ExecuteAsync(async cancellationToken => await httpClient!.GetFromJsonAsync<JsonNode>(url, cancellationToken), cancellationToken);
         queue.AckedMessages = GetAck();
 
         // looping for 24hrs, in 4 increments of 15 minutes
@@ -61,7 +66,7 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
         {
             await Task.Delay(TimeSpan.FromMinutes(15), cancellationToken);
 
-            token = await httpClient!.GetFromJsonAsync<JsonNode>(url, cancellationToken);
+            token = await pipeline.ExecuteAsync(async cancellationToken => await httpClient!.GetFromJsonAsync<JsonNode>(url, cancellationToken), cancellationToken);
             var newReading = GetAck();
             if (newReading is not null)
             {
@@ -93,7 +98,7 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
     {
         var overviewUrl = "/api/overview";
 
-        var obj = await httpClient!.GetFromJsonAsync<JsonObject>(overviewUrl, cancellationToken) ?? throw new QueryException(QueryFailureReason.InvalidEnvironment, "The RabbitMQ broker is configured with `management.disable_stats = true` or `management_agent.disable_metrics_collector = true` and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker.");
+        var obj = await pipeline.ExecuteAsync(async cancellationToken => await httpClient!.GetFromJsonAsync<JsonObject>(overviewUrl, cancellationToken) ?? throw new QueryException(QueryFailureReason.InvalidEnvironment, "The RabbitMQ broker is configured with `management.disable_stats = true` or `management_agent.disable_metrics_collector = true` and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker."), cancellationToken);
         var statsDisabled = obj["disable_stats"]?.GetValue<bool>() ?? false;
 
         if (statsDisabled)
@@ -142,7 +147,7 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
         try
         {
             var bindingsUrl = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}/bindings";
-            var bindings = await httpClient!.GetFromJsonAsync<JsonArray>(bindingsUrl, cancellationToken);
+            var bindings = await pipeline.ExecuteAsync(async cancellationToken => await httpClient!.GetFromJsonAsync<JsonArray>(bindingsUrl, cancellationToken), cancellationToken);
             var conventionalBindingFound = bindings?.Any(binding => binding!["source"]?.GetValue<string>() == queue.QueueName
                                                                     && binding["vhost"]?.GetValue<string>() == queue.VHost
                                                                     && binding["destination"]?.GetValue<string>() == queue.QueueName
@@ -163,7 +168,7 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
         try
         {
             var exchangeUrl = $"/api/exchanges/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}/bindings/destination";
-            var bindings = await httpClient!.GetFromJsonAsync<JsonArray>(exchangeUrl, cancellationToken);
+            var bindings = await pipeline.ExecuteAsync(async cancellationToken => await httpClient!.GetFromJsonAsync<JsonArray>(exchangeUrl, cancellationToken), cancellationToken);
             var delayBindingFound = bindings?.Any(binding =>
             {
                 var source = binding!["source"]?.GetValue<string>();
@@ -190,7 +195,7 @@ public class RabbitMQQuery : IThroughputQuery, IBrokerInfo
     {
         var url = $"/api/queues?page={page}&page_size=500&name=&use_regex=false&pagination=true";
 
-        var container = await httpClient!.GetFromJsonAsync<JsonNode>(url, cancellationToken);
+        var container = await pipeline.ExecuteAsync(async cancellationToken => await httpClient!.GetFromJsonAsync<JsonNode>(url, cancellationToken), cancellationToken);
         switch (container)
         {
             case JsonObject obj:
