@@ -41,9 +41,6 @@ static class HostApplicationBuilderExtensions
             configuration.License(settings.LicenseFileText);
         }
 
-        // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
-        ServicePointManager.DefaultConnectionLimit = settings.HttpDefaultConnectionLimit;
-
         var transportSettings = MapSettings(settings);
         var transportCustomization = settings.LoadTransportCustomization();
 

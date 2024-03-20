@@ -53,7 +53,6 @@
                 ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
                 TimeToRestartErrorIngestionAfterFailure = TimeSpan.FromSeconds(2),
                 MaximumConcurrencyLevel = 2,
-                HttpDefaultConnectionLimit = int.MaxValue,
                 DisableHealthChecks = true,
                 MessageFilter = messageContext =>
                 {

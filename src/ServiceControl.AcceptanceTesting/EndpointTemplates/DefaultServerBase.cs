@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.AcceptanceTesting.EndpointTemplates
 {
     using System;
-    using System.Net;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus;
@@ -19,8 +18,6 @@
 
         public virtual async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizations, Func<EndpointConfiguration, Task> configurationBuilderCustomization)
         {
-            ServicePointManager.DefaultConnectionLimit = 100;
-
             var endpointConfiguration = new EndpointConfiguration(endpointCustomizations.EndpointName);
 
             endpointConfiguration.Pipeline.Register(new StampDispatchBehavior(runDescriptor.ScenarioContext), "Stamps outgoing messages with session ID");
