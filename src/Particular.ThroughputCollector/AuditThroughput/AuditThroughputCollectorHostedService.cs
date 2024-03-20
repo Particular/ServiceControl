@@ -117,7 +117,7 @@
         {
             return (await auditCountApi.GetEndpointAuditCounts(page: null, pageSize: null, endpoint: endpointUrlName)).Select(s =>
             {
-                return new AuditCount { Count = s.Count, UtcDate = s.UtcDate };
+                return new AuditCount { Count = s.Count, UtcDate = DateOnly.FromDateTime(s.UtcDate) };
             }).ToList();
         }
 
