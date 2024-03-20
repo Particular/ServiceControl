@@ -5,6 +5,7 @@
     using Contracts;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Particular.ThroughputCollector.Infrastructure;
     using WebApi;
 
     public static class ThroughputCollectorHostBuilderExtensions
