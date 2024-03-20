@@ -4,10 +4,10 @@ namespace ServiceControl.Monitoring
     using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Configuration;
     using NLog;
+    using NLog.Common;
     using Transports;
 
     public class Settings
@@ -19,7 +19,7 @@ namespace ServiceControl.Monitoring
             TransportType = SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
 
             ConnectionString = GetConnectionString();
-            LogLevel = LoggingConfigurator.InitializeLevel();
+            LogLevel = InitializeLogLevel();
             LogPath = SettingsReader.Read(SettingsRootNamespace, "LogPath", DefaultLogLocation());
             ErrorQueue = SettingsReader.Read(SettingsRootNamespace, "ErrorQueue", "error");
             HttpHostName = SettingsReader.Read<string>(SettingsRootNamespace, "HttpHostname");
@@ -52,13 +52,42 @@ namespace ServiceControl.Monitoring
         public int MaximumConcurrencyLevel { get; set; }
         public string LicenseFileText { get; set; }
 
+        static LogLevel InitializeLogLevel()
+        {
+            var defaultLevel = LogLevel.Info;
+
+            var levelText = SettingsReader.Read<string>(SettingsRootNamespace, logLevelKey);
+
+            if (string.IsNullOrWhiteSpace(levelText))
+            {
+                return defaultLevel;
+            }
+
+            try
+            {
+                return LogLevel.FromString(levelText);
+            }
+            catch
+            {
+                InternalLogger.Warn($"Failed to parse {logLevelKey} setting. Defaulting to {defaultLevel.Name}.");
+                return defaultLevel;
+            }
+        }
+
         // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
         // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe
-        static string DefaultLogLocation()
+        static string DefaultLogLocation() => Path.Combine(AppContext.BaseDirectory, ".logs");
+
+        public Microsoft.Extensions.Logging.LogLevel ToHostLogLevel() => LogLevel switch
         {
-            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
-            return Path.Combine(Path.GetDirectoryName(assemblyLocation), ".logs");
-        }
+            _ when LogLevel == LogLevel.Trace => Microsoft.Extensions.Logging.LogLevel.Trace,
+            _ when LogLevel == LogLevel.Debug => Microsoft.Extensions.Logging.LogLevel.Debug,
+            _ when LogLevel == LogLevel.Info => Microsoft.Extensions.Logging.LogLevel.Information,
+            _ when LogLevel == LogLevel.Warn => Microsoft.Extensions.Logging.LogLevel.Warning,
+            _ when LogLevel == LogLevel.Error => Microsoft.Extensions.Logging.LogLevel.Error,
+            _ when LogLevel == LogLevel.Fatal => Microsoft.Extensions.Logging.LogLevel.Critical,
+            _ => Microsoft.Extensions.Logging.LogLevel.None
+        };
 
         void TryLoadLicenseFromConfig() => LicenseFileText = SettingsReader.Read<string>(SettingsRootNamespace, "LicenseText");
 
@@ -94,6 +123,7 @@ namespace ServiceControl.Monitoring
 
         internal Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
 
+        const string logLevelKey = "LogLevel";
         public const string DEFAULT_ENDPOINT_NAME = "Particular.Monitoring";
         public static readonly SettingsRootNamespace SettingsRootNamespace = new("Monitoring");
     }

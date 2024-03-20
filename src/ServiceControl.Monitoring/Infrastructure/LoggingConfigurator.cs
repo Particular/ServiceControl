@@ -2,9 +2,7 @@
 {
     using System;
     using System.IO;
-    using Configuration;
     using NLog;
-    using NLog.Common;
     using NLog.Config;
     using NLog.Extensions.Logging;
     using NLog.Layouts;
@@ -62,23 +60,6 @@
             logger.InfoFormat("Logging to {0} with LogLevel '{1}'", fileTarget.FileName.Render(logEventInfo), settings.LogLevel.Name);
         }
 
-        public static LogLevel InitializeLevel()
-        {
-            var level = LogLevel.Info;
-            try
-            {
-                level = LogLevel.FromString(SettingsReader.Read(Settings.SettingsRootNamespace, LogLevelKey, LogLevel.Info.Name));
-            }
-            catch
-            {
-                InternalLogger.Warn($"Failed to parse {LogLevelKey} setting. Defaulting to Warn.");
-            }
-
-            return level;
-        }
-
         const long megaByte = 1024 * 1024;
-
-        const string LogLevelKey = "LogLevel";
     }
 }
