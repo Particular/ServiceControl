@@ -2,12 +2,12 @@
 {
     using System.Text.Json.Nodes;
     using Contracts;
+    using Infrastructure;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using Particular.ThroughputCollector.Infrastructure;
-    using Particular.ThroughputCollector.Shared;
     using Persistence;
     using ServiceControl.Api;
+    using Shared;
 
     class AuditThroughputCollectorHostedService : BackgroundService
     {
@@ -136,7 +136,7 @@
                     var props = remoteObjects[0].GetType().GetProperties();
 
                     var apiUriProp = props.FirstOrDefault(w => w.Name == "ApiUri");
-                    var VersionProp = props.FirstOrDefault(w => w.Name == "Version");
+                    var versionProp = props.FirstOrDefault(w => w.Name == "Version");
                     var statusProp = props.FirstOrDefault(w => w.Name == "Status");
                     var configurationProp = props.FirstOrDefault(w => w.Name == "Configuration");
 
@@ -155,7 +155,7 @@
                         var remoteInstance = new RemoteInstanceInformation
                         {
                             ApiUri = apiUriProp != null ? apiUriProp.GetValue(remote)?.ToString() : "",
-                            VersionString = VersionProp != null ? VersionProp.GetValue(remote)?.ToString() : "",
+                            VersionString = versionProp != null ? versionProp.GetValue(remote)?.ToString() : "",
                             Status = statusProp != null ? statusProp.GetValue(remote)?.ToString() : "",
                             Retention = TimeSpan.TryParse(retention, out var ts) ? ts : TimeSpan.Zero
                         };
