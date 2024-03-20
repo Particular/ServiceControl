@@ -5,8 +5,11 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Http.Extensions;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence.Infrastructure;
@@ -27,21 +30,23 @@ namespace ServiceControl.CompositeViews.Messages
         where TIn : ScatterGatherContext
         where TOut : class
     {
-        protected ScatterGatherApi(TDataStore store, Settings settings, IHttpClientFactory httpClientFactory)
+        protected ScatterGatherApi(TDataStore store, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
         {
+            this.httpContextAccessor = httpContextAccessor;
             DataStore = store;
             Settings = settings;
             HttpClientFactory = httpClientFactory;
-            logger = LogManager.GetLogger(GetType());
+            Logger = LogManager.GetLogger(GetType());
         }
 
         protected TDataStore DataStore { get; }
         Settings Settings { get; }
         IHttpClientFactory HttpClientFactory { get; }
 
-        public async Task<QueryResult<TOut>> Execute(TIn input, string pathAndQuery)
+        public async Task<TOut> Execute(TIn input)
         {
             var remotes = Settings.RemoteInstances;
+            var pathAndQuery = httpContextAccessor.HttpContext!.Request.GetEncodedPathAndQuery();
             var instanceId = Settings.InstanceId;
             var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1)
             {
@@ -60,9 +65,9 @@ namespace ServiceControl.CompositeViews.Messages
             var results = await Task.WhenAll(tasks);
             var response = AggregateResults(input, results);
 
-            //httpContextAccessor.HttpContext!.Response.WithQueryStatsAndPagingInfo(response.QueryStats, input.PagingInfo);
+            httpContextAccessor.HttpContext!.Response.WithQueryStatsAndPagingInfo(response.QueryStats, input.PagingInfo);
 
-            return response;
+            return response.Results;
         }
 
         async Task<QueryResult<TOut>> LocalCall(TIn input, string instanceId)
@@ -122,18 +127,18 @@ namespace ServiceControl.CompositeViews.Messages
             catch (HttpRequestException httpRequestException)
             {
                 remoteInstanceSetting.TemporarilyUnavailable = true;
-                logger.Warn($"An HttpRequestException occurred when querying remote instance at {remoteInstanceSetting.BaseAddress}. The instance at uri: {remoteInstanceSetting.BaseAddress} will be temporarily disabled.",
+                Logger.Warn($"An HttpRequestException occurred when querying remote instance at {remoteInstanceSetting.BaseAddress}. The instance at uri: {remoteInstanceSetting.BaseAddress} will be temporarily disabled.",
                     httpRequestException);
                 return QueryResult<TOut>.Empty();
             }
             catch (OperationCanceledException)
             {
-                logger.Warn($"Failed to query remote instance at {remoteInstanceSetting.BaseAddress} due to a timeout");
+                Logger.Warn($"Failed to query remote instance at {remoteInstanceSetting.BaseAddress} due to a timeout");
                 return QueryResult<TOut>.Empty();
             }
             catch (Exception exception)
             {
-                logger.Warn($"Failed to query remote instance at {remoteInstanceSetting.BaseAddress}.", exception);
+                Logger.Warn($"Failed to query remote instance at {remoteInstanceSetting.BaseAddress}.", exception);
                 return QueryResult<TOut>.Empty();
             }
         }
@@ -163,6 +168,7 @@ namespace ServiceControl.CompositeViews.Messages
             return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount, isStale: false));
         }
 
-        readonly ILog logger;
+        readonly ILog Logger;
+        readonly IHttpContextAccessor httpContextAccessor;
     }
 }

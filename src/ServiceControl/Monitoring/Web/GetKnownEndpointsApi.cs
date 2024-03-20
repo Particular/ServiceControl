@@ -5,11 +5,12 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
+    using Microsoft.AspNetCore.Http;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    public class GetKnownEndpointsApi(IEndpointInstanceMonitoring store, Settings settings, IHttpClientFactory httpClientFactory) : ScatterGatherApi<IEndpointInstanceMonitoring, ScatterGatherContext, IList<KnownEndpointsView>>(store, settings, httpClientFactory)
+    public class GetKnownEndpointsApi(IEndpointInstanceMonitoring store, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor) : ScatterGatherApi<IEndpointInstanceMonitoring, ScatterGatherContext, IList<KnownEndpointsView>>(store, settings, httpClientFactory, httpContextAccessor)
     {
         protected override Task<QueryResult<IList<KnownEndpointsView>>> LocalQuery(ScatterGatherContext input)
         {

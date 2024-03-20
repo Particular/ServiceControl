@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Api.Contracts;
     using ServiceControl.CompositeViews.Messages;
@@ -19,8 +20,10 @@
     public class GetAuditCountsForEndpointApi(
         IErrorMessageDataStore dataStore,
         Settings settings,
-        IHttpClientFactory httpClientFactory)
-        : ScatterGatherApi<IErrorMessageDataStore, AuditCountsForEndpointContext, IList<AuditCount>>(dataStore, settings, httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        IHttpContextAccessor httpContextAccessor)
+        : ScatterGatherApi<IErrorMessageDataStore, AuditCountsForEndpointContext, IList<AuditCount>>(dataStore, settings,
+            httpClientFactory, httpContextAccessor)
     {
         static readonly IList<AuditCount> Empty = new List<AuditCount>(0).AsReadOnly();
 
