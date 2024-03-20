@@ -9,9 +9,9 @@
 
     class AuditCountApi(GetAuditCountsForEndpointApi auditCountsForEndpointApi) : IAuditCountApi
     {
-        public async Task<IList<AuditCount>> GetEndpointAuditCounts(int? page, int? pageSize, string endpoint)
+        public async Task<IList<AuditCount>> GetEndpointAuditCounts(string endpoint)
         {
-            return await auditCountsForEndpointApi.Execute(new(new PagingInfo(page, pageSize), endpoint));
+            return (await auditCountsForEndpointApi.Execute(new(new PagingInfo(), endpoint), $"/api/endpoints/{endpoint}/audit-count")).Results;
         }
     }
 }
