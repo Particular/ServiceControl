@@ -16,6 +16,7 @@
     <PackageReference Include="Azure.Monitor.Query" />
     <PackageReference Include="Azure.ResourceManager.ServiceBus" />
     <PackageReference Include="Microsoft.Data.SqlClient"/>
+    <PackageReference Include="Polly.Core"/>
     <PackageReference Include="System.Configuration.ConfigurationManager" />
     <ProjectReference Include="..\Particular.ThroughputCollector.Persistence\Particular.ThroughputCollector.Persistence.csproj" />
     <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
