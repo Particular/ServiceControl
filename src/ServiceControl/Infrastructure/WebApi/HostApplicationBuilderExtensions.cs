@@ -6,6 +6,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
+    using Particular.ServiceControl;
     using ServiceControl.CompositeViews.Messages;
 
     static class HostApplicationBuilderExtensions
@@ -15,6 +16,8 @@
             // This registers concrete classes that implement IApi. Currently it is hard to find out to what
             // component those APIs should belong to so we leave it here for now.
             builder.Services.RegisterApiTypes(Assembly.GetExecutingAssembly());
+
+            builder.AddServiceControlApis();
 
             builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
 
