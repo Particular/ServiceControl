@@ -5,18 +5,17 @@
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Http;
+    using CompositeViews.Messages;
     using NUnit.Framework;
+    using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.Persistence.Infrastructure;
 
     abstract class MessageView_ScatterGatherTest
     {
         [SetUp]
         public void SetUp()
         {
-            var api = new TestApi(null, null, null, null);
+            var api = new TestApi(null, null, null);
 
             Results = api.AggregateResults(new ScatterGatherApiMessageViewContext(null, new SortInfo()), GetData());
         }
@@ -67,8 +66,8 @@
 
         class TestApi : ScatterGatherApiMessageView<object, ScatterGatherApiMessageViewContext>
         {
-            public TestApi(object dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
-                : base(dataStore, settings, httpClientFactory, httpContextAccessor)
+            public TestApi(object dataStore, Settings settings, IHttpClientFactory httpClientFactory)
+                : base(dataStore, settings, httpClientFactory)
             {
             }
 
