@@ -3,7 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using NUnit.Framework;
-    using Particular.ThroughputCollector.Contracts;
+    using Particular.ThroughputCollector.Infrastructure;
     using Particular.ThroughputCollector.Persistence;
 
     [TestFixture]
