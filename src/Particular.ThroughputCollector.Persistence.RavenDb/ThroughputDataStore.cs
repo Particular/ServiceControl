@@ -50,7 +50,45 @@ class ThroughputDataStore(
         return endpoint;
     }
 
-    public Task RecordEndpointThroughput(Endpoint endpoint) => throw new NotImplementedException();
+    public async Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken = default)
+    {
+        var document = endpoint.ToEndpointDocument();
+
+        using var session = store.OpenAsyncSession("throughput");
+
+        await session.StoreAsync(document, document.GenerateDocumentId(), cancellationToken);
+        await session.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RecordEndpointThroughput(EndpointIdentifier id, IEnumerable<EndpointThroughput> throughput, CancellationToken cancellationToken = default)
+    {
+        if (!throughput.Any())
+        {
+            return;
+        }
+
+        using var session = store.OpenAsyncSession("throughput");
+
+        var documentId = id.GenerateDocumentId();
+        var document = await session.LoadAsync<EndpointDocument>(documentId, cancellationToken);
+        if (document == null)
+        {
+            document = new EndpointDocument(id);
+
+            await session.StoreAsync(document, document.GenerateDocumentId(), cancellationToken);
+            await session.SaveChangesAsync(cancellationToken);
+        }
+
+        var timeSeries = session.IncrementalTimeSeriesFor(documentId, ThroughputTimeSeriesName);
+
+        foreach (var entry in throughput)
+        {
+            timeSeries.Increment(entry.DateUTC.ToDateTime(TimeOnly.MinValue), entry.TotalThroughput);
+        }
+
+        await session.SaveChangesAsync(cancellationToken);
+    }
+
     public Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator) => throw new NotImplementedException();
     public Task AppendEndpointThroughput(Endpoint endpoint) => throw new NotImplementedException();
     public Task<bool> IsThereThroughputForLastXDays(int days) => throw new NotImplementedException();
