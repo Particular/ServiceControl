@@ -16,6 +16,8 @@
             var settings = new PersistenceSettings();
 
             setSettings(settings);
+            serviceCollection.AddSingleton(settings);
+
             var persistence = config.Create(settings);
             persistence.Configure(serviceCollection);
 
