@@ -3,4 +3,4 @@ POST /throughput/endpoints/update => Particular.ThroughputCollector.WebApi.Throu
 GET /throughput/report => Particular.ThroughputCollector.WebApi.ThroughputController:GetThroughputReport(String prefix, String[] masks, String spVersion)
 GET /throughput/report/available => Particular.ThroughputCollector.WebApi.ThroughputController:CanThroughputReportBeGenerated()
 GET /throughput/settings/info => Particular.ThroughputCollector.WebApi.ThroughputController:GetThroughputBrokerSettingsInformation()
-GET /throughput/settings/test => Particular.ThroughputCollector.WebApi.ThroughputController:TestThroughputConnectionSettings()
+GET /throughput/settings/test => Particular.ThroughputCollector.WebApi.ThroughputController:TestThroughputConnectionSettings(CancellationToken cancellationToken)
