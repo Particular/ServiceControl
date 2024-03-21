@@ -27,12 +27,12 @@
             return await Task.FromResult(brokerSettings);
         }
 
-        public async Task<ConnectionTestResults> TestConnectionSettings()
+        public async Task<ConnectionTestResults> TestConnectionSettings(CancellationToken cancellationToken = default)
         {
             var connectionTestResults = new ConnectionTestResults
             {
                 Broker = throughputSettings.Broker,
-                AuditConnectionResult = await AuditCommands.TestAuditConnection(configurationApi),
+                AuditConnectionResult = await AuditCommands.TestAuditConnection(configurationApi, cancellationToken),
                 //TODO 1
                 //MonitoringConnectionResult = ??
                 //TODO 2
@@ -57,7 +57,6 @@
         public async Task<List<EndpointThroughputSummary>> GetThroughputSummary()
         {
             var endpoints = await GetRelevantEndpoints();
-
             var endpointSummaries = new List<EndpointThroughputSummary>();
 
             //group endpoints by sanitized name - so to group throughput recorded from broker, audit and monitoring

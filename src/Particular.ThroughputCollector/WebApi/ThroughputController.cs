@@ -50,9 +50,9 @@
 
         [Route("throughput/settings/test")]
         [HttpGet]
-        public async Task<ConnectionTestResults> TestThroughputConnectionSettings()
+        public async Task<ConnectionTestResults> TestThroughputConnectionSettings(CancellationToken cancellationToken)
         {
-            return await throughputCollector.TestConnectionSettings();
+            return await throughputCollector.TestConnectionSettings(cancellationToken);
         }
 
         readonly IThroughputCollector throughputCollector;

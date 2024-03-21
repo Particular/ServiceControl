@@ -25,20 +25,20 @@ class AuditThroughputCollectorHostedService(
     {
         logger.LogInformation("Starting AuditThroughputCollector Service");
 
-        backgroundTimer = timeProvider.CreateTimer(async _ => await GatherThroughput(), null, TimeSpan.FromSeconds(30), TimeSpan.FromDays(1));
+        backgroundTimer = timeProvider.CreateTimer(async _ => await GatherThroughput(stoppingToken), null, TimeSpan.FromSeconds(30), TimeSpan.FromDays(1));
         stoppingToken.Register(_ => backgroundTimer?.Dispose(), null);
 
         return Task.CompletedTask;
     }
 
-    async Task GatherThroughput()
+    async Task GatherThroughput(CancellationToken cancellationToken)
     {
         var utcYesterday = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
         logger.LogInformation($"Gathering throughput from audit for {utcYesterday.ToShortDateString}");
 
         try
         {
-            await VerifyAuditInstances();
+            await VerifyAuditInstances(cancellationToken);
 
             var knownEndpoints = await AuditCommands.GetKnownEndpoints(endpointsApi);
 
@@ -80,9 +80,9 @@ class AuditThroughputCollectorHostedService(
         };
     }
 
-    async Task VerifyAuditInstances()
+    async Task VerifyAuditInstances(CancellationToken cancellationToken)
     {
-        var remotesInfo = await AuditCommands.GetAuditRemotes(configurationApi);
+        var remotesInfo = await AuditCommands.GetAuditRemotes(configurationApi, cancellationToken);
 
         foreach (var remote in remotesInfo)
         {
