@@ -1,8 +1,8 @@
 ﻿namespace Particular.ThroughputCollector.AuditThroughput
 {
-    using Particular.ThroughputCollector.Contracts;
+    using System.Text.Json.Nodes;
+    using Contracts;
     using ServiceControl.Api;
-    using ServiceControl.Api.Contracts;
     using AuditCount = Contracts.AuditCount;
 
     static class AuditCommands
@@ -44,15 +44,49 @@
         {
             // Verify audit instances also have audit counts
             var remotes = await configurationApi.GetRemoteConfigs();
+            var remotesInfo = new List<RemoteInstanceInformation>();
+            var valueType = remotes.GetType();
 
-            return remotes.Select(configuration => new RemoteInstanceInformation
+            if (remotes != null && valueType.IsArray)
             {
-                ApiUri = configuration.ApiUri,
-                VersionString = configuration.Version,
-                Status = configuration.Status,
-                Retention = configuration.Configuration.DataRetention.AuditRetentionPeriod,
-                SemVer = SemVerVersion.TryParse(configuration.Version, out var v) ? v : null
-            }).ToList();
+                var remoteObjects = (object[])remotes;
+                if (remoteObjects.Length > 0)
+                {
+                    var props = remoteObjects[0].GetType().GetProperties();
+
+                    var apiUriProp = props.FirstOrDefault(w => w.Name == "ApiUri");
+                    var versionProp = props.FirstOrDefault(w => w.Name == "Version");
+                    var statusProp = props.FirstOrDefault(w => w.Name == "Status");
+                    var configurationProp = props.FirstOrDefault(w => w.Name == "Configuration");
+
+                    foreach (var remote in remoteObjects)
+                    {
+                        var config = configurationProp != null ? configurationProp.GetValue(remote) as JsonNode : null;
+                        string? retention = null;
+                        if (config != null)
+                        {
+                            retention = config?.AsObject().TryGetPropertyValue("data_retention", out var dataRetention) == true &&
+                                        dataRetention?.AsObject().TryGetPropertyValue("audit_retention_period", out var auditRetentionPeriod) == true
+                                        ? auditRetentionPeriod!.GetValue<string>()
+                                        : null;
+                        }
+
+                        var remoteInstance = new RemoteInstanceInformation
+                        {
+                            ApiUri = apiUriProp != null ? apiUriProp.GetValue(remote)?.ToString() : "",
+                            VersionString = versionProp != null ? versionProp.GetValue(remote)?.ToString() : "",
+                            Status = statusProp != null ? statusProp.GetValue(remote)?.ToString() : "",
+                            Retention = TimeSpan.TryParse(retention, out var ts) ? ts : TimeSpan.Zero
+                        };
+
+                        remoteInstance.SemVer = SemVerVersion.TryParse(remoteInstance.VersionString, out var v) ? v : null;
+
+                        remotesInfo.Add(remoteInstance);
+                    }
+                }
+            }
+
+            return remotesInfo;
         }
 
         public static async Task<ConnectionSettingsTestResult> TestAuditConnection(IConfigurationApi configurationApi)
@@ -61,7 +95,7 @@
 
             var remotesInfo = await GetAuditRemotes(configurationApi);
 
-            foreach (var remote in remotesInfo.Where(w => w.Status != RemoteStatus.Online && w.SemVer == null))
+            foreach (var remote in remotesInfo.Where(w => w.Status != "online" && w.SemVer == null))
             {
                 connectionTestResult.ConnectionErrorMessages.Add($"Unable to determine the version of one or more ServiceControl Audit instances. For the instance with URI {remote.ApiUri}, the status was '{remote.Status}' and the version string returned was '{remote.VersionString}'.");
             }
