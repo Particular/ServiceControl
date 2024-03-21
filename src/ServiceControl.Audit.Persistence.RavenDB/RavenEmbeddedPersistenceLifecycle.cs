@@ -7,13 +7,8 @@
     using Raven.Client.Documents;
     using Raven.Client.Exceptions.Database;
 
-    class RavenEmbeddedPersistenceLifecycle : IRavenPersistenceLifecycle
+    class RavenEmbeddedPersistenceLifecycle(DatabaseConfiguration databaseConfiguration) : IRavenPersistenceLifecycle
     {
-        public RavenEmbeddedPersistenceLifecycle(DatabaseConfiguration databaseConfiguration)
-        {
-            this.databaseConfiguration = databaseConfiguration;
-        }
-
         public IDocumentStore GetDocumentStore()
         {
             if (documentStore == null)
@@ -56,6 +51,5 @@
         IDocumentStore documentStore;
         EmbeddedDatabase database;
         static readonly ILog Log = LogManager.GetLogger(typeof(RavenEmbeddedPersistenceLifecycle));
-        readonly DatabaseConfiguration databaseConfiguration;
     }
 }

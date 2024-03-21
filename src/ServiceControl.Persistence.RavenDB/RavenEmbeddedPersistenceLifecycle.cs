@@ -9,13 +9,9 @@
     using Raven.Client.Exceptions.Database;
     using ServiceControl.Persistence;
 
-    class RavenEmbeddedPersistenceLifecycle : IPersistenceLifecycle, IDisposable
+    class RavenEmbeddedPersistenceLifecycle(RavenPersisterSettings databaseConfiguration)
+        : IPersistenceLifecycle, IDisposable
     {
-        public RavenEmbeddedPersistenceLifecycle(RavenPersisterSettings databaseConfiguration)
-        {
-            this.databaseConfiguration = databaseConfiguration;
-        }
-
         public IDocumentStore GetDocumentStore()
         {
             if (documentStore == null)
@@ -57,12 +53,8 @@
         IDocumentStore documentStore;
         EmbeddedDatabase database;
 
-        readonly RavenPersisterSettings databaseConfiguration;
         static readonly ILog Log = LogManager.GetLogger(typeof(RavenEmbeddedPersistenceLifecycle));
 
-        ~RavenEmbeddedPersistenceLifecycle()
-        {
-            Trace.WriteLine("ERROR: RavenDbEmbeddedPersistenceLifecycle isn't properly disposed");
-        }
+        ~RavenEmbeddedPersistenceLifecycle() => Trace.WriteLine("ERROR: RavenDbEmbeddedPersistenceLifecycle isn't properly disposed");
     }
 }
