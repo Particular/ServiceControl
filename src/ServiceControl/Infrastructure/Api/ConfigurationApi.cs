@@ -1,9 +1,10 @@
 ﻿namespace ServiceControl.Infrastructure.Api
 {
     using System;
+    using System.IO;
     using System.Linq;
     using System.Net.Http;
-    using System.Net.Http.Json;
+    using System.Text.Json.Nodes;
     using System.Threading.Tasks;
     using Configuration;
     using Particular.ServiceControl.Licensing;
@@ -88,35 +89,35 @@
             return content;
         }
 
-        public async Task<RemoteConfiguration[]> GetRemoteConfigs()
+        public async Task<object> GetRemoteConfigs()
         {
             var remotes = settings.RemoteInstances;
             var tasks = remotes
                 .Select(async remote =>
                 {
-                    string status =
-                        remote.TemporarilyUnavailable ? RemoteStatus.Unavailable : RemoteStatus.Online;
+                    string status = remote.TemporarilyUnavailable ? "unavailable" : "online";
                     var version = "Unknown";
-                    using HttpClient httpClient = httpClientFactory.CreateClient(remote.InstanceId);
-                    InstanceConfiguration config = null;
+                    HttpClient httpClient = httpClientFactory.CreateClient(remote.InstanceId);
+                    JsonNode config = null;
 
                     try
                     {
-                        using HttpResponseMessage response = await httpClient.GetAsync("/api/configuration");
+                        HttpResponseMessage response = await httpClient.GetAsync("/api/configuration");
 
                         if (response.Headers.TryGetValues("X-Particular-Version", out var values))
                         {
                             version = values.FirstOrDefault() ?? "Missing";
                         }
 
-                        config = await response.Content.ReadFromJsonAsync<InstanceConfiguration>();
+                        await using Stream stream = await response.Content.ReadAsStreamAsync();
+                        config = await JsonNode.ParseAsync(stream);
                     }
                     catch (Exception)
                     {
-                        status = RemoteStatus.Error;
+                        status = "error";
                     }
 
-                    return new RemoteConfiguration
+                    return new
                     {
                         ApiUri = remote.BaseAddress,
                         Version = version,
