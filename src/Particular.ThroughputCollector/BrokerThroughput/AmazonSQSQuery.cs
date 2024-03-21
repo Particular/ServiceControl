@@ -11,7 +11,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Shared;
 
-public class AmazonSQSQuery : IThroughputQuery
+public class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
 {
     private AmazonCloudWatchClient? cloudWatch;
     private AmazonSQSClient? sqs;
@@ -71,7 +71,7 @@ public class AmazonSQSQuery : IThroughputQuery
     public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var endDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+        var endDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
 
         if (endDate <= startDate)
         {
@@ -84,7 +84,7 @@ public class AmazonSQSQuery : IThroughputQuery
             MetricName = "NumberOfMessagesDeleted",
             StartTimeUtc = startDate.ToDateTime(TimeOnly.MinValue),
             EndTimeUtc = endDate.ToDateTime(TimeOnly.MinValue),
-            Period = 86400, // 1 day
+            Period = 24 * 60 * 60, // 1 day
             Statistics = ["Sum"],
             Dimensions = [
                 new Dimension { Name = "QueueName", Value = queueName.QueueName }
