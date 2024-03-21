@@ -9,6 +9,7 @@
         bool enableFullTextSearch,
         TimeSpan auditRetentionPeriod,
         int maxBodySizeToStore,
+        int dataSpaceRemainingThreshold,
         int minimumStorageLeftRequiredForIngestion,
         ServerConfiguration serverConfiguration,
         TimeSpan bulkInsertCommitTimeout)
@@ -26,6 +27,8 @@
         public TimeSpan AuditRetentionPeriod { get; } = auditRetentionPeriod;
 
         public int MaxBodySizeToStore { get; } = maxBodySizeToStore;
+
+        public int DataSpaceRemainingThreshold { get; } = dataSpaceRemainingThreshold;
 
         public int MinimumStorageLeftRequiredForIngestion { get; internal set; } = minimumStorageLeftRequiredForIngestion; //Setting for ATT only
 

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB.CustomChecks
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
@@ -48,6 +49,40 @@
             stateHolder.CanIngestMore = false;
             return CheckResult.Failed(message);
         }
+
+        public static int Parse(IDictionary<string, string> settings)
+        {
+            if (!settings.TryGetValue(RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey, out var thresholdValue))
+            {
+                thresholdValue = $"{MinimumStorageLeftRequiredForIngestionDefault}";
+            }
+
+            string message;
+            if (!int.TryParse(thresholdValue, out var threshold))
+            {
+                message = $"{RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} must be an integer.";
+                Logger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            if (threshold < 0)
+            {
+                message = $"{RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.";
+                Logger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            if (threshold > 100)
+            {
+                message = $"{RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.";
+                Logger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            return threshold;
+        }
+
+        public const int MinimumStorageLeftRequiredForIngestionDefault = 20;
 
         static readonly Task<CheckResult> SuccessResult = Task.FromResult(CheckResult.Pass);
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckMinimumStorageRequiredForIngestion));
