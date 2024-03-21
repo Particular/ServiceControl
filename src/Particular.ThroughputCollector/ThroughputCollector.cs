@@ -2,17 +2,20 @@
 {
     using System.Linq;
     using System.Threading.Tasks;
+    using Particular.ThroughputCollector.AuditThroughput;
     using Particular.ThroughputCollector.Contracts;
     using Particular.ThroughputCollector.Infrastructure;
     using Particular.ThroughputCollector.Persistence;
     using Particular.ThroughputCollector.Shared;
+    using ServiceControl.Api;
 
     public class ThroughputCollector : IThroughputCollector
     {
-        public ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings)
+        public ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, IConfigurationApi configurationApi)
         {
             this.dataStore = dataStore;
             this.throughputSettings = throughputSettings;
+            this.configurationApi = configurationApi;
         }
 
         public async Task<BrokerSettings> GetBrokerSettingsInformation()
@@ -24,10 +27,19 @@
             return await Task.FromResult(brokerSettings);
         }
 
-        public async Task<BrokerSettingsTestResult> TestBrokerSettings()
+        public async Task<ConnectionTestResults> TestConnectionSettings()
         {
-            //TODO
-            return await Task.FromResult(new BrokerSettingsTestResult { Broker = throughputSettings.Broker, ConnectionSuccessful = true });
+            var connectionTestResults = new ConnectionTestResults
+            {
+                Broker = throughputSettings.Broker,
+                AuditConnectionResult = await AuditCommands.TestAuditConnection(configurationApi),
+                //TODO 1
+                //MonitoringConnectionResult = ??
+                //TODO 2
+                //BrokerConnectionResult = ??;
+            };
+
+            return await Task.FromResult(connectionTestResults);
         }
 
         public async Task UpdateUserIndicatorsOnEndpoints(List<EndpointThroughputSummary> endpointThroughputs)
@@ -74,11 +86,8 @@
             var reportGenerationState = new ReportGenerationState
             {
                 Broker = throughputSettings.Broker,
-                ConnectionToBrokerWorking = (await TestBrokerSettings()).ConnectionSuccessful,
-                EnoughDataToReportOn = await dataStore.IsThereThroughputForLastXDays(30),
+                ReportCanBeGenerated = await dataStore.IsThereThroughputForLastXDays(30),
             };
-
-            reportGenerationState.ReportCanBeGenerated = reportGenerationState.ConnectionToBrokerWorking && reportGenerationState.EnoughDataToReportOn;
 
             return reportGenerationState;
         }
@@ -146,6 +155,7 @@
 
         readonly IThroughputDataStore dataStore;
         readonly ThroughputSettings throughputSettings;
+        readonly IConfigurationApi configurationApi;
         (string Mask, string Replacement)[] masks = [];
     }
 }

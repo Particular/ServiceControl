@@ -50,9 +50,9 @@
 
         [Route("throughput/settings/test")]
         [HttpGet]
-        public async Task<BrokerSettingsTestResult> TestThroughputBrokerSettings()
+        public async Task<ConnectionTestResults> TestThroughputConnectionSettings()
         {
-            return await throughputCollector.TestBrokerSettings();
+            return await throughputCollector.TestConnectionSettings();
         }
 
         readonly IThroughputCollector throughputCollector;

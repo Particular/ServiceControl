@@ -29,7 +29,6 @@
             var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
 
             Assert.That(reportGenerationState.ReportCanBeGenerated, Is.False);
-            Assert.That(reportGenerationState.EnoughDataToReportOn, Is.False);
         }
 
         [Test]
@@ -40,7 +39,6 @@
             var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
 
             Assert.That(reportGenerationState.ReportCanBeGenerated, Is.True);
-            Assert.That(reportGenerationState.EnoughDataToReportOn, Is.True);
         }
 
         [Test]
@@ -51,7 +49,6 @@
             var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
 
             Assert.That(reportGenerationState.ReportCanBeGenerated, Is.False);
-            Assert.That(reportGenerationState.EnoughDataToReportOn, Is.False);
         }
 
         List<Endpoint> EndpointsWithNoThroughputInLast30Days =
