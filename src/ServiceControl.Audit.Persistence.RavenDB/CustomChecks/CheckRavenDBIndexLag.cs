@@ -1,23 +1,18 @@
-﻿namespace ServiceControl
+﻿namespace ServiceControl.Audit.Persistence.RavenDB.CustomChecks
 {
     using System;
     using System.Linq;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Audit.Persistence.RavenDB;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using Raven.Client.Documents.Operations;
+    using ServiceControl.Audit.Persistence.RavenDB;
 
-    class CheckRavenDBIndexLag : CustomCheck
+    class CheckRavenDBIndexLag(IRavenDocumentStoreProvider documentStoreProvider)
+        : CustomCheck("Audit Database Index Lag", "ServiceControl.Audit Health", TimeSpan.FromMinutes(5))
     {
-        public CheckRavenDBIndexLag(IRavenDocumentStoreProvider documentStoreProvider)
-            : base("Audit Database Index Lag", "ServiceControl.Audit Health", TimeSpan.FromMinutes(5))
-        {
-            this.documentStoreProvider = documentStoreProvider;
-        }
-
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var store = documentStoreProvider.GetDocumentStore();
@@ -84,7 +79,5 @@
         static readonly TimeSpan IndexLagThresholdWarning = TimeSpan.FromMinutes(1);
         static readonly TimeSpan IndexLagThresholdError = TimeSpan.FromMinutes(10);
         static readonly ILog Log = LogManager.GetLogger<CheckRavenDBIndexLag>();
-
-        readonly IRavenDocumentStoreProvider documentStoreProvider;
     }
 }
