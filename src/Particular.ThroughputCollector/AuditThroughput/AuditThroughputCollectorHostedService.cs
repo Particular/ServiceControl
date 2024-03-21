@@ -1,13 +1,12 @@
 ﻿namespace Particular.ThroughputCollector.Audit
 {
+    using AuditThroughput;
     using Contracts;
     using Infrastructure;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using Particular.ThroughputCollector.AuditThroughput;
     using Persistence;
     using ServiceControl.Api;
-    using ServiceControl.Api.Contracts;
     using Shared;
     using AuditCount = Contracts.AuditCount;
     using Endpoint = Contracts.Endpoint;
@@ -102,7 +101,7 @@
 
             foreach (var remote in remotesInfo)
             {
-                if (remote.Status == RemoteStatus.Online || remote.SemVer is not null)
+                if (remote.Status == "online" || remote.SemVer is not null)
                 {
                     logger.LogInformation($"ServiceControl Audit instance at {remote.ApiUri} detected running version {remote.SemVer}");
                 }

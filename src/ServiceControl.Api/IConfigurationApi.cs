@@ -7,6 +7,6 @@
     {
         public RootUrls GetUrls(string baseUrl);
         public object GetConfig();
-        public Task<RemoteConfiguration[]> GetRemoteConfigs();
+        public Task<object> GetRemoteConfigs();
     }
 }
