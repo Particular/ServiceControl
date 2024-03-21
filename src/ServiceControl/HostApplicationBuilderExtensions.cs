@@ -70,6 +70,8 @@ namespace Particular.ServiceControl
             services.AddSingleton(loggingSettings);
             services.AddSingleton(settings);
 
+            services.AddSingleton(TimeProvider.System);
+
             services.AddHttpLogging(options =>
             {
                 options.LoggingFields = HttpLoggingFields.RequestPath | HttpLoggingFields.RequestMethod | HttpLoggingFields.ResponseStatusCode | HttpLoggingFields.Duration;

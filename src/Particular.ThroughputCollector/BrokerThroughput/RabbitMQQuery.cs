@@ -12,7 +12,7 @@ using ServiceControl.Transports;
 using ServiceControl.Transports.RabbitMQ;
 using Shared;
 
-public class RabbitMQQuery : IThroughputQuery
+public class RabbitMQQuery(TimeProvider timeProvider) : IThroughputQuery
 {
     private HttpClient? httpClient;
     private readonly ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
@@ -58,15 +58,15 @@ public class RabbitMQQuery : IThroughputQuery
         var queue = (RabbitMQQueueDetails)queueName;
         var url = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}";
 
-        var token = await pipeline.ExecuteAsync(async cancellationToken => await httpClient!.GetFromJsonAsync<JsonNode>(url, cancellationToken), cancellationToken);
+        var node = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonNode>(url, token), cancellationToken);
         queue.AckedMessages = GetAck();
 
         // looping for 24hrs, in 4 increments of 15 minutes
         for (var i = 0; i < 24 * 4; i++)
         {
-            await Task.Delay(TimeSpan.FromMinutes(15), cancellationToken);
+            await Task.Delay(TimeSpan.FromMinutes(15), timeProvider, cancellationToken);
 
-            token = await pipeline.ExecuteAsync(async cancellationToken => await httpClient!.GetFromJsonAsync<JsonNode>(url, cancellationToken), cancellationToken);
+            node = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonNode>(url, token), cancellationToken);
             var newReading = GetAck();
             if (newReading is not null)
             {
@@ -74,7 +74,7 @@ public class RabbitMQQuery : IThroughputQuery
                 {
                     yield return new QueueThroughput
                     {
-                        DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
+                        DateUTC = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
                         TotalThroughput = newReading.Value - queue.AckedMessages.Value,
                         Scope = queue.VHost
                     };
@@ -86,7 +86,7 @@ public class RabbitMQQuery : IThroughputQuery
 
         long? GetAck()
         {
-            if (token!["message_stats"] is JsonObject stats && stats["ack"] is JsonValue val)
+            if (node!["message_stats"] is JsonObject stats && stats["ack"] is JsonValue val)
             {
                 return val.GetValue<long>();
             }
@@ -98,7 +98,7 @@ public class RabbitMQQuery : IThroughputQuery
     {
         var overviewUrl = "/api/overview";
 
-        var obj = await pipeline.ExecuteAsync(async cancellationToken => await httpClient!.GetFromJsonAsync<JsonObject>(overviewUrl, cancellationToken) ?? throw new QueryException(QueryFailureReason.InvalidEnvironment, "The RabbitMQ broker is configured with `management.disable_stats = true` or `management_agent.disable_metrics_collector = true` and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker."), cancellationToken);
+        var obj = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonObject>(overviewUrl, token) ?? throw new QueryException(QueryFailureReason.InvalidEnvironment, "The RabbitMQ broker is configured with `management.disable_stats = true` or `management_agent.disable_metrics_collector = true` and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker."), cancellationToken);
         var statsDisabled = obj["disable_stats"]?.GetValue<bool>() ?? false;
 
         if (statsDisabled)
@@ -118,7 +118,7 @@ public class RabbitMQQuery : IThroughputQuery
         bool morePages;
         var vHosts = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
 
-        (var rabbitVersion, var managementVersion) = await GetRabbitDetails(cancellationToken);
+        var (rabbitVersion, managementVersion) = await GetRabbitDetails(cancellationToken);
         Data["RabbitMQVersion"] = rabbitVersion;
         Data["RabbitMQManagementVersionVersion"] = managementVersion;
 
@@ -147,7 +147,7 @@ public class RabbitMQQuery : IThroughputQuery
         try
         {
             var bindingsUrl = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}/bindings";
-            var bindings = await pipeline.ExecuteAsync(async cancellationToken => await httpClient!.GetFromJsonAsync<JsonArray>(bindingsUrl, cancellationToken), cancellationToken);
+            var bindings = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonArray>(bindingsUrl, token), cancellationToken);
             var conventionalBindingFound = bindings?.Any(binding => binding!["source"]?.GetValue<string>() == queue.QueueName
                                                                     && binding["vhost"]?.GetValue<string>() == queue.VHost
                                                                     && binding["destination"]?.GetValue<string>() == queue.QueueName
@@ -168,7 +168,7 @@ public class RabbitMQQuery : IThroughputQuery
         try
         {
             var exchangeUrl = $"/api/exchanges/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}/bindings/destination";
-            var bindings = await pipeline.ExecuteAsync(async cancellationToken => await httpClient!.GetFromJsonAsync<JsonArray>(exchangeUrl, cancellationToken), cancellationToken);
+            var bindings = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonArray>(exchangeUrl, token), cancellationToken);
             var delayBindingFound = bindings?.Any(binding =>
             {
                 var source = binding!["source"]?.GetValue<string>();
@@ -195,7 +195,7 @@ public class RabbitMQQuery : IThroughputQuery
     {
         var url = $"/api/queues?page={page}&page_size=500&name=&use_regex=false&pagination=true";
 
-        var container = await pipeline.ExecuteAsync(async cancellationToken => await httpClient!.GetFromJsonAsync<JsonNode>(url, cancellationToken), cancellationToken);
+        var container = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonNode>(url, token), cancellationToken);
         switch (container)
         {
             case JsonObject obj:

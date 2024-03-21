@@ -11,42 +11,22 @@
     using AuditCount = Contracts.AuditCount;
     using Endpoint = Contracts.Endpoint;
 
-    class AuditThroughputCollectorHostedService : BackgroundService
+    internal class AuditThroughputCollectorHostedService(ILogger<AuditThroughputCollectorHostedService> logger, ThroughputSettings throughputSettings, IThroughputDataStore dataStore, IConfigurationApi configurationApi, IEndpointsApi endpointsApi, IAuditCountApi auditCountApi, TimeProvider timeProvider)
+        : BackgroundService
     {
-        public AuditThroughputCollectorHostedService(ILogger<AuditThroughputCollectorHostedService> logger, ThroughputSettings throughputSettings, IThroughputDataStore dataStore, IConfigurationApi configurationApi, IEndpointsApi endpointsApi, IAuditCountApi auditCountApi)
-        {
-            this.logger = logger;
-            this.throughputSettings = throughputSettings;
-            this.dataStore = dataStore;
-            this.configurationApi = configurationApi;
-            this.auditCountApi = auditCountApi;
-            this.endpointsApi = endpointsApi;
-        }
-
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             logger.LogInformation("Starting AuditThroughputCollector Service");
 
-            await Task.Delay(30000, stoppingToken);
+            backgroundTimer = timeProvider.CreateTimer(async _ => await GatherThroughput(), null, TimeSpan.FromSeconds(30), TimeSpan.FromDays(1));
+            stoppingToken.Register(_ => backgroundTimer?.Dispose(), null);
 
-            using PeriodicTimer timer = new(TimeSpan.FromDays(1));
-
-            try
-            {
-                do
-                {
-                    await GatherThroughput();
-                } while (await timer.WaitForNextTickAsync(stoppingToken));
-            }
-            catch (OperationCanceledException)
-            {
-                logger.LogInformation("Stopping AuditThroughputCollector Service");
-            }
+            return Task.CompletedTask;
         }
 
         async Task GatherThroughput()
         {
-            var utcYesterday = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+            var utcYesterday = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
             logger.LogInformation($"Gathering throughput from audit for {utcYesterday.ToShortDateString}");
 
             try
@@ -118,11 +98,7 @@
             }
         }
 
-        readonly ILogger logger;
-        ThroughputSettings throughputSettings;
-        IThroughputDataStore dataStore;
-        IConfigurationApi configurationApi;
-        IAuditCountApi auditCountApi;
-        IEndpointsApi endpointsApi;
+        private ITimer? backgroundTimer;
+        private readonly ILogger logger = logger;
     }
 }

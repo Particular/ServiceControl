@@ -6,7 +6,7 @@ using Microsoft.Data.SqlClient;
 using Shared;
 using ThroughputQuery.SqlTransport;
 
-public class SqlServerQuery : IThroughputQuery
+public class SqlServerQuery(TimeProvider timeProvider) : IThroughputQuery
 {
     private readonly List<DatabaseDetails> databases = [];
 
@@ -42,7 +42,7 @@ public class SqlServerQuery : IThroughputQuery
         // looping for 24 hours
         for (var i = 0; i < 24; i++)
         {
-            await Task.Delay(TimeSpan.FromHours(1), cancellationToken);
+            await Task.Delay(TimeSpan.FromHours(1), timeProvider, cancellationToken);
 
             var endData =
                 await queueTableName.DatabaseDetails.GetSnapshot(queueTableName, cancellationToken);
@@ -50,7 +50,7 @@ public class SqlServerQuery : IThroughputQuery
             yield return new QueueThroughput
             {
                 Scope = queueTableName.GetScope(),
-                DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
+                DateUTC = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
                 TotalThroughput = endData.RowVersion - startData.RowVersion
             };
 
