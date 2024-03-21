@@ -6,15 +6,11 @@ using Particular.ThroughputCollector.Contracts;
 
 class EndpointIndex : AbstractIndexCreationTask<Endpoint>
 {
-    public EndpointIndex()
-    {
-        Map = messages =>
-
-            from message in messages
-            select new
-            {
-                message.ThroughputSource,
-                message.Name,
-            };
-    }
+    public EndpointIndex() => Map = messages =>
+        from message in messages
+        select new
+        {
+            message.Id.ThroughputSource,
+            message.Id.Name,
+        };
 }
