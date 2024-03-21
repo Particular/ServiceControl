@@ -2,15 +2,19 @@
 {
     using System.Text.Json.Nodes;
     using Contracts;
+    using NuGet.Versioning;
     using ServiceControl.Api;
     using AuditCount = Contracts.AuditCount;
 
     static class AuditCommands
     {
         // Customers are expected to run at least version 4.29 for their Audit instances
-        public static readonly Version MinAuditCountsVersion = new Version(4, 29);
+        public static readonly SemanticVersion MinAuditCountsVersion = new(4, 29, 0);
         // Want 2d audit retention so we get one complete UTC day no matter what time it is.
-        public static Func<RemoteInstanceInformation, bool> ValidRemoteInstances = r => r.SemVer?.Version >= MinAuditCountsVersion && r.Retention >= TimeSpan.FromDays(2);
+        public static Func<RemoteInstanceInformation, bool> ValidRemoteInstances = r =>
+            r.SemanticVersion != null &&
+            r.SemanticVersion >= MinAuditCountsVersion &&
+            r.Retention >= TimeSpan.FromDays(2);
 
         public static async Task<ServiceControlEndpoint[]> GetKnownEndpoints(IEndpointsApi endpointsApi)
         {
@@ -29,7 +33,7 @@
             })
             .ToArray();
 
-            return scEndpoints ?? Array.Empty<ServiceControlEndpoint>();
+            return scEndpoints ?? [];
         }
 
         public static async Task<List<AuditCount>> GetAuditCountForEndpoint(IAuditCountApi auditCountApi, string endpointUrlName)
@@ -79,7 +83,7 @@
                             Retention = TimeSpan.TryParse(retention, out var ts) ? ts : TimeSpan.Zero
                         };
 
-                        remoteInstance.SemVer = SemVerVersion.TryParse(remoteInstance.VersionString, out var v) ? v : null;
+                        remoteInstance.SemanticVersion = SemanticVersion.TryParse(remoteInstance.VersionString ?? string.Empty, out var v) ? v : null;
 
                         remotesInfo.Add(remoteInstance);
                     }
@@ -95,7 +99,7 @@
 
             var remotesInfo = await GetAuditRemotes(configurationApi);
 
-            foreach (var remote in remotesInfo.Where(w => w.Status != "online" && w.SemVer == null))
+            foreach (var remote in remotesInfo.Where(w => w.Status != "online" && w.SemanticVersion == null))
             {
                 connectionTestResult.ConnectionErrorMessages.Add($"Unable to determine the version of one or more ServiceControl Audit instances. For the instance with URI {remote.ApiUri}, the status was '{remote.Status}' and the version string returned was '{remote.VersionString}'.");
             }
