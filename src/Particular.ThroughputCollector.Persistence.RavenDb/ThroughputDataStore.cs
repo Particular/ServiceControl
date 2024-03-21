@@ -1,17 +1,27 @@
 ﻿namespace Particular.ThroughputCollector.Persistence.RavenDb;
 
 using Contracts;
+using Particular.ThroughputCollector.Persistence.RavenDb.Models;
 using Raven.Client.Documents;
 
-class ThroughputDataStore(IDocumentStore store, DatabaseConfiguration databaseConfiguration) : IThroughputDataStore
+class ThroughputDataStore(
+    IDocumentStore store,
+    PersistenceSettings persistenceSettings,
+    DatabaseConfiguration databaseConfiguration) : IThroughputDataStore
 {
-    public async Task<IReadOnlyList<Endpoint>> GetAllEndpoints()
+    public async Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints = true, CancellationToken cancellationToken = default)
     {
         using var session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        var endpoints = await session.Query<Endpoint, EndpointIndex>().ToListAsync().ConfigureAwait(false);
+        var baseQuery = session.Advanced.AsyncDocumentQuery<EndpointDocument>();
 
-        return endpoints.ToArray();
+        var query = includePlatformEndpoints
+            ? baseQuery
+            : baseQuery.Not.ContainsAny(document => document.EndpointId.Name, persistenceSettings.PlatformEndpointNames);
+
+        var documents = await query.ToListAsync(cancellationToken);
+
+        return documents.Select(document => document.ToEndpoint());
     }
 
     public Task<Endpoint?> GetEndpointByName(string name, ThroughputSource throughputSource) =>
