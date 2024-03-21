@@ -56,7 +56,7 @@
 
         public async Task<List<EndpointThroughputSummary>> GetThroughputSummary()
         {
-            var endpoints = await GetRelevantEndpoints();
+            var endpoints = await dataStore.GetAllEndpoints(includePlatformEndpoints: false);
             var endpointSummaries = new List<EndpointThroughputSummary>();
 
             //group endpoints by sanitized name - so to group throughput recorded from broker, audit and monitoring
@@ -140,14 +140,6 @@
         //get the max throughput recorded for the endpoints - shouldn't matter where it comes from (ie broker or service control)
         long? MaxDailyThroughput(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.DailyThroughput != null).SelectMany(s => s.DailyThroughput).MaxBy(m => m.TotalThroughput)?.TotalThroughput;
         //bool ThroughputExistsForThisPeriod(IGrouping<string, Endpoint> endpoint, int days) => endpoint.Where(w => w.DailyThroughput != null).SelectMany(s => s.DailyThroughput).Any(m => m.DateUTC <= DateTime.UtcNow && m.DateUTC >= DateTime.UtcNow.AddDays(-days));
-
-        async Task<List<Endpoint>> GetRelevantEndpoints()
-        {
-            var endpoints = (List<Endpoint>)await dataStore.GetAllEndpoints();
-
-            //remove error, audit and other platform queues from all
-            return endpoints.Where(w => w.Id.Name != throughputSettings.ErrorQueue && w.Id.Name != throughputSettings.AuditQueue && w.Id.Name != throughputSettings.ServiceControlQueue).ToList();
-        }
 
         readonly IThroughputDataStore dataStore;
         readonly ThroughputSettings throughputSettings;
