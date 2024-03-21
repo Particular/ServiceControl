@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB.CustomChecks
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
@@ -13,7 +14,7 @@
         public CheckFreeDiskSpace(DatabaseConfiguration databaseConfiguration) : base("ServiceControl.Audit database", "Storage space", TimeSpan.FromMinutes(5))
         {
             dataPath = databaseConfiguration.ServerConfiguration.DbPath;
-            percentageThreshold = databaseConfiguration.MinimumStorageLeftRequiredForIngestion / 100m;
+            percentageThreshold = databaseConfiguration.DataSpaceRemainingThreshold / 100m;
             Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {percentageThreshold:P0}");
         }
 
@@ -42,9 +43,42 @@
                 : CheckResult.Failed($"{percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'.");
         }
 
+        public static int Parse(IDictionary<string, string> settings)
+        {
+            if (!settings.TryGetValue(RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey, out var thresholdValue))
+            {
+                thresholdValue = $"{DataSpaceRemainingThresholdDefault}";
+            }
+
+            string message;
+            if (!int.TryParse(thresholdValue, out var threshold))
+            {
+                message = $"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} must be an integer.";
+                Logger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            if (threshold < 0)
+            {
+                message = $"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, minimum value is 0.";
+                Logger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            if (threshold > 100)
+            {
+                message = $"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, maximum value is 100.";
+                Logger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            return threshold;
+        }
+
         readonly string dataPath;
         readonly decimal percentageThreshold;
 
+        public const int DataSpaceRemainingThresholdDefault = 20;
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckFreeDiskSpace));
     }
 }

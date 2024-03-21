@@ -69,7 +69,7 @@
             }
         }
 
-        public const int MinimumStorageLeftRequiredForIngestionDefault = 5;
+        public const int MinimumStorageLeftRequiredForIngestionDefault = 20;
 
         readonly string dataPathRoot = Path.GetPathRoot(settings.DatabasePath);
 
