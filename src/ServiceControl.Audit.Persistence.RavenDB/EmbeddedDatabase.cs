@@ -14,7 +14,7 @@
     using Raven.Client.ServerWide.Operations;
     using Raven.Embedded;
 
-    public class EmbeddedDatabase(DatabaseConfiguration configuration) : IDisposable
+    public sealed class EmbeddedDatabase(DatabaseConfiguration configuration) : IDisposable
     {
         public string ServerUrl { get; } = configuration.ServerConfiguration.ServerUrl;
 
@@ -31,11 +31,9 @@
             {
                 return (ravenLicense, serverDirectory);
             }
-            else
-            {
-                var assemblyName = Path.GetFileName(assembly.Location);
-                throw new Exception($"RavenDB license not found. Make sure the RavenDB license file '{licenseFileName}' is stored in the same directory as {assemblyName}.");
-            }
+
+            var assemblyName = Path.GetFileName(assembly.Location);
+            throw new Exception($"RavenDB license not found. Make sure the RavenDB license file '{licenseFileName}' is stored in the same directory as {assemblyName}.");
         }
 
         public static EmbeddedDatabase Start(DatabaseConfiguration databaseConfiguration)
@@ -44,7 +42,7 @@
 
             var nugetPackagesPath = Path.Combine(databaseConfiguration.ServerConfiguration.DbPath, "Packages", "NuGet");
 
-            logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
+            Logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
             var serverOptions = new ServerOptions
             {
                 CommandLineArgs =
@@ -75,15 +73,7 @@
 
         void Start(ServerOptions serverOptions)
         {
-            EmbeddedServer.Instance.ServerProcessExited += (sender, args) =>
-            {
-                if (sender is Process process && process.HasExited && process.ExitCode != 0)
-                {
-                    logger.Warn($"RavenDB server process exited unexpectedly with exitCode: {process.ExitCode}. Process will be restarted.");
-
-                    restartRequired = true;
-                }
-            };
+            EmbeddedServer.Instance.ServerProcessExited += OnServerProcessExited;
 
             EmbeddedServer.Instance.StartServer(serverOptions);
 
@@ -95,15 +85,17 @@
                     {
                         await Task.Delay(delayBetweenRestarts, shutdownTokenSource.Token);
 
-                        if (restartRequired)
+                        if (!restartRequired)
                         {
-                            logger.Info("Restarting RavenDB server process");
-
-                            await EmbeddedServer.Instance.RestartServerAsync();
-                            restartRequired = false;
-
-                            logger.Info("RavenDB server process restarted successfully.");
+                            continue;
                         }
+
+                        Logger.Info("Restarting RavenDB server process");
+
+                        await EmbeddedServer.Instance.RestartServerAsync();
+                        restartRequired = false;
+
+                        Logger.Info("RavenDB server process restarted successfully.");
                     }
                     catch (OperationCanceledException)
                     {
@@ -111,12 +103,24 @@
                     }
                     catch (Exception e)
                     {
-                        logger.Fatal($"RavenDB server restart failed. Restart will be retried in {delayBetweenRestarts}.", e);
+                        Logger.Fatal($"RavenDB server restart failed. Restart will be retried in {delayBetweenRestarts}.", e);
                     }
                 }
             });
 
             RecordStartup();
+        }
+
+        void OnServerProcessExited(object sender, ServerProcessExitedEventArgs _)
+        {
+            if (shutdownTokenSource.IsCancellationRequested || sender is not Process { HasExited: true, ExitCode: < 0 or > 0 } process)
+            {
+                return;
+            }
+
+            Logger.Warn($"RavenDB server process exited unexpectedly with exitCode: {process.ExitCode}. Process will be restarted.");
+
+            restartRequired = true;
         }
 
         public async Task<IDocumentStore> Connect(CancellationToken cancellationToken)
@@ -150,8 +154,9 @@
 
         public void Dispose()
         {
+            EmbeddedServer.Instance.ServerProcessExited -= OnServerProcessExited;
             shutdownTokenSource.Cancel();
-            EmbeddedServer.Instance?.Dispose();
+            EmbeddedServer.Instance.Dispose();
         }
 
         void RecordStartup()
@@ -167,7 +172,7 @@ Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.
 RavenDB Logging Level:              {configuration.ServerConfiguration.LogsMode}
 -------------------------------------------------------------";
 
-            logger.Info(startupMessage);
+            Logger.Info(startupMessage);
         }
 
         long DataSize()
@@ -228,6 +233,6 @@ RavenDB Logging Level:              {configuration.ServerConfiguration.LogsMode}
         bool restartRequired;
 
         static TimeSpan delayBetweenRestarts = TimeSpan.FromSeconds(60);
-        static readonly ILog logger = LogManager.GetLogger<EmbeddedDatabase>();
+        static readonly ILog Logger = LogManager.GetLogger<EmbeddedDatabase>();
     }
 }

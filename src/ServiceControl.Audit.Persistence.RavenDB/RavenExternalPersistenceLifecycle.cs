@@ -6,13 +6,8 @@
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
 
-    class RavenExternalPersistenceLifecycle : IRavenPersistenceLifecycle
+    class RavenExternalPersistenceLifecycle(DatabaseConfiguration configuration) : IRavenPersistenceLifecycle
     {
-        public RavenExternalPersistenceLifecycle(DatabaseConfiguration configuration)
-        {
-            this.configuration = configuration;
-        }
-
         public IDocumentStore GetDocumentStore()
         {
             if (documentStore == null)
@@ -54,7 +49,5 @@
         }
 
         IDocumentStore documentStore;
-
-        readonly DatabaseConfiguration configuration;
     }
 }
