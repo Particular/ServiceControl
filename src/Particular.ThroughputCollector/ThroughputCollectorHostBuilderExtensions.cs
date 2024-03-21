@@ -2,10 +2,9 @@
 {
     using Audit;
     using Broker;
-    using Contracts;
+    using Infrastructure;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Particular.ThroughputCollector.Infrastructure;
     using WebApi;
 
     public static class ThroughputCollectorHostBuilderExtensions
@@ -73,8 +72,14 @@
                     break;
             }
 
-            services.AddPersistence(persistenceType);
+            hostBuilder.AddThroughputCollectorPersistence(persistenceType);
 
+            return hostBuilder;
+        }
+
+        public static IHostApplicationBuilder AddThroughputCollectorPersistence(this IHostApplicationBuilder hostBuilder, string persistenceType)
+        {
+            hostBuilder.Services.AddPersistence(persistenceType);
             return hostBuilder;
         }
     }
