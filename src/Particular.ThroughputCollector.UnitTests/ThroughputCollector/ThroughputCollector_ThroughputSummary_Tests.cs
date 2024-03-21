@@ -23,10 +23,14 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
     [Test]
     public async Task Should_remove_audit_error_and_servicecontrol_queue_from_summary()
     {
-        EndpointsWithThroughputFromBrokerOnly.ForEach(e => DataStore.RecordEndpointThroughput(e));
-        await DataStore.RecordEndpointThroughput(ErrorEndpoint);
-        await DataStore.RecordEndpointThroughput(AuditEndpoint);
-        await DataStore.RecordEndpointThroughput(ServiceControlEndpoint);
+        EndpointsWithThroughputFromBrokerOnly.ForEach(async e =>
+        {
+            await DataStore.SaveEndpoint(e);
+            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
+        });
+        await DataStore.RecordEndpointThroughput(ErrorEndpoint.Id, ErrorEndpoint.DailyThroughput);
+        await DataStore.RecordEndpointThroughput(AuditEndpoint.Id, AuditEndpoint.DailyThroughput);
+        await DataStore.RecordEndpointThroughput(ServiceControlEndpoint.Id, ServiceControlEndpoint.DailyThroughput);
 
         var summary = await ThroughputCollector.GetThroughputSummary();
 
@@ -37,7 +41,11 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
     [Test]
     public async Task Should_return_correct_number_of_endpoints_in_summary_when_only_one_source_of_throughput()
     {
-        EndpointsWithThroughputFromBrokerOnly.ForEach(e => DataStore.RecordEndpointThroughput(e));
+        EndpointsWithThroughputFromBrokerOnly.ForEach(async e =>
+        {
+            await DataStore.SaveEndpoint(e);
+            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
+        });
 
         var summary = await ThroughputCollector.GetThroughputSummary();
 
@@ -48,7 +56,11 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
     [Test]
     public async Task Should_return_correct_number_of_endpoints_in_summary_when_multiple_sources_of_throughput()
     {
-        EndpointsWithThroughputFromBrokerAndMonitoring.ForEach(e => DataStore.RecordEndpointThroughput(e));
+        EndpointsWithThroughputFromBrokerAndMonitoring.ForEach(async e =>
+        {
+            await DataStore.SaveEndpoint(e);
+            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
+        });
 
         var summary = await ThroughputCollector.GetThroughputSummary();
 
@@ -59,7 +71,11 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
     [Test]
     public async Task Should_return_correct_max_throughput_in_summary_when_data_only_from_one_source()
     {
-        EndpointsWithThroughputFromBrokerOnly.ForEach(e => DataStore.RecordEndpointThroughput(e));
+        EndpointsWithThroughputFromBrokerOnly.ForEach(async e =>
+        {
+            await DataStore.SaveEndpoint(e);
+            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
+        });
 
         var summary = await ThroughputCollector.GetThroughputSummary();
 
@@ -75,7 +91,11 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
     [Test]
     public async Task Should_return_correct_max_throughput_in_summary_when_multiple_sources()
     {
-        EndpointsWithThroughputFromBrokerAndMonitoringAndAudit.ForEach(e => DataStore.RecordEndpointThroughput(e));
+        EndpointsWithThroughputFromBrokerAndMonitoringAndAudit.ForEach(async e =>
+        {
+            await DataStore.SaveEndpoint(e);
+            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
+        });
 
         var summary = await ThroughputCollector.GetThroughputSummary();
 
@@ -90,7 +110,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
     [Test]
     public async Task Should_return_correct_max_throughput_in_summary_when_endpoint_has_no_throughput()
     {
-        EndpointsWithNoThroughput.ForEach(e => DataStore.RecordEndpointThroughput(e));
+        EndpointsWithNoThroughput.ForEach(e => DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput));
 
         var summary = await ThroughputCollector.GetThroughputSummary();
 
@@ -102,7 +122,11 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
     [Test]
     public async Task Should_return_correct_max_throughput_in_summary_when_data_from_multiple_sources_and_name_is_different()
     {
-        EndpointsWithDifferentNamesButSameSanitizedNames.ForEach(e => DataStore.RecordEndpointThroughput(e));
+        EndpointsWithDifferentNamesButSameSanitizedNames.ForEach(async e =>
+        {
+            await DataStore.SaveEndpoint(e);
+            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
+        });
 
         var summary = await ThroughputCollector.GetThroughputSummary();
 

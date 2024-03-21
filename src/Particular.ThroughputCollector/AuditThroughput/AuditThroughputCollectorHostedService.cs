@@ -47,13 +47,15 @@ class AuditThroughputCollectorHostedService(
                 logger.LogWarning("Successfully connected to ServiceControl API but no known endpoints could be found.");
             }
 
-            foreach (var endpoint in knownEndpoints)
+            foreach (var knownEndpoint in knownEndpoints)
             {
-                if (!await ThroughputRecordedForYesterday(endpoint.Name, utcYesterday))
+                if (!await ThroughputRecordedForYesterday(knownEndpoint.Name, utcYesterday))
                 {
-                    var auditCounts = await AuditCommands.GetAuditCountForEndpoint(auditCountApi, endpoint.UrlName);
+                    var auditCounts = await AuditCommands.GetAuditCountForEndpoint(auditCountApi, knownEndpoint.UrlName);
                     //for each endpoint record the audit count for the day we are currently doing as well as any others that are available
-                    await dataStore.RecordEndpointThroughput(SCEndpointToEndpoint(endpoint, auditCounts));
+                    var endpoint = SCEndpointToEndpoint(knownEndpoint, auditCounts);
+                    await dataStore.SaveEndpoint(endpoint, cancellationToken);
+                    await dataStore.RecordEndpointThroughput(endpoint.Id, endpoint.DailyThroughput, cancellationToken);
                 }
             }
         }
