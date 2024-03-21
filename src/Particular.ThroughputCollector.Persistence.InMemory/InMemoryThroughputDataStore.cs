@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ using Contracts;
 
 class InMemoryThroughputDataStore(PersistenceSettings persistenceSettings) : IThroughputDataStore
 {
-    private readonly List<Endpoint> endpoints = [];
+    private readonly EndpointCollection endpoints = [];
     private readonly List<BrokerData> brokerData = [];
 
 
@@ -22,18 +23,15 @@ class InMemoryThroughputDataStore(PersistenceSettings persistenceSettings) : ITh
         return Task.FromResult(filteredEndpoints);
     }
 
-    public async Task<Endpoint?> GetEndpointByName(string name, ThroughputSource throughputSource)
+    public Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken = default)
     {
-        var endpoint = endpoints.FirstOrDefault(w => w.Id.ThroughputSource == throughputSource && w.Id.Name == name);
-
-        return await Task.FromResult(endpoint);
+        endpoints.TryGetValue(id, out var endpoint);
+        return Task.FromResult(endpoint);
     }
 
     public async Task RecordEndpointThroughput(Endpoint endpoint)
     {
-        var existingEndpoint = endpoints.FirstOrDefault(w => w.Id == endpoint.Id);
-
-        if (existingEndpoint == null)
+        if (!endpoints.TryGetValue(endpoint.Id, out var existingEndpoint))
         {
             endpoints.Add(endpoint);
         }
@@ -48,9 +46,7 @@ class InMemoryThroughputDataStore(PersistenceSettings persistenceSettings) : ITh
 
     public async Task AppendEndpointThroughput(Endpoint endpoint)
     {
-        var existingEndpoint = endpoints.FirstOrDefault(w => w.Id == endpoint.Id);
-
-        if (existingEndpoint == null)
+        if (!endpoints.TryGetValue(endpoint.Id, out var existingEndpoint))
         {
             endpoints.Add(endpoint);
         }
@@ -111,5 +107,10 @@ class InMemoryThroughputDataStore(PersistenceSettings persistenceSettings) : ITh
     public async Task<BrokerData?> GetBrokerData(Broker broker)
     {
         return await Task.FromResult(brokerData.FirstOrDefault(w => w.Broker == broker));
+    }
+
+    class EndpointCollection : KeyedCollection<EndpointIdentifier, Endpoint>
+    {
+        protected override EndpointIdentifier GetKeyForItem(Endpoint item) => item.Id;
     }
 }
