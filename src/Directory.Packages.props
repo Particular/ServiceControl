@@ -5,8 +5,8 @@
   </PropertyGroup>
   <ItemGroup Label="Versions for direct package references">
     <PackageVersion Include="Autofac" Version="8.0.0" />
-    <PackageVersion Include="AWSSDK.CloudWatch" Version="3.7.302.7"/>
-    <PackageVersion Include="AWSSDK.SQS" Version="3.7.300.55"/>
+    <PackageVersion Include="AWSSDK.CloudWatch" Version="3.7.302.7" />
+    <PackageVersion Include="AWSSDK.SQS" Version="3.7.300.55" />
     <PackageVersion Include="Azure.Core" Version="1.37.0" />
     <PackageVersion Include="Azure.Identity" Version="1.10.4" />
     <PackageVersion Include="Azure.Monitor.Query" Version="1.2.0" />
@@ -54,7 +54,7 @@
     <PackageVersion Include="NUnit3TestAdapter" Version="4.5.0" />
     <PackageVersion Include="Particular.Approvals" Version="1.0.0" />
     <PackageVersion Include="Particular.Licensing.Sources" Version="5.1.0" />
-    <PackageVersion Include="Polly.Core" Version="8.3.1"/>
+    <PackageVersion Include="Polly.Core" Version="8.3.1" />
     <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
     <PackageVersion Include="PropertyChanging.Fody" Version="1.30.3" />
     <PackageVersion Include="PublicApiGenerator" Version="11.1.0" />
