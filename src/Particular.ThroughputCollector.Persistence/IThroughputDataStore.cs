@@ -6,7 +6,10 @@ public interface IThroughputDataStore
 {
     Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints = true, CancellationToken cancellationToken = default);
 
-    Task<Endpoint?> GetEndpointByName(string name, ThroughputSource throughputSource);
+    Task<Endpoint?> GetEndpoint(string endpointName, ThroughputSource throughputSource, CancellationToken cancellationToken = default) =>
+        GetEndpoint(new EndpointIdentifier(endpointName, throughputSource), cancellationToken);
+
+    Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken = default);
 
     Task RecordEndpointThroughput(Endpoint endpoint);
 
