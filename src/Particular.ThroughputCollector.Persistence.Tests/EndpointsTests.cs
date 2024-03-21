@@ -150,7 +150,7 @@
 
             await DataStore.RecordEndpointThroughput(endpoint);
 
-            var foundEndpoint = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
+            var foundEndpoint = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Audit);
 
             Assert.That(foundEndpoint, Is.Not.Null);
         }
@@ -172,7 +172,7 @@
 
             await DataStore.RecordEndpointThroughput(endpoint);
 
-            var foundEndpoint = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Broker);
+            var foundEndpoint = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Broker);
 
             Assert.That(foundEndpoint, Is.Null);
         }
@@ -195,7 +195,7 @@
 
             await DataStore.RecordEndpointThroughput(endpoint);
 
-            var foundEndpoint = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
+            var foundEndpoint = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Audit);
             Assert.That(foundEndpoint, Is.Not.Null);
             Assert.That(foundEndpoint.DailyThroughput.Count, Is.EqualTo(1));
             Assert.That(foundEndpoint.UserIndicator, Is.Null);
@@ -209,7 +209,7 @@
 
             await DataStore.UpdateUserIndicatorOnEndpoints([endpointWithUserIndicators]);
 
-            foundEndpoint = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
+            foundEndpoint = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Audit);
 
             Assert.That(foundEndpoint, Is.Not.Null);
             Assert.That(foundEndpoint.DailyThroughput.Count, Is.EqualTo(1));
@@ -227,7 +227,7 @@
 
             await DataStore.UpdateUserIndicatorOnEndpoints([endpointWithUserIndicators]);
 
-            var foundEndpoint = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
+            var foundEndpoint = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Audit);
             var allEndpoints = await DataStore.GetAllEndpoints();
 
             Assert.That(foundEndpoint, Is.Null);
@@ -266,12 +266,12 @@
             await DataStore.RecordEndpointThroughput(endpointMonitoring);
 
 
-            var foundEndpointAudit = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
+            var foundEndpointAudit = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Audit);
             Assert.That(foundEndpointAudit, Is.Not.Null);
             Assert.That(foundEndpointAudit.DailyThroughput.Count, Is.EqualTo(1));
             Assert.That(foundEndpointAudit.UserIndicator, Is.Null);
 
-            var foundEndpointMonitoring = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Monitoring);
+            var foundEndpointMonitoring = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Monitoring);
             Assert.That(foundEndpointMonitoring, Is.Not.Null);
             Assert.That(foundEndpointMonitoring.DailyThroughput.Count, Is.EqualTo(1));
             Assert.That(foundEndpointMonitoring.UserIndicator, Is.Null);
@@ -286,12 +286,12 @@
 
             await DataStore.UpdateUserIndicatorOnEndpoints([endpointWithUserIndicators]);
 
-            foundEndpointAudit = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
+            foundEndpointAudit = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Audit);
             Assert.That(foundEndpointAudit, Is.Not.Null);
             Assert.That(foundEndpointAudit.DailyThroughput.Count, Is.EqualTo(1));
             Assert.That(foundEndpointAudit.UserIndicator, Is.EqualTo(userIndicator));
 
-            foundEndpointMonitoring = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Monitoring);
+            foundEndpointMonitoring = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Monitoring);
             Assert.That(foundEndpointMonitoring, Is.Not.Null);
             Assert.That(foundEndpointMonitoring.DailyThroughput.Count, Is.EqualTo(1));
             Assert.That(foundEndpointMonitoring.UserIndicator, Is.EqualTo(userIndicator));

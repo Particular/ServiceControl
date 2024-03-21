@@ -61,7 +61,8 @@ internal class BrokerThroughputCollectorHostedService(
 
         async Task Exec(IQueueName queueName, DateOnly startDate)
         {
-            var endpoint = await dataStore.GetEndpointByName(queueName.QueueName, ThroughputSource.Broker);
+            var endpointId = new EndpointIdentifier();
+            var endpoint = await dataStore.GetEndpoint(endpointId, stoppingToken);
             if (endpoint != null)
             {
                 startDate = endpoint.DailyThroughput.Last().DateUTC;
@@ -69,7 +70,7 @@ internal class BrokerThroughputCollectorHostedService(
 
             await foreach (var queueThroughput in throughputQuery.GetThroughputPerDay(queueName, startDate, stoppingToken))
             {
-                endpoint = new Endpoint(queueName.QueueName, ThroughputSource.Broker)
+                endpoint = new Endpoint(endpointId)
                 {
                     Scope = queueThroughput.Scope,
                     EndpointIndicators = queueThroughput.EndpointIndicators
