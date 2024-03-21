@@ -1,6 +1,7 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests.Infrastructure
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts;
     using Microsoft.Extensions.DependencyInjection;
@@ -52,7 +53,7 @@
     {
         public object GetConfig() => throw new NotImplementedException();
 
-        public Task<object> GetRemoteConfigs() => Task.FromResult<object>("[{ api_uri:\"http://localhost:44444\", status:\"online\", version: \"5.1.0\" }]");
+        public Task<object> GetRemoteConfigs(CancellationToken cancellationToken = default) => Task.FromResult<object>("[{ api_uri:\"http://localhost:44444\", status:\"online\", version: \"5.1.0\" }]");
 
         public RootUrls GetUrls(string baseUrl) => throw new NotImplementedException();
     }

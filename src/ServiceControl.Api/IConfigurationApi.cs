@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Api
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts;
 
@@ -7,6 +8,6 @@
     {
         public RootUrls GetUrls(string baseUrl);
         public object GetConfig();
-        public Task<object> GetRemoteConfigs();
+        public Task<object> GetRemoteConfigs(CancellationToken cancellationToken = default);
     }
 }
