@@ -10,35 +10,31 @@ internal class BrokerThroughputCollectorHostedService(
     ILogger<BrokerThroughputCollectorHostedService> logger,
     IThroughputQuery throughputQuery,
     ThroughputSettings throughputSettings,
-    IThroughputDataStore dataStore)
+    IThroughputDataStore dataStore,
+    TimeProvider timeProvider)
     : BackgroundService
 {
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Starting BrokerThroughputCollector Service");
 
         throughputQuery.Initialise(throughputSettings.BrokerSettingValues);
 
-        using PeriodicTimer timer = new(TimeSpan.FromDays(1));
-
-        try
+        backgroundTimer = timeProvider.CreateTimer(async _ =>
         {
-            do
+            try
             {
-                try
-                {
-                    await GatherThroughput(stoppingToken);
-                }
-                catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
-                {
-                    logger.LogError(ex, "Failed to gather throughput from broker");
-                }
-            } while (await timer.WaitForNextTickAsync(stoppingToken));
-        }
-        catch (OperationCanceledException)
-        {
-            logger.LogInformation("Stopping BrokerThroughputCollector Service");
-        }
+                await GatherThroughput(stoppingToken);
+            }
+            catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
+            {
+                logger.LogError(ex, "Failed to gather throughput from broker");
+            }
+        }, null, TimeSpan.FromSeconds(20), TimeSpan.FromDays(1));
+
+        stoppingToken.Register(_ => backgroundTimer?.Dispose(), null);
+
+        return Task.CompletedTask;
     }
 
     private async Task GatherThroughput(CancellationToken stoppingToken)
@@ -54,7 +50,7 @@ internal class BrokerThroughputCollectorHostedService(
                 continue;
             }
 
-            var startDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-30);
+            var startDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-30);
 
             waitingTasks.Add(Exec(queueName, startDate));
         }
@@ -130,5 +126,5 @@ internal class BrokerThroughputCollectorHostedService(
         return false;
     }
 
-    private readonly ILogger logger = logger;
+    private ITimer? backgroundTimer;
 }
