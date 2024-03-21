@@ -11,7 +11,7 @@ using Azure.ResourceManager.ServiceBus;
 using Microsoft.Extensions.Logging;
 using Shared;
 
-public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery
+public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThroughputQuery
 {
     private string serviceBusName = "";
     private MetricsQueryClient? client;
@@ -71,7 +71,7 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery
     {
         logger.LogInformation($"Gathering metrics for \"{queueName}\" queue");
 
-        var endDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+        var endDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
         if (endDate <= startDate)
         {
             yield break;
