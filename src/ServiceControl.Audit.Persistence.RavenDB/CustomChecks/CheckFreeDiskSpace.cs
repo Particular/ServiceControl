@@ -1,0 +1,50 @@
+﻿namespace ServiceControl.Audit.Persistence.RavenDB.CustomChecks
+{
+    using System;
+    using System.IO;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using NServiceBus.CustomChecks;
+    using NServiceBus.Logging;
+    using RavenDB;
+
+    class CheckFreeDiskSpace : CustomCheck
+    {
+        public CheckFreeDiskSpace(DatabaseConfiguration databaseConfiguration) : base("ServiceControl.Audit database", "Storage space", TimeSpan.FromMinutes(5))
+        {
+            dataPath = databaseConfiguration.ServerConfiguration.DbPath;
+            percentageThreshold = databaseConfiguration.MinimumStorageLeftRequiredForIngestion / 100m;
+            Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {percentageThreshold:P0}");
+        }
+
+        public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
+        {
+            var dataPathRoot = Path.GetPathRoot(dataPath);
+
+            if (dataPathRoot == null)
+            {
+                throw new Exception($"Unable to find the root of the data path {dataPath}");
+            }
+
+            var dataDriveInfo = new DriveInfo(dataPathRoot);
+            var availableFreeSpace = (decimal)dataDriveInfo.AvailableFreeSpace;
+            var totalSpace = (decimal)dataDriveInfo.TotalSize;
+
+            var percentRemaining = (decimal)dataDriveInfo.AvailableFreeSpace / dataDriveInfo.TotalSize;
+
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.Debug($"Free space: {availableFreeSpace:N0}B | Total: {totalSpace:N0}B | Percent remaining {percentRemaining:P1}");
+            }
+
+            return percentRemaining > percentageThreshold
+                ? CheckResult.Pass
+                : CheckResult.Failed($"{percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'.");
+        }
+
+        readonly string dataPath;
+        readonly decimal percentageThreshold;
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(CheckFreeDiskSpace));
+    }
+}
