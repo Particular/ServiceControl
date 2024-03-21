@@ -4,12 +4,13 @@
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Exceptions.Database;
     using ServiceControl.Persistence;
 
-    class RavenEmbeddedPersistenceLifecycle(RavenPersisterSettings databaseConfiguration)
+    class RavenEmbeddedPersistenceLifecycle(IHostApplicationLifetime lifetime, RavenPersisterSettings databaseConfiguration)
         : IPersistenceLifecycle, IDisposable
     {
         public IDocumentStore GetDocumentStore()
@@ -24,7 +25,7 @@
 
         public async Task Initialize(CancellationToken cancellationToken)
         {
-            database = EmbeddedDatabase.Start(databaseConfiguration);
+            database = EmbeddedDatabase.Start(lifetime, databaseConfiguration);
 
             while (true)
             {

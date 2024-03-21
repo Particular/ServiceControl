@@ -8,6 +8,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using ByteSizeLib;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
@@ -42,8 +43,13 @@
             throw new Exception($"RavenDB license not found. Make sure the RavenDB license file '{licenseFileName}' is stored in the same directory as {assemblyName}.");
         }
 
-        internal static EmbeddedDatabase Start(RavenPersisterSettings settings)
+        internal static EmbeddedDatabase Start(IHostApplicationLifetime lifetime, RavenPersisterSettings settings)
         {
+            lifetime.ApplicationStopping.Register(() =>
+            {
+                isStopping = true;
+            });
+
             var licenseFileNameAndServerDirectory = GetRavenLicenseFileNameAndServerDirectory();
 
             var nugetPackagesPath = Path.Combine(settings.DatabasePath, "Packages", "NuGet");
@@ -119,12 +125,12 @@
 
         void OnServerProcessExited(object sender, ServerProcessExitedEventArgs _)
         {
-            if (shutdownTokenSource.IsCancellationRequested || sender is not Process { HasExited: true, ExitCode: < 0 or > 0 } process)
+            if (shutdownTokenSource.IsCancellationRequested || isStopping)
             {
                 return;
             }
 
-            Logger.Warn($"RavenDB server process exited unexpectedly with exitCode: {process.ExitCode}. Process will be restarted.");
+            Logger.Warn($"RavenDB server process exited unexpectedly with exitCode: {((Process)sender).ExitCode}. Process will be restarted.");
             restartRequired = true;
         }
 
@@ -230,6 +236,7 @@ RavenDB Logging Level:              {settings.LogsMode}
         }
         CancellationTokenSource shutdownTokenSource = new();
         bool restartRequired;
+        static bool isStopping;
         readonly RavenPersisterSettings configuration;
 
         static TimeSpan delayBetweenRestarts = TimeSpan.FromSeconds(60);
