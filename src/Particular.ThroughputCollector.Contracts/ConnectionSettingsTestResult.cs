@@ -2,10 +2,9 @@
 
 using System.Text.Json.Serialization;
 
-public class BrokerSettingsTestResult
+public class ConnectionSettingsTestResult
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public Broker Broker { get; set; }
     public bool ConnectionSuccessful { get; set; }
     public List<string> ConnectionErrorMessages { get; set; } = [];
 }
