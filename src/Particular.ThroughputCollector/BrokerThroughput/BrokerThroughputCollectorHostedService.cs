@@ -67,14 +67,10 @@ internal class BrokerThroughputCollectorHostedService(
                 startDate = endpoint.DailyThroughput.Last().DateUTC;
             }
 
-            await foreach (var queueThroughput in throughputQuery.GetThroughputPerDay(queueName,
-                startDate,
-                stoppingToken))
+            await foreach (var queueThroughput in throughputQuery.GetThroughputPerDay(queueName, startDate, stoppingToken))
             {
-                endpoint = new Endpoint
+                endpoint = new Endpoint(queueName.QueueName, ThroughputSource.Broker)
                 {
-                    Name = queueName.QueueName,
-                    ThroughputSource = ThroughputSource.Broker,
                     Scope = queueThroughput.Scope,
                     EndpointIndicators = queueThroughput.EndpointIndicators
                 };
