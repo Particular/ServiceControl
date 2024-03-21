@@ -65,7 +65,7 @@ class AuditThroughputCollectorHostedService(
 
     private async Task<bool> ThroughputRecordedForYesterday(string endpointName, DateOnly utcDateTime)
     {
-        var endpoint = await dataStore.GetEndpointByName(endpointName, ThroughputSource.Audit);
+        var endpoint = await dataStore.GetEndpoint(endpointName, ThroughputSource.Audit);
 
         return endpoint?.DailyThroughput?.Any(a => a.DateUTC == utcDateTime) ?? false;
     }
