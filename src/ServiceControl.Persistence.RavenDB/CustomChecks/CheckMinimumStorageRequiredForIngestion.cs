@@ -9,19 +9,11 @@
     using Persistence.RavenDB;
     using ServiceControl.Persistence;
 
-    class CheckMinimumStorageRequiredForIngestion : CustomCheck
+    class CheckMinimumStorageRequiredForIngestion(
+        MinimumRequiredStorageState stateHolder,
+        RavenPersisterSettings settings)
+        : CustomCheck("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
     {
-        public CheckMinimumStorageRequiredForIngestion(
-            MinimumRequiredStorageState stateHolder,
-            RavenPersisterSettings settings)
-            : base("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
-        {
-            this.stateHolder = stateHolder;
-            this.settings = settings;
-
-            dataPathRoot = Path.GetPathRoot(settings.DatabasePath);
-        }
-
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             percentageThreshold = settings.MinimumStorageLeftRequiredForIngestion / 100m;
@@ -79,9 +71,7 @@
 
         public const int MinimumStorageLeftRequiredForIngestionDefault = 5;
 
-        readonly MinimumRequiredStorageState stateHolder;
-        readonly RavenPersisterSettings settings;
-        readonly string dataPathRoot;
+        readonly string dataPathRoot = Path.GetPathRoot(settings.DatabasePath);
 
         decimal percentageThreshold;
 

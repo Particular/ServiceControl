@@ -6,17 +6,13 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using ServiceControl.Audit.Persistence.RavenDB;
+    using RavenDB;
 
-    class CheckMinimumStorageRequiredForAuditIngestion : CustomCheck
+    class CheckMinimumStorageRequiredForIngestion(
+        MinimumRequiredStorageState stateHolder,
+        DatabaseConfiguration databaseConfiguration)
+        : CustomCheck("Audit Message Ingestion Process", "ServiceControl.Audit Health", TimeSpan.FromSeconds(5))
     {
-        public CheckMinimumStorageRequiredForAuditIngestion(State stateHolder, DatabaseConfiguration databaseConfiguration)
-            : base("Audit Message Ingestion Process", "ServiceControl.Audit Health", TimeSpan.FromSeconds(5))
-        {
-            this.stateHolder = stateHolder;
-            this.databaseConfiguration = databaseConfiguration;
-        }
-
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var percentageThreshold = databaseConfiguration.MinimumStorageLeftRequiredForIngestion / 100m;
@@ -25,7 +21,7 @@
             if (dataPathRoot == null)
             {
                 stateHolder.CanIngestMore = true;
-                return successResult;
+                return SuccessResult;
             }
 
             Logger.Debug($"Check ServiceControl data drive space starting. Threshold {percentageThreshold:P0}");
@@ -44,7 +40,7 @@
             if (percentRemaining > percentageThreshold)
             {
                 stateHolder.CanIngestMore = true;
-                return successResult;
+                return SuccessResult;
             }
 
             var message = $"Audit message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} configuration setting.";
@@ -53,14 +49,7 @@
             return CheckResult.Failed(message);
         }
 
-        readonly State stateHolder;
-        readonly DatabaseConfiguration databaseConfiguration;
-        static Task<CheckResult> successResult = Task.FromResult(CheckResult.Pass);
-        static readonly ILog Logger = LogManager.GetLogger(typeof(CheckMinimumStorageRequiredForAuditIngestion));
-
-        public class State
-        {
-            public bool CanIngestMore { get; set; } = true;
-        }
+        static readonly Task<CheckResult> SuccessResult = Task.FromResult(CheckResult.Pass);
+        static readonly ILog Logger = LogManager.GetLogger(typeof(CheckMinimumStorageRequiredForIngestion));
     }
 }
