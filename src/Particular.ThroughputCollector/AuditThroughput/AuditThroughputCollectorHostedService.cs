@@ -81,9 +81,9 @@
 
             foreach (var remote in remotesInfo)
             {
-                if (remote.Status == "online" || remote.SemVer is not null)
+                if (remote.Status == "online" || remote.SemanticVersion is not null)
                 {
-                    logger.LogInformation($"ServiceControl Audit instance at {remote.ApiUri} detected running version {remote.SemVer}");
+                    logger.LogInformation($"ServiceControl Audit instance at {remote.ApiUri} detected running version {remote.SemanticVersion}");
                 }
                 else
                 {
@@ -99,6 +99,5 @@
         }
 
         private ITimer? backgroundTimer;
-        private readonly ILogger logger = logger;
     }
 }
