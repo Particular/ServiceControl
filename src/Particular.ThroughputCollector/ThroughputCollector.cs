@@ -45,14 +45,11 @@
         public async Task UpdateUserIndicatorsOnEndpoints(List<EndpointThroughputSummary> endpointThroughputs)
         {
             await dataStore.UpdateUserIndicatorOnEndpoints(endpointThroughputs.Select(e =>
-            {
-                return new Endpoint
+                new Endpoint(e.Name, ThroughputSource.None)
                 {
-                    Name = e.Name,
                     SanitizedName = e.Name,
                     UserIndicator = e.UserIndicator,
-                };
-            }).ToList());
+                }).ToList());
 
             await Task.CompletedTask;
         }
@@ -69,7 +66,7 @@
                 var endpointSummary = new EndpointThroughputSummary
                 {
                     //want to display the endpoint name to the user if it's different to the sanitized endpoint name
-                    Name = endpoint.Any(w => w.Name != w.SanitizedName) ? endpoint.First(w => w.Name != w.SanitizedName).Name : endpoint.Key,
+                    Name = endpoint.Any(w => w.Id.Name != w.SanitizedName) ? endpoint.First(w => w.Id.Name != w.SanitizedName).Id.Name : endpoint.Key,
                     UserIndicator = UserIndicator(endpoint) ?? string.Empty,
                     IsKnownEndpoint = IsKnownEndpoint(endpoint),
                     MaxDailyThroughput = MaxDailyThroughput(endpoint) ?? 0
@@ -150,7 +147,7 @@
             var endpoints = (List<Endpoint>)await dataStore.GetAllEndpoints();
 
             //remove error, audit and other platform queues from all
-            return endpoints.Where(w => w.Name != throughputSettings.ErrorQueue && w.Name != throughputSettings.AuditQueue && w.Name != throughputSettings.ServiceControlQueue).ToList();
+            return endpoints.Where(w => w.Id.Name != throughputSettings.ErrorQueue && w.Id.Name != throughputSettings.AuditQueue && w.Id.Name != throughputSettings.ServiceControlQueue).ToList();
         }
 
         readonly IThroughputDataStore dataStore;
