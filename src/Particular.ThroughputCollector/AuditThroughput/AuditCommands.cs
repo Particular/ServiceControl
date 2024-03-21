@@ -44,10 +44,10 @@
             }).ToList();
         }
 
-        public static async Task<List<RemoteInstanceInformation>> GetAuditRemotes(IConfigurationApi configurationApi)
+        public static async Task<List<RemoteInstanceInformation>> GetAuditRemotes(IConfigurationApi configurationApi, CancellationToken cancellationToken = default)
         {
             // Verify audit instances also have audit counts
-            var remotes = await configurationApi.GetRemoteConfigs();
+            var remotes = await configurationApi.GetRemoteConfigs(cancellationToken);
             var remotesInfo = new List<RemoteInstanceInformation>();
             var valueType = remotes.GetType();
 
@@ -93,11 +93,11 @@
             return remotesInfo;
         }
 
-        public static async Task<ConnectionSettingsTestResult> TestAuditConnection(IConfigurationApi configurationApi)
+        public static async Task<ConnectionSettingsTestResult> TestAuditConnection(IConfigurationApi configurationApi, CancellationToken cancellationToken = default)
         {
             var connectionTestResult = new ConnectionSettingsTestResult();
 
-            var remotesInfo = await GetAuditRemotes(configurationApi);
+            var remotesInfo = await GetAuditRemotes(configurationApi, cancellationToken);
 
             foreach (var remote in remotesInfo.Where(w => w.Status != "online" && w.SemanticVersion == null))
             {
