@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Particular.ThroughputCollector.Persistence;
 
 
-public class InMemoryPersistence() : IPersistence
+public class InMemoryPersistence : IPersistence
 {
     public IServiceCollection Configure(IServiceCollection serviceCollection)
     {

@@ -3,25 +3,23 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Contracts;
 
-class InMemoryThroughputDataStore : IThroughputDataStore
+class InMemoryThroughputDataStore(PersistenceSettings persistenceSettings) : IThroughputDataStore
 {
-    private readonly List<Endpoint> endpoints;
-    private List<BrokerData> brokerData;
+    private readonly List<Endpoint> endpoints = [];
+    private readonly List<BrokerData> brokerData = [];
 
-    public InMemoryThroughputDataStore()
+
+    public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints = true, CancellationToken cancellationToken = default)
     {
-        endpoints = [];
-        brokerData = [];
-    }
+        var filteredEndpoints = includePlatformEndpoints
+            ? endpoints
+            : endpoints.Where(endpoint => !persistenceSettings.PlatformEndpointNames.Contains(endpoint.Id.Name));
 
-    public Task Setup() => Task.CompletedTask;
-
-    public async Task<IReadOnlyList<Endpoint>> GetAllEndpoints()
-    {
-        return await Task.FromResult(endpoints);
+        return Task.FromResult(filteredEndpoints);
     }
 
     public async Task<Endpoint?> GetEndpointByName(string name, ThroughputSource throughputSource)
