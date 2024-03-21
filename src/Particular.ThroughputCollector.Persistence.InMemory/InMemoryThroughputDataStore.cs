@@ -26,14 +26,14 @@ class InMemoryThroughputDataStore : IThroughputDataStore
 
     public async Task<Endpoint?> GetEndpointByName(string name, ThroughputSource throughputSource)
     {
-        var endpoint = endpoints.FirstOrDefault(w => w.ThroughputSource == throughputSource && w.Name == name);
+        var endpoint = endpoints.FirstOrDefault(w => w.Id.ThroughputSource == throughputSource && w.Id.Name == name);
 
         return await Task.FromResult(endpoint);
     }
 
     public async Task RecordEndpointThroughput(Endpoint endpoint)
     {
-        var existingEndpoint = endpoints.FirstOrDefault(w => w.Name == endpoint.Name && w.ThroughputSource == endpoint.ThroughputSource);
+        var existingEndpoint = endpoints.FirstOrDefault(w => w.Id == endpoint.Id);
 
         if (existingEndpoint == null)
         {
@@ -50,7 +50,7 @@ class InMemoryThroughputDataStore : IThroughputDataStore
 
     public async Task AppendEndpointThroughput(Endpoint endpoint)
     {
-        var existingEndpoint = endpoints.FirstOrDefault(w => w.Name == endpoint.Name && w.ThroughputSource == endpoint.ThroughputSource);
+        var existingEndpoint = endpoints.FirstOrDefault(w => w.Id == endpoint.Id);
 
         if (existingEndpoint == null)
         {

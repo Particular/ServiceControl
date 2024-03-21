@@ -1,6 +1,7 @@
 ﻿namespace Particular.ThroughputCollector.Persistence.Tests
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using NUnit.Framework;
     using Particular.ThroughputCollector.Contracts;
@@ -11,10 +12,8 @@
         [Test]
         public async Task Should_add_new_endpoint_when_no_endpoints()
         {
-            var endpoint = new Endpoint
+            var endpoint = new Endpoint("Endpoint", ThroughputSource.Audit)
             {
-                Name = "Endpoint",
-                ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput =
                 [
                     new EndpointThroughput
@@ -29,20 +28,17 @@
 
             var endpoints = await DataStore.GetAllEndpoints();
 
-            Assert.That(endpoints.Count, Is.EqualTo(1));
-            var foundEndpoint = endpoints[0];
-            Assert.That(foundEndpoint.Name, Is.EqualTo(endpoint.Name));
-            Assert.That(foundEndpoint.ThroughputSource, Is.EqualTo(endpoint.ThroughputSource));
+            var foundEndpoint = endpoints.Single();
+            Assert.That(foundEndpoint.Id.Name, Is.EqualTo(endpoint.Id.Name));
+            Assert.That(foundEndpoint.Id.ThroughputSource, Is.EqualTo(endpoint.Id.ThroughputSource));
             Assert.That(foundEndpoint.DailyThroughput.Count, Is.EqualTo(endpoint.DailyThroughput.Count));
         }
 
         [Test]
         public async Task Should_add_new_endpoint_when_name_is_the_same_but_source_different()
         {
-            var endpoint1 = new Endpoint
+            var endpoint1 = new Endpoint("Endpoint1", ThroughputSource.Audit)
             {
-                Name = "Endpoint1",
-                ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput =
                 [
                     new EndpointThroughput
@@ -54,10 +50,8 @@
             };
             await DataStore.RecordEndpointThroughput(endpoint1);
 
-            var endpoint2 = new Endpoint
+            var endpoint2 = new Endpoint("Endpoint1", ThroughputSource.Broker)
             {
-                Name = "Endpoint1",
-                ThroughputSource = ThroughputSource.Broker,
                 DailyThroughput =
                 [
                     new EndpointThroughput
@@ -78,10 +72,8 @@
         [Test]
         public async Task Should_update_endpoint_that_already_has_throughput_with_new_throughput()
         {
-            var endpoint1 = new Endpoint
+            var endpoint1 = new Endpoint("Endpoint1", ThroughputSource.Audit)
             {
-                Name = "Endpoint1",
-                ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput =
                 [
                     new EndpointThroughput
@@ -93,10 +85,8 @@
             };
             await DataStore.RecordEndpointThroughput(endpoint1);
 
-            var endpoint2 = new Endpoint
+            var endpoint2 = new Endpoint("Endpoint1", ThroughputSource.Audit)
             {
-                Name = "Endpoint1",
-                ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput =
                 [
                     new EndpointThroughput
@@ -110,20 +100,17 @@
 
             var endpoints = await DataStore.GetAllEndpoints();
 
-            Assert.That(endpoints.Count, Is.EqualTo(1));
-            var foundEndpoint = endpoints[0];
-            Assert.That(foundEndpoint.Name, Is.EqualTo(endpoint1.Name));
-            Assert.That(foundEndpoint.ThroughputSource, Is.EqualTo(endpoint1.ThroughputSource));
+            var foundEndpoint = endpoints.Single();
+            Assert.That(foundEndpoint.Id.Name, Is.EqualTo(endpoint1.Id.Name));
+            Assert.That(foundEndpoint.Id.ThroughputSource, Is.EqualTo(endpoint1.Id.ThroughputSource));
             Assert.That(foundEndpoint.DailyThroughput.Count, Is.EqualTo(2));
         }
 
         [Test]
         public async Task Should_not_update_endpoint_with_throughput_with_no_throughput()
         {
-            var endpoint1 = new Endpoint
+            var endpoint1 = new Endpoint("Endpoint1", ThroughputSource.Audit)
             {
-                Name = "Endpoint1",
-                ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput =
                 [
                     new EndpointThroughput
@@ -135,29 +122,22 @@
             };
             await DataStore.RecordEndpointThroughput(endpoint1);
 
-            var endpoint2 = new Endpoint
-            {
-                Name = "Endpoint1",
-                ThroughputSource = ThroughputSource.Audit,
-            };
+            var endpoint2 = new Endpoint("Endpoint1", ThroughputSource.Audit);
             await DataStore.RecordEndpointThroughput(endpoint2);
 
             var endpoints = await DataStore.GetAllEndpoints();
 
-            Assert.That(endpoints.Count, Is.EqualTo(1));
-            var foundEndpoint = endpoints[0];
-            Assert.That(foundEndpoint.Name, Is.EqualTo(endpoint1.Name));
-            Assert.That(foundEndpoint.ThroughputSource, Is.EqualTo(endpoint1.ThroughputSource));
+            var foundEndpoint = endpoints.Single();
+            Assert.That(foundEndpoint.Id.Name, Is.EqualTo(endpoint1.Id.Name));
+            Assert.That(foundEndpoint.Id.ThroughputSource, Is.EqualTo(endpoint1.Id.ThroughputSource));
             Assert.That(foundEndpoint.DailyThroughput.Count, Is.EqualTo(1));
         }
 
         [Test]
         public async Task Should_retrieve_matching_endpoint_when_same_source()
         {
-            var endpoint = new Endpoint
+            var endpoint = new Endpoint("Endpoint", ThroughputSource.Audit)
             {
-                Name = "Endpoint",
-                ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput =
                 [
                     new EndpointThroughput
@@ -178,10 +158,8 @@
         [Test]
         public async Task Should_not_retrieve_matching_endpoint_when_different_source()
         {
-            var endpoint = new Endpoint
+            var endpoint = new Endpoint("Endpoint", ThroughputSource.Audit)
             {
-                Name = "Endpoint",
-                ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput =
                 [
                     new EndpointThroughput
@@ -202,11 +180,9 @@
         [Test]
         public async Task Should_update_user_indicators_and_nothing_else()
         {
-            var endpoint = new Endpoint
+            var endpoint = new Endpoint("Endpoint", ThroughputSource.Audit)
             {
-                Name = "Endpoint",
                 SanitizedName = "Endpoint",
-                ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput =
                 [
                     new EndpointThroughput
@@ -225,9 +201,8 @@
             Assert.That(foundEndpoint.UserIndicator, Is.Null);
 
             var userIndicator = "someIndicator";
-            var endpointWithUserIndicators = new Endpoint
+            var endpointWithUserIndicators = new Endpoint("Endpoint")
             {
-                Name = "Endpoint",
                 SanitizedName = "Endpoint",
                 UserIndicator = userIndicator
             };
@@ -244,11 +219,9 @@
         [Test]
         public async Task Should_not_add_endpoint_when_updating_user_indication()
         {
-            var endpointWithUserIndicators = new Endpoint
+            var endpointWithUserIndicators = new Endpoint("Endpoint", ThroughputSource.Audit)
             {
-                Name = "Endpoint",
                 SanitizedName = "Endpoint",
-                ThroughputSource = ThroughputSource.Audit,
                 UserIndicator = "someIndicator",
             };
 
@@ -264,11 +237,9 @@
         [Test]
         public async Task Should_update_indicators_on_all_endpoint_sources()
         {
-            var endpointAudit = new Endpoint
+            var endpointAudit = new Endpoint("Endpoint", ThroughputSource.Audit)
             {
-                Name = "Endpoint",
                 SanitizedName = "Endpoint",
-                ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput =
                 [
                     new EndpointThroughput
@@ -280,11 +251,9 @@
             };
             await DataStore.RecordEndpointThroughput(endpointAudit);
 
-            var endpointMonitoring = new Endpoint
+            var endpointMonitoring = new Endpoint("Endpoint", ThroughputSource.Monitoring)
             {
-                Name = "Endpoint",
                 SanitizedName = "Endpoint",
-                ThroughputSource = ThroughputSource.Monitoring,
                 DailyThroughput =
                 [
                     new EndpointThroughput
@@ -308,9 +277,9 @@
             Assert.That(foundEndpointMonitoring.UserIndicator, Is.Null);
 
             var userIndicator = "someIndicator";
-            var endpointWithUserIndicators = new Endpoint
+
+            var endpointWithUserIndicators = new Endpoint("Endpoint")
             {
-                Name = "Endpoint",
                 SanitizedName = "Endpoint",
                 UserIndicator = userIndicator
             };
@@ -331,10 +300,8 @@
         [Test]
         public async Task Should_correctly_report_throughput_existence_for_X_days()
         {
-            var endpointAudit = new Endpoint
+            var endpointAudit = new Endpoint("Endpoint", ThroughputSource.Audit)
             {
-                Name = "Endpoint",
-                ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput =
                 [
                     new EndpointThroughput
