@@ -4,6 +4,7 @@
     using Infrastructure;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Particular.ThroughputCollector.AuditThroughput;
     using Persistence;
     using ServiceControl.Api;
     using ServiceControl.Api.Contracts;
@@ -53,7 +54,7 @@
             {
                 await VerifyAuditInstances();
 
-                var knownEndpoints = await GetKnownEndpoints();
+                var knownEndpoints = await AuditCommands.GetKnownEndpoints(endpointsApi);
 
                 if (!knownEndpoints.Any())
                 {
@@ -64,7 +65,7 @@
                 {
                     if (!await ThroughputRecordedForYesterday(endpoint.Name, utcYesterday))
                     {
-                        var auditCounts = await GetAuditCountForEndpoint(endpoint.UrlName);
+                        var auditCounts = await AuditCommands.GetAuditCountForEndpoint(auditCountApi, endpoint.UrlName);
                         //for each endpoint record the audit count for the day we are currently doing as well as any others that are available
                         await dataStore.RecordEndpointThroughput(SCEndpointToEndpoint(endpoint, auditCounts));
                     }
@@ -95,47 +96,9 @@
             };
         }
 
-        async Task<ServiceControlEndpoint[]> GetKnownEndpoints()
-        {
-            var endpoints = await endpointsApi.GetEndpoints();
-
-            var scEndpoints = endpoints?.Select(endpoint => new
-            {
-                Name = endpoint.Name ?? "",
-                HeartbeatsEnabled = endpoint.Monitored
-            })
-            .GroupBy(x => x.Name)
-            .Select(g => new ServiceControlEndpoint
-            {
-                Name = g.Key!,
-                HeartbeatsEnabled = g.Any(e => e.HeartbeatsEnabled),
-            })
-            .ToArray();
-
-            return scEndpoints ?? Array.Empty<ServiceControlEndpoint>();
-        }
-
-        async Task<List<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName)
-        {
-            return (await auditCountApi.GetEndpointAuditCounts(endpointUrlName)).Select(s =>
-            {
-                return new AuditCount { Count = s.Count, UtcDate = DateOnly.FromDateTime(s.UtcDate) };
-            }).ToList();
-        }
-
         async Task VerifyAuditInstances()
         {
-            // Verify audit instances also have audit counts
-            var remotes = await configurationApi.GetRemoteConfigs();
-
-            var remotesInfo = remotes.Select(configuration => new RemoteInstanceInformation
-            {
-                ApiUri = configuration.ApiUri,
-                VersionString = configuration.Version,
-                Status = configuration.Status,
-                Retention = configuration.Configuration.DataRetention.AuditRetentionPeriod,
-                SemVer = SemVerVersion.TryParse(configuration.Version, out var v) ? v : null
-            }).ToArray();
+            var remotesInfo = await AuditCommands.GetAuditRemotes(configurationApi);
 
             foreach (var remote in remotesInfo)
             {
@@ -149,12 +112,10 @@
                 }
             }
 
-            // Want 2d audit retention so we get one complete UTC day no matter what time it is.
-            // Customers are expected to run at least version 4.29 for their Audit instances
-            var allHaveAuditCounts = remotesInfo.All(r => r.SemVer?.Version >= MinAuditCountsVersion && r.Retention >= TimeSpan.FromDays(2));
+            var allHaveAuditCounts = remotesInfo.All(AuditCommands.ValidRemoteInstances);
             if (!allHaveAuditCounts)
             {
-                logger.LogWarning($"At least one ServiceControl Audit instance is either not running the required version ({MinAuditCountsVersion}) or is not configured for at least 2 days of retention. Audit throughput will not be available.");
+                logger.LogWarning($"At least one ServiceControl Audit instance is either not running the required version ({AuditCommands.MinAuditCountsVersion}) or is not configured for at least 2 days of retention. Audit throughput will not be available.");
             }
         }
 
@@ -164,7 +125,5 @@
         IConfigurationApi configurationApi;
         IAuditCountApi auditCountApi;
         IEndpointsApi endpointsApi;
-
-        static readonly Version MinAuditCountsVersion = new Version(4, 29);
     }
 }
