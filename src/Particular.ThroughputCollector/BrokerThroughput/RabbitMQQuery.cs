@@ -25,19 +25,22 @@ public class RabbitMQQuery(TimeProvider timeProvider) : IThroughputQuery
         var connectionString = settings[CommonSettings.TransportConnectionString];
         var connectionConfiguration = RabbitMQConnectionConfiguration.Create(connectionString, "");
 
-        if (!settings.TryGetValue(RabbitMQSettings.UserName, out var username))
+        if (!settings.TryGetValue(RabbitMQSettings.UserName, out var username) ||
+            string.IsNullOrEmpty(username))
         {
             username = connectionConfiguration.UserName;
         }
 
-        if (!settings.TryGetValue(RabbitMQSettings.Password, out var password))
+        if (!settings.TryGetValue(RabbitMQSettings.Password, out var password) ||
+            string.IsNullOrEmpty(password))
         {
             password = connectionConfiguration.UserName;
         }
 
         var defaultCredential = new NetworkCredential(username, password);
 
-        if (!settings.TryGetValue(RabbitMQSettings.API, out var apiUrl))
+        if (!settings.TryGetValue(RabbitMQSettings.API, out var apiUrl) ||
+            string.IsNullOrEmpty(apiUrl))
         {
             apiUrl = $"{(connectionConfiguration.UseTls ? "https://" : "http://")}{connectionConfiguration.Host}:{connectionConfiguration.Port}";
         }
