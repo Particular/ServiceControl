@@ -6,13 +6,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.ThroughputCollector.Contracts;
-using Particular.ThroughputCollector.Persistence;
 using Particular.ThroughputCollector.UnitTests.Infrastructure;
 
 [TestFixture]
 class ThroughputCollector_Indicator_Tests : ThroughputCollectorTestFixture
 {
-    readonly Contracts.Broker broker = Contracts.Broker.AzureServiceBus;
+    readonly Broker broker = Broker.AzureServiceBus;
     public override Task Setup()
     {
         SetThroughputSettings = s => s.Broker = broker;
@@ -23,7 +22,11 @@ class ThroughputCollector_Indicator_Tests : ThroughputCollectorTestFixture
     [Test]
     public async Task Should_indicate_known_endpoint_if_at_least_one_instance_of_it_exists_in_the_sources()
     {
-        EndpointsWithMultipleSourcesAndEndpointIndicator.ForEach(e => DataStore.RecordEndpointThroughput(e));
+        EndpointsWithMultipleSourcesAndEndpointIndicator.ForEach(async e =>
+        {
+            await DataStore.SaveEndpoint(e);
+            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
+        });
 
         var summary = await ThroughputCollector.GetThroughputSummary();
 
@@ -36,7 +39,11 @@ class ThroughputCollector_Indicator_Tests : ThroughputCollectorTestFixture
     [Test]
     public async Task Should_return_correct_user_indicators_when_multiple_throughput_sources()
     {
-        EndpointsWithNoUserIndicatorsFromMultipleSources.ForEach(e => DataStore.RecordEndpointThroughput(e));
+        EndpointsWithNoUserIndicatorsFromMultipleSources.ForEach(async e =>
+        {
+            await DataStore.SaveEndpoint(e);
+            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
+        });
 
         var summary = await ThroughputCollector.GetThroughputSummary();
 

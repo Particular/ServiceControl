@@ -5,4 +5,12 @@ using Particular.ThroughputCollector.Contracts;
 class EndpointDocument(EndpointIdentifier id)
 {
     public EndpointIdentifier EndpointId { get; } = id;
+
+    public string SanitizedName { get; set; } = string.Empty;
+
+    public IList<string> EndpointIndicators { get; } = new List<string>();
+
+    public string UserIndicator { get; set; } = string.Empty;
+
+    public string Scope { get; set; } = string.Empty;
 }

@@ -21,7 +21,7 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
     [Test]
     public async Task Should_return_ReportCanBeGenerated_false_when_no_throughput_for_last_30_days()
     {
-        EndpointsWithNoThroughputInLast30Days.ForEach(e => DataStore.RecordEndpointThroughput(e));
+        EndpointsWithNoThroughputInLast30Days.ForEach(e => DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput));
 
         var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
 
@@ -31,7 +31,7 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
     [Test]
     public async Task Should_return_ReportCanBeGenerated_true_when_there_is_throughput_for_last_30_days()
     {
-        EndpointsWithThroughputInLast30Days.ForEach(e => DataStore.RecordEndpointThroughput(e));
+        EndpointsWithThroughputInLast30Days.ForEach(e => DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput));
 
         var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
 
@@ -41,7 +41,7 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
     [Test]
     public async Task Should_return_ReportCanBeGenerated_false_when_throughput_exists_only_for_today()
     {
-        EndpointsWithThroughputOnlyForToday.ForEach(e => DataStore.RecordEndpointThroughput(e));
+        EndpointsWithThroughputOnlyForToday.ForEach(e => DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput));
 
         var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
 

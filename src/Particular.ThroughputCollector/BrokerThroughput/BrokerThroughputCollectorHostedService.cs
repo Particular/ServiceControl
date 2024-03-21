@@ -83,7 +83,7 @@ internal class BrokerThroughputCollectorHostedService(
 
                 if (throughputQuery.SupportsHistoricalMetrics)
                 {
-                    await dataStore.RecordEndpointThroughput(endpoint);
+                    await dataStore.RecordEndpointThroughput(endpoint.Id, endpoint.DailyThroughput, stoppingToken);
                 }
                 else
                 {

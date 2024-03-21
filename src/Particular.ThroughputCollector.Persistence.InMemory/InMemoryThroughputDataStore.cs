@@ -29,18 +29,27 @@ class InMemoryThroughputDataStore(PersistenceSettings persistenceSettings) : ITh
         return Task.FromResult(endpoint);
     }
 
-    public async Task RecordEndpointThroughput(Endpoint endpoint)
+    public Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken = default)
     {
-        if (!endpoints.TryGetValue(endpoint.Id, out var existingEndpoint))
+        endpoints.Add(endpoint);
+        return Task.CompletedTask;
+    }
+
+    public async Task RecordEndpointThroughput(EndpointIdentifier id, IEnumerable<EndpointThroughput> throughput, CancellationToken cancellationToken = default)
+    {
+        if (!endpoints.TryGetValue(id, out var endpoint))
         {
+            endpoint = new Endpoint(id)
+            {
+                DailyThroughput = throughput.ToList()
+            };
             endpoints.Add(endpoint);
         }
         else
         {
             //ensure we are not adding a date entry more than once
-            existingEndpoint.DailyThroughput.AddRange(endpoint.DailyThroughput.Where(w => !existingEndpoint.DailyThroughput.Any(a => a.DateUTC == w.DateUTC)));
+            endpoint.DailyThroughput.AddRange(throughput.Where(w => !endpoint.DailyThroughput.Any(a => a.DateUTC == w.DateUTC)));
         }
-
         await Task.CompletedTask;
     }
 

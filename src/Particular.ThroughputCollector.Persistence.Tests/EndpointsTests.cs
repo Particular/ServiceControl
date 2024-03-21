@@ -24,7 +24,7 @@
                 ]
             };
 
-            await DataStore.RecordEndpointThroughput(endpoint);
+            await DataStore.RecordEndpointThroughput(endpoint.Id, endpoint.DailyThroughput);
 
             var endpoints = await DataStore.GetAllEndpoints();
 
@@ -48,7 +48,7 @@
                     }
                 ]
             };
-            await DataStore.RecordEndpointThroughput(endpoint1);
+            await DataStore.RecordEndpointThroughput(endpoint1.Id, endpoint1.DailyThroughput);
 
             var endpoint2 = new Endpoint("Endpoint1", ThroughputSource.Broker)
             {
@@ -61,7 +61,7 @@
                     }
                 ]
             };
-            await DataStore.RecordEndpointThroughput(endpoint2);
+            await DataStore.RecordEndpointThroughput(endpoint2.Id, endpoint2.DailyThroughput);
 
             var endpoints = await DataStore.GetAllEndpoints();
 
@@ -83,7 +83,7 @@
                     }
                 ]
             };
-            await DataStore.RecordEndpointThroughput(endpoint1);
+            await DataStore.RecordEndpointThroughput(endpoint1.Id, endpoint1.DailyThroughput);
 
             var endpoint2 = new Endpoint("Endpoint1", ThroughputSource.Audit)
             {
@@ -96,7 +96,7 @@
                     }
                 ]
             };
-            await DataStore.RecordEndpointThroughput(endpoint2);
+            await DataStore.RecordEndpointThroughput(endpoint2.Id, endpoint2.DailyThroughput);
 
             var endpoints = await DataStore.GetAllEndpoints();
 
@@ -120,10 +120,10 @@
                     }
                 ]
             };
-            await DataStore.RecordEndpointThroughput(endpoint1);
+            await DataStore.RecordEndpointThroughput(endpoint1.Id, endpoint1.DailyThroughput);
 
             var endpoint2 = new Endpoint("Endpoint1", ThroughputSource.Audit);
-            await DataStore.RecordEndpointThroughput(endpoint2);
+            await DataStore.RecordEndpointThroughput(endpoint2.Id, endpoint2.DailyThroughput);
 
             var endpoints = await DataStore.GetAllEndpoints();
 
@@ -148,7 +148,7 @@
                 ]
             };
 
-            await DataStore.RecordEndpointThroughput(endpoint);
+            await DataStore.RecordEndpointThroughput(endpoint.Id, endpoint.DailyThroughput);
 
             var foundEndpoint = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Audit);
 
@@ -170,7 +170,7 @@
                 ]
             };
 
-            await DataStore.RecordEndpointThroughput(endpoint);
+            await DataStore.RecordEndpointThroughput(endpoint.Id, endpoint.DailyThroughput);
 
             var foundEndpoint = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Broker);
 
@@ -193,7 +193,8 @@
                 ]
             };
 
-            await DataStore.RecordEndpointThroughput(endpoint);
+            await DataStore.SaveEndpoint(endpoint);
+            await DataStore.RecordEndpointThroughput(endpoint.Id, endpoint.DailyThroughput);
 
             var foundEndpoint = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Audit);
             Assert.That(foundEndpoint, Is.Not.Null);
@@ -249,7 +250,9 @@
                     }
                 ]
             };
-            await DataStore.RecordEndpointThroughput(endpointAudit);
+
+            await DataStore.SaveEndpoint(endpointAudit);
+            await DataStore.RecordEndpointThroughput(endpointAudit.Id, endpointAudit.DailyThroughput);
 
             var endpointMonitoring = new Endpoint("Endpoint", ThroughputSource.Monitoring)
             {
@@ -263,8 +266,9 @@
                     }
                 ]
             };
-            await DataStore.RecordEndpointThroughput(endpointMonitoring);
 
+            await DataStore.SaveEndpoint(endpointMonitoring);
+            await DataStore.RecordEndpointThroughput(endpointMonitoring.Id, endpointMonitoring.DailyThroughput);
 
             var foundEndpointAudit = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Audit);
             Assert.That(foundEndpointAudit, Is.Not.Null);
@@ -311,7 +315,7 @@
                     }
                 ]
             };
-            await DataStore.RecordEndpointThroughput(endpointAudit);
+            await DataStore.RecordEndpointThroughput(endpointAudit.Id, endpointAudit.DailyThroughput);
 
             Assert.That(await DataStore.IsThereThroughputForLastXDays(5), Is.False);
             Assert.That(await DataStore.IsThereThroughputForLastXDays(20), Is.True);
