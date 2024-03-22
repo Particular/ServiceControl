@@ -25,7 +25,7 @@
 
         public async Task Initialize(CancellationToken cancellationToken)
         {
-            database = EmbeddedDatabase.Start(lifetime, databaseConfiguration);
+            database = EmbeddedDatabase.Start(databaseConfiguration, lifetime);
 
             while (true)
             {

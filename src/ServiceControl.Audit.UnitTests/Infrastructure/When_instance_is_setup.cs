@@ -82,16 +82,13 @@
 
         class FakePersistence : IPersistence
         {
-            public IPersistenceLifecycle Configure(IServiceCollection serviceCollection) =>
+            public void Configure(IServiceCollection services) =>
                 throw new NotImplementedException();
             public IPersistenceInstaller CreateInstaller() => new FakePersistenceInstaller();
 
             class FakePersistenceInstaller : IPersistenceInstaller
             {
-                public Task Install(CancellationToken cancellationToken = default)
-                {
-                    return Task.CompletedTask;
-                }
+                public Task Install(CancellationToken cancellationToken = default) => Task.CompletedTask;
             }
         }
     }

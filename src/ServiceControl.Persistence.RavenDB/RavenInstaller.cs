@@ -5,21 +5,14 @@
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Persistence;
 
-    class RavenInstaller : IPersistenceInstaller
+    class RavenInstaller(IServiceCollection services) : IPersistenceInstaller
     {
-        public RavenInstaller(ServiceCollection services)
-        {
-            this.services = services;
-        }
-
         public async Task Install(CancellationToken cancellationToken)
         {
-            using var serviceProvider = services.BuildServiceProvider();
+            await using var serviceProvider = services.BuildServiceProvider();
 
             var lifecycle = serviceProvider.GetRequiredService<IPersistenceLifecycle>();
             await lifecycle.Initialize(cancellationToken);
         }
-
-        readonly ServiceCollection services;
     }
 }
