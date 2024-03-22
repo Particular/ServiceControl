@@ -1,6 +1,11 @@
 [assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v8.0", FrameworkDisplayName=".NET 8.0")]
 namespace ServiceControl.Transports
 {
+    public class DefaultQueueName : ServiceControl.Transports.IQueueName
+    {
+        public DefaultQueueName(string queueName) { }
+        public string QueueName { get; }
+    }
     public class EndpointToQueueMapping
     {
         public EndpointToQueueMapping(string endpointName, string inputQueue) { }
@@ -17,8 +22,24 @@ namespace ServiceControl.Transports
         System.Threading.Tasks.Task Stop();
         void TrackEndpointInputQueue(ServiceControl.Transports.EndpointToQueueMapping queueToTrack);
     }
+    public interface IQueueName
+    {
+        string QueueName { get; }
+    }
+    public interface IThroughputQuery
+    {
+        System.Collections.Generic.Dictionary<string, string> Data { get; }
+        string MessageTransport { get; }
+        string? ScopeType { get; }
+        ServiceControl.Transports.KeyDescriptionPair[] Settings { get; }
+        bool SupportsHistoricalMetrics { get; }
+        System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.IQueueName> GetQueueNames(System.Threading.CancellationToken cancellationToken);
+        System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.QueueThroughput> GetThroughputPerDay(ServiceControl.Transports.IQueueName queueName, System.DateOnly startDate, System.Threading.CancellationToken cancellationToken);
+        void Initialise(System.Collections.Frozen.FrozenDictionary<string, string> settings);
+    }
     public interface ITransportCustomization
     {
+        System.Type ThroughputQueryProvider { get; }
         ServiceControl.Transports.IProvideQueueLength CreateQueueLengthProvider();
         System.Threading.Tasks.Task<NServiceBus.Transport.TransportInfrastructure> CreateTransportInfrastructure(string name, ServiceControl.Transports.TransportSettings transportSettings, NServiceBus.Transport.OnMessage onMessage = null, NServiceBus.Transport.OnError onError = null, System.Func<string, System.Exception, System.Threading.Tasks.Task> onCriticalError = null, NServiceBus.TransportTransactionMode preferredTransactionMode = 1);
         void CustomizeAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
@@ -26,11 +47,25 @@ namespace ServiceControl.Transports
         void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         System.Threading.Tasks.Task ProvisionQueues(ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues);
     }
+    public readonly struct KeyDescriptionPair
+    {
+        public KeyDescriptionPair(string key, string description) { }
+        public string Description { get; }
+        public string Key { get; }
+    }
     public class QueueLengthEntry
     {
         public QueueLengthEntry() { }
         public long DateTicks { get; set; }
         public long Value { get; set; }
+    }
+    public class QueueThroughput
+    {
+        public QueueThroughput() { }
+        public System.DateOnly DateUTC { get; set; }
+        public string[] EndpointIndicators { get; set; }
+        public string? Scope { get; set; }
+        public long TotalThroughput { get; set; }
     }
     public class RabbitMQConnectionConfiguration
     {
@@ -51,6 +86,7 @@ namespace ServiceControl.Transports
         where TTransport : NServiceBus.Transport.TransportDefinition
     {
         protected TransportCustomization() { }
+        public abstract System.Type ThroughputQueryProvider { get; }
         protected void ConfigureDefaultEndpointSettings(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
         public abstract ServiceControl.Transports.IProvideQueueLength CreateQueueLengthProvider();
         protected abstract TTransport CreateTransport(ServiceControl.Transports.TransportSettings transportSettings, NServiceBus.TransportTransactionMode preferredTransactionMode = 1);
