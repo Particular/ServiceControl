@@ -1,6 +1,6 @@
 namespace Particular.ThroughputCollector;
 
-using Audit;
+using AuditThroughput;
 using BrokerThroughput;
 using Contracts;
 using Infrastructure;
