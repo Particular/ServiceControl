@@ -15,27 +15,34 @@ internal class BrokerThroughputCollectorHostedService(
     TimeProvider timeProvider)
     : BackgroundService
 {
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("Starting BrokerThroughputCollector Service");
+        logger.LogInformation($"Starting {nameof(BrokerThroughputCollectorHostedService)}");
 
         throughputQuery.Initialise(throughputSettings.LoadBrokerSettingValues(throughputQuery.Settings));
 
-        backgroundTimer = timeProvider.CreateTimer(async _ =>
+        await Task.Delay(TimeSpan.FromSeconds(40), stoppingToken);
+
+        using PeriodicTimer timer = new(TimeSpan.FromDays(1), timeProvider);
+
+        try
         {
-            try
+            do
             {
-                await GatherThroughput(stoppingToken);
-            }
-            catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
-            {
-                logger.LogError(ex, "Failed to gather throughput from broker");
-            }
-        }, null, TimeSpan.FromSeconds(20), TimeSpan.FromDays(1));
-
-        stoppingToken.Register(_ => backgroundTimer?.Dispose(), null);
-
-        return Task.CompletedTask;
+                try
+                {
+                    await GatherThroughput(stoppingToken);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    logger.LogError(ex, "Failed to gather throughput from broker");
+                }
+            } while (await timer.WaitForNextTickAsync(stoppingToken));
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation($"Stopping {nameof(BrokerThroughputCollectorHostedService)} timer");
+        }
     }
 
     private async Task GatherThroughput(CancellationToken stoppingToken)
@@ -123,6 +130,4 @@ internal class BrokerThroughputCollectorHostedService(
 
         return false;
     }
-
-    private ITimer? backgroundTimer;
 }
