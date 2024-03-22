@@ -2,16 +2,16 @@
 {
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
 
-    class RavenInstaller(IServiceCollection services) : IPersistenceInstaller
+    class RavenInstaller(IPersistenceLifecycle persistenceLifecycle, IHostApplicationLifetime lifetime) : IHostedService
     {
-        public async Task Install(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            await using var serviceProvider = services.BuildServiceProvider();
-
-            var lifecycle = serviceProvider.GetRequiredService<IPersistenceLifecycle>();
-            await lifecycle.Initialize(cancellationToken);
+            await persistenceLifecycle.Initialize(cancellationToken);
+            lifetime.StopApplication();
         }
+
+        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

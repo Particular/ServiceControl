@@ -28,7 +28,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
                 isStopping = true;
             });
 
-            // Installer scenarios do not use the host and do not have a lifetime
+            // Test scenarios do not always have a lifetime
             applicationStoppingRegistration = (lifetime?.ApplicationStopping ?? CancellationToken.None).Register(() =>
             {
                 isStopping = true;

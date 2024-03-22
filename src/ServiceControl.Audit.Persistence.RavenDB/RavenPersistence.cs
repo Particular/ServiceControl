@@ -20,6 +20,14 @@
             ConfigureLifecycle(services);
         }
 
+        public void ConfigureInstaller(IServiceCollection services)
+        {
+            services.AddSingleton(databaseConfiguration);
+            services.AddHostedService<RavenInstaller>();
+
+            ConfigureLifecycle(services);
+        }
+
         void ConfigureLifecycle(IServiceCollection services)
         {
             var serverConfiguration = databaseConfiguration.ServerConfiguration;
@@ -27,7 +35,7 @@
             if (serverConfiguration.UseEmbeddedServer)
             {
                 // Installer scenarios do not use the host and do not have a lifetime
-                services.AddSingleton(provider => new RavenEmbeddedPersistenceLifecycle(provider.GetRequiredService<DatabaseConfiguration>(), provider.GetService<IHostApplicationLifetime>()));
+                services.AddSingleton<RavenEmbeddedPersistenceLifecycle>();
                 services.AddSingleton<IPersistenceLifecycle>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
                 services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
                 return;
@@ -36,16 +44,6 @@
             services.AddSingleton<RavenExternalPersistenceLifecycle>();
             services.AddSingleton<IPersistenceLifecycle>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
             services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
-        }
-
-        public IPersistenceInstaller CreateInstaller()
-        {
-            var services = new ServiceCollection();
-            ConfigureLifecycle(services);
-
-            services.AddSingleton(databaseConfiguration);
-
-            return new RavenInstaller(services);
         }
     }
 }

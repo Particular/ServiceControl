@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using LicenseManagement;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Persistence;
     using Settings;
@@ -44,12 +45,15 @@
 
             EventSource.Create();
 
+            var hostBuilder = Host.CreateApplicationBuilder();
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
             var persistence = persistenceConfiguration.Create(persistenceSettings);
-            var installer = persistence.CreateInstaller();
+            persistence.ConfigureInstaller(hostBuilder.Services);
 
-            await installer.Install();
+            var host = hostBuilder.Build();
+
+            await host.RunAsync();
         }
 
         bool ValidateLicense(Settings settings)
