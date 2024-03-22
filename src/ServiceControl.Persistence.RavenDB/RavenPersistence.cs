@@ -16,13 +16,8 @@
     using ServiceControl.Recoverability;
     using ServiceControl.SagaAudit;
 
-    class RavenPersistence : IPersistence
+    class RavenPersistence(RavenPersisterSettings settings) : IPersistence
     {
-        public RavenPersistence(RavenPersisterSettings settings)
-        {
-            this.settings = settings;
-        }
-
         public void Configure(IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<PersistenceSettings>(settings);
@@ -102,7 +97,5 @@
             serviceCollection.AddSingleton(settings);
             return new RavenInstaller(serviceCollection);
         }
-
-        readonly RavenPersisterSettings settings;
     }
 }

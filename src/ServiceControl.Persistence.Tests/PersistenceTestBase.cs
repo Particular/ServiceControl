@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
 using Raven.Client.Documents;
 using ServiceControl.Operations.BodyStorage;
@@ -31,7 +29,7 @@ public abstract class PersistenceTestBase
 
         await TestContext.Out.WriteLineAsync($"Test Database Name: {databaseName}");
 
-        embeddedServer = await SharedEmbeddedServer.GetInstance(new MockHostApplicationLifetime());
+        embeddedServer = await SharedEmbeddedServer.GetInstance();
 
         PersistenceSettings = new RavenPersisterSettings
         {
@@ -138,23 +136,4 @@ public abstract class PersistenceTestBase
     protected IIngestionUnitOfWorkFactory IngestionUnitOfWorkFactory => GetRequiredService<IIngestionUnitOfWorkFactory>();
     protected IEventLogDataStore EventLogDataStore => GetRequiredService<IEventLogDataStore>();
     protected IRetryDocumentDataStore RetryDocumentDataStore => GetRequiredService<IRetryDocumentDataStore>();
-}
-
-class MockHostApplicationLifetime : IHostApplicationLifetime, IDisposable
-{
-    readonly CancellationTokenSource startedToken = new();
-    readonly CancellationTokenSource stoppedToken = new();
-    readonly CancellationTokenSource stoppingToken = new();
-    public void Started() => startedToken.Cancel();
-    CancellationToken IHostApplicationLifetime.ApplicationStarted => startedToken.Token;
-    CancellationToken IHostApplicationLifetime.ApplicationStopping => stoppingToken.Token;
-    CancellationToken IHostApplicationLifetime.ApplicationStopped => stoppedToken.Token;
-    public void Dispose()
-    {
-        stoppedToken.Cancel();
-        startedToken.Dispose();
-        stoppedToken.Dispose();
-        stoppingToken.Dispose();
-    }
-    public void StopApplication() => stoppingToken.Cancel();
 }

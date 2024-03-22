@@ -52,11 +52,13 @@
             }
 
             var persistence = config.Create(settings);
-            await persistence.CreateInstaller().Install();
-            persistenceLifecycle = persistence.Configure(serviceCollection);
-            await persistenceLifecycle.Start();
+            var persistenceInstaller = persistence.CreateInstaller();
+            await persistenceInstaller.Install();
+            persistence.Configure(serviceCollection);
 
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            serviceProvider = serviceCollection.BuildServiceProvider();
+            persistenceLifecycle = serviceProvider.GetRequiredService<IPersistenceLifecycle>();
+            await persistenceLifecycle.Start();
 
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
@@ -90,6 +92,8 @@
             {
                 await persistenceLifecycle.Stop();
             }
+
+            await serviceProvider.DisposeAsync();
         }
 
         public string Name => "RavenDB";
@@ -97,7 +101,7 @@
         public IDocumentStore DocumentStore { get; private set; }
 
         IPersistenceLifecycle persistenceLifecycle;
-
         string databaseName;
+        ServiceProvider serviceProvider;
     }
 }

@@ -17,9 +17,17 @@
 
     public sealed class EmbeddedDatabase : IDisposable
     {
-        EmbeddedDatabase(RavenPersisterSettings configuration)
+        EmbeddedDatabase(RavenPersisterSettings configuration, IHostApplicationLifetime lifetime)
         {
             this.configuration = configuration;
+            applicationStoppingRegistration = lifetime.ApplicationStopping.Register(() =>
+            {
+                isStopping = true;
+            });
+            shutdownTokenSourceRegistration = shutdownTokenSource.Token.Register(() =>
+            {
+                isStopping = true;
+            });
             ServerUrl = configuration.ServerUrl;
         }
 
@@ -43,13 +51,8 @@
             throw new Exception($"RavenDB license not found. Make sure the RavenDB license file '{licenseFileName}' is stored in the same directory as {assemblyName}.");
         }
 
-        internal static EmbeddedDatabase Start(IHostApplicationLifetime lifetime, RavenPersisterSettings settings)
+        internal static EmbeddedDatabase Start(RavenPersisterSettings settings, IHostApplicationLifetime lifetime)
         {
-            lifetime.ApplicationStopping.Register(() =>
-            {
-                isStopping = true;
-            });
-
             var licenseFileNameAndServerDirectory = GetRavenLicenseFileNameAndServerDirectory();
 
             var nugetPackagesPath = Path.Combine(settings.DatabasePath, "Packages", "NuGet");
@@ -76,8 +79,7 @@
                 serverOptions.ServerDirectory = licenseFileNameAndServerDirectory.ServerDirectory;
             }
 
-            var embeddedDatabase = new EmbeddedDatabase(settings);
-
+            var embeddedDatabase = new EmbeddedDatabase(settings, lifetime);
             embeddedDatabase.Start(serverOptions);
 
             RecordStartup(settings);
@@ -88,12 +90,11 @@
         void Start(ServerOptions serverOptions)
         {
             EmbeddedServer.Instance.ServerProcessExited += OnServerProcessExited;
-
             EmbeddedServer.Instance.StartServer(serverOptions);
 
             _ = Task.Run(async () =>
             {
-                while (!shutdownTokenSource.IsCancellationRequested)
+                while (!isStopping)
                 {
                     try
                     {
@@ -125,7 +126,7 @@
 
         void OnServerProcessExited(object sender, ServerProcessExitedEventArgs _)
         {
-            if (shutdownTokenSource.IsCancellationRequested || isStopping)
+            if (isStopping)
             {
                 return;
             }
@@ -161,8 +162,12 @@
         public void Dispose()
         {
             EmbeddedServer.Instance.ServerProcessExited -= OnServerProcessExited;
+
             shutdownTokenSource.Cancel();
             EmbeddedServer.Instance.Dispose();
+            shutdownTokenSource.Dispose();
+            applicationStoppingRegistration.Dispose();
+            shutdownTokenSourceRegistration.Dispose();
         }
 
         static void RecordStartup(RavenPersisterSettings settings)
@@ -234,10 +239,13 @@ RavenDB Logging Level:              {settings.LogsMode}
 
             return size;
         }
-        CancellationTokenSource shutdownTokenSource = new();
+
         bool restartRequired;
-        static bool isStopping;
+        bool isStopping;
+        readonly CancellationTokenSource shutdownTokenSource = new();
         readonly RavenPersisterSettings configuration;
+        readonly CancellationTokenRegistration applicationStoppingRegistration;
+        readonly CancellationTokenRegistration shutdownTokenSourceRegistration;
 
         static TimeSpan delayBetweenRestarts = TimeSpan.FromSeconds(60);
         static readonly ILog Logger = LogManager.GetLogger<EmbeddedDatabase>();
