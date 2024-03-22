@@ -9,8 +9,8 @@ public class BrokerSettings
     public List<BrokerSetting> Settings { get; set; } = [];
 }
 
-public class BrokerSetting
+public class BrokerSetting(string name, string description)
 {
-    public required string Name { get; set; }
-    public required string Description { get; set; }
+    public string Name { get; } = name;
+    public string Description { get; } = description;
 }
