@@ -30,9 +30,9 @@ class InMemoryThroughputDataStore(PersistenceSettings persistenceSettings) : ITh
 
     public Task<IEnumerable<(EndpointIdentifier, Endpoint?)>> GetEndpoints(IEnumerable<EndpointIdentifier> endpointIds, CancellationToken cancellationToken = default)
     {
-        var lookup = (IEnumerable<(EndpointIdentifier, Endpoint?)>)endpointIds.ToDictionary(id => id, id => endpoints.TryGetValue(id, out var endpoint) ? endpoint : null);
+        var endpointLookup = endpointIds.Select(id => (id, endpoints.TryGetValue(id, out var endpoint) ? endpoint : null));
 
-        return Task.FromResult(lookup);
+        return Task.FromResult(endpointLookup);
     }
 
     public Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken = default)
