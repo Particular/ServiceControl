@@ -13,7 +13,6 @@ class InMemoryThroughputDataStore(PersistenceSettings persistenceSettings) : ITh
     private readonly EndpointCollection endpoints = [];
     private readonly List<BrokerData> brokerData = [];
 
-
     public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints = true, CancellationToken cancellationToken = default)
     {
         var filteredEndpoints = includePlatformEndpoints
@@ -27,6 +26,13 @@ class InMemoryThroughputDataStore(PersistenceSettings persistenceSettings) : ITh
     {
         endpoints.TryGetValue(id, out var endpoint);
         return Task.FromResult(endpoint);
+    }
+
+    public Task<IEnumerable<(EndpointIdentifier, Endpoint?)>> GetEndpoints(IEnumerable<EndpointIdentifier> endpointIds, CancellationToken cancellationToken = default)
+    {
+        var lookup = (IEnumerable<(EndpointIdentifier, Endpoint?)>)endpointIds.ToDictionary(id => id, id => endpoints.TryGetValue(id, out var endpoint) ? endpoint : null);
+
+        return Task.FromResult(lookup);
     }
 
     public Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken = default)
