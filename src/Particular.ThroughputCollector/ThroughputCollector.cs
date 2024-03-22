@@ -1,29 +1,17 @@
 ﻿namespace Particular.ThroughputCollector
 {
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Particular.ThroughputCollector.AuditThroughput;
-    using Particular.ThroughputCollector.Contracts;
-    using Particular.ThroughputCollector.Infrastructure;
-    using Particular.ThroughputCollector.Persistence;
-    using Particular.ThroughputCollector.Shared;
+    using AuditThroughput;
+    using Contracts;
+    using Infrastructure;
+    using Persistence;
     using ServiceControl.Api;
+    using ServiceControl.Transports;
 
-    public class ThroughputCollector : IThroughputCollector
+    public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, IConfigurationApi configurationApi, IThroughputQuery throughputQuery) : IThroughputCollector
     {
-        public ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, IConfigurationApi configurationApi)
-        {
-            this.dataStore = dataStore;
-            this.throughputSettings = throughputSettings;
-            this.configurationApi = configurationApi;
-        }
-
         public async Task<BrokerSettings> GetBrokerSettingsInformation()
         {
-            var brokerSettings = BrokerSettingsLibrary.Find(throughputSettings.Broker);
-
-            brokerSettings ??= new BrokerSettings { Broker = throughputSettings.Broker };
-
+            var brokerSettings = new BrokerSettings { Broker = throughputSettings.Broker, Settings = throughputQuery.Settings.Select(pair => new BrokerSetting(pair.Key, pair.Description)).ToList() };
             return await Task.FromResult(brokerSettings);
         }
 
@@ -141,9 +129,6 @@
         long? MaxDailyThroughput(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.DailyThroughput != null).SelectMany(s => s.DailyThroughput).MaxBy(m => m.TotalThroughput)?.TotalThroughput;
         //bool ThroughputExistsForThisPeriod(IGrouping<string, Endpoint> endpoint, int days) => endpoint.Where(w => w.DailyThroughput != null).SelectMany(s => s.DailyThroughput).Any(m => m.DateUTC <= DateTime.UtcNow && m.DateUTC >= DateTime.UtcNow.AddDays(-days));
 
-        readonly IThroughputDataStore dataStore;
-        readonly ThroughputSettings throughputSettings;
-        readonly IConfigurationApi configurationApi;
         (string Mask, string Replacement)[] masks = [];
     }
 }

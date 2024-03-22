@@ -4,10 +4,11 @@ using System.Collections.Frozen;
 using Contracts;
 using ServiceControl.Configuration;
 using ServiceControl.Transports;
-using Shared;
 
 public class ThroughputSettings
 {
+    static readonly string SettingsNamespace = "ThroughputCollector";
+
     public ThroughputSettings(Broker broker, string transportConnectionString, string serviceControlAPI, string serviceControlQueue, string errorQueue, string persistenceType, string customerName, string serviceControlVersion, string auditQueue = "audit")
     {
         Broker = broker;
@@ -32,5 +33,5 @@ public class ThroughputSettings
     public string ServiceControlVersion { get; }
     public FrozenDictionary<string, string> LoadBrokerSettingValues(IEnumerable<KeyDescriptionPair> brokerKeys) => brokerKeys.ToFrozenDictionary(key => key.Key, key => GetConfigSetting(key.Key));
 
-    string GetConfigSetting(string name) => SettingsReader.Read<string>(new SettingsRootNamespace(BrokerSettingsLibrary.SettingsNamespace), name);
+    string GetConfigSetting(string name) => SettingsReader.Read<string>(new SettingsRootNamespace(SettingsNamespace), name);
 }
