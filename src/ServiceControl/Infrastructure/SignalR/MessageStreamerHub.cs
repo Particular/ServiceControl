@@ -27,7 +27,6 @@
             localAddress = receiveAddresses.MainReceiveAddress;
         }
 
-        // TODO Change service pulse to call this method instead?
         public async Task SendMessage(string data)
         {
             try

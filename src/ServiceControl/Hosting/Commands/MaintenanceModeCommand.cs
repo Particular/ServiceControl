@@ -26,9 +26,7 @@
                 hostBuilder.Services.AddSingleton<IHostLifetime, PersisterInitializingConsoleLifetime>();
             }
 
-            // TODO: Update to use the same pattern as the main Bootstrapper
             var host = hostBuilder.Build();
-
             await host.RunAsync();
         }
     }
