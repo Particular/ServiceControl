@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using Audit.Infrastructure;
     using Audit.Infrastructure.Hosting;
     using Audit.Infrastructure.Hosting.Commands;
     using Audit.Infrastructure.Settings;
@@ -54,6 +53,7 @@
             TransportSettings transportSettings) => throw new NotImplementedException();
 
         public IProvideQueueLength CreateQueueLengthProvider() => throw new NotImplementedException();
+        public Type ThroughputQueryProvider => throw new NotImplementedException();
 
         public Task ProvisionQueues(TransportSettings transportSettings,
             IEnumerable<string> additionalQueues)

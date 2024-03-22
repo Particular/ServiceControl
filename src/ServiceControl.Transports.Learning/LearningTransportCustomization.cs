@@ -19,6 +19,8 @@
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
+        public override Type ThroughputQueryProvider => null;
+
         protected override LearningTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
             var transport = new LearningTransport

@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.CloudWatch"/>
     <PackageReference Include="NServiceBus.AmazonSQS" />
   </ItemGroup>
 
