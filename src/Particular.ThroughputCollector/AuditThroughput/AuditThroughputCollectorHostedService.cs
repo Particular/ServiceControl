@@ -1,15 +1,13 @@
 ﻿namespace Particular.ThroughputCollector.Audit;
 
-using AuditThroughput;
 using Contracts;
-using Infrastructure;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Particular.ThroughputCollector.AuditThroughput;
+using Particular.ThroughputCollector.Infrastructure;
+using Particular.ThroughputCollector.Shared;
 using Persistence;
 using ServiceControl.Api;
-using Shared;
-using AuditCount = Contracts.AuditCount;
-using Endpoint = Contracts.Endpoint;
 
 class AuditThroughputCollectorHostedService(
     ILogger<AuditThroughputCollectorHostedService> logger,
@@ -41,22 +39,42 @@ class AuditThroughputCollectorHostedService(
             await VerifyAuditInstances(cancellationToken);
 
             var knownEndpoints = await AuditCommands.GetKnownEndpoints(endpointsApi);
+            var knownEndpointsLookup = knownEndpoints
+                .ToDictionary(knownEndpoint => new EndpointIdentifier(knownEndpoint.Name, ThroughputSource.Audit));
 
             if (!knownEndpoints.Any())
             {
-                logger.LogWarning("Successfully connected to ServiceControl API but no known endpoints could be found.");
+                logger.LogWarning("No known endpoints could be found.");
             }
 
-            foreach (var knownEndpoint in knownEndpoints)
+            foreach (var tuple in await dataStore.GetEndpoints(knownEndpointsLookup.Keys, cancellationToken))
             {
-                if (!await ThroughputRecordedForYesterday(knownEndpoint.Name, utcYesterday))
+                var endpointId = tuple.Id;
+                var endpoint = tuple.Endpoint;
+
+                if (endpoint?.LastCollectedDate == utcYesterday)
                 {
-                    var auditCounts = await AuditCommands.GetAuditCountForEndpoint(auditCountApi, knownEndpoint.UrlName);
-                    //for each endpoint record the audit count for the day we are currently doing as well as any others that are available
-                    var endpoint = SCEndpointToEndpoint(knownEndpoint, auditCounts);
-                    await dataStore.SaveEndpoint(endpoint, cancellationToken);
-                    await dataStore.RecordEndpointThroughput(endpoint.Id, endpoint.DailyThroughput, cancellationToken);
+                    continue;
                 }
+
+                var auditCounts = (await AuditCommands.GetAuditCountForEndpoint(auditCountApi, knownEndpointsLookup[endpointId].UrlName)).ToList();
+
+                if (endpoint == null)
+                {
+                    endpoint = ConvertToEndpoint(knownEndpointsLookup[endpointId], auditCounts);
+                    await dataStore.SaveEndpoint(endpoint, cancellationToken);
+                }
+
+                var missingAuditThroughput = auditCounts
+                    .Where(auditCount => auditCount.UtcDate > endpoint.LastCollectedDate &&
+                                         auditCount.UtcDate < DateOnly.FromDateTime(DateTime.UtcNow))
+                    .Select(auditCount => new EndpointThroughput
+                    {
+                        DateUTC = auditCount.UtcDate,
+                        TotalThroughput = auditCount.Count
+                    });
+
+                await dataStore.RecordEndpointThroughput(endpoint.Id, missingAuditThroughput, cancellationToken);
             }
         }
         catch (Exception ex)
@@ -65,22 +83,15 @@ class AuditThroughputCollectorHostedService(
         }
     }
 
-    private async Task<bool> ThroughputRecordedForYesterday(string endpointName, DateOnly utcDateTime)
-    {
-        var endpoint = await dataStore.GetEndpoint(endpointName, ThroughputSource.Audit);
-
-        return endpoint?.DailyThroughput?.Any(a => a.DateUTC == utcDateTime) ?? false;
-    }
-
-    Endpoint SCEndpointToEndpoint(ServiceControlEndpoint scEndpoint, List<AuditCount> auditCounts)
-    {
-        return new Endpoint(scEndpoint.Name, ThroughputSource.Audit)
+    Endpoint ConvertToEndpoint(ServiceControlEndpoint scEndpoint, IEnumerable<AuditCount> auditCounts) =>
+        new(scEndpoint.Name, ThroughputSource.Audit)
         {
             SanitizedName = EndpointNameSanitizer.SanitizeEndpointName(scEndpoint.Name, throughputSettings.Broker),
             EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()],
-            DailyThroughput = auditCounts.Any() ? auditCounts.Select(c => new EndpointThroughput { DateUTC = c.UtcDate, TotalThroughput = c.Count }).ToList() : []
+            DailyThroughput = auditCounts.Any()
+                            ? auditCounts.Select(c => new EndpointThroughput { DateUTC = c.UtcDate, TotalThroughput = c.Count }).ToList()
+                            : []
         };
-    }
 
     async Task VerifyAuditInstances(CancellationToken cancellationToken)
     {
