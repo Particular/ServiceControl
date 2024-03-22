@@ -37,6 +37,11 @@ class InMemoryThroughputDataStore(PersistenceSettings persistenceSettings) : ITh
 
     public Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken = default)
     {
+        if (endpoints.TryGetValue(endpoint.Id, out var existingEndpoint))
+        {
+            endpoints.Remove(existingEndpoint);
+        }
+
         endpoints.Add(endpoint);
         return Task.CompletedTask;
     }
