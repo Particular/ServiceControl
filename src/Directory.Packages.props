@@ -5,11 +5,12 @@
   </PropertyGroup>
   <ItemGroup Label="Versions for direct package references">
     <PackageVersion Include="Autofac" Version="8.0.0" />
-    <PackageVersion Include="AWSSDK.CloudWatch" Version="3.7.302.7" />
+    <PackageVersion Include="AWSSDK.CloudWatch" Version="3.7.302.11" />
     <PackageVersion Include="AWSSDK.SQS" Version="3.7.300.55" />
-    <PackageVersion Include="Azure.Core" Version="1.37.0" />
+    <PackageVersion Include="Azure.Core" Version="1.38.0" />
     <PackageVersion Include="Azure.Identity" Version="1.11.0" />
     <PackageVersion Include="Azure.Monitor.Query" Version="1.2.0" />
+    <PackageVersion Include="Azure.ResourceManager" Version="1.10.2"/>
     <PackageVersion Include="Azure.ResourceManager.ServiceBus" Version="1.0.0" />
     <PackageVersion Include="ByteSize" Version="2.1.2" />
     <PackageVersion Include="Caliburn.Micro" Version="4.0.212" />
@@ -25,6 +26,7 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0"/>
     <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="7.4.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
