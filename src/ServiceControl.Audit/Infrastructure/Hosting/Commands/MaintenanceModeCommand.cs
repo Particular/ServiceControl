@@ -5,10 +5,11 @@
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Hosting.WindowsServices;
     using Persistence;
+    using ServiceControl.Audit.Infrastructure.Settings;
 
     class MaintenanceModeCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings.Settings settings)
+        public override async Task Execute(HostArguments args, Settings settings)
         {
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);

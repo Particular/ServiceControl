@@ -13,16 +13,14 @@
     {
         public override async Task Execute(HostArguments args, Settings settings)
         {
-            var endpointConfiguration = new EndpointConfiguration(args.ServiceName);
+            var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = endpointConfiguration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 
             settings.RunCleanupBundle = true;
 
-            var loggingSettings = new LoggingSettings(args.ServiceName);
-
             var hostBuilder = WebApplication.CreateBuilder();
-            hostBuilder.AddServiceControl(settings, endpointConfiguration, loggingSettings);
+            hostBuilder.AddServiceControl(settings, endpointConfiguration);
             hostBuilder.AddServiceControlApi();
 
             var app = hostBuilder.Build();

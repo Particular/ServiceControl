@@ -2,29 +2,22 @@ namespace ServiceControl.Audit.Infrastructure.Settings
 {
     using System;
     using System.IO;
-    using System.Reflection;
     using Configuration;
     using NLog;
     using NLog.Common;
 
-    public class LoggingSettings
+    public class LoggingSettings(LogLevel defaultLevel = null, string logPath = null)
     {
-        public LoggingSettings(string serviceName, LogLevel defaultLevel = null, string logPath = null, bool logToConsole = true)
+        public LogLevel LogLevel { get; } = InitializeLogLevel(defaultLevel);
+
+        public string LogPath { get; } = SettingsReader.Read(Settings.SettingsRootNamespace, "LogPath", Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogLocation()));
+
+        static LogLevel InitializeLogLevel(LogLevel defaultLevel)
         {
-            LoggingLevel = InitializeLevel("LogLevel", defaultLevel ?? LogLevel.Info);
-            LogPath = SettingsReader.Read(Settings.SettingsRootNamespace, "LogPath", Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogLocation()));
-            LogToConsole = logToConsole;
-        }
+            defaultLevel ??= LogLevel.Info;
 
-        public LogLevel LoggingLevel { get; }
+            var levelText = SettingsReader.Read<string>(Settings.SettingsRootNamespace, logLevelKey);
 
-        public string LogPath { get; }
-
-        public bool LogToConsole { get; }
-
-        LogLevel InitializeLevel(string key, LogLevel defaultLevel)
-        {
-            var levelText = SettingsReader.Read<string>(Settings.SettingsRootNamespace, key);
             if (string.IsNullOrWhiteSpace(levelText))
             {
                 return defaultLevel;
@@ -36,47 +29,26 @@ namespace ServiceControl.Audit.Infrastructure.Settings
             }
             catch
             {
-                InternalLogger.Warn($"Failed to parse {key} setting. Defaulting to {defaultLevel.Name}.");
+                InternalLogger.Warn($"Failed to parse {logLevelKey} setting. Defaulting to {defaultLevel.Name}.");
                 return defaultLevel;
             }
         }
 
         // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
         // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe
-        static string DefaultLogLocation()
-        {
-            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
-            return Path.Combine(Path.GetDirectoryName(assemblyLocation), ".logs");
-        }
+        static string DefaultLogLocation() => Path.Combine(AppContext.BaseDirectory, ".logs");
 
-        public Microsoft.Extensions.Logging.LogLevel ToHostLogLevel()
+        public Microsoft.Extensions.Logging.LogLevel ToHostLogLevel() => LogLevel switch
         {
-            if (LoggingLevel == LogLevel.Debug)
-            {
-                return Microsoft.Extensions.Logging.LogLevel.Debug;
-            }
-            if (LoggingLevel == LogLevel.Error)
-            {
-                return Microsoft.Extensions.Logging.LogLevel.Error;
-            }
-            if (LoggingLevel == LogLevel.Fatal)
-            {
-                return Microsoft.Extensions.Logging.LogLevel.Critical;
-            }
-            if (LoggingLevel == LogLevel.Warn)
-            {
-                return Microsoft.Extensions.Logging.LogLevel.Warning;
-            }
-            if (LoggingLevel == LogLevel.Info)
-            {
-                return Microsoft.Extensions.Logging.LogLevel.Information;
-            }
-            if (LoggingLevel == LogLevel.Trace)
-            {
-                return Microsoft.Extensions.Logging.LogLevel.Trace;
-            }
+            _ when LogLevel == LogLevel.Trace => Microsoft.Extensions.Logging.LogLevel.Trace,
+            _ when LogLevel == LogLevel.Debug => Microsoft.Extensions.Logging.LogLevel.Debug,
+            _ when LogLevel == LogLevel.Info => Microsoft.Extensions.Logging.LogLevel.Information,
+            _ when LogLevel == LogLevel.Warn => Microsoft.Extensions.Logging.LogLevel.Warning,
+            _ when LogLevel == LogLevel.Error => Microsoft.Extensions.Logging.LogLevel.Error,
+            _ when LogLevel == LogLevel.Fatal => Microsoft.Extensions.Logging.LogLevel.Critical,
+            _ => Microsoft.Extensions.Logging.LogLevel.None
+        };
 
-            return Microsoft.Extensions.Logging.LogLevel.None;
-        }
+        const string logLevelKey = "LogLevel";
     }
 }

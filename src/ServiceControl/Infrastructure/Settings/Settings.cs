@@ -20,10 +20,13 @@ namespace ServiceBus.Management.Infrastructure.Settings
             string serviceName = null,
             string transportType = null,
             string persisterType = null,
+            LoggingSettings loggingSettings = null,
             bool? forwardErrorMessages = default,
             TimeSpan? errorRetentionPeriod = default
             )
         {
+            LoggingSettings = loggingSettings ?? new();
+
             ServiceName = serviceName;
 
             if (string.IsNullOrEmpty(serviceName))
@@ -56,6 +59,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
         }
+
+        public LoggingSettings LoggingSettings { get; }
 
         public string NotificationsFilter { get; set; }
 
@@ -419,7 +424,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         void TryLoadLicenseFromConfig() => LicenseFileText = SettingsReader.Read<string>(SettingsRootNamespace, "LicenseText");
 
-        static readonly ILog logger = LogManager.GetLogger(typeof(Settings));
+        // logger is intentionally not static to prevent it from being initialized before LoggingConfigurator.ConfigureLogging has been called
+        readonly ILog logger = LogManager.GetLogger(typeof(Settings));
+
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
         public static readonly SettingsRootNamespace SettingsRootNamespace = new("ServiceControl");
 

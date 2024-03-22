@@ -38,7 +38,12 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         async Task InitializeServiceControl(ScenarioContext context)
         {
-            settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType)
+            var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(logPath);
+
+            var loggingSettings = new LoggingSettings(defaultLevel: NLog.LogLevel.Debug, logPath: logPath);
+
+            settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType, loggingSettings)
             {
                 TransportConnectionString = transportToUse.ConnectionString,
                 MaximumConcurrencyLevel = 2,
@@ -91,7 +96,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupCommand = new SetupCommand();
-                await setupCommand.Execute(new HostArguments(Array.Empty<string>()), settings);
+                await setupCommand.Execute(new HostArguments([]), settings);
             }
 
             var configuration = new EndpointConfiguration(instanceName);
@@ -101,10 +106,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Starting ServiceControl {instanceName}"))
             {
-                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Directory.CreateDirectory(logPath);
-
-                var loggingSettings = new LoggingSettings(settings.ServiceName, defaultLevel: NLog.LogLevel.Debug, logPath: logPath);
                 var hostBuilder = WebApplication.CreateBuilder(new WebApplicationOptions
                 {
                     // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
@@ -121,7 +122,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     return criticalErrorContext.Stop(cancellationToken);
-                }, settings, configuration, loggingSettings);
+                }, settings, configuration);
 
                 hostBuilder.AddServiceControlAuditApi();
 

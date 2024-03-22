@@ -30,10 +30,7 @@
 
             var settings = CreateTestSettings();
 
-            var controller = new RootController(
-                new LoggingSettings("testEndpoint"),
-                settings
-            )
+            var controller = new RootController(settings)
             {
                 ControllerContext = controllerContext,
                 Url = new UrlHelper(actionContext)

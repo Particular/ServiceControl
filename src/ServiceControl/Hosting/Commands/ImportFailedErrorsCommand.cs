@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using NLog;
     using NServiceBus;
     using Operations;
     using Particular.ServiceControl;
@@ -22,10 +21,8 @@
 
             EndpointConfiguration endpointConfiguration = CreateEndpointConfiguration(settings);
 
-            var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info);
-
             var hostBuilder = Host.CreateApplicationBuilder();
-            hostBuilder.AddServiceControl(settings, endpointConfiguration, loggingSettings);
+            hostBuilder.AddServiceControl(settings, endpointConfiguration);
 
             using var app = hostBuilder.Build();
             await app.StartAsync();

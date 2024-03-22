@@ -2,13 +2,13 @@
 {
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
+    using LicenseManagement;
     using NServiceBus.Logging;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
+    using Persistence;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
-    using LicenseManagement;
-    using Persistence;
     using Transports;
 
     class SetupCommand : AbstractCommand

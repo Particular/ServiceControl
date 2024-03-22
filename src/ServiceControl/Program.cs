@@ -10,7 +10,6 @@
     using global::ServiceControl.Persistence;
     using global::ServiceControl.Transports;
     using Hosting;
-    using Microsoft.Extensions.Hosting.WindowsServices;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -21,7 +20,7 @@
         static async Task Main(string[] args)
         {
             AssemblyLoadContext.Default.Resolving += ResolveAssembly;
-            AppDomain.CurrentDomain.UnhandledException += (s, e) => Logger.Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => LogManager.GetLogger(typeof(Program)).Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
 
             ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
@@ -33,10 +32,10 @@
                 return;
             }
 
-            var loggingSettings = new LoggingSettings(arguments.ServiceName, logToConsole: !WindowsServiceHelpers.IsWindowsService());
+            var loggingSettings = new LoggingSettings();
             LoggingConfigurator.ConfigureLogging(loggingSettings);
 
-            settings = new Settings(arguments.ServiceName);
+            settings = new Settings(arguments.ServiceName, loggingSettings: loggingSettings);
 
             await new CommandRunner(arguments.Commands).Execute(arguments, settings);
         }
@@ -74,7 +73,5 @@
 
             return null;
         }
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
     }
 }

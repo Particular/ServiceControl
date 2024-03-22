@@ -6,7 +6,6 @@
     using Auditing;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using NLog;
     using NServiceBus;
     using Settings;
 
@@ -17,7 +16,6 @@
             settings.IngestAuditMessages = false;
 
             var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
-            var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info);
 
             using var tokenSource = new CancellationTokenSource();
 
@@ -26,7 +24,7 @@
             {
                 tokenSource.Cancel();
                 return Task.CompletedTask;
-            }, settings, endpointConfiguration, loggingSettings);
+            }, settings, endpointConfiguration);
 
             using var app = hostBuilder.Build();
             await app.StartAsync(tokenSource.Token);

@@ -33,9 +33,8 @@ public static class HostApplicationBuilderExtensions
         hostBuilder.Services.AddWindowsService();
 
         hostBuilder.Logging.ClearProviders();
-        //HINT: configuration used by NLog comes from MonitorLog.cs
         hostBuilder.Logging.AddNLog();
-        hostBuilder.Logging.SetMinimumLevel(ToHostLogLevel(settings.LogLevel));
+        hostBuilder.Logging.SetMinimumLevel(settings.LoggingSettings.ToHostLogLevel());
 
         var services = hostBuilder.Services;
         services.AddSingleton(settings);
@@ -91,7 +90,7 @@ public static class HostApplicationBuilderExtensions
         config.DefineCriticalErrorAction(onCriticalError);
 
         config.GetSettings().Set(settings);
-        config.SetDiagnosticsPath(settings.LogPath);
+        config.SetDiagnosticsPath(settings.LoggingSettings.LogPath);
         config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
         config.UseSerialization<NewtonsoftJsonSerializer>();
@@ -131,39 +130,4 @@ public static class HostApplicationBuilderExtensions
 
     static RawMessage.Entry ToEntry(QueueLengthEntry entryDto) =>
         new RawMessage.Entry { DateTicks = entryDto.DateTicks, Value = entryDto.Value };
-
-    public static LogLevel ToHostLogLevel(NLog.LogLevel logLevel)
-    {
-        if (logLevel == NLog.LogLevel.Debug)
-        {
-            return LogLevel.Debug;
-        }
-
-        if (logLevel == NLog.LogLevel.Error)
-        {
-            return LogLevel.Error;
-        }
-
-        if (logLevel == NLog.LogLevel.Fatal)
-        {
-            return LogLevel.Critical;
-        }
-
-        if (logLevel == NLog.LogLevel.Warn)
-        {
-            return LogLevel.Warning;
-        }
-
-        if (logLevel == NLog.LogLevel.Info)
-        {
-            return LogLevel.Information;
-        }
-
-        if (logLevel == NLog.LogLevel.Trace)
-        {
-            return LogLevel.Trace;
-        }
-
-        return LogLevel.None;
-    }
 }

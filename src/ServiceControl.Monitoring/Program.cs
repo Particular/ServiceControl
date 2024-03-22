@@ -5,7 +5,6 @@ namespace ServiceControl.Monitoring
     using System.Reflection;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Hosting.WindowsServices;
     using NServiceBus.Logging;
     using ServiceControl.Configuration;
     using ServiceControl.Transports;
@@ -17,25 +16,19 @@ namespace ServiceControl.Monitoring
         static async Task Main(string[] args)
         {
             AssemblyLoadContext.Default.Resolving += ResolveAssembly;
-            AppDomain.CurrentDomain.UnhandledException += (s, e) => Logger.Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => LogManager.GetLogger(typeof(Program)).Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
 
             ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
             var arguments = new HostArguments(args);
 
-            LoadSettings(arguments);
+            var loggingSettings = new LoggingSettings();
+            LoggingConfigurator.ConfigureLogging(loggingSettings);
 
-            LoggingConfigurator.Configure(settings, !WindowsServiceHelpers.IsWindowsService());
+            settings = new Settings(loggingSettings);
+            arguments.ApplyOverridesTo(settings);
 
-            await new CommandRunner(arguments.Commands)
-                .Run(settings);
-        }
-
-        static void LoadSettings(HostArguments args)
-        {
-            var _settings = new Settings();
-            args.ApplyOverridesTo(_settings);
-            settings = _settings;
+            await new CommandRunner(arguments.Commands).Execute(settings);
         }
 
         static Assembly ResolveAssembly(AssemblyLoadContext loadContext, AssemblyName assemblyName)
@@ -65,7 +58,5 @@ namespace ServiceControl.Monitoring
 
             return null;
         }
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
     }
 }

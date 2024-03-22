@@ -6,7 +6,6 @@
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NUnit.Framework;
-    using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
     using Persistence;
     using Persistence.RavenDB;
@@ -63,7 +62,7 @@
             {
                 var configuration = base.CreateEndpointConfiguration(settings);
 
-                //HINT: we want to exclude this assembly to prevent loading features that are part of the acceptance testing framework  
+                //HINT: we want to exclude this assembly to prevent loading features that are part of the acceptance testing framework
                 var thisAssembly = new[] { typeof(StartupModeTests).Assembly.GetName().Name };
 
                 configuration.AssemblyScanner().ExcludeAssemblies(thisAssembly);

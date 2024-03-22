@@ -14,14 +14,12 @@
             var assemblyScanner = endpointConfiguration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 
-            var loggingSettings = new LoggingSettings(settings.ServiceName);
-
             var hostBuilder = WebApplication.CreateBuilder();
             hostBuilder.AddServiceControlAudit((_, __) =>
             {
                 //Do nothing. The transports in NSB 8 are designed to handle broker outages. Audit ingestion will be paused when broker is unavailable.
                 return Task.CompletedTask;
-            }, settings, endpointConfiguration, loggingSettings);
+            }, settings, endpointConfiguration);
             hostBuilder.AddServiceControlAuditApi();
 
             var app = hostBuilder.Build();

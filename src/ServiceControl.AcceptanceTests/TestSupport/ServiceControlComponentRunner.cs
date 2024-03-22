@@ -45,7 +45,11 @@
 
         async Task InitializeServiceControl(ScenarioContext context)
         {
-            var settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
+            var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(logPath);
+            var loggingSettings = new LoggingSettings(defaultLevel: LogLevel.Debug, logPath: logPath);
+
+            var settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType, loggingSettings, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
             {
                 AllowMessageEditing = true,
                 ForwardErrorMessages = false,
@@ -95,7 +99,7 @@
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupCommand = new SetupCommand();
-                await setupCommand.Execute(new HostArguments(Array.Empty<string>()), settings);
+                await setupCommand.Execute(new HostArguments([]), settings);
             }
 
             var configuration = new EndpointConfiguration(instanceName);
@@ -105,16 +109,12 @@
 
             using (new DiagnosticTimer($"Starting ServiceControl {instanceName}"))
             {
-                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Directory.CreateDirectory(logPath);
-
-                var loggingSettings = new LoggingSettings(settings.ServiceName, defaultLevel: LogLevel.Debug, logPath: logPath);
                 var hostBuilder = WebApplication.CreateBuilder(new WebApplicationOptions
                 {
                     // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
                     EnvironmentName = Environments.Development
                 });
-                hostBuilder.AddServiceControl(settings, configuration, loggingSettings);
+                hostBuilder.AddServiceControl(settings, configuration);
                 hostBuilder.AddServiceControlApi();
 
                 hostBuilder.AddServiceControlTesting(settings);

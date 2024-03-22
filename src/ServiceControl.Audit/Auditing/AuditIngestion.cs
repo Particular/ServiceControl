@@ -27,7 +27,6 @@
             TransportSettings transportSettings,
             Metrics metrics,
             IFailedAuditStorage failedImportsStorage,
-            LoggingSettings loggingSettings,
             AuditIngestionCustomCheck.State ingestionState,
             AuditIngestor auditIngestor,
             IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
@@ -53,7 +52,7 @@
                 FullMode = BoundedChannelFullMode.Wait
             });
 
-            errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, loggingSettings, OnCriticalError);
+            errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, settings.LoggingSettings, OnCriticalError);
 
             watchdog = new Watchdog("audit message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, logger);
 

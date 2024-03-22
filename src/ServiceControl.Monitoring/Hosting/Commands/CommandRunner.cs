@@ -11,7 +11,7 @@ namespace ServiceControl.Monitoring
             this.commands = commands;
         }
 
-        public async Task Run(Settings settings)
+        public async Task Execute(Settings settings)
         {
             foreach (var commandType in commands)
             {

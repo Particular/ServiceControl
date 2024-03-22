@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using Audit.Infrastructure;
     using Audit.Infrastructure.Hosting;
     using Audit.Infrastructure.Hosting.Commands;
     using Audit.Infrastructure.Settings;
@@ -28,7 +27,7 @@
             };
 
             var setupCommand = new SetupCommand();
-            await setupCommand.Execute(new HostArguments(Array.Empty<string>()), settings);
+            await setupCommand.Execute(new HostArguments([]), settings);
 
             CollectionAssert.AreEquivalent(new[]
             {

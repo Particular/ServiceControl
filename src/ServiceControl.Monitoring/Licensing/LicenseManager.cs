@@ -29,6 +29,6 @@
             Details = result.License;
         }
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(ActiveLicense));
+        static readonly ILog Logger = LogManager.GetLogger(typeof(LicenseManager));
     }
 }
