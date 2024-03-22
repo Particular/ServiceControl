@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Transports.SqlServer
 {
+    using System;
     using System.Linq;
-    using System.Reflection;
     using System.Runtime.CompilerServices;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
@@ -25,6 +25,7 @@
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
+        public override Type ThroughputQueryProvider => typeof(SqlServerQuery);
 
         protected override SqlServerTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {

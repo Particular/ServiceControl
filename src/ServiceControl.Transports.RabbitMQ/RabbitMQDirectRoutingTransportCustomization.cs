@@ -18,6 +18,8 @@
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
+        public override Type ThroughputQueryProvider => typeof(RabbitMQQuery);
+
         protected override RabbitMQTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
             if (transportSettings.ConnectionString == null)

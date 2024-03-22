@@ -1,7 +1,8 @@
-﻿namespace Particular.ThroughputCollector;
+namespace Particular.ThroughputCollector;
 
 using Audit;
-using Broker;
+using BrokerThroughput;
+using Contracts;
 using Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,11 +17,11 @@ public static class ThroughputCollectorHostBuilderExtensions
 
         var services = hostBuilder.Services;
 
-        var broker = Contracts.Broker.None;
+        var broker = Broker.None;
         switch (transportType)
         {
             case "NetStandardAzureServiceBus":
-                broker = Contracts.Broker.AzureServiceBus;
+                broker = Broker.AzureServiceBus;
                 break;
             case "RabbitMQ.ClassicConventionalRouting":
             case "RabbitMQ.ClassicDirectRouting":
@@ -28,13 +29,13 @@ public static class ThroughputCollectorHostBuilderExtensions
             case "RabbitMQ.QuorumDirectRouting":
             case "RabbitMQ.ConventionalRouting":
             case "RabbitMQ.DirectRouting":
-                broker = Contracts.Broker.RabbitMQ;
+                broker = Broker.RabbitMQ;
                 break;
             case "SQLServer":
-                broker = Contracts.Broker.SqlServer;
+                broker = Broker.SqlServer;
                 break;
             case "AmazonSQS":
-                broker = Contracts.Broker.AmazonSQS;
+                broker = Broker.AmazonSQS;
                 break;
         }
 
@@ -48,31 +49,17 @@ public static class ThroughputCollectorHostBuilderExtensions
             serviceControlAPI = serviceControlAPI.Replace("http://0.0.0.0", "http://localhost");
         }
 
-        services.AddSingleton(new ThroughputSettings(broker: broker, transportConnectionString: transportConnectionString, serviceControlAPI: serviceControlAPI, serviceControlQueue: serviceControlQueue, errorQueue: errorQueue, persistenceType: persistenceType, customerName: customerName, serviceControlVersion: serviceControlVersion, auditQueue: auditQueue));
+        services.AddSingleton(new ThroughputSettings(broker, transportConnectionString, serviceControlAPI, serviceControlQueue, errorQueue, persistenceType, customerName, serviceControlVersion, auditQueue));
         services.AddHostedService<AuditThroughputCollectorHostedService>();
         services.AddSingleton<IThroughputCollector, ThroughputCollector>();
         services.AddSingleton<ThroughputController>();
-        switch (broker)
+
+        if (broker != Broker.None)
         {
-            case Contracts.Broker.AmazonSQS:
-                services.AddSingleton<IThroughputQuery, AmazonSQSQuery>();
-                services.AddHostedService<BrokerThroughputCollectorHostedService>();
-                break;
-            case Contracts.Broker.RabbitMQ:
-                services.AddSingleton<IThroughputQuery, RabbitMQQuery>();
-                services.AddHostedService<BrokerThroughputCollectorHostedService>();
-                break;
-            case Contracts.Broker.AzureServiceBus:
-                services.AddSingleton<IThroughputQuery, AzureQuery>();
-                services.AddHostedService<BrokerThroughputCollectorHostedService>();
-                break;
-            case Contracts.Broker.SqlServer:
-                services.AddSingleton<IThroughputQuery, SqlServerQuery>();
-                services.AddHostedService<BrokerThroughputCollectorHostedService>();
-                break;
+            services.AddHostedService<BrokerThroughputCollectorHostedService>();
         }
 
-        hostBuilder.AddThroughputCollectorPersistence(persistenceType, errorQueue, serviceControlQueue);
+        hostBuilder.AddThroughputCollectorPersistence(persistenceType);
 
         return hostBuilder;
     }

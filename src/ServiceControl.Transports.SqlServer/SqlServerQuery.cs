@@ -1,20 +1,24 @@
-namespace Particular.ThroughputCollector.Broker;
+#nullable enable
+namespace ServiceControl.Transports.SqlServer;
 
+using System;
 using System.Collections.Frozen;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
-using Shared;
-using ThroughputQuery.SqlTransport;
 
-public class SqlServerQuery(TimeProvider timeProvider) : IThroughputQuery
+class SqlServerQuery(TimeProvider timeProvider, TransportSettings transportSettings) : IThroughputQuery
 {
-    private readonly List<DatabaseDetails> databases = [];
+    readonly List<DatabaseDetails> databases = [];
 
     public void Initialise(FrozenDictionary<string, string> settings)
     {
         if (!settings.TryGetValue(SqlServerSettings.ConnectionString, out var connectionString))
         {
-            connectionString = settings[CommonSettings.TransportConnectionString];
+            connectionString = transportSettings.ConnectionString;
         }
         if (!settings.TryGetValue(SqlServerSettings.AdditionalCatalogs, out var catalogs))
         {
@@ -99,6 +103,18 @@ public class SqlServerQuery(TimeProvider timeProvider) : IThroughputQuery
     public string? ScopeType { get; set; }
 
     public bool SupportsHistoricalMetrics => false;
+    public KeyDescriptionPair[] Settings => [
+        new KeyDescriptionPair(SqlServerSettings.ConnectionString, SqlServerSettings.ConnectionStringDescription),
+        new KeyDescriptionPair(SqlServerSettings.AdditionalCatalogs, SqlServerSettings.AdditionalCatalogsDescription)
+    ];
     public Dictionary<string, string> Data { get; } = [];
     public string MessageTransport => "RabbitMQ";
+
+    static class SqlServerSettings
+    {
+        public static readonly string ConnectionString = "SqlServer/ConnectionString";
+        public static readonly string ConnectionStringDescription = "A single database connection string that will provide at least read access to all queue tables.";
+        public static readonly string AdditionalCatalogs = "SqlServer/AdditionalCatalogs";
+        public static readonly string AdditionalCatalogsDescription = "When the ConnectionString setting points to a single database, but multiple database catalogs on the same server also contain NServiceBus message queues, the AdditionalCatalogs setting specifies additional database catalogs to search. The tool replaces the Database or Initial Catalog parameter in the connection string with the additional catalog and queries all of them.";
+    }
 }
