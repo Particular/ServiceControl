@@ -1,10 +1,14 @@
-﻿namespace Particular.ThroughputQuery.SqlTransport
+﻿namespace ServiceControl.Transports.SqlServer
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Microsoft.Data.SqlClient;
 
     public class DatabaseDetails
     {
-        private readonly string connectionString;
+        readonly string connectionString;
 
         public string DatabaseName { get; }
 
@@ -22,7 +26,7 @@
             }
             catch (Exception x) when (x is FormatException or ArgumentException)
             {
-                throw new QueryException(QueryFailureReason.InvalidEnvironment, "There's something wrong with the SQL connection string and it could not be parsed.", x);
+                throw new Exception("There's something wrong with the SQL connection string and it could not be parsed.", x);
             }
         }
 
@@ -34,7 +38,7 @@
             }
             catch (SqlException x) when (IsConnectionOrLoginIssue(x))
             {
-                throw new QueryException(QueryFailureReason.Auth, "Could not access SQL database. Is the connection string correct?", x);
+                throw new Exception("Could not access SQL database. Is the connection string correct?", x);
             }
         }
 
@@ -82,7 +86,7 @@
             };
         }
 
-        private async Task<string> GetSqlVersion(CancellationToken cancellationToken)
+        async Task<string> GetSqlVersion(CancellationToken cancellationToken)
         {
             await using var conn = await OpenConnectionAsync(cancellationToken);
             await using var cmd = conn.CreateCommand();
@@ -127,7 +131,7 @@
             return table;
         }
 
-        private async Task<SqlConnection> OpenConnectionAsync(CancellationToken cancellationToken = default)
+        async Task<SqlConnection> OpenConnectionAsync(CancellationToken cancellationToken = default)
         {
             var conn = new SqlConnection(connectionString);
             await conn.OpenAsync(cancellationToken);

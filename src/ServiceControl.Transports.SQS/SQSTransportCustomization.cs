@@ -26,6 +26,7 @@
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition, TransportSettings transportSettings) { }
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
+        public override Type ThroughputQueryProvider => typeof(AmazonSQSQuery);
 
         protected override SqsTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {

@@ -19,6 +19,7 @@
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings) { }
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
+        public override Type ThroughputQueryProvider => null;
 
         protected override AzureStorageQueueTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {

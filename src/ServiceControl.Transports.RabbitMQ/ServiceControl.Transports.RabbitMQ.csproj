@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="NServiceBus.RabbitMQ" />
+    <PackageReference Include="Polly.Core"/>
   </ItemGroup>
 
   <ItemGroup>

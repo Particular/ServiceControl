@@ -1,28 +1,32 @@
-namespace Particular.ThroughputCollector.Broker;
+#nullable enable
+namespace ServiceControl.Transports.RabbitMQ;
 
+using System;
 using System.Collections.Frozen;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Nodes;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
 using Polly;
 using Polly.Retry;
-using ServiceControl.Transports;
-using ServiceControl.Transports.RabbitMQ;
-using Shared;
 
-public class RabbitMQQuery(TimeProvider timeProvider) : IThroughputQuery
+class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettings) : IThroughputQuery
 {
-    private HttpClient? httpClient;
-    private readonly ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
+    HttpClient? httpClient;
+    readonly ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
         .AddRetry(new RetryStrategyOptions()) // Add retry using the default options
         .AddTimeout(TimeSpan.FromMinutes(2)) // Add timeout if it keeps failing
         .Build();
 
     public void Initialise(FrozenDictionary<string, string> settings)
     {
-        var connectionString = settings[CommonSettings.TransportConnectionString];
+        string? connectionString = transportSettings.ConnectionString;
         var connectionConfiguration = RabbitMQConnectionConfiguration.Create(connectionString, "");
 
         if (!settings.TryGetValue(RabbitMQSettings.UserName, out var username) ||
@@ -101,12 +105,12 @@ public class RabbitMQQuery(TimeProvider timeProvider) : IThroughputQuery
     {
         var overviewUrl = "/api/overview";
 
-        var obj = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonObject>(overviewUrl, token) ?? throw new QueryException(QueryFailureReason.InvalidEnvironment, "The RabbitMQ broker is configured with `management.disable_stats = true` or `management_agent.disable_metrics_collector = true` and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker."), cancellationToken);
+        JsonObject obj = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonObject>(overviewUrl, token) ?? throw new Exception("The RabbitMQ broker is configured with `management.disable_stats = true` or `management_agent.disable_metrics_collector = true` and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker."), cancellationToken);
         var statsDisabled = obj["disable_stats"]?.GetValue<bool>() ?? false;
 
         if (statsDisabled)
         {
-            throw new QueryException(QueryFailureReason.InvalidEnvironment, "The RabbitMQ broker is configured with `management.disable_stats = true` or `management_agent.disable_metrics_collector = true` and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker.");
+            throw new Exception("The RabbitMQ broker is configured with `management.disable_stats = true` or `management_agent.disable_metrics_collector = true` and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker.");
         }
 
         var rabbitVersion = obj["rabbitmq_version"] ?? obj["product_version"];
@@ -145,7 +149,7 @@ public class RabbitMQQuery(TimeProvider timeProvider) : IThroughputQuery
         ScopeType = vHosts.Count > 1 ? "VirtualHost" : null;
     }
 
-    private async Task AddAdditionalQueueDetails(RabbitMQQueueDetails queue, CancellationToken cancellationToken = default)
+    async Task AddAdditionalQueueDetails(RabbitMQQueueDetails queue, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -194,7 +198,7 @@ public class RabbitMQQuery(TimeProvider timeProvider) : IThroughputQuery
         }
     }
 
-    private async Task<(RabbitMQQueueDetails[]?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
+    async Task<(RabbitMQQueueDetails[]?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
     {
         var url = $"/api/queues?page={page}&page_size=500&name=&use_regex=false&pagination=true";
 
@@ -229,6 +233,22 @@ public class RabbitMQQuery(TimeProvider timeProvider) : IThroughputQuery
 
     public string? ScopeType { get; set; }
     public bool SupportsHistoricalMetrics => false;
+    public KeyDescriptionPair[] Settings => [
+        new KeyDescriptionPair(RabbitMQSettings.API, RabbitMQSettings.APIDescription),
+        new KeyDescriptionPair(RabbitMQSettings.UserName, RabbitMQSettings.UserNameDescription),
+        new KeyDescriptionPair(RabbitMQSettings.Password, RabbitMQSettings.PasswordDescription)
+    ];
     public Dictionary<string, string> Data { get; } = [];
     public string MessageTransport => "SqlTransport";
+
+    static class RabbitMQSettings
+    {
+        public static readonly string API = "RabbitMQ/ApiUrl";
+        public static readonly string APIDescription = "RabbitMQ management URL";
+        public static readonly string UserName = "RabbitMQ/UserName";
+        public static readonly string UserNameDescription = "Username to access the RabbitMQ management interface";
+        public static readonly string Password = "RabbitMQ/Password";
+        public static readonly string PasswordDescription = "Password to access the RabbitMQ management interface";
+    }
 }
+

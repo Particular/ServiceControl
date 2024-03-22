@@ -1,7 +1,13 @@
-namespace Particular.ThroughputCollector.Broker;
+#nullable enable
+namespace ServiceControl.Transports.SQS;
 
+using System;
 using System.Collections.Frozen;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Amazon;
 using Amazon.CloudWatch;
 using Amazon.CloudWatch.Model;
@@ -9,13 +15,12 @@ using Amazon.Runtime;
 using Amazon.Runtime.CredentialManagement;
 using Amazon.SQS;
 using Amazon.SQS.Model;
-using Shared;
 
-public class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
+class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
 {
-    private AmazonCloudWatchClient? cloudWatch;
-    private AmazonSQSClient? sqs;
-    private string? prefix;
+    AmazonCloudWatchClient? cloudWatch;
+    AmazonSQSClient? sqs;
+    string? prefix;
 
     public void Initialise(FrozenDictionary<string, string> settings)
     {
@@ -62,7 +67,32 @@ public class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
         settings.TryGetValue(AmazonSQSSettings.Prefix, out prefix);
     }
 
-    private class AwsHttpClientFactory : HttpClientFactory
+    static class AmazonSQSSettings
+    {
+        public static readonly string AccessKey = "AmazonSQS/AccessKey";
+
+        public static readonly string AccessKeyDescription =
+            "The AWS Access Key ID to use to discover queue names and gather per-queue metrics.";
+
+        public static readonly string SecretKey = "AmazonSQS/SecretKey";
+
+        public static readonly string SecretKeyDescription =
+            "The AWS Secret Access Key to use to discover queue names and gather per-queue metrics.";
+
+        public static readonly string Profile = "AmazonSQS/Profile";
+
+        public static readonly string ProfileDescription =
+            "The name of a local AWS credentials profile to use to discover queue names and gather per-queue metrics.";
+
+        public static readonly string Region = "AmazonSQS/Region";
+        public static readonly string RegionDescription = "The AWS region to use when accessing AWS services.";
+        public static readonly string Prefix = "AmazonSQS/Prefix";
+
+        public static readonly string PrefixDescription =
+            "Report only on queues that begin with a specific prefix. This is commonly used when one AWS account must contain queues for multiple projects or multiple environments.";
+    }
+
+    class AwsHttpClientFactory : HttpClientFactory
     {
         public override HttpClient CreateHttpClient(IClientConfig clientConfig) => new(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) });
         public override bool DisposeHttpClientsAfterUse(IClientConfig clientConfig) => false;
@@ -131,9 +161,18 @@ public class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
         }
     }
 
-    public string? ScopeType { get; }
+    public string? ScopeType => null;
 
     public bool SupportsHistoricalMetrics => true;
+
+    public KeyDescriptionPair[] Settings =>
+    [
+        new KeyDescriptionPair(AmazonSQSSettings.AccessKey, AmazonSQSSettings.AccessKeyDescription),
+        new KeyDescriptionPair(AmazonSQSSettings.SecretKey, AmazonSQSSettings.SecretKeyDescription),
+        new KeyDescriptionPair(AmazonSQSSettings.Profile, AmazonSQSSettings.ProfileDescription),
+        new KeyDescriptionPair(AmazonSQSSettings.Prefix, AmazonSQSSettings.PrefixDescription),
+        new KeyDescriptionPair(AmazonSQSSettings.Region, AmazonSQSSettings.RegionDescription)
+    ];
     public Dictionary<string, string> Data { get; } = [];
     public string MessageTransport => "AmazonSQS";
 }

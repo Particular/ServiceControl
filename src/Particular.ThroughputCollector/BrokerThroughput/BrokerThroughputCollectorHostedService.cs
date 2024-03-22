@@ -1,10 +1,11 @@
-namespace Particular.ThroughputCollector.Broker;
+namespace Particular.ThroughputCollector.BrokerThroughput;
 
 using Contracts;
 using Infrastructure;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Persistence;
+using ServiceControl.Transports;
 
 internal class BrokerThroughputCollectorHostedService(
     ILogger<BrokerThroughputCollectorHostedService> logger,
@@ -18,7 +19,7 @@ internal class BrokerThroughputCollectorHostedService(
     {
         logger.LogInformation("Starting BrokerThroughputCollector Service");
 
-        throughputQuery.Initialise(throughputSettings.BrokerSettingValues);
+        throughputQuery.Initialise(throughputSettings.LoadBrokerSettingValues(throughputQuery.Settings));
 
         backgroundTimer = timeProvider.CreateTimer(async _ =>
         {
