@@ -8,7 +8,7 @@ class EndpointDocument(EndpointIdentifier id)
 
     public string SanitizedName { get; set; } = string.Empty;
 
-    public IList<string> EndpointIndicators { get; } = new List<string>();
+    public IList<string> EndpointIndicators { get; } = [];
 
     public string UserIndicator { get; set; } = string.Empty;
 
