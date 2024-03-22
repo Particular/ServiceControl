@@ -27,7 +27,7 @@ class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettin
     public void Initialise(FrozenDictionary<string, string> settings)
     {
         string? connectionString = transportSettings.ConnectionString;
-        var connectionConfiguration = RabbitMQConnectionConfiguration.Create(connectionString, "");
+        var connectionConfiguration = ConnectionConfiguration.Create(connectionString, "");
 
         if (!settings.TryGetValue(RabbitMQSettings.UserName, out var username) ||
             string.IsNullOrEmpty(username))
