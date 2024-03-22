@@ -141,7 +141,7 @@
             public void Initialize()
             {
                 var connectionConfiguration =
-                    RabbitMQConnectionConfiguration.Create(connectionString, "ServiceControl.Monitoring");
+                    ConnectionConfiguration.Create(connectionString, "ServiceControl.Monitoring");
 
                 var dbConnectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 
