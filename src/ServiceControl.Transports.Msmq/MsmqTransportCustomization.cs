@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Transports.Msmq
 {
+    using System;
     using System.Linq;
     using NServiceBus;
 
@@ -15,6 +16,8 @@
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
+
+        public override Type ThroughputQueryProvider => null;
 
         protected override MsmqTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {

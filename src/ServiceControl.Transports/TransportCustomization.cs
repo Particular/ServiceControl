@@ -20,6 +20,8 @@
 
         IProvideQueueLength CreateQueueLengthProvider();
 
+        Type ThroughputQueryProvider { get; }
+
         Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues);
 
         Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly);
@@ -72,6 +74,7 @@
         }
 
         public abstract IProvideQueueLength CreateQueueLengthProvider();
+        public abstract Type ThroughputQueryProvider { get; }
 
         public virtual async Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues)
         {

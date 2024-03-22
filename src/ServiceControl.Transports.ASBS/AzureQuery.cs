@@ -1,7 +1,14 @@
-namespace Particular.ThroughputCollector.Broker;
+#nullable enable
+namespace ServiceControl.Transports.ASBS;
 
+using System;
 using System.Collections.Frozen;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Azure.Core.Pipeline;
 using Azure.Identity;
 using Azure.Monitor.Query;
@@ -9,14 +16,13 @@ using Azure.Monitor.Query.Models;
 using Azure.ResourceManager;
 using Azure.ResourceManager.ServiceBus;
 using Microsoft.Extensions.Logging;
-using Shared;
 
-public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThroughputQuery
+class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThroughputQuery
 {
-    private string serviceBusName = "";
-    private MetricsQueryClient? client;
-    private ArmClient? armClient;
-    private string? resourceId;
+    string serviceBusName = "";
+    MetricsQueryClient? client;
+    ArmClient? armClient;
+    string? resourceId;
 
     public void Initialise(FrozenDictionary<string, string> settings)
     {
@@ -90,7 +96,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) :
         }
     }
 
-    private async Task<IReadOnlyList<MetricValue>> GetMetrics(string queueName, DateOnly startTime, DateOnly endTime,
+    async Task<IReadOnlyList<MetricValue>> GetMetrics(string queueName, DateOnly startTime, DateOnly endTime,
         CancellationToken cancellationToken = default)
     {
         var response = await client!.QueryResourceAsync(resourceId,
@@ -138,6 +144,30 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) :
     public string? ScopeType { get; }
 
     public bool SupportsHistoricalMetrics => true;
+    public KeyDescriptionPair[] Settings => [
+        new KeyDescriptionPair(AzureServiceBusSettings.ServiceBusName, AzureServiceBusSettings.ServiceBusNameDescription),
+        new KeyDescriptionPair(AzureServiceBusSettings.ClientId, AzureServiceBusSettings.ClientIdDescription),
+        new KeyDescriptionPair(AzureServiceBusSettings.ClientSecret, AzureServiceBusSettings.ClientSecretDescription),
+        new KeyDescriptionPair(AzureServiceBusSettings.TenantId, AzureServiceBusSettings.TenantIdDescription),
+        new KeyDescriptionPair(AzureServiceBusSettings.SubscriptionId, AzureServiceBusSettings.SubscriptionIdDescription),
+        new KeyDescriptionPair(AzureServiceBusSettings.ManagementUrl, AzureServiceBusSettings.ManagementUrlDescription)
+    ];
     public Dictionary<string, string> Data { get; } = [];
     public string MessageTransport => "AzureServiceBus";
+
+    static class AzureServiceBusSettings
+    {
+        public static readonly string ServiceBusName = "ASB/ServiceBusName";
+        public static readonly string ServiceBusNameDescription = "Azure Service Bus namespace to view metrics.";
+        public static readonly string ClientId = "ASB/ClientId";
+        public static readonly string ClientIdDescription = "ClientId for an Azure login that has access to view metrics data for the Azure Service Bus namespace.";
+        public static readonly string ClientSecret = "ASB/ClientSecret";
+        public static readonly string ClientSecretDescription = "ClientSecret for an Azure login that has access to view metrics data for the Azure Service Bus namespace.";
+        public static readonly string TenantId = "ASB/TenantId";
+        public static readonly string TenantIdDescription = "??";
+        public static readonly string SubscriptionId = "ASB/SubscriptionId";
+        public static readonly string SubscriptionIdDescription = "??";
+        public static readonly string ManagementUrl = "ASB/ManagementUrl";
+        public static readonly string ManagementUrlDescription = "??";
+    }
 }
