@@ -9,30 +9,47 @@ using Particular.ThroughputCollector.Shared;
 using Persistence;
 using ServiceControl.Api;
 
-class AuditThroughputCollectorHostedService(
-    ILogger<AuditThroughputCollectorHostedService> logger,
-    ThroughputSettings throughputSettings,
-    IThroughputDataStore dataStore,
-    IConfigurationApi configurationApi,
-    IEndpointsApi endpointsApi,
-    IAuditCountApi auditCountApi,
-    TimeProvider timeProvider) : BackgroundService
+class AuditThroughputCollectorHostedService : BackgroundService
 {
+    public AuditThroughputCollectorHostedService(
+        ILogger<AuditThroughputCollectorHostedService> logger,
+        ThroughputSettings throughputSettings,
+        IThroughputDataStore dataStore,
+        IConfigurationApi configurationApi,
+        IEndpointsApi endpointsApi,
+        IAuditCountApi auditCountApi,
+        TimeProvider timeProvider)
+    {
+        this.logger = logger;
+        this.throughputSettings = throughputSettings;
+        this.dataStore = dataStore;
+        this.configurationApi = configurationApi;
+        this.endpointsApi = endpointsApi;
+        this.auditCountApi = auditCountApi;
+        this.timeProvider = timeProvider;
+        backgroundTimer = timeProvider.CreateTimer(async _ => await GatherThroughput(), null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+    }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Starting AuditThroughputCollector Service");
 
-        backgroundTimer = timeProvider.CreateTimer(async _ => await GatherThroughput(stoppingToken), null, TimeSpan.FromSeconds(30), TimeSpan.FromDays(1));
-        stoppingToken.Register(_ => backgroundTimer?.Dispose(), null);
+        var tcs = new TaskCompletionSource();
 
-        return Task.CompletedTask;
+        cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+        cancellationTokenSource.Token.Register(_ => tcs.SetResult(), null);
+
+        backgroundTimer.Change(TimeSpan.FromSeconds(30), TimeSpan.FromDays(1));
+
+        await tcs.Task;
     }
 
-    async Task GatherThroughput(CancellationToken cancellationToken)
+    async Task GatherThroughput()
     {
+        var cancellationToken = cancellationTokenSource.Token;
+
         var utcYesterday = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
-        logger.LogInformation($"Gathering throughput from audit for {utcYesterday.ToShortDateString}");
+        logger.LogInformation($"Gathering throughput from audit for {utcYesterday.ToShortDateString()}");
 
         try
         {
@@ -77,9 +94,9 @@ class AuditThroughputCollectorHostedService(
                 await dataStore.RecordEndpointThroughput(endpoint.Id, missingAuditThroughput, cancellationToken);
             }
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
         {
-            logger.LogError(ex, "There was a problem getting data from ServiceControl");
+            logger.LogInformation("Canceled gathering audit throughput");
         }
     }
 
@@ -116,5 +133,19 @@ class AuditThroughputCollectorHostedService(
         }
     }
 
-    private ITimer? backgroundTimer;
+    public override void Dispose()
+    {
+        backgroundTimer.Dispose();
+        base.Dispose();
+    }
+
+    readonly ILogger<AuditThroughputCollectorHostedService> logger;
+    readonly ThroughputSettings throughputSettings;
+    readonly IThroughputDataStore dataStore;
+    readonly IConfigurationApi configurationApi;
+    readonly IEndpointsApi endpointsApi;
+    readonly IAuditCountApi auditCountApi;
+    readonly TimeProvider timeProvider;
+    readonly ITimer backgroundTimer;
+    CancellationTokenSource cancellationTokenSource = new();
 }
