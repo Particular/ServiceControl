@@ -1,7 +1,10 @@
 ﻿namespace ServiceControl.Audit.Persistence.InMemory
 {
+    using System.Threading;
+    using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using UnitOfWork;
 
     public class InMemoryPersistence(PersistenceSettings persistenceSettings) : IPersistence
@@ -17,6 +20,20 @@
             services.AddSingleton<IPersistenceLifecycle, InMemoryPersistenceLifecycle>();
         }
 
-        public IPersistenceInstaller CreateInstaller() => new InMemoryPersistenceInstaller();
+        public void ConfigureInstaller(IServiceCollection services)
+        {
+            services.AddHostedService<InMemoryPersistenceInstaller>();
+        }
+    }
+
+    class InMemoryPersistenceInstaller(IHostApplicationLifetime applicationLifetime) : IHostedService
+    {
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            applicationLifetime.StopApplication();
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

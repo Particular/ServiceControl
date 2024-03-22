@@ -4,11 +4,11 @@
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using Audit.Infrastructure;
     using Audit.Infrastructure.Hosting;
     using Audit.Infrastructure.Hosting.Commands;
     using Audit.Infrastructure.Settings;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.Transport;
     using NUnit.Framework;
@@ -82,13 +82,24 @@
 
         class FakePersistence : IPersistence
         {
-            public void Configure(IServiceCollection services) =>
-                throw new NotImplementedException();
-            public IPersistenceInstaller CreateInstaller() => new FakePersistenceInstaller();
-
-            class FakePersistenceInstaller : IPersistenceInstaller
+            public void Configure(IServiceCollection services)
             {
-                public Task Install(CancellationToken cancellationToken = default) => Task.CompletedTask;
+            }
+
+            public void ConfigureInstaller(IServiceCollection services)
+            {
+                services.AddHostedService<PersistenceInstaller>();
+            }
+
+            class PersistenceInstaller(IHostApplicationLifetime lifetime) : IHostedService
+            {
+                public Task StartAsync(CancellationToken cancellationToken)
+                {
+                    lifetime.StopApplication();
+                    return Task.CompletedTask;
+                }
+
+                public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
             }
         }
     }
