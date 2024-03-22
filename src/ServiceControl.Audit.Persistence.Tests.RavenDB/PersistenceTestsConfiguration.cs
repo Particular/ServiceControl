@@ -57,8 +57,8 @@
             persistence.Configure(serviceCollection);
 
             serviceProvider = serviceCollection.BuildServiceProvider();
-            persistenceLifecycle = serviceProvider.GetRequiredService<IPersistenceLifecycle>();
-            await persistenceLifecycle.Start();
+            var persistenceLifecycle = serviceProvider.GetRequiredService<IPersistenceLifecycle>();
+            await persistenceLifecycle.Initialize();
 
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
@@ -85,12 +85,7 @@
             if (DocumentStore != null)
             {
                 await DocumentStore.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(
-                    new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { databaseName }, HardDelete = true }));
-            }
-
-            if (persistenceLifecycle != null)
-            {
-                await persistenceLifecycle.Stop();
+                    new DeleteDatabasesOperation.Parameters { DatabaseNames = [databaseName], HardDelete = true }));
             }
 
             await serviceProvider.DisposeAsync();
@@ -100,7 +95,6 @@
 
         public IDocumentStore DocumentStore { get; private set; }
 
-        IPersistenceLifecycle persistenceLifecycle;
         string databaseName;
         ServiceProvider serviceProvider;
     }

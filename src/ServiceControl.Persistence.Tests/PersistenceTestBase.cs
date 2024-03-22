@@ -43,8 +43,8 @@ public abstract class PersistenceTestBase
         var persistence = new RavenPersistenceConfiguration().Create(PersistenceSettings);
 
         var services = new ServiceCollection();
+        persistence.Configure(services);
 
-        services.ConfigurePersisterLifecyle(persistence);
         RegisterServices?.Invoke(services);
 
         serviceProvider = services.BuildServiceProvider();

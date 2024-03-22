@@ -7,7 +7,7 @@
     using Raven.Client.Documents.Conventions;
     using ServiceControl.Persistence;
 
-    class RavenExternalPersistenceLifecycle(RavenPersisterSettings settings) : IPersistenceLifecycle, IDisposable
+    sealed class RavenExternalPersistenceLifecycle(RavenPersisterSettings settings) : IPersistenceLifecycle, IDisposable
     {
         public IDocumentStore GetDocumentStore()
         {
@@ -24,25 +24,20 @@
             var store = new DocumentStore
             {
                 Database = settings.DatabaseName,
-                Urls = new[] { settings.ConnectionString },
+                Urls = [settings.ConnectionString],
                 Conventions = new DocumentConventions
                 {
                     SaveEnumsAsIntegers = true
                 }
             };
 
-            store.Initialize();
-
-            documentStore = store;
+            documentStore = store.Initialize();
 
             var databaseSetup = new DatabaseSetup(settings);
             await databaseSetup.Execute(store, cancellationToken).ConfigureAwait(false);
         }
 
-        public void Dispose()
-        {
-            documentStore?.Dispose();
-        }
+        public void Dispose() => documentStore?.Dispose();
 
         IDocumentStore documentStore;
     }

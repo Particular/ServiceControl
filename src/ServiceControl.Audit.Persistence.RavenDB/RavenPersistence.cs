@@ -28,13 +28,12 @@
                 services.AddSingleton<RavenEmbeddedPersistenceLifecycle>();
                 services.AddSingleton<IPersistenceLifecycle>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
                 services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
+                return;
             }
-            else
-            {
-                services.AddSingleton<RavenExternalPersistenceLifecycle>();
-                services.AddSingleton<IPersistenceLifecycle>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
-                services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
-            }
+
+            services.AddSingleton<RavenExternalPersistenceLifecycle>();
+            services.AddSingleton<IPersistenceLifecycle>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
+            services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
         }
 
         public IPersistenceInstaller CreateInstaller()

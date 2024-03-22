@@ -8,7 +8,7 @@
     using Raven.Client.Documents;
     using Raven.Client.Exceptions.Database;
 
-    class RavenEmbeddedPersistenceLifecycle(DatabaseConfiguration databaseConfiguration, IHostApplicationLifetime lifetime) : IRavenPersistenceLifecycle
+    sealed class RavenEmbeddedPersistenceLifecycle(DatabaseConfiguration databaseConfiguration, IHostApplicationLifetime lifetime) : IRavenPersistenceLifecycle, IDisposable
     {
         public IDocumentStore GetDocumentStore()
         {
@@ -20,7 +20,7 @@
             return documentStore;
         }
 
-        public async Task Start(CancellationToken cancellationToken)
+        public async Task Initialize(CancellationToken cancellationToken = default)
         {
             database = EmbeddedDatabase.Start(databaseConfiguration, lifetime);
 
@@ -41,12 +41,10 @@
             }
         }
 
-        public Task Stop(CancellationToken cancellationToken)
+        public void Dispose()
         {
             documentStore?.Dispose();
             database?.Dispose();
-
-            return Task.CompletedTask;
         }
 
         IDocumentStore documentStore;

@@ -6,8 +6,6 @@
 
     class InMemoryPersistenceLifecycle : IPersistenceLifecycle
     {
-        public Task Start(CancellationToken cancellationToken) => Task.CompletedTask;
-
-        public Task Stop(CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task Initialize(CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 }

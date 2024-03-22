@@ -11,8 +11,7 @@
             await using var serviceProvider = services.BuildServiceProvider();
 
             var lifecycle = serviceProvider.GetRequiredService<IPersistenceLifecycle>();
-            await lifecycle.Start(cancellationToken);
-            await lifecycle.Stop(cancellationToken);
+            await lifecycle.Initialize(cancellationToken);
         }
     }
 }
