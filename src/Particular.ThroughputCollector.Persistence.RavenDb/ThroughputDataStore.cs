@@ -50,6 +50,43 @@ class ThroughputDataStore(
         return endpoint;
     }
 
+    public async Task<IEnumerable<(EndpointIdentifier, Endpoint?)>> GetEndpoints(IEnumerable<EndpointIdentifier> endpointIds, CancellationToken cancellationToken = default)
+    {
+        var endpoints = new List<(EndpointIdentifier, Endpoint?)>();
+
+        using var session = store.OpenAsyncSession(databaseConfiguration.Name);
+
+        var documentIdLookup = endpointIds.ToDictionary(
+            endpointId => endpointId,
+            endpointId => endpointId.GenerateDocumentId());
+
+        var endpointDocuments = await session.LoadAsync<EndpointDocument>(
+            documentIdLookup.Values.Distinct(),
+            builder => builder.IncludeTimeSeries(ThroughputTimeSeriesName),
+            cancellationToken);
+
+        foreach (var (documentId, endpointDocument) in endpointDocuments)
+        {
+            var id = endpointDocument == null
+             ? endpointIds.First(id => id.GenerateDocumentId().Equals(documentId))
+             : endpointDocument.EndpointId;
+
+            var endpoint = endpointDocument?.ToEndpoint();
+            if (endpoint != null)
+            {
+                var timeSeries = await session
+                    .IncrementalTimeSeriesFor(documentId, ThroughputTimeSeriesName)
+                    .GetAsync(token: cancellationToken);
+
+                endpoint.LastCollectedDate = DateOnly.FromDateTime(timeSeries.LastOrDefault()?.Timestamp ?? DateTime.MinValue);
+            }
+
+            endpoints.Add((id, endpoint));
+        }
+
+        return endpoints;
+    }
+
     public async Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken = default)
     {
         var document = endpoint.ToEndpointDocument();

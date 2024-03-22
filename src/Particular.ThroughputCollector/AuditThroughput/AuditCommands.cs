@@ -16,7 +16,7 @@
             r.SemanticVersion >= MinAuditCountsVersion &&
             r.Retention >= TimeSpan.FromDays(2);
 
-        public static async Task<ServiceControlEndpoint[]> GetKnownEndpoints(IEndpointsApi endpointsApi)
+        public static async Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(IEndpointsApi endpointsApi)
         {
             var endpoints = await endpointsApi.GetEndpoints();
 
@@ -30,18 +30,14 @@
             {
                 Name = g.Key!,
                 HeartbeatsEnabled = g.Any(e => e.HeartbeatsEnabled),
-            })
-            .ToArray();
+            });
 
             return scEndpoints ?? [];
         }
 
-        public static async Task<List<AuditCount>> GetAuditCountForEndpoint(IAuditCountApi auditCountApi, string endpointUrlName)
+        public static async Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(IAuditCountApi auditCountApi, string endpointUrlName)
         {
-            return (await auditCountApi.GetEndpointAuditCounts(endpointUrlName)).Select(s =>
-            {
-                return new AuditCount { Count = s.Count, UtcDate = DateOnly.FromDateTime(s.UtcDate) };
-            }).ToList();
+            return (await auditCountApi.GetEndpointAuditCounts(endpointUrlName)).Select(s => new AuditCount { Count = s.Count, UtcDate = DateOnly.FromDateTime(s.UtcDate) });
         }
 
         public static async Task<List<RemoteInstanceInformation>> GetAuditRemotes(IConfigurationApi configurationApi, CancellationToken cancellationToken = default)
