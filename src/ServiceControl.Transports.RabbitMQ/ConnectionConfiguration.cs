@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Transports
+﻿namespace ServiceControl.Transports.RabbitMQ
 {
     using System;
     using System.Collections.Generic;
@@ -10,7 +10,7 @@
     using NServiceBus;
     using NServiceBus.Support;
 
-    public class RabbitMQConnectionConfiguration
+    class ConnectionConfiguration
     {
         const bool defaultUseTls = false;
         const int defaultPort = 5672;
@@ -45,7 +45,7 @@
 
         public Dictionary<string, string> ClientProperties { get; }
 
-        RabbitMQConnectionConfiguration(
+        ConnectionConfiguration(
             string host,
             int port,
             string virtualHost,
@@ -71,7 +71,7 @@
             ClientProperties = clientProperties;
         }
 
-        public static RabbitMQConnectionConfiguration Create(string connectionString, string endpointName)
+        public static ConnectionConfiguration Create(string connectionString, string endpointName)
         {
             Dictionary<string, string> dictionary;
             var invalidOptionsMessage = new StringBuilder();
@@ -108,7 +108,7 @@
             var nsbFileVersion = $"{nsbVersion.FileMajorPart}.{nsbVersion.FileMinorPart}.{nsbVersion.FileBuildPart}";
 
             var rabbitMQVersion =
-                FileVersionInfo.GetVersionInfo(typeof(RabbitMQConnectionConfiguration).Assembly.Location);
+                FileVersionInfo.GetVersionInfo(typeof(ConnectionConfiguration).Assembly.Location);
             var rabbitMQFileVersion = $"{rabbitMQVersion.FileMajorPart}.{rabbitMQVersion.FileMinorPart}.{rabbitMQVersion.FileBuildPart}";
 
             var applicationNameAndPath = Environment.GetCommandLineArgs()[0];
@@ -129,7 +129,7 @@
                 { "endpoint_name", endpointName },
             };
 
-            return new RabbitMQConnectionConfiguration(
+            return new ConnectionConfiguration(
                 host, port, virtualHost, userName, password, requestedHeartbeat, retryDelay, useTls, certPath, certPassPhrase, clientProperties);
         }
 
