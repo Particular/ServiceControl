@@ -7,19 +7,12 @@
     using ServiceControl.Api;
     using ServiceControl.Transports;
 
-    public class ThroughputCollector : IThroughputCollector
+    public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, IConfigurationApi configurationApi, IThroughputQuery? throughputQuery = null)
+        : IThroughputCollector
     {
-        public ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, IConfigurationApi configurationApi, IThroughputQuery? throughputQuery = null)
-        {
-            dataStore1 = dataStore;
-            throughputSettings1 = throughputSettings;
-            configurationApi1 = configurationApi;
-            throughputQuery1 = throughputQuery;
-        }
-
         public async Task<BrokerSettings> GetBrokerSettingsInformation()
         {
-            var brokerSettings = new BrokerSettings { Broker = throughputSettings1.Broker, Settings = throughputQuery1?.Settings.Select(pair => new BrokerSetting(pair.Key, pair.Description)).ToList() ?? [] };
+            var brokerSettings = new BrokerSettings { Broker = throughputSettings.Broker, Settings = throughputQuery?.Settings.Select(pair => new BrokerSetting(pair.Key, pair.Description)).ToList() ?? [] };
             return await Task.FromResult(brokerSettings);
         }
 
@@ -27,8 +20,8 @@
         {
             var connectionTestResults = new ConnectionTestResults
             {
-                Broker = throughputSettings1.Broker,
-                AuditConnectionResult = await AuditCommands.TestAuditConnection(configurationApi1, cancellationToken),
+                Broker = throughputSettings.Broker,
+                AuditConnectionResult = await AuditCommands.TestAuditConnection(configurationApi, cancellationToken)
                 //TODO 1
                 //MonitoringConnectionResult = ??
                 //TODO 2
@@ -40,7 +33,7 @@
 
         public async Task UpdateUserIndicatorsOnEndpoints(List<EndpointThroughputSummary> endpointThroughputs)
         {
-            await dataStore1.UpdateUserIndicatorOnEndpoints(endpointThroughputs.Select(e =>
+            await dataStore.UpdateUserIndicatorOnEndpoints(endpointThroughputs.Select(e =>
                 new Endpoint(e.Name, ThroughputSource.None)
                 {
                     SanitizedName = e.Name,
@@ -52,7 +45,7 @@
 
         public async Task<List<EndpointThroughputSummary>> GetThroughputSummary()
         {
-            var endpoints = await dataStore1.GetAllEndpoints(includePlatformEndpoints: false);
+            var endpoints = await dataStore.GetAllEndpoints(false);
             var endpointSummaries = new List<EndpointThroughputSummary>();
 
             //group endpoints by sanitized name - so to group throughput recorded from broker, audit and monitoring
@@ -77,8 +70,8 @@
         {
             var reportGenerationState = new ReportGenerationState
             {
-                Broker = throughputSettings1.Broker,
-                ReportCanBeGenerated = await dataStore1.IsThereThroughputForLastXDays(30),
+                Broker = throughputSettings.Broker,
+                ReportCanBeGenerated = await dataStore.IsThereThroughputForLastXDays(30)
             };
 
             return reportGenerationState;
@@ -98,13 +91,13 @@
             {
                 EndTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(-1), TimeSpan.Zero),
                 ReportDuration = TimeSpan.FromDays(1),
-                CustomerName = throughputSettings1.CustomerName, //who the license is registeredTo
+                CustomerName = throughputSettings.CustomerName, //who the license is registeredTo
                 ReportMethod = Mask("TODO"),
                 ScopeType = "TODO",
                 Prefix = prefix,
-                MessageTransport = throughputSettings1.Broker.ToString(),// "TODO",
+                MessageTransport = throughputSettings.Broker.ToString(),// "TODO",
                 ToolVersion = "1",
-                ServiceControlVersion = throughputSettings1.ServiceControlVersion
+                ServiceControlVersion = throughputSettings.ServiceControlVersion
             };
 
             //TODO this will be the date of the first throughput that we have received
@@ -140,15 +133,6 @@
 
         //bool ThroughputExistsForThisPeriod(IGrouping<string, Endpoint> endpoint, int days) => endpoint.Where(w => w.DailyThroughput != null).SelectMany(s => s.DailyThroughput).Any(m => m.DateUTC <= DateTime.UtcNow && m.DateUTC >= DateTime.UtcNow.AddDays(-days));
 
-
         (string Mask, string Replacement)[] masks = [];
-
-        private readonly IThroughputDataStore dataStore1;
-
-        private readonly ThroughputSettings throughputSettings1;
-
-        private readonly IConfigurationApi configurationApi1;
-
-        private readonly IThroughputQuery? throughputQuery1;
     }
 }
