@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using Persistence.UnitOfWork;
     using RavenDB.CustomChecks;
     using UnitOfWork;
@@ -25,7 +26,8 @@
 
             if (serverConfiguration.UseEmbeddedServer)
             {
-                services.AddSingleton<RavenEmbeddedPersistenceLifecycle>();
+                // Installer scenarios do not use the host and do not have a lifetime
+                services.AddSingleton(provider => new RavenEmbeddedPersistenceLifecycle(provider.GetRequiredService<DatabaseConfiguration>(), provider.GetService<IHostApplicationLifetime>()));
                 services.AddSingleton<IPersistenceLifecycle>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
                 services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
                 return;
