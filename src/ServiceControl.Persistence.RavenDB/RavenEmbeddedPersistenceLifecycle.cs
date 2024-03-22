@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.Persistence.RavenDB
+﻿#nullable enable
+
+namespace ServiceControl.Persistence.RavenDB
 {
     using System;
     using System.Diagnostics;
@@ -10,7 +12,7 @@
     using Raven.Client.Exceptions.Database;
     using ServiceControl.Persistence;
 
-    sealed class RavenEmbeddedPersistenceLifecycle(RavenPersisterSettings databaseConfiguration, IHostApplicationLifetime lifetime)
+    sealed class RavenEmbeddedPersistenceLifecycle(RavenPersisterSettings databaseConfiguration, IHostApplicationLifetime? lifetime)
         : IPersistenceLifecycle, IDisposable
     {
         public IDocumentStore GetDocumentStore()
@@ -50,8 +52,8 @@
             database?.Dispose();
         }
 
-        IDocumentStore documentStore;
-        EmbeddedDatabase database;
+        IDocumentStore? documentStore;
+        EmbeddedDatabase? database;
 
         static readonly ILog Log = LogManager.GetLogger(typeof(RavenEmbeddedPersistenceLifecycle));
 

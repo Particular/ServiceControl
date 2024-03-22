@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDB
+﻿#nullable enable
+
+namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System;
     using System.Diagnostics;
@@ -17,18 +19,20 @@
 
     public sealed class EmbeddedDatabase : IDisposable
     {
-        EmbeddedDatabase(DatabaseConfiguration configuration, IHostApplicationLifetime lifetime)
+        EmbeddedDatabase(DatabaseConfiguration configuration, IHostApplicationLifetime? lifetime)
         {
             this.configuration = configuration;
-            applicationStoppingRegistration = lifetime.ApplicationStopping.Register(() =>
-            {
-                isStopping = true;
-            });
+            ServerUrl = configuration.ServerConfiguration.ServerUrl;
             shutdownTokenSourceRegistration = shutdownTokenSource.Token.Register(() =>
             {
                 isStopping = true;
             });
-            ServerUrl = configuration.ServerConfiguration.ServerUrl;
+
+            // Installer scenarios do not use the host and do not have a lifetime
+            applicationStoppingRegistration = (lifetime?.ApplicationStopping ?? CancellationToken.None).Register(() =>
+            {
+                isStopping = true;
+            });
         }
 
         public string ServerUrl { get; private set; }
@@ -39,8 +43,8 @@
             var assemblyDirectory = Path.GetDirectoryName(assembly.Location);
 
             var licenseFileName = "RavenLicense.json";
-            var ravenLicense = Path.Combine(assemblyDirectory, licenseFileName);
-            var serverDirectory = Path.Combine(assemblyDirectory, "RavenDBServer");
+            var ravenLicense = Path.Combine(assemblyDirectory!, licenseFileName);
+            var serverDirectory = Path.Combine(assemblyDirectory!, "RavenDBServer");
 
             if (File.Exists(ravenLicense))
             {
@@ -51,7 +55,7 @@
             throw new Exception($"RavenDB license not found. Make sure the RavenDB license file '{licenseFileName}' is stored in the same directory as {assemblyName}.");
         }
 
-        public static EmbeddedDatabase Start(DatabaseConfiguration databaseConfiguration, IHostApplicationLifetime lifetime)
+        public static EmbeddedDatabase Start(DatabaseConfiguration databaseConfiguration, IHostApplicationLifetime? lifetime = null)
         {
             var licenseFileNameAndServerDirectory = GetRavenLicenseFileNameAndServerDirectory();
 
@@ -124,15 +128,22 @@
             RecordStartup();
         }
 
-        void OnServerProcessExited(object sender, ServerProcessExitedEventArgs _)
+        void OnServerProcessExited(object? sender, ServerProcessExitedEventArgs _)
         {
             if (isStopping)
             {
                 return;
             }
 
-            Logger.Warn($"RavenDB server process exited unexpectedly with exitCode: {((Process)sender).ExitCode}. Process will be restarted.");
             restartRequired = true;
+            if (sender is Process process)
+            {
+                Logger.Warn($"RavenDB server process exited unexpectedly with exitCode: {process.ExitCode}. Process will be restarted.");
+            }
+            else
+            {
+                Logger.Warn($"RavenDB server process exited unexpectedly. Process will be restarted.");
+            }
         }
 
         public async Task<IDocumentStore> Connect(CancellationToken cancellationToken)
@@ -166,6 +177,11 @@
 
         public void Dispose()
         {
+            if (disposed)
+            {
+                return;
+            }
+
             EmbeddedServer.Instance.ServerProcessExited -= OnServerProcessExited;
 
             shutdownTokenSource.Cancel();
@@ -173,6 +189,7 @@
             shutdownTokenSource.Dispose();
             applicationStoppingRegistration.Dispose();
             shutdownTokenSourceRegistration.Dispose();
+            disposed = true;
         }
 
         void RecordStartup()
@@ -245,6 +262,7 @@ RavenDB Logging Level:              {configuration.ServerConfiguration.LogsMode}
             return size;
         }
 
+        bool disposed;
         bool restartRequired;
         bool isStopping;
         readonly CancellationTokenSource shutdownTokenSource = new();

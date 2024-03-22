@@ -5,8 +5,6 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Hosting.Internal;
-    using Microsoft.Extensions.Logging.Abstractions;
     using NUnit.Framework;
     using Persistence.RavenDB;
     using Raven.Client.ServerWide.Operations;
@@ -35,7 +33,7 @@
                 var logsMode = "Operations";
                 var serverUrl = $"http://localhost:{PortUtility.FindAvailablePort(33334)}";
 
-                embeddedDatabase = EmbeddedDatabase.Start(new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, new ServerConfiguration(dbPath, serverUrl, logPath, logsMode)), new ApplicationLifetime(new NullLogger<ApplicationLifetime>()));
+                embeddedDatabase = EmbeddedDatabase.Start(new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, new ServerConfiguration(dbPath, serverUrl, logPath, logsMode)));
 
                 //make sure that the database is up
                 using var documentStore = await embeddedDatabase.Connect(cancellationToken);
