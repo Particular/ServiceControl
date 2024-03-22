@@ -9,14 +9,7 @@ namespace ServiceControl.Persistence
             bool maintenanceMode = false)
         {
             var persistence = PersistenceFactory.Create(settings, maintenanceMode);
-
-            services.ConfigurePersisterLifecyle(persistence);
-        }
-
-        public static void ConfigurePersisterLifecyle(this IServiceCollection serviceCollection, IPersistence persistence)
-        {
-            persistence.ConfigureLifecycle(serviceCollection);
-            persistence.Configure(serviceCollection);
+            persistence.Configure(services);
         }
     }
 }

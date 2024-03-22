@@ -18,62 +18,64 @@
 
     class RavenPersistence(RavenPersisterSettings settings) : IPersistence
     {
-        public void Configure(IServiceCollection serviceCollection)
+        public void Configure(IServiceCollection services)
         {
-            serviceCollection.AddSingleton<PersistenceSettings>(settings);
-            serviceCollection.AddSingleton(settings);
+            services.AddSingleton<PersistenceSettings>(settings);
+            services.AddSingleton(settings);
+
+            ConfigureLifecycle(services);
 
             if (settings.MaintenanceMode)
             {
                 return;
             }
 
-            serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenSubscriptionStorage>();
-            serviceCollection.AddSingleton<ISubscriptionStorage>(p => p.GetRequiredService<IServiceControlSubscriptionStorage>());
+            services.AddSingleton<IServiceControlSubscriptionStorage, RavenSubscriptionStorage>();
+            services.AddSingleton<ISubscriptionStorage>(p => p.GetRequiredService<IServiceControlSubscriptionStorage>());
 
-            serviceCollection.AddSingleton<IMonitoringDataStore, RavenMonitoringDataStore>();
-            serviceCollection.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
-            serviceCollection.AddUnitOfWorkFactory<RavenIngestionUnitOfWorkFactory>();
-            serviceCollection.AddSingleton<ExpirationManager>();
-            serviceCollection.AddSingleton<MinimumRequiredStorageState>();
-            serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
+            services.AddSingleton<IMonitoringDataStore, RavenMonitoringDataStore>();
+            services.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
+            services.AddUnitOfWorkFactory<RavenIngestionUnitOfWorkFactory>();
+            services.AddSingleton<ExpirationManager>();
+            services.AddSingleton<MinimumRequiredStorageState>();
+            services.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
 
-            serviceCollection.AddSingleton<FailedMessageViewIndexNotifications>();
-            serviceCollection.AddSingleton<IFailedMessageViewIndexNotifications>(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
-            serviceCollection.AddHostedService(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
+            services.AddSingleton<FailedMessageViewIndexNotifications>();
+            services.AddSingleton<IFailedMessageViewIndexNotifications>(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
+            services.AddHostedService(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
 
-            serviceCollection.AddSingleton<ExternalIntegrationRequestsDataStore>();
-            serviceCollection.AddSingleton<IExternalIntegrationRequestsDataStore>(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
-            serviceCollection.AddHostedService(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
+            services.AddSingleton<ExternalIntegrationRequestsDataStore>();
+            services.AddSingleton<IExternalIntegrationRequestsDataStore>(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
+            services.AddHostedService(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
 
-            serviceCollection.AddCustomCheck<CheckRavenDBIndexErrors>();
-            serviceCollection.AddCustomCheck<CheckRavenDBIndexLag>();
-            serviceCollection.AddCustomCheck<CheckFreeDiskSpace>();
-            serviceCollection.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
+            services.AddCustomCheck<CheckRavenDBIndexErrors>();
+            services.AddCustomCheck<CheckRavenDBIndexLag>();
+            services.AddCustomCheck<CheckFreeDiskSpace>();
+            services.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
 
-            serviceCollection.AddSingleton<OperationsManager>();
+            services.AddSingleton<OperationsManager>();
 
-            serviceCollection.AddSingleton<IArchiveMessages, MessageArchiver>();
-            serviceCollection.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
-            serviceCollection.AddSingleton<IErrorMessageDataStore, ErrorMessagesDataStore>();
-            serviceCollection.AddSingleton<IEventLogDataStore, EventLogDataStore>();
-            serviceCollection.AddSingleton<IFailedErrorImportDataStore, FailedErrorImportDataStore>();
-            serviceCollection.AddSingleton<IGroupsDataStore, GroupsDataStore>();
-            serviceCollection.AddSingleton<IGroupsDataStore, GroupsDataStore>();
-            serviceCollection.AddSingleton<IMessageRedirectsDataStore, MessageRedirectsDataStore>();
-            serviceCollection.AddSingleton<IMonitoringDataStore, RavenMonitoringDataStore>();
-            serviceCollection.AddSingleton<IQueueAddressStore, QueueAddressStore>();
-            serviceCollection.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
-            serviceCollection.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
-            serviceCollection.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
+            services.AddSingleton<IArchiveMessages, MessageArchiver>();
+            services.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
+            services.AddSingleton<IErrorMessageDataStore, ErrorMessagesDataStore>();
+            services.AddSingleton<IEventLogDataStore, EventLogDataStore>();
+            services.AddSingleton<IFailedErrorImportDataStore, FailedErrorImportDataStore>();
+            services.AddSingleton<IGroupsDataStore, GroupsDataStore>();
+            services.AddSingleton<IGroupsDataStore, GroupsDataStore>();
+            services.AddSingleton<IMessageRedirectsDataStore, MessageRedirectsDataStore>();
+            services.AddSingleton<IMonitoringDataStore, RavenMonitoringDataStore>();
+            services.AddSingleton<IQueueAddressStore, QueueAddressStore>();
+            services.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
+            services.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
+            services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
 
             // Forward saga audit messages and warn in ServiceControl 5, remove in 6
-            serviceCollection.AddSingleton<ISagaAuditDataStore, SagaAuditDeprecationDataStore>();
-            serviceCollection.AddCustomCheck<SagaAuditDestinationCustomCheck>();
-            serviceCollection.AddSingleton<SagaAuditDestinationCustomCheck.State>();
+            services.AddSingleton<ISagaAuditDataStore, SagaAuditDeprecationDataStore>();
+            services.AddCustomCheck<SagaAuditDestinationCustomCheck>();
+            services.AddSingleton<SagaAuditDestinationCustomCheck.State>();
         }
 
-        public void ConfigureLifecycle(IServiceCollection serviceCollection)
+        void ConfigureLifecycle(IServiceCollection serviceCollection)
         {
             if (settings.UseEmbeddedServer)
             {
@@ -82,7 +84,6 @@
                 serviceCollection.AddSingleton(b => b.GetService<RavenEmbeddedPersistenceLifecycle>().GetDocumentStore());
                 return;
             }
-
 
             serviceCollection.AddSingleton<RavenExternalPersistenceLifecycle>();
             serviceCollection.AddSingleton<IPersistenceLifecycle>(b => b.GetService<RavenExternalPersistenceLifecycle>());

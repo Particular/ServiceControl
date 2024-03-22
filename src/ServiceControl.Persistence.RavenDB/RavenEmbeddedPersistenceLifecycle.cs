@@ -10,7 +10,7 @@
     using Raven.Client.Exceptions.Database;
     using ServiceControl.Persistence;
 
-    class RavenEmbeddedPersistenceLifecycle(IHostApplicationLifetime lifetime, RavenPersisterSettings databaseConfiguration)
+    sealed class RavenEmbeddedPersistenceLifecycle(RavenPersisterSettings databaseConfiguration, IHostApplicationLifetime lifetime)
         : IPersistenceLifecycle, IDisposable
     {
         public IDocumentStore GetDocumentStore()
@@ -48,7 +48,6 @@
         {
             documentStore?.Dispose();
             database?.Dispose();
-            GC.SuppressFinalize(this);
         }
 
         IDocumentStore documentStore;
