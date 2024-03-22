@@ -27,12 +27,12 @@
             return await Task.FromResult(brokerSettings);
         }
 
-        public async Task<ConnectionTestResults> TestConnectionSettings()
+        public async Task<ConnectionTestResults> TestConnectionSettings(CancellationToken cancellationToken = default)
         {
             var connectionTestResults = new ConnectionTestResults
             {
                 Broker = throughputSettings.Broker,
-                AuditConnectionResult = await AuditCommands.TestAuditConnection(configurationApi),
+                AuditConnectionResult = await AuditCommands.TestAuditConnection(configurationApi, cancellationToken),
                 //TODO 1
                 //MonitoringConnectionResult = ??
                 //TODO 2
@@ -45,22 +45,18 @@
         public async Task UpdateUserIndicatorsOnEndpoints(List<EndpointThroughputSummary> endpointThroughputs)
         {
             await dataStore.UpdateUserIndicatorOnEndpoints(endpointThroughputs.Select(e =>
-            {
-                return new Endpoint
+                new Endpoint(e.Name, ThroughputSource.None)
                 {
-                    Name = e.Name,
                     SanitizedName = e.Name,
                     UserIndicator = e.UserIndicator,
-                };
-            }).ToList());
+                }).ToList());
 
             await Task.CompletedTask;
         }
 
         public async Task<List<EndpointThroughputSummary>> GetThroughputSummary()
         {
-            var endpoints = await GetRelevantEndpoints();
-
+            var endpoints = await dataStore.GetAllEndpoints(includePlatformEndpoints: false);
             var endpointSummaries = new List<EndpointThroughputSummary>();
 
             //group endpoints by sanitized name - so to group throughput recorded from broker, audit and monitoring
@@ -69,7 +65,7 @@
                 var endpointSummary = new EndpointThroughputSummary
                 {
                     //want to display the endpoint name to the user if it's different to the sanitized endpoint name
-                    Name = endpoint.Any(w => w.Name != w.SanitizedName) ? endpoint.First(w => w.Name != w.SanitizedName).Name : endpoint.Key,
+                    Name = endpoint.Any(w => w.Id.Name != w.SanitizedName) ? endpoint.First(w => w.Id.Name != w.SanitizedName).Id.Name : endpoint.Key,
                     UserIndicator = UserIndicator(endpoint) ?? string.Empty,
                     IsKnownEndpoint = IsKnownEndpoint(endpoint),
                     MaxDailyThroughput = MaxDailyThroughput(endpoint) ?? 0
@@ -144,14 +140,6 @@
         //get the max throughput recorded for the endpoints - shouldn't matter where it comes from (ie broker or service control)
         long? MaxDailyThroughput(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.DailyThroughput != null).SelectMany(s => s.DailyThroughput).MaxBy(m => m.TotalThroughput)?.TotalThroughput;
         //bool ThroughputExistsForThisPeriod(IGrouping<string, Endpoint> endpoint, int days) => endpoint.Where(w => w.DailyThroughput != null).SelectMany(s => s.DailyThroughput).Any(m => m.DateUTC <= DateTime.UtcNow && m.DateUTC >= DateTime.UtcNow.AddDays(-days));
-
-        async Task<List<Endpoint>> GetRelevantEndpoints()
-        {
-            var endpoints = (List<Endpoint>)await dataStore.GetAllEndpoints();
-
-            //remove error, audit and other platform queues from all
-            return endpoints.Where(w => w.Name != throughputSettings.ErrorQueue && w.Name != throughputSettings.AuditQueue && w.Name != throughputSettings.ServiceControlQueue).ToList();
-        }
 
         readonly IThroughputDataStore dataStore;
         readonly ThroughputSettings throughputSettings;

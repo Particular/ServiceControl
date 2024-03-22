@@ -7,7 +7,7 @@
         Task<List<EndpointThroughputSummary>> GetThroughputSummary();
         Task UpdateUserIndicatorsOnEndpoints(List<EndpointThroughputSummary> endpointsThroughputSummary);
         Task<BrokerSettings> GetBrokerSettingsInformation();
-        Task<ConnectionTestResults> TestConnectionSettings();
+        Task<ConnectionTestResults> TestConnectionSettings(CancellationToken cancellationToken = default);
         Task<SignedReport> GenerateThroughputReport(string? prefix, string[]? masks, string? spVersion);
         Task<ReportGenerationState> GetReportGenerationState();
     }

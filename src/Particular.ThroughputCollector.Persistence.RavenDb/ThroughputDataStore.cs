@@ -1,22 +1,131 @@
 ﻿namespace Particular.ThroughputCollector.Persistence.RavenDb;
 
 using Contracts;
+using Particular.ThroughputCollector.Persistence.RavenDb.Models;
 using Raven.Client.Documents;
 
-class ThroughputDataStore(IDocumentStore store, DatabaseConfiguration databaseConfiguration) : IThroughputDataStore
+class ThroughputDataStore(
+    IDocumentStore store,
+    PersistenceSettings persistenceSettings,
+    DatabaseConfiguration databaseConfiguration) : IThroughputDataStore
 {
-    public async Task<IReadOnlyList<Endpoint>> GetAllEndpoints()
+    const string ThroughputTimeSeriesName = "INC: throughput data";
+
+    public async Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints = true, CancellationToken cancellationToken = default)
     {
         using var session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        var endpoints = await session.Query<Endpoint, EndpointIndex>().ToListAsync().ConfigureAwait(false);
+        var baseQuery = session.Advanced.AsyncDocumentQuery<EndpointDocument>();
 
-        return endpoints.ToArray();
+        var query = includePlatformEndpoints
+            ? baseQuery
+            : baseQuery.Not.ContainsAny(document => document.EndpointId.Name, persistenceSettings.PlatformEndpointNames);
+
+        var documents = await query.ToListAsync(cancellationToken);
+
+        return documents.Select(document => document.ToEndpoint());
     }
 
-    public Task<Endpoint?> GetEndpointByName(string name, ThroughputSource throughputSource) =>
-        throw new NotImplementedException();
-    public Task RecordEndpointThroughput(Endpoint endpoint) => throw new NotImplementedException();
+    public async Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken = default)
+    {
+        using var session = store.OpenAsyncSession(databaseConfiguration.Name);
+
+        var documentId = id.GenerateDocumentId();
+
+        var document = await session.LoadAsync<EndpointDocument>(
+            documentId,
+            builder => builder.IncludeTimeSeries(ThroughputTimeSeriesName),
+            cancellationToken);
+
+        var endpoint = document?.ToEndpoint();
+        if (endpoint != null)
+        {
+            var timeSeries = await session
+                .IncrementalTimeSeriesFor(documentId, ThroughputTimeSeriesName)
+                .GetAsync(token: cancellationToken);
+
+            endpoint.LastCollectedDate = DateOnly.FromDateTime(timeSeries.LastOrDefault()?.Timestamp ?? DateTime.MinValue);
+        }
+
+        return endpoint;
+    }
+
+    public async Task<IEnumerable<(EndpointIdentifier, Endpoint?)>> GetEndpoints(IEnumerable<EndpointIdentifier> endpointIds, CancellationToken cancellationToken = default)
+    {
+        var endpoints = new List<(EndpointIdentifier, Endpoint?)>();
+
+        using var session = store.OpenAsyncSession(databaseConfiguration.Name);
+
+        var documentIdLookup = endpointIds.ToDictionary(
+            endpointId => endpointId,
+            endpointId => endpointId.GenerateDocumentId());
+
+        var endpointDocuments = await session.LoadAsync<EndpointDocument>(
+            documentIdLookup.Values.Distinct(),
+            builder => builder.IncludeTimeSeries(ThroughputTimeSeriesName),
+            cancellationToken);
+
+        foreach (var (documentId, endpointDocument) in endpointDocuments)
+        {
+            var id = endpointDocument == null
+             ? endpointIds.First(id => id.GenerateDocumentId().Equals(documentId))
+             : endpointDocument.EndpointId;
+
+            var endpoint = endpointDocument?.ToEndpoint();
+            if (endpoint != null)
+            {
+                var timeSeries = await session
+                    .IncrementalTimeSeriesFor(documentId, ThroughputTimeSeriesName)
+                    .GetAsync(token: cancellationToken);
+
+                endpoint.LastCollectedDate = DateOnly.FromDateTime(timeSeries.LastOrDefault()?.Timestamp ?? DateTime.MinValue);
+            }
+
+            endpoints.Add((id, endpoint));
+        }
+
+        return endpoints;
+    }
+
+    public async Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken = default)
+    {
+        var document = endpoint.ToEndpointDocument();
+
+        using var session = store.OpenAsyncSession("throughput");
+
+        await session.StoreAsync(document, document.GenerateDocumentId(), cancellationToken);
+        await session.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RecordEndpointThroughput(EndpointIdentifier id, IEnumerable<EndpointThroughput> throughput, CancellationToken cancellationToken = default)
+    {
+        if (!throughput.Any())
+        {
+            return;
+        }
+
+        using var session = store.OpenAsyncSession("throughput");
+
+        var documentId = id.GenerateDocumentId();
+        var document = await session.LoadAsync<EndpointDocument>(documentId, cancellationToken);
+        if (document == null)
+        {
+            document = new EndpointDocument(id);
+
+            await session.StoreAsync(document, document.GenerateDocumentId(), cancellationToken);
+            await session.SaveChangesAsync(cancellationToken);
+        }
+
+        var timeSeries = session.IncrementalTimeSeriesFor(documentId, ThroughputTimeSeriesName);
+
+        foreach (var entry in throughput)
+        {
+            timeSeries.Increment(entry.DateUTC.ToDateTime(TimeOnly.MinValue), entry.TotalThroughput);
+        }
+
+        await session.SaveChangesAsync(cancellationToken);
+    }
+
     public Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator) => throw new NotImplementedException();
     public Task AppendEndpointThroughput(Endpoint endpoint) => throw new NotImplementedException();
     public Task<bool> IsThereThroughputForLastXDays(int days) => throw new NotImplementedException();

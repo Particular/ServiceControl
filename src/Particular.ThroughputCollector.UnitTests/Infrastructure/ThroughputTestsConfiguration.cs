@@ -1,6 +1,7 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests.Infrastructure
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts;
     using Microsoft.Extensions.DependencyInjection;
@@ -18,16 +19,22 @@
 
         public Task Configure(Action<ThroughputSettings> setThroughputSettings)
         {
-            var config = new InMemoryPersistenceConfiguration();
+            var throughputSettings = new ThroughputSettings(broker: Broker.None, transportConnectionString: "", serviceControlAPI: "http://localhost:33333/api", serviceControlQueue: "Particular.ServiceControl", errorQueue: "error", persistenceType: "InMemory", customerName: "TestCustomer", serviceControlVersion: "5.0.1", auditQueue: "audit");
+            setThroughputSettings(throughputSettings);
+
             var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(throughputSettings);
+
+            var config = new InMemoryPersistenceConfiguration();
             var settings = new PersistenceSettings();
+            settings.PlatformEndpointNames.Add(throughputSettings.AuditQueue);
+            settings.PlatformEndpointNames.Add(throughputSettings.ErrorQueue);
+            settings.PlatformEndpointNames.Add(throughputSettings.ServiceControlQueue);
+            serviceCollection.AddSingleton(settings);
 
             var persistence = config.Create(settings);
             persistence.Configure(serviceCollection);
 
-            var throughputSettings = new ThroughputSettings(broker: Broker.None, transportConnectionString: "", serviceControlAPI: "http://localhost:33333/api", serviceControlQueue: "Particular.ServiceControl", errorQueue: "error", persistenceType: "InMemory", customerName: "TestCustomer", serviceControlVersion: "5.0.1", auditQueue: "audit");
-            setThroughputSettings(throughputSettings);
-            serviceCollection.AddSingleton(throughputSettings);
             serviceCollection.AddSingleton<IConfigurationApi, FakeConfigurationApi>();
             serviceCollection.AddSingleton<IThroughputCollector, ThroughputCollector>();
             //serviceCollection.AddHostedService<AuditThroughputCollectorHostedService>();
@@ -42,17 +49,14 @@
             return Task.CompletedTask;
         }
 
-        public Task Cleanup()
-        {
-            return Task.CompletedTask;
-        }
+        public Task Cleanup() => Task.CompletedTask;
     }
 
     class FakeConfigurationApi : IConfigurationApi
     {
         public object GetConfig() => throw new NotImplementedException();
 
-        public Task<object> GetRemoteConfigs() => Task.FromResult<object>("[{ api_uri:\"http://localhost:44444\", status:\"online\", version: \"5.1.0\" }]");
+        public Task<object> GetRemoteConfigs(CancellationToken cancellationToken = default) => Task.FromResult<object>("[{ api_uri:\"http://localhost:44444\", status:\"online\", version: \"5.1.0\" }]");
 
         public RootUrls GetUrls(string baseUrl) => throw new NotImplementedException();
     }
