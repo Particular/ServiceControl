@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Hosting;
     using NUnit.Framework;
     using Raven.Client.ServerWide.Operations;
     using ServiceControl.Persistence.RavenDB;
@@ -11,7 +12,7 @@
 
     static class SharedEmbeddedServer
     {
-        public static async Task<EmbeddedDatabase> GetInstance(CancellationToken cancellationToken = default)
+        public static async Task<EmbeddedDatabase> GetInstance(IHostApplicationLifetime lifetime, CancellationToken cancellationToken = default)
         {
             if (embeddedDatabase != null)
             {
@@ -34,7 +35,7 @@
                     DatabaseMaintenancePort = PortUtility.FindAvailablePort(RavenPersisterSettings.DatabaseMaintenancePortDefault)
                 };
 
-                embeddedDatabase = EmbeddedDatabase.Start(settings);
+                embeddedDatabase = EmbeddedDatabase.Start(lifetime, settings);
 
                 //make sure that the database is up
                 using var documentStore = await embeddedDatabase.Connect(cancellationToken);
