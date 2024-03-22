@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
+    using System;
     using System.Linq;
     using NServiceBus;
 
@@ -15,6 +16,7 @@
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
+        public override Type ThroughputQueryProvider => typeof(AzureQuery);
 
         protected override AzureServiceBusTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
