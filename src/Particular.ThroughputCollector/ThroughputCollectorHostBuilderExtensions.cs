@@ -53,7 +53,7 @@ public static class ThroughputCollectorHostBuilderExtensions
             services.AddHostedService<BrokerThroughputCollectorHostedService>();
         }
 
-        hostBuilder.AddThroughputCollectorPersistence(persistenceType);
+        hostBuilder.AddThroughputCollectorPersistence(persistenceType, errorQueue, serviceControlQueue);
 
         if (throughputQueryProvider != null)
         {
