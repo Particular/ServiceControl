@@ -61,7 +61,7 @@ internal class BrokerThroughputCollectorHostedService(
 
         async Task Exec(IQueueName queueName, DateOnly startDate)
         {
-            var endpointId = new EndpointIdentifier();
+            var endpointId = new EndpointIdentifier(queueName.QueueName, ThroughputSource.Broker);
             var endpoint = await dataStore.GetEndpoint(endpointId, stoppingToken);
             if (endpoint != null)
             {
