@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using Contracts;
     using Microsoft.Extensions.DependencyInjection;
-    using Particular.ThroughputCollector.Infrastructure;
     using Persistence;
     using Persistence.InMemory;
     using ServiceControl.Api;
@@ -19,7 +18,7 @@
 
         public Task Configure(Action<ThroughputSettings> setThroughputSettings)
         {
-            var throughputSettings = new ThroughputSettings(broker: Broker.None, transportConnectionString: "", serviceControlAPI: "http://localhost:33333/api", serviceControlQueue: "Particular.ServiceControl", errorQueue: "error", persistenceType: "InMemory", customerName: "TestCustomer", serviceControlVersion: "5.0.1", auditQueue: "audit");
+            var throughputSettings = new ThroughputSettings(broker: Broker.None, serviceControlQueue: "Particular.ServiceControl", errorQueue: "error", persistenceType: "InMemory", customerName: "TestCustomer", serviceControlVersion: "5.0.1", auditQueue: "audit");
             setThroughputSettings(throughputSettings);
 
             var serviceCollection = new ServiceCollection();
