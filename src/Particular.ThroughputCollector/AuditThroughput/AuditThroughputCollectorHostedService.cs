@@ -1,7 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.AuditThroughput;
 
 using Contracts;
-using Infrastructure;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Persistence;
