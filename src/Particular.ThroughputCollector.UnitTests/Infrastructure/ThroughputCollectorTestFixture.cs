@@ -2,8 +2,8 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Contracts;
     using NUnit.Framework;
-    using Particular.ThroughputCollector.Infrastructure;
     using Particular.ThroughputCollector.Persistence;
 
     [TestFixture]

@@ -2,7 +2,6 @@
 {
     using AuditThroughput;
     using Contracts;
-    using Infrastructure;
     using Persistence;
     using ServiceControl.Api;
     using ServiceControl.Transports;

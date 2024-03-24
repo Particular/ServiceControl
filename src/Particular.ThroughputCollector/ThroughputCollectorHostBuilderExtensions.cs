@@ -3,14 +3,13 @@ namespace Particular.ThroughputCollector;
 using AuditThroughput;
 using BrokerThroughput;
 using Contracts;
-using Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WebApi;
 
 public static class ThroughputCollectorHostBuilderExtensions
 {
-    public static IHostApplicationBuilder AddThroughputCollector(this IHostApplicationBuilder hostBuilder, string transportType, string serviceControlAPI, string errorQueue, string serviceControlQueue, string auditQueue, string transportConnectionString, string persistenceType, string customerName, string serviceControlVersion)
+    public static IHostApplicationBuilder AddThroughputCollector(this IHostApplicationBuilder hostBuilder, string transportType, string errorQueue, string serviceControlQueue, string auditQueue, string persistenceType, string customerName, string serviceControlVersion)
     {
         //For testing only until RavenDB Persistence is working
         persistenceType = "InMemory";
@@ -39,17 +38,7 @@ public static class ThroughputCollectorHostBuilderExtensions
                 break;
         }
 
-        //try to ensure the serviceControlAPI is correct (https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel/endpoints?view=aspnetcore-8.0#url-formats)
-        if (serviceControlAPI.StartsWith("http://*"))
-        {
-            serviceControlAPI = serviceControlAPI.Replace("http://*", "http://localhost");
-        }
-        else if (serviceControlAPI.StartsWith("http://0.0.0.0"))
-        {
-            serviceControlAPI = serviceControlAPI.Replace("http://0.0.0.0", "http://localhost");
-        }
-
-        services.AddSingleton(new ThroughputSettings(broker, transportConnectionString, serviceControlAPI, serviceControlQueue, errorQueue, persistenceType, customerName, serviceControlVersion, auditQueue));
+        services.AddSingleton(new ThroughputSettings(broker, serviceControlQueue, errorQueue, persistenceType, customerName, serviceControlVersion, auditQueue));
         services.AddHostedService<AuditThroughputCollectorHostedService>();
         services.AddSingleton<IThroughputCollector, ThroughputCollector>();
         services.AddSingleton<ThroughputController>();
