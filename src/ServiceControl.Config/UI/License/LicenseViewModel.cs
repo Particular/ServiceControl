@@ -13,10 +13,7 @@
 
     class LicenseViewModel : RxScreen
     {
-        public LicenseViewModel(IEventAggregator eventAggregator)
-        {
-            EventAggregator = eventAggregator;
-        }
+        public LicenseViewModel(IEventAggregator eventAggregator) => EventAggregator = eventAggregator;
 
         public string ApplyLicenseError { get; set; }
 
@@ -42,7 +39,7 @@
         {
             license = LicenseManager.FindLicense();
 
-            Components = new LicenseComponentFactory().CreateComponents(license.Details).ToList();
+            Components = LicenseComponentFactory.CreateComponents(license.Details).ToList();
 
             CanExtendTrial = license.Details.IsTrialLicense;
 
