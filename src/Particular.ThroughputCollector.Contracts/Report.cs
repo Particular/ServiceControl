@@ -21,6 +21,7 @@ public class Report
     public string ToolVersion { get; init; }
 
     public string ServiceControlVersion { get; set; }
+    public string ServicePulseVersion { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string? Prefix { get; init; }
@@ -28,7 +29,7 @@ public class Report
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string? ScopeType { get; init; }
 
-    public DateTimeOffset StartTime { get; init; }
+    public DateTimeOffset StartTime { get; set; }
 
     public DateTimeOffset EndTime { get; init; }
 
@@ -62,18 +63,15 @@ public class QueueThroughput
     public string[]? EndpointIndicators { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public string? UserIndicator { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string? Scope { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public DailyThroughput[] DailyThroughputFromBroker { get; init; }
+    public EndpointDailyThroughput[] DailyThroughputFromBroker { get; init; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public DailyThroughput[] DailyThroughputFromAudit { get; init; }
+    public EndpointDailyThroughput[] DailyThroughputFromAudit { get; init; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public DailyThroughput[] DailyThroughputFromMonitoring { get; init; }
-}
-
-public class DailyThroughput
-{
-    public DateTime DateUTC { get; set; }
-    public long Throughput { get; set; }
+    public EndpointDailyThroughput[] DailyThroughputFromMonitoring { get; init; }
 }
