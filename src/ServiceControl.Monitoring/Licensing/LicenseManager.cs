@@ -1,32 +1,22 @@
 ﻿namespace ServiceControl.Monitoring.Licensing
 {
+    using LicenseManagement;
     using NServiceBus.Logging;
-    using Particular.Licensing;
 
     public class LicenseManager
     {
-        internal License Details { get; set; }
+        internal LicenseDetails Details { get; set; }
         internal bool IsValid { get; set; }
 
         public void Refresh()
         {
             Logger.Debug("Checking License Status");
 
-            var sources = LicenseSource.GetStandardLicenseSources();
-            var result = ActiveLicense.Find("ServiceControl", sources.ToArray());
+            var detectedLicense = ServiceControl.LicenseManagement.LicenseManager.FindLicense();
 
-            if (result.License.HasExpired())
-            {
-                foreach (var report in result.Report)
-                {
-                    Logger.Info(report);
-                }
+            IsValid = !detectedLicense.Details.HasLicenseExpired();
 
-                Logger.Warn("License has expired");
-            }
-
-            IsValid = !result.License.HasExpired();
-            Details = result.License;
+            Details = detectedLicense.Details;
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(LicenseManager));
