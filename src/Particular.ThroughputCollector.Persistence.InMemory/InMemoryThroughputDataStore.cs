@@ -46,7 +46,7 @@ class InMemoryThroughputDataStore(PersistenceSettings persistenceSettings) : ITh
         return Task.CompletedTask;
     }
 
-    public async Task RecordEndpointThroughput(EndpointIdentifier id, IEnumerable<EndpointThroughput> throughput, CancellationToken cancellationToken = default)
+    public async Task RecordEndpointThroughput(EndpointIdentifier id, IEnumerable<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default)
     {
         if (!endpoints.TryGetValue(id, out var endpoint))
         {

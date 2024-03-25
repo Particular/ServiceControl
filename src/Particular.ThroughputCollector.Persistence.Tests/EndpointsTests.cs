@@ -16,7 +16,7 @@
             {
                 DailyThroughput =
                 [
-                    new EndpointThroughput
+                    new EndpointDailyThroughput
                     {
                         DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
                         TotalThroughput = 50
@@ -41,7 +41,7 @@
             {
                 DailyThroughput =
                 [
-                    new EndpointThroughput
+                    new EndpointDailyThroughput
                     {
                         DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
                         TotalThroughput = 50
@@ -54,7 +54,7 @@
             {
                 DailyThroughput =
                 [
-                    new EndpointThroughput
+                    new EndpointDailyThroughput
                     {
                         DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1),
                         TotalThroughput = 600
@@ -76,7 +76,7 @@
             {
                 DailyThroughput =
                 [
-                    new EndpointThroughput
+                    new EndpointDailyThroughput
                     {
                         DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
                         TotalThroughput = 50
@@ -89,7 +89,7 @@
             {
                 DailyThroughput =
                 [
-                    new EndpointThroughput
+                    new EndpointDailyThroughput
                     {
                         DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1),
                         TotalThroughput = 100
@@ -113,7 +113,7 @@
             {
                 DailyThroughput =
                 [
-                    new EndpointThroughput
+                    new EndpointDailyThroughput
                     {
                         DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1),
                         TotalThroughput = 100
@@ -140,7 +140,7 @@
             {
                 DailyThroughput =
                 [
-                    new EndpointThroughput
+                    new EndpointDailyThroughput
                     {
                         DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
                         TotalThroughput = 50
@@ -162,7 +162,7 @@
             {
                 DailyThroughput =
                 [
-                    new EndpointThroughput
+                    new EndpointDailyThroughput
                     {
                         DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
                         TotalThroughput = 50
@@ -185,7 +185,7 @@
                 SanitizedName = "Endpoint",
                 DailyThroughput =
                 [
-                    new EndpointThroughput
+                    new EndpointDailyThroughput
                     {
                         DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
                         TotalThroughput = 50
@@ -243,7 +243,7 @@
                 SanitizedName = "Endpoint",
                 DailyThroughput =
                 [
-                    new EndpointThroughput
+                    new EndpointDailyThroughput
                     {
                         DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
                         TotalThroughput = 50
@@ -259,7 +259,7 @@
                 SanitizedName = "Endpoint",
                 DailyThroughput =
                 [
-                    new EndpointThroughput
+                    new EndpointDailyThroughput
                     {
                         DateUTC = DateOnly.FromDateTime(DateTime.UtcNow),
                         TotalThroughput = 70
@@ -308,7 +308,7 @@
             {
                 DailyThroughput =
                 [
-                    new EndpointThroughput
+                    new EndpointDailyThroughput
                     {
                         DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-10),
                         TotalThroughput = 50
