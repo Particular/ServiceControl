@@ -1,4 +1,4 @@
-﻿namespace Particular.ServiceControl.Licensing
+﻿namespace ServiceControl.Monitoring.Licensing
 {
     using System;
     using System.Threading;

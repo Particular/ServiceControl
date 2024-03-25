@@ -4,24 +4,20 @@ namespace ServiceControl.Monitoring.Http
     using Microsoft.AspNetCore.Mvc;
 
     [ApiController]
-    public class LicenseController(LicenseManager licenseManager) : ControllerBase
+    public class LicenseController(ActiveLicense activeLicense) : ControllerBase
     {
         [Route("license")]
         [HttpGet]
-        public ActionResult<LicenseInfo> License()
-        {
-            licenseManager.Refresh();
-
-            return new LicenseInfo
+        public ActionResult<LicenseInfo> License() =>
+            new LicenseInfo
             {
-                TrialLicense = licenseManager.Details.IsTrialLicense,
-                Edition = licenseManager.Details.Edition ?? string.Empty,
-                RegisteredTo = licenseManager.Details.RegisteredTo ?? string.Empty,
-                UpgradeProtectionExpiration = licenseManager.Details.UpgradeProtectionExpiration?.ToString("O") ?? string.Empty,
-                ExpirationDate = licenseManager.Details.ExpirationDate?.ToString("O") ?? string.Empty,
-                Status = licenseManager.IsValid ? "valid" : "invalid"
+                TrialLicense = activeLicense.Details.IsTrialLicense,
+                Edition = activeLicense.Details.Edition ?? string.Empty,
+                RegisteredTo = activeLicense.Details.RegisteredTo ?? string.Empty,
+                UpgradeProtectionExpiration = activeLicense.Details.UpgradeProtectionExpiration?.ToString("O") ?? string.Empty,
+                ExpirationDate = activeLicense.Details.ExpirationDate?.ToString("O") ?? string.Empty,
+                Status = activeLicense.IsValid ? "valid" : "invalid"
             };
-        }
 
         public class LicenseInfo
         {
