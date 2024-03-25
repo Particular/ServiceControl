@@ -18,7 +18,7 @@
 
         public Task Configure(Action<ThroughputSettings> setThroughputSettings)
         {
-            var throughputSettings = new ThroughputSettings(broker: Broker.None, serviceControlQueue: "Particular.ServiceControl", errorQueue: "error", persistenceType: "InMemory", customerName: "TestCustomer", serviceControlVersion: "5.0.1", auditQueues: ["audit"]);
+            var throughputSettings = new ThroughputSettings(broker: Broker.None, serviceControlQueue: "Particular.ServiceControl", errorQueue: "error", persistenceType: "InMemory", transportType: "Learning", customerName: "TestCustomer", serviceControlVersion: "5.0.1", auditQueues: ["audit"]);
             setThroughputSettings(throughputSettings);
 
             var serviceCollection = new ServiceCollection();

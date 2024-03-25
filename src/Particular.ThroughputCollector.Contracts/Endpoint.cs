@@ -13,6 +13,6 @@ public record Endpoint(EndpointIdentifier Id)
     public string[] EndpointIndicators { get; set; }
     public string UserIndicator { get; set; }
     public string? Scope { get; set; }
-    public List<EndpointThroughput> DailyThroughput { get; set; } = [];
+    public List<EndpointDailyThroughput> DailyThroughput { get; set; } = [];
     public DateOnly LastCollectedDate { get; set; }
 }
