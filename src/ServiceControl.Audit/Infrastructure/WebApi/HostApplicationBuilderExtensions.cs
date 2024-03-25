@@ -32,8 +32,7 @@
         {
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
-            var persistence = persistenceConfiguration.Create(persistenceSettings);
-            persistence.ConfigureInstaller(builder.Services);
+            builder.Services.AddInstaller(persistenceSettings, persistenceConfiguration);
         }
     }
 }

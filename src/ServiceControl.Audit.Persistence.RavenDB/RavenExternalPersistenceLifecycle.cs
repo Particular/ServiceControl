@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDB
+﻿#nullable enable
+
+namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System;
     using System.Threading;
@@ -23,7 +25,7 @@
             var store = new DocumentStore
             {
                 Database = configuration.Name,
-                Urls = new[] { configuration.ServerConfiguration.ConnectionString },
+                Urls = [configuration.ServerConfiguration.ConnectionString],
                 Conventions = new DocumentConventions
                 {
                     SaveEnumsAsIntegers = true
@@ -38,11 +40,11 @@
             documentStore = store.Initialize();
 
             var databaseSetup = new DatabaseSetup(configuration);
-            await databaseSetup.Execute(store, cancellationToken).ConfigureAwait(false);
+            await databaseSetup.Execute(store, cancellationToken);
         }
 
         public void Dispose() => documentStore?.Dispose();
 
-        IDocumentStore documentStore;
+        IDocumentStore? documentStore;
     }
 }

@@ -1,48 +1,42 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using Persistence.UnitOfWork;
     using RavenDB.CustomChecks;
     using UnitOfWork;
 
     class RavenPersistence(DatabaseConfiguration databaseConfiguration) : IPersistence
     {
-        public void Configure(IServiceCollection services)
+        public void AddPersistence(IServiceCollection services)
         {
-            services.AddSingleton(databaseConfiguration);
+            ConfigureLifecycle(services, databaseConfiguration);
+
             services.AddSingleton<IRavenSessionProvider, RavenSessionProvider>();
             services.AddSingleton<IAuditDataStore, RavenAuditDataStore>();
             services.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenAuditIngestionUnitOfWorkFactory>();
             services.AddSingleton<IFailedAuditStorage, RavenFailedAuditStorage>();
             services.AddSingleton<CheckMinimumStorageRequiredForAuditIngestion.State>();
-
-            ConfigureLifecycle(services);
         }
 
-        public void ConfigureInstaller(IServiceCollection services)
+        public void AddInstaller(IServiceCollection services) => ConfigureLifecycle(services, databaseConfiguration);
+
+        static void ConfigureLifecycle(IServiceCollection services, DatabaseConfiguration databaseConfiguration)
         {
             services.AddSingleton(databaseConfiguration);
-            services.AddHostedService<RavenInstaller>();
+            services.AddHostedService<RavenPersistenceLifecycleHostedService>();
 
-            ConfigureLifecycle(services);
-        }
-
-        void ConfigureLifecycle(IServiceCollection services)
-        {
             var serverConfiguration = databaseConfiguration.ServerConfiguration;
-
             if (serverConfiguration.UseEmbeddedServer)
             {
                 // Installer scenarios do not use the host and do not have a lifetime
                 services.AddSingleton<RavenEmbeddedPersistenceLifecycle>();
-                services.AddSingleton<IPersistenceLifecycle>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
+                services.AddSingleton<IRavenPersistenceLifecycle>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
                 services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
                 return;
             }
 
             services.AddSingleton<RavenExternalPersistenceLifecycle>();
-            services.AddSingleton<IPersistenceLifecycle>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
+            services.AddSingleton<IRavenPersistenceLifecycle>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
             services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
         }
     }

@@ -15,13 +15,8 @@
     using ServiceControl.Audit.Persistence.RavenDB.Indexes;
     using ServiceControl.SagaAudit;
 
-    class DatabaseSetup
+    class DatabaseSetup(DatabaseConfiguration configuration)
     {
-        public DatabaseSetup(DatabaseConfiguration configuration)
-        {
-            this.configuration = configuration;
-        }
-
         public async Task Execute(IDocumentStore documentStore, CancellationToken cancellationToken)
         {
             try
@@ -86,7 +81,5 @@
                 await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("SagaDetailsIndex"), cancellationToken);
             }
         }
-
-        readonly DatabaseConfiguration configuration;
     }
 }

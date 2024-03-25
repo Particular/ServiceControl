@@ -5,7 +5,6 @@
     using LicenseManagement;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
-    using Persistence;
     using Settings;
     using Transports;
     using WebApi;
@@ -49,8 +48,9 @@
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControlAuditInstallers(settings);
 
-            var host = hostBuilder.Build();
-            await host.RunAsync();
+            using var host = hostBuilder.Build();
+            await host.StartAsync();
+            await host.StopAsync();
         }
 
         bool ValidateLicense(Settings settings)

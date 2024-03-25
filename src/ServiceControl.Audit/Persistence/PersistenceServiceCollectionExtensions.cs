@@ -9,9 +9,15 @@ namespace ServiceControl.Audit.Persistence
             IPersistenceConfiguration persistenceConfiguration)
         {
             var persistence = persistenceConfiguration.Create(persistenceSettings);
-            persistence.Configure(services);
+            persistence.AddPersistence(services);
+        }
 
-            services.AddHostedService<PersistenceLifecycleHostedService>();
+        public static void AddInstaller(this IServiceCollection services,
+            PersistenceSettings persistenceSettings,
+            IPersistenceConfiguration persistenceConfiguration)
+        {
+            var persistence = persistenceConfiguration.Create(persistenceSettings);
+            persistence.AddInstaller(services);
         }
     }
 }

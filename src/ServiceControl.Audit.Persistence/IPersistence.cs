@@ -4,8 +4,8 @@
 
     public interface IPersistence
     {
-        void Configure(IServiceCollection services);
+        void AddPersistence(IServiceCollection services);
 
-        void ConfigureInstaller(IServiceCollection services);
+        void AddInstaller(IServiceCollection services);
     }
 }

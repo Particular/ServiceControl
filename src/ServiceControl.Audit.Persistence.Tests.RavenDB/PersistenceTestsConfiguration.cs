@@ -54,8 +54,8 @@
             }
 
             var persistence = config.Create(persistenceSettings);
-            persistence.Configure(hostBuilder.Services);
-            persistence.ConfigureInstaller(hostBuilder.Services);
+            persistence.AddPersistence(hostBuilder.Services);
+            persistence.AddInstaller(hostBuilder.Services);
 
             host = hostBuilder.Build();
             await host.StartAsync();
