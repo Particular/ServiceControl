@@ -12,7 +12,7 @@
         public bool IsCommercialLicense { get; private set; }
         public bool IsExtendedTrial { get; private set; }
         public string LicenseType { get; private set; }
-        public string Edition { get; set; }
+        public string Edition { get; private set; }
         public string RegisteredTo { get; private set; }
         public bool ValidForServiceControl { get; private set; }
         public int? DaysUntilSubscriptionExpires { get; private set; }
@@ -23,9 +23,12 @@
         public bool WarnUserSubscriptionHasExpired { get; private set; }
         public bool WarnUserUpgradeProtectionIsExpiring { get; private set; }
         public bool WarnUserUpgradeProtectionHasExpired { get; private set; }
+        public string Status { get; private set; }
 
         internal static LicenseDetails FromLicense(License license)
         {
+            LicenseStatus licenseStatus = license.GetLicenseStatus();
+
             var details = new LicenseDetails
             {
                 UpgradeProtectionExpiration = license.UpgradeProtectionExpiration,
@@ -41,10 +44,11 @@
                 Edition = license.Edition,
                 ValidForServiceControl = license.ValidForApplication("ServiceControl"),
                 DaysUntilSubscriptionExpires = license.GetDaysUntilLicenseExpires(),
-                DaysUntilUpgradeProtectionExpires = license.GetDaysUntilUpgradeProtectionExpires()
+                DaysUntilUpgradeProtectionExpires = license.GetDaysUntilUpgradeProtectionExpires(),
+                Status = licenseStatus.ToString()
             };
 
-            switch (license.GetLicenseStatus())
+            switch (licenseStatus)
             {
                 case LicenseStatus.Valid:
                     break;
@@ -77,15 +81,9 @@
             return details;
         }
 
-        public bool HasLicenseExpired()
-        {
-            return ExpirationDate.HasValue && HasLicenseDateExpired(ExpirationDate.Value);
-        }
+        public bool HasLicenseExpired() => ExpirationDate.HasValue && HasLicenseDateExpired(ExpirationDate.Value);
 
-        public bool ReleaseNotCoveredByMaintenance(DateTime buildTimeStamp)
-        {
-            return buildTimeStamp > UpgradeProtectionExpiration;
-        }
+        public bool ReleaseNotCoveredByMaintenance(DateTime buildTimeStamp) => buildTimeStamp > UpgradeProtectionExpiration;
 
         static bool HasLicenseDateExpired(DateTime licenseDate)
         {
