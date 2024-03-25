@@ -239,7 +239,7 @@ class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettin
         new KeyDescriptionPair(RabbitMQSettings.Password, RabbitMQSettings.PasswordDescription)
     ];
     public Dictionary<string, string> Data { get; } = [];
-    public string MessageTransport => "SqlTransport";
+    public string MessageTransport => "RabbitMQ";
 
     static class RabbitMQSettings
     {
