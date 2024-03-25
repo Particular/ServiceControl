@@ -2,19 +2,14 @@
 {
     public class DetectedLicense
     {
-        public DetectedLicense()
-        {
-            Details = new LicenseDetails();
-        }
-
-        public DetectedLicense(string licensePath, LicenseDetails details) : this()
+        public DetectedLicense(string licensePath, LicenseDetails details)
         {
             Location = licensePath;
             Details = details;
         }
 
-        public string Location { get; set; }
-        public LicenseDetails Details;
-        public bool IsEvaluationLicense { get; set; }
+        public string Location { get; }
+        public LicenseDetails Details { get; }
+        public bool IsEvaluationLicense { get; init; }
     }
 }
