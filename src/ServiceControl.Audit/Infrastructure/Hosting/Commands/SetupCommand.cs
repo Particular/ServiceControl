@@ -8,6 +8,7 @@
     using Persistence;
     using Settings;
     using Transports;
+    using WebApi;
 
     class SetupCommand : AbstractCommand
     {
@@ -46,13 +47,9 @@
             EventSource.Create();
 
             var hostBuilder = Host.CreateApplicationBuilder();
-            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
-            var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
-            var persistence = persistenceConfiguration.Create(persistenceSettings);
-            persistence.ConfigureInstaller(hostBuilder.Services);
+            hostBuilder.AddServiceControlAuditInstallers(settings);
 
             var host = hostBuilder.Build();
-
             await host.RunAsync();
         }
 
