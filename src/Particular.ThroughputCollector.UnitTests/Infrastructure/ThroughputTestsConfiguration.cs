@@ -18,7 +18,7 @@
 
         public Task Configure(Action<ThroughputSettings> setThroughputSettings)
         {
-            var throughputSettings = new ThroughputSettings(broker: Broker.None, serviceControlQueue: "Particular.ServiceControl", errorQueue: "error", persistenceType: "InMemory", customerName: "TestCustomer", serviceControlVersion: "5.0.1", auditQueue: "audit");
+            var throughputSettings = new ThroughputSettings(broker: Broker.None, serviceControlQueue: "Particular.ServiceControl", errorQueue: "error", persistenceType: "InMemory", customerName: "TestCustomer", serviceControlVersion: "5.0.1", auditQueues: ["audit"]);
             setThroughputSettings(throughputSettings);
 
             var serviceCollection = new ServiceCollection();
@@ -26,7 +26,7 @@
 
             var config = new InMemoryPersistenceConfiguration();
             var settings = new PersistenceSettings();
-            settings.PlatformEndpointNames.Add(throughputSettings.AuditQueue);
+            throughputSettings.AuditQueues.ForEach(a => settings.PlatformEndpointNames.Add(a));
             settings.PlatformEndpointNames.Add(throughputSettings.ErrorQueue);
             settings.PlatformEndpointNames.Add(throughputSettings.ServiceControlQueue);
             serviceCollection.AddSingleton(settings);
