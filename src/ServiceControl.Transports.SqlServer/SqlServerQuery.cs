@@ -108,7 +108,7 @@ class SqlServerQuery(TimeProvider timeProvider, TransportSettings transportSetti
         new KeyDescriptionPair(SqlServerSettings.AdditionalCatalogs, SqlServerSettings.AdditionalCatalogsDescription)
     ];
     public Dictionary<string, string> Data { get; } = [];
-    public string MessageTransport => "RabbitMQ";
+    public string MessageTransport => "SqlTransport";
 
     static class SqlServerSettings
     {
