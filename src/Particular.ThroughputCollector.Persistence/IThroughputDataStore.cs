@@ -15,7 +15,7 @@ public interface IThroughputDataStore
 
     Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken = default);
 
-    Task RecordEndpointThroughput(EndpointIdentifier id, IEnumerable<EndpointThroughput> throughput, CancellationToken cancellationToken = default);
+    Task RecordEndpointThroughput(EndpointIdentifier id, IEnumerable<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default);
 
     Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator);
 

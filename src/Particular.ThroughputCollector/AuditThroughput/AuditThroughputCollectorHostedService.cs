@@ -82,7 +82,7 @@ class AuditThroughputCollectorHostedService(
             var missingAuditThroughput = auditCounts
                 .Where(auditCount => auditCount.UtcDate > endpoint.LastCollectedDate &&
                                      auditCount.UtcDate < DateOnly.FromDateTime(DateTime.UtcNow))
-                .Select(auditCount => new EndpointThroughput
+                .Select(auditCount => new EndpointDailyThroughput
                 {
                     DateUTC = auditCount.UtcDate,
                     TotalThroughput = auditCount.Count
@@ -98,7 +98,7 @@ class AuditThroughputCollectorHostedService(
             SanitizedName = EndpointNameSanitizer.SanitizeEndpointName(scEndpoint.Name, throughputSettings.Broker),
             EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()],
             DailyThroughput = auditCounts.Any()
-                            ? auditCounts.Select(c => new EndpointThroughput { DateUTC = c.UtcDate, TotalThroughput = c.Count }).ToList()
+                            ? auditCounts.Select(c => new EndpointDailyThroughput { DateUTC = c.UtcDate, TotalThroughput = c.Count }).ToList()
                             : []
         };
 

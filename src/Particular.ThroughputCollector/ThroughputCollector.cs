@@ -1,5 +1,6 @@
 ﻿namespace Particular.ThroughputCollector
 {
+    using System.Threading.Tasks;
     using AuditThroughput;
     using Contracts;
     using Particular.ThroughputCollector.Shared;
@@ -85,37 +86,88 @@
 
         public async Task<SignedReport> GenerateThroughputReport(string? prefix, string[]? masks, string? spVersion)
         {
-            //TODO
+            CreateMasks(masks);
 
-            //get ones with prefix only - add ones without the prefix into IgnoredQueues
+            var endpoints = await dataStore.GetAllEndpoints(false);
+            var endpointThroughputs = new List<Contracts.QueueThroughput>();
+            List<string> ignoredQueueNames = [];
 
-            //generate masks and mask the names
+            //group endpoints by sanitized name - so to group throughput recorded from broker, audit and monitoring
+            foreach (var endpoint in endpoints.GroupBy(g => g.SanitizedName))
+            {
+                //want to display the endpoint name if it's different to the sanitized endpoint name
+                var queueName = endpoint.Any(w => w.Id.Name != w.SanitizedName) ? endpoint.First(w => w.Id.Name != w.SanitizedName).Id.Name : endpoint.Key;
 
-            //get all data that we have, including daily values
+                //get ones with prefix only - add ones without the prefix into IgnoredQueues
+                if (!string.IsNullOrEmpty(prefix) && queueName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    //get all data that we have, including daily values
+                    var endpointThroghput = new Contracts.QueueThroughput
+                    {
+                        QueueName = Mask(queueName),
+                        UserIndicator = UserIndicator(endpoint) ?? string.Empty,
+                        EndpointIndicators = EndpointIndicators(endpoint) ?? [],
+                        NoDataOrSendOnly = NoDataOrSendOnly(endpoint),
+                        Scope = EndpointScope(endpoint),
+                        Throughput = MaxDailyThroughput(endpoint) ?? 0,
+                        DailyThroughputFromAudit = AuditThroughput(endpoint),
+                        DailyThroughputFromMonitoring = MonitoringThroughput(endpoint),
+                        DailyThroughputFromBroker = BrokerThroughput(endpoint)
+                    };
+
+                    endpointThroughputs.Add(endpointThroghput);
+                }
+                else
+                {
+                    ignoredQueueNames.Add(Mask(queueName));
+                }
+            }
 
             var brokerData = await dataStore.GetBrokerData(throughputSettings.Broker);
 
+            var yesterday = DateTime.UtcNow.Date.AddDays(-1);
             var report = new Report
             {
-                EndTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(-1), TimeSpan.Zero),
+                EndTime = new DateTimeOffset(yesterday, TimeSpan.MaxValue),
                 ReportDuration = TimeSpan.FromDays(1),
                 CustomerName = throughputSettings.CustomerName, //who the license is registeredTo
-                ReportMethod = Mask("TODO"),
+                ReportMethod = "", //TODO  brokerData?.Data?.ContainsKey("ReportMethod") == true ? Mask(brokerData?.Data?["ReportMethod"].ToString()) : "ServiceControl API",
                 ScopeType = brokerData?.ScopeType ?? "",
                 Prefix = prefix,
-                //MessageTransport = brokerData?.MessageTransport ?? "",
-                MessageTransport = throughputSettings.Broker.ToString(),// "TODO",
+                MessageTransport = throughputQuery?.MessageTransport ?? throughputSettings.TransportType,
                 ToolVersion = "N/A", //TODO ensure we check for this on the other side - ie that we can process N/A
-                ServiceControlVersion = throughputSettings.ServiceControlVersion
+                ServiceControlVersion = throughputSettings.ServiceControlVersion,
+                ServicePulseVersion = spVersion ?? "",
+                IgnoredQueues = ignoredQueueNames.ToArray(),
+                Queues = endpointThroughputs.ToArray(),
+                TotalQueues = endpointThroughputs.Count(),
+                TotalThroughput = endpointThroughputs.Sum(q => q.Throughput ?? 0),
             };
 
-            //TODO this will be the date of the first throughput that we have received
-            //report.StartTime = 
+            //this will be the date of the first throughput that we have received
+            var firstAuditThroughputDate = endpointThroughputs.SelectMany(w => w.DailyThroughputFromAudit).MinBy(m => m.DateUTC)?.DateUTC.ToDateTime(TimeOnly.MinValue) ?? yesterday.AddDays(-1);
+            var firstMonitoringThroughputDate = endpointThroughputs.SelectMany(w => w.DailyThroughputFromMonitoring).MinBy(m => m.DateUTC)?.DateUTC.ToDateTime(TimeOnly.MinValue) ?? yesterday.AddDays(-1);
+            var firstBrokerThroughputDate = endpointThroughputs.SelectMany(w => w.DailyThroughputFromBroker).MinBy(m => m.DateUTC)?.DateUTC.ToDateTime(TimeOnly.MinValue) ?? yesterday.AddDays(-1);
+            report.StartTime = new DateTimeOffset(new[] { firstAuditThroughputDate, firstMonitoringThroughputDate, firstBrokerThroughputDate }.Min(), TimeSpan.Zero);
 
             var throughputReport = new SignedReport() { ReportData = report, Signature = GetSignature() };
             return await Task.FromResult(throughputReport);
         }
 
+        void CreateMasks(string[]? wordsToMask)
+        {
+            if (wordsToMask != null)
+            {
+                var number = 0;
+                masks = wordsToMask
+                    .Select(mask =>
+                    {
+                        number++;
+                        return (mask, $"REDACTED{number}");
+                    })
+                    .ToArray();
+            }
+        }
 
         string Mask(string stringToMask)
         {
@@ -134,10 +186,16 @@
 
         string? UserIndicator(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => string.IsNullOrEmpty(s.UserIndicator))?.UserIndicator;
 
+        string? EndpointScope(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => string.IsNullOrEmpty(s.Scope))?.Scope;
         bool IsKnownEndpoint(IGrouping<string, Endpoint> endpoint) => endpoint.Any(s => s.EndpointIndicators != null && s.EndpointIndicators.Contains(EndpointIndicator.KnownEndpoint.ToString()));
 
-        //get the max throughput recorded for the endpoints - shouldn't matter where it comes from (ie broker or service control)
+        bool NoDataOrSendOnly(IGrouping<string, Endpoint> endpoint) => endpoint.All(a => a.DailyThroughput.Sum(s => s.TotalThroughput) == 0);
+        string[] EndpointIndicators(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.EndpointIndicators.Any()).SelectMany(s => s.EndpointIndicators).Distinct().ToArray();
+        EndpointDailyThroughput[] AuditThroughput(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.Id.ThroughputSource == ThroughputSource.Audit).SelectMany(s => s.DailyThroughput).ToArray();
+        EndpointDailyThroughput[] MonitoringThroughput(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.Id.ThroughputSource == ThroughputSource.Monitoring).SelectMany(s => s.DailyThroughput).ToArray();
+        EndpointDailyThroughput[] BrokerThroughput(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.Id.ThroughputSource == ThroughputSource.Broker).SelectMany(s => s.DailyThroughput).ToArray();
 
+        //get the max throughput recorded for the endpoints - shouldn't matter where it comes from (ie broker or service control)
         long? MaxDailyThroughput(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.DailyThroughput != null).SelectMany(s => s.DailyThroughput).MaxBy(m => m.TotalThroughput)?.TotalThroughput;
 
         //bool ThroughputExistsForThisPeriod(IGrouping<string, Endpoint> endpoint, int days) => endpoint.Where(w => w.DailyThroughput != null).SelectMany(s => s.DailyThroughput).Any(m => m.DateUTC <= DateTime.UtcNow && m.DateUTC >= DateTime.UtcNow.AddDays(-days));
