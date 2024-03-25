@@ -3,9 +3,9 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using global::ServiceControl.Infrastructure.BackgroundTasks;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
+    using ServiceControl.Infrastructure.BackgroundTasks;
 
     class LicenseCheckHostedService(ActiveLicense activeLicense, IAsyncTimer scheduler) : IHostedService
     {
@@ -16,7 +16,7 @@
             {
                 activeLicense.Refresh();
                 return ScheduleNextExecutionTask;
-            }, due, due, ex => { Logger.Error("Unhandled error while refreshing the license.", ex); });
+            }, due, due, ex => Logger.Error("Unhandled error while refreshing the license.", ex));
             return Task.CompletedTask;
         }
 

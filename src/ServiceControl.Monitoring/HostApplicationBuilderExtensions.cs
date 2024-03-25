@@ -18,6 +18,7 @@ using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Features;
 using NServiceBus.Transport;
 using QueueLength;
+using ServiceControl.Monitoring.Infrastructure.BackgroundTasks;
 using Timings;
 using Transports;
 
@@ -64,6 +65,8 @@ public static class HostApplicationBuilderExtensions
 
         ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, settings);
         hostBuilder.UseNServiceBus(endpointConfiguration);
+
+        hostBuilder.AddAsyncTimer();
     }
 
     static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, Settings settings)

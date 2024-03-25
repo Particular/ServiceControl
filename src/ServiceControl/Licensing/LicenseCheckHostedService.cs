@@ -16,7 +16,7 @@
             {
                 activeLicense.Refresh();
                 return ScheduleNextExecutionTask;
-            }, due, due, ex => { Logger.Error("Unhandled error while refreshing the license.", ex); });
+            }, due, due, ex => Logger.Error("Unhandled error while refreshing the license.", ex));
             return Task.CompletedTask;
         }
 
