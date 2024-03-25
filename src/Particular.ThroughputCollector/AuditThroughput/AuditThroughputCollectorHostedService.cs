@@ -17,11 +17,11 @@ class AuditThroughputCollectorHostedService(
     TimeProvider timeProvider) : BackgroundService
 {
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation($"Starting {nameof(AuditThroughputCollectorHostedService)}");
 
-        await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken);
+        await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken);
 
         using PeriodicTimer timer = new(TimeSpan.FromDays(1), timeProvider);
 
@@ -31,13 +31,13 @@ class AuditThroughputCollectorHostedService(
             {
                 try
                 {
-                    await GatherThroughput(stoppingToken);
+                    await GatherThroughput(cancellationToken);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     logger.LogError(ex, "Failed to gather throughput from audit");
                 }
-            } while (await timer.WaitForNextTickAsync(stoppingToken));
+            } while (await timer.WaitForNextTickAsync(cancellationToken));
         }
         catch (OperationCanceledException)
         {
