@@ -39,7 +39,7 @@ public static class ThroughputCollectorHostBuilderExtensions
                 break;
         }
 
-        services.AddSingleton(provider => new ThroughputSettings(broker, serviceControlQueue, errorQueue, persistenceType, customerName, serviceControlVersion,
+        services.AddSingleton(provider => new ThroughputSettings(broker, serviceControlQueue, errorQueue, persistenceType, transportType, customerName, serviceControlVersion,
             AuditCommands.GetAuditRemotes(provider.GetRequiredService<IConfigurationApi>()).Result?.SelectMany(s => s.Queues)?.ToList() ?? [])
         );
         services.AddHostedService<AuditThroughputCollectorHostedService>();
