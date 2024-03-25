@@ -86,13 +86,15 @@
 
             //get all data that we have, including daily values
 
+            var brokerData = await dataStore.GetBrokerData(throughputSettings.Broker);
+
             var report = new Report
             {
                 EndTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(-1), TimeSpan.Zero),
                 ReportDuration = TimeSpan.FromDays(1),
                 CustomerName = throughputSettings.CustomerName, //who the license is registeredTo
                 ReportMethod = Mask("TODO"),
-                ScopeType = "TODO",
+                ScopeType = brokerData?.ScopeType ?? "",
                 Prefix = prefix,
                 MessageTransport = throughputSettings.Broker.ToString(),// "TODO",
                 ToolVersion = "1",
