@@ -34,7 +34,7 @@
                 UpgradeProtectionExpiration = license.UpgradeProtectionExpiration,
                 //If expiration date is greater that 50 years treat is as no expiration date
                 ExpirationDate = license.ExpirationDate.HasValue
-                    ? (license.ExpirationDate.Value > DateTime.UtcNow.AddYears(50) ? null : license.ExpirationDate)
+                    ? license.ExpirationDate.Value > DateTime.UtcNow.AddYears(50) ? null : license.ExpirationDate
                     : license.ExpirationDate,
                 RegisteredTo = license.RegisteredTo,
                 IsCommercialLicense = license.IsCommercialLicense,
