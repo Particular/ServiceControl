@@ -82,7 +82,7 @@ namespace Particular.ServiceControl
             // directly and to make things more complex of course the order of registration still matters ;)
             services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
-            hostBuilder.AddLicenseCheck();
+            services.AddLicenseCheck();
             services.AddPersistence(settings);
             services.AddMetrics(settings.PrintMetrics);
 

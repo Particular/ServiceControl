@@ -1,11 +1,11 @@
-﻿namespace Particular.ServiceControl.Licensing
+﻿namespace ServiceControl.Monitoring.Licensing
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using global::ServiceControl.Infrastructure.BackgroundTasks;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
+    using ServiceControl.Infrastructure.BackgroundTasks;
 
     class LicenseCheckHostedService(ActiveLicense activeLicense, IAsyncTimer scheduler) : IHostedService
     {

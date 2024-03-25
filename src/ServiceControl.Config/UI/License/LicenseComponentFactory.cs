@@ -4,18 +4,18 @@
     using System.Linq;
     using ServiceControl.LicenseManagement;
 
-    class LicenseComponentFactory
+    static class LicenseComponentFactory
     {
         const string UpgradeProtectionLicenseText = "Please extend your upgrade protection so that we can continue to provide you with support and new versions of the Particular Service Platform.";
         const string SubscriptionLicenseText = "Please extend your license to continue using the Particular Service Platform.";
 
-        CountInflector daysInflector = new CountInflector
+        static readonly CountInflector DaysInflector = new()
         {
             Singular = "{0} day",
             Plural = "{0} days"
         };
 
-        public IEnumerable<LicenseComponent> CreateComponents(LicenseDetails details)
+        public static IEnumerable<LicenseComponent> CreateComponents(LicenseDetails details)
         {
             yield return new LicenseComponent
             {
@@ -38,7 +38,7 @@
             }
         }
 
-        LicenseComponent SubscriptionExpiryComponent(LicenseDetails details)
+        static LicenseComponent SubscriptionExpiryComponent(LicenseDetails details)
         {
             if (details.WarnUserSubscriptionHasExpired || details.WarnUserTrialHasExpired)
             {
@@ -54,7 +54,7 @@
 
             if (details.WarnUserSubscriptionIsExpiring || details.WarnUserTrialIsExpiring)
             {
-                var daysRemain = daysInflector.Inflect(details.DaysUntilSubscriptionExpires ?? 0);
+                var daysRemain = DaysInflector.Inflect(details.DaysUntilSubscriptionExpires ?? 0);
                 return new LicenseComponent
                 {
                     Label = "Platform license expiry date:",
@@ -72,7 +72,7 @@
             };
         }
 
-        LicenseComponent UpgradeProtectionExpiryComponent(LicenseDetails details)
+        static LicenseComponent UpgradeProtectionExpiryComponent(LicenseDetails details)
         {
             if (details.WarnUserUpgradeProtectionHasExpired)
             {
@@ -88,7 +88,7 @@
 
             if (details.WarnUserUpgradeProtectionIsExpiring)
             {
-                var daysRemain = daysInflector.Inflect(details.DaysUntilUpgradeProtectionExpires ?? 0);
+                var daysRemain = DaysInflector.Inflect(details.DaysUntilUpgradeProtectionExpires ?? 0);
                 return new LicenseComponent
                 {
                     Label = "Upgrade protection expiry date:",
