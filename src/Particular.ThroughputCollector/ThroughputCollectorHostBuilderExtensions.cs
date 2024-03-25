@@ -5,11 +5,12 @@ using BrokerThroughput;
 using Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ServiceControl.Api;
 using WebApi;
 
 public static class ThroughputCollectorHostBuilderExtensions
 {
-    public static IHostApplicationBuilder AddThroughputCollector(this IHostApplicationBuilder hostBuilder, string transportType, string errorQueue, string serviceControlQueue, string auditQueue, string persistenceType, string customerName, string serviceControlVersion)
+    public static IHostApplicationBuilder AddThroughputCollector(this IHostApplicationBuilder hostBuilder, string transportType, string errorQueue, string serviceControlQueue, string persistenceType, string customerName, string serviceControlVersion)
     {
         //For testing only until RavenDB Persistence is working
         persistenceType = "InMemory";
@@ -38,7 +39,9 @@ public static class ThroughputCollectorHostBuilderExtensions
                 break;
         }
 
-        services.AddSingleton(new ThroughputSettings(broker, serviceControlQueue, errorQueue, persistenceType, customerName, serviceControlVersion, auditQueue));
+        services.AddSingleton(provider => new ThroughputSettings(broker, serviceControlQueue, errorQueue, persistenceType, customerName, serviceControlVersion,
+            AuditCommands.GetAuditRemotes(provider.GetRequiredService<IConfigurationApi>()).Result?.SelectMany(s => s.Queues)?.ToList() ?? [])
+        );
         services.AddHostedService<AuditThroughputCollectorHostedService>();
         services.AddSingleton<IThroughputCollector, ThroughputCollector>();
         services.AddSingleton<ThroughputController>();

@@ -110,7 +110,7 @@ internal class BrokerThroughputCollectorHostedService(
 
     private bool IgnoreQueue(string queueName)
     {
-        if (queueName.Equals(throughputSettings.AuditQueue, StringComparison.OrdinalIgnoreCase))
+        if (throughputSettings.AuditQueues.Any(a => a.Equals(queueName, StringComparison.OrdinalIgnoreCase)))
         {
             return true;
         }
