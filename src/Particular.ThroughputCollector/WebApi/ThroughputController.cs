@@ -43,9 +43,9 @@
 
         [Route("throughput/settings/info")]
         [HttpGet]
-        public async Task<BrokerSettings> GetThroughputBrokerSettingsInformation()
+        public async Task<ThroughputConnectionSettings> GetThroughputSettingsInformation()
         {
-            return await throughputCollector.GetBrokerSettingsInformation();
+            return await throughputCollector.GetThroughputConnectionSettingsInformation();
         }
 
         [Route("throughput/settings/test")]

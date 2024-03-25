@@ -2,6 +2,7 @@
 {
     using AuditThroughput;
     using Contracts;
+    using Particular.ThroughputCollector.Shared;
     using Persistence;
     using ServiceControl.Api;
     using ServiceControl.Transports;
@@ -9,10 +10,16 @@
     public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, IConfigurationApi configurationApi, IThroughputQuery? throughputQuery = null)
         : IThroughputCollector
     {
-        public async Task<BrokerSettings> GetBrokerSettingsInformation()
+        public async Task<ThroughputConnectionSettings> GetThroughputConnectionSettingsInformation()
         {
-            var brokerSettings = new BrokerSettings { Broker = throughputSettings.Broker, Settings = throughputQuery?.Settings.Select(pair => new BrokerSetting(pair.Key, pair.Description)).ToList() ?? [] };
-            return await Task.FromResult(brokerSettings);
+            var throughputConnectionSettings = new ThroughputConnectionSettings
+            {
+                Broker = throughputSettings.Broker,
+                Settings = throughputSettings.Broker != Broker.None
+                    ? throughputQuery?.Settings.Select(pair => new ThroughputConnectionSetting(pair.Key, pair.Description)).ToList() ?? []
+                    : ServiceControlSettings.GetServiceControlConnectionSettings()
+            };
+            return await Task.FromResult(throughputConnectionSettings);
         }
 
         public async Task<ConnectionTestResults> TestConnectionSettings(CancellationToken cancellationToken = default)
@@ -96,8 +103,9 @@
                 ReportMethod = Mask("TODO"),
                 ScopeType = brokerData?.ScopeType ?? "",
                 Prefix = prefix,
+                //MessageTransport = brokerData?.MessageTransport ?? "",
                 MessageTransport = throughputSettings.Broker.ToString(),// "TODO",
-                ToolVersion = "1",
+                ToolVersion = "N/A", //TODO ensure we check for this on the other side - ie that we can process N/A
                 ServiceControlVersion = throughputSettings.ServiceControlVersion
             };
 
