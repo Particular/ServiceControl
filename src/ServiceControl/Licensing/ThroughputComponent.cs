@@ -18,7 +18,6 @@ class ThroughputComponent : ServiceControlComponent
             transportType: TransportManifestLibrary.GetName(settings.TransportType),
             serviceControlQueue: settings.ServiceName,
             errorQueue: settings.ErrorQueue,
-            auditQueue: "?",
             persistenceType: PersistenceManifestLibrary.GetName(settings.PersistenceType),
             customerName: LicenseManager.FindLicense().Details.RegisteredTo,
             serviceControlVersion: ServiceControlVersion.GetFileVersion());

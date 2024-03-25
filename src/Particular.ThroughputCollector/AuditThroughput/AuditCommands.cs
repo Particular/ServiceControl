@@ -42,7 +42,6 @@
 
         public static async Task<List<RemoteInstanceInformation>> GetAuditRemotes(IConfigurationApi configurationApi, CancellationToken cancellationToken = default)
         {
-            // Verify audit instances also have audit counts
             var remotes = await configurationApi.GetRemoteConfigs(cancellationToken);
             var remotesInfo = new List<RemoteInstanceInformation>();
             var valueType = remotes.GetType();
@@ -52,6 +51,7 @@
                 var remoteObjects = (object[])remotes;
                 if (remoteObjects.Length > 0)
                 {
+                    List<string> queues = [];
                     var props = remoteObjects[0].GetType().GetProperties();
 
                     var apiUriProp = props.FirstOrDefault(w => w.Name == "ApiUri");
@@ -69,6 +69,24 @@
                                         dataRetention?.AsObject().TryGetPropertyValue("audit_retention_period", out var auditRetentionPeriod) == true
                                         ? auditRetentionPeriod!.GetValue<string>()
                                         : null;
+
+                            if (config?.AsObject().TryGetPropertyValue("host", out var host) == true &&
+                                        host?.AsObject().TryGetPropertyValue("service_name", out var serviceName) == true)
+                            {
+                                queues.Add(serviceName!.GetValue<string>());
+                            }
+
+                            if (config?.AsObject().TryGetPropertyValue("transport", out var transport) == true)
+                            {
+                                if (transport?.AsObject().TryGetPropertyValue("audit_queue", out var auditQueue) == true)
+                                {
+                                    queues.Add(auditQueue!.GetValue<string>());
+                                }
+                                if (transport?.AsObject().TryGetPropertyValue("audit_log_queue", out var auditLogQueue) == true)
+                                {
+                                    queues.Add(auditLogQueue!.GetValue<string>());
+                                }
+                            }
                         }
 
                         var remoteInstance = new RemoteInstanceInformation
@@ -76,7 +94,8 @@
                             ApiUri = apiUriProp != null ? apiUriProp.GetValue(remote)?.ToString() : "",
                             VersionString = versionProp != null ? versionProp.GetValue(remote)?.ToString() : "",
                             Status = statusProp != null ? statusProp.GetValue(remote)?.ToString() : "",
-                            Retention = TimeSpan.TryParse(retention, out var ts) ? ts : TimeSpan.Zero
+                            Retention = TimeSpan.TryParse(retention, out var ts) ? ts : TimeSpan.Zero,
+                            Queues = queues
                         };
 
                         remoteInstance.SemanticVersion = SemanticVersion.TryParse(remoteInstance.VersionString ?? string.Empty, out var v) ? v : null;
