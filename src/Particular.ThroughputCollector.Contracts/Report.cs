@@ -47,6 +47,8 @@ public class Report
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string[]? IgnoredQueues { get; init; }
+
+    public Dictionary<string, string> EnvironmentData { get; set; }
 }
 
 public class QueueThroughput
