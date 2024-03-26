@@ -6,7 +6,6 @@ using Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ServiceControl.Api;
-using WebApi;
 
 public static class ThroughputCollectorHostBuilderExtensions
 {
@@ -44,7 +43,6 @@ public static class ThroughputCollectorHostBuilderExtensions
         );
         services.AddHostedService<AuditThroughputCollectorHostedService>();
         services.AddSingleton<IThroughputCollector, ThroughputCollector>();
-        services.AddTransient<ThroughputController>();
 
         if (broker != Broker.None)
         {
