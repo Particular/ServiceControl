@@ -134,7 +134,7 @@
                 ScopeType = brokerData?.ScopeType ?? "",
                 Prefix = prefix,
                 MessageTransport = throughputQuery?.MessageTransport ?? throughputSettings.TransportType,
-                ToolVersion = "V3", //TODO ensure we check for this on the other side - ie that we can process V3
+                ToolVersion = "V3", //ensure we check for this on the other side - ie that we can process V3
                 ServiceControlVersion = throughputSettings.ServiceControlVersion,
                 ServicePulseVersion = spVersion ?? "",
                 IgnoredQueues = ignoredQueueNames?.ToArray(),
