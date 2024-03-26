@@ -30,11 +30,7 @@ public abstract class PersistenceTestBase
 
         await TestContext.Out.WriteLineAsync($"Test Database Name: {databaseName}");
 
-        var hostBuilder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
-        {
-            // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
-            EnvironmentName = Environments.Production
-        });
+        var hostBuilder = Host.CreateApplicationBuilder();
 
         embeddedServer = await SharedEmbeddedServer.GetInstance();
 
