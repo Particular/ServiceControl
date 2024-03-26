@@ -9,7 +9,7 @@ using Particular.ThroughputCollector.Contracts;
 using Particular.ThroughputCollector.UnitTests.Infrastructure;
 
 [TestFixture]
-class ThroughputCollector_Indicator_Tests : ThroughputCollectorTestFixture
+class ThroughputCollector_ThroughputSumary_Indicator_Tests : ThroughputCollectorTestFixture
 {
     readonly Broker broker = Broker.AzureServiceBus;
     public override Task Setup()
