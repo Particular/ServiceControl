@@ -9,6 +9,8 @@ using System.Threading;
 public class DefaultQueueName(string queueName) : IQueueName
 {
     public string QueueName { get; } = queueName;
+    public string? Scope { get; } = null;
+    public List<string> EndpointIndicators { get; } = [];
 }
 
 public interface IThroughputQuery
@@ -35,11 +37,11 @@ public class QueueThroughput
 {
     public DateOnly DateUTC { get; set; }
     public long TotalThroughput { get; set; }
-    public string? Scope { get; set; }
-    public string[] EndpointIndicators { get; set; } = [];
 }
 
 public interface IQueueName
 {
     public string QueueName { get; }
+    public string? Scope { get; }
+    public List<string> EndpointIndicators { get; }
 }
