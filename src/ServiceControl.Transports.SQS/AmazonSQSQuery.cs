@@ -98,7 +98,7 @@ class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
         public override bool DisposeHttpClientsAfterUse(IClientConfig clientConfig) => false;
     }
 
-    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateOnly startDate,
+    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var endDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
@@ -117,7 +117,7 @@ class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
             Period = 24 * 60 * 60, // 1 day
             Statistics = ["Sum"],
             Dimensions = [
-                new Dimension { Name = "QueueName", Value = queueName.QueueName }
+                new Dimension { Name = "QueueName", Value = brokerQueue.QueueName }
             ]
         };
 
@@ -133,7 +133,7 @@ class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
         }
     }
 
-    public async IAsyncEnumerable<IQueueName> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<IBrokerQueue> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var request = new ListQueuesRequest
         {
@@ -147,7 +147,7 @@ class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
 
             foreach (var queue in response.QueueUrls.Select(url => url.Split('/')[4]))
             {
-                yield return new DefaultQueueName(queue);
+                yield return new DefaultBrokerQueue(queue);
             }
 
             if (response.NextToken is not null)
