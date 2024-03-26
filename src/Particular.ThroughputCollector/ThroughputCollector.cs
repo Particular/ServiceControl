@@ -99,7 +99,7 @@
                 var queueName = endpoint.Any(w => w.Id.Name != w.SanitizedName) ? endpoint.First(w => w.Id.Name != w.SanitizedName).Id.Name : endpoint.Key;
 
                 //get ones with prefix only - add ones without the prefix into IgnoredQueues
-                if (!string.IsNullOrEmpty(prefix) && queueName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrEmpty(prefix) || (!string.IsNullOrEmpty(prefix) && queueName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
                 {
                     //get all data that we have, including daily values
                     var endpointThroghput = new Contracts.QueueThroughput
@@ -131,11 +131,11 @@
                 EndTime = new DateTimeOffset(yesterday, TimeSpan.MaxValue),
                 ReportDuration = TimeSpan.FromDays(1),
                 CustomerName = throughputSettings.CustomerName, //who the license is registeredTo
-                ReportMethod = "", //TODO  brokerData?.Data?.ContainsKey("ReportMethod") == true ? Mask(brokerData?.Data?["ReportMethod"].ToString()) : "ServiceControl API",
+                ReportMethod = "NA",
                 ScopeType = brokerData?.ScopeType ?? "",
                 Prefix = prefix,
                 MessageTransport = throughputQuery?.MessageTransport ?? throughputSettings.TransportType,
-                ToolVersion = "N/A", //TODO ensure we check for this on the other side - ie that we can process N/A
+                ToolVersion = "V3", //TODO ensure we check for this on the other side - ie that we can process V3
                 ServiceControlVersion = throughputSettings.ServiceControlVersion,
                 ServicePulseVersion = spVersion ?? "",
                 IgnoredQueues = ignoredQueueNames.ToArray(),
@@ -150,7 +150,7 @@
             var firstBrokerThroughputDate = endpointThroughputs.SelectMany(w => w.DailyThroughputFromBroker).MinBy(m => m.DateUTC)?.DateUTC.ToDateTime(TimeOnly.MinValue) ?? yesterday.AddDays(-1);
             report.StartTime = new DateTimeOffset(new[] { firstAuditThroughputDate, firstMonitoringThroughputDate, firstBrokerThroughputDate }.Min(), TimeSpan.Zero);
 
-            var throughputReport = new SignedReport() { ReportData = report, Signature = GetSignature() };
+            var throughputReport = new SignedReport() { ReportData = report, Signature = Signature.SignReport(report) };
             return await Task.FromResult(throughputReport);
         }
 
@@ -179,21 +179,17 @@
             return stringToMask;
         }
 
-        string GetSignature()
-        {
-            return string.Empty; //TODO
-        }
-
         string? UserIndicator(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => string.IsNullOrEmpty(s.UserIndicator))?.UserIndicator;
 
         string? EndpointScope(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => string.IsNullOrEmpty(s.Scope))?.Scope;
         bool IsKnownEndpoint(IGrouping<string, Endpoint> endpoint) => endpoint.Any(s => s.EndpointIndicators != null && s.EndpointIndicators.Contains(EndpointIndicator.KnownEndpoint.ToString()));
+        //bool IsPlatformEndpoint(IGrouping<string, Endpoint> endpoint) => endpoint.Any(s => s.EndpointIndicators != null && s.EndpointIndicators.Contains(EndpointIndicator.PlatformEndpoint.ToString()));
 
         bool NoDataOrSendOnly(IGrouping<string, Endpoint> endpoint) => endpoint.All(a => a.DailyThroughput.Sum(s => s.TotalThroughput) == 0);
         string[] EndpointIndicators(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.EndpointIndicators.Any()).SelectMany(s => s.EndpointIndicators).Distinct().ToArray();
         EndpointDailyThroughput[] AuditThroughput(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.Id.ThroughputSource == ThroughputSource.Audit).SelectMany(s => s.DailyThroughput).ToArray();
         EndpointDailyThroughput[] MonitoringThroughput(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.Id.ThroughputSource == ThroughputSource.Monitoring).SelectMany(s => s.DailyThroughput).ToArray();
-        EndpointDailyThroughput[] BrokerThroughput(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.Id.ThroughputSource == ThroughputSource.Broker).SelectMany(s => s.DailyThroughput).ToArray();
+        EndpointDailyThroughput[] BrokerThroughput(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.Id.ThroughputSource == ThroughputSource.Broker && !w.UserIndicator.Equals(Contracts.UserIndicator.NotNServicebusEndpoint.ToString(), StringComparison.OrdinalIgnoreCase)).SelectMany(s => s.DailyThroughput).ToArray();
 
         //get the max throughput recorded for the endpoints - shouldn't matter where it comes from (ie broker or service control)
         long? MaxDailyThroughput(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.DailyThroughput != null).SelectMany(s => s.DailyThroughput).MaxBy(m => m.TotalThroughput)?.TotalThroughput;

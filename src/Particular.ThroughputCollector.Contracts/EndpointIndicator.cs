@@ -6,5 +6,6 @@ public enum EndpointIndicator
 {
     ConventionalTopologyBinding,
     DelayBinding,
-    KnownEndpoint
+    KnownEndpoint,
+    PlatformEndpoint
 }
