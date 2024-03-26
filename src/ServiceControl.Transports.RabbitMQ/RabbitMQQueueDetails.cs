@@ -4,7 +4,7 @@ namespace ServiceControl.Transports.RabbitMQ;
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
 
-public class RabbitMQQueueDetails(JsonNode token) : IQueueName
+public class RabbitMQBrokerQueueDetails(JsonNode token) : IBrokerQueue
 {
     public string QueueName { get; } = token["name"]!.GetValue<string>();
     public string? Scope => VHost;

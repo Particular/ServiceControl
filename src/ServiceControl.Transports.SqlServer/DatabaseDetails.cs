@@ -95,9 +95,9 @@
             return (string)await cmd.ExecuteScalarAsync(cancellationToken);
         }
 
-        public async Task<List<QueueTableName>> GetTables(CancellationToken cancellationToken = default)
+        public async Task<List<BrokerQueueTable>> GetTables(CancellationToken cancellationToken = default)
         {
-            List<QueueTableName> tables = [];
+            List<BrokerQueueTable> tables = [];
 
             await using var conn = await OpenConnectionAsync(cancellationToken);
             await using var cmd = conn.CreateCommand();
@@ -107,16 +107,16 @@
             {
                 var schema = reader.GetString(0);
                 var name = reader.GetString(1);
-                tables.Add(new QueueTableName(this, schema, name));
+                tables.Add(new BrokerQueueTable(this, schema, name));
             }
 
             return tables;
         }
 
-        public async Task<QueueTableSnapshot> GetSnapshot(QueueTableName queueTableName,
+        public async Task<BrokerQueueTableSnapshot> GetSnapshot(BrokerQueueTable brokerQueueTable,
             CancellationToken cancellationToken = default)
         {
-            var table = new QueueTableSnapshot(queueTableName);
+            var table = new BrokerQueueTableSnapshot(brokerQueueTable);
 
             await using var conn = await OpenConnectionAsync(cancellationToken);
             await using var cmd = conn.CreateCommand();
