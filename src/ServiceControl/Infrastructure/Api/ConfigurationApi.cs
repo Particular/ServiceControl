@@ -14,7 +14,6 @@ using ServiceControl.Api;
 using ServiceControl.Api.Contracts;
 
 class ConfigurationApi(ActiveLicense license,
-    LoggingSettings loggingSettings,
     Settings settings,
     IHttpClientFactory httpClientFactory) : IConfigurationApi
 {
@@ -59,8 +58,8 @@ class ConfigurationApi(ActiveLicense license,
                 settings.ServiceName,
                 Logging = new
                 {
-                    loggingSettings.LogPath,
-                    LoggingLevel = loggingSettings.LoggingLevel.Name,
+                    settings.LoggingSettings.LogPath,
+                    LoggingLevel = settings.LoggingSettings.LogLevel.Name
                 }
             },
             DataRetention = new
@@ -70,7 +69,6 @@ class ConfigurationApi(ActiveLicense license,
             },
             PerformanceTunning = new
             {
-                settings.HttpDefaultConnectionLimit,
                 settings.ExternalIntegrationsDispatchingBatchSize
             },
             PersistenceSettings = settings.PersisterSpecificSettings,
