@@ -92,8 +92,9 @@ class AuditThroughputCollectorHostedService(
         }
     }
 
-    Endpoint ConvertToEndpoint(ServiceControlEndpoint scEndpoint, List<AuditCount> auditCounts) =>
-        new(scEndpoint.Name, ThroughputSource.Audit)
+    Endpoint ConvertToEndpoint(ServiceControlEndpoint scEndpoint, List<AuditCount> auditCounts)
+    {
+        var endpoint = new Endpoint(scEndpoint.Name, ThroughputSource.Audit)
         {
             SanitizedName = EndpointNameSanitizer.SanitizeEndpointName(scEndpoint.Name, throughputSettings.Broker),
             EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()],
@@ -101,6 +102,14 @@ class AuditThroughputCollectorHostedService(
                             ? auditCounts.Select(c => new EndpointDailyThroughput { DateUTC = c.UtcDate, TotalThroughput = c.Count }).ToList()
                             : []
         };
+
+        if (PlatformEndpointIdentifier.IsPlatformEndpoint(scEndpoint.Name, throughputSettings))
+        {
+            endpoint.EndpointIndicators.Append(EndpointIndicator.PlatformEndpoint.ToString());
+        }
+
+        return endpoint;
+    }
 
     async Task VerifyAuditInstances(CancellationToken cancellationToken)
     {
