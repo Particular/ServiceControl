@@ -3,8 +3,8 @@ namespace ServiceControl.Transports.SqlServer;
 
 using System.Collections.Generic;
 
-public class QueueTableName(DatabaseDetails databaseDetails, string tableSchema, string tableName)
-    : IQueueName
+public class BrokerQueueTable(DatabaseDetails databaseDetails, string tableSchema, string tableName)
+    : IBrokerQueue
 {
     public DatabaseDetails DatabaseDetails { get; } = databaseDetails;
     public string Schema { get; } = tableSchema;

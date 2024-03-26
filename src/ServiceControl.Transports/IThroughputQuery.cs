@@ -6,7 +6,9 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Threading;
 
-public class DefaultQueueName(string queueName) : IQueueName
+#pragma warning disable CA1711
+public class DefaultBrokerQueue(string queueName) : IBrokerQueue
+#pragma warning restore CA1711
 {
     public string QueueName { get; } = queueName;
     public string? Scope { get; } = null;
@@ -16,10 +18,10 @@ public class DefaultQueueName(string queueName) : IQueueName
 public interface IThroughputQuery
 {
     void Initialise(FrozenDictionary<string, string> settings);
-    IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateOnly startDate,
+    IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
         CancellationToken cancellationToken);
 
-    IAsyncEnumerable<IQueueName> GetQueueNames(CancellationToken cancellationToken);
+    IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken);
     Dictionary<string, string> Data { get; }
     string MessageTransport { get; }
     string? ScopeType { get; }
@@ -39,7 +41,9 @@ public class QueueThroughput
     public long TotalThroughput { get; set; }
 }
 
-public interface IQueueName
+#pragma warning disable CA1711
+public interface IBrokerQueue
+#pragma warning restore CA1711
 {
     public string QueueName { get; }
     public string? Scope { get; }

@@ -72,10 +72,10 @@ class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThrou
         }
     }
 
-    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateOnly startDate,
+    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        logger.LogInformation($"Gathering metrics for \"{queueName}\" queue");
+        logger.LogInformation($"Gathering metrics for \"{brokerQueue}\" queue");
 
         var endDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
         if (endDate <= startDate)
@@ -83,7 +83,7 @@ class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThrou
             yield break;
         }
 
-        var metrics = await GetMetrics(queueName.QueueName, startDate,
+        var metrics = await GetMetrics(brokerQueue.QueueName, startDate,
             endDate, cancellationToken);
 
         foreach (var metricValue in metrics)
@@ -115,7 +115,7 @@ class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThrou
         return metricValues;
     }
 
-    public async IAsyncEnumerable<IQueueName> GetQueueNames(
+    public async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var subscription = await armClient!.GetDefaultSubscriptionAsync(cancellationToken).ConfigureAwait(false);
@@ -131,7 +131,7 @@ class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThrou
                 await foreach (var queue in serviceBusNamespaceResource.GetServiceBusQueues()
                                    .WithCancellation(cancellationToken))
                 {
-                    yield return new DefaultQueueName(queue.Data.Name);
+                    yield return new DefaultBrokerQueue(queue.Data.Name);
                 }
 
                 yield break;
