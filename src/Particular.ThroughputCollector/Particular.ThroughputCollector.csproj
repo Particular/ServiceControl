@@ -8,6 +8,12 @@
 
   <!-- Needed for build ordering -->
   <Import Project="..\ProjectReferences.Persisters.ThroughputCollector.props" />
+  <ItemGroup>
+    <None Remove="public-key.pem" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="public-key.pem" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="System.Configuration.ConfigurationManager" />

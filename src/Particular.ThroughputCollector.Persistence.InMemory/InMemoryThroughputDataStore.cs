@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Contracts;
 
-class InMemoryThroughputDataStore(PersistenceSettings persistenceSettings) : IThroughputDataStore
+class InMemoryThroughputDataStore() : IThroughputDataStore
 {
     private readonly EndpointCollection endpoints = [];
     private readonly List<BrokerData> brokerData = [];
@@ -17,7 +17,8 @@ class InMemoryThroughputDataStore(PersistenceSettings persistenceSettings) : ITh
     {
         var filteredEndpoints = includePlatformEndpoints
             ? endpoints
-            : endpoints.Where(endpoint => !persistenceSettings.PlatformEndpointNames.Contains(endpoint.Id.Name));
+            : endpoints.Where(endpoint => endpoint.EndpointIndicators == null || !endpoint.EndpointIndicators.Any(a => a.Equals(EndpointIndicator.PlatformEndpoint.ToString(), StringComparison.OrdinalIgnoreCase)));
+        ;
 
         return Task.FromResult(filteredEndpoints);
     }
@@ -52,7 +53,7 @@ class InMemoryThroughputDataStore(PersistenceSettings persistenceSettings) : ITh
         {
             endpoint = new Endpoint(id)
             {
-                DailyThroughput = throughput.ToList()
+                DailyThroughput = throughput.ToList(),
             };
             endpoints.Add(endpoint);
         }
