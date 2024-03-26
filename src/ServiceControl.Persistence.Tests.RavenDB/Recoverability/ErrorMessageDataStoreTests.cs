@@ -4,7 +4,6 @@
     using System.Linq;
     using System.Threading.Tasks;
     using NUnit.Framework;
-    using Raven.Client.Documents;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
     using ServiceControl.Persistence.Infrastructure;
@@ -17,7 +16,6 @@
     {
         IErrorMessageDataStore store;
         FailedMessage processedMessage1, processedMessage2;
-        IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>();
 
         [Test]
         public async Task GetAllMessages()
@@ -67,34 +65,32 @@
 
         async Task GenerateAndSaveFailedMessage()
         {
-            using (var session = DocumentStore.OpenAsyncSession())
+            using var session = DocumentStore.OpenAsyncSession();
+            processedMessage1 = FailedMessageBuilder.Default(m =>
             {
-                processedMessage1 = FailedMessageBuilder.Default(m =>
-                {
-                    m.Id = "1";
-                    m.UniqueMessageId = "a";
-                    m.ProcessingAttempts.First().MessageMetadata["ReceivingEndpoint"].CastTo<EndpointDetails>().Name = "RamonAndTomek";
-                    m.ProcessingAttempts.First().MessageMetadata["CriticalTime"] = TimeSpan.FromSeconds(5);
-                    m.ProcessingAttempts.First().MessageMetadata["TimeSent"] = DateTime.Parse("2023-09-23 00:00:00");
-                    m.ProcessingAttempts.First().MessageId = "MessageId-1";
-                });
+                m.Id = "1";
+                m.UniqueMessageId = "a";
+                m.ProcessingAttempts.First().MessageMetadata["ReceivingEndpoint"].CastTo<EndpointDetails>().Name = "RamonAndTomek";
+                m.ProcessingAttempts.First().MessageMetadata["CriticalTime"] = TimeSpan.FromSeconds(5);
+                m.ProcessingAttempts.First().MessageMetadata["TimeSent"] = DateTime.Parse("2023-09-23 00:00:00");
+                m.ProcessingAttempts.First().MessageId = "MessageId-1";
+            });
 
-                await session.StoreAsync(processedMessage1);
+            await session.StoreAsync(processedMessage1);
 
-                processedMessage2 = FailedMessageBuilder.Default(m =>
-                {
-                    m.Id = "2";
-                    m.UniqueMessageId = "b";
-                    m.ProcessingAttempts.First().MessageMetadata["ReceivingEndpoint"].CastTo<EndpointDetails>().Name = "RamonAndTomek";
-                    m.ProcessingAttempts.First().MessageMetadata["CriticalTime"] = TimeSpan.FromSeconds(15);
-                    m.ProcessingAttempts.First().MessageMetadata["TimeSent"] = DateTime.Parse("2023-09-23 00:01:00");
-                    m.ProcessingAttempts.First().MessageId = "MessageId-2";
-                });
+            processedMessage2 = FailedMessageBuilder.Default(m =>
+            {
+                m.Id = "2";
+                m.UniqueMessageId = "b";
+                m.ProcessingAttempts.First().MessageMetadata["ReceivingEndpoint"].CastTo<EndpointDetails>().Name = "RamonAndTomek";
+                m.ProcessingAttempts.First().MessageMetadata["CriticalTime"] = TimeSpan.FromSeconds(15);
+                m.ProcessingAttempts.First().MessageMetadata["TimeSent"] = DateTime.Parse("2023-09-23 00:01:00");
+                m.ProcessingAttempts.First().MessageId = "MessageId-2";
+            });
 
-                await session.StoreAsync(processedMessage2);
+            await session.StoreAsync(processedMessage2);
 
-                await session.SaveChangesAsync();
-            }
+            await session.SaveChangesAsync();
         }
     }
 }

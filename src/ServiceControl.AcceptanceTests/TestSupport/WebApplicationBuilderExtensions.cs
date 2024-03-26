@@ -5,9 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using ServiceBus.Management.Infrastructure.Settings;
-using TestSupport;
 
 static class WebApplicationBuilderExtensions
 {
@@ -18,7 +16,6 @@ static class WebApplicationBuilderExtensions
         hostBuilder.Logging.AddScenarioContextLogging();
 
         hostBuilder.WebHost.UseTestServer(options => options.BaseAddress = new Uri(settings.RootUrl));
-        hostBuilder.Services.AddSingleton<IHostLifetime, TestServerHostLifetime>();
 
         // This facilitates receiving the test server anywhere where DI is available
         hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());

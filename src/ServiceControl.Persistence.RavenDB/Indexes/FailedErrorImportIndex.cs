@@ -5,16 +5,13 @@
 
     class FailedErrorImportIndex : AbstractIndexCreationTask<FailedErrorImport>
     {
-        public FailedErrorImportIndex()
-        {
+        public FailedErrorImportIndex() =>
             Map = docs =>
 
                 from cc in docs
                 select new FailedErrorImport
                 {
-                    Id = cc.Id,
-                    Message = cc.Message
+                    Id = cc.Id
                 };
-        }
     }
 }

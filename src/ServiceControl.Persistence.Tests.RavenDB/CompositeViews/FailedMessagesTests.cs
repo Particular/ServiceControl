@@ -1,14 +1,12 @@
 ﻿namespace ServiceControl.UnitTests.CompositeViews
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using Contracts.Operations;
     using MessageFailures;
     using MessageFailures.Api;
     using NUnit.Framework;
-    using Raven.Client.Documents;
     using Raven.Client.Documents.Session;
 
     [TestFixture]
@@ -70,7 +68,5 @@
             }
             while (stats.IsStale);
         }
-
-        IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>();
     }
 }

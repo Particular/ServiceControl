@@ -13,7 +13,7 @@
     using NServiceBus.Settings;
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
-    using Raven.Client.Documents;
+    using Persistence.RavenDB;
     using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Session;
     using ServiceControl.Persistence;
@@ -21,14 +21,14 @@
 
     class RavenSubscriptionStorage : IServiceControlSubscriptionStorage
     {
-        public RavenSubscriptionStorage(IDocumentStore store, IReadOnlySettings settings, ReceiveAddresses receiveAddresses) :
-            this(store, settings.EndpointName(), receiveAddresses.MainReceiveAddress, settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())
+        public RavenSubscriptionStorage(IRavenSessionProvider sessionProvider, IReadOnlySettings settings, ReceiveAddresses receiveAddresses) :
+            this(sessionProvider, settings.EndpointName(), receiveAddresses.MainReceiveAddress, settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())
         {
         }
 
-        public RavenSubscriptionStorage(IDocumentStore store, string endpointName, string localAddress, MessageType[] locallyHandledEventTypes)
+        public RavenSubscriptionStorage(IRavenSessionProvider sessionProvider, string endpointName, string localAddress, MessageType[] locallyHandledEventTypes)
         {
-            this.store = store;
+            this.sessionProvider = sessionProvider;
             localClient = new SubscriptionClient
             {
                 Endpoint = endpointName,
@@ -37,18 +37,16 @@
 
             this.locallyHandledEventTypes = locallyHandledEventTypes;
 
-
-            SetSubscriptions(new Subscriptions()).GetAwaiter().GetResult();
+            subscriptions = new Subscriptions();
+            UpdateLookup();
         }
 
         public async Task Initialize()
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                var primeSubscriptions = await LoadSubscriptions(session) ?? await MigrateSubscriptions(session, localClient);
+            using var session = sessionProvider.OpenSession();
+            var primeSubscriptions = await LoadSubscriptions(session) ?? await MigrateSubscriptions(session, localClient);
 
-                await SetSubscriptions(primeSubscriptions);
-            }
+            await SetSubscriptions(primeSubscriptions);
         }
 
         public async Task Subscribe(Subscriber subscriber, MessageType messageType, ContextBag context, CancellationToken cancellationToken)
@@ -150,30 +148,26 @@
 
         async Task SaveSubscriptions()
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId);
-                UpdateLookup();
-                await session.SaveChangesAsync();
-            }
+            using var session = sessionProvider.OpenSession();
+            await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId);
+            UpdateLookup();
+            await session.SaveChangesAsync();
         }
 
-        void UpdateLookup()
-        {
+        void UpdateLookup() =>
             subscriptionsLookup = (from subscription in subscriptions.All.Values
                                    from client in subscription.Subscribers
                                    select new
                                    {
                                        subscription.MessageType,
                                        Subscriber = new Subscriber(client.TransportAddress, client.Endpoint)
-                                   }).Union(from eventType in locallyHandledEventTypes
-                                            select new
-                                            {
-                                                MessageType = eventType,
-                                                Subscriber = new Subscriber(localClient.TransportAddress, localClient.Endpoint)
-                                            }
-            ).ToLookup(x => x.MessageType, x => x.Subscriber);
-        }
+                                   }).Union(
+                                    from eventType in locallyHandledEventTypes
+                                    select new
+                                    {
+                                        MessageType = eventType,
+                                        Subscriber = new Subscriber(localClient.TransportAddress, localClient.Endpoint)
+                                    }).ToLookup(x => x.MessageType, x => x.Subscriber);
 
         string FormatId(MessageType messageType)
         {
@@ -206,7 +200,7 @@
 
         static async Task<Subscriptions> MigrateSubscriptions(IAsyncDocumentSession session, SubscriptionClient localClient)
         {
-            logger.Info("Migrating subscriptions to new format");
+            Logger.Info("Migrating subscriptions to new format");
 
             var subscriptions = new Subscriptions();
 
@@ -225,7 +219,7 @@
             return subscriptions;
         }
 
-        IDocumentStore store;
+        IRavenSessionProvider sessionProvider;
         SubscriptionClient localClient;
         Subscriptions subscriptions;
         ILookup<MessageType, Subscriber> subscriptionsLookup;
@@ -233,7 +227,7 @@
 
         SemaphoreSlim subscriptionsLock = new SemaphoreSlim(1);
 
-        static ILog logger = LogManager.GetLogger<RavenSubscriptionStorage>();
+        static readonly ILog Logger = LogManager.GetLogger<RavenSubscriptionStorage>();
     }
 
     class Subscriptions

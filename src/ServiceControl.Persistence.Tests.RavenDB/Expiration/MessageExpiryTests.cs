@@ -213,7 +213,7 @@
         }
 
         async Task EnableExpiration(int frequency = 1) =>
-            await GetRequiredService<IDocumentStore>().Maintenance.SendAsync(new ConfigureExpirationOperation(
+            await DocumentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(
                 new ExpirationConfiguration
                 {
                     Disabled = false,
@@ -221,7 +221,7 @@
                 }));
 
         async Task DisableExpiration() =>
-            await GetRequiredService<IDocumentStore>().Maintenance.SendAsync(new ConfigureExpirationOperation(new ExpirationConfiguration { Disabled = true }));
+            await DocumentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(new ExpirationConfiguration { Disabled = true }));
 
         [TearDown]
         public async Task Teardown() => await EnableExpiration(60);

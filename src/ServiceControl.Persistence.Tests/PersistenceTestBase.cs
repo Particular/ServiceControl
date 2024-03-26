@@ -55,10 +55,10 @@ public abstract class PersistenceTestBase
         RegisterServices.Invoke(hostBuilder.Services);
 
         host = hostBuilder.Build();
-
-        await GetRequiredService<IPersistenceLifecycle>().Initialize();
-
         await host.StartAsync();
+
+        DocumentStore = host.Services.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore();
+        SessionProvider = host.Services.GetRequiredService<IRavenSessionProvider>();
 
         CompleteDatabaseOperation();
     }
@@ -78,6 +78,9 @@ public abstract class PersistenceTestBase
         get;
         private set;
     }
+
+    protected IDocumentStore DocumentStore { get; private set; }
+    protected IRavenSessionProvider SessionProvider { get; private set; }
 
     protected T GetRequiredService<T>() => host.Services.GetRequiredService<T>();
     protected object GetRequiredService(Type serviceType) => host.Services.GetRequiredService(serviceType);

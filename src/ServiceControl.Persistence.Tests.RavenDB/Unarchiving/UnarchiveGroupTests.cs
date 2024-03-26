@@ -6,15 +6,12 @@
     using NServiceBus.Testing;
     using NUnit.Framework;
     using PersistenceTests;
-    using Raven.Client.Documents;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Recoverability;
 
     [TestFixture]
     class UnarchiveGroupTests : PersistenceTestBase
     {
-        IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>();
-
         public UnarchiveGroupTests() =>
             RegisterServices = services =>
             {

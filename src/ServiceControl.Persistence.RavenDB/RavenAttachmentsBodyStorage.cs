@@ -3,24 +3,19 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using Persistence.RavenDB;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Session;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
 
-    class RavenAttachmentsBodyStorage : IBodyStorage
+    class RavenAttachmentsBodyStorage(IRavenSessionProvider sessionProvider) : IBodyStorage
     {
         public const string AttachmentName = "body";
-        readonly IDocumentStore documentStore;
-
-        public RavenAttachmentsBodyStorage(IDocumentStore documentStore)
-        {
-            this.documentStore = documentStore;
-        }
 
         public async Task<MessageBodyStreamResult> TryFetch(string bodyId)
         {
-            using var session = documentStore.OpenAsyncSession();
+            using var session = sessionProvider.OpenSession();
 
             // BodyId could be a MessageID or a UniqueID, but if a UniqueID then it will be a DeterministicGuid of MessageID and endpoint name and be Guid-parseable
             // This is preferred, then we know we're getting the correct message body that is attached to the FailedMessage document

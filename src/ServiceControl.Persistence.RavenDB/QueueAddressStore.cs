@@ -8,18 +8,11 @@
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Persistence.Infrastructure;
 
-    class QueueAddressStore : IQueueAddressStore
+    class QueueAddressStore(IRavenSessionProvider sessionProvider) : IQueueAddressStore
     {
-        readonly IDocumentStore documentStore;
-
-        public QueueAddressStore(IDocumentStore documentStore)
-        {
-            this.documentStore = documentStore;
-        }
-
         public async Task<QueryResult<IList<QueueAddress>>> GetAddresses(PagingInfo pagingInfo)
         {
-            using var session = documentStore.OpenAsyncSession();
+            using var session = sessionProvider.OpenSession();
             var addresses = await session
                 .Query<QueueAddress, QueueAddressIndex>()
                 .Statistics(out var stats)
@@ -32,7 +25,7 @@
 
         public async Task<QueryResult<IList<QueueAddress>>> GetAddressesBySearchTerm(string search, PagingInfo pagingInfo)
         {
-            using var session = documentStore.OpenAsyncSession();
+            using var session = sessionProvider.OpenSession();
             var failedMessageQueues = await session
                     .Query<QueueAddress, QueueAddressIndex>()
                     .Statistics(out var stats)

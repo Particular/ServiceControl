@@ -20,8 +20,6 @@
     {
         public void AddPersistence(IServiceCollection services)
         {
-            services.AddSingleton<PersistenceSettings>(settings);
-
             ConfigureLifecycle(services);
 
             if (settings.MaintenanceMode)
@@ -74,20 +72,15 @@
             services.AddSingleton<SagaAuditDestinationCustomCheck.State>();
         }
 
-        public void AddInstaller(IServiceCollection services)
-        {
-            ConfigureLifecycle(services);
-
-            // As in intermediate step we are using the hosted service only here to bootstrap the persistence
-            // The production code still uses the custom lifetime which eventually we need to address by
-            // introducing a document store provider similar to what the audit instance does or synchronously
-            // initialize the document store as part of the container wiring.
-            services.AddHostedService<RavenPersistenceLifecycleHostedService>();
-        }
+        public void AddInstaller(IServiceCollection services) => ConfigureLifecycle(services);
 
         void ConfigureLifecycle(IServiceCollection services)
         {
+            services.AddSingleton<PersistenceSettings>(settings);
             services.AddSingleton(settings);
+
+            services.AddSingleton<IRavenSessionProvider, RavenSessionProvider>();
+            services.AddHostedService<RavenPersistenceLifecycleHostedService>();
 
             if (settings.UseEmbeddedServer)
             {
@@ -95,7 +88,7 @@
                 // This binding is only necessary as long as we keep around the custom lifetimes
                 services.AddSingleton<IPersistenceLifecycle>(b => b.GetService<RavenEmbeddedPersistenceLifecycle>());
                 services.AddSingleton<IRavenPersistenceLifecycle>(b => b.GetService<RavenEmbeddedPersistenceLifecycle>());
-                services.AddSingleton(b => b.GetService<RavenEmbeddedPersistenceLifecycle>().GetDocumentStore());
+                services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
                 return;
             }
 
@@ -103,7 +96,7 @@
             // This binding is only necessary as long as we keep around the custom lifetimes
             services.AddSingleton<IPersistenceLifecycle>(b => b.GetService<RavenExternalPersistenceLifecycle>());
             services.AddSingleton<IRavenPersistenceLifecycle>(b => b.GetService<RavenExternalPersistenceLifecycle>());
-            services.AddSingleton(b => b.GetService<RavenExternalPersistenceLifecycle>().GetDocumentStore());
+            services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
         }
     }
 }

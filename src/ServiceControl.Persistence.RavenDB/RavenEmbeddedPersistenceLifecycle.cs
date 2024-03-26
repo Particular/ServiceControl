@@ -12,13 +12,13 @@ namespace ServiceControl.Persistence.RavenDB
     using Raven.Client.Exceptions.Database;
 
     sealed class RavenEmbeddedPersistenceLifecycle(RavenPersisterSettings databaseConfiguration, IHostApplicationLifetime? lifetime)
-        : IRavenPersistenceLifecycle, IDisposable
+        : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
     {
         public IDocumentStore GetDocumentStore()
         {
             if (documentStore == null)
             {
-                throw new InvalidOperationException("Document store is not available. Ensure `IPersistenceLifecycle.Initialize` is invoked");
+                throw new InvalidOperationException("Document store is not available. Ensure `IRavenPersistenceLifecycle.Initialize` is invoked");
             }
 
             return documentStore;

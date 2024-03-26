@@ -11,7 +11,6 @@
         {
             ConfigureLifecycle(services, databaseConfiguration);
 
-            services.AddSingleton<IRavenSessionProvider, RavenSessionProvider>();
             services.AddSingleton<IAuditDataStore, RavenAuditDataStore>();
             services.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenAuditIngestionUnitOfWorkFactory>();
             services.AddSingleton<IFailedAuditStorage, RavenFailedAuditStorage>();
@@ -23,6 +22,8 @@
         static void ConfigureLifecycle(IServiceCollection services, DatabaseConfiguration databaseConfiguration)
         {
             services.AddSingleton(databaseConfiguration);
+
+            services.AddSingleton<IRavenSessionProvider, RavenSessionProvider>();
             services.AddHostedService<RavenPersistenceLifecycleHostedService>();
 
             var serverConfiguration = databaseConfiguration.ServerConfiguration;

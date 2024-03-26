@@ -8,13 +8,13 @@ namespace ServiceControl.Persistence.RavenDB
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
 
-    sealed class RavenExternalPersistenceLifecycle(RavenPersisterSettings settings) : IRavenPersistenceLifecycle, IDisposable
+    sealed class RavenExternalPersistenceLifecycle(RavenPersisterSettings settings) : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
     {
         public IDocumentStore GetDocumentStore()
         {
             if (documentStore == null)
             {
-                throw new InvalidOperationException("Document store is not available. Ensure `IPersistenceLifecycle.Initialize` is invoked");
+                throw new InvalidOperationException("Document store is not available. Ensure `IRavenPersistenceLifecycle.Initialize` is invoked");
             }
 
             return documentStore;

@@ -7,21 +7,17 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
+    using Persistence.RavenDB;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Operations;
     using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
-    class CheckRavenDBIndexLag : CustomCheck
+    class CheckRavenDBIndexLag(IRavenDocumentStoreProvider documentStoreProvider) : CustomCheck("Error Database Index Lag", "ServiceControl Health", TimeSpan.FromMinutes(5))
     {
-        public CheckRavenDBIndexLag(IDocumentStore store)
-            : base("Error Database Index Lag", "ServiceControl Health", TimeSpan.FromMinutes(5))
-        {
-            this.store = store;
-        }
-
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
-            var statistics = await store.Maintenance.SendAsync(new GetStatisticsOperation(), cancellationToken);
+            var documentStore = documentStoreProvider.GetDocumentStore();
+            var statistics = await documentStore.Maintenance.SendAsync(new GetStatisticsOperation(), cancellationToken);
             var indexes = statistics.Indexes.OrderBy(x => x.Name).ToArray();
 
             CreateDiagnosticsLogEntry(statistics, indexes);
@@ -84,7 +80,5 @@
         static readonly TimeSpan IndexLagThresholdWarning = TimeSpan.FromMinutes(1);
         static readonly TimeSpan IndexLagThresholdError = TimeSpan.FromMinutes(10);
         static readonly ILog Log = LogManager.GetLogger<CheckRavenDBIndexLag>();
-
-        readonly IDocumentStore store;
     }
 }

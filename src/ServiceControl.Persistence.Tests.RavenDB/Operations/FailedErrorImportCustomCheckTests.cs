@@ -5,14 +5,11 @@
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
-    using Raven.Client.Documents;
     using ServiceControl.Operations;
 
     [TestFixture]
     class FailedErrorImportCustomCheckTests : PersistenceTestBase
     {
-        IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>();
-
         public FailedErrorImportCustomCheckTests() =>
             RegisterServices = services =>
             {
