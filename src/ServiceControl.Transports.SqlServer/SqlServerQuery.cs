@@ -53,7 +53,6 @@ class SqlServerQuery(TimeProvider timeProvider, TransportSettings transportSetti
 
             yield return new QueueThroughput
             {
-                Scope = queueTableName.GetScope(),
                 DateUTC = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
                 TotalThroughput = endData.RowVersion - startData.RowVersion
             };
@@ -88,12 +87,12 @@ class SqlServerQuery(TimeProvider timeProvider, TransportSettings transportSetti
 
         foreach (var tableName in tables)
         {
-            tableName.GetScope = ScopeType switch
+            tableName.Scope = ScopeType switch
             {
-                "Schema" => () => tableName.Schema,
-                "Catalog" => () => tableName.DatabaseDetails.DatabaseName,
-                "Catalog & Schema" => () => tableName.DatabaseNameAndSchema,
-                _ => tableName.GetScope
+                "Schema" => tableName.Schema,
+                "Catalog" => tableName.DatabaseDetails.DatabaseName,
+                "Catalog & Schema" => tableName.DatabaseNameAndSchema,
+                _ => null
             };
 
             yield return tableName;
