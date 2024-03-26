@@ -82,8 +82,7 @@ class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettin
                     yield return new QueueThroughput
                     {
                         DateUTC = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
-                        TotalThroughput = newReading.Value - queue.AckedMessages.Value,
-                        Scope = queue.VHost
+                        TotalThroughput = newReading.Value - queue.AckedMessages.Value
                     };
                 }
                 queue.AckedMessages = newReading;
