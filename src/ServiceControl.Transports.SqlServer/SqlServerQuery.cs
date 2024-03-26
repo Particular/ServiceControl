@@ -36,10 +36,10 @@ class SqlServerQuery(TimeProvider timeProvider, TransportSettings transportSetti
         }
     }
 
-    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateOnly startDate,
+    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var queueTableName = (QueueTableName)queueName;
+        var queueTableName = (BrokerQueueTable)brokerQueue;
         var startData =
             await queueTableName.DatabaseDetails.GetSnapshot(queueTableName, cancellationToken);
 
@@ -61,10 +61,10 @@ class SqlServerQuery(TimeProvider timeProvider, TransportSettings transportSetti
         }
     }
 
-    public async IAsyncEnumerable<IQueueName> GetQueueNames(
+    public async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var tables = new List<QueueTableName>();
+        var tables = new List<BrokerQueueTable>();
 
         foreach (var db in databases)
         {
