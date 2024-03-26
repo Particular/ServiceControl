@@ -35,12 +35,6 @@
                 await installationTask();
             }
 
-            var persistence = PersistenceFactory.Create(settings);
-
-            var installer = persistence.CreateInstaller();
-
-            await installer.Install();
-
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 EventSourceCreator.Create();

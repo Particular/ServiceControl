@@ -1,13 +1,13 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
 {
     using System.Collections.Generic;
+    using System.Runtime.InteropServices;
     using System.Threading.Tasks;
     using LicenseManagement;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Settings;
     using Transports;
-    using WebApi;
 
     class SetupCommand : AbstractCommand
     {
@@ -43,7 +43,10 @@
                 }
             }
 
-            EventSource.Create();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                EventSourceCreator.Create();
+            }
 
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControlAuditInstallers(settings);

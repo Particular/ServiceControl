@@ -1,13 +1,14 @@
 ﻿namespace ServiceControl.Audit.Infrastructure
 {
     using System.Diagnostics;
-    using System.Runtime.InteropServices;
+    using System.Runtime.Versioning;
 
-    class EventSource
+    static class EventSourceCreator
     {
+        [SupportedOSPlatform("windows")]
         public static void Create()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !EventLog.SourceExists(SourceName))
+            if (!EventLog.SourceExists(SourceName))
             {
                 EventLog.CreateEventSource(SourceName, null);
             }

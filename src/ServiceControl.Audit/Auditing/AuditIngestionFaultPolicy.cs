@@ -91,9 +91,9 @@
                 return;
             }
 
-            EventSource.Create();
+            EventSourceCreator.Create();
 
-            EventLog.WriteEntry(EventSource.SourceName, message, EventLogEntryType.Error);
+            EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
         }
 #else
         void WriteEvent(string message)
