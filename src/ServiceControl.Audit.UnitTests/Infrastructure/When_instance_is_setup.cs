@@ -43,6 +43,8 @@
     {
         public static IList<string> QueuesCreated;
 
+        public void CustomizeEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
+
         public void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration,
             TransportSettings transportSettings) => throw new NotImplementedException();
 
