@@ -85,6 +85,13 @@ static class HostApplicationBuilderExtensions
         builder.Services.AddWindowsService();
     }
 
+    public static void AddServiceControlAuditInstallers(this IHostApplicationBuilder builder, Settings settings)
+    {
+        var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
+        var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
+        builder.Services.AddInstaller(persistenceSettings, persistenceConfiguration);
+    }
+
     static TransportSettings MapSettings(Settings settings)
     {
         var transportSettings = new TransportSettings

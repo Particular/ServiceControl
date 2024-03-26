@@ -4,7 +4,6 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Hosting.Internal;
     using Microsoft.Extensions.Logging.Abstractions;
     using NUnit.Framework;

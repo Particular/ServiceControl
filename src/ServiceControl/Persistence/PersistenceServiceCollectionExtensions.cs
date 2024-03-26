@@ -9,7 +9,7 @@ namespace ServiceControl.Persistence
             bool maintenanceMode = false)
         {
             var persistence = PersistenceFactory.Create(settings, maintenanceMode);
-            persistence.Configure(services);
+            persistence.AddPersistence(services);
         }
     }
 }

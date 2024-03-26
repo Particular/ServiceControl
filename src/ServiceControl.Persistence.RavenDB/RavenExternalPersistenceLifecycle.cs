@@ -1,13 +1,14 @@
-﻿namespace ServiceControl.Persistence.RavenDB
+﻿#nullable enable
+
+namespace ServiceControl.Persistence.RavenDB
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
-    using ServiceControl.Persistence;
 
-    sealed class RavenExternalPersistenceLifecycle(RavenPersisterSettings settings) : IPersistenceLifecycle, IDisposable
+    sealed class RavenExternalPersistenceLifecycle(RavenPersisterSettings settings) : IRavenPersistenceLifecycle, IDisposable
     {
         public IDocumentStore GetDocumentStore()
         {
@@ -39,6 +40,6 @@
 
         public void Dispose() => documentStore?.Dispose();
 
-        IDocumentStore documentStore;
+        IDocumentStore? documentStore;
     }
 }

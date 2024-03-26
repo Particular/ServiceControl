@@ -7,7 +7,7 @@
     using Microsoft.Extensions.Hosting.WindowsServices;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using ServiceControl.Persistence;
+    using Persistence;
 
     [SupportedOSPlatform("windows")]
     sealed class PersisterInitializingWindowsServiceLifetime(IHostEnvironment environment, IHostApplicationLifetime applicationLifetime, ILoggerFactory loggerFactory, IOptions<HostOptions> optionsAccessor, IOptions<WindowsServiceLifetimeOptions> windowsServiceOptionsAccessor, IPersistenceLifecycle persistenceLifecycle)

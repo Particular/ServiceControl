@@ -28,7 +28,6 @@
             var serverConfiguration = databaseConfiguration.ServerConfiguration;
             if (serverConfiguration.UseEmbeddedServer)
             {
-                // Installer scenarios do not use the host and do not have a lifetime
                 services.AddSingleton<RavenEmbeddedPersistenceLifecycle>();
                 services.AddSingleton<IRavenPersistenceLifecycle>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
                 services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());

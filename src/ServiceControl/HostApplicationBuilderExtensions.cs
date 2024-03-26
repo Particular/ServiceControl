@@ -117,6 +117,12 @@ namespace Particular.ServiceControl
             hostBuilder.AddServiceControlComponents(settings, ServiceControlMainInstance.Components);
         }
 
+        public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder, Settings settings)
+        {
+            var persistence = PersistenceFactory.Create(settings);
+            persistence.AddInstaller(hostApplicationBuilder.Services);
+        }
+
         static TransportSettings MapSettings(Settings settings)
         {
             var transportSettings = new TransportSettings

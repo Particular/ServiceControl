@@ -3,7 +3,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
-    using ServiceControl.Persistence;
+    using Persistence;
 
     class TestServerHostLifetime(IPersistenceLifecycle persistenceLifecycle) : IHostLifetime
     {

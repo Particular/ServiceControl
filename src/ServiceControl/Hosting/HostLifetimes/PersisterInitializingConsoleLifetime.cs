@@ -6,7 +6,7 @@
     using Microsoft.Extensions.Hosting.Internal;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using ServiceControl.Persistence;
+    using Persistence;
 
     sealed class PersisterInitializingConsoleLifetime(IOptions<ConsoleLifetimeOptions> options, IHostEnvironment environment, IHostApplicationLifetime applicationLifetime, IOptions<HostOptions> hostOptions, ILoggerFactory loggerFactory, IPersistenceLifecycle persistenceLifecycle)
         : ConsoleLifetime(options, environment, applicationLifetime, hostOptions, loggerFactory), IHostLifetime

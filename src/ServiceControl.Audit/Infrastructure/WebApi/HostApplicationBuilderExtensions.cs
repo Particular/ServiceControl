@@ -4,8 +4,6 @@
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Persistence;
-    using Settings;
 
     static class HostApplicationBuilderExtensions
     {
@@ -26,13 +24,6 @@
             });
             controllers.AddApplicationPart(Assembly.GetExecutingAssembly());
             controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
-        }
-
-        public static void AddServiceControlAuditInstallers(this IHostApplicationBuilder builder, Settings settings)
-        {
-            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
-            var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
-            builder.Services.AddInstaller(persistenceSettings, persistenceConfiguration);
         }
     }
 }

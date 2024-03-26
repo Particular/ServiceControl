@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
 using Raven.Client.Documents;
 using ServiceControl.Operations.BodyStorage;
@@ -19,7 +20,7 @@ public abstract class PersistenceTestBase
 {
     string databaseName;
     EmbeddedDatabase embeddedServer;
-    ServiceProvider serviceProvider;
+    IHost host;
 
     [SetUp]
     public async Task SetUp()
@@ -28,6 +29,12 @@ public abstract class PersistenceTestBase
         var retentionPeriod = TimeSpan.FromMinutes(1);
 
         await TestContext.Out.WriteLineAsync($"Test Database Name: {databaseName}");
+
+        var hostBuilder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+        {
+            // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
+            EnvironmentName = Environments.Production
+        });
 
         embeddedServer = await SharedEmbeddedServer.GetInstance();
 
@@ -42,15 +49,16 @@ public abstract class PersistenceTestBase
 
         var persistence = new RavenPersistenceConfiguration().Create(PersistenceSettings);
 
-        var services = new ServiceCollection();
-        persistence.Configure(services);
+        persistence.AddPersistence(hostBuilder.Services);
+        persistence.AddInstaller(hostBuilder.Services);
 
-        RegisterServices?.Invoke(services);
+        RegisterServices.Invoke(hostBuilder.Services);
 
-        serviceProvider = services.BuildServiceProvider();
+        host = hostBuilder.Build();
 
-        var persistenceLifecycle = GetRequiredService<IPersistenceLifecycle>();
-        await persistenceLifecycle.Initialize();
+        await GetRequiredService<IPersistenceLifecycle>().Initialize();
+
+        await host.StartAsync();
 
         CompleteDatabaseOperation();
     }
@@ -61,7 +69,8 @@ public abstract class PersistenceTestBase
         // Needs to go first or database will be disposed
         await embeddedServer.DeleteDatabase(databaseName);
 
-        await serviceProvider.DisposeAsync();
+        await host.StopAsync();
+        host.Dispose();
     }
 
     protected PersistenceSettings PersistenceSettings
@@ -70,10 +79,10 @@ public abstract class PersistenceTestBase
         private set;
     }
 
-    protected T GetRequiredService<T>() => serviceProvider.GetRequiredService<T>();
-    protected object GetRequiredService(Type serviceType) => serviceProvider.GetRequiredService(serviceType);
+    protected T GetRequiredService<T>() => host.Services.GetRequiredService<T>();
+    protected object GetRequiredService(Type serviceType) => host.Services.GetRequiredService(serviceType);
 
-    protected Action<IServiceCollection> RegisterServices { get; set; }
+    protected Action<IServiceCollection> RegisterServices { get; set; } = _ => { };
 
     protected void CompleteDatabaseOperation() => GetRequiredService<IDocumentStore>().WaitForIndexing();
 
