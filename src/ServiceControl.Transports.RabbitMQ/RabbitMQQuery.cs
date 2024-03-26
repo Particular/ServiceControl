@@ -59,10 +59,10 @@ class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettin
         };
     }
 
-    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IQueueName queueName, DateOnly startDate,
+    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var queue = (RabbitMQQueueDetails)queueName;
+        var queue = (RabbitMQBrokerQueueDetails)brokerQueue;
         var url = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}";
 
         var node = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonNode>(url, token), cancellationToken);
@@ -118,7 +118,7 @@ class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettin
         return (rabbitVersion?.GetValue<string>() ?? "Unknown", mgmtVersion?.GetValue<string>() ?? "Unknown");
     }
 
-    public async IAsyncEnumerable<IQueueName> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<IBrokerQueue> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var page = 1;
         bool morePages;
@@ -148,22 +148,22 @@ class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettin
         ScopeType = vHosts.Count > 1 ? "VirtualHost" : null;
     }
 
-    async Task AddAdditionalQueueDetails(RabbitMQQueueDetails queue, CancellationToken cancellationToken = default)
+    async Task AddAdditionalQueueDetails(RabbitMQBrokerQueueDetails brokerQueue, CancellationToken cancellationToken = default)
     {
         try
         {
-            var bindingsUrl = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}/bindings";
+            var bindingsUrl = $"/api/queues/{HttpUtility.UrlEncode(brokerQueue.VHost)}/{HttpUtility.UrlEncode(brokerQueue.QueueName)}/bindings";
             var bindings = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonArray>(bindingsUrl, token), cancellationToken);
-            var conventionalBindingFound = bindings?.Any(binding => binding!["source"]?.GetValue<string>() == queue.QueueName
-                                                                    && binding["vhost"]?.GetValue<string>() == queue.VHost
-                                                                    && binding["destination"]?.GetValue<string>() == queue.QueueName
+            var conventionalBindingFound = bindings?.Any(binding => binding!["source"]?.GetValue<string>() == brokerQueue.QueueName
+                                                                    && binding["vhost"]?.GetValue<string>() == brokerQueue.VHost
+                                                                    && binding["destination"]?.GetValue<string>() == brokerQueue.QueueName
                                                                     && binding["destination_type"]?.GetValue<string>() == "queue"
                                                                     && binding["routing_key"]?.GetValue<string>() == string.Empty
                                                                     && binding["properties_key"]?.GetValue<string>() == "~") ?? false;
 
             if (conventionalBindingFound)
             {
-                queue.EndpointIndicators.Add("ConventionalTopologyBinding");
+                brokerQueue.EndpointIndicators.Add("ConventionalTopologyBinding");
             }
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
@@ -173,22 +173,22 @@ class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettin
 
         try
         {
-            var exchangeUrl = $"/api/exchanges/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}/bindings/destination";
+            var exchangeUrl = $"/api/exchanges/{HttpUtility.UrlEncode(brokerQueue.VHost)}/{HttpUtility.UrlEncode(brokerQueue.QueueName)}/bindings/destination";
             var bindings = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonArray>(exchangeUrl, token), cancellationToken);
             var delayBindingFound = bindings?.Any(binding =>
             {
                 var source = binding!["source"]?.GetValue<string>();
 
                 return source is "nsb.v2.delay-delivery" or "nsb.delay-delivery"
-                    && binding["vhost"]?.GetValue<string>() == queue.VHost
-                    && binding["destination"]?.GetValue<string>() == queue.QueueName
+                    && binding["vhost"]?.GetValue<string>() == brokerQueue.VHost
+                    && binding["destination"]?.GetValue<string>() == brokerQueue.QueueName
                     && binding["destination_type"]?.GetValue<string>() == "exchange"
-                    && binding["routing_key"]?.GetValue<string>() == $"#.{queue.QueueName}";
+                    && binding["routing_key"]?.GetValue<string>() == $"#.{brokerQueue.QueueName}";
             }) ?? false;
 
             if (delayBindingFound)
             {
-                queue.EndpointIndicators.Add("DelayBinding");
+                brokerQueue.EndpointIndicators.Add("DelayBinding");
             }
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
@@ -197,7 +197,7 @@ class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettin
         }
     }
 
-    async Task<(RabbitMQQueueDetails[]?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
+    async Task<(RabbitMQBrokerQueueDetails[]?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
     {
         var url = $"/api/queues?page={page}&page_size=500&name=&use_regex=false&pagination=true";
 
@@ -214,14 +214,14 @@ class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettin
                         return (null, false);
                     }
 
-                    var queues = items.Select(item => new RabbitMQQueueDetails(item!)).ToArray();
+                    var queues = items.Select(item => new RabbitMQBrokerQueueDetails(item!)).ToArray();
 
                     return (queues, pageCount > pageReturned);
                 }
             // Older versions of RabbitMQ API did not have paging and returned the array of items directly
             case JsonArray arr:
                 {
-                    var queues = arr.Select(item => new RabbitMQQueueDetails(item!)).ToArray();
+                    var queues = arr.Select(item => new RabbitMQBrokerQueueDetails(item!)).ToArray();
 
                     return (queues, false);
                 }
