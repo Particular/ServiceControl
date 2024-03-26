@@ -28,8 +28,11 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
             await DataStore.SaveEndpoint(e);
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
+        await DataStore.SaveEndpoint(ErrorEndpoint);
         await DataStore.RecordEndpointThroughput(ErrorEndpoint.Id, ErrorEndpoint.DailyThroughput);
+        await DataStore.SaveEndpoint(AuditEndpoint);
         await DataStore.RecordEndpointThroughput(AuditEndpoint.Id, AuditEndpoint.DailyThroughput);
+        await DataStore.SaveEndpoint(ServiceControlEndpoint);
         await DataStore.RecordEndpointThroughput(ServiceControlEndpoint.Id, ServiceControlEndpoint.DailyThroughput);
 
         var summary = await ThroughputCollector.GetThroughputSummary();
@@ -179,7 +182,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
         new Endpoint("Endpoint1_", ThroughputSource.Audit) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
     ];
 
-    readonly Endpoint ServiceControlEndpoint = new("Particular.ServiceControl", ThroughputSource.Broker) { SanitizedName = "Particular.ServiceControl", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 500 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 600 }] };
-    readonly Endpoint AuditEndpoint = new("audit", ThroughputSource.Broker) { SanitizedName = "audit", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 500 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 600 }] };
-    readonly Endpoint ErrorEndpoint = new("error", ThroughputSource.Broker) { SanitizedName = "error", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 500 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 600 }] };
+    readonly Endpoint ServiceControlEndpoint = new("Particular.ServiceControl", ThroughputSource.Broker) { SanitizedName = "Particular.ServiceControl", EndpointIndicators = [EndpointIndicator.PlatformEndpoint.ToString()], DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 500 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 600 }] };
+    readonly Endpoint AuditEndpoint = new("audit", ThroughputSource.Broker) { SanitizedName = "audit", EndpointIndicators = [EndpointIndicator.PlatformEndpoint.ToString()], DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 500 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 600 }] };
+    readonly Endpoint ErrorEndpoint = new("error", ThroughputSource.Broker) { SanitizedName = "error", EndpointIndicators = [EndpointIndicator.PlatformEndpoint.ToString()], DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 500 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 600 }] };
 }
