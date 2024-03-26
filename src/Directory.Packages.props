@@ -45,7 +45,7 @@
     <PackageVersion Include="NServiceBus.Transport.AzureStorageQueues" Version="13.0.0" />
     <PackageVersion Include="NServiceBus.Transport.Msmq.Sources" Version="3.0.0" />
     <PackageVersion Include="NServiceBus.Transport.SqlServer" Version="8.0.0" />
-    <PackageVersion Include="NuGet.Versioning" Version="6.8.0" />
+    <PackageVersion Include="NuGet.Versioning" Version="6.9.1" />
     <PackageVersion Include="NUnit" Version="3.14.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="4.5.0" />
     <PackageVersion Include="Particular.Approvals" Version="1.0.0" />
