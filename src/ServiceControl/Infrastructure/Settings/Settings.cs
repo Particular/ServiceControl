@@ -8,6 +8,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using ServiceControl.Configuration;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Persistence;
@@ -178,8 +179,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
             try
             {
                 TransportType = TransportManifestLibrary.Find(TransportType);
+                var folder = TransportManifestLibrary.GetTransportFolder(TransportType);
+                var loadContext = new PluginAssemblyLoadContext(folder, TransportType);
+                var customizationType = Type.GetType(TransportType, loadContext.LoadFromAssemblyName, null, true);
 
-                var customizationType = Type.GetType(TransportType, true);
                 return (ITransportCustomization)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)

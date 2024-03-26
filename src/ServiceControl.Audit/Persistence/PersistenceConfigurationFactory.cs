@@ -3,6 +3,7 @@ namespace ServiceControl.Audit.Persistence
     using System;
     using Configuration;
     using ServiceControl.Audit.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
 
     static class PersistenceConfigurationFactory
     {
@@ -11,8 +12,9 @@ namespace ServiceControl.Audit.Persistence
             try
             {
                 var foundPersistenceType = PersistenceManifestLibrary.Find(persistenceType);
-
-                var customizationType = Type.GetType(foundPersistenceType, true);
+                var folder = PersistenceManifestLibrary.GetPersistenceFolder(foundPersistenceType);
+                var loadContext = new PluginAssemblyLoadContext(folder, foundPersistenceType);
+                var customizationType = Type.GetType(foundPersistenceType, loadContext.LoadFromAssemblyName, null, true);
 
                 return (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
             }

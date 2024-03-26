@@ -6,6 +6,7 @@
     using NLog.Common;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
+    using ServiceControl.Infrastructure;
     using Transports;
 
     public class Settings
@@ -150,8 +151,9 @@
             try
             {
                 TransportType = TransportManifestLibrary.Find(TransportType);
-
-                var customizationType = Type.GetType(TransportType, true);
+                var folder = TransportManifestLibrary.GetTransportFolder(TransportType);
+                var loadContext = new PluginAssemblyLoadContext(folder, TransportType);
+                var customizationType = Type.GetType(TransportType, loadContext.LoadFromAssemblyName, null, true);
 
                 return (ITransportCustomization)Activator.CreateInstance(customizationType);
             }
