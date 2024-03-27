@@ -8,7 +8,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
 
-    sealed class RavenExternalPersistenceLifecycle(DatabaseConfiguration configuration) : IRavenPersistenceLifecycle, IDisposable
+    sealed class RavenExternalPersistenceLifecycle(DatabaseConfiguration configuration) : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
     {
         public IDocumentStore GetDocumentStore()
         {

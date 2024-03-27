@@ -3,7 +3,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    interface IRavenPersistenceLifecycle : IRavenDocumentStoreProvider
+    interface IRavenPersistenceLifecycle
     {
         Task Initialize(CancellationToken cancellationToken = default);
     }
