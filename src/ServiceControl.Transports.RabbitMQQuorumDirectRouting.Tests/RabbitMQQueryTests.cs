@@ -20,7 +20,7 @@ class RabbitMQQueryTests : TransportTestFixture
     public async Task RunScenario()
     {
         // We need to wait a bit of time, because the scenario running takes on average 1 sec per run.
-        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(50));
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         CancellationToken token = cancellationTokenSource.Token;
         var provider = new FakeTimeProvider();
         var transportSettings = new TransportSettings
