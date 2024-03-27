@@ -1,8 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests;
 
-using System;
 using System.Collections.Generic;
-
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.ThroughputCollector.Contracts;
@@ -22,14 +20,17 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
     [Test]
     public async Task Should_set_audit_flag_to_false_when_no_audit_data()
     {
-        EndpointsWithThroughputFromBrokerOnly.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .Build();
 
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
         Assert.That(report.ReportData.EnvironmentData.ContainsKey(EnvironmentData.AuditEnabled.ToString()), Is.True, $"AuditEnabled missing from Environment data");
@@ -39,14 +40,24 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
     [Test]
     public async Task Should_set_audit_flag_to_true_when_audit_data_exists()
     {
-        EndpointsWithThroughputFromBrokerAndMonitoringAndAudit.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint(sources: [ThroughputSource.Broker, ThroughputSource.Monitoring])
+                .WithThroughput(ThroughputSource.Broker, days: 2)
+                .WithThroughput(ThroughputSource.Monitoring, days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker, ThroughputSource.Audit])
+                .WithThroughput(ThroughputSource.Broker, days: 2)
+                .WithThroughput(ThroughputSource.Audit, days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker, ThroughputSource.Monitoring, ThroughputSource.Audit])
+                .WithThroughput(ThroughputSource.Broker, days: 2)
+                .WithThroughput(ThroughputSource.Monitoring, days: 2)
+                .WithThroughput(ThroughputSource.Audit, days: 2)
+            .Build();
 
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
         Assert.That(report.ReportData.EnvironmentData.ContainsKey(EnvironmentData.AuditEnabled.ToString()), Is.True, $"AuditEnabled missing from Environment data");
@@ -56,14 +67,17 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
     [Test]
     public async Task Should_set_monitoring_flag_to_false_when_no_audit_data()
     {
-        EndpointsWithThroughputFromBrokerOnly.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .Build();
 
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
         Assert.That(report.ReportData.EnvironmentData.ContainsKey(EnvironmentData.MonitoringEnabled.ToString()), Is.True, $"MonitoringEnabled missing from Environment data");
@@ -73,14 +87,24 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
     [Test]
     public async Task Should_set_monitoring_flag_to_true_when_audit_data_exists()
     {
-        EndpointsWithThroughputFromBrokerAndMonitoringAndAudit.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint(sources: [ThroughputSource.Broker, ThroughputSource.Monitoring])
+                .WithThroughput(ThroughputSource.Broker, days: 2)
+                .WithThroughput(ThroughputSource.Monitoring, days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker, ThroughputSource.Audit])
+                .WithThroughput(ThroughputSource.Broker, days: 2)
+                .WithThroughput(ThroughputSource.Audit, days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker, ThroughputSource.Monitoring, ThroughputSource.Audit])
+                .WithThroughput(ThroughputSource.Broker, days: 2)
+                .WithThroughput(ThroughputSource.Monitoring, days: 2)
+                .WithThroughput(ThroughputSource.Audit, days: 2)
+            .Build();
 
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
         Assert.That(report.ReportData.EnvironmentData.ContainsKey(EnvironmentData.MonitoringEnabled.ToString()), Is.True, $"MonitoringEnabled missing from Environment data");
@@ -90,15 +114,25 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
     [Test]
     public async Task Should_set_sp_version_if_provided()
     {
-        EndpointsWithThroughputFromBrokerAndMonitoringAndAudit.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint(sources: [ThroughputSource.Broker, ThroughputSource.Monitoring])
+                .WithThroughput(ThroughputSource.Broker, days: 2)
+                .WithThroughput(ThroughputSource.Monitoring, days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker, ThroughputSource.Audit])
+                .WithThroughput(ThroughputSource.Broker, days: 2)
+                .WithThroughput(ThroughputSource.Audit, days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker, ThroughputSource.Monitoring, ThroughputSource.Audit])
+                .WithThroughput(ThroughputSource.Broker, days: 2)
+                .WithThroughput(ThroughputSource.Monitoring, days: 2)
+                .WithThroughput(ThroughputSource.Audit, days: 2)
+            .Build();
 
+        // Act
         var spVersion = "5.1";
         var report = await ThroughputCollector.GenerateThroughputReport([], spVersion);
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.ServicePulseVersion, Is.Not.Null, $"ServicePulseVersion missing from the report");
         Assert.That(report.ReportData.ServicePulseVersion, Is.EqualTo(spVersion), $"ServicePulseVersion should be {spVersion}");
@@ -107,11 +141,12 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
     [Test]
     public async Task Should_include_broker_data_in_report()
     {
-        EndpointsWithThroughputFromBrokerOnly.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .Build();
 
         var version = "1.2";
         var scopeType = "testingScope";
@@ -121,8 +156,10 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
         };
         await DataStore.SaveBrokerData(broker, scopeType, brokerData);
 
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentData, Is.Not.Null, $"Missing EnvironmentData from report");
         Assert.That(report.ReportData.ScopeType, Is.Not.Null, $"Missing ScopeType from report");
@@ -130,22 +167,4 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
         Assert.That(report.ReportData.EnvironmentData.ContainsKey(EnvironmentData.Version.ToString()), Is.True, $"Missing EnvironmentData.Version from report");
         Assert.That(report.ReportData.EnvironmentData[EnvironmentData.Version.ToString()], Is.EqualTo(version), $"Incorrect EnvironmentData.Version on report");
     }
-
-    readonly List<Endpoint> EndpointsWithThroughputFromBrokerOnly =
-    [
-        new Endpoint("Endpoint1", ThroughputSource.Broker) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 55 }] },
-        new Endpoint("Endpoint2", ThroughputSource.Broker) { SanitizedName = "Endpoint2", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
-        new Endpoint("Endpoint3", ThroughputSource.Broker) { SanitizedName = "Endpoint3", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 75 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 50 }] }
-    ];
-
-    readonly List<Endpoint> EndpointsWithThroughputFromBrokerAndMonitoringAndAudit =
-    [
-        new Endpoint("Endpoint1", ThroughputSource.Broker) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 55 }] },
-        new Endpoint("Endpoint1", ThroughputSource.Monitoring) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
-        new Endpoint("Endpoint2", ThroughputSource.Broker) { SanitizedName = "Endpoint2", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
-        new Endpoint("Endpoint2", ThroughputSource.Audit) { SanitizedName = "Endpoint2", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 61 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 64 }] },
-        new Endpoint("Endpoint3", ThroughputSource.Broker) { SanitizedName = "Endpoint3", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 57 }] },
-        new Endpoint("Endpoint3", ThroughputSource.Monitoring) { SanitizedName = "Endpoint3", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 40 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 45 }] },
-        new Endpoint("Endpoint3", ThroughputSource.Audit) { SanitizedName = "Endpoint3", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 42 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 47 }] }
-    ];
 }
