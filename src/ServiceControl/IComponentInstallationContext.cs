@@ -1,11 +1,11 @@
-namespace Particular.ServiceControl
-{
-    using System;
-    using System.Threading.Tasks;
+namespace Particular.ServiceControl;
 
-    interface IComponentInstallationContext
-    {
-        void CreateQueue(string queueName);
-        void RegisterInstallationTask(Func<Task> setupTask);
-    }
+using System;
+using System.Threading.Tasks;
+
+interface IComponentInstallationContext
+{
+    void CreateQueue(string queueName);
+
+    void RegisterInstallationTask(Func<IServiceProvider, Task> setupTask);
 }

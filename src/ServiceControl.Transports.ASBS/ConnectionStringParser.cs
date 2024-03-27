@@ -12,7 +12,7 @@
             {
                 if (connectionString.Contains("sb://"))
                 {
-                    throw new Exception("When using a fully-qualified namespace the'sb://' prefix is not allowed");
+                    throw new Exception("When using a fully-qualified namespace the 'sb://' prefix is not allowed");
                 }
 
                 if (connectionString.EndsWith("/"))

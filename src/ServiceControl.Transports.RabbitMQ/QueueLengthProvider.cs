@@ -140,7 +140,8 @@
 
             public void Initialize()
             {
-                var connectionConfiguration = ConnectionConfiguration.Create(connectionString, "ServiceControl.Monitoring");
+                var connectionConfiguration =
+                    ConnectionConfiguration.Create(connectionString, "ServiceControl.Monitoring");
 
                 var dbConnectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 

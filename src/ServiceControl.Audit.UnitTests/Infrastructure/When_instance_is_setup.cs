@@ -53,6 +53,7 @@
             TransportSettings transportSettings) => throw new NotImplementedException();
 
         public IProvideQueueLength CreateQueueLengthProvider() => throw new NotImplementedException();
+        public Type ThroughputQueryProvider => throw new NotImplementedException();
 
         public Task ProvisionQueues(TransportSettings transportSettings,
             IEnumerable<string> additionalQueues)

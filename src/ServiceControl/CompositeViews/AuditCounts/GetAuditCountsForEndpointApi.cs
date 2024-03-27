@@ -8,6 +8,7 @@
     using Persistence;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Api.Contracts;
 
     // The endpoint is included for consistency reasons but is actually not required here because the query
     // is forwarded to the remote instance. But this at least enforces us to declare the controller action
@@ -25,8 +26,8 @@
     {
         static readonly IList<AuditCount> Empty = new List<AuditCount>(0).AsReadOnly();
 
+        // Will never be implemented on the primary instance
         protected override Task<QueryResult<IList<AuditCount>>> LocalQuery(AuditCountsForEndpointContext input) =>
-            // Will never be implemented on the primary instance
             Task.FromResult(new QueryResult<IList<AuditCount>>(Empty, QueryStatsInfo.Zero));
 
         protected override IList<AuditCount> ProcessResults(AuditCountsForEndpointContext input, QueryResult<IList<AuditCount>>[] results) =>

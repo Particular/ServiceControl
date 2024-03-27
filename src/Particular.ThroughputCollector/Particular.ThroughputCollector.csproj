@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- Needed for build ordering -->
+  <Import Project="..\ProjectReferences.Persisters.ThroughputCollector.props" />
+  <ItemGroup>
+    <None Remove="public-key.pem" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="public-key.pem" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="System.Configuration.ConfigurationManager" />
+    <ProjectReference Include="..\Particular.ThroughputCollector.Contracts\Particular.ThroughputCollector.Contracts.csproj" />
+    <ProjectReference Include="..\Particular.ThroughputCollector.Persistence\Particular.ThroughputCollector.Persistence.csproj" />
+    <ProjectReference Include="..\ServiceControl.Api\ServiceControl.Api.csproj" />
+    <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />  
+  </ItemGroup>
+ 
+</Project>
