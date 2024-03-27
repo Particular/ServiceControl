@@ -23,6 +23,8 @@ class AuditThroughputCollectorHostedService(
 
         await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken);
 
+        PlatformEndpointIdentifier.AuditQueues = (await AuditCommands.GetAuditRemotes(configurationApi, cancellationToken))?.SelectMany(s => s.Queues)?.ToList() ?? [];
+
         using PeriodicTimer timer = new(TimeSpan.FromDays(1), timeProvider);
 
         try
