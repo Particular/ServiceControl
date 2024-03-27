@@ -97,13 +97,16 @@ class ThroughputDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task RecordEndpointThroughput(EndpointIdentifier id, IEnumerable<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default)
+    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IEnumerable<string> queueNames, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+
+    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IEnumerable<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default)
     {
         if (!throughput.Any())
         {
             return;
         }
 
+        var id = new EndpointIdentifier(endpointName, throughputSource);
         using var session = store.OpenAsyncSession("throughput");
 
         var documentId = id.GenerateDocumentId();
@@ -112,22 +115,22 @@ class ThroughputDataStore(
         {
             document = new EndpointDocument(id);
 
-            await session.StoreAsync(document, document.GenerateDocumentId(), cancellationToken);
+            await session.StoreAsync(document, documentId, cancellationToken);
             await session.SaveChangesAsync(cancellationToken);
         }
 
         var timeSeries = session.IncrementalTimeSeriesFor(documentId, ThroughputTimeSeriesName);
 
-        foreach (var entry in throughput)
+        foreach (var (date, messageCount) in throughput)
         {
-            timeSeries.Increment(entry.DateUTC.ToDateTime(TimeOnly.MinValue), entry.TotalThroughput);
+            timeSeries.Increment(date.ToDateTime(TimeOnly.MinValue), messageCount);
         }
 
         await session.SaveChangesAsync(cancellationToken);
     }
 
     public Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator) => throw new NotImplementedException();
-    public Task AppendEndpointThroughput(Endpoint endpoint) => throw new NotImplementedException();
+
     public Task<bool> IsThereThroughputForLastXDays(int days) => throw new NotImplementedException();
     public Task<BrokerData?> GetBrokerData(Broker broker) => throw new NotImplementedException();
 

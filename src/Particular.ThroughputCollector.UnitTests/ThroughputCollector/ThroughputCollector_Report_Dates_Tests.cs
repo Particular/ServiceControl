@@ -1,7 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests;
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -22,16 +21,32 @@ class ThroughputCollector_Report_Dates_Tests : ThroughputCollectorTestFixture
     [Test]
     public async Task Should_return_correct_dates_for_report_when_multiple_sources_with_different_dates()
     {
-        EndpointsWithThroughputFromBrokerAndMonitoringAndAuditWithDifferentDates.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        var maxDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+        var minDate = maxDate.AddDays(-4);
 
+        await DataStore.CreateBuilder()
+            .AddEndpoint(sources: [ThroughputSource.Broker, ThroughputSource.Monitoring])
+                .WithThroughput(ThroughputSource.Broker, startDate: maxDate, days: 1)
+                .WithThroughput(ThroughputSource.Broker, startDate: maxDate.AddDays(-3), days: 1)
+                .WithThroughput(ThroughputSource.Monitoring, startDate: maxDate.AddDays(-1), days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker, ThroughputSource.Audit])
+                .WithThroughput(ThroughputSource.Broker, startDate: maxDate, days: 1)
+                .WithThroughput(ThroughputSource.Broker, startDate: maxDate.AddDays(-2), days: 1)
+                .WithThroughput(ThroughputSource.Audit, startDate: maxDate.AddDays(-1), days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker, ThroughputSource.Monitoring, ThroughputSource.Audit])
+                .WithThroughput(ThroughputSource.Broker, startDate: maxDate.AddDays(-1), days: 2)
+                .WithThroughput(ThroughputSource.Monitoring, startDate: maxDate, days: 1)
+                .WithThroughput(ThroughputSource.Monitoring, startDate: minDate, days: 1)
+                .WithThroughput(ThroughputSource.Audit, startDate: maxDate.AddDays(-1), days: 2)
+            .Build();
+
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
-        var minDateInReport = new DateTimeOffset(DateTime.UtcNow.AddDays(-5).Date, TimeSpan.Zero);
-        var reportEndDate = new DateTimeOffset(DateTime.UtcNow.AddDays(-1).Date, TimeSpan.Zero);
+        // Assert
+        var minDateInReport = new DateTimeOffset(minDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
+        var reportEndDate = new DateTimeOffset(maxDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(3));
@@ -40,15 +55,4 @@ class ThroughputCollector_Report_Dates_Tests : ThroughputCollectorTestFixture
         Assert.That(report.ReportData.EndTime, Is.EqualTo(reportEndDate), $"Incorrect StartTime for report");
         Assert.That(report.ReportData.ReportDuration, Is.EqualTo(reportEndDate - minDateInReport), $"Incorrect ReportDuration for report");
     }
-
-    readonly List<Endpoint> EndpointsWithThroughputFromBrokerAndMonitoringAndAuditWithDifferentDates =
-    [
-        new Endpoint("Endpoint1", ThroughputSource.Broker) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-4), TotalThroughput = 55 }] },
-        new Endpoint("Endpoint1", ThroughputSource.Monitoring) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
-        new Endpoint("Endpoint2", ThroughputSource.Broker) { SanitizedName = "Endpoint2", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-3), TotalThroughput = 65 }] },
-        new Endpoint("Endpoint2", ThroughputSource.Audit) { SanitizedName = "Endpoint2", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 61 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 64 }] },
-        new Endpoint("Endpoint3", ThroughputSource.Broker) { SanitizedName = "Endpoint3", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 57 }] },
-        new Endpoint("Endpoint3", ThroughputSource.Monitoring) { SanitizedName = "Endpoint3", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 40 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-5), TotalThroughput = 45 }] },
-        new Endpoint("Endpoint3", ThroughputSource.Audit) { SanitizedName = "Endpoint3", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 42 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 47 }] }
-    ];
 }
