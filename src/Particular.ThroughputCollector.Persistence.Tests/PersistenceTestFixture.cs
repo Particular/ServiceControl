@@ -1,52 +1,28 @@
-﻿namespace Particular.ThroughputCollector.Persistence.Tests
+﻿namespace Particular.ThroughputCollector.Persistence.Tests;
+
+using System;
+using System.Threading.Tasks;
+using NUnit.Framework;
+
+[TestFixture]
+abstract class PersistenceTestFixture
 {
-    using System;
-    using System.Threading.Tasks;
-    using NUnit.Framework;
+    public Action<PersistenceSettings> SetSettings = _ => { };
 
-    [TestFixture]
-    abstract class PersistenceTestFixture
+    [SetUp]
+    public virtual Task Setup()
     {
-        public Action<PersistenceSettings> SetSettings = _ => { };
+        configuration = new PersistenceTestsConfiguration();
 
-        [SetUp]
-        public virtual Task Setup()
-        {
-            configuration = new PersistenceTestsConfiguration();
-
-            return configuration.Configure(SetSettings);
-        }
-
-        [TearDown]
-        public virtual Task Cleanup()
-        {
-            return configuration?.Cleanup();
-        }
-
-        //protected string GetManifestPath()
-        //{
-        //    var currentFolder = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
-
-        //    while (currentFolder != null)
-        //    {
-        //        var file = currentFolder.EnumerateFiles("*.sln", SearchOption.TopDirectoryOnly)
-        //            .SingleOrDefault();
-
-        //        if (file != null)
-        //        {
-        //            return Path.Combine(file.Directory.FullName, $"Particular.ThroughputCollector.Persistence.{PersisterName}", "persistence.manifest");
-        //        }
-
-        //        currentFolder = currentFolder.Parent;
-        //    }
-
-        //    throw new Exception($"Cannot find manifest folder for {PersisterName}");
-        //}
-
-        protected string PersisterName => configuration.Name;
-
-        protected IThroughputDataStore DataStore => configuration.ThroughputDataStore;
-
-        protected PersistenceTestsConfiguration configuration;
+        return configuration.Configure(SetSettings);
     }
+
+    [TearDown]
+    public virtual Task Cleanup() => configuration?.Cleanup();
+
+    protected string PersisterName => configuration.Name;
+
+    protected IThroughputDataStore DataStore => configuration.ThroughputDataStore;
+
+    protected PersistenceTestsConfiguration configuration;
 }
