@@ -1,7 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests;
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -22,14 +21,21 @@ class ThroughputCollector_Report_Indicator_Tests : ThroughputCollectorTestFixtur
     [Test]
     public async Task Should_indicate_known_endpoint_if_at_least_one_instance_of_it_exists_in_the_sources()
     {
-        EndpointsWithMultipleSourcesAndEndpointIndicator.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .AddEndpoint("Endpoint1_", sources: [ThroughputSource.Audit]).WithThroughput(days: 2)
+            .ConfigureEndpoint(endpoint =>
+            {
+                endpoint.SanitizedName = "Endpoint1";
+                endpoint.EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()];
+            })
+            .Build();
 
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Length, Is.EqualTo(1));
 
@@ -39,29 +45,21 @@ class ThroughputCollector_Report_Indicator_Tests : ThroughputCollectorTestFixtur
     [Test]
     public async Task Should_return_correct_user_indicators_when_multiple_throughput_sources()
     {
-        EndpointsWithNoUserIndicatorsFromMultipleSources.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker, ThroughputSource.Monitoring])
+            .ConfigureEndpoint(ThroughputSource.Broker, endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpointScaledOut.ToString())
+            .WithThroughput(ThroughputSource.Broker, days: 2)
+            .WithThroughput(ThroughputSource.Monitoring, days: 2)
+            .Build();
 
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Length, Is.EqualTo(1));
 
         Assert.That(report.ReportData.Queues[0].UserIndicator, Is.EqualTo(UserIndicator.NServicebusEndpointScaledOut.ToString()));
     }
-
-    readonly List<Endpoint> EndpointsWithNoUserIndicatorsFromMultipleSources =
-    [
-        new Endpoint("Endpoint1", ThroughputSource.Broker) { SanitizedName = "Endpoint1", UserIndicator = UserIndicator.NServicebusEndpointScaledOut.ToString(), DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 75 }] },
-        new Endpoint("Endpoint1", ThroughputSource.Monitoring) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
-    ];
-
-    readonly List<Endpoint> EndpointsWithMultipleSourcesAndEndpointIndicator =
-    [
-        new Endpoint("Endpoint1", ThroughputSource.Broker) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 75 }] },
-        new Endpoint("Endpoint1_", ThroughputSource.Audit) { SanitizedName = "Endpoint1", EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()], DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
-    ];
 }
