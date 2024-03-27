@@ -65,7 +65,7 @@ class AuditThroughputCollectorHostedService(
             var endpointId = tuple.Id;
             var endpoint = tuple.Endpoint;
 
-            if (endpoint?.LastCollectedDate == utcYesterday)
+            if (endpoint?.LastCollectedDate >= utcYesterday)
             {
                 continue;
             }
@@ -74,32 +74,25 @@ class AuditThroughputCollectorHostedService(
 
             if (endpoint == null)
             {
-                endpoint = ConvertToEndpoint(knownEndpointsLookup[endpointId], auditCounts);
+                endpoint = ConvertToEndpoint(knownEndpointsLookup[endpointId]);
                 await dataStore.SaveEndpoint(endpoint, cancellationToken);
             }
 
             var missingAuditThroughput = auditCounts
                 .Where(auditCount => auditCount.UtcDate > endpoint.LastCollectedDate &&
                                      auditCount.UtcDate < DateOnly.FromDateTime(DateTime.UtcNow))
-                .Select(auditCount => new EndpointDailyThroughput
-                {
-                    DateUTC = auditCount.UtcDate,
-                    TotalThroughput = auditCount.Count
-                });
+                .Select(auditCount => new EndpointDailyThroughput(auditCount.UtcDate, auditCount.Count));
 
-            await dataStore.RecordEndpointThroughput(endpoint.Id, missingAuditThroughput, cancellationToken);
+            await dataStore.RecordEndpointThroughput(endpoint.Id.Name, endpoint.Id.ThroughputSource, missingAuditThroughput, cancellationToken);
         }
     }
 
-    Endpoint ConvertToEndpoint(ServiceControlEndpoint scEndpoint, List<AuditCount> auditCounts)
+    Endpoint ConvertToEndpoint(ServiceControlEndpoint scEndpoint)
     {
         var endpoint = new Endpoint(scEndpoint.Name, ThroughputSource.Audit)
         {
             SanitizedName = EndpointNameSanitizer.SanitizeEndpointName(scEndpoint.Name, throughputSettings.Broker),
-            EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()],
-            DailyThroughput = auditCounts.Any()
-                            ? auditCounts.Select(c => new EndpointDailyThroughput { DateUTC = c.UtcDate, TotalThroughput = c.Count }).ToList()
-                            : []
+            EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()]
         };
 
         if (PlatformEndpointIdentifier.IsPlatformEndpoint(scEndpoint.Name, throughputSettings))
