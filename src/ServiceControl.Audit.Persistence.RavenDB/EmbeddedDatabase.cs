@@ -19,14 +19,12 @@ namespace ServiceControl.Audit.Persistence.RavenDB
 
     public sealed class EmbeddedDatabase : IDisposable
     {
-        EmbeddedDatabase(DatabaseConfiguration configuration, IHostApplicationLifetime? lifetime)
+        EmbeddedDatabase(DatabaseConfiguration configuration, IHostApplicationLifetime lifetime)
         {
             this.configuration = configuration;
             ServerUrl = configuration.ServerConfiguration.ServerUrl;
             shutdownTokenSourceRegistration = shutdownTokenSource.Token.Register(() => isStopping = true);
-
-            // Test scenarios do not always have a lifetime
-            applicationStoppingRegistration = (lifetime?.ApplicationStopping ?? CancellationToken.None).Register(() => isStopping = true);
+            applicationStoppingRegistration = lifetime.ApplicationStopping.Register(() => isStopping = true);
         }
 
         public string ServerUrl { get; private set; }
@@ -49,7 +47,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
             throw new Exception($"RavenDB license not found. Make sure the RavenDB license file '{licenseFileName}' is stored in the same directory as {assemblyName}.");
         }
 
-        public static EmbeddedDatabase Start(DatabaseConfiguration databaseConfiguration, IHostApplicationLifetime? lifetime = null)
+        public static EmbeddedDatabase Start(DatabaseConfiguration databaseConfiguration, IHostApplicationLifetime lifetime)
         {
             var licenseFileNameAndServerDirectory = GetRavenLicenseFileNameAndServerDirectory();
 

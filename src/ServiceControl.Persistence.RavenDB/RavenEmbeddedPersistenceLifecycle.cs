@@ -10,7 +10,7 @@ namespace ServiceControl.Persistence.RavenDB
     using Raven.Client.Documents;
     using Raven.Client.Exceptions.Database;
 
-    sealed class RavenEmbeddedPersistenceLifecycle(RavenPersisterSettings databaseConfiguration, IHostApplicationLifetime? lifetime)
+    sealed class RavenEmbeddedPersistenceLifecycle(RavenPersisterSettings databaseConfiguration, IHostApplicationLifetime lifetime)
         : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
     {
         public IDocumentStore GetDocumentStore()
