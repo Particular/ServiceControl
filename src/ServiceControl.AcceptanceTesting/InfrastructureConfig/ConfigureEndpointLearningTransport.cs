@@ -6,7 +6,6 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using NUnit.Framework;
-    using Transports.Learning;
 
     public class ConfigureEndpointLearningTransport : ITransportIntegration
     {
@@ -46,6 +45,7 @@
         }
 
         public string Name => "Learning";
-        public string TypeName => $"{typeof(LearningTransportCustomization).AssemblyQualifiedName}";
+
+        public string TypeName => "LearningTransport";
     }
 }

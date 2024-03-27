@@ -5,6 +5,7 @@ namespace ServiceControl.Persistence
     using System.Reflection;
     using Configuration;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
 
     static class PersistenceFactory
     {
@@ -27,9 +28,11 @@ namespace ServiceControl.Persistence
             try
             {
                 var foundPersistenceType = PersistenceManifestLibrary.Find(persistenceType);
-                var customizationType = Type.GetType(foundPersistenceType, true);
-                var persistenceConfiguration = (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
-                return persistenceConfiguration;
+                var folder = PersistenceManifestLibrary.GetPersistenceFolder(foundPersistenceType);
+                var loadContext = new PluginAssemblyLoadContext(folder, foundPersistenceType);
+                var customizationType = Type.GetType(foundPersistenceType, loadContext.LoadFromAssemblyName, null, true);
+
+                return (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)
             {

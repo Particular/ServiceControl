@@ -5,6 +5,7 @@ namespace ServiceControl.Monitoring
     using System.Configuration;
     using System.Threading.Tasks;
     using Configuration;
+    using ServiceControl.Infrastructure;
     using Transports;
 
     public class Settings
@@ -55,8 +56,9 @@ namespace ServiceControl.Monitoring
             try
             {
                 TransportType = TransportManifestLibrary.Find(TransportType);
-
-                var customizationType = Type.GetType(TransportType, true);
+                var folder = TransportManifestLibrary.GetTransportFolder(TransportType);
+                var loadContext = new PluginAssemblyLoadContext(folder, TransportType);
+                var customizationType = Type.GetType(TransportType, loadContext.LoadFromAssemblyName, null, true);
 
                 return (ITransportCustomization)Activator.CreateInstance(customizationType);
             }

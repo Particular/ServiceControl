@@ -5,7 +5,6 @@
     using System.Linq;
     using System.Reflection;
     using System.Text;
-    using Audit;
     using Audit.Infrastructure.Settings;
     using Audit.Infrastructure.WebApi;
     using Microsoft.AspNetCore.Http;
@@ -15,8 +14,6 @@
     using Microsoft.AspNetCore.Routing;
     using NUnit.Framework;
     using Particular.Approvals;
-    using ServiceControl.Audit.Persistence.InMemory;
-    using ServiceControl.Transports.Learning;
 
     [TestFixture]
     class APIApprovals
@@ -135,7 +132,7 @@
         static Settings CreateTestSettings() =>
             new(
                 Settings.DEFAULT_SERVICE_NAME,
-                typeof(LearningTransportCustomization).AssemblyQualifiedName,
-                typeof(InMemoryPersistence).AssemblyQualifiedName);
+                "LearningTransport",
+                "InMemory");
     }
 }

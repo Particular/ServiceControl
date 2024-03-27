@@ -8,7 +8,6 @@
     using NUnit.Framework;
     using Particular.ServiceControl.Hosting;
     using Persistence;
-    using Persistence.RavenDB;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.AcceptanceTesting.InfrastructureConfig;
 
@@ -26,7 +25,7 @@
             settings = new Settings(
                 forwardErrorMessages: false,
                 errorRetentionPeriod: TimeSpan.FromDays(1),
-                persisterType: typeof(RavenPersistenceConfiguration).AssemblyQualifiedName)
+                persisterType: "RavenDB")
             {
                 TransportType = transportIntegration.TypeName,
                 TransportConnectionString = transportIntegration.ConnectionString,
