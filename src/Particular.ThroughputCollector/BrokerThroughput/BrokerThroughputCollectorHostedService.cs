@@ -4,6 +4,7 @@ using System.Collections.Frozen;
 using Contracts;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Particular.ThroughputCollector.Shared;
 using Persistence;
 using ServiceControl.Configuration;
 using ServiceControl.Transports;
@@ -60,7 +61,7 @@ internal class BrokerThroughputCollectorHostedService(
 
         await foreach (var queueName in throughputQuery.GetQueueNames(stoppingToken))
         {
-            if (IgnoreQueue(queueName.QueueName))
+            if (PlatformEndpointIdentifier.IsPlatformEndpoint(queueName.QueueName, throughputSettings))
             {
                 continue;
             }
@@ -106,35 +107,5 @@ internal class BrokerThroughputCollectorHostedService(
                 }
             }
         }
-    }
-
-    private bool IgnoreQueue(string queueName)
-    {
-        if (throughputSettings.AuditQueues.Any(a => a.Equals(queueName, StringComparison.OrdinalIgnoreCase)))
-        {
-            return true;
-        }
-
-        if (queueName.Equals(throughputSettings.ErrorQueue, StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (queueName.Equals(throughputSettings.ServiceControlQueue, StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (queueName.EndsWith(".Timeouts", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (queueName.EndsWith(".TimeoutsDispatcher", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        return false;
     }
 }
