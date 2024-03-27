@@ -23,16 +23,10 @@ namespace ServiceControl.Audit.Persistence.RavenDB
         {
             this.configuration = configuration;
             ServerUrl = configuration.ServerConfiguration.ServerUrl;
-            shutdownTokenSourceRegistration = shutdownTokenSource.Token.Register(() =>
-            {
-                isStopping = true;
-            });
+            shutdownTokenSourceRegistration = shutdownTokenSource.Token.Register(() => isStopping = true);
 
             // Test scenarios do not always have a lifetime
-            applicationStoppingRegistration = (lifetime?.ApplicationStopping ?? CancellationToken.None).Register(() =>
-            {
-                isStopping = true;
-            });
+            applicationStoppingRegistration = (lifetime?.ApplicationStopping ?? CancellationToken.None).Register(() => isStopping = true);
         }
 
         public string ServerUrl { get; private set; }

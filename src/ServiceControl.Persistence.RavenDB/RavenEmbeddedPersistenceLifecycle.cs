@@ -3,7 +3,6 @@
 namespace ServiceControl.Persistence.RavenDB
 {
     using System;
-    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
@@ -55,7 +54,5 @@ namespace ServiceControl.Persistence.RavenDB
         EmbeddedDatabase? database;
 
         static readonly ILog Log = LogManager.GetLogger(typeof(RavenEmbeddedPersistenceLifecycle));
-
-        ~RavenEmbeddedPersistenceLifecycle() => Trace.WriteLine("ERROR: RavenDbEmbeddedPersistenceLifecycle isn't properly disposed");
     }
 }
