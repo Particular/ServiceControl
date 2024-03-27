@@ -69,7 +69,7 @@
 
                 foreach (char character in segment)
                 {
-                    if (Path.GetInvalidPathChars().Contains(character))
+                    if (Path.GetInvalidFileNameChars().Contains(character))
                     {
                         continue;
                     }
