@@ -16,9 +16,9 @@
 
         [Route("throughput/endpoints")]
         [HttpGet]
-        public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput(CancellationToken token)
+        public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput(CancellationToken cancellationToken)
         {
-            return await throughputCollector.GetThroughputSummary();
+            return await throughputCollector.GetThroughputSummary(cancellationToken);
         }
 
         [Route("throughput/endpoints/update")]
@@ -40,7 +40,11 @@
         [HttpGet]
         public async Task<FileContentResult> GetThroughputReportFile(string[]? mask, CancellationToken token)
         {
-            var report = await throughputCollector.GenerateThroughputReport(mask ?? [], Request.Headers.TryGetValue("Particular-ServicePulse-Version", out var value) ? value.ToString() : "Unknown");
+            var report = await throughputCollector.GenerateThroughputReport(
+                mask ?? [], 
+                Request.Headers.TryGetValue("Particular-ServicePulse-Version", out var value) ? value.ToString() : "Unknown",
+                token);
+
             var options = new JsonSerializerOptions
             {
                 WriteIndented = true,

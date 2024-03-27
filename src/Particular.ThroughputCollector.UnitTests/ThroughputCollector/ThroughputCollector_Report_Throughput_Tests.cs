@@ -23,14 +23,20 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
     [Test]
     public async Task Should_not_include_daily_throughput_for_non_nsb_endpoints()
     {
-        EndpointsWithThroughputFromBrokerAndOneNonNsbEndpoint.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint(sources: [ThroughputSource.Broker])
+            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpoint.ToString()).WithThroughput(days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker])
+            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpoint.ToString()).WithThroughput(days: 2)
+            .AddEndpoint("Endpoint3", sources: [ThroughputSource.Broker])
+            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NotNServicebusEndpoint.ToString()).WithThroughput(days: 2)
+            .Build();
 
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(3), $"Incorrect number of endpoints in throughput report");
         Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint3")?.DailyThroughputFromBroker?.Length, Is.EqualTo(0), $"Incorrect number of endpoints in throughput report");
@@ -39,14 +45,22 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
     [Test]
     public async Task Should_include_daily_throughput_for_endpoints_with_userIndicator_other_than_non_nsb_endpoints()
     {
-        EndpointsWithThroughputFromBrokerWithUserIndicatorsOtherThanNonNsbEndpoint.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker])
+            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpoint.ToString()).WithThroughput(days: 2)
+            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker])
+            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpointNoLongerInUse.ToString()).WithThroughput(days: 2)
+            .AddEndpoint("Endpoint3", sources: [ThroughputSource.Broker])
+            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpointSendOnly.ToString()).WithThroughput(days: 2)
+            .AddEndpoint("Endpoint4", sources: [ThroughputSource.Broker])
+            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpointScaledOut.ToString()).WithThroughput(days: 2)
+            .Build();
 
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(4), $"Incorrect number of endpoints in throughput report");
         Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint1")?.DailyThroughputFromBroker?.Length, Is.EqualTo(2), $"Incorrect number of endpoints in throughput report");
@@ -55,17 +69,22 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint4")?.DailyThroughputFromBroker?.Length, Is.EqualTo(2), $"Incorrect number of endpoints in throughput report");
     }
 
-    [Test]
-    public async Task Should_return_correct_number_of_endpoints_in_report_when_only_one_source_of_throughput()
+    [TestCase(ThroughputSource.Audit)]
+    [TestCase(ThroughputSource.Broker)]
+    [TestCase(ThroughputSource.Monitoring)]
+    public async Task Should_return_correct_number_of_endpoints_in_report_when_only_one_source_of_throughput(ThroughputSource source)
     {
-        EndpointsWithThroughputFromBrokerOnly.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint(sources: [source]).WithThroughput(days: 2)
+            .AddEndpoint(sources: [source]).WithThroughput(days: 2)
+            .AddEndpoint(sources: [source]).WithThroughput(days: 2)
+            .Build();
 
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(3), $"Incorrect number of endpoints in throughput report");
     }
@@ -73,29 +92,37 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
     [Test]
     public async Task Should_return_correct_number_of_endpoints_in_report_when_multiple_sources_of_throughput()
     {
-        EndpointsWithThroughputFromBrokerAndMonitoring.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint(sources: [ThroughputSource.Broker, ThroughputSource.Monitoring]).WithThroughput(days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .AddEndpoint(sources: [ThroughputSource.Broker, ThroughputSource.Monitoring]).WithThroughput(days: 2)
+            .Build();
 
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(3), $"Incorrect number of endpoints in throughput report");
     }
 
-    [Test]
-    public async Task Should_return_correct_throughput_in_report_when_data_only_from_one_source()
+    [TestCase(ThroughputSource.Audit)]
+    [TestCase(ThroughputSource.Broker)]
+    [TestCase(ThroughputSource.Monitoring)]
+    public async Task Should_return_correct_throughput_in_report_when_data_only_from_one_source(ThroughputSource source)
     {
-        EndpointsWithThroughputFromBrokerOnly.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint("Endpoint1", sources: [source]).WithThroughput(data: [50, 55])
+            .AddEndpoint("Endpoint2", sources: [source]).WithThroughput(data: [60, 65])
+            .AddEndpoint("Endpoint3", sources: [source]).WithThroughput(data: [75, 50])
+            .Build();
 
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(3));
 
@@ -110,14 +137,24 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
     [Test]
     public async Task Should_return_correct_throughput_in_report_when_multiple_sources()
     {
-        EndpointsWithThroughputFromBrokerAndMonitoringAndAudit.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker, ThroughputSource.Monitoring])
+                .WithThroughput(ThroughputSource.Broker, data: [50, 55])
+                .WithThroughput(ThroughputSource.Monitoring, data: [60, 65])
+            .AddEndpoint("Endpoint2", sources: [ThroughputSource.Broker, ThroughputSource.Audit])
+                .WithThroughput(ThroughputSource.Broker, data: [60, 65])
+                .WithThroughput(ThroughputSource.Audit, data: [61, 64])
+            .AddEndpoint("Endpoint3", sources: [ThroughputSource.Broker, ThroughputSource.Monitoring, ThroughputSource.Audit])
+                .WithThroughput(ThroughputSource.Broker, data: [50, 57])
+                .WithThroughput(ThroughputSource.Monitoring, data: [40, 45])
+                .WithThroughput(ThroughputSource.Audit, data: [42, 47])
+            .Build();
 
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(3));
 
@@ -132,10 +169,13 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
     [Test]
     public async Task Should_return_correct_throughput_in_report_when_endpoint_has_no_throughput()
     {
-        EndpointsWithNoThroughput.ForEach(e => DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput));
+        // Arrange
+        await DataStore.CreateBuilder().AddEndpoint().Build();
 
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(1), "Invalid number of endpoints in throughput report");
         Assert.That(report.ReportData.Queues[0].Throughput, Is.EqualTo(0), $"Incorrect Throughput recorded for {report.ReportData.Queues[0].QueueName}");
@@ -147,14 +187,19 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
     [Test]
     public async Task Should_return_correct_throughput_in_report_when_data_from_multiple_sources_and_name_is_different()
     {
-        EndpointsWithDifferentNamesButSameSanitizedNames.ForEach(async e =>
-        {
-            await DataStore.SaveEndpoint(e);
-            await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
-        });
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker])
+                .WithThroughput(data: [50, 75])
+            .AddEndpoint("Endpoint1_", sources: [ThroughputSource.Audit])
+            .ConfigureEndpoint(endpoint => endpoint.SanitizedName = "Endpoint1")
+                .WithThroughput(data: [60, 65])
+            .Build();
 
+        // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
+        // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(1));
 
@@ -167,57 +212,4 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(75), $"Incorrect TotalThroughput recorded for Endpoint1");
         Assert.That(report.ReportData.TotalQueues, Is.EqualTo(1), $"Incorrect TotalQueues recorded for Endpoint1");
     }
-
-    readonly List<Endpoint> EndpointsWithNoThroughput =
-    [
-        new Endpoint("Endpoint1", ThroughputSource.Audit) { SanitizedName = "Endpoint1" },
-    ];
-
-    readonly List<Endpoint> EndpointsWithThroughputFromBrokerAndOneNonNsbEndpoint =
-    [
-        new Endpoint("Endpoint1", ThroughputSource.Broker) { SanitizedName = "Endpoint1", UserIndicator = UserIndicator.NServicebusEndpoint.ToString(), DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 55 }] },
-        new Endpoint("Endpoint2", ThroughputSource.Broker) { SanitizedName = "Endpoint2", UserIndicator = UserIndicator.NServicebusEndpoint.ToString(), DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
-        new Endpoint("Endpoint3", ThroughputSource.Broker) { SanitizedName = "Endpoint3", UserIndicator = UserIndicator.NotNServicebusEndpoint.ToString(), DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 75 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 50 }] }
-    ];
-
-    readonly List<Endpoint> EndpointsWithThroughputFromBrokerWithUserIndicatorsOtherThanNonNsbEndpoint =
-    [
-        new Endpoint("Endpoint1", ThroughputSource.Broker) { SanitizedName = "Endpoint1", UserIndicator = UserIndicator.NServicebusEndpoint.ToString(), DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 55 }] },
-        new Endpoint("Endpoint2", ThroughputSource.Broker) { SanitizedName = "Endpoint2", UserIndicator = UserIndicator.NServicebusEndpointNoLongerInUse.ToString(), DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
-        new Endpoint("Endpoint3", ThroughputSource.Broker) { SanitizedName = "Endpoint3", UserIndicator = UserIndicator.NServicebusEndpointSendOnly.ToString(), DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 75 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 50 }] },
-        new Endpoint("Endpoint4", ThroughputSource.Broker) { SanitizedName = "Endpoint4", UserIndicator = UserIndicator.NServicebusEndpointScaledOut.ToString(), DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 75 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 50 }] }
-    ];
-
-    readonly List<Endpoint> EndpointsWithThroughputFromBrokerOnly =
-    [
-        new Endpoint("Endpoint1", ThroughputSource.Broker) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 55 }] },
-        new Endpoint("Endpoint2", ThroughputSource.Broker) { SanitizedName = "Endpoint2", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
-        new Endpoint("Endpoint3", ThroughputSource.Broker) { SanitizedName = "Endpoint3", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 75 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 50 }] }
-    ];
-
-    readonly List<Endpoint> EndpointsWithThroughputFromBrokerAndMonitoring =
-    [
-        new Endpoint("Endpoint1", ThroughputSource.Broker) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 55 }] },
-        new Endpoint("Endpoint1", ThroughputSource.Monitoring) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
-        new Endpoint("Endpoint2", ThroughputSource.Broker) { SanitizedName = "Endpoint2", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
-        new Endpoint("Endpoint3", ThroughputSource.Broker) { SanitizedName = "Endpoint3", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 55 }] },
-        new Endpoint("Endpoint1", ThroughputSource.Monitoring) { SanitizedName = "Endpoint3", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 40 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 45 }] }
-    ];
-
-    readonly List<Endpoint> EndpointsWithThroughputFromBrokerAndMonitoringAndAudit =
-    [
-        new Endpoint("Endpoint1", ThroughputSource.Broker) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 55 }] },
-        new Endpoint("Endpoint1", ThroughputSource.Monitoring) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
-        new Endpoint("Endpoint2", ThroughputSource.Broker) { SanitizedName = "Endpoint2", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
-        new Endpoint("Endpoint2", ThroughputSource.Audit) { SanitizedName = "Endpoint2", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 61 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 64 }] },
-        new Endpoint("Endpoint3", ThroughputSource.Broker) { SanitizedName = "Endpoint3", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 57 }] },
-        new Endpoint("Endpoint3", ThroughputSource.Monitoring) { SanitizedName = "Endpoint3", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 40 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 45 }] },
-        new Endpoint("Endpoint3", ThroughputSource.Audit) { SanitizedName = "Endpoint3", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 42 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 47 }] }
-    ];
-
-    readonly List<Endpoint> EndpointsWithDifferentNamesButSameSanitizedNames =
-    [
-        new Endpoint("Endpoint1", ThroughputSource.Broker) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 75 }] },
-        new Endpoint("Endpoint1_", ThroughputSource.Audit) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 60 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 65 }] },
-    ];
 }
