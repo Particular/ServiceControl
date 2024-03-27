@@ -3,6 +3,7 @@
 using System.Text.Json.Serialization;
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
+//NOTE do not change fields to be nullable as this needs to be compatible with older versions of the report
 public class SignedReport
 {
 
@@ -27,7 +28,7 @@ public class Report
     public string? Prefix { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public string? ScopeType { get; init; }
+    public string ScopeType { get; init; }
 
     public DateTimeOffset StartTime { get; set; }
 
@@ -46,7 +47,7 @@ public class Report
     public int TotalQueues { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public string[]? IgnoredQueues { get; init; }
+    public string[] IgnoredQueues { get; init; }
 
     public Dictionary<string, string> EnvironmentData { get; set; }
 }
@@ -59,16 +60,16 @@ public class QueueThroughput
     public long? Throughput { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public bool? NoDataOrSendOnly { get; init; }
+    public bool NoDataOrSendOnly { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public string[]? EndpointIndicators { get; init; }
+    public string[] EndpointIndicators { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string? UserIndicator { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public string? Scope { get; init; }
+    public string Scope { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public EndpointDailyThroughput[] DailyThroughputFromBroker { get; init; }

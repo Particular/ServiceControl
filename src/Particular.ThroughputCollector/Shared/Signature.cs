@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Particular.ThroughputCollector.Contracts;
 
-static class Signature
+public static class Signature
 {
     static readonly string publicKeyText;
 
