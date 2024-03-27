@@ -5,6 +5,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="throughput-report-v1.0.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="ThroughputCollector\throughput-report-v1.0.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Particular.ThroughputCollector.Persistence.InMemory\Particular.ThroughputCollector.Persistence.InMemory.csproj" />
     <ProjectReference Include="..\Particular.ThroughputCollector\Particular.ThroughputCollector.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />

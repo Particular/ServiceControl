@@ -108,7 +108,7 @@
                         UserIndicator = UserIndicator(endpoint) ?? string.Empty,
                         EndpointIndicators = EndpointIndicators(endpoint) ?? [],
                         NoDataOrSendOnly = NoDataOrSendOnly(endpoint),
-                        Scope = EndpointScope(endpoint),
+                        Scope = EndpointScope(endpoint) ?? "",
                         Throughput = MaxDailyThroughput(endpoint) ?? 0,
                         DailyThroughputFromAudit = AuditThroughput(endpoint) ?? [],
                         DailyThroughputFromMonitoring = MonitoringThroughput(endpoint) ?? [],
@@ -128,7 +128,7 @@
             var report = new Report
             {
                 EndTime = new DateTimeOffset(yesterday, TimeSpan.Zero),
-                ReportDuration = TimeSpan.FromDays(1),
+                ReportDuration = TimeSpan.FromDays(1), //NOTE has to be 1 as the throughput on the validation tool is using this as a multiplier to figure out the daily throughput
                 CustomerName = throughputSettings.CustomerName, //who the license is registeredTo
                 ReportMethod = "NA",
                 ScopeType = brokerData?.ScopeType ?? "",
@@ -137,7 +137,7 @@
                 ToolVersion = "V3", //ensure we check for this on the other side - ie that we can process V3
                 ServiceControlVersion = throughputSettings.ServiceControlVersion,
                 ServicePulseVersion = spVersion ?? "",
-                IgnoredQueues = ignoredQueueNames?.ToArray(),
+                IgnoredQueues = ignoredQueueNames?.ToArray() ?? [],
                 Queues = endpointThroughputs.ToArray(),
                 TotalQueues = endpointThroughputs.Count(),
                 TotalThroughput = endpointThroughputs.Sum(q => q.Throughput ?? 0),
