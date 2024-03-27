@@ -103,7 +103,7 @@
                 return;
             }
 
-            EventLog.WriteEntry(EventSource.SourceName, message, EventLogEntryType.Error);
+            EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
         }
 #endif
     }
