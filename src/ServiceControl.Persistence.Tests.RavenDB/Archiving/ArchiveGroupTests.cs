@@ -15,7 +15,6 @@
         public ArchiveGroupTests() =>
             RegisterServices = services =>
             {
-                services.AddSingleton<IDomainEvents, FakeDomainEvents>();
                 services.AddSingleton<ArchiveAllInGroupHandler>();
                 services.AddSingleton<RetryingManager>();
             };

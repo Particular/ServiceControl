@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using NServiceBus;
+using NServiceBus.Settings;
 using NUnit.Framework;
 using Raven.Client.Documents;
+using ServiceControl.Infrastructure.DomainEvents;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.MessageRedirects;
@@ -13,6 +18,7 @@ using ServiceControl.Persistence.RavenDB;
 using ServiceControl.Persistence.Recoverability;
 using ServiceControl.Persistence.Tests;
 using ServiceControl.Persistence.UnitOfWork;
+using ServiceControl.PersistenceTests;
 
 //[Parallelizable(ParallelScope.All)]
 [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
@@ -47,6 +53,13 @@ public abstract class PersistenceTestBase
 
         persistence.AddPersistence(hostBuilder.Services);
         persistence.AddInstaller(hostBuilder.Services);
+
+        // This is not cool. We have things that are registered as part of "the persistence" that then require parts
+        // of the infrastructure to be registered and assume NServiceBus is around. This is a hack to get around that.
+        hostBuilder.Services.AddSingleton<IDomainEvents, FakeDomainEvents>();
+        hostBuilder.Services.AddSingleton(new CriticalError((_, __) => Task.CompletedTask));
+        hostBuilder.Services.AddSingleton<IReadOnlySettings>(new SettingsHolder());
+        hostBuilder.Services.AddSingleton(new ReceiveAddresses("fakeReceiveAddress"));
 
         RegisterServices.Invoke(hostBuilder.Services);
 
@@ -83,7 +96,7 @@ public abstract class PersistenceTestBase
 
     protected Action<IServiceCollection> RegisterServices { get; set; } = _ => { };
 
-    protected void CompleteDatabaseOperation() => GetRequiredService<IDocumentStore>().WaitForIndexing();
+    protected void CompleteDatabaseOperation() => DocumentStore.WaitForIndexing();
 
     protected async Task WaitUntil(Func<Task<bool>> conditionChecker, string condition, TimeSpan timeout = default)
     {

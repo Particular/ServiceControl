@@ -19,20 +19,15 @@
     sealed class EditMessageTests : PersistenceTestBase
     {
         EditHandler handler;
-        readonly TestableUnicastDispatcher dispatcher = new TestableUnicastDispatcher();
+        readonly TestableUnicastDispatcher dispatcher = new();
 
-        public EditMessageTests()
-        {
+        public EditMessageTests() =>
             RegisterServices = services => services
                 .AddSingleton<IMessageDispatcher>(dispatcher)
                 .AddTransient<EditHandler>();
-        }
 
         [SetUp]
-        public void Setup()
-        {
-            handler = GetRequiredService<EditHandler>();
-        }
+        public void Setup() => handler = GetRequiredService<EditHandler>();
 
         [Test]
         public async Task Should_discard_edit_when_failed_message_not_exists()
