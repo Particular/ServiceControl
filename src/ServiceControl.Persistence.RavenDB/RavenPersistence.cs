@@ -85,16 +85,12 @@
             if (settings.UseEmbeddedServer)
             {
                 services.AddSingleton<RavenEmbeddedPersistenceLifecycle>();
-                // This binding is only necessary as long as we keep around the custom lifetimes
-                services.AddSingleton<IPersistenceLifecycle>(b => b.GetService<RavenEmbeddedPersistenceLifecycle>());
                 services.AddSingleton<IRavenPersistenceLifecycle>(b => b.GetService<RavenEmbeddedPersistenceLifecycle>());
                 services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
                 return;
             }
 
             services.AddSingleton<RavenExternalPersistenceLifecycle>();
-            // This binding is only necessary as long as we keep around the custom lifetimes
-            services.AddSingleton<IPersistenceLifecycle>(b => b.GetService<RavenExternalPersistenceLifecycle>());
             services.AddSingleton<IRavenPersistenceLifecycle>(b => b.GetService<RavenExternalPersistenceLifecycle>());
             services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
         }
