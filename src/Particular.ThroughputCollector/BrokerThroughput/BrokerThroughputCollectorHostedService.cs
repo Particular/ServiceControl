@@ -56,45 +56,37 @@ internal class BrokerThroughputCollectorHostedService(
                 continue;
             }
 
-            var startDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-30);
-
-            waitingTasks.Add(Exec(queueName, startDate));
+            waitingTasks.Add(Exec(queueName));
         }
 
         await Task.WhenAll(waitingTasks);
         await dataStore.SaveBrokerData(throughputSettings.Broker, brokerThroughputQuery.ScopeType, brokerThroughputQuery.Data);
         return;
 
-        async Task Exec(IBrokerQueue queueName, DateOnly startDate)
+        async Task Exec(IBrokerQueue queueName)
         {
             var endpointId = new EndpointIdentifier(queueName.QueueName, ThroughputSource.Broker);
             var endpoint = await dataStore.GetEndpoint(endpointId, stoppingToken);
-            if (endpoint != null)
-            {
-                startDate = endpoint.DailyThroughput.Last().DateUTC;
-            }
 
-            await foreach (var queueThroughput in brokerThroughputQuery.GetThroughputPerDay(queueName, startDate, stoppingToken))
+            if (endpoint == null)
             {
                 endpoint = new Endpoint(endpointId)
                 {
                     Scope = queueName.Scope,
                     EndpointIndicators = queueName.EndpointIndicators.ToArray()
                 };
-                endpoint.DailyThroughput.Add(new EndpointDailyThroughput
-                {
-                    TotalThroughput = queueThroughput.TotalThroughput,
-                    DateUTC = queueThroughput.DateUTC
-                });
 
-                if (brokerThroughputQuery.SupportsHistoricalMetrics)
-                {
-                    await dataStore.RecordEndpointThroughput(endpoint.Id, endpoint.DailyThroughput, stoppingToken);
-                }
-                else
-                {
-                    await dataStore.AppendEndpointThroughput(endpoint);
-                }
+                await dataStore.SaveEndpoint(endpoint, stoppingToken);
+            }
+
+            var defaultStartDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-30);
+            var startDate = endpoint.LastCollectedDate < defaultStartDate
+                ? defaultStartDate
+                : endpoint.LastCollectedDate;
+
+            await foreach (var queueThroughput in throughputQuery.GetThroughputPerDay(queueName, startDate, stoppingToken))
+            {
+                await dataStore.RecordEndpointThroughput(queueName.QueueName, ThroughputSource.Broker, queueThroughput.DateUTC, queueThroughput.TotalThroughput, stoppingToken);
             }
         }
     }
