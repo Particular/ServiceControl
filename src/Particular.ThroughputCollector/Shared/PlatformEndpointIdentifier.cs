@@ -8,7 +8,11 @@
         {
             return endpointName.Equals(throughputSettings.ErrorQueue, StringComparison.OrdinalIgnoreCase)
                 || endpointName.Equals(throughputSettings.ServiceControlQueue, StringComparison.OrdinalIgnoreCase)
-                || throughputSettings.AuditQueues.Any(a => endpointName.Equals(a, StringComparison.OrdinalIgnoreCase));
+                || endpointName.EndsWith(".Timeouts", StringComparison.OrdinalIgnoreCase)
+                || endpointName.EndsWith(".TimeoutsDispatcher", StringComparison.OrdinalIgnoreCase)
+                || AuditQueues.Any(a => endpointName.Equals(a, StringComparison.OrdinalIgnoreCase));
         }
+
+        public static List<string> AuditQueues { get; set; } = [];
     }
 }
