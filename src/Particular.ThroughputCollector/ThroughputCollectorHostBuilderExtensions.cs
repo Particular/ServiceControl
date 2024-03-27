@@ -5,7 +5,6 @@ using BrokerThroughput;
 using Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ServiceControl.Api;
 
 public static class ThroughputCollectorHostBuilderExtensions
 {
@@ -38,9 +37,7 @@ public static class ThroughputCollectorHostBuilderExtensions
                 break;
         }
 
-        services.AddSingleton(provider => new ThroughputSettings(broker, serviceControlQueue, errorQueue, persistenceType, transportType, customerName, serviceControlVersion,
-            AuditCommands.GetAuditRemotes(provider.GetRequiredService<IConfigurationApi>()).Result?.SelectMany(s => s.Queues)?.ToList() ?? [])
-        );
+        services.AddSingleton(new ThroughputSettings(broker, serviceControlQueue, errorQueue, persistenceType, transportType, customerName, serviceControlVersion));
         services.AddHostedService<AuditThroughputCollectorHostedService>();
         services.AddSingleton<IThroughputCollector, ThroughputCollector>();
 

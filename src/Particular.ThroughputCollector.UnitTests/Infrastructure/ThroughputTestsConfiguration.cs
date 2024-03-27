@@ -18,7 +18,7 @@
 
         public Task Configure(Action<ThroughputSettings> setThroughputSettings)
         {
-            var throughputSettings = new ThroughputSettings(broker: Broker.None, serviceControlQueue: "Particular.ServiceControl", errorQueue: "error", persistenceType: "InMemory", transportType: "Learning", customerName: "TestCustomer", serviceControlVersion: "5.0.1", auditQueues: ["audit"]);
+            var throughputSettings = new ThroughputSettings(broker: Broker.None, serviceControlQueue: "Particular.ServiceControl", errorQueue: "error", persistenceType: "InMemory", transportType: "Learning", customerName: "TestCustomer", serviceControlVersion: "5.0.1");
             setThroughputSettings(throughputSettings);
 
             var serviceCollection = new ServiceCollection();
@@ -26,9 +26,10 @@
 
             var config = new InMemoryPersistenceConfiguration();
             var settings = new PersistenceSettings();
-            throughputSettings.AuditQueues.ForEach(a => settings.PlatformEndpointNames.Add(a));
-            settings.PlatformEndpointNames.Add(throughputSettings.ErrorQueue);
-            settings.PlatformEndpointNames.Add(throughputSettings.ServiceControlQueue);
+            //TODO is this still needed since we are now storing this on settings and on the auditCommand?
+            //throughputSettings.AuditQueues.ForEach(a => settings.PlatformEndpointNames.Add(a));
+            //settings.PlatformEndpointNames.Add(throughputSettings.ErrorQueue);
+            //settings.PlatformEndpointNames.Add(throughputSettings.ServiceControlQueue);
             serviceCollection.AddSingleton(settings);
 
             var persistence = config.Create(settings);
