@@ -15,11 +15,14 @@ public interface IThroughputDataStore
 
     Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken = default);
 
-    Task RecordEndpointThroughput(EndpointIdentifier id, IEnumerable<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default);
+    Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IEnumerable<string> queueNames, CancellationToken cancellationToken = default);
+
+    Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, DateOnly date, long messageCount, CancellationToken cancellationToken = default) =>
+        RecordEndpointThroughput(endpointName, throughputSource, [new EndpointDailyThroughput(date, messageCount)], cancellationToken);
+
+    Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IEnumerable<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default);
 
     Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator);
-
-    Task AppendEndpointThroughput(Endpoint endpoint);
 
     Task<bool> IsThereThroughputForLastXDays(int days);
 

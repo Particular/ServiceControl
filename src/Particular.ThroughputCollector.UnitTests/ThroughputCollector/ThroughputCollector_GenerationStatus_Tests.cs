@@ -1,7 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests;
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.ThroughputCollector.Contracts;
@@ -21,48 +20,48 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
     [Test]
     public async Task Should_return_ReportCanBeGenerated_false_when_no_throughput_for_last_30_days()
     {
-        EndpointsWithNoThroughputInLast30Days.ForEach(e => DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput));
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint().WithThroughput(startDate: DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-32), days: 2)
+            .AddEndpoint().WithThroughput(startDate: DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-32), days: 2)
+            .Build();
 
+        // Act
         var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
 
+        // Assert
         Assert.That(reportGenerationState.ReportCanBeGenerated, Is.False);
     }
 
     [Test]
     public async Task Should_return_ReportCanBeGenerated_true_when_there_is_throughput_for_last_30_days()
     {
-        EndpointsWithThroughputInLast30Days.ForEach(e => DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput));
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint().WithThroughput(startDate: DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), days: 2)
+            .AddEndpoint().WithThroughput(startDate: DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), days: 2)
+            .Build();
 
+        // Act
         var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
 
+        // Assert
         Assert.That(reportGenerationState.ReportCanBeGenerated, Is.True);
     }
 
     [Test]
     public async Task Should_return_ReportCanBeGenerated_false_when_throughput_exists_only_for_today()
     {
-        EndpointsWithThroughputOnlyForToday.ForEach(e => DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput));
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint().WithThroughput(startDate: DateOnly.FromDateTime(DateTime.UtcNow))
+            .AddEndpoint().WithThroughput(startDate: DateOnly.FromDateTime(DateTime.UtcNow))
+            .Build();
 
+        // Act
         var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
 
+        // Assert
         Assert.That(reportGenerationState.ReportCanBeGenerated, Is.False);
     }
-
-    readonly List<Endpoint> EndpointsWithNoThroughputInLast30Days =
-    [
-        new Endpoint("Endpoint1", ThroughputSource.Audit) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-31), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-32), TotalThroughput = 50 }] },
-        new Endpoint("Endpoint2", ThroughputSource.Audit) { SanitizedName = "Endpoint2", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-31), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-32), TotalThroughput = 50 }] }
-    ];
-
-    readonly List<Endpoint> EndpointsWithThroughputInLast30Days =
-    [
-        new Endpoint("Endpoint1", ThroughputSource.Audit) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 50 }] },
-        new Endpoint("Endpoint2", ThroughputSource.Audit) { SanitizedName = "Endpoint2", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), TotalThroughput = 50 }, new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), TotalThroughput = 50 }] }
-    ];
-
-    readonly List<Endpoint> EndpointsWithThroughputOnlyForToday =
-    [
-        new Endpoint("Endpoint1", ThroughputSource.Audit) { SanitizedName = "Endpoint1", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow), TotalThroughput = 50 }] },
-        new Endpoint("Endpoint2", ThroughputSource.Audit) { SanitizedName = "Endpoint2", DailyThroughput = [new EndpointDailyThroughput { DateUTC = DateOnly.FromDateTime(DateTime.UtcNow), TotalThroughput = 50 }] }
-    ];
 }

@@ -11,6 +11,7 @@ using Contracts;
 class InMemoryThroughputDataStore() : IThroughputDataStore
 {
     private readonly EndpointCollection endpoints = [];
+    private readonly Dictionary<EndpointIdentifier, ThroughputData> allThroughput = [];
     private readonly List<BrokerData> brokerData = [];
 
     public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints = true, CancellationToken cancellationToken = default)
@@ -47,45 +48,44 @@ class InMemoryThroughputDataStore() : IThroughputDataStore
         return Task.CompletedTask;
     }
 
-    public async Task RecordEndpointThroughput(EndpointIdentifier id, IEnumerable<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default)
+    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IEnumerable<string> queueNames, CancellationToken cancellationToken = default)
     {
-        if (!endpoints.TryGetValue(id, out var endpoint))
-        {
-            endpoint = new Endpoint(id)
-            {
-                DailyThroughput = throughput.ToList(),
-            };
-            endpoints.Add(endpoint);
-        }
-        else
-        {
-            //ensure we are not adding a date entry more than once
-            endpoint.DailyThroughput.AddRange(throughput.Where(w => !endpoint.DailyThroughput.Any(a => a.DateUTC == w.DateUTC)));
-        }
-        await Task.CompletedTask;
+        var result = endpoints
+            .Where(endpoint => queueNames.Contains(endpoint.SanitizedName))
+            .Join(allThroughput,
+                endpoint => endpoint.Id,
+                throughputDictionary => throughputDictionary.Key,
+                (endpoint, throughputDictionary) => new { endpoint.SanitizedName, throughputDictionary.Value })
+            .GroupBy(anon => anon.SanitizedName)
+            .ToDictionary(group => group.Key, group => group.Select(entry => entry.Value));
+
+        return Task.FromResult((IDictionary<string, IEnumerable<ThroughputData>>)result);
     }
 
-    public async Task AppendEndpointThroughput(Endpoint endpoint)
+    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IEnumerable<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default)
     {
-        if (!endpoints.TryGetValue(endpoint.Id, out var existingEndpoint))
+        var id = new EndpointIdentifier(endpointName, throughputSource);
+        if (!endpoints.TryGetValue(id, out _))
         {
-            endpoints.Add(endpoint);
+            throw new InvalidOperationException($"Endpoint {id.Name} from {id.ThroughputSource} does not exist ");
         }
-        else
+
+        if (!allThroughput.TryGetValue(id, out var endpointThroughput))
         {
-            foreach (var endpointThroughput in endpoint.DailyThroughput)
+            endpointThroughput = new ThroughputData { ThroughputSource = id.ThroughputSource };
+            allThroughput.Add(id, endpointThroughput);
+        }
+
+        foreach (var (date, messageCount) in throughput)
+        {
+            var newCount = messageCount;
+
+            if (endpointThroughput.TryGetValue(date, out var existingCount))
             {
-                var existingDailyThroughput = existingEndpoint.DailyThroughput.Find(
-                    throughput => throughput.DateUTC == endpointThroughput.DateUTC);
-                if (existingDailyThroughput == null)
-                {
-                    existingEndpoint.DailyThroughput.Add(endpointThroughput);
-                }
-                else
-                {
-                    existingDailyThroughput.TotalThroughput += endpointThroughput.TotalThroughput;
-                }
+                newCount += existingCount;
             }
+
+            endpointThroughput[date] = newCount;
         }
 
         await Task.CompletedTask;
@@ -107,7 +107,10 @@ class InMemoryThroughputDataStore() : IThroughputDataStore
         await Task.CompletedTask;
     }
 
-    public async Task<bool> IsThereThroughputForLastXDays(int days) => await Task.FromResult(endpoints.Any(e => e.DailyThroughput.Any(t => t.DateUTC >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) && t.DateUTC <= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1))));
+    public async Task<bool> IsThereThroughputForLastXDays(int days) => await Task.FromResult(
+        allThroughput.Any(endpointThroughput => endpointThroughput.Value.Any(
+            t => t.Key >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) &&
+                 t.Key <= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1))));
 
     private List<Endpoint> GetAllEndpointThroughput(string name) => endpoints.Where(w => w.SanitizedName == name).ToList();
 
