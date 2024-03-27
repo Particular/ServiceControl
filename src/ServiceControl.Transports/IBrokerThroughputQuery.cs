@@ -25,7 +25,6 @@ public interface IBrokerThroughputQuery
     Dictionary<string, string> Data { get; }
     string MessageTransport { get; }
     string? ScopeType { get; }
-    bool SupportsHistoricalMetrics { get; }
     KeyDescriptionPair[] Settings { get; }
     Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken);
 }
