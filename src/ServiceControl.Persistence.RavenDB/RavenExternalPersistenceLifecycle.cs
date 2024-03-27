@@ -1,19 +1,20 @@
-﻿namespace ServiceControl.Persistence.RavenDB
+﻿#nullable enable
+
+namespace ServiceControl.Persistence.RavenDB
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
-    using ServiceControl.Persistence;
 
-    class RavenExternalPersistenceLifecycle(RavenPersisterSettings settings) : IPersistenceLifecycle, IDisposable
+    sealed class RavenExternalPersistenceLifecycle(RavenPersisterSettings settings) : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
     {
         public IDocumentStore GetDocumentStore()
         {
             if (documentStore == null)
             {
-                throw new InvalidOperationException("Document store is not available. Ensure `IPersistenceLifecycle.Initialize` is invoked");
+                throw new InvalidOperationException("Document store is not available. Ensure `IRavenPersistenceLifecycle.Initialize` is invoked");
             }
 
             return documentStore;
@@ -24,26 +25,21 @@
             var store = new DocumentStore
             {
                 Database = settings.DatabaseName,
-                Urls = new[] { settings.ConnectionString },
+                Urls = [settings.ConnectionString],
                 Conventions = new DocumentConventions
                 {
                     SaveEnumsAsIntegers = true
                 }
             };
 
-            store.Initialize();
-
-            documentStore = store;
+            documentStore = store.Initialize();
 
             var databaseSetup = new DatabaseSetup(settings);
             await databaseSetup.Execute(store, cancellationToken).ConfigureAwait(false);
         }
 
-        public void Dispose()
-        {
-            documentStore?.Dispose();
-        }
+        public void Dispose() => documentStore?.Dispose();
 
-        IDocumentStore documentStore;
+        IDocumentStore? documentStore;
     }
 }

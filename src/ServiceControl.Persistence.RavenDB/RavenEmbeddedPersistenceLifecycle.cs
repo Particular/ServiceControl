@@ -1,26 +1,23 @@
-﻿namespace ServiceControl.Persistence.RavenDB
+﻿#nullable enable
+
+namespace ServiceControl.Persistence.RavenDB
 {
     using System;
-    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Exceptions.Database;
-    using ServiceControl.Persistence;
 
-    class RavenEmbeddedPersistenceLifecycle : IPersistenceLifecycle, IDisposable
+    sealed class RavenEmbeddedPersistenceLifecycle(RavenPersisterSettings databaseConfiguration, IHostApplicationLifetime lifetime)
+        : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
     {
-        public RavenEmbeddedPersistenceLifecycle(RavenPersisterSettings databaseConfiguration)
-        {
-            this.databaseConfiguration = databaseConfiguration;
-        }
-
         public IDocumentStore GetDocumentStore()
         {
             if (documentStore == null)
             {
-                throw new InvalidOperationException("Document store is not available. Ensure `IPersistenceLifecycle.Initialize` is invoked");
+                throw new InvalidOperationException("Document store is not available. Ensure `IRavenPersistenceLifecycle.Initialize` is invoked");
             }
 
             return documentStore;
@@ -28,7 +25,7 @@
 
         public async Task Initialize(CancellationToken cancellationToken)
         {
-            database = EmbeddedDatabase.Start(databaseConfiguration);
+            database = EmbeddedDatabase.Start(databaseConfiguration, lifetime);
 
             while (true)
             {
@@ -51,18 +48,11 @@
         {
             documentStore?.Dispose();
             database?.Dispose();
-            GC.SuppressFinalize(this);
         }
 
-        IDocumentStore documentStore;
-        EmbeddedDatabase database;
+        IDocumentStore? documentStore;
+        EmbeddedDatabase? database;
 
-        readonly RavenPersisterSettings databaseConfiguration;
         static readonly ILog Log = LogManager.GetLogger(typeof(RavenEmbeddedPersistenceLifecycle));
-
-        ~RavenEmbeddedPersistenceLifecycle()
-        {
-            Trace.WriteLine("ERROR: RavenDbEmbeddedPersistenceLifecycle isn't properly disposed");
-        }
     }
 }

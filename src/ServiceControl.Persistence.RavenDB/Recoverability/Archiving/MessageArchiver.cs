@@ -14,13 +14,13 @@
     class MessageArchiver : IArchiveMessages
     {
         public MessageArchiver(
-            IDocumentStore store,
+            IRavenSessionProvider sessionProvider,
             OperationsManager operationsManager,
             IDomainEvents domainEvents,
             ExpirationManager expirationManager
             )
         {
-            this.store = store;
+            this.sessionProvider = sessionProvider;
             this.domainEvents = domainEvents;
             this.expirationManager = expirationManager;
             this.operationsManager = operationsManager;
@@ -37,7 +37,7 @@
             logger.Info($"Archiving of {groupId} started");
             ArchiveOperation archiveOperation;
 
-            using (var session = store.OpenAsyncSession())
+            using (var session = sessionProvider.OpenSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true; // Ensure 2 messages don't split the same operation into batches at once
 
@@ -64,7 +64,7 @@
 
             while (archiveOperation.CurrentBatch < archiveOperation.NumberOfBatches)
             {
-                using (var batchSession = store.OpenAsyncSession())
+                using (var batchSession = sessionProvider.OpenSession())
                 {
                     var nextBatch = await archiveDocumentManager.GetArchiveBatch(batchSession, archiveOperation.Id, archiveOperation.CurrentBatch);
                     if (nextBatch == null)
@@ -105,14 +105,14 @@
 
             logger.Info($"Archiving of group {groupId} is complete. Waiting for index updates.");
             await archivingManager.ArchiveOperationFinalizing(archiveOperation.RequestId, archiveOperation.ArchiveType);
-            if (!await archiveDocumentManager.WaitForIndexUpdateOfArchiveOperation(store, archiveOperation.RequestId, TimeSpan.FromMinutes(5))
+            if (!await archiveDocumentManager.WaitForIndexUpdateOfArchiveOperation(sessionProvider, archiveOperation.RequestId, TimeSpan.FromMinutes(5))
                 )
             {
                 logger.Warn($"Archiving group {groupId} completed but index not updated.");
             }
 
             await archivingManager.ArchiveOperationCompleted(archiveOperation.RequestId, archiveOperation.ArchiveType);
-            await archiveDocumentManager.RemoveArchiveOperation(store, archiveOperation);
+            await archiveDocumentManager.RemoveArchiveOperation(sessionProvider, archiveOperation);
 
             await domainEvents.Raise(new FailedMessageGroupArchived
             {
@@ -129,7 +129,7 @@
             logger.Info($"Unarchiving of {groupId} started");
             UnarchiveOperation unarchiveOperation;
 
-            using (var session = store.OpenAsyncSession())
+            using (var session = sessionProvider.OpenSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true; // Ensure 2 messages don't split the same operation into batches at once
 
@@ -157,48 +157,46 @@
 
             while (unarchiveOperation.CurrentBatch < unarchiveOperation.NumberOfBatches)
             {
-                using (var batchSession = store.OpenAsyncSession())
+                using var batchSession = sessionProvider.OpenSession();
+                var nextBatch = await unarchiveDocumentManager.GetUnarchiveBatch(batchSession, unarchiveOperation.Id, unarchiveOperation.CurrentBatch);
+                if (nextBatch == null)
                 {
-                    var nextBatch = await unarchiveDocumentManager.GetUnarchiveBatch(batchSession, unarchiveOperation.Id, unarchiveOperation.CurrentBatch);
-                    if (nextBatch == null)
+                    // We're only here in the case where Raven indexes are stale
+                    logger.Warn($"Attempting to unarchive a batch ({unarchiveOperation.Id}/{unarchiveOperation.CurrentBatch}) which appears to already have been archived.");
+                }
+                else
+                {
+                    logger.Info($"Unarchiving {nextBatch.DocumentIds.Count} messages from group {groupId} starting");
+                }
+
+                unarchiveDocumentManager.UnarchiveMessageGroupBatch(batchSession, nextBatch, expirationManager);
+
+                await unarchivingManager.BatchUnarchived(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0);
+
+                unarchiveOperation = unarchivingManager.GetStatusForUnarchiveOperation(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType).ToUnarchiveOperation();
+
+                await unarchiveDocumentManager.UpdateUnarchiveOperation(batchSession, unarchiveOperation);
+
+                await batchSession.SaveChangesAsync();
+
+                if (nextBatch != null)
+                {
+                    await domainEvents.Raise(new FailedMessageGroupBatchUnarchived
                     {
-                        // We're only here in the case where Raven indexes are stale
-                        logger.Warn($"Attempting to unarchive a batch ({unarchiveOperation.Id}/{unarchiveOperation.CurrentBatch}) which appears to already have been archived.");
-                    }
-                    else
-                    {
-                        logger.Info($"Unarchiving {nextBatch.DocumentIds.Count} messages from group {groupId} starting");
-                    }
+                        // Remove `FailedMessages/` prefix and publish pure GUIDs without Raven collection name
+                        FailedMessagesIds = nextBatch.DocumentIds.Select(id => id.Replace("FailedMessages/", "")).ToArray()
+                    });
+                }
 
-                    unarchiveDocumentManager.UnarchiveMessageGroupBatch(batchSession, nextBatch, expirationManager);
-
-                    await unarchivingManager.BatchUnarchived(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0);
-
-                    unarchiveOperation = unarchivingManager.GetStatusForUnarchiveOperation(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType).ToUnarchiveOperation();
-
-                    await unarchiveDocumentManager.UpdateUnarchiveOperation(batchSession, unarchiveOperation);
-
-                    await batchSession.SaveChangesAsync();
-
-                    if (nextBatch != null)
-                    {
-                        await domainEvents.Raise(new FailedMessageGroupBatchUnarchived
-                        {
-                            // Remove `FailedMessages/` prefix and publish pure GUIDs without Raven collection name
-                            FailedMessagesIds = nextBatch.DocumentIds.Select(id => id.Replace("FailedMessages/", "")).ToArray()
-                        });
-                    }
-
-                    if (nextBatch != null)
-                    {
-                        logger.Info($"Unarchiving of {nextBatch.DocumentIds.Count} messages from group {groupId} completed");
-                    }
+                if (nextBatch != null)
+                {
+                    logger.Info($"Unarchiving of {nextBatch.DocumentIds.Count} messages from group {groupId} completed");
                 }
             }
 
             logger.Info($"Unarchiving of group {groupId} is complete. Waiting for index updates.");
             await unarchivingManager.UnarchiveOperationFinalizing(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType);
-            if (!await unarchiveDocumentManager.WaitForIndexUpdateOfUnarchiveOperation(store, unarchiveOperation.RequestId, TimeSpan.FromMinutes(5))
+            if (!await unarchiveDocumentManager.WaitForIndexUpdateOfUnarchiveOperation(sessionProvider, unarchiveOperation.RequestId, TimeSpan.FromMinutes(5))
                 )
             {
                 logger.Warn($"Unarchiving group {groupId} completed but index not updated.");
@@ -206,7 +204,7 @@
 
             logger.Info($"Unarchiving of group {groupId} completed");
             await unarchivingManager.UnarchiveOperationCompleted(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType);
-            await unarchiveDocumentManager.RemoveUnarchiveOperation(store, unarchiveOperation);
+            await unarchiveDocumentManager.RemoveUnarchiveOperation(sessionProvider, unarchiveOperation);
 
             await domainEvents.Raise(new FailedMessageGroupUnarchived
             {
@@ -216,10 +214,7 @@
             });
         }
 
-        public bool IsOperationInProgressFor(string groupId, ArchiveType archiveType)
-        {
-            return operationsManager.IsOperationInProgressFor(groupId, archiveType);
-        }
+        public bool IsOperationInProgressFor(string groupId, ArchiveType archiveType) => operationsManager.IsOperationInProgressFor(groupId, archiveType);
 
         public bool IsArchiveInProgressFor(string groupId)
             => archivingManager.IsArchiveInProgressFor(groupId);
@@ -236,7 +231,7 @@
         public IEnumerable<InMemoryArchive> GetArchivalOperations()
             => archivingManager.GetArchivalOperations();
 
-        readonly IDocumentStore store;
+        readonly IRavenSessionProvider sessionProvider;
         readonly OperationsManager operationsManager;
         readonly IDomainEvents domainEvents;
         readonly ExpirationManager expirationManager;

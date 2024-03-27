@@ -45,10 +45,7 @@ namespace ServiceControl.Recoverability
             return orphanedBatches.QueryStats.IsStale || orphanedBatches.Results.Any();
         }
 
-        public virtual Task MoveBatchToStaging(string batchDocumentId)
-        {
-            return store.MoveBatchToStaging(batchDocumentId);
-        }
+        public virtual Task MoveBatchToStaging(string batchDocumentId) => store.MoveBatchToStaging(batchDocumentId);
 
         public async Task RebuildRetryOperationState()
         {

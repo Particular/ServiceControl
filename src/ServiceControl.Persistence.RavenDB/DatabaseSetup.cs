@@ -11,13 +11,8 @@
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
 
-    class DatabaseSetup
+    class DatabaseSetup(RavenPersisterSettings settings)
     {
-        public DatabaseSetup(RavenPersisterSettings settings)
-        {
-            this.settings = settings;
-        }
-
         public async Task Execute(IDocumentStore documentStore, CancellationToken cancellationToken)
         {
             try
@@ -47,7 +42,5 @@
 
             await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
         }
-
-        readonly RavenPersisterSettings settings;
     }
 }

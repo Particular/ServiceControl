@@ -22,7 +22,7 @@
 
             setSettings(settings);
             var persistence = config.Create(settings);
-            persistence.Configure(serviceCollection);
+            persistence.AddPersistence(serviceCollection);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();

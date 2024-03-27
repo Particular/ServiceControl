@@ -13,7 +13,6 @@ namespace ServiceControl.Audit.Persistence.RavenDB.Indexes
                 select new FailedAuditImport
                 {
                     Id = cc.Id,
-                    Message = cc.Message
                 };
         }
     }

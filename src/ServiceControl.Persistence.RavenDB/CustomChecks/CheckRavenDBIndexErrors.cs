@@ -7,20 +7,17 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
+    using Persistence.RavenDB;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Operations.Indexes;
 
-    class CheckRavenDBIndexErrors : CustomCheck
+    class CheckRavenDBIndexErrors(IRavenDocumentStoreProvider documentStoreProvider) : CustomCheck("Error Database Index Errors",
+        "ServiceControl Health", TimeSpan.FromMinutes(5))
     {
-        public CheckRavenDBIndexErrors(IDocumentStore store)
-            : base("Error Database Index Errors", "ServiceControl Health", TimeSpan.FromMinutes(5))
+        public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
-            this.store = store;
-        }
-
-        public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
-        {
-            var response = store.Maintenance.Send(new GetIndexErrorsOperation());
+            var documentStore = documentStoreProvider.GetDocumentStore();
+            var response = await documentStore.Maintenance.SendAsync(new GetIndexErrorsOperation(), cancellationToken);
 
             // Filter response as RavenDB5+ will return entries without errors
             var indexErrors = response
@@ -51,7 +48,5 @@
         }
 
         static readonly ILog Logger = LogManager.GetLogger<CheckRavenDBIndexLag>();
-
-        readonly IDocumentStore store;
     }
 }

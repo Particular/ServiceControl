@@ -5,43 +5,39 @@
     using RavenDB.CustomChecks;
     using UnitOfWork;
 
-    class RavenPersistence : IPersistence
+    class RavenPersistence(DatabaseConfiguration databaseConfiguration) : IPersistence
     {
-        public RavenPersistence(DatabaseConfiguration databaseConfiguration)
+        public void AddPersistence(IServiceCollection services)
         {
-            this.databaseConfiguration = databaseConfiguration;
+            ConfigureLifecycle(services, databaseConfiguration);
+
+            services.AddSingleton<IAuditDataStore, RavenAuditDataStore>();
+            services.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenAuditIngestionUnitOfWorkFactory>();
+            services.AddSingleton<IFailedAuditStorage, RavenFailedAuditStorage>();
+            services.AddSingleton<CheckMinimumStorageRequiredForAuditIngestion.State>();
         }
 
-        public IPersistenceLifecycle Configure(IServiceCollection serviceCollection)
+        public void AddInstaller(IServiceCollection services) => ConfigureLifecycle(services, databaseConfiguration);
+
+        static void ConfigureLifecycle(IServiceCollection services, DatabaseConfiguration databaseConfiguration)
         {
-            serviceCollection.AddSingleton(databaseConfiguration);
-            serviceCollection.AddSingleton<IRavenSessionProvider, RavenSessionProvider>();
-            serviceCollection.AddSingleton<IAuditDataStore, RavenAuditDataStore>();
-            serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenAuditIngestionUnitOfWorkFactory>();
-            serviceCollection.AddSingleton<IFailedAuditStorage, RavenFailedAuditStorage>();
-            serviceCollection.AddSingleton<CheckMinimumStorageRequiredForAuditIngestion.State>();
+            services.AddSingleton(databaseConfiguration);
 
-            var lifecycle = CreateLifecycle();
+            services.AddSingleton<IRavenSessionProvider, RavenSessionProvider>();
+            services.AddHostedService<RavenPersistenceLifecycleHostedService>();
 
-            serviceCollection.AddSingleton<IRavenDocumentStoreProvider>(_ => lifecycle);
-
-            return lifecycle;
-        }
-
-        public IPersistenceInstaller CreateInstaller() => new RavenInstaller(CreateLifecycle());
-
-        IRavenPersistenceLifecycle CreateLifecycle()
-        {
             var serverConfiguration = databaseConfiguration.ServerConfiguration;
-
             if (serverConfiguration.UseEmbeddedServer)
             {
-                return new RavenEmbeddedPersistenceLifecycle(databaseConfiguration);
+                services.AddSingleton<RavenEmbeddedPersistenceLifecycle>();
+                services.AddSingleton<IRavenPersistenceLifecycle>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
+                services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
+                return;
             }
 
-            return new RavenExternalPersistenceLifecycle(databaseConfiguration);
+            services.AddSingleton<RavenExternalPersistenceLifecycle>();
+            services.AddSingleton<IRavenPersistenceLifecycle>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
+            services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
         }
-
-        readonly DatabaseConfiguration databaseConfiguration;
     }
 }

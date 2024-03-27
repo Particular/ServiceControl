@@ -5,7 +5,6 @@ namespace Particular.ServiceControl
     using System.Runtime.InteropServices;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
-    using global::ServiceControl.Hosting;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
@@ -18,7 +17,6 @@ namespace Particular.ServiceControl
     using Microsoft.AspNetCore.HttpLogging;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.Extensions.Hosting.WindowsServices;
     using Microsoft.Extensions.Logging;
     using NLog.Extensions.Logging;
     using NServiceBus;
@@ -105,16 +103,13 @@ namespace Particular.ServiceControl
 
             hostBuilder.Services.AddWindowsService();
 
-            if (WindowsServiceHelpers.IsWindowsService())
-            {
-                hostBuilder.Services.AddSingleton<IHostLifetime, PersisterInitializingWindowsServiceLifetime>();
-            }
-            else
-            {
-                hostBuilder.Services.AddSingleton<IHostLifetime, PersisterInitializingConsoleLifetime>();
-            }
-
             hostBuilder.AddServiceControlComponents(settings, ServiceControlMainInstance.Components);
+        }
+
+        public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder, Settings settings)
+        {
+            var persistence = PersistenceFactory.Create(settings);
+            persistence.AddInstaller(hostApplicationBuilder.Services);
         }
 
         static TransportSettings MapSettings(Settings settings)

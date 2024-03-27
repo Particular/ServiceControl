@@ -16,210 +16,177 @@
     using ServiceControl.SagaAudit;
     using Transformers;
 
-    class RavenAuditDataStore : IAuditDataStore
+    class RavenAuditDataStore(IRavenSessionProvider sessionProvider, DatabaseConfiguration databaseConfiguration)
+        : IAuditDataStore
     {
-        public RavenAuditDataStore(IRavenSessionProvider sessionProvider, DatabaseConfiguration databaseConfiguration)
-        {
-            this.sessionProvider = sessionProvider;
-            isFullTextSearchEnabled = databaseConfiguration.EnableFullTextSearch;
-        }
-
         public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input)
         {
-            using (var session = sessionProvider.OpenSession())
-            {
-                var sagaHistory = await
-                    session.Query<SagaHistory, SagaDetailsIndex>()
-                        .Statistics(out var stats)
-                        .SingleOrDefaultAsync(x => x.SagaId == input);
+            using var session = sessionProvider.OpenSession();
+            var sagaHistory = await
+                session.Query<SagaHistory, SagaDetailsIndex>()
+                    .Statistics(out var stats)
+                    .SingleOrDefaultAsync(x => x.SagaId == input);
 
-                if (sagaHistory == null)
-                {
-                    return QueryResult<SagaHistory>.Empty();
-                }
-
-                return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults));
-            }
+            return sagaHistory == null ? QueryResult<SagaHistory>.Empty() : new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            using (var session = sessionProvider.OpenSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
-                    .Statistics(out var stats)
-                    .IncludeSystemMessagesWhere(includeSystemMessages)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .ToMessagesView()
-                    .ToListAsync();
+            using var session = sessionProvider.OpenSession();
+            var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
+                .Statistics(out var stats)
+                .IncludeSystemMessagesWhere(includeSystemMessages)
+                .Sort(sortInfo)
+                .Paging(pagingInfo)
+                .ToMessagesView()
+                .ToListAsync();
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            using (var session = sessionProvider.OpenSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
-                    .Statistics(out var stats)
-                    .Search(x => x.Query, searchParam)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .ToMessagesView()
-                    .ToListAsync();
+            using var session = sessionProvider.OpenSession();
+            var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
+                .Statistics(out var stats)
+                .Search(x => x.Query, searchParam)
+                .Sort(sortInfo)
+                .Paging(pagingInfo)
+                .ToMessagesView()
+                .ToListAsync();
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            using (var session = sessionProvider.OpenSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
-                    .Statistics(out var stats)
-                    .Search(x => x.Query, keyword)
-                    .Where(m => m.ReceivingEndpointName == endpoint)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .ToMessagesView()
-                    .ToListAsync();
+            using var session = sessionProvider.OpenSession();
+            var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
+                .Statistics(out var stats)
+                .Search(x => x.Query, keyword)
+                .Where(m => m.ReceivingEndpointName == endpoint)
+                .Sort(sortInfo)
+                .Paging(pagingInfo)
+                .ToMessagesView()
+                .ToListAsync();
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            using (var session = sessionProvider.OpenSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
-                    .Statistics(out var stats)
-                    .IncludeSystemMessagesWhere(includeSystemMessages)
-                    .Where(m => m.ReceivingEndpointName == endpointName)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .ToMessagesView()
-                    .ToListAsync();
+            using var session = sessionProvider.OpenSession();
+            var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
+                .Statistics(out var stats)
+                .IncludeSystemMessagesWhere(includeSystemMessages)
+                .Where(m => m.ReceivingEndpointName == endpointName)
+                .Sort(sortInfo)
+                .Paging(pagingInfo)
+                .ToMessagesView()
+                .ToListAsync();
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            using (var session = sessionProvider.OpenSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
-                    .Statistics(out var stats)
-                    .Where(m => m.ConversationId == conversationId)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .ToMessagesView()
-                    .ToListAsync();
+            using var session = sessionProvider.OpenSession();
+            var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
+                .Statistics(out var stats)
+                .Where(m => m.ConversationId == conversationId)
+                .Sort(sortInfo)
+                .Paging(pagingInfo)
+                .ToMessagesView()
+                .ToListAsync();
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<MessageBodyView> GetMessageBody(string messageId)
         {
-            using (var session = sessionProvider.OpenSession())
+            using var session = sessionProvider.OpenSession();
+            var result = await session.Advanced.Attachments.GetAsync(messageId, "body");
+
+            if (result == null)
             {
-                var result = await session.Advanced.Attachments.GetAsync(messageId, "body");
-
-                if (result == null)
-                {
-                    return MessageBodyView.NoContent();
-                }
-
-                return MessageBodyView.FromStream(
-                    result.Stream,
-                    result.Details.ContentType,
-                    (int)result.Details.Size,
-                    result.Details.ChangeVector
-                );
+                return MessageBodyView.NoContent();
             }
+
+            return MessageBodyView.FromStream(
+                result.Stream,
+                result.Details.ContentType,
+                (int)result.Details.Size,
+                result.Details.ChangeVector
+            );
         }
 
         public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints()
         {
-            using (var session = sessionProvider.OpenSession())
-            {
-                var endpoints = await session.Advanced.LoadStartingWithAsync<KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024);
+            using var session = sessionProvider.OpenSession();
+            var endpoints = await session.Advanced.LoadStartingWithAsync<KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024);
 
-                var knownEndpoints = endpoints
-                    .Select(x => new KnownEndpointsView
+            var knownEndpoints = endpoints
+                .Select(x => new KnownEndpointsView
+                {
+                    Id = DeterministicGuid.MakeId(x.Name, x.HostId.ToString()),
+                    EndpointDetails = new EndpointDetails
                     {
-                        Id = DeterministicGuid.MakeId(x.Name, x.HostId.ToString()),
-                        EndpointDetails = new EndpointDetails
-                        {
-                            Host = x.Host,
-                            HostId = x.HostId,
-                            Name = x.Name
-                        },
-                        HostDisplayName = x.Host
-                    })
-                    .ToList();
+                        Host = x.Host,
+                        HostId = x.HostId,
+                        Name = x.Name
+                    },
+                    HostDisplayName = x.Host
+                })
+                .ToList();
 
-                return new QueryResult<IList<KnownEndpointsView>>(knownEndpoints, new QueryStatsInfo(string.Empty, knownEndpoints.Count));
-            }
+            return new QueryResult<IList<KnownEndpointsView>>(knownEndpoints, new QueryStatsInfo(string.Empty, knownEndpoints.Count));
         }
 
         public async Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName)
         {
             var indexName = GetIndexName(isFullTextSearchEnabled);
 
-            using (var session = sessionProvider.OpenSession())
+            using var session = sessionProvider.OpenSession();
+            // Maximum should really be 31 queries if there are 30 days of audit data, but default limit is 30
+            session.Advanced.MaxNumberOfRequestsPerSession = 40;
+
+            var results = new List<AuditCount>();
+
+            var oldestMsg = await session.Query<MessagesViewIndex.SortAndFilterOptions>(indexName)
+                .Where(m => m.ReceivingEndpointName == endpointName)
+                .OrderBy(m => m.ProcessedAt)
+                .FirstOrDefaultAsync();
+
+            if (oldestMsg != null)
             {
-                // Maximum should really be 31 queries if there are 30 days of audit data, but default limit is 30
-                session.Advanced.MaxNumberOfRequestsPerSession = 40;
+                var endDate = DateTime.UtcNow.Date.AddDays(1);
+                var oldestMsgDate = oldestMsg.ProcessedAt.ToUniversalTime().Date;
+                var thirtyDays = endDate.AddDays(-30);
 
-                var results = new List<AuditCount>();
+                var startDate = oldestMsgDate > thirtyDays ? oldestMsgDate : thirtyDays;
 
-                var oldestMsg = await session.Query<MessagesViewIndex.SortAndFilterOptions>(indexName)
-                    .Where(m => m.ReceivingEndpointName == endpointName)
-                    .OrderBy(m => m.ProcessedAt)
-                    .FirstOrDefaultAsync();
-
-                if (oldestMsg != null)
+                for (var date = startDate; date < endDate; date = date.AddDays(1))
                 {
-                    var endDate = DateTime.UtcNow.Date.AddDays(1);
-                    var oldestMsgDate = oldestMsg.ProcessedAt.ToUniversalTime().Date;
-                    var thirtyDays = endDate.AddDays(-30);
+                    var nextDate = date.AddDays(1);
 
-                    var startDate = oldestMsgDate > thirtyDays ? oldestMsgDate : thirtyDays;
+                    _ = await session.Query<MessagesViewIndex.SortAndFilterOptions>(indexName)
+                        .Statistics(out var stats)
+                        .Where(m => m.ReceivingEndpointName == endpointName && !m.IsSystemMessage && m.ProcessedAt >= date && m.ProcessedAt < nextDate)
+                        .Take(0)
+                        .ToArrayAsync();
 
-                    for (var date = startDate; date < endDate; date = date.AddDays(1))
+                    if (stats.LongTotalResults > 0)
                     {
-                        var nextDate = date.AddDays(1);
-
-                        _ = await session.Query<MessagesViewIndex.SortAndFilterOptions>(indexName)
-                            .Statistics(out var stats)
-                            .Where(m => m.ReceivingEndpointName == endpointName && !m.IsSystemMessage && m.ProcessedAt >= date && m.ProcessedAt < nextDate)
-                            .Take(0)
-                            .ToArrayAsync();
-
-                        if (stats.LongTotalResults > 0)
-                        {
-                            results.Add(new AuditCount { UtcDate = date, Count = stats.LongTotalResults });
-                        }
+                        results.Add(new AuditCount { UtcDate = date, Count = stats.LongTotalResults });
                     }
                 }
-
-                return new QueryResult<IList<AuditCount>>(results, QueryStatsInfo.Zero);
             }
+
+            return new QueryResult<IList<AuditCount>>(results, QueryStatsInfo.Zero);
         }
 
-        string GetIndexName(bool isFullTextSearchEnabled)
-        {
-            return isFullTextSearchEnabled ? "MessagesViewIndexWithFullTextSearch" : "MessagesViewIndex";
-        }
+        static string GetIndexName(bool isFullTextSearchEnabled) => isFullTextSearchEnabled ? "MessagesViewIndexWithFullTextSearch" : "MessagesViewIndex";
 
-        bool isFullTextSearchEnabled;
-
-        readonly IRavenSessionProvider sessionProvider;
+        bool isFullTextSearchEnabled = databaseConfiguration.EnableFullTextSearch;
     }
 }

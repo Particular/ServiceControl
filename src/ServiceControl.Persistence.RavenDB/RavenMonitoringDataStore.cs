@@ -7,13 +7,8 @@
     using ServiceControl.Operations;
     using ServiceControl.Persistence;
 
-    class RavenMonitoringDataStore : IMonitoringDataStore
+    class RavenMonitoringDataStore(IRavenSessionProvider sessionProvider) : IMonitoringDataStore
     {
-        public RavenMonitoringDataStore(IDocumentStore store)
-        {
-            this.store = store;
-        }
-
         public static string MakeDocumentId(Guid id) => $"{KnownEndpoint.CollectionName}/{id}";
 
         public async Task CreateIfNotExists(EndpointDetails endpoint)
@@ -21,7 +16,7 @@
             var id = endpoint.GetDeterministicId();
             var docId = MakeDocumentId(id);
 
-            using var session = store.OpenAsyncSession();
+            using var session = sessionProvider.OpenSession();
 
             var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId);
 
@@ -47,7 +42,7 @@
             var id = endpoint.GetDeterministicId();
             var docId = MakeDocumentId(id);
 
-            using var session = store.OpenAsyncSession();
+            using var session = sessionProvider.OpenSession();
 
             var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId);
 
@@ -75,7 +70,7 @@
             var id = endpoint.GetDeterministicId();
             var docId = MakeDocumentId(id);
 
-            using var session = store.OpenAsyncSession();
+            using var session = sessionProvider.OpenSession();
 
             var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId);
 
@@ -89,7 +84,7 @@
 
         public async Task WarmupMonitoringFromPersistence(IEndpointInstanceMonitoring endpointInstanceMonitoring)
         {
-            using var session = store.OpenAsyncSession();
+            using var session = sessionProvider.OpenSession();
             await using var endpointsEnumerator = await session.Advanced.StreamAsync(session.Query<KnownEndpoint, KnownEndpointIndex>());
 
             while (await endpointsEnumerator.MoveNextAsync())
@@ -102,21 +97,19 @@
 
         public async Task Delete(Guid endpointId)
         {
-            using var session = store.OpenAsyncSession();
+            using var session = sessionProvider.OpenSession();
             session.Delete(MakeDocumentId(endpointId));
             await session.SaveChangesAsync();
         }
 
         public async Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints()
         {
-            using var session = store.OpenAsyncSession();
+            using var session = sessionProvider.OpenSession();
 
             var knownEndpoints = await session.Query<KnownEndpoint, KnownEndpointIndex>()
                 .ToListAsync();
 
-            return knownEndpoints.ToArray();
+            return knownEndpoints;
         }
-
-        readonly IDocumentStore store;
     }
 }

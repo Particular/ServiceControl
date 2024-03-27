@@ -6,28 +6,18 @@
     using System.Threading.Tasks;
     using EventLog;
     using MessageFailures;
-    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using Persistence.Infrastructure;
-    using PersistenceTests;
-    using Raven.Client.Documents;
     using Raven.Client.Documents.Operations.Expiration;
     using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Persistence.Tests.RavenDB;
 
     [TestFixture]
     public class MessageExpiryTests : PersistenceTestBase
     {
-        public MessageExpiryTests() =>
-            RegisterServices = services =>
-            {
-                services.AddSingleton<IDomainEvents, FakeDomainEvents>();
-            };
-
         [SetUp]
         public async Task Setup()
         {
@@ -213,7 +203,7 @@
         }
 
         async Task EnableExpiration(int frequency = 1) =>
-            await GetRequiredService<IDocumentStore>().Maintenance.SendAsync(new ConfigureExpirationOperation(
+            await DocumentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(
                 new ExpirationConfiguration
                 {
                     Disabled = false,
@@ -221,7 +211,7 @@
                 }));
 
         async Task DisableExpiration() =>
-            await GetRequiredService<IDocumentStore>().Maintenance.SendAsync(new ConfigureExpirationOperation(new ExpirationConfiguration { Disabled = true }));
+            await DocumentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(new ExpirationConfiguration { Disabled = true }));
 
         [TearDown]
         public async Task Teardown() => await EnableExpiration(60);

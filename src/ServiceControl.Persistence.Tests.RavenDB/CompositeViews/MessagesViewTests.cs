@@ -192,7 +192,7 @@
                     .Customize(x => x.WaitForNonStaleResults())
                     .OfType<FailedMessage>();
 
-                var messagesWithNoTimestamp = await MessagesViewTransformer.TransformToMessageView(query).ToArrayAsync();
+                var messagesWithNoTimestamp = await query.TransformToMessageView().ToArrayAsync();
 
                 Assert.AreEqual(null, messagesWithNoTimestamp[0].TimeSent);
                 Assert.AreEqual(null, messagesWithNoTimestamp[1].TimeSent);
@@ -236,7 +236,7 @@
                     .Customize(x => x.WaitForNonStaleResults())
                     .OfType<FailedMessage>();
 
-                var result = await MessagesViewTransformer.TransformToMessageView(query).ToListAsync();
+                var result = await query.TransformToMessageView().ToListAsync();
 
                 var message = result.Single();
 
@@ -279,14 +279,12 @@
                     .Customize(x => x.WaitForNonStaleResults())
                     .OfType<FailedMessage>();
 
-                var result = await MessagesViewTransformer.TransformToMessageView(query).ToListAsync();
+                var result = await query.TransformToMessageView().ToListAsync();
 
                 var message = result.Single();
 
                 Assert.AreEqual(MessageStatus.RepeatedFailure, message.Status);
             }
         }
-
-        IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>();
     }
 }

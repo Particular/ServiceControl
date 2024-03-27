@@ -12,19 +12,9 @@
     using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
 
-    class ArchiveDocumentManager
+    class ArchiveDocumentManager(ExpirationManager expirationManager)
     {
-        readonly ExpirationManager expirationManager;
-
-        public ArchiveDocumentManager(ExpirationManager expirationManager)
-        {
-            this.expirationManager = expirationManager;
-        }
-
-        public Task<ArchiveOperation> LoadArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType)
-        {
-            return session.LoadAsync<ArchiveOperation>(ArchiveOperation.MakeId(groupId, archiveType));
-        }
+        public Task<ArchiveOperation> LoadArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType) => session.LoadAsync<ArchiveOperation>(ArchiveOperation.MakeId(groupId, archiveType));
 
         public async Task<ArchiveOperation> CreateArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType, int numberOfMessages, string groupName, int batchSize)
         {
@@ -73,21 +63,16 @@
         async Task<IEnumerable<string>> StreamResults(IAsyncDocumentSession session, IQueryable<string> query)
         {
             var results = new List<string>();
-            await using (var enumerator = await session.Advanced.StreamAsync(query))
+            await using var enumerator = await session.Advanced.StreamAsync(query);
+            while (await enumerator.MoveNextAsync())
             {
-                while (await enumerator.MoveNextAsync())
-                {
-                    results.Add(enumerator.Current.Document);
-                }
+                results.Add(enumerator.Current.Document);
             }
 
             return results;
         }
 
-        public Task<ArchiveBatch> GetArchiveBatch(IAsyncDocumentSession session, string archiveOperationId, int batchNumber)
-        {
-            return session.LoadAsync<ArchiveBatch>($"{archiveOperationId}/{batchNumber}");
-        }
+        public Task<ArchiveBatch> GetArchiveBatch(IAsyncDocumentSession session, string archiveOperationId, int batchNumber) => session.LoadAsync<ArchiveBatch>($"{archiveOperationId}/{batchNumber}");
 
         public async Task<GroupDetails> GetGroupDetails(IAsyncDocumentSession session, string groupId)
         {
@@ -123,44 +108,37 @@
             }
         }
 
-        public async Task<bool> WaitForIndexUpdateOfArchiveOperation(IDocumentStore store, string requestId, TimeSpan timeToWait)
+        public async Task<bool> WaitForIndexUpdateOfArchiveOperation(IRavenSessionProvider sessionProvider, string requestId, TimeSpan timeToWait)
         {
-            using (var session = store.OpenAsyncSession())
+            using var session = sessionProvider.OpenSession();
+            var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName)
+                .Customize(x => x.WaitForNonStaleResults(timeToWait));
+
+            var docQuery = indexQuery
+                .Where(failure => failure.FailureGroupId == requestId)
+                .Select(document => document.Id);
+
+            try
             {
-                var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName)
-                    .Customize(x => x.WaitForNonStaleResults(timeToWait));
+                await docQuery.AnyAsync();
 
-                var docQuery = indexQuery
-                    .Where(failure => failure.FailureGroupId == requestId)
-                    .Select(document => document.Id);
-
-                try
-                {
-                    await docQuery.AnyAsync();
-
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
-        public Task UpdateArchiveOperation(IAsyncDocumentSession session, ArchiveOperation archiveOperation)
-        {
-            return session.StoreAsync(archiveOperation);
-        }
+        public Task UpdateArchiveOperation(IAsyncDocumentSession session, ArchiveOperation archiveOperation) => session.StoreAsync(archiveOperation);
 
-        public async Task RemoveArchiveOperation(IDocumentStore store, ArchiveOperation archiveOperation)
+        public async Task RemoveArchiveOperation(IRavenSessionProvider sessionProvider, ArchiveOperation archiveOperation)
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                session.Advanced.Defer(new DeleteCommandData(archiveOperation.Id, null));
-                await session.SaveChangesAsync();
+            using var session = sessionProvider.OpenSession();
+            session.Advanced.Defer(new DeleteCommandData(archiveOperation.Id, null));
+            await session.SaveChangesAsync();
 
-                logger.Info($"Removing ArchiveOperation {archiveOperation.Id} completed");
-            }
+            Logger.Info($"Removing ArchiveOperation {archiveOperation.Id} completed");
         }
 
         public class GroupDetails
@@ -169,6 +147,6 @@
             public int NumberOfMessagesInGroup { get; set; }
         }
 
-        static ILog logger = LogManager.GetLogger<ArchiveDocumentManager>();
+        static readonly ILog Logger = LogManager.GetLogger<ArchiveDocumentManager>();
     }
 }

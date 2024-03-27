@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDB
+﻿#nullable enable
+
+namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System;
     using System.Diagnostics;
@@ -8,15 +10,24 @@
     using System.Threading;
     using System.Threading.Tasks;
     using ByteSizeLib;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
     using Raven.Client.ServerWide.Operations;
     using Raven.Embedded;
 
-    public class EmbeddedDatabase(DatabaseConfiguration configuration) : IDisposable
+    public sealed class EmbeddedDatabase : IDisposable
     {
-        public string ServerUrl { get; } = configuration.ServerConfiguration.ServerUrl;
+        EmbeddedDatabase(DatabaseConfiguration configuration, IHostApplicationLifetime lifetime)
+        {
+            this.configuration = configuration;
+            ServerUrl = configuration.ServerConfiguration.ServerUrl;
+            shutdownTokenSourceRegistration = shutdownTokenSource.Token.Register(() => isStopping = true);
+            applicationStoppingRegistration = lifetime.ApplicationStopping.Register(() => isStopping = true);
+        }
+
+        public string ServerUrl { get; private set; }
 
         static (string LicenseFileName, string ServerDirectory) GetRavenLicenseFileNameAndServerDirectory()
         {
@@ -24,27 +35,25 @@
             var assemblyDirectory = Path.GetDirectoryName(assembly.Location);
 
             var licenseFileName = "RavenLicense.json";
-            var ravenLicense = Path.Combine(assemblyDirectory, licenseFileName);
-            var serverDirectory = Path.Combine(assemblyDirectory, "RavenDBServer");
+            var ravenLicense = Path.Combine(assemblyDirectory!, licenseFileName);
+            var serverDirectory = Path.Combine(assemblyDirectory!, "RavenDBServer");
 
             if (File.Exists(ravenLicense))
             {
                 return (ravenLicense, serverDirectory);
             }
-            else
-            {
-                var assemblyName = Path.GetFileName(assembly.Location);
-                throw new Exception($"RavenDB license not found. Make sure the RavenDB license file '{licenseFileName}' is stored in the same directory as {assemblyName}.");
-            }
+
+            var assemblyName = Path.GetFileName(assembly.Location);
+            throw new Exception($"RavenDB license not found. Make sure the RavenDB license file '{licenseFileName}' is stored in the same directory as {assemblyName}.");
         }
 
-        public static EmbeddedDatabase Start(DatabaseConfiguration databaseConfiguration)
+        public static EmbeddedDatabase Start(DatabaseConfiguration databaseConfiguration, IHostApplicationLifetime lifetime)
         {
             var licenseFileNameAndServerDirectory = GetRavenLicenseFileNameAndServerDirectory();
 
             var nugetPackagesPath = Path.Combine(databaseConfiguration.ServerConfiguration.DbPath, "Packages", "NuGet");
 
-            logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
+            Logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
             var serverOptions = new ServerOptions
             {
                 CommandLineArgs =
@@ -66,8 +75,7 @@
                 serverOptions.ServerDirectory = licenseFileNameAndServerDirectory.ServerDirectory;
             }
 
-            var embeddedDatabase = new EmbeddedDatabase(databaseConfiguration);
-
+            var embeddedDatabase = new EmbeddedDatabase(databaseConfiguration, lifetime);
             embeddedDatabase.Start(serverOptions);
 
             return embeddedDatabase;
@@ -75,35 +83,28 @@
 
         void Start(ServerOptions serverOptions)
         {
-            EmbeddedServer.Instance.ServerProcessExited += (sender, args) =>
-            {
-                if (sender is Process process && process.HasExited && process.ExitCode != 0)
-                {
-                    logger.Warn($"RavenDB server process exited unexpectedly with exitCode: {process.ExitCode}. Process will be restarted.");
-
-                    restartRequired = true;
-                }
-            };
-
+            EmbeddedServer.Instance.ServerProcessExited += OnServerProcessExited;
             EmbeddedServer.Instance.StartServer(serverOptions);
 
             _ = Task.Run(async () =>
             {
-                while (!shutdownTokenSource.IsCancellationRequested)
+                while (!isStopping)
                 {
                     try
                     {
                         await Task.Delay(delayBetweenRestarts, shutdownTokenSource.Token);
 
-                        if (restartRequired)
+                        if (!restartRequired)
                         {
-                            logger.Info("Restarting RavenDB server process");
-
-                            await EmbeddedServer.Instance.RestartServerAsync();
-                            restartRequired = false;
-
-                            logger.Info("RavenDB server process restarted successfully.");
+                            continue;
                         }
+
+                        Logger.Info("Restarting RavenDB server process");
+
+                        await EmbeddedServer.Instance.RestartServerAsync();
+                        restartRequired = false;
+
+                        Logger.Info("RavenDB server process restarted successfully.");
                     }
                     catch (OperationCanceledException)
                     {
@@ -111,12 +112,30 @@
                     }
                     catch (Exception e)
                     {
-                        logger.Fatal($"RavenDB server restart failed. Restart will be retried in {delayBetweenRestarts}.", e);
+                        Logger.Fatal($"RavenDB server restart failed. Restart will be retried in {delayBetweenRestarts}.", e);
                     }
                 }
             });
 
             RecordStartup();
+        }
+
+        void OnServerProcessExited(object? sender, ServerProcessExitedEventArgs _)
+        {
+            if (isStopping)
+            {
+                return;
+            }
+
+            restartRequired = true;
+            if (sender is Process process)
+            {
+                Logger.Warn($"RavenDB server process exited unexpectedly with exitCode: {process.ExitCode}. Process will be restarted.");
+            }
+            else
+            {
+                Logger.Warn($"RavenDB server process exited unexpectedly. Process will be restarted.");
+            }
         }
 
         public async Task<IDocumentStore> Connect(CancellationToken cancellationToken)
@@ -150,8 +169,19 @@
 
         public void Dispose()
         {
+            if (disposed)
+            {
+                return;
+            }
+
+            EmbeddedServer.Instance.ServerProcessExited -= OnServerProcessExited;
+
             shutdownTokenSource.Cancel();
-            EmbeddedServer.Instance?.Dispose();
+            EmbeddedServer.Instance.Dispose();
+            shutdownTokenSource.Dispose();
+            applicationStoppingRegistration.Dispose();
+            shutdownTokenSourceRegistration.Dispose();
+            disposed = true;
         }
 
         void RecordStartup()
@@ -167,7 +197,7 @@ Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.
 RavenDB Logging Level:              {configuration.ServerConfiguration.LogsMode}
 -------------------------------------------------------------";
 
-            logger.Info(startupMessage);
+            Logger.Info(startupMessage);
         }
 
         long DataSize()
@@ -224,10 +254,15 @@ RavenDB Logging Level:              {configuration.ServerConfiguration.LogsMode}
             return size;
         }
 
-        CancellationTokenSource shutdownTokenSource = new();
+        bool disposed;
         bool restartRequired;
+        bool isStopping;
+        readonly CancellationTokenSource shutdownTokenSource = new();
+        readonly DatabaseConfiguration configuration;
+        readonly CancellationTokenRegistration applicationStoppingRegistration;
+        readonly CancellationTokenRegistration shutdownTokenSourceRegistration;
 
         static TimeSpan delayBetweenRestarts = TimeSpan.FromSeconds(60);
-        static readonly ILog logger = LogManager.GetLogger<EmbeddedDatabase>();
+        static readonly ILog Logger = LogManager.GetLogger<EmbeddedDatabase>();
     }
 }

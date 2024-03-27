@@ -1,11 +1,12 @@
 ﻿namespace ServiceControl.PersistenceTests
 {
     using System.Collections.Generic;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
     using System.Threading.Tasks;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using NUnit.Framework;
     using ServiceControl.Infrastructure.DomainEvents;
+    using JsonSerializer = System.Text.Json.JsonSerializer;
 
     class FakeDomainEvents : IDomainEvents
     {
@@ -15,16 +16,14 @@
         {
             RaisedEvents.Add(domainEvent);
             TestContext.WriteLine($"Raised DomainEvent {typeof(T).Name}:");
-            TestContext.WriteLine(JsonConvert.SerializeObject(domainEvent, jsonSettings));
+            TestContext.WriteLine(JsonSerializer.Serialize(domainEvent, JsonOptions));
             return Task.CompletedTask;
         }
 
-        static FakeDomainEvents()
+        static readonly JsonSerializerOptions JsonOptions = new()
         {
-            jsonSettings = new JsonSerializerSettings { Formatting = Formatting.Indented };
-            jsonSettings.Converters.Add(new StringEnumConverter());
-        }
-
-        static readonly JsonSerializerSettings jsonSettings;
+            WriteIndented = true,
+            Converters = { new JsonStringEnumConverter() }
+        };
     }
 }

@@ -1,30 +1,18 @@
 ﻿namespace ServiceControl.Persistence.RavenDB
 {
     using System.Threading.Tasks;
-    using Raven.Client.Documents;
     using ServiceControl.Persistence.UnitOfWork;
 
-    class RavenIngestionUnitOfWorkFactory : IIngestionUnitOfWorkFactory
+    class RavenIngestionUnitOfWorkFactory(
+        IRavenSessionProvider sessionProvider,
+        MinimumRequiredStorageState customCheckState,
+        ExpirationManager expirationManager,
+        RavenPersisterSettings settings)
+        : IIngestionUnitOfWorkFactory
     {
-        readonly IDocumentStore store;
-        readonly MinimumRequiredStorageState customCheckState;
-        readonly ExpirationManager expirationManager;
-        readonly RavenPersisterSettings settings;
-
-        public RavenIngestionUnitOfWorkFactory(IDocumentStore store, MinimumRequiredStorageState customCheckState, ExpirationManager expirationManager, RavenPersisterSettings settings)
-        {
-            this.store = store;
-            this.customCheckState = customCheckState;
-            this.expirationManager = expirationManager;
-            this.settings = settings;
-        }
-
         public ValueTask<IIngestionUnitOfWork> StartNew()
-            => new ValueTask<IIngestionUnitOfWork>(new RavenIngestionUnitOfWork(store, expirationManager, settings));
+            => new(new RavenIngestionUnitOfWork(sessionProvider, expirationManager, settings));
 
-        public bool CanIngestMore()
-        {
-            return customCheckState.CanIngestMore;
-        }
+        public bool CanIngestMore() => customCheckState.CanIngestMore;
     }
 }

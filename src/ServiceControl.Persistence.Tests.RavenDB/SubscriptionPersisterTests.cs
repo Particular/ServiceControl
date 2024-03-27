@@ -17,7 +17,7 @@
         [Test]
         public async Task ShouldReturnSubscriptionsForOlderVersionsOfSameMessageType()
         {
-            var subscriptionPersister = new RavenSubscriptionStorage(documentStore, "NServiceBus.Routing.EndpointName", "TestEndpoint", new MessageType[0]);
+            var subscriptionPersister = new RavenSubscriptionStorage(SessionProvider, "NServiceBus.Routing.EndpointName", "TestEndpoint", new MessageType[0]);
 
             var v1MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(1, 0, 0));
             var v2MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(2, 0, 0));
@@ -35,7 +35,7 @@
         [Test]
         public async Task ShouldReturnSubscriptionsForNewerVersionsOfSameMessageType()
         {
-            var subscriptionPersister = new RavenSubscriptionStorage(documentStore, "NServiceBus.Routing.EndpointName", "TestEndpoint", new MessageType[0]);
+            var subscriptionPersister = new RavenSubscriptionStorage(SessionProvider, "NServiceBus.Routing.EndpointName", "TestEndpoint", new MessageType[0]);
 
             var v1MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(1, 0, 0));
             var v2MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(2, 0, 0));
@@ -49,15 +49,6 @@
             Assert.AreEqual(v2Subscriber.Endpoint, foundSubscriber.Endpoint);
             Assert.AreEqual(v2Subscriber.TransportAddress, foundSubscriber.TransportAddress);
         }
-
-        [SetUp]
-        public new async Task SetUp()
-        {
-            await base.SetUp();
-            documentStore = GetRequiredService<IDocumentStore>();
-        }
-
-        IDocumentStore documentStore;
     }
 
     public class SampleMessageType
