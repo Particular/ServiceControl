@@ -1,0 +1,37 @@
+{
+  "ReportData": {
+    "CustomerName": "Test",
+    "MessageTransport": "Fake Transport",
+    "ReportMethod": "Testing",
+    "ToolVersion": "1.0.0",
+    "ServiceControlVersion": null,
+    "ServicePulseVersion": null,
+    "Prefix": "SomePrefix",
+    "StartTime": "2022-09-01T00:00:00+00:00",
+    "EndTime": "2022-09-02T00:00:00+00:00",
+    "ReportDuration": "1.00:00:00",
+    "Queues": [
+      {
+        "QueueName": "Queue1",
+        "Throughput": 42
+      },
+      {
+        "QueueName": "Queue1",
+        "Throughput": 10000
+      },
+      {
+        "QueueName": "NoData",
+        "NoDataOrSendOnly": true
+      }
+    ],
+    "TotalThroughput": 10042,
+    "TotalQueues": 3,
+    "IgnoredQueues": [
+      "ignore1",
+      "ignore2",
+      "ignore3"
+    ],
+    "EnvironmentData": null
+  },
+  "Signature": "SIGNATURE"
+}
