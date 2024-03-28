@@ -1,5 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.WebApi
 {
+    using System.Text.Json;
     using Microsoft.AspNetCore.Mvc;
     using Particular.ThroughputCollector.Contracts;
 
@@ -39,6 +40,19 @@
         public async Task<SignedReport> GetThroughputReport([FromQuery(Name = "masks")] string[]? masks, [FromQuery(Name = "spVersion")] string? spVersion)
         {
             return await throughputCollector.GenerateThroughputReport(masks, spVersion);
+        }
+
+        [Route("throughput/report/file")]
+        [HttpGet]
+        public async Task<FileContentResult> GetThroughputReportFile([FromQuery(Name = "masks")] string[]? masks, [FromQuery(Name = "spVersion")] string? spVersion)
+        {
+            var report = await GetThroughputReport(masks, spVersion);
+            var options = new JsonSerializerOptions()
+            {
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+            return File(JsonSerializer.SerializeToUtf8Bytes(report, options), "application/json", fileDownloadName: $"{report.ReportData.CustomerName}.throughput-report-{report.ReportData.EndTime:yyyyMMdd-HHmmss}.json");
         }
 
         [Route("throughput/settings/info")]
