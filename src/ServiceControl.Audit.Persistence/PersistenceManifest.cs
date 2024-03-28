@@ -78,28 +78,16 @@
             return Path.GetDirectoryName(assemblyLocation);
         }
 
-        public static string Find(string persistenceType)
+        public static PersistenceManifest Find(string persistenceType)
         {
             if (persistenceType == null)
             {
                 throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
             }
 
-            var persistenceManifestDefinition = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
+            var persistenceManifest = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
 
-            return persistenceManifestDefinition?.TypeName ?? persistenceType;
-        }
-
-        public static string GetPersistenceFolder(string persistenceType)
-        {
-            if (persistenceType == null)
-            {
-                throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
-            }
-
-            var persistenceManifestDefinition = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
-
-            return persistenceManifestDefinition?.Location;
+            return persistenceManifest;
         }
 
         static readonly ILog logger = LogManager.GetLogger(typeof(PersistenceManifestLibrary));

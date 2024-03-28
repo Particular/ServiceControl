@@ -55,10 +55,9 @@ namespace ServiceControl.Monitoring
         {
             try
             {
-                TransportType = TransportManifestLibrary.Find(TransportType);
-                var folder = TransportManifestLibrary.GetTransportFolder(TransportType);
-                var loadContext = new PluginAssemblyLoadContext(folder, TransportType);
-                var customizationType = Type.GetType(TransportType, loadContext.LoadFromAssemblyName, null, true);
+                var transportManifest = TransportManifestLibrary.Find(TransportType);
+                var loadContext = new PluginAssemblyLoadContext(transportManifest.Location, transportManifest.TypeName);
+                var customizationType = Type.GetType(transportManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
 
                 return (ITransportCustomization)Activator.CreateInstance(customizationType);
             }

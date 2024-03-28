@@ -11,10 +11,9 @@ namespace ServiceControl.Audit.Persistence
         {
             try
             {
-                var foundPersistenceType = PersistenceManifestLibrary.Find(persistenceType);
-                var folder = PersistenceManifestLibrary.GetPersistenceFolder(foundPersistenceType);
-                var loadContext = new PluginAssemblyLoadContext(folder, foundPersistenceType);
-                var customizationType = Type.GetType(foundPersistenceType, loadContext.LoadFromAssemblyName, null, true);
+                var persistenceManifest = PersistenceManifestLibrary.Find(persistenceType);
+                var loadContext = new PluginAssemblyLoadContext(persistenceManifest.Location, persistenceManifest.TypeName);
+                var customizationType = Type.GetType(persistenceManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
 
                 return (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
             }

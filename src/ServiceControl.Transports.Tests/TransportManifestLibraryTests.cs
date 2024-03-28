@@ -17,69 +17,39 @@
         const string transportAlias = "ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus";
 
         [Test]
-        public void Should_find_transport_type_by_name()
+        public void Should_find_transport_manifest_by_name()
         {
-            var _transportType = TransportManifestLibrary.Find(transportName);
+            var transportManifest = TransportManifestLibrary.Find(transportName);
 
-            Assert.AreEqual(transportType, _transportType);
+            Assert.IsNotNull(transportManifest);
+            Assert.AreEqual(transportName, transportManifest.Name);
         }
 
         [Test]
-        public void Should_find_transport_type_by_type()
+        public void Should_find_transport_manifest_by_type()
         {
-            var _transportType = TransportManifestLibrary.Find(transportType);
+            var transportManifest = TransportManifestLibrary.Find(transportType);
 
-            Assert.AreEqual(transportType, _transportType);
+            Assert.IsNotNull(transportManifest);
+            Assert.AreEqual(transportType, transportManifest.TypeName);
         }
 
         [Test]
-        public void Should_find_transport_type_by_alias()
+        public void Should_find_transport_manifest_by_alias()
         {
-            var _transportType = TransportManifestLibrary.Find(transportAlias);
+            var transportManifest = TransportManifestLibrary.Find(transportAlias);
 
-            Assert.AreEqual(transportType, _transportType);
-        }
-
-        [Test]
-        public void Should_return_transport_type_passed_in_if_not_found()
-        {
-            var fakeTransportType = "My.fake.transport, fakeTransportAssembly";
-            var _transportType = TransportManifestLibrary.Find(fakeTransportType);
-
-            Assert.AreEqual(fakeTransportType, _transportType);
-        }
-
-        [Test]
-        public void Should_find_transport_type_folder_by_name()
-        {
-            var _transportTypeFolder = TransportManifestLibrary.GetTransportFolder(transportName);
-
-            Assert.IsNotNull(_transportTypeFolder);
-        }
-
-        [Test]
-        public void Should_find_transport_type_folder_by_type()
-        {
-            var _transportTypeFolder = TransportManifestLibrary.GetTransportFolder(transportType);
-
-            Assert.IsNotNull(_transportTypeFolder);
-        }
-
-        [Test]
-        public void Should_find_transport_type_folder_by_alias()
-        {
-            var _transportTypeFolder = TransportManifestLibrary.GetTransportFolder(transportAlias);
-
-            Assert.IsNotNull(_transportTypeFolder);
+            Assert.IsNotNull(transportManifest);
+            Assert.AreEqual(transportAlias, transportManifest.Aliases[0]);
         }
 
         [Test]
         public void Should_return_null_for_not_found_transport_type()
         {
             var fakeTransportType = "My.fake.transport, fakeTransportAssembly";
-            var _transportTypeFolder = TransportManifestLibrary.GetTransportFolder(fakeTransportType);
+            var transportManifest = TransportManifestLibrary.Find(fakeTransportType);
 
-            Assert.IsNull(_transportTypeFolder);
+            Assert.IsNull(transportManifest);
         }
 
         [Test]
@@ -95,9 +65,8 @@
                 var resolver = new PathAssemblyResolver(runtimeAssemblies);
                 var metadataLoadContext = new MetadataLoadContext(resolver);
 
-                var transportFolder = TransportManifestLibrary.GetTransportFolder(definition.Name);
                 var assemblyName = definition.TypeName.Split(',')[1].Trim();
-                var assemblyFile = Path.Combine(transportFolder, assemblyName + ".dll");
+                var assemblyFile = Path.Combine(definition.Location, assemblyName + ".dll");
 
                 var assembly = metadataLoadContext.LoadFromAssemblyPath(assemblyFile);
                 Assert.IsNotNull(assembly, $"Could not load assembly {assemblyName}");
