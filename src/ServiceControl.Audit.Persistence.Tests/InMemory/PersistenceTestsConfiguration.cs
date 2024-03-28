@@ -7,12 +7,14 @@
     using ServiceControl.Audit.Persistence.InMemory;
     using UnitOfWork;
 
-    partial class PersistenceTestsConfiguration
+    class PersistenceTestsConfiguration
     {
-        public IAuditDataStore AuditDataStore { get; protected set; }
-        public IFailedAuditStorage FailedAuditStorage { get; protected set; }
-        public IBodyStorage BodyStorage { get; protected set; }
-        public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
+        public IAuditDataStore AuditDataStore { get; private set; }
+        public IFailedAuditStorage FailedAuditStorage { get; private set; }
+        public IBodyStorage BodyStorage { get; private set; }
+        public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; private set; }
+        public IServiceProvider ServiceProvider { get; private set; }
+        public string Name => "InMemory";
 
         public Task Configure(Action<PersistenceSettings> setSettings)
         {
@@ -24,24 +26,16 @@
             var persistence = config.Create(settings);
             persistence.AddPersistence(serviceCollection);
 
-            var serviceProvider = serviceCollection.BuildServiceProvider();
-            AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
-            FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
-            BodyStorage = serviceProvider.GetService<IBodyStorage>();
-            AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
+            ServiceProvider = serviceCollection.BuildServiceProvider();
+            AuditDataStore = ServiceProvider.GetRequiredService<IAuditDataStore>();
+            FailedAuditStorage = ServiceProvider.GetRequiredService<IFailedAuditStorage>();
+            BodyStorage = ServiceProvider.GetService<IBodyStorage>();
+            AuditIngestionUnitOfWorkFactory = ServiceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
             return Task.CompletedTask;
         }
 
-        public Task CompleteDBOperation()
-        {
-            return Task.CompletedTask;
-        }
+        public Task CompleteDBOperation() => Task.CompletedTask;
 
-        public Task Cleanup()
-        {
-            return Task.CompletedTask;
-        }
-
-        public string Name => "InMemory";
+        public Task Cleanup() => Task.CompletedTask;
     }
 }

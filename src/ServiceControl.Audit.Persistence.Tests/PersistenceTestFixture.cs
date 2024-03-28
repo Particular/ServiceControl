@@ -61,6 +61,8 @@
         protected IAuditIngestionUnitOfWork StartAuditUnitOfWork(int batchSize) =>
             AuditIngestionUnitOfWorkFactory.StartNew(batchSize);
 
+        protected IServiceProvider ServiceProvider => configuration.ServiceProvider;
+
         protected PersistenceTestsConfiguration configuration;
     }
 }

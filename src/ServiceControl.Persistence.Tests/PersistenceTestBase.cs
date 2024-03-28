@@ -90,6 +90,7 @@ public abstract class PersistenceTestBase
 
     protected IDocumentStore DocumentStore { get; private set; }
     protected IRavenSessionProvider SessionProvider { get; private set; }
+    protected IServiceProvider ServiceProvider => host.Services;
 
     protected T GetRequiredService<T>() => host.Services.GetRequiredService<T>();
     protected object GetRequiredService(Type serviceType) => host.Services.GetRequiredService(serviceType);
