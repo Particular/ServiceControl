@@ -1,5 +1,4 @@
 ﻿{
-  "Version": "1.0.0",
   "Name": "RavenDB",
   "DisplayName": "RavenDB",
   "Description": "RavenDB ServiceControl persister",

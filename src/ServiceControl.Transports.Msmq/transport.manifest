@@ -1,5 +1,4 @@
 ﻿{
-  "Version": "1.0.0",
   "Definitions": [
     {
       "Name": "MSMQ",

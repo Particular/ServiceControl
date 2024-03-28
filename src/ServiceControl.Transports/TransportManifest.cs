@@ -9,8 +9,6 @@
 
     public class TransportManifest
     {
-        public string Version { get; set; }
-
         public TransportManifestDefinition[] Definitions { get; set; }
 
         public override string ToString() => $"{nameof(TransportManifest)}: {string.Join(", ", Definitions.Select(d => d.Name))}";

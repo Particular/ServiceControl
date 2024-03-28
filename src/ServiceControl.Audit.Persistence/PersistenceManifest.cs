@@ -9,8 +9,6 @@
 
     public class PersistenceManifest
     {
-        public string Version { get; set; }
-
         public string Location { get; set; }
 
         public string Name { get; set; }
