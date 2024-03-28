@@ -82,7 +82,7 @@
             return threshold;
         }
 
-        public const int MinimumStorageLeftRequiredForIngestionDefault = 20;
+        public const int MinimumStorageLeftRequiredForIngestionDefault = 5;
 
         static readonly Task<CheckResult> SuccessResult = Task.FromResult(CheckResult.Pass);
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckMinimumStorageRequiredForIngestion));
