@@ -4,6 +4,7 @@
     using System.IO;
     using System.Reflection;
     using Configuration;
+    using CustomChecks;
     using ServiceControl.Operations;
 
     class RavenPersistenceConfiguration : IPersistenceConfiguration

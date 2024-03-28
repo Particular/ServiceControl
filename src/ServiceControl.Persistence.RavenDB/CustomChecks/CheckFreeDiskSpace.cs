@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Persistence.RavenDB.CustomChecks
 {
     using System;
     using System.IO;
@@ -6,24 +6,26 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using Persistence.RavenDB;
+    using ServiceControl.Persistence.RavenDB;
 
-    class CheckFreeDiskSpace : CustomCheck
+    class CheckFreeDiskSpace(RavenPersisterSettings settings)
+        : CustomCheck("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
     {
-        public CheckFreeDiskSpace(RavenPersisterSettings settings) : base("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
-        {
-            dataPath = settings.DatabasePath;
-            percentageThreshold = settings.DataSpaceRemainingThreshold / 100m;
-            Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {percentageThreshold:P0}");
-        }
-
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
-            var dataPathRoot = Path.GetPathRoot(dataPath);
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {percentageThreshold:P0}");
+            }
+
+            if (!settings.UseEmbeddedServer)
+            {
+                return CheckResult.Pass;
+            }
 
             if (dataPathRoot == null)
             {
-                throw new Exception($"Unable to find the root of the data path {dataPath}");
+                throw new Exception($"Unable to find the root of the data path {dataPathRoot}");
             }
 
             var dataDriveInfo = new DriveInfo(dataPathRoot);
@@ -63,8 +65,8 @@
             }
         }
 
-        readonly string dataPath;
-        readonly decimal percentageThreshold;
+        readonly string dataPathRoot = Path.GetPathRoot(settings.DatabasePath);
+        readonly decimal percentageThreshold = settings.DataSpaceRemainingThreshold / 100m;
 
         public const int DataSpaceRemainingThresholdDefault = 20;
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckFreeDiskSpace));

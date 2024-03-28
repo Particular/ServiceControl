@@ -9,23 +9,29 @@
     using NServiceBus.Logging;
     using RavenDB;
 
-    class CheckMinimumStorageRequiredForIngestion(
-        MinimumRequiredStorageState stateHolder,
-        DatabaseConfiguration databaseConfiguration)
-        : CustomCheck("Audit Message Ingestion Process", "ServiceControl.Audit Health", TimeSpan.FromSeconds(5))
+    class CheckMinimumStorageRequiredForIngestion : CustomCheck
     {
+        public CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder,
+            DatabaseConfiguration databaseConfiguration) : base("Audit Message Ingestion Process", "ServiceControl.Audit Health", TimeSpan.FromSeconds(5))
+        {
+            this.stateHolder = stateHolder;
+            this.databaseConfiguration = databaseConfiguration;
+            percentageThreshold = this.databaseConfiguration.MinimumStorageLeftRequiredForIngestion / 100m;
+            dataPathRoot = Path.GetPathRoot(databaseConfiguration.ServerConfiguration.DbPath);
+        }
+
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
-            var percentageThreshold = databaseConfiguration.MinimumStorageLeftRequiredForIngestion / 100m;
-
-            var dataPathRoot = Path.GetPathRoot(databaseConfiguration.ServerConfiguration.DbPath);
-            if (dataPathRoot == null)
+            if (!databaseConfiguration.ServerConfiguration.UseEmbeddedServer)
             {
                 stateHolder.CanIngestMore = true;
-                return SuccessResult;
+                return CheckResult.Pass;
             }
 
-            Logger.Debug($"Check ServiceControl data drive space starting. Threshold {percentageThreshold:P0}");
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.Debug($"Check ServiceControl data drive space starting. Threshold {percentageThreshold:P0}");
+            }
 
             var dataDriveInfo = new DriveInfo(dataPathRoot);
             var availableFreeSpace = (decimal)dataDriveInfo.AvailableFreeSpace;
@@ -41,7 +47,7 @@
             if (percentRemaining > percentageThreshold)
             {
                 stateHolder.CanIngestMore = true;
-                return SuccessResult;
+                return CheckResult.Pass;
             }
 
             var message = $"Audit message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} configuration setting.";
@@ -84,7 +90,11 @@
 
         public const int MinimumStorageLeftRequiredForIngestionDefault = 5;
 
-        static readonly Task<CheckResult> SuccessResult = Task.FromResult(CheckResult.Pass);
+        readonly string dataPathRoot;
+        readonly decimal percentageThreshold;
+        readonly MinimumRequiredStorageState stateHolder;
+        readonly DatabaseConfiguration databaseConfiguration;
+
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckMinimumStorageRequiredForIngestion));
     }
 }
