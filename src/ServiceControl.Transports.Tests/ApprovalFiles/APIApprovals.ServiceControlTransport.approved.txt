@@ -52,15 +52,15 @@ namespace ServiceControl.Transports
     {
         public TransportManifest() { }
         public ServiceControl.Transports.TransportManifestDefinition[] Definitions { get; set; }
-        public string Location { get; set; }
-        public string Version { get; set; }
         public override string ToString() { }
     }
     public class TransportManifestDefinition
     {
         public TransportManifestDefinition() { }
         public string[] Aliases { get; set; }
+        public string AssemblyName { get; set; }
         public string DisplayName { get; set; }
+        public string Location { get; set; }
         public string Name { get; set; }
         public string TypeName { get; set; }
         public override string ToString() { }
@@ -68,8 +68,7 @@ namespace ServiceControl.Transports
     public static class TransportManifestLibrary
     {
         public static System.Collections.Generic.List<ServiceControl.Transports.TransportManifest> TransportManifests { get; }
-        public static string Find(string transportType) { }
-        public static string GetTransportFolder(string transportType) { }
+        public static ServiceControl.Transports.TransportManifestDefinition Find(string transportType) { }
     }
     public class TransportSettings : NServiceBus.Settings.SettingsHolder
     {
