@@ -5,7 +5,7 @@
     using Particular.ThroughputCollector.Shared;
 
     [TestFixture]
-    public class EndpointNameSanitizerTests
+    public class EndpointNameSanitizer_Tests
     {
         [Test]
         public void Should_remove_invalid_characters_for_ASQS()
