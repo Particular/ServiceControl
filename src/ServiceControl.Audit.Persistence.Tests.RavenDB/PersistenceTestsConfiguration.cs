@@ -15,10 +15,13 @@
 
     class PersistenceTestsConfiguration
     {
-        public IAuditDataStore AuditDataStore { get; protected set; }
-        public IFailedAuditStorage FailedAuditStorage { get; protected set; }
-        public IBodyStorage BodyStorage { get; set; }
-        public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
+        public IAuditDataStore AuditDataStore { get; private set; }
+        public IFailedAuditStorage FailedAuditStorage { get; private set; }
+        public IBodyStorage BodyStorage { get; private set; }
+        public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; private set; }
+        public IDocumentStore DocumentStore { get; private set; }
+        public IServiceProvider ServiceProvider => host.Services;
+        public string Name => "RavenDB";
 
         public async Task Configure(Action<PersistenceSettings> setSettings)
         {
@@ -92,9 +95,6 @@
             host.Dispose();
         }
 
-        public string Name => "RavenDB";
-
-        public IDocumentStore DocumentStore { get; private set; }
 
         string databaseName;
         IHost host;

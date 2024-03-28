@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
@@ -60,7 +61,7 @@
 
             CompleteDatabaseOperation();
 
-            store = GetRequiredService<IErrorMessageDataStore>();
+            store = ServiceProvider.GetRequiredService<IErrorMessageDataStore>();
         }
 
         async Task GenerateAndSaveFailedMessage()

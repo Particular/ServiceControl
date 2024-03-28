@@ -21,7 +21,7 @@
         {
             await DocumentStore.ExecuteIndexAsync(new FailedErrorImportIndex());
 
-            var customCheck = GetRequiredService<FailedErrorImportCustomCheck>();
+            var customCheck = ServiceProvider.GetRequiredService<FailedErrorImportCustomCheck>();
 
             var result = await customCheck.PerformCheck();
 
@@ -46,7 +46,7 @@
 
             DocumentStore.WaitForIndexing();
 
-            var customCheck = GetRequiredService<FailedErrorImportCustomCheck>();
+            var customCheck = ServiceProvider.GetRequiredService<FailedErrorImportCustomCheck>();
 
             var result = await customCheck.PerformCheck();
 

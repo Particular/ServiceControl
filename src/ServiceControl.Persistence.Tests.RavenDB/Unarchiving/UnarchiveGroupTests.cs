@@ -46,7 +46,7 @@
                 await session.SaveChangesAsync();
             }
 
-            var handler = GetRequiredService<UnarchiveAllInGroupHandler>(); // See this.CreateHostBuilder
+            var handler = ServiceProvider.GetRequiredService<UnarchiveAllInGroupHandler>(); // See this.CreateHostBuilder
 
             var context = new TestableMessageHandlerContext();
             var message = new UnarchiveAllInGroup { GroupId = groupId };
@@ -94,7 +94,7 @@
                 await session.SaveChangesAsync();
             }
 
-            var handler = GetRequiredService<UnarchiveAllInGroupHandler>(); // See this.CreateHostBuilder
+            var handler = ServiceProvider.GetRequiredService<UnarchiveAllInGroupHandler>(); // See this.CreateHostBuilder
 
             var context = new TestableMessageHandlerContext();
             var message = new UnarchiveAllInGroup { GroupId = groupId + "Invalid" };
