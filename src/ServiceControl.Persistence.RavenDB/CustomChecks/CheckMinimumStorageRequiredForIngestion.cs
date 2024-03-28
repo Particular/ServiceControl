@@ -22,15 +22,20 @@
 
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.Debug($"Check ServiceControl data drive space starting. Threshold {percentageThreshold:P0}");
+            }
+
             if (!settings.UseEmbeddedServer)
             {
                 stateHolder.CanIngestMore = true;
                 return SuccessResult;
             }
 
-            if (Logger.IsDebugEnabled)
+            if (dataPathRoot == null)
             {
-                Logger.Debug($"Check ServiceControl data drive space starting. Threshold {percentageThreshold:P0}");
+                throw new Exception($"Unable to find the root of the data path {dataPathRoot}");
             }
 
             var dataDriveInfo = new DriveInfo(dataPathRoot);
