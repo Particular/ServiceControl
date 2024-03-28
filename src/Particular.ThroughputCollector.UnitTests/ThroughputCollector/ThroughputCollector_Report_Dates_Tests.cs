@@ -28,7 +28,7 @@ class ThroughputCollector_Report_Dates_Tests : ThroughputCollectorTestFixture
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
 
         var minDateInReport = new DateTimeOffset(DateTime.UtcNow.AddDays(-5).Date, TimeSpan.Zero);
         var reportEndDate = new DateTimeOffset(DateTime.UtcNow.AddDays(-1).Date, TimeSpan.Zero);

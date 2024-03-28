@@ -6,10 +6,12 @@
 
   <ItemGroup>
     <None Remove="throughput-report-v1.0.json" />
+    <None Remove="ThroughputCollector\throughput-report-v2.0.json" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="ThroughputCollector\throughput-report-v1.0.json" />
+    <EmbeddedResource Include="ThroughputCollector\throughput-report-v2.0.json" />
   </ItemGroup>
 
   <ItemGroup>

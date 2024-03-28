@@ -28,7 +28,7 @@ class ThroughputCollector_Report_Masking_Tests : ThroughputCollectorTestFixture
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, ["Endpoint1"], null);
+        var report = await ThroughputCollector.GenerateThroughputReport(["Endpoint1"], null);
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.TotalQueues, Is.EqualTo(3), $"Invalid TotalQueues on report");
@@ -47,7 +47,7 @@ class ThroughputCollector_Report_Masking_Tests : ThroughputCollectorTestFixture
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, [], null);
+        var report = await ThroughputCollector.GenerateThroughputReport([], null);
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.TotalQueues, Is.EqualTo(3), $"Invalid TotalQueues on report");

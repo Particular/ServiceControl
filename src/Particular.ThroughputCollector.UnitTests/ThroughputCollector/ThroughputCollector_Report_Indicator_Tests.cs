@@ -28,7 +28,7 @@ class ThroughputCollector_Report_Indicator_Tests : ThroughputCollectorTestFixtur
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Length, Is.EqualTo(1));
@@ -45,7 +45,7 @@ class ThroughputCollector_Report_Indicator_Tests : ThroughputCollectorTestFixtur
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Length, Is.EqualTo(1));

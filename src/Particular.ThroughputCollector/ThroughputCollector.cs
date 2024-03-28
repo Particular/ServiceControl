@@ -84,7 +84,7 @@
             return reportGenerationState;
         }
 
-        public async Task<SignedReport> GenerateThroughputReport(string? prefix, string[]? masks, string? spVersion)
+        public async Task<SignedReport> GenerateThroughputReport(string[]? masks, string? spVersion)
         {
             CreateMasks(masks);
 
@@ -98,29 +98,21 @@
                 //want to display the endpoint name if it's different to the sanitized endpoint name
                 var queueName = endpoint.Any(w => w.Id.Name != w.SanitizedName) ? endpoint.First(w => w.Id.Name != w.SanitizedName).Id.Name : endpoint.Key;
 
-                //get ones with prefix only - add ones without the prefix into IgnoredQueues
-                if (string.IsNullOrEmpty(prefix) || (!string.IsNullOrEmpty(prefix) && queueName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+                //get all data that we have, including daily values
+                var endpointThroghput = new Contracts.QueueThroughput
                 {
-                    //get all data that we have, including daily values
-                    var endpointThroghput = new Contracts.QueueThroughput
-                    {
-                        QueueName = Mask(queueName),
-                        UserIndicator = UserIndicator(endpoint) ?? string.Empty,
-                        EndpointIndicators = EndpointIndicators(endpoint) ?? [],
-                        NoDataOrSendOnly = NoDataOrSendOnly(endpoint),
-                        Scope = EndpointScope(endpoint) ?? "",
-                        Throughput = MaxDailyThroughput(endpoint) ?? 0,
-                        DailyThroughputFromAudit = AuditThroughput(endpoint) ?? [],
-                        DailyThroughputFromMonitoring = MonitoringThroughput(endpoint) ?? [],
-                        DailyThroughputFromBroker = BrokerThroughput(endpoint) ?? []
-                    };
+                    QueueName = Mask(queueName),
+                    UserIndicator = UserIndicator(endpoint) ?? string.Empty,
+                    EndpointIndicators = EndpointIndicators(endpoint) ?? [],
+                    NoDataOrSendOnly = NoDataOrSendOnly(endpoint),
+                    Scope = EndpointScope(endpoint) ?? "",
+                    Throughput = MaxDailyThroughput(endpoint) ?? 0,
+                    DailyThroughputFromAudit = AuditThroughput(endpoint) ?? [],
+                    DailyThroughputFromMonitoring = MonitoringThroughput(endpoint) ?? [],
+                    DailyThroughputFromBroker = BrokerThroughput(endpoint) ?? []
+                };
 
-                    endpointThroughputs.Add(endpointThroghput);
-                }
-                else
-                {
-                    ignoredQueueNames.Add(Mask(queueName));
-                }
+                endpointThroughputs.Add(endpointThroghput);
             }
 
             var brokerData = await dataStore.GetBrokerData(throughputSettings.Broker);
@@ -131,7 +123,7 @@
                 CustomerName = throughputSettings.CustomerName, //who the license is registeredTo
                 ReportMethod = "NA",
                 ScopeType = brokerData?.ScopeType ?? "",
-                Prefix = prefix,
+                Prefix = null,
                 MessageTransport = throughputQuery?.MessageTransport ?? throughputSettings.TransportType,
                 ToolVersion = "V3", //ensure we check for this on the other side - ie that we can process V3
                 ServiceControlVersion = throughputSettings.ServiceControlVersion,
