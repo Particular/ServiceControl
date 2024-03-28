@@ -4,8 +4,8 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Caliburn.Micro;
+    using Commands;
     using Events;
-    using Framework.Commands;
     using Framework.Rx;
     using License;
     using ServiceControl.LicenseManagement;
@@ -13,7 +13,7 @@
 
     class LicenseStatusManager : RxScreen, IHandle<LicenseUpdated>, IHandle<FocusChanged>
     {
-        public LicenseStatusManager(AwaitableAbstractCommand<object> openLicense)
+        public LicenseStatusManager(OpenViewModelCommand<LicenseViewModel> openLicense)
         {
             openLicense.OnCommandExecuting = () => ShowPopup = false;
             OpenLicense = openLicense;
