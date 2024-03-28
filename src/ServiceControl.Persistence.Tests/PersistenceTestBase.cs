@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using NServiceBus;
 using NServiceBus.Settings;
@@ -91,10 +89,6 @@ public abstract class PersistenceTestBase
     protected IDocumentStore DocumentStore { get; private set; }
     protected IRavenSessionProvider SessionProvider { get; private set; }
     protected IServiceProvider ServiceProvider => host.Services;
-
-    protected T GetRequiredService<T>() => host.Services.GetRequiredService<T>();
-    protected object GetRequiredService(Type serviceType) => host.Services.GetRequiredService(serviceType);
-
     protected Action<IServiceCollection> RegisterServices { get; set; } = _ => { };
 
     protected void CompleteDatabaseOperation() => DocumentStore.WaitForIndexing();
@@ -145,17 +139,17 @@ public abstract class PersistenceTestBase
         Debugger.Break();
     }
 
-    protected IErrorMessageDataStore ErrorStore => GetRequiredService<IErrorMessageDataStore>();
-    protected IRetryDocumentDataStore RetryStore => GetRequiredService<IRetryDocumentDataStore>();
-    protected IBodyStorage BodyStorage => GetRequiredService<IBodyStorage>();
-    protected IRetryBatchesDataStore RetryBatchesStore => GetRequiredService<IRetryBatchesDataStore>();
-    protected IErrorMessageDataStore ErrorMessageDataStore => GetRequiredService<IErrorMessageDataStore>();
-    protected IMessageRedirectsDataStore MessageRedirectsDataStore => GetRequiredService<IMessageRedirectsDataStore>();
-    protected IMonitoringDataStore MonitoringDataStore => GetRequiredService<IMonitoringDataStore>();
-    protected IIngestionUnitOfWorkFactory UnitOfWorkFactory => GetRequiredService<IIngestionUnitOfWorkFactory>();
-    protected ICustomChecksDataStore CustomChecks => GetRequiredService<ICustomChecksDataStore>();
-    protected IArchiveMessages ArchiveMessages => GetRequiredService<IArchiveMessages>();
-    protected IIngestionUnitOfWorkFactory IngestionUnitOfWorkFactory => GetRequiredService<IIngestionUnitOfWorkFactory>();
-    protected IEventLogDataStore EventLogDataStore => GetRequiredService<IEventLogDataStore>();
-    protected IRetryDocumentDataStore RetryDocumentDataStore => GetRequiredService<IRetryDocumentDataStore>();
+    protected IErrorMessageDataStore ErrorStore => ServiceProvider.GetRequiredService<IErrorMessageDataStore>();
+    protected IRetryDocumentDataStore RetryStore => ServiceProvider.GetRequiredService<IRetryDocumentDataStore>();
+    protected IBodyStorage BodyStorage => ServiceProvider.GetRequiredService<IBodyStorage>();
+    protected IRetryBatchesDataStore RetryBatchesStore => ServiceProvider.GetRequiredService<IRetryBatchesDataStore>();
+    protected IErrorMessageDataStore ErrorMessageDataStore => ServiceProvider.GetRequiredService<IErrorMessageDataStore>();
+    protected IMessageRedirectsDataStore MessageRedirectsDataStore => ServiceProvider.GetRequiredService<IMessageRedirectsDataStore>();
+    protected IMonitoringDataStore MonitoringDataStore => ServiceProvider.GetRequiredService<IMonitoringDataStore>();
+    protected IIngestionUnitOfWorkFactory UnitOfWorkFactory => ServiceProvider.GetRequiredService<IIngestionUnitOfWorkFactory>();
+    protected ICustomChecksDataStore CustomChecks => ServiceProvider.GetRequiredService<ICustomChecksDataStore>();
+    protected IArchiveMessages ArchiveMessages => ServiceProvider.GetRequiredService<IArchiveMessages>();
+    protected IIngestionUnitOfWorkFactory IngestionUnitOfWorkFactory => ServiceProvider.GetRequiredService<IIngestionUnitOfWorkFactory>();
+    protected IEventLogDataStore EventLogDataStore => ServiceProvider.GetRequiredService<IEventLogDataStore>();
+    protected IRetryDocumentDataStore RetryDocumentDataStore => ServiceProvider.GetRequiredService<IRetryDocumentDataStore>();
 }

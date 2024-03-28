@@ -48,7 +48,7 @@
                 await session.SaveChangesAsync();
             }
 
-            var handler = GetRequiredService<ArchiveAllInGroupHandler>(); // See this.CreateHostBuilder
+            var handler = ServiceProvider.GetRequiredService<ArchiveAllInGroupHandler>(); // See this.CreateHostBuilder
 
             var context = new TestableMessageHandlerContext();
             var message = new ArchiveAllInGroup { GroupId = groupId };
@@ -96,7 +96,7 @@
                 await session.SaveChangesAsync();
             }
 
-            var handler = GetRequiredService<ArchiveAllInGroupHandler>(); // See this.CreateHostBuilder
+            var handler = ServiceProvider.GetRequiredService<ArchiveAllInGroupHandler>(); // See this.CreateHostBuilder
 
             var context = new TestableMessageHandlerContext();
             var message = new ArchiveAllInGroup { GroupId = groupId + "Invalid" };
