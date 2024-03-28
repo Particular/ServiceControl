@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Persistence.RavenDB.CustomChecks
 {
     using System;
     using System.IO;
@@ -6,25 +6,32 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using Persistence.RavenDB;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.RavenDB;
 
-    class CheckMinimumStorageRequiredForIngestion(
-        MinimumRequiredStorageState stateHolder,
-        RavenPersisterSettings settings)
-        : CustomCheck("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
+    class CheckMinimumStorageRequiredForIngestion : CustomCheck
     {
+        public CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder,
+            RavenPersisterSettings settings) : base("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
+        {
+            this.stateHolder = stateHolder;
+            this.settings = settings;
+            dataPathRoot = Path.GetPathRoot(settings.DatabasePath);
+            percentageThreshold = this.settings.MinimumStorageLeftRequiredForIngestion / 100m;
+        }
+
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
-            percentageThreshold = settings.MinimumStorageLeftRequiredForIngestion / 100m;
-
-            if (dataPathRoot == null)
+            if (!settings.UseEmbeddedServer)
             {
                 stateHolder.CanIngestMore = true;
                 return SuccessResult;
             }
 
-            Logger.Debug($"Check ServiceControl data drive space starting. Threshold {percentageThreshold:P0}");
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.Debug($"Check ServiceControl data drive space starting. Threshold {percentageThreshold:P0}");
+            }
 
             var dataDriveInfo = new DriveInfo(dataPathRoot);
             var availableFreeSpace = (decimal)dataDriveInfo.AvailableFreeSpace;
@@ -71,9 +78,10 @@
 
         public const int MinimumStorageLeftRequiredForIngestionDefault = 5;
 
-        readonly string dataPathRoot = Path.GetPathRoot(settings.DatabasePath);
-
-        decimal percentageThreshold;
+        readonly string dataPathRoot;
+        readonly decimal percentageThreshold;
+        readonly MinimumRequiredStorageState stateHolder;
+        readonly RavenPersisterSettings settings;
 
         static readonly Task<CheckResult> SuccessResult = Task.FromResult(CheckResult.Pass);
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckMinimumStorageRequiredForIngestion));
