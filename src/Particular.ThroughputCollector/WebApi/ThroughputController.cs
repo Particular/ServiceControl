@@ -36,9 +36,9 @@
 
         [Route("throughput/report")]
         [HttpGet]
-        public async Task<SignedReport> GetThroughputReport([FromQuery(Name = "prefix")] string? prefix, [FromQuery(Name = "masks")] string[]? masks, [FromQuery(Name = "spVersion")] string? spVersion)
+        public async Task<SignedReport> GetThroughputReport([FromQuery(Name = "masks")] string[]? masks, [FromQuery(Name = "spVersion")] string? spVersion)
         {
-            return await throughputCollector.GenerateThroughputReport(prefix, masks, spVersion);
+            return await throughputCollector.GenerateThroughputReport(masks, spVersion);
         }
 
         [Route("throughput/settings/info")]

@@ -1,0 +1,124 @@
+{
+  "ReportData": {
+    "CustomerName": "CVCheck",
+    "MessageTransport": "AzureServiceBus",
+    "ReportMethod": "AzureServiceBus Metrics: cvcheck-productionaus.servicebus.windows.net",
+    "ToolVersion": "1.22.4",
+    "StartTime": "2023-11-13T00:00:00+00:00",
+    "EndTime": "2023-12-13T00:00:00+00:00",
+    "ReportDuration": "1.00:00:00",
+    "Queues": [
+      {
+        "QueueName": "api_callback",
+        "Throughput": 1660
+      },
+      {
+        "QueueName": "audit",
+        "Throughput": 238412
+      },
+      {
+        "QueueName": "cvcheckservice",
+        "Throughput": 59112
+      },
+      {
+        "QueueName": "documentverification",
+        "Throughput": 49629
+      },
+      {
+        "QueueName": "documentverification.machinelearning",
+        "Throughput": 15387
+      },
+      {
+        "QueueName": "documentverification.orders",
+        "Throughput": 39467
+      },
+      {
+        "QueueName": "error",
+        "Throughput": 11
+      },
+      {
+        "QueueName": "gateway",
+        "Throughput": 24948
+      },
+      {
+        "QueueName": "gateway_acic-au_prod",
+        "Throughput": 5403
+      },
+      {
+        "QueueName": "gateway_acic-au_prod.gateway",
+        "Throughput": 5406
+      },
+      {
+        "QueueName": "gateway_dandb",
+        "Throughput": 277
+      },
+      {
+        "QueueName": "gateway_davidson",
+        "Throughput": 307
+      },
+      {
+        "QueueName": "gateway_internal",
+        "Throughput": 451
+      },
+      {
+        "QueueName": "gateway_multi",
+        "Throughput": 3110
+      },
+      {
+        "QueueName": "gateway_sai",
+        "Throughput": 334
+      },
+      {
+        "QueueName": "gateway_xref",
+        "Throughput": 750
+      },
+      {
+        "QueueName": "hr_jobadder",
+        "Throughput": 1446
+      },
+      {
+        "QueueName": "hr_pageup",
+        "Throughput": 611
+      },
+      {
+        "QueueName": "hr_platform",
+        "Throughput": 18687
+      },
+      {
+        "QueueName": "hr_pwc",
+        "Throughput": 145
+      },
+      {
+        "QueueName": "hr_smartrecruiters",
+        "Throughput": 500
+      },
+      {
+        "QueueName": "hr_successfactors",
+        "Throughput": 147
+      },
+      {
+        "QueueName": "hr_workday",
+        "Throughput": 203
+      },
+      {
+        "QueueName": "idprovider",
+        "Throughput": 26260
+      },
+      {
+        "QueueName": "messagemonitor",
+        "Throughput": 30
+      },
+      {
+        "QueueName": "myob",
+        "Throughput": 5
+      },
+      {
+        "QueueName": "particular.servicecontrol.ausproduction.azure",
+        "Throughput": 29618
+      }
+    ],
+    "TotalThroughput": 522316,
+    "TotalQueues": 27
+  },
+  "Signature": "IZtVp4CnCpXjCyI3HdlxSMgukrP3ybk3V3qlVvyBStoyYkd4Ylk71wUP/BqMOXywsBrtYv2GPc/0PCQkO3UCMdKwWQ48yvVmKEt21BI8nWGJUlYrC5tppFmtO4QxapbpIAanPanO3GqmtBD9aOKl6HhoJas8SU6/e64jAePBCnzDnJDYa3IklDgVwsUKUrP7e3nxr4IyPT6JeVfOEb2CcDWPvRYv/e0ilHe3f/lWS+bUlg5d7kDR5GI04jxDbkaOUiiOqd23NG5VQv5MjlqXitfbb6UwgMQrwh21nD/2zYGnue/MN1QybKRFTYO+0iT1JaCgbJcborTDMKkQDdjd8Q=="
+}
