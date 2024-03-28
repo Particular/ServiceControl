@@ -15,7 +15,7 @@ public class ThroughputCollector_Report_Signature_Tests
 {
     [TestCase("Serialized")]
     [TestCase("Deserialized")]
-    public void SignatureRoundTrip(string scenario)
+    public void Should_serialize_and_deserialize_report_with_signature(string scenario)
     {
         var report = CreateReport();
 
@@ -40,7 +40,7 @@ public class ThroughputCollector_Report_Signature_Tests
     }
 
     [Test]
-    public void TamperCheck()
+    public void Should_not_allow_tempering_with_report()
     {
         var report = CreateReport();
         var reportString = SerializeReport(report);
@@ -56,7 +56,7 @@ public class ThroughputCollector_Report_Signature_Tests
     }
 
     [Test]
-    public void BunchOfReports()
+    public void Should_be_a_valid_report_every_time()
     {
         var random = new Random();
         var failures = 0;
@@ -102,7 +102,7 @@ public class ThroughputCollector_Report_Signature_Tests
     }
 
     [Test]
-    public void CanReadV1Report()
+    public void Should_be_able_to_read_a_V1_report()
     {
         var reportString = GetResource("throughput-report-v1.0.json");
 
@@ -214,39 +214,34 @@ public class ThroughputCollector_Report_Signature_Tests
         }
 #endif
 
-        if (PrivateKeyAvailable) //TODO get rid of this check after introducing env variable to CI
+        var options = new JsonSerializerOptions()
         {
-            var options = new JsonSerializerOptions()
+            WriteIndented = false,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+        var reserializedReportBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(signedReport.ReportData, options));
+        var shaHash = GetShaHash(reserializedReportBytes);
+
+        try
+        {
+            using (var rsa = RSA.Create())
             {
-                WriteIndented = false,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
-            var reserializedReportBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(signedReport.ReportData, options));
-            var shaHash = GetShaHash(reserializedReportBytes);
+                var privateKeyText = Environment.GetEnvironmentVariable("RSA_PRIVATE_KEY");
+                ImportPrivateKey(rsa, privateKeyText);
 
-            try
-            {
-                using (var rsa = RSA.Create())
-                {
-                    var privateKeyText = Environment.GetEnvironmentVariable("RSA_PRIVATE_KEY");
-                    ImportPrivateKey(rsa, privateKeyText);
+                var correctSignature = Convert.ToBase64String(shaHash);
 
-                    var correctSignature = Convert.ToBase64String(shaHash);
+                var decryptedHash = rsa.Decrypt(Convert.FromBase64String(signedReport.Signature), RSAEncryptionPadding.Pkcs1);
+                var decryptedSignature = Convert.ToBase64String(decryptedHash);
 
-                    var decryptedHash = rsa.Decrypt(Convert.FromBase64String(signedReport.Signature), RSAEncryptionPadding.Pkcs1);
-                    var decryptedSignature = Convert.ToBase64String(decryptedHash);
-
-                    return correctSignature == decryptedSignature;
-                }
-            }
-            catch (CryptographicException)
-            {
-                // The signature was invalid and couldn't be decrypted
-                return false;
+                return correctSignature == decryptedSignature;
             }
         }
-
-        return true;
+        catch (CryptographicException)
+        {
+            // The signature was invalid and couldn't be decrypted
+            return false;
+        }
     }
 
     byte[] GetShaHash(byte[] reportBytes)
