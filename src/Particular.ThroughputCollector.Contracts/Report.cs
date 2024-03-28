@@ -38,7 +38,7 @@ public class Report
     /// Not necessarily the difference between Start/End time. ASB for example collects
     /// 30 days worth of data and reports the max daily throughput for one 24h period.
     /// </summary>
-    public TimeSpan ReportDuration { get; init; }
+    public TimeSpan ReportDuration { get; set; }
 
     public QueueThroughput[] Queues { get; init; }
 
