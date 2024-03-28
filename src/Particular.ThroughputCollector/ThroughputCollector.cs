@@ -128,7 +128,6 @@
             var report = new Report
             {
                 EndTime = new DateTimeOffset(yesterday, TimeSpan.Zero),
-                ReportDuration = TimeSpan.FromDays(1), //NOTE has to be 1 as the throughput on the validation tool is using this as a multiplier to figure out the daily throughput
                 CustomerName = throughputSettings.CustomerName, //who the license is registeredTo
                 ReportMethod = "NA",
                 ScopeType = brokerData?.ScopeType ?? "",
@@ -149,6 +148,7 @@
             var firstMonitoringThroughputDate = endpointThroughputs.SelectMany(w => w.DailyThroughputFromMonitoring).MinBy(m => m.DateUTC)?.DateUTC.ToDateTime(TimeOnly.MinValue) ?? yesterday.AddDays(-1);
             var firstBrokerThroughputDate = endpointThroughputs.SelectMany(w => w.DailyThroughputFromBroker).MinBy(m => m.DateUTC)?.DateUTC.ToDateTime(TimeOnly.MinValue) ?? yesterday.AddDays(-1);
             report.StartTime = new DateTimeOffset(new[] { firstAuditThroughputDate, firstMonitoringThroughputDate, firstBrokerThroughputDate }.Min(), TimeSpan.Zero);
+            report.ReportDuration = report.EndTime - report.StartTime;
 
             report.EnvironmentData.Add(EnvironmentData.AuditEnabled.ToString(), endpoints.Any(a => a.Id.ThroughputSource == ThroughputSource.Audit && a.DailyThroughput?.Count > 0).ToString());
             report.EnvironmentData.Add(EnvironmentData.MonitoringEnabled.ToString(), endpoints.Any(a => a.Id.ThroughputSource == ThroughputSource.Monitoring && a.DailyThroughput?.Count > 0).ToString());
