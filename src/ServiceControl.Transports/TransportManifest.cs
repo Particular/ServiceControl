@@ -26,14 +26,12 @@
 
         public string TypeName { get; set; }
 
-        public string[] Aliases { get; set; } = Array.Empty<string>();
+        public string[] Aliases { get; set; } = [];
 
         internal bool IsMatch(string transportType) =>
-            string.Compare(TypeName, transportType, false) == 0 // Type names are case sensitive
-            || string.Compare(Name, transportType, true) == 0
-            || AliasesContain(transportType);
-
-        bool AliasesContain(string transportType) => Aliases.Contains(transportType);
+            string.Equals(TypeName, transportType, StringComparison.Ordinal) // Type names are case-sensitive
+            || string.Equals(Name, transportType, StringComparison.OrdinalIgnoreCase)
+            || Aliases.Contains(transportType, StringComparer.Ordinal);
 
         public override string ToString() => $"{nameof(TransportManifestDefinition)}: {Name}";
     }

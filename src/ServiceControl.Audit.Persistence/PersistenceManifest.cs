@@ -23,7 +23,7 @@
 
         public bool IsSupported { get; set; } = true;
 
-        public string[] Aliases { get; set; } = Array.Empty<string>();
+        public string[] Aliases { get; set; } = [];
 
         internal bool IsMatch(string persistenceType) =>
             string.Equals(TypeName, persistenceType, StringComparison.Ordinal) // Type names are case-sensitive
