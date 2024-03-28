@@ -8,44 +8,48 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Time.Testing;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting;
-using NServiceBus.AcceptanceTesting.Support;
 using NUnit.Framework;
 using Transports;
-using Transports.RabbitMQ;
+using Transports.SQS;
 
 [TestFixture]
-class RabbitMQQueryTests : TransportTestFixture
+class AmazonSQSQueryTests : TransportTestFixture
 {
     [Test]
     public async Task RunScenario()
     {
-        // We need to wait a bit of time, because the scenario running takes on average 1 sec per run.
-        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+        // We need to wait a bit of time, to ensure AWS metrics are retrievable
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(6));
         CancellationToken token = cancellationTokenSource.Token;
         var provider = new FakeTimeProvider();
+        provider.SetUtcNow(DateTimeOffset.UtcNow);
         var transportSettings = new TransportSettings
         {
             ConnectionString = configuration.ConnectionString,
             MaxConcurrency = 1,
             EndpointName = Guid.NewGuid().ToString("N")
         };
-        var totalWrapper = new TotalWrapper();
-        var query = new RabbitMQQuery(provider, transportSettings);
-        IScenarioWithEndpointBehavior<MyContext> scenario = Scenario.Define<MyContext>(c =>
-            {
-                c.Total = totalWrapper;
-            })
+        const int messagesSent = 15;
+        var query = new AmazonSQSQuery(provider);
+        await Scenario.Define<MyContext>()
             .WithEndpoint(new Receiver(transportSettings.EndpointName), b =>
             b
                 .CustomConfig(ec =>
                 {
                     configuration.TransportCustomization.CustomizeEndpoint(ec, transportSettings);
                 })
-                .When(bus => bus.SendLocal(new MyMessage())))
-            .Done(context => context.ResetEvent.IsSet);
-        await configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
+                .When(async bus =>
+                {
+                    for (int i = 0; i < messagesSent; i++)
+                    {
+                        await bus.SendLocal(new MyMessage());
+                    }
+                }))
+            .Done(context => context.Counter == messagesSent)
+            .Run();
 
         var dictionary = new Dictionary<string, string>();
+
         query.Initialise(dictionary.ToFrozenDictionary());
 
         var queueNames = new List<IBrokerQueue>();
@@ -58,28 +62,17 @@ class RabbitMQQueryTests : TransportTestFixture
         Assert.IsNotNull(queue);
 
         long total = 0L;
-        using var reset = new ManualResetEventSlim();
 
-        var runScenarioAndAdvanceTime = Task.Run(async () =>
-        {
-            while (!reset.IsSet)
-            {
-                _ = await scenario.Run();
-                provider.Advance(TimeSpan.FromMinutes(15));
-            }
-        }, token);
+        await Task.Delay(TimeSpan.FromMinutes(2));
 
-        await foreach (QueueThroughput queueThroughput in query.GetThroughputPerDay(queue, new DateOnly(), token))
+        DateTime startDate = provider.GetUtcNow().DateTime;
+        provider.Advance(TimeSpan.FromDays(1));
+        await foreach (QueueThroughput queueThroughput in query.GetThroughputPerDay(queue, DateOnly.FromDateTime(startDate), token))
         {
             total += queueThroughput.TotalThroughput;
         }
 
-        reset.Set();
-        await runScenarioAndAdvanceTime.WaitAsync(token);
-
-        // Asserting that we have one message per hour during 24 hours, the first snapshot is not counted hence the 23 assertion. 
-        Assert.Greater(total, 23);
-        Assert.LessOrEqual(total, totalWrapper.Total);
+        Assert.AreEqual(messagesSent, total);
     }
 
     class Receiver : EndpointConfigurationBuilder
@@ -94,8 +87,7 @@ class RabbitMQQueryTests : TransportTestFixture
         {
             public Task Handle(MyMessage message, IMessageHandlerContext context)
             {
-                testContext.ResetEvent.Set();
-                testContext.Total.Total++;
+                testContext.Counter++;
                 return Task.CompletedTask;
             }
         }
@@ -103,14 +95,8 @@ class RabbitMQQueryTests : TransportTestFixture
 
     class MyMessage : ICommand;
 
-    class TotalWrapper
-    {
-        public int Total { get; set; }
-    }
-
     class MyContext : ScenarioContext
     {
-        public ManualResetEventSlim ResetEvent { get; } = new(false);
-        public TotalWrapper Total { get; set; }
+        public int Counter { get; set; }
     }
 }

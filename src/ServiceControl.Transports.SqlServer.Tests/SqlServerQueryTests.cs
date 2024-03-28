@@ -58,7 +58,7 @@ class SqlServerQueryTests : TransportTestFixture
         Assert.IsNotNull(queue);
 
         long total = 0L;
-        var reset = new ManualResetEventSlim();
+        using var reset = new ManualResetEventSlim();
 
         var runScenarioAndAdvanceTime = Task.Run(async () =>
         {
