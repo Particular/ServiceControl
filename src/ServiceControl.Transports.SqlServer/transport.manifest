@@ -3,6 +3,7 @@
     {
       "Name": "SQLServer",
       "DisplayName": "SQL Server",
+      "AssemblyName": "ServiceControl.Transports.SqlServer",
       "TypeName": "ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer",
       "SampleConnectionString": "Data Source=<SQLInstance>;Initial Catalog=nservicebus;Integrated Security=True;Queue Schema=myschema;Subscriptions Table=tablename@schema@catalog",
       "AvailableInSCMU": true,

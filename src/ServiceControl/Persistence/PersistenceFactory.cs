@@ -28,7 +28,8 @@ namespace ServiceControl.Persistence
             try
             {
                 var persistenceManifest = PersistenceManifestLibrary.Find(persistenceType);
-                var loadContext = new PluginAssemblyLoadContext(persistenceManifest.Location, persistenceManifest.TypeName);
+                var assemblyPath = Path.Combine(persistenceManifest.Location, $"{persistenceManifest.AssemblyName}.dll");
+                var loadContext = new PluginAssemblyLoadContext(assemblyPath);
                 var customizationType = Type.GetType(persistenceManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
 
                 return (IPersistenceConfiguration)Activator.CreateInstance(customizationType);

@@ -17,6 +17,8 @@
 
         public string Description { get; set; }
 
+        public string AssemblyName { get; set; }
+
         public string TypeName { get; set; }
 
         public bool IsSupported { get; set; } = true;

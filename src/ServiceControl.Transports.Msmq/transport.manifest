@@ -3,6 +3,7 @@
     {
       "Name": "MSMQ",
       "DisplayName": "MSMQ",
+      "AssemblyName": "ServiceControl.Transports.Msmq",
       "TypeName": "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq",
       "SampleConnectionString": "",
       "AvailableInSCMU": true,

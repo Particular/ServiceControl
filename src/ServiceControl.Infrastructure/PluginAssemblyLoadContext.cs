@@ -1,23 +1,12 @@
 ﻿namespace ServiceControl.Infrastructure;
 
-using System;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 
-public class PluginAssemblyLoadContext : AssemblyLoadContext
+public class PluginAssemblyLoadContext(string assemblyPath) : AssemblyLoadContext(assemblyPath)
 {
-    readonly AssemblyDependencyResolver resolver;
-
-    public PluginAssemblyLoadContext(string assemblyFolder, string typeName) : base(assemblyFolder)
-    {
-        var parts = typeName.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        var assemblyName = parts[1];
-        var assemblyPath = Path.Combine(assemblyFolder, $"{assemblyName}.dll");
-
-        resolver = new AssemblyDependencyResolver(assemblyPath);
-    }
+    readonly AssemblyDependencyResolver resolver = new(assemblyPath);
 
     protected override Assembly Load(AssemblyName assemblyName)
     {

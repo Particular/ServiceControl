@@ -3,6 +3,7 @@
     {
       "Name": "LearningTransport",
       "DisplayName": "Learning Transport (Non-Production)",
+      "AssemblyName": "ServiceControl.Transports.Learning",
       "TypeName": "ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning",
       "SampleConnectionString": "%TEMP%\\.learningtransport",
       "AvailableInSCMU": true

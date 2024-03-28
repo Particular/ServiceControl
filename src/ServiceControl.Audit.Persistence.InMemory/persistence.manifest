@@ -2,5 +2,6 @@
   "Name": "InMemory",
   "DisplayName": "In-memory",
   "Description": "InMemory ServiceControl Audit persister",
+  "AssemblyName": "ServiceControl.Audit.Persistence.InMemory",
   "TypeName": "ServiceControl.Audit.Persistence.InMemory.InMemoryPersistenceConfiguration, ServiceControl.Audit.Persistence.InMemory"
 }

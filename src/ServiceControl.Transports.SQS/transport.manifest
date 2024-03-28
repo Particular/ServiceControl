@@ -3,6 +3,7 @@
     {
       "Name": "AmazonSQS",
       "DisplayName": "AmazonSQS",
+      "AssemblyName": "ServiceControl.Transports.SQS",
       "TypeName": "ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS",
       "SampleConnectionString": "Region=<REGION>;QueueNamePrefix=<prefix>;TopicNamePrefix=<prefix>;AccessKeyId=<ACCESSKEYID>;SecretAccessKey=<SECRETACCESSKEY>;S3BucketForLargeMessages=<BUCKETNAME>;S3KeyPrefix=<KEYPREFIX>",
       "AvailableInSCMU": true,

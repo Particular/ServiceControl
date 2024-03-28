@@ -22,6 +22,8 @@
 
         public string DisplayName { get; set; }
 
+        public string AssemblyName { get; set; }
+
         public string TypeName { get; set; }
 
         public string[] Aliases { get; set; } = Array.Empty<string>();

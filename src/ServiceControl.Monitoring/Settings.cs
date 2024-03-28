@@ -3,6 +3,7 @@ namespace ServiceControl.Monitoring
     using System;
     using System.Collections.Generic;
     using System.Configuration;
+    using System.IO;
     using System.Threading.Tasks;
     using Configuration;
     using ServiceControl.Infrastructure;
@@ -56,7 +57,8 @@ namespace ServiceControl.Monitoring
             try
             {
                 var transportManifest = TransportManifestLibrary.Find(TransportType);
-                var loadContext = new PluginAssemblyLoadContext(transportManifest.Location, transportManifest.TypeName);
+                var assemblyPath = Path.Combine(transportManifest.Location, $"{transportManifest.AssemblyName}.dll");
+                var loadContext = new PluginAssemblyLoadContext(assemblyPath);
                 var customizationType = Type.GetType(transportManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
 
                 return (ITransportCustomization)Activator.CreateInstance(customizationType);
