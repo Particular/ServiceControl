@@ -48,7 +48,21 @@ class AmazonSQSQueryTests : TransportTestFixture
             .Done(context => context.Counter == messagesSent)
             .Run();
 
+        var connectionString =
+            new SQSTransportConnectionString(transportSettings.ConnectionString);
         var dictionary = new Dictionary<string, string>();
+        if (!string.IsNullOrEmpty(connectionString.AccessKey))
+        {
+            dictionary.Add(AmazonSQSQuery.AmazonSQSSettings.AccessKey, connectionString.AccessKey);
+        }
+        if (!string.IsNullOrEmpty(connectionString.SecretKey))
+        {
+            dictionary.Add(AmazonSQSQuery.AmazonSQSSettings.SecretKey, connectionString.SecretKey);
+        }
+        if (!string.IsNullOrEmpty(connectionString.Region))
+        {
+            dictionary.Add(AmazonSQSQuery.AmazonSQSSettings.Region, connectionString.Region);
+        }
 
         query.Initialise(dictionary.ToFrozenDictionary());
 
@@ -60,7 +74,7 @@ class AmazonSQSQueryTests : TransportTestFixture
             queueNames.Add(queueName);
         }
 
-        IBrokerQueue queue = queueNames.Find(name => name.QueueName == transportSettings.EndpointName);
+        IBrokerQueue queue = queueNames.Find(name => name.QueueName == $"{connectionString.QueueNamePrefix}{transportSettings.EndpointName}");
         Assert.IsNotNull(queue);
 
         long total = 0L;
