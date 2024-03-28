@@ -17,7 +17,7 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.ServiceBus;
 using Microsoft.Extensions.Logging;
 
-class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThroughputQuery
+public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThroughputQuery
 {
     string serviceBusName = "";
     MetricsQueryClient? client;
@@ -78,7 +78,7 @@ class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThrou
         logger.LogInformation($"Gathering metrics for \"{brokerQueue}\" queue");
 
         var endDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
-        if (endDate <= startDate)
+        if (endDate < startDate)
         {
             yield break;
         }
@@ -104,7 +104,7 @@ class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThrou
             new MetricsQueryOptions
             {
                 Filter = $"EntityName eq '{queueName}'",
-                TimeRange = new QueryTimeRange(startTime.ToDateTime(TimeOnly.MinValue), endTime.ToDateTime(TimeOnly.MinValue)),
+                TimeRange = new QueryTimeRange(startTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc), endTime.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc)),
                 Granularity = TimeSpan.FromDays(1)
             },
             cancellationToken);
@@ -155,7 +155,7 @@ class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThrou
     public Dictionary<string, string> Data { get; } = [];
     public string MessageTransport => "AzureServiceBus";
 
-    static class AzureServiceBusSettings
+    public static class AzureServiceBusSettings
     {
         public static readonly string ServiceBusName = "ASB/ServiceBusName";
         public static readonly string ServiceBusNameDescription = "Azure Service Bus namespace to view metrics.";
