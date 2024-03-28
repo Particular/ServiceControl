@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.RavenDB
 {
     using System;
+    using System.Runtime.Loader;
     using System.Threading.Tasks;
     using Hosting.Commands;
     using Microsoft.Extensions.Hosting;
@@ -29,6 +30,7 @@
             {
                 TransportType = transportIntegration.TypeName,
                 TransportConnectionString = transportIntegration.ConnectionString,
+                AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
             };
 
             configuration = new AcceptanceTestStorageConfiguration();

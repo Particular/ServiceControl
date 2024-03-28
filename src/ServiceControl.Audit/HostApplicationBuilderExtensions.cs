@@ -28,8 +28,7 @@ static class HostApplicationBuilderExtensions
         Settings settings,
         EndpointConfiguration configuration)
     {
-        var persistenceConfiguration =
-            PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
+        var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings);
         var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
 
         RecordStartup(settings, configuration, persistenceConfiguration);
@@ -87,7 +86,7 @@ static class HostApplicationBuilderExtensions
 
     public static void AddServiceControlAuditInstallers(this IHostApplicationBuilder builder, Settings settings)
     {
-        var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
+        var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings);
         var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
         builder.Services.AddInstaller(persistenceSettings, persistenceConfiguration);
     }

@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Infrastructure;
 
-using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 
@@ -10,9 +9,12 @@ public class PluginAssemblyLoadContext(string assemblyPath) : AssemblyLoadContex
 
     protected override Assembly Load(AssemblyName assemblyName)
     {
-        if (Default.Assemblies.Any(a => a.FullName == assemblyName.FullName))
+        foreach (var assembly in Default.Assemblies)
         {
-            return null;
+            if (assembly.FullName == assemblyName.FullName)
+            {
+                return null;
+            }
         }
 
         var assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
