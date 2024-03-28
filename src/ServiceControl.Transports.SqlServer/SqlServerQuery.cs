@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 
-class SqlServerQuery(TimeProvider timeProvider, TransportSettings transportSettings) : IThroughputQuery
+public class SqlServerQuery(TimeProvider timeProvider, TransportSettings transportSettings) : IThroughputQuery
 {
     readonly List<DatabaseDetails> databases = [];
 
@@ -47,7 +47,6 @@ class SqlServerQuery(TimeProvider timeProvider, TransportSettings transportSetti
         for (var i = 0; i < 24; i++)
         {
             await Task.Delay(TimeSpan.FromHours(1), timeProvider, cancellationToken);
-
             var endData =
                 await queueTableName.DatabaseDetails.GetSnapshot(queueTableName, cancellationToken);
 
@@ -109,7 +108,7 @@ class SqlServerQuery(TimeProvider timeProvider, TransportSettings transportSetti
     public Dictionary<string, string> Data { get; } = [];
     public string MessageTransport => "SqlTransport";
 
-    static class SqlServerSettings
+    public static class SqlServerSettings
     {
         public static readonly string ConnectionString = "SqlServer/ConnectionString";
         public static readonly string ConnectionStringDescription = "A single database connection string that will provide at least read access to all queue tables.";

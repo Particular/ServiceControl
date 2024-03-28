@@ -16,7 +16,7 @@ using Amazon.Runtime.CredentialManagement;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 
-class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
+public class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
 {
     AmazonCloudWatchClient? cloudWatch;
     AmazonSQSClient? sqs;
@@ -24,7 +24,8 @@ class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
 
     public void Initialise(FrozenDictionary<string, string> settings)
     {
-        AWSCredentials credentials = new EnvironmentVariablesAWSCredentials();
+        AWSCredentials credentials = new AnonymousAWSCredentials();
+        RegionEndpoint? regionEndpoint = null;
         if (settings.TryGetValue(AmazonSQSSettings.Profile, out var profile))
         {
             var credentialsFile = new NetSDKCredentialsFile();
@@ -34,6 +35,8 @@ class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
                 {
                     credentials = credentialProfile.GetAWSCredentials(credentialProfile.CredentialProfileStore);
                 }
+
+                regionEndpoint = new ProfileAWSRegion(credentialsFile, profile).Region;
             }
         }
         else
@@ -55,10 +58,19 @@ class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
             }
         }
 
-        RegionEndpoint? regionEndpoint = null;
         if (settings.TryGetValue(AmazonSQSSettings.Region, out var region))
         {
             regionEndpoint = RegionEndpoint.GetBySystemName(region);
+        }
+        else if (regionEndpoint == null)
+        {
+            try
+            {
+                regionEndpoint = new EnvironmentVariableAWSRegion().Region;
+            }
+            catch (InvalidOperationException)
+            {
+            }
         }
 
         sqs = new AmazonSQSClient(credentials, new AmazonSQSConfig { RegionEndpoint = regionEndpoint, RetryMode = RequestRetryMode.Adaptive, HttpClientFactory = new AwsHttpClientFactory() });
@@ -67,7 +79,7 @@ class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
         settings.TryGetValue(AmazonSQSSettings.Prefix, out prefix);
     }
 
-    static class AmazonSQSSettings
+    public static class AmazonSQSSettings
     {
         public static readonly string AccessKey = "AmazonSQS/AccessKey";
 
@@ -103,7 +115,7 @@ class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
     {
         var endDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
 
-        if (endDate <= startDate)
+        if (endDate < startDate)
         {
             yield break;
         }
@@ -113,7 +125,7 @@ class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
             Namespace = "AWS/SQS",
             MetricName = "NumberOfMessagesDeleted",
             StartTimeUtc = startDate.ToDateTime(TimeOnly.MinValue),
-            EndTimeUtc = endDate.ToDateTime(TimeOnly.MinValue),
+            EndTimeUtc = endDate.ToDateTime(TimeOnly.MaxValue),
             Period = 24 * 60 * 60, // 1 day
             Statistics = ["Sum"],
             Dimensions = [
