@@ -52,6 +52,8 @@ class AmazonSQSQueryTests : TransportTestFixture
 
         query.Initialise(dictionary.ToFrozenDictionary());
 
+        await Task.Delay(TimeSpan.FromMinutes(2));
+
         var queueNames = new List<IBrokerQueue>();
         await foreach (IBrokerQueue queueName in query.GetQueueNames(token))
         {
@@ -62,8 +64,6 @@ class AmazonSQSQueryTests : TransportTestFixture
         Assert.IsNotNull(queue);
 
         long total = 0L;
-
-        await Task.Delay(TimeSpan.FromMinutes(2));
 
         DateTime startDate = provider.GetUtcNow().DateTime;
         provider.Advance(TimeSpan.FromDays(1));
