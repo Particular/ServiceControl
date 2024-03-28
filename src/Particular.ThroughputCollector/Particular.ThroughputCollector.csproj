@@ -12,7 +12,7 @@
     <None Remove="public-key.pem" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="public-key.pem" />
+    <EmbeddedResource Include="Shared\public-key.pem" />
   </ItemGroup>
   
   <ItemGroup>

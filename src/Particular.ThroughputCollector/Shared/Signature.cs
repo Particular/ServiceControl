@@ -13,7 +13,7 @@ public static class Signature
     {
         var assembly = typeof(Signature).Assembly;
         var assemblyName = assembly.GetName().Name;
-        using (var stream = assembly.GetManifestResourceStream($"{assemblyName}.public-key.pem"))
+        using (var stream = assembly.GetManifestResourceStream($"{assemblyName}.Shared.public-key.pem"))
         using (var reader = new StreamReader(stream!))
         {
             publicKeyText = reader.ReadToEnd();
