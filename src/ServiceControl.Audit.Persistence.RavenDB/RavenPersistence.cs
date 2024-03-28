@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
+    using CustomChecks;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.UnitOfWork;
-    using RavenDB.CustomChecks;
     using UnitOfWork;
 
     class RavenPersistence(DatabaseConfiguration databaseConfiguration) : IPersistence
@@ -14,7 +14,11 @@
             services.AddSingleton<IAuditDataStore, RavenAuditDataStore>();
             services.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenAuditIngestionUnitOfWorkFactory>();
             services.AddSingleton<IFailedAuditStorage, RavenFailedAuditStorage>();
-            services.AddSingleton<CheckMinimumStorageRequiredForAuditIngestion.State>();
+            services.AddSingleton<MinimumRequiredStorageState>();
+
+            services.AddCustomCheck<CheckFreeDiskSpace>();
+            services.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
+            services.AddCustomCheck<CheckRavenDBIndexLag>();
         }
 
         public void AddInstaller(IServiceCollection services) => ConfigureLifecycle(services, databaseConfiguration);

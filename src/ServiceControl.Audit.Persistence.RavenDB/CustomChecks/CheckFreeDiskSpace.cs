@@ -1,15 +1,16 @@
-﻿namespace ServiceControl.Persistence.RavenDB.CustomChecks
+﻿namespace ServiceControl.Audit.Persistence.RavenDB.CustomChecks
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using ServiceControl.Persistence.RavenDB;
+    using RavenDB;
 
-    class CheckFreeDiskSpace(RavenPersisterSettings settings)
-        : CustomCheck("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
+    class CheckFreeDiskSpace(DatabaseConfiguration databaseConfiguration) : CustomCheck("ServiceControl.Audit database",
+        "Storage space", TimeSpan.FromMinutes(5))
     {
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
@@ -18,7 +19,7 @@
                 Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {percentageThreshold:P0}");
             }
 
-            if (!settings.UseEmbeddedServer)
+            if (!databaseConfiguration.ServerConfiguration.UseEmbeddedServer)
             {
                 return CheckResult.Pass;
             }
@@ -44,11 +45,20 @@
                 : CheckResult.Failed($"{percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'.");
         }
 
-        public static void Validate(RavenPersisterSettings settings)
+        public static int Parse(IDictionary<string, string> settings)
         {
-            var threshold = settings.DataSpaceRemainingThreshold;
+            if (!settings.TryGetValue(RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey, out var thresholdValue))
+            {
+                thresholdValue = $"{DataSpaceRemainingThresholdDefault}";
+            }
 
             string message;
+            if (!int.TryParse(thresholdValue, out var threshold))
+            {
+                message = $"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} must be an integer.";
+                Logger.Fatal(message);
+                throw new Exception(message);
+            }
 
             if (threshold < 0)
             {
@@ -63,10 +73,12 @@
                 Logger.Fatal(message);
                 throw new Exception(message);
             }
+
+            return threshold;
         }
 
-        readonly string dataPathRoot = Path.GetPathRoot(settings.DatabasePath);
-        readonly decimal percentageThreshold = settings.DataSpaceRemainingThreshold / 100m;
+        readonly string dataPathRoot = Path.GetPathRoot(databaseConfiguration.ServerConfiguration.DbPath);
+        readonly decimal percentageThreshold = databaseConfiguration.DataSpaceRemainingThreshold / 100m;
 
         public const int DataSpaceRemainingThresholdDefault = 20;
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckFreeDiskSpace));

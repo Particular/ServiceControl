@@ -27,7 +27,6 @@
   "ServiceName": "Particular.ServiceControl.Audit",
   "TransportConnectionString": null,
   "MaximumConcurrencyLevel": 32,
-  "DataSpaceRemainingThreshold": 20,
   "ServiceControlQueueAddress": "Particular.ServiceControl",
   "TimeToRestartAuditIngestionAfterFailure": "00:01:00",
   "EnableFullTextSearchOnBodies": true
