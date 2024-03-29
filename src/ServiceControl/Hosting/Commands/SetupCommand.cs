@@ -10,8 +10,6 @@
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
     using Transports;
-    using Microsoft.Extensions.Hosting;
-    using Microsoft.Extensions.DependencyInjection;
 
     class SetupCommand : AbstractCommand
     {
@@ -35,14 +33,13 @@
                 component.Setup(settings, componentSetupContext);
             }
 
-            var persistence = PersistenceFactory.Create(settings);
-            persistence.ConfigureInstaller(hostBuilder.Services);
-
+            hostBuilder.AddServiceControlInstallers(settings);
             var host = hostBuilder.Build();
 
-            await host.Services
-                .GetRequiredService<IPersistenceInstaller>()
-                .Install();
+            // TODO: https://github.com/orgs/Particular/projects/197/views/1#
+            //await host.Services
+            //    .GetRequiredService<IPersistenceInstaller>()
+            //    .Install();
 
             foreach (var installationTask in componentSetupContext.InstallationTasks)
             {
@@ -67,10 +64,6 @@
                     componentSetupContext.Queues);
             }
 
-            var hostBuilder = Host.CreateApplicationBuilder();
-            hostBuilder.AddServiceControlInstallers(settings);
-
-            using var host = hostBuilder.Build();
             await host.StartAsync();
             await host.StopAsync();
         }
