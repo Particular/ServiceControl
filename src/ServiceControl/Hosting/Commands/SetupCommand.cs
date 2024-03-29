@@ -10,8 +10,6 @@ namespace ServiceControl.Hosting.Commands
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
     using Transports;
-    using Microsoft.Extensions.Hosting;
-    using Microsoft.Extensions.DependencyInjection;
 
     class SetupCommand : AbstractCommand
     {
