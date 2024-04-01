@@ -102,5 +102,7 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddSingleton<RavenExternalPersistenceLifecycle>();
         services.AddSingleton<IRavenPersistenceLifecycle>(b => b.GetService<RavenExternalPersistenceLifecycle>());
         services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
+
+        services.AddSingleton(provider => provider.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore());
     }
 }
