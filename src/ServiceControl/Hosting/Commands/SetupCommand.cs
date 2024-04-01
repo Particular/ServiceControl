@@ -36,19 +36,21 @@
             hostBuilder.AddServiceControlInstallers(settings);
             var host = hostBuilder.Build();
 
-            // TODO: https://github.com/orgs/Particular/projects/197/views/1#
+            // TODO: https://github.com/orgs/Particular/projects/197/views/1?pane=issue&itemId=58048957
             //await host.Services
             //    .GetRequiredService<IPersistenceInstaller>()
             //    .Install();
 
-            foreach (var installationTask in componentSetupContext.InstallationTasks)
-            {
-                await installationTask(host.Services);
-            }
-
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 EventSourceCreator.Create();
+            }
+
+            await host.StartAsync();
+
+            foreach (var installationTask in componentSetupContext.InstallationTasks)
+            {
+                await installationTask(host.Services);
             }
 
             if (settings.SkipQueueCreation)
@@ -64,7 +66,6 @@
                     componentSetupContext.Queues);
             }
 
-            await host.StartAsync();
             await host.StopAsync();
         }
 
