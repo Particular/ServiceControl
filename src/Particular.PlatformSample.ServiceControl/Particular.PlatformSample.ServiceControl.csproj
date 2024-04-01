@@ -22,17 +22,17 @@
 
   <Target Name="AddFilesToPackage">
     <ItemGroup>
-      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl\ServiceControl\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance" />
-      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl\Persisters\RavenDB\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance" />
-      <TfmSpecificPackageFile Include="$(ArtifactsPath)Transports\LearningTransport\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance" />
-      <TfmSpecificPackageFile Include="$(ArtifactsPath)RavenDBServer\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance\RavenDBServer" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl\**\*" Exclude="$(ArtifactsPath)Particular.ServiceControl\Persisters\**\*;$(ArtifactsPath)Particular.ServiceControl\Transports\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl\Persisters\RavenDB\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance\Persisters\RavenDB" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl\Transports\LearningTransport\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance\Transports\LearningTransport" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)RavenDBServer\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance\Persisters\RavenDB\RavenDBServer" />
 
-      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\ServiceControl.Audit\**\*" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
-      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters\InMemory\**\*" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
-      <TfmSpecificPackageFile Include="$(ArtifactsPath)Transports\LearningTransport\**\*" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\**\*" Exclude="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters\**\*;$(ArtifactsPath)Particular.ServiceControl.Audit\Transports\**\*" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters\InMemory\**\*" PackagePath="platform\servicecontrol\servicecontrol-audit-instance\Persisters\InMemory" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\Transports\LearningTransport\**\*" PackagePath="platform\servicecontrol\servicecontrol-audit-instance\Transports\LearningTransport" />
 
-      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Monitoring\ServiceControl.Monitoring\**\*" PackagePath="platform\servicecontrol\monitoring-instance" />
-      <TfmSpecificPackageFile Include="$(ArtifactsPath)Transports\LearningTransport\**\*" PackagePath="platform\servicecontrol\monitoring-instance" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Monitoring\**\*" Exclude="$(ArtifactsPath)Particular.ServiceControl.Monitoring\Transports\**\*" PackagePath="platform\servicecontrol\monitoring-instance" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Monitoring\Transports\LearningTransport\**\*" PackagePath="platform\servicecontrol\monitoring-instance\Transports\LearningTransport" />
     </ItemGroup>
   </Target>
 
