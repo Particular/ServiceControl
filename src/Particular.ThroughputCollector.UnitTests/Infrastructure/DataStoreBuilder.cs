@@ -98,7 +98,7 @@ class DataStoreBuilder(IThroughputDataStore store)
 
     static Endpoint CreateEndpoint(int index, string name = null, ThroughputSource source = ThroughputSource.None)
     {
-        string endpointName = name ?? $"Endpoint{index}";
+        string endpointName = name ?? $"Endpoint{index + 1}";
 
         return new Endpoint(endpointName, source)
         {
