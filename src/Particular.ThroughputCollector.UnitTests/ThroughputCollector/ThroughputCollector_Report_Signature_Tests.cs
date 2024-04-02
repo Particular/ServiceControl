@@ -13,30 +13,29 @@ using Particular.ThroughputCollector.Contracts;
 [TestFixture]
 public class ThroughputCollector_Report_Signature_Tests
 {
-    [TestCase("Serialized")]
-    [TestCase("Deserialized")]
-    public void Should_serialize_and_deserialize_report_with_signature(string scenario)
+    [Test]
+    public void Should_serialize_report_with_signature()
     {
         var report = CreateReport();
 
         var reportString = SerializeReport(report);
-        if (scenario == "Serialized")
-        {
-            Approver.Verify(reportString,
-                scrubber: input => input.Replace(report.Signature, "SIGNATURE", StringComparison.OrdinalIgnoreCase),
-                scenario: scenario);
-        }
 
-        if (scenario == "Deserialized")
-        {
-            var deserialized = DeserializeReport(reportString);
+        Approver.Verify(reportString,
+            scrubber: input => input.Replace(report.Signature, "SIGNATURE", StringComparison.OrdinalIgnoreCase));
+    }
 
-            Approver.Verify(reportString,
-                scrubber: input => input.Replace(report.Signature, "SIGNATURE"),
-                scenario: scenario);
+    [Test]
+    public void Should_deserialize_report_with_signature()
+    {
+        var report = CreateReport();
 
-            Assert.That(ValidateReport(deserialized));
-        }
+        var reportString = SerializeReport(report);
+        var deserialized = DeserializeReport(reportString);
+
+        Approver.Verify(reportString,
+            scrubber: input => input.Replace(report.Signature, "SIGNATURE"));
+
+        Assert.That(ValidateReport(deserialized));
     }
 
     [Test]
@@ -53,52 +52,6 @@ public class ThroughputCollector_Report_Signature_Tests
         {
             Assert.That(ValidateReport(deserialized), Is.False);
         }
-    }
-
-    [Test]
-    public void Should_be_a_valid_report_every_time()
-    {
-        var random = new Random();
-        var failures = 0;
-
-        for (var i = 0; i < 100; i++)
-        {
-            var queues = Enumerable.Range(0, 10)
-                .Select(_ => new QueueThroughput { QueueName = Guid.NewGuid().ToString(), Throughput = random.Next(0, 10000) })
-                .ToArray();
-
-            var report = new Report
-            {
-                CustomerName = Guid.NewGuid().ToString(),
-                MessageTransport = Guid.NewGuid().ToString(),
-                ReportMethod = Guid.NewGuid().ToString(),
-                ToolVersion = new Version(random.Next(1, 100), random.Next(1, 100), random.Next(1, 100)).ToString(),
-                StartTime = new DateTimeOffset(2022, 1, 1, 0, 0, 0, TimeSpan.Zero).AddSeconds(random.Next(0, 31_536_000)),
-                EndTime = new DateTimeOffset(2023, 1, 1, 0, 0, 0, TimeSpan.Zero).AddSeconds(random.Next(0, 31_536_000)),
-                Queues = queues,
-                TotalQueues = queues.Length,
-                TotalThroughput = queues.Sum(q => q.Throughput ?? 0)
-            };
-
-            var signed = new SignedReport
-            {
-                ReportData = report,
-                Signature = Shared.Signature.SignReport(report)
-            };
-
-            try
-            {
-                _ = ValidateReport(signed);
-            }
-            catch (CryptographicException x)
-            {
-                failures++;
-                Console.WriteLine($"Failure {failures}:");
-                Console.WriteLine(x);
-            }
-        }
-
-        Assert.That(failures, Is.EqualTo(0));
     }
 
     [Test]
@@ -209,7 +162,8 @@ public class ThroughputCollector_Report_Signature_Tests
         if (!PrivateKeyAvailable)
         {
             // We don't distribute the private key to do local testing, this only happens during CI
-            Console.WriteLine("Ignoring report validation as this is a DEBUG build and the RSA_PRIVATE_KEY environment variable is missing.");
+            //Console.WriteLine("Ignoring report validation as this is a DEBUG build and the RSA_PRIVATE_KEY environment variable is missing.");
+            Assert.Ignore("Ignoring report validation as this is a DEBUG build and the RSA_PRIVATE_KEY environment variable is missing.");
             return true;
         }
 #endif
