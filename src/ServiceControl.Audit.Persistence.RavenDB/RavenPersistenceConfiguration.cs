@@ -16,6 +16,7 @@
         public const string LogPathKey = "LogPath";
         public const string RavenDbLogLevelKey = "RavenDBLogLevel";
         public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
+        public const string BulkInsertCommitTimeoutInSecondsKey = "BulkInsertCommitTimeoutInSeconds";
 
         public IEnumerable<string> ConfigurationKeys => new[]{
             DatabaseNameKey,
@@ -25,7 +26,8 @@
             ExpirationProcessTimerInSecondsKey,
             LogPathKey,
             RavenDbLogLevelKey,
-            MinimumStorageLeftRequiredForIngestionKey
+            MinimumStorageLeftRequiredForIngestionKey,
+            BulkInsertCommitTimeoutInSecondsKey
         };
 
         public string Name => "RavenDB";
@@ -101,6 +103,8 @@
 
             var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
 
+            var bulkInsertTimeout = TimeSpan.FromSeconds(GetBulkInsertCommitTimeout(settings));
+
             return new DatabaseConfiguration(
                 databaseName,
                 expirationProcessTimerInSeconds,
@@ -108,7 +112,8 @@
                 settings.AuditRetentionPeriod,
                 settings.MaxBodySizeToStore,
                 minimumStorageLeftRequiredForIngestion,
-                serverConfiguration);
+                serverConfiguration,
+                bulkInsertTimeout);
         }
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
@@ -135,6 +140,30 @@
             return expirationProcessTimerInSeconds;
         }
 
+        static int GetBulkInsertCommitTimeout(PersistenceSettings settings)
+        {
+            var bulkInsertCommitTimeoutInSeconds = BulkInsertCommitTimeoutInSecondsDefault;
+
+            if (settings.PersisterSpecificSettings.TryGetValue(BulkInsertCommitTimeoutInSecondsKey, out var bulkInsertCommitTimeoutString))
+            {
+                bulkInsertCommitTimeoutInSeconds = int.Parse(bulkInsertCommitTimeoutString);
+            }
+
+            if (bulkInsertCommitTimeoutInSeconds < 0)
+            {
+                Logger.Error($"BulkInsertCommitTimeout cannot be negative. Defaulting to {BulkInsertCommitTimeoutInSecondsDefault}");
+                return BulkInsertCommitTimeoutInSecondsDefault;
+            }
+
+            if (bulkInsertCommitTimeoutInSeconds > TimeSpan.FromHours(1).TotalSeconds)
+            {
+                Logger.Error($"BulkInsertCommitTimeout cannot be larger than {TimeSpan.FromHours(1).TotalSeconds}. Defaulting to {BulkInsertCommitTimeoutInSecondsDefault}");
+                return BulkInsertCommitTimeoutInSecondsDefault;
+            }
+
+            return bulkInsertCommitTimeoutInSeconds;
+        }
+
         static string GetLogPath(PersistenceSettings settings)
         {
             if (!settings.PersisterSpecificSettings.TryGetValue(LogPathKey, out var logPath))
@@ -151,5 +180,6 @@
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenPersistenceConfiguration));
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
+        const int BulkInsertCommitTimeoutInSecondsDefault = 60;
     }
 }
