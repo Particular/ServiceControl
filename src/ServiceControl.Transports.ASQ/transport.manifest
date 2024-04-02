@@ -1,9 +1,9 @@
 ﻿{
-  "Version": "1.0.0",
   "Definitions": [
     {
       "Name": "AzureStorageQueue",
       "DisplayName": "Azure Storage Queues",
+      "AssemblyName": "ServiceControl.Transports.ASQ",
       "TypeName": "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ",
       "SampleConnectionString": "DefaultEndpointsProtocol=[http|https];AccountName=<MyAccountName>;AccountKey=<MyAccountKey>;Subscriptions Table=tablename",
       "AvailableInSCMU": true,

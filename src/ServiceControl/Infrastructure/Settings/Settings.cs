@@ -3,11 +3,15 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using System;
     using System.Collections.Generic;
     using System.Configuration;
+    using System.IO;
     using System.Linq;
+    using System.Runtime.Loader;
+    using System.Text.Json.Serialization;
     using NLog.Common;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using ServiceControl.Configuration;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Persistence;
@@ -58,7 +62,12 @@ namespace ServiceBus.Management.Infrastructure.Settings
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
+
+            AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
+
+        [JsonIgnore]
+        public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
 
         public LoggingSettings LoggingSettings { get; }
 
@@ -177,9 +186,11 @@ namespace ServiceBus.Management.Infrastructure.Settings
         {
             try
             {
-                TransportType = TransportManifestLibrary.Find(TransportType);
+                var transportManifest = TransportManifestLibrary.Find(TransportType);
+                var assemblyPath = Path.Combine(transportManifest.Location, $"{transportManifest.AssemblyName}.dll");
+                var loadContext = AssemblyLoadContextResolver(assemblyPath);
+                var customizationType = Type.GetType(transportManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
 
-                var customizationType = Type.GetType(TransportType, true);
                 return (ITransportCustomization)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)

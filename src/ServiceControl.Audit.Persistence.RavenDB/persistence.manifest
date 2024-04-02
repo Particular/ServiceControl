@@ -1,8 +1,8 @@
 ﻿{
-  "Version": "1.0.0",
   "Name": "RavenDB",
   "DisplayName": "RavenDB",
   "Description": "RavenDB ServiceControl Audit persister",
+  "AssemblyName": "ServiceControl.Audit.Persistence.RavenDB",
   "TypeName": "ServiceControl.Audit.Persistence.RavenDB.RavenPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDB",
   "Settings": [
     {

@@ -5,8 +5,6 @@
 
     public class PersistenceManifest
     {
-        public string Version { get; set; }
-
         public string Name { get; set; }
 
         public string DisplayName { get; set; }

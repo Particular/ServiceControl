@@ -8,7 +8,7 @@
 
     public class AcceptanceTestStorageConfiguration
     {
-        public string PersistenceType { get; } = typeof(RavenPersistenceConfiguration).AssemblyQualifiedName;
+        public string PersistenceType { get; } = "RavenDB";
 
         EmbeddedDatabase databaseInstance;
         string databaseName;

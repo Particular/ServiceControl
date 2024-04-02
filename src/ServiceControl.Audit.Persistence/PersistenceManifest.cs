@@ -9,8 +9,6 @@
 
     public class PersistenceManifest
     {
-        public string Version { get; set; }
-
         public string Location { get; set; }
 
         public string Name { get; set; }
@@ -19,11 +17,13 @@
 
         public string Description { get; set; }
 
+        public string AssemblyName { get; set; }
+
         public string TypeName { get; set; }
 
         public bool IsSupported { get; set; } = true;
 
-        public string[] Aliases { get; set; } = Array.Empty<string>();
+        public string[] Aliases { get; set; } = [];
 
         internal bool IsMatch(string persistenceType) =>
             string.Equals(TypeName, persistenceType, StringComparison.Ordinal) // Type names are case-sensitive
@@ -78,28 +78,16 @@
             return Path.GetDirectoryName(assemblyLocation);
         }
 
-        public static string Find(string persistenceType)
+        public static PersistenceManifest Find(string persistenceType)
         {
             if (persistenceType == null)
             {
                 throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
             }
 
-            var persistenceManifestDefinition = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
+            var persistenceManifest = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
 
-            return persistenceManifestDefinition?.TypeName ?? persistenceType;
-        }
-
-        public static string GetPersistenceFolder(string persistenceType)
-        {
-            if (persistenceType == null)
-            {
-                throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
-            }
-
-            var persistenceManifestDefinition = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
-
-            return persistenceManifestDefinition?.Location;
+            return persistenceManifest;
         }
 
         static readonly ILog logger = LogManager.GetLogger(typeof(PersistenceManifestLibrary));

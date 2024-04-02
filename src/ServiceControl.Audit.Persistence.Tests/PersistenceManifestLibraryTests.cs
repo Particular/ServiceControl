@@ -11,55 +11,40 @@
     {
         const string persistenceName = "RavenDB";
         const string persistenceType = "ServiceControl.Audit.Persistence.RavenDB.RavenPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDB";
+        const string persistenceAlias = "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb5";
 
         [Test]
-        public void Should_find_persistence_type_by_name()
+        public void Should_find_persistence_manifest_by_name()
         {
-            var _persistenceType = PersistenceManifestLibrary.Find(persistenceName);
+            var persistenceManifest = PersistenceManifestLibrary.Find(persistenceName);
 
-            Assert.AreEqual(persistenceType, _persistenceType);
+            Assert.AreEqual(persistenceName, persistenceManifest.Name);
         }
 
         [Test]
-        public void Should_find_persistence_type_by_type()
+        public void Should_find_persistence_manifest_by_type()
         {
-            var _persistenceType = PersistenceManifestLibrary.Find(persistenceType);
+            var persistenceManifest = PersistenceManifestLibrary.Find(persistenceType);
 
-            Assert.AreEqual(persistenceType, _persistenceType);
-        }
-
-        [Test]
-        public void Should_return_persistence_type_passed_in_if_not_found()
-        {
-            var fakePersistenceType = "My.fake.persistence, fakeTransportAssembly";
-            var _persistenceType = PersistenceManifestLibrary.Find(fakePersistenceType);
-
-            Assert.AreEqual(fakePersistenceType, _persistenceType);
-        }
-
-        [Test]
-        public void Should_find_persistence_type_folder_by_name()
-        {
-            var _persistenceTypeFolder = PersistenceManifestLibrary.GetPersistenceFolder(persistenceName);
-
-            Assert.IsNotNull(_persistenceTypeFolder);
-        }
-
-        [Test]
-        public void Should_find_persistence_type_folder_by_type()
-        {
-            var _persistenceTypeFolder = PersistenceManifestLibrary.GetPersistenceFolder(persistenceType);
-
-            Assert.IsNotNull(_persistenceTypeFolder);
+            Assert.AreEqual(persistenceType, persistenceManifest.TypeName);
         }
 
         [Test]
         public void Should_return_null_for_not_found_persistence_type()
         {
             var fakePersistenceType = "My.fake.persistence, fakeTransportAssembly";
-            var _persistenceTypeFolder = PersistenceManifestLibrary.GetPersistenceFolder(fakePersistenceType);
+            var persistenceManifest = PersistenceManifestLibrary.Find(fakePersistenceType);
 
-            Assert.IsNull(_persistenceTypeFolder);
+            Assert.IsNull(persistenceManifest);
+        }
+
+        [Test]
+        public void Should_find_transport_manifest_by_alias()
+        {
+            var persistenceManifest = PersistenceManifestLibrary.Find(persistenceAlias);
+
+            Assert.IsNotNull(persistenceManifest);
+            Assert.AreEqual(persistenceAlias, persistenceManifest.Aliases[0]);
         }
 
         [Test]
@@ -70,9 +55,8 @@
             foreach (var definition in PersistenceManifestLibrary.PersistenceManifests)
             {
                 count++;
-                var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(definition.Name);
                 var assemblyName = definition.TypeName.Split(',')[1].Trim();
-                var assemblyFile = Path.Combine(persistenceFolder, assemblyName + ".dll");
+                var assemblyFile = Path.Combine(definition.Location, assemblyName + ".dll");
                 var assembly = Assembly.LoadFrom(assemblyFile);
 
                 Assert.IsNotNull(assembly, $"Could not load assembly {assemblyName}");

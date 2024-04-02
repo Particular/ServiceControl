@@ -11,7 +11,7 @@
     {
         public override async Task Execute(HostArguments args, Settings settings)
         {
-            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
+            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings);
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
 
             persistenceSettings.MaintenanceMode = true;

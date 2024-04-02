@@ -1,25 +1,26 @@
 namespace ServiceControl.Audit.Persistence
 {
     using System;
+    using System.IO;
     using Configuration;
     using ServiceControl.Audit.Infrastructure.Settings;
 
     static class PersistenceConfigurationFactory
     {
-        public static IPersistenceConfiguration LoadPersistenceConfiguration(string persistenceType)
+        public static IPersistenceConfiguration LoadPersistenceConfiguration(Settings settings)
         {
             try
             {
-                var foundPersistenceType = PersistenceManifestLibrary.Find(persistenceType);
-
-                var customizationType = Type.GetType(foundPersistenceType, true);
+                var persistenceManifest = PersistenceManifestLibrary.Find(settings.PersistenceType);
+                var assemblyPath = Path.Combine(persistenceManifest.Location, $"{persistenceManifest.AssemblyName}.dll");
+                var loadContext = settings.AssemblyLoadContextResolver(assemblyPath);
+                var customizationType = Type.GetType(persistenceManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
 
                 return (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load persistence customization type {persistenceType}.", e);
-
+                throw new Exception($"Could not load persistence customization type {settings.PersistenceType}.", e);
             }
         }
 

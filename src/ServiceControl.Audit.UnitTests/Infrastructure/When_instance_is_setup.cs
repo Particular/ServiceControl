@@ -2,15 +2,15 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Reflection;
+    using System.Runtime.Loader;
     using System.Threading.Tasks;
     using Audit.Infrastructure.Hosting;
     using Audit.Infrastructure.Hosting.Commands;
     using Audit.Infrastructure.Settings;
-    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using Persistence;
     using Transports;
 
     class When_instance_is_setup
@@ -18,11 +18,25 @@
         [Test]
         public async Task Should_provision_queues()
         {
+            var manifest = new TransportManifest
+            {
+                Definitions = [new TransportManifestDefinition
+                {
+                    Name = "FakeTransport",
+                    Location = AppContext.BaseDirectory,
+                    AssemblyName = Assembly.GetExecutingAssembly().GetName().Name,
+                    TypeName = typeof(FakeTransport).AssemblyQualifiedName
+                }]
+            };
+
+            TransportManifestLibrary.TransportManifests.Add(manifest);
+
             var instanceInputQueueName = "SomeInstanceQueue";
 
-            var settings = new Settings(instanceInputQueueName, typeof(FakeTransport).AssemblyQualifiedName, typeof(FakePersistenceConfiguration).AssemblyQualifiedName)
+            var settings = new Settings(instanceInputQueueName, "FakeTransport", "InMemory")
             {
                 ForwardAuditMessages = true,
+                AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
             };
 
             var setupCommand = new SetupCommand();
@@ -68,25 +82,5 @@
             OnError onError = null, Func<string, Exception, Task> onCriticalError = null,
             TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly) =>
             throw new NotImplementedException();
-    }
-
-    class FakePersistenceConfiguration : IPersistenceConfiguration
-    {
-        public string Name => "FakePersister";
-
-        public IEnumerable<string> ConfigurationKeys => [];
-
-        public IPersistence Create(PersistenceSettings settings) => new FakePersistence();
-
-        class FakePersistence : IPersistence
-        {
-            public void AddPersistence(IServiceCollection services)
-            {
-            }
-
-            public void AddInstaller(IServiceCollection services)
-            {
-            }
-        }
     }
 }

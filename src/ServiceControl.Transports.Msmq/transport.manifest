@@ -1,9 +1,9 @@
 ﻿{
-  "Version": "1.0.0",
   "Definitions": [
     {
       "Name": "MSMQ",
       "DisplayName": "MSMQ",
+      "AssemblyName": "ServiceControl.Transports.Msmq",
       "TypeName": "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq",
       "SampleConnectionString": "",
       "AvailableInSCMU": true,

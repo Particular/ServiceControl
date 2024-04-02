@@ -10,7 +10,7 @@ namespace ServiceControl.Persistence
     {
         public static IPersistence Create(Settings settings, bool maintenanceMode = false)
         {
-            var persistenceConfiguration = CreatePersistenceConfiguration(settings.PersistenceType);
+            var persistenceConfiguration = CreatePersistenceConfiguration(settings);
 
             //HINT: This is false when executed from acceptance tests
             settings.PersisterSpecificSettings ??= persistenceConfiguration.CreateSettings(Settings.SettingsRootNamespace);
@@ -22,18 +22,20 @@ namespace ServiceControl.Persistence
             return persistence;
         }
 
-        static IPersistenceConfiguration CreatePersistenceConfiguration(string persistenceType)
+        static IPersistenceConfiguration CreatePersistenceConfiguration(Settings settings)
         {
             try
             {
-                var foundPersistenceType = PersistenceManifestLibrary.Find(persistenceType);
-                var customizationType = Type.GetType(foundPersistenceType, true);
-                var persistenceConfiguration = (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
-                return persistenceConfiguration;
+                var persistenceManifest = PersistenceManifestLibrary.Find(settings.PersistenceType);
+                var assemblyPath = Path.Combine(persistenceManifest.Location, $"{persistenceManifest.AssemblyName}.dll");
+                var loadContext = settings.AssemblyLoadContextResolver(assemblyPath);
+                var customizationType = Type.GetType(persistenceManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
+
+                return (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load persistence customization type {persistenceType}.", e);
+                throw new Exception($"Could not load persistence customization type {settings.PersistenceType}.", e);
             }
         }
 

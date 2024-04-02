@@ -5,6 +5,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using System.Configuration;
     using System.IO;
     using System.Net.Http;
+    using System.Runtime.Loader;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
@@ -79,7 +80,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     }
 
                     return false;
-                }
+                },
+                AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
             };
 
             setSettings(settings);

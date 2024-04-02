@@ -2,10 +2,14 @@
 {
     using System;
     using System.Configuration;
+    using System.IO;
+    using System.Runtime.Loader;
+    using System.Text.Json.Serialization;
     using Configuration;
     using NLog.Common;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
+    using ServiceControl.Infrastructure;
     using Transports;
 
     public class Settings
@@ -42,6 +46,8 @@
             ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
             EnableFullTextSearchOnBodies = SettingsReader.Read(SettingsRootNamespace, "EnableFullTextSearchOnBodies", true);
+
+            AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
 
         void LoadAuditQueueInformation()
@@ -69,6 +75,9 @@
                 AuditLogQueue = Subscope(AuditQueue);
             }
         }
+
+        [JsonIgnore]
+        public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
 
         public LoggingSettings LoggingSettings { get; }
 
@@ -149,9 +158,10 @@
         {
             try
             {
-                TransportType = TransportManifestLibrary.Find(TransportType);
-
-                var customizationType = Type.GetType(TransportType, true);
+                var transportManifest = TransportManifestLibrary.Find(TransportType);
+                var assemblyPath = Path.Combine(transportManifest.Location, $"{transportManifest.AssemblyName}.dll");
+                var loadContext = AssemblyLoadContextResolver(assemblyPath);
+                var customizationType = Type.GetType(transportManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
 
                 return (ITransportCustomization)Activator.CreateInstance(customizationType);
             }

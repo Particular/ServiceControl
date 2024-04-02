@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.RavenDB
 {
     using System;
+    using System.Runtime.Loader;
     using System.Threading.Tasks;
     using Hosting.Commands;
     using Microsoft.Extensions.Hosting;
@@ -8,7 +9,6 @@
     using NUnit.Framework;
     using Particular.ServiceControl.Hosting;
     using Persistence;
-    using Persistence.RavenDB;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.AcceptanceTesting.InfrastructureConfig;
 
@@ -26,10 +26,11 @@
             settings = new Settings(
                 forwardErrorMessages: false,
                 errorRetentionPeriod: TimeSpan.FromDays(1),
-                persisterType: typeof(RavenPersistenceConfiguration).AssemblyQualifiedName)
+                persisterType: "RavenDB")
             {
                 TransportType = transportIntegration.TypeName,
                 TransportConnectionString = transportIntegration.ConnectionString,
+                AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
             };
 
             configuration = new AcceptanceTestStorageConfiguration();
