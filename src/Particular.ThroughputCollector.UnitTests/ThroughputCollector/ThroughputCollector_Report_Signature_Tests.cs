@@ -21,7 +21,7 @@ public class ThroughputCollector_Report_Signature_Tests
         var reportString = SerializeReport(report);
 
         Approver.Verify(reportString,
-            scrubber: input => input.Replace(report.Signature, "SIGNATURE", StringComparison.OrdinalIgnoreCase));
+            scrubber: input => input.Replace(report.Signature, "SIGNATURE"));
     }
 
     [Test]
@@ -162,7 +162,6 @@ public class ThroughputCollector_Report_Signature_Tests
         if (!PrivateKeyAvailable)
         {
             // We don't distribute the private key to do local testing, this only happens during CI
-            //Console.WriteLine("Ignoring report validation as this is a DEBUG build and the RSA_PRIVATE_KEY environment variable is missing.");
             Assert.Ignore("Ignoring report validation as this is a DEBUG build and the RSA_PRIVATE_KEY environment variable is missing.");
             return true;
         }
