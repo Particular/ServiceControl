@@ -27,9 +27,12 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
             .AddEndpoint().WithThroughput(days: 2)
             .AddEndpoint().WithThroughput(days: 2)
             .AddEndpoint().WithThroughput(days: 2)
-            .AddEndpoint("Particular.ServiceControl").WithThroughput(days: 2)
-            .AddEndpoint("audit").WithThroughput(days: 2)
-            .AddEndpoint("error").WithThroughput(days: 2)
+            .AddEndpoint("Particular.ServiceControl")
+            .ConfigureEndpoint(endpoint => endpoint.EndpointIndicators = [EndpointIndicator.PlatformEndpoint.ToString()]).WithThroughput(days: 2)
+            .AddEndpoint("audit")
+            .ConfigureEndpoint(endpoint => endpoint.EndpointIndicators = [EndpointIndicator.PlatformEndpoint.ToString()]).WithThroughput(days: 2)
+            .AddEndpoint("error")
+            .ConfigureEndpoint(endpoint => endpoint.EndpointIndicators = [EndpointIndicator.PlatformEndpoint.ToString()]).WithThroughput(days: 2)
             .Build();
 
         // Act
