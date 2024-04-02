@@ -6,6 +6,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Features;
+    using NServiceBus.Logging;
     using NServiceBus.Metrics;
     using ServiceControl.Monitoring.Infrastructure.Api;
 
@@ -36,25 +37,33 @@
 
         async Task SendReport(IMessageSession session)
         {
-            var endpointData = endpointMetricsApi.GetAllEndpointsMetrics(throughputMinutes);
-
-            var throughputData = new RecordEndpointThroughputData
+            try
             {
-                EndDateTime = DateTime.UtcNow,
-                StartDateTime = DateTime.UtcNow.AddMinutes(throughputMinutes),
-                EndpointThroughputData = new EndpointThroughputData[endpointData.Length]
-            };
+                var endpointData = endpointMetricsApi.GetAllEndpointsMetrics(throughputMinutes);
 
-            for (int i = 0; i < endpointData.Length; i++)
-            {
-                var average = endpointData[i].Metrics["throughput"]?.Average ?? 0;
-                throughputData.EndpointThroughputData[i] = new EndpointThroughputData { Name = endpointData[i].Name, Throughput = Convert.ToInt64(average * throughputMinutes * 60) };
+                var throughputData = new RecordEndpointThroughputData
+                {
+                    EndDateTime = DateTime.UtcNow,
+                    StartDateTime = DateTime.UtcNow.AddMinutes(throughputMinutes),
+                    EndpointThroughputData = new EndpointThroughputData[endpointData.Length]
+                };
+
+                for (int i = 0; i < endpointData.Length; i++)
+                {
+                    var average = endpointData[i].Metrics["Throughput"]?.Average ?? 0;
+                    throughputData.EndpointThroughputData[i] = new EndpointThroughputData { Name = endpointData[i].Name, Throughput = Convert.ToInt64(average * throughputMinutes * 60) };
+                }
+
+                await session.Send(throughputData);
             }
-
-            await session.Send(throughputData);
+            catch (Exception ex)
+            {
+                log.Error($"Error obtaining throughput from Monitoring for {throughputMinutes} minutes interval.", ex);
+            }
         }
 
         Timer monitoringDataTimer;
         static int throughputMinutes = 5;
+        ILog log = LogManager.GetLogger(typeof(ReportThroughputFeature));
     }
 }
