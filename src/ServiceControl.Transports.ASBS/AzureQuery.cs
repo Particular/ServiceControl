@@ -17,9 +17,9 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.ServiceBus;
 using Microsoft.Extensions.Logging;
 
-public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThroughputQuery
+public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings) : IThroughputQuery
 {
-    string serviceBusName = "";
+    string serviceBusName = string.Empty;
     MetricsQueryClient? client;
     ArmClient? armClient;
     string? resourceId;
@@ -28,7 +28,29 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) :
     {
         settings.TryGetValue(AzureServiceBusSettings.ManagementUrl, out var managementUrl);
 
-        serviceBusName = settings[AzureServiceBusSettings.ServiceBusName];
+        if (settings.TryGetValue(AzureServiceBusSettings.ServiceBusName, out string? serviceBusNameValue))
+        {
+            serviceBusName = serviceBusNameValue.Length == 0 ? string.Empty : serviceBusNameValue;
+        }
+
+        if (string.IsNullOrEmpty(serviceBusName))
+        {
+            // Extract ServiceBus name from connection string
+            const string serviceBusUrlPrefix = "sb://";
+            int serviceBusUrlPrefixLength = serviceBusUrlPrefix.Length;
+            int startIndex = transportSettings.ConnectionString.IndexOf(serviceBusUrlPrefix, StringComparison.Ordinal);
+            if (startIndex == -1)
+            {
+                startIndex = 0;
+            }
+            else
+            {
+                startIndex += serviceBusUrlPrefixLength;
+            }
+
+            serviceBusName = transportSettings.ConnectionString.Substring(startIndex,
+                transportSettings.ConnectionString.IndexOf('.', startIndex) - startIndex);
+        }
 
         var subscriptionId = settings[AzureServiceBusSettings.SubscriptionId];
         var environment = GetEnvironment();
