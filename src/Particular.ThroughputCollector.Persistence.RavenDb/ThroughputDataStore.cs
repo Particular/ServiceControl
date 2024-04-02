@@ -3,10 +3,10 @@
 using Contracts;
 using Particular.ThroughputCollector.Persistence.RavenDb.Models;
 using Raven.Client.Documents;
+using Raven.Client.Documents.Linq;
 
 class ThroughputDataStore(
     IDocumentStore store,
-    PersistenceSettings persistenceSettings,
     DatabaseConfiguration databaseConfiguration) : IThroughputDataStore
 {
     const string ThroughputTimeSeriesName = "INC: throughput data";
@@ -15,11 +15,11 @@ class ThroughputDataStore(
     {
         using var session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        var baseQuery = session.Advanced.AsyncDocumentQuery<EndpointDocument>();
+        var baseQuery = session.Query<EndpointDocument>();
 
         var query = includePlatformEndpoints
             ? baseQuery
-            : baseQuery.Not.ContainsAny(document => document.EndpointId.Name, persistenceSettings.PlatformEndpointNames);
+            : baseQuery.Where(document => !document.EndpointIndicators.Contains(EndpointIndicator.PlatformEndpoint.ToString()));
 
         var documents = await query.ToListAsync(cancellationToken);
 
