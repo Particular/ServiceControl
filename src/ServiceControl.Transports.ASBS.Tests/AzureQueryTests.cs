@@ -32,7 +32,7 @@ class AzureQueryTests : TransportTestFixture
             EndpointName = Guid.NewGuid().ToString("N")
         };
         const int messagesSent = 15;
-        var query = new AzureQuery(NullLogger<AzureQuery>.Instance, provider);
+        var query = new AzureQuery(NullLogger<AzureQuery>.Instance, provider, transportSettings);
         await Scenario.Define<MyContext>()
             .WithEndpoint(new Receiver(transportSettings.EndpointName), b =>
             b
@@ -50,26 +50,11 @@ class AzureQueryTests : TransportTestFixture
             .Done(context => context.Counter == messagesSent)
             .Run();
 
-        const string servicebusUrlPrefix = "sb://";
-        int servicebusUrlPrefixLength = servicebusUrlPrefix.Length;
-        int startIndex = transportSettings.ConnectionString.IndexOf(servicebusUrlPrefix);
-        if (startIndex == -1)
-        {
-            startIndex = 0;
-        }
-        else
-        {
-            startIndex += servicebusUrlPrefixLength;
-        }
-
-        string serviceBusName = transportSettings.ConnectionString.Substring(startIndex,
-            transportSettings.ConnectionString.IndexOf('.', startIndex) - startIndex);
         // Doco on this environment variable - https://github.com/Particular/Platform/blob/main/guidelines/github-actions/secrets.md#azure_aci_credentials
         string aciCredentials = Environment.GetEnvironmentVariable("AZURE_ACI_CREDENTIALS");
         var jsonCredentials = JsonNode.Parse(aciCredentials);
         var dictionary = new Dictionary<string, string>
         {
-            { AzureQuery.AzureServiceBusSettings.ServiceBusName, serviceBusName },
             { AzureQuery.AzureServiceBusSettings.ClientId, jsonCredentials["clientId"].GetValue<string>() },
             { AzureQuery.AzureServiceBusSettings.ClientSecret, jsonCredentials["clientSecret"].GetValue<string>() },
             { AzureQuery.AzureServiceBusSettings.TenantId, jsonCredentials["tenantId"].GetValue<string>() },
