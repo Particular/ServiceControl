@@ -28,6 +28,7 @@ namespace ServiceControl.Monitoring
             EndpointName = SettingsReader.Read<string>(SettingsRootNamespace, "EndpointName");
             EndpointUptimeGracePeriod = TimeSpan.Parse(SettingsReader.Read(SettingsRootNamespace, "EndpointUptimeGracePeriod", "00:00:40"));
             MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", 32);
+            ServiceControlThroughputDataQueue = SettingsReader.Read(SettingsRootNamespace, "ServiceControlThroughputDataQueue", "ServiceControl.ThroughputData");
 
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
@@ -70,6 +71,7 @@ namespace ServiceControl.Monitoring
         public int MaximumConcurrencyLevel { get; set; }
 
         public string LicenseFileText { get; set; }
+        public string ServiceControlThroughputDataQueue { get; set; }
 
         void TryLoadLicenseFromConfig() => LicenseFileText = SettingsReader.Read<string>(SettingsRootNamespace, "LicenseText");
 
