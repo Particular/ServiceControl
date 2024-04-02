@@ -49,7 +49,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         await DataStore.CreateBuilder()
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker])
             .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpoint.ToString()).WithThroughput(days: 2)
-            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker])
+            .AddEndpoint("Endpoint2", sources: [ThroughputSource.Broker])
             .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpointNoLongerInUse.ToString()).WithThroughput(days: 2)
             .AddEndpoint("Endpoint3", sources: [ThroughputSource.Broker])
             .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpointSendOnly.ToString()).WithThroughput(days: 2)
