@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup Label="Versions for direct package references">
     <PackageVersion Include="Autofac" Version="8.0.0" />
-    <PackageVersion Include="AWSSDK.CloudWatch" Version="3.7.302.11" />
+    <PackageVersion Include="AWSSDK.CloudWatch" Version="3.7.303" />
     <PackageVersion Include="AWSSDK.SQS" Version="3.7.300.55" />
     <PackageVersion Include="Azure.Core" Version="1.38.0" />
     <PackageVersion Include="Azure.Identity" Version="1.11.4" />
@@ -21,6 +21,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.3" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.5" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.2.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
