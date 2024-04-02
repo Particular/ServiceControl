@@ -22,9 +22,9 @@ class ThroughputCollector_Report_Masking_Tests : ThroughputCollectorTestFixture
     {
         // Arrange
         await DataStore.CreateBuilder()
-            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
-            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
-            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .AddEndpoint("Endpoint2", sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .AddEndpoint("Endpoint3", sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
             .Build();
 
         // Act
@@ -44,9 +44,9 @@ class ThroughputCollector_Report_Masking_Tests : ThroughputCollectorTestFixture
     {
         // Arrange
         await DataStore.CreateBuilder()
-            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
-            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
-            .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .AddEndpoint("Endpoint2", sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
+            .AddEndpoint("Endpoint3", sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
             .Build();
 
         // Act
