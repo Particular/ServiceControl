@@ -29,7 +29,6 @@ namespace ServiceControl.Transports
         string MessageTransport { get; }
         string? ScopeType { get; }
         ServiceControl.Transports.KeyDescriptionPair[] Settings { get; }
-        bool SupportsHistoricalMetrics { get; }
         System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.IBrokerQueue> GetQueueNames(System.Threading.CancellationToken cancellationToken);
         System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.QueueThroughput> GetThroughputPerDay(ServiceControl.Transports.IBrokerQueue brokerQueue, System.DateOnly startDate, System.Threading.CancellationToken cancellationToken);
         void Initialise(System.Collections.Frozen.FrozenDictionary<string, string> settings);
