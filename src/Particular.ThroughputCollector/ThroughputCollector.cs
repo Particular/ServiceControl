@@ -201,8 +201,6 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         return stringToMask;
     }
 
-    static string GetSignature() => string.Empty; //TODO
-
     static string? UserIndicator(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.UserIndicator))?.UserIndicator;
 
     static string? EndpointScope(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.Scope))?.Scope;
