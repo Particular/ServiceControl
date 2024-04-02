@@ -20,5 +20,6 @@
   "SkipQueueCreation": false,
   "RootUrl": "http://localhost:9999/",
   "MaximumConcurrencyLevel": 32,
-  "LicenseFileText": null
+  "LicenseFileText": null,
+  "ServiceControlThroughputDataQueue": "ServiceControl.ThroughputData"
 }
