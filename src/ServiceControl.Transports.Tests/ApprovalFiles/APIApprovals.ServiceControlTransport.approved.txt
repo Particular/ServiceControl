@@ -47,6 +47,7 @@ namespace ServiceControl.Transports
         ServiceControl.Transports.IProvideQueueLength CreateQueueLengthProvider();
         System.Threading.Tasks.Task<NServiceBus.Transport.TransportInfrastructure> CreateTransportInfrastructure(string name, ServiceControl.Transports.TransportSettings transportSettings, NServiceBus.Transport.OnMessage onMessage = null, NServiceBus.Transport.OnError onError = null, System.Func<string, System.Exception, System.Threading.Tasks.Task> onCriticalError = null, NServiceBus.TransportTransactionMode preferredTransactionMode = 1);
         void CustomizeAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        void CustomizeEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         System.Threading.Tasks.Task ProvisionQueues(ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues);
@@ -79,6 +80,7 @@ namespace ServiceControl.Transports
         protected abstract TTransport CreateTransport(ServiceControl.Transports.TransportSettings transportSettings, NServiceBus.TransportTransactionMode preferredTransactionMode = 1);
         public System.Threading.Tasks.Task<NServiceBus.Transport.TransportInfrastructure> CreateTransportInfrastructure(string name, ServiceControl.Transports.TransportSettings transportSettings, NServiceBus.Transport.OnMessage onMessage = null, NServiceBus.Transport.OnError onError = null, System.Func<string, System.Exception, System.Threading.Tasks.Task> onCriticalError = null, NServiceBus.TransportTransactionMode preferredTransactionMode = 1) { }
         public void CustomizeAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
+        public void CustomizeEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
         public void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
         public void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
         protected abstract void CustomizeTransportForAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);

@@ -17,9 +17,9 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.ServiceBus;
 using Microsoft.Extensions.Logging;
 
-class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThroughputQuery
+public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings) : IThroughputQuery
 {
-    string serviceBusName = "";
+    string serviceBusName = string.Empty;
     MetricsQueryClient? client;
     ArmClient? armClient;
     string? resourceId;
@@ -28,7 +28,29 @@ class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThrou
     {
         settings.TryGetValue(AzureServiceBusSettings.ManagementUrl, out var managementUrl);
 
-        serviceBusName = settings[AzureServiceBusSettings.ServiceBusName];
+        if (settings.TryGetValue(AzureServiceBusSettings.ServiceBusName, out string? serviceBusNameValue))
+        {
+            serviceBusName = serviceBusNameValue.Length == 0 ? string.Empty : serviceBusNameValue;
+        }
+
+        if (string.IsNullOrEmpty(serviceBusName))
+        {
+            // Extract ServiceBus name from connection string
+            const string serviceBusUrlPrefix = "sb://";
+            int serviceBusUrlPrefixLength = serviceBusUrlPrefix.Length;
+            int startIndex = transportSettings.ConnectionString.IndexOf(serviceBusUrlPrefix, StringComparison.Ordinal);
+            if (startIndex == -1)
+            {
+                startIndex = 0;
+            }
+            else
+            {
+                startIndex += serviceBusUrlPrefixLength;
+            }
+
+            serviceBusName = transportSettings.ConnectionString.Substring(startIndex,
+                transportSettings.ConnectionString.IndexOf('.', startIndex) - startIndex);
+        }
 
         var subscriptionId = settings[AzureServiceBusSettings.SubscriptionId];
         var environment = GetEnvironment();
@@ -78,7 +100,7 @@ class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThrou
         logger.LogInformation($"Gathering metrics for \"{brokerQueue}\" queue");
 
         var endDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
-        if (endDate <= startDate)
+        if (endDate < startDate)
         {
             yield break;
         }
@@ -104,7 +126,7 @@ class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThrou
             new MetricsQueryOptions
             {
                 Filter = $"EntityName eq '{queueName}'",
-                TimeRange = new QueryTimeRange(startTime.ToDateTime(TimeOnly.MinValue), endTime.ToDateTime(TimeOnly.MinValue)),
+                TimeRange = new QueryTimeRange(startTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc), endTime.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc)),
                 Granularity = TimeSpan.FromDays(1)
             },
             cancellationToken);
@@ -155,7 +177,7 @@ class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider) : IThrou
     public Dictionary<string, string> Data { get; } = [];
     public string MessageTransport => "AzureServiceBus";
 
-    static class AzureServiceBusSettings
+    public static class AzureServiceBusSettings
     {
         public static readonly string ServiceBusName = "ASB/ServiceBusName";
         public static readonly string ServiceBusNameDescription = "Azure Service Bus namespace to view metrics.";
