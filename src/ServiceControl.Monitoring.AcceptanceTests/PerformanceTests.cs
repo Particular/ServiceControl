@@ -13,6 +13,7 @@
     using Messaging;
     using NUnit.Framework;
     using QueueLength;
+    using ServiceControl.Monitoring.Infrastructure.Api;
     using Timings;
     using Transports;
 
