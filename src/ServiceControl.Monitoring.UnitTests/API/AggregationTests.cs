@@ -2,11 +2,11 @@
 {
     using System;
     using System.Linq;
-    using Http.Diagrams;
     using Messaging;
     using Monitoring.Infrastructure;
     using NUnit.Framework;
     using QueueLength;
+    using ServiceControl.Monitoring.Infrastructure.Api;
     using Timings;
 
     [TestFixture]
@@ -16,7 +16,7 @@
         EndpointRegistry endpointRegistry;
         Settings settings;
         EndpointInstanceActivityTracker activityTracker;
-        DiagramApiController apiController;
+        IEndpointMetricsApi endpointMetricsApi;
 
         [SetUp]
         public void Setup()
@@ -34,7 +34,7 @@
                 new RetriesStore(),
                 new QueueLengthStore()
             };
-            apiController = new DiagramApiController(breakdownProviders, endpointRegistry, activityTracker,
+            endpointMetricsApi = new EndpointMetricsApi(breakdownProviders, endpointRegistry, activityTracker,
                 messageTypeRegistry);
         }
 
@@ -47,7 +47,7 @@
             endpointRegistry.Record(instanceAId);
             endpointRegistry.Record(instanceBId);
 
-            var period = HistoryPeriod.FromMinutes(DiagramApiController.DefaultHistory);
+            var period = HistoryPeriod.FromMinutes(EndpointMetricsApi.DefaultHistory);
             var now = DateTime.UtcNow.Subtract(new TimeSpan(period.IntervalSize.Ticks * period.DelayedIntervals));
 
             var dataA = new RawMessage.Entry { DateTicks = now.Ticks, Value = 5 };
@@ -56,9 +56,9 @@
             processingTimeStore.Store([dataA], instanceAId, EndpointMessageType.Unknown(instanceAId.EndpointName));
             processingTimeStore.Store([dataB], instanceBId, EndpointMessageType.Unknown(instanceBId.EndpointName));
 
-            var result = apiController.GetSingleEndpointMetrics(instanceAId.EndpointName);
+            var result = endpointMetricsApi.GetSingleEndpointMetrics(instanceAId.EndpointName);
 
-            var model = result.Value;
+            var model = result;
 
             Assert.AreEqual(5, model.Instances[0].Metrics["ProcessingTime"].Average);
         }
@@ -73,7 +73,7 @@
 
             Array.ForEach(instances, instance => endpointRegistry.Record(instance));
 
-            var period = HistoryPeriod.FromMinutes(DiagramApiController.DefaultHistory); // 5 minutes, 5 second period
+            var period = HistoryPeriod.FromMinutes(EndpointMetricsApi.DefaultHistory); // 5 minutes, 5 second period
 
             var now = DateTime.UtcNow;
             var timestamp = now.Subtract(new TimeSpan(period.IntervalSize.Ticks * period.DelayedIntervals)); // now - 5 seconds
@@ -89,7 +89,7 @@
             Array.ForEach(connected, instance => activityTracker.Record(instance, now));
             Array.ForEach(connected, instance => processingTimeStore.Store(samples, instance, EndpointMessageType.Unknown(instance.EndpointName)));
 
-            var model = apiController.GetAllEndpointsMetrics();
+            var model = endpointMetricsApi.GetAllEndpointsMetrics();
             var item = model[0];
 
             Assert.AreEqual(3, item.EndpointInstanceIds.Length, nameof(item.EndpointInstanceIds));
