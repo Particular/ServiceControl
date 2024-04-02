@@ -36,13 +36,6 @@ jobs:
         run: dotnet build src --configuration Release -graph --property:WindowsSelfContained=true
       - name: Build ServiceControl Management
         run: dotnet publish src\ServiceControl.Config\ServiceControl.Config.csproj --no-build --output assets --property:WindowsSelfContained=true
-      - name: Sign NuGet packages
-        uses: Particular/sign-nuget-packages-action@v1.0.0
-        with:
-          client-id: ${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }}
-          client-secret: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
-          certificate-name: ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}
       - name: Create PowerShell module catalog
         run: New-FileCatalog -Path deploy\PowerShellModules\Particular.ServiceControl.Management -CatalogFilePath deploy\PowerShellModules\Particular.ServiceControl.Management\Particular.ServiceControl.Management.cat -CatalogVersion 2.0
       - name: Install AzureSignTool
@@ -89,17 +82,30 @@ jobs:
           name: assets
           path: assets/*
           retention-days: 1
-      - name: Publish NuGet packages
-        uses: actions/upload-artifact@v4.3.1
-        with:
-          name: nugets
-          path: nugets/*
-          retention-days: 1
       - name: Publish zips
         uses: actions/upload-artifact@v4.3.1
         with:
           name: zips
           path: zip/*
+          retention-days: 1
+      - name: Build PlatformSample package
+        run: |
+          Remove-Item deploy\Particular.ServiceControl* -recurse
+          dotnet clean src --configuration Release --property:WindowsSelfContained=true
+          dotnet build src\Particular.PlatformSample.ServiceControl\Particular.PlatformSample.ServiceControl.csproj --configuration Release -graph
+        shell: pwsh
+      - name: Sign NuGet packages
+        uses: Particular/sign-nuget-packages-action@v1.0.0
+        with:
+          client-id: ${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }}
+          client-secret: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
+          certificate-name: ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}
+      - name: Publish NuGet packages
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: nugets
+          path: nugets/*
           retention-days: 1
       - name : Verify release artifact counts
         shell: pwsh
