@@ -53,7 +53,7 @@ public static class ThroughputCollectorHostBuilderExtensions
             services.AddHostedService<BrokerThroughputCollectorHostedService>();
         }
 
-        hostBuilder.AddThroughputCollectorPersistence(persistenceType, errorQueue, serviceControlQueue);
+        hostBuilder.AddThroughputCollectorPersistence(persistenceType);
 
         if (throughputQueryProvider != null)
         {
@@ -75,20 +75,9 @@ public static class ThroughputCollectorHostBuilderExtensions
         }
     }
 
-    public static IHostApplicationBuilder AddThroughputCollectorPersistence(this IHostApplicationBuilder hostBuilder, string persistenceType, string? errorQueue = null, string? serviceControlQueue = null)
+    public static IHostApplicationBuilder AddThroughputCollectorPersistence(this IHostApplicationBuilder hostBuilder, string persistenceType)
     {
-        hostBuilder.Services.AddPersistence(persistenceType, settings =>
-        {
-            if (!string.IsNullOrEmpty(errorQueue))
-            {
-                settings.PlatformEndpointNames.Add(errorQueue);
-            }
-
-            if (!string.IsNullOrEmpty(serviceControlQueue))
-            {
-                settings.PlatformEndpointNames.Add(serviceControlQueue);
-            }
-        });
+        hostBuilder.Services.AddPersistence(persistenceType);
 
         return hostBuilder;
     }
