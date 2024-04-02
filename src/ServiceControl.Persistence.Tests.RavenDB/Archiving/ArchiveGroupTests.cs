@@ -6,19 +6,15 @@
     using NServiceBus.Testing;
     using NUnit.Framework;
     using PersistenceTests;
-    using Raven.Client.Documents;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Recoverability;
 
     [TestFixture]
     class ArchiveGroupTests : PersistenceTestBase
     {
-        IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>();
-
         public ArchiveGroupTests() =>
             RegisterServices = services =>
             {
-                services.AddSingleton<IDomainEvents, FakeDomainEvents>();
                 services.AddSingleton<ArchiveAllInGroupHandler>();
                 services.AddSingleton<RetryingManager>();
             };

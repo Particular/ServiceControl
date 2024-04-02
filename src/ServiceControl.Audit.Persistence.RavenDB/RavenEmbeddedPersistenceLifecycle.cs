@@ -1,19 +1,17 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDB
+﻿#nullable enable
+
+namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Exceptions.Database;
 
-    class RavenEmbeddedPersistenceLifecycle : IRavenPersistenceLifecycle
+    sealed class RavenEmbeddedPersistenceLifecycle(DatabaseConfiguration databaseConfiguration, IHostApplicationLifetime lifetime) : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
     {
-        public RavenEmbeddedPersistenceLifecycle(DatabaseConfiguration databaseConfiguration)
-        {
-            this.databaseConfiguration = databaseConfiguration;
-        }
-
         public IDocumentStore GetDocumentStore()
         {
             if (documentStore == null)
@@ -24,9 +22,9 @@
             return documentStore;
         }
 
-        public async Task Start(CancellationToken cancellationToken)
+        public async Task Initialize(CancellationToken cancellationToken = default)
         {
-            database = EmbeddedDatabase.Start(databaseConfiguration);
+            database = EmbeddedDatabase.Start(databaseConfiguration, lifetime);
 
             while (true)
             {
@@ -45,17 +43,14 @@
             }
         }
 
-        public Task Stop(CancellationToken cancellationToken)
+        public void Dispose()
         {
             documentStore?.Dispose();
             database?.Dispose();
-
-            return Task.CompletedTask;
         }
 
-        IDocumentStore documentStore;
-        EmbeddedDatabase database;
+        IDocumentStore? documentStore;
+        EmbeddedDatabase? database;
         static readonly ILog Log = LogManager.GetLogger(typeof(RavenEmbeddedPersistenceLifecycle));
-        readonly DatabaseConfiguration databaseConfiguration;
     }
 }

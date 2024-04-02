@@ -4,6 +4,8 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Hosting.Internal;
+    using Microsoft.Extensions.Logging.Abstractions;
     using NUnit.Framework;
     using Raven.Client.ServerWide.Operations;
     using ServiceControl.Persistence.RavenDB;
@@ -34,7 +36,7 @@
                     DatabaseMaintenancePort = PortUtility.FindAvailablePort(RavenPersisterSettings.DatabaseMaintenancePortDefault)
                 };
 
-                embeddedDatabase = EmbeddedDatabase.Start(settings);
+                embeddedDatabase = EmbeddedDatabase.Start(settings, new ApplicationLifetime(new NullLogger<ApplicationLifetime>()));
 
                 //make sure that the database is up
                 using var documentStore = await embeddedDatabase.Connect(cancellationToken);

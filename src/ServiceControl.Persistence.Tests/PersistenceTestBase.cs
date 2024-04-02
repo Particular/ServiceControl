@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using NServiceBus;
+using NServiceBus.Settings;
 using NUnit.Framework;
 using Raven.Client.Documents;
 using ServiceControl.Infrastructure.DomainEvents;
@@ -25,7 +26,7 @@ public abstract class PersistenceTestBase
 {
     string databaseName;
     EmbeddedDatabase embeddedServer;
-    ServiceProvider serviceProvider;
+    IHost host;
 
     [SetUp]
     public async Task SetUp()
@@ -34,6 +35,8 @@ public abstract class PersistenceTestBase
         var retentionPeriod = TimeSpan.FromMinutes(1);
 
         await TestContext.Out.WriteLineAsync($"Test Database Name: {databaseName}");
+
+        var hostBuilder = Host.CreateApplicationBuilder();
 
         embeddedServer = await SharedEmbeddedServer.GetInstance();
 
@@ -48,15 +51,23 @@ public abstract class PersistenceTestBase
 
         var persistence = new RavenPersistenceConfiguration().Create(PersistenceSettings);
 
-        var services = new ServiceCollection();
+        persistence.AddPersistence(hostBuilder.Services);
+        persistence.AddInstaller(hostBuilder.Services);
 
-        services.ConfigurePersisterLifecyle(persistence);
-        RegisterServices?.Invoke(services);
+        // This is not cool. We have things that are registered as part of "the persistence" that then require parts
+        // of the infrastructure to be registered and assume NServiceBus is around. This is a hack to get around that.
+        hostBuilder.Services.AddSingleton<IDomainEvents, FakeDomainEvents>();
+        hostBuilder.Services.AddSingleton(new CriticalError((_, __) => Task.CompletedTask));
+        hostBuilder.Services.AddSingleton<IReadOnlySettings>(new SettingsHolder());
+        hostBuilder.Services.AddSingleton(new ReceiveAddresses("fakeReceiveAddress"));
 
-        serviceProvider = services.BuildServiceProvider();
+        RegisterServices.Invoke(hostBuilder.Services);
 
-        var persistenceLifecycle = GetRequiredService<IPersistenceLifecycle>();
-        await persistenceLifecycle.Initialize();
+        host = hostBuilder.Build();
+        await host.StartAsync();
+
+        DocumentStore = host.Services.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore();
+        SessionProvider = host.Services.GetRequiredService<IRavenSessionProvider>();
 
         CompleteDatabaseOperation();
     }
@@ -67,7 +78,8 @@ public abstract class PersistenceTestBase
         // Needs to go first or database will be disposed
         await embeddedServer.DeleteDatabase(databaseName);
 
-        await serviceProvider.DisposeAsync();
+        await host.StopAsync();
+        host.Dispose();
     }
 
     protected PersistenceSettings PersistenceSettings
@@ -76,12 +88,15 @@ public abstract class PersistenceTestBase
         private set;
     }
 
-    protected T GetRequiredService<T>() => serviceProvider.GetRequiredService<T>();
-    protected object GetRequiredService(Type serviceType) => serviceProvider.GetRequiredService(serviceType);
+    protected IDocumentStore DocumentStore { get; private set; }
+    protected IRavenSessionProvider SessionProvider { get; private set; }
 
-    protected Action<IServiceCollection> RegisterServices { get; set; }
+    protected T GetRequiredService<T>() => host.Services.GetRequiredService<T>();
+    protected object GetRequiredService(Type serviceType) => host.Services.GetRequiredService(serviceType);
 
-    protected void CompleteDatabaseOperation() => GetRequiredService<IDocumentStore>().WaitForIndexing();
+    protected Action<IServiceCollection> RegisterServices { get; set; } = _ => { };
+
+    protected void CompleteDatabaseOperation() => DocumentStore.WaitForIndexing();
 
     protected async Task WaitUntil(Func<Task<bool>> conditionChecker, string condition, TimeSpan timeout = default)
     {
@@ -142,5 +157,4 @@ public abstract class PersistenceTestBase
     protected IIngestionUnitOfWorkFactory IngestionUnitOfWorkFactory => GetRequiredService<IIngestionUnitOfWorkFactory>();
     protected IEventLogDataStore EventLogDataStore => GetRequiredService<IEventLogDataStore>();
     protected IRetryDocumentDataStore RetryDocumentDataStore => GetRequiredService<IRetryDocumentDataStore>();
-
 }

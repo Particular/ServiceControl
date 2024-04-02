@@ -6,37 +6,26 @@
     using Persistence.Infrastructure;
     using Raven.Client.Documents;
 
-    class EventLogDataStore : IEventLogDataStore
+    class EventLogDataStore(IRavenSessionProvider sessionProvider) : IEventLogDataStore
     {
-        readonly IDocumentStore documentStore;
-
-        public EventLogDataStore(IDocumentStore documentStore)
-        {
-            this.documentStore = documentStore;
-        }
-
         public async Task Add(EventLogItem logItem)
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                await session.StoreAsync(logItem);
-                await session.SaveChangesAsync();
-            }
+            using var session = sessionProvider.OpenSession();
+            await session.StoreAsync(logItem);
+            await session.SaveChangesAsync();
         }
 
         public async Task<(IList<EventLogItem>, int, string)> GetEventLogItems(PagingInfo pagingInfo)
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var results = await session
-                    .Query<EventLogItem>()
-                    .Statistics(out var stats)
-                    .OrderByDescending(p => p.RaisedAt)
-                    .Paging(pagingInfo)
-                    .ToListAsync();
+            using var session = sessionProvider.OpenSession();
+            var results = await session
+                .Query<EventLogItem>()
+                .Statistics(out var stats)
+                .OrderByDescending(p => p.RaisedAt)
+                .Paging(pagingInfo)
+                .ToListAsync();
 
-                return (results, stats.TotalResults, stats.ResultEtag.ToString());
-            }
+            return (results, stats.TotalResults, stats.ResultEtag.ToString());
         }
     }
 }

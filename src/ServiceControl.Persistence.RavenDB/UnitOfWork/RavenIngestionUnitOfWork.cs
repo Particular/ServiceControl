@@ -8,13 +8,13 @@
 
     class RavenIngestionUnitOfWork : IngestionUnitOfWorkBase
     {
-        readonly IDocumentStore store;
+        readonly IRavenSessionProvider sessionProvider;
         // Must be ordered - can't put attachments until after document exists
         readonly ConcurrentQueue<ICommandData> commands;
 
-        public RavenIngestionUnitOfWork(IDocumentStore store, ExpirationManager expirationManager, RavenPersisterSettings settings)
+        public RavenIngestionUnitOfWork(IRavenSessionProvider sessionProvider, ExpirationManager expirationManager, RavenPersisterSettings settings)
         {
-            this.store = store;
+            this.sessionProvider = sessionProvider;
             commands = new ConcurrentQueue<ICommandData>();
             Monitoring = new RavenMonitoringIngestionUnitOfWork(this);
             Recoverability = new RavenRecoverabilityIngestionUnitOfWork(this, expirationManager, settings);
@@ -24,13 +24,10 @@
 
         public override async Task Complete()
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                // not really interested in the batch results since a batch is atomic
-                var commands = this.commands.ToArray();
-                session.Advanced.Defer(commands);
-                await session.SaveChangesAsync();
-            }
+            using var session = sessionProvider.OpenSession();
+            // not really interested in the batch results since a batch is atomic
+            session.Advanced.Defer(commands.ToArray());
+            await session.SaveChangesAsync();
         }
     }
 }

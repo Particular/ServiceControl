@@ -1,6 +1,10 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
-    interface IRavenPersistenceLifecycle : IPersistenceLifecycle, IRavenDocumentStoreProvider
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    interface IRavenPersistenceLifecycle
     {
+        Task Initialize(CancellationToken cancellationToken = default);
     }
 }

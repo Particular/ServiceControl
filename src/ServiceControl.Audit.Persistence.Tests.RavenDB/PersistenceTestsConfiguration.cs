@@ -4,6 +4,7 @@
     using System.IO;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NUnit.Framework;
     using Raven.Client.Documents;
     using Raven.Client.Documents.BulkInsert;
@@ -12,7 +13,7 @@
     using ServiceControl.Audit.Persistence.RavenDB;
     using UnitOfWork;
 
-    partial class PersistenceTestsConfiguration
+    class PersistenceTestsConfiguration
     {
         public IAuditDataStore AuditDataStore { get; protected set; }
         public IFailedAuditStorage FailedAuditStorage { get; protected set; }
@@ -22,25 +23,26 @@
         public async Task Configure(Action<PersistenceSettings> setSettings)
         {
             var config = new RavenPersistenceConfiguration();
-            var serviceCollection = new ServiceCollection();
 
-            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
+            var hostBuilder = Host.CreateApplicationBuilder();
 
-            setSettings(settings);
+            var persistenceSettings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
-            if (!settings.PersisterSpecificSettings.ContainsKey(RavenPersistenceConfiguration.DatabasePathKey))
+            setSettings(persistenceSettings);
+
+            if (!persistenceSettings.PersisterSpecificSettings.ContainsKey(RavenPersistenceConfiguration.DatabasePathKey))
             {
                 var instance = await SharedEmbeddedServer.GetInstance();
 
-                settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = instance.ServerUrl;
+                persistenceSettings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = instance.ServerUrl;
             }
 
-            if (!settings.PersisterSpecificSettings.ContainsKey(RavenPersistenceConfiguration.LogPathKey))
+            if (!persistenceSettings.PersisterSpecificSettings.ContainsKey(RavenPersistenceConfiguration.LogPathKey))
             {
-                settings.PersisterSpecificSettings[RavenPersistenceConfiguration.LogPathKey] = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs");
+                persistenceSettings.PersisterSpecificSettings[RavenPersistenceConfiguration.LogPathKey] = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs");
             }
 
-            if (settings.PersisterSpecificSettings.TryGetValue(RavenPersistenceConfiguration.DatabaseNameKey, out var configuredDatabaseName))
+            if (persistenceSettings.PersisterSpecificSettings.TryGetValue(RavenPersistenceConfiguration.DatabaseNameKey, out var configuredDatabaseName))
             {
                 databaseName = configuredDatabaseName;
             }
@@ -48,28 +50,28 @@
             {
                 databaseName = Guid.NewGuid().ToString();
 
-                settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabaseNameKey] = databaseName;
+                persistenceSettings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabaseNameKey] = databaseName;
             }
 
-            var persistence = config.Create(settings);
-            await persistence.CreateInstaller().Install();
-            persistenceLifecycle = persistence.Configure(serviceCollection);
-            await persistenceLifecycle.Start();
+            var persistence = config.Create(persistenceSettings);
+            persistence.AddPersistence(hostBuilder.Services);
+            persistence.AddInstaller(hostBuilder.Services);
 
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            host = hostBuilder.Build();
+            await host.StartAsync();
 
-            AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
-            FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
+            AuditDataStore = host.Services.GetRequiredService<IAuditDataStore>();
+            FailedAuditStorage = host.Services.GetRequiredService<IFailedAuditStorage>();
 
-            var documentStoreProvider = serviceProvider.GetRequiredService<IRavenDocumentStoreProvider>();
+            var documentStoreProvider = host.Services.GetRequiredService<IRavenDocumentStoreProvider>();
             DocumentStore = documentStoreProvider.GetDocumentStore();
             var bulkInsert = DocumentStore.BulkInsert(
                 options: new BulkInsertOptions { SkipOverwriteIfUnchanged = true, });
 
-            var sessionProvider = serviceProvider.GetRequiredService<IRavenSessionProvider>();
+            var sessionProvider = host.Services.GetRequiredService<IRavenSessionProvider>();
 
-            BodyStorage = new RavenAttachmentsBodyStorage(sessionProvider, bulkInsert, settings.MaxBodySizeToStore);
-            AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
+            BodyStorage = new RavenAttachmentsBodyStorage(sessionProvider, bulkInsert, persistenceSettings.MaxBodySizeToStore);
+            AuditIngestionUnitOfWorkFactory = host.Services.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
         }
 
         public Task CompleteDBOperation()
@@ -83,21 +85,18 @@
             if (DocumentStore != null)
             {
                 await DocumentStore.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(
-                    new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { databaseName }, HardDelete = true }));
+                    new DeleteDatabasesOperation.Parameters { DatabaseNames = [databaseName], HardDelete = true }));
             }
 
-            if (persistenceLifecycle != null)
-            {
-                await persistenceLifecycle.Stop();
-            }
+            await host.StopAsync();
+            host.Dispose();
         }
 
         public string Name => "RavenDB";
 
         public IDocumentStore DocumentStore { get; private set; }
 
-        IPersistenceLifecycle persistenceLifecycle;
-
         string databaseName;
+        IHost host;
     }
 }

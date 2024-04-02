@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDB
+﻿#nullable enable
+
+namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System;
     using System.Threading;
@@ -6,13 +8,8 @@
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
 
-    class RavenExternalPersistenceLifecycle : IRavenPersistenceLifecycle
+    sealed class RavenExternalPersistenceLifecycle(DatabaseConfiguration configuration) : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
     {
-        public RavenExternalPersistenceLifecycle(DatabaseConfiguration configuration)
-        {
-            this.configuration = configuration;
-        }
-
         public IDocumentStore GetDocumentStore()
         {
             if (documentStore == null)
@@ -23,12 +20,12 @@
             return documentStore;
         }
 
-        public async Task Start(CancellationToken cancellationToken)
+        public async Task Initialize(CancellationToken cancellationToken = default)
         {
             var store = new DocumentStore
             {
                 Database = configuration.Name,
-                Urls = new[] { configuration.ServerConfiguration.ConnectionString },
+                Urls = [configuration.ServerConfiguration.ConnectionString],
                 Conventions = new DocumentConventions
                 {
                     SaveEnumsAsIntegers = true
@@ -43,18 +40,11 @@
             documentStore = store.Initialize();
 
             var databaseSetup = new DatabaseSetup(configuration);
-            await databaseSetup.Execute(store, cancellationToken).ConfigureAwait(false);
+            await databaseSetup.Execute(store, cancellationToken);
         }
 
-        public Task Stop(CancellationToken cancellationToken)
-        {
-            documentStore?.Dispose();
+        public void Dispose() => documentStore?.Dispose();
 
-            return Task.CompletedTask;
-        }
-
-        IDocumentStore documentStore;
-
-        readonly DatabaseConfiguration configuration;
+        IDocumentStore? documentStore;
     }
 }

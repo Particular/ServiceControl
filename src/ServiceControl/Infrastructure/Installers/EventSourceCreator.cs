@@ -3,7 +3,7 @@
     using System.Diagnostics;
     using System.Runtime.Versioning;
 
-    public static class EventSourceCreator
+    static class EventSourceCreator
     {
         [SupportedOSPlatform("windows")]
         public static void Create()

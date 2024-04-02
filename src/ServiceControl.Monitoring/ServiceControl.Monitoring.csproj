@@ -27,7 +27,6 @@
     <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" />
     <PackageReference Include="NServiceBus.Persistence.NonDurable" />
-    <PackageReference Include="Particular.Licensing.Sources" />
     <PackageReference Include="System.Configuration.ConfigurationManager" />
   </ItemGroup>
 

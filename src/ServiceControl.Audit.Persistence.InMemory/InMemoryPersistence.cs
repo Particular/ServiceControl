@@ -4,24 +4,20 @@
     using Microsoft.Extensions.DependencyInjection;
     using UnitOfWork;
 
-    public class InMemoryPersistence : IPersistence
+    public class InMemoryPersistence(PersistenceSettings persistenceSettings) : IPersistence
     {
-        public InMemoryPersistence(PersistenceSettings persistenceSettings) => settings = persistenceSettings;
-
-        public IPersistenceLifecycle Configure(IServiceCollection serviceCollection)
+        public void AddPersistence(IServiceCollection services)
         {
-            serviceCollection.AddSingleton(settings);
-            serviceCollection.AddSingleton<InMemoryAuditDataStore>();
-            serviceCollection.AddSingleton<IAuditDataStore>(sp => sp.GetRequiredService<InMemoryAuditDataStore>());
-            serviceCollection.AddSingleton<IBodyStorage, InMemoryAttachmentsBodyStorage>();
-            serviceCollection.AddSingleton<IFailedAuditStorage, InMemoryFailedAuditStorage>();
-            serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, InMemoryAuditIngestionUnitOfWorkFactory>();
-
-            return new InMemoryPersistenceLifecycle();
+            services.AddSingleton(persistenceSettings);
+            services.AddSingleton<InMemoryAuditDataStore>();
+            services.AddSingleton<IAuditDataStore>(sp => sp.GetRequiredService<InMemoryAuditDataStore>());
+            services.AddSingleton<IBodyStorage, InMemoryAttachmentsBodyStorage>();
+            services.AddSingleton<IFailedAuditStorage, InMemoryFailedAuditStorage>();
+            services.AddSingleton<IAuditIngestionUnitOfWorkFactory, InMemoryAuditIngestionUnitOfWorkFactory>();
         }
 
-        public IPersistenceInstaller CreateInstaller() => new InMemoryPersistenceInstaller();
-
-        readonly PersistenceSettings settings;
+        public void AddInstaller(IServiceCollection services)
+        {
+        }
     }
 }

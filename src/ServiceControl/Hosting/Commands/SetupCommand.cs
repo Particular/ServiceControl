@@ -3,10 +3,10 @@
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
     using LicenseManagement;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
-    using Persistence;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
     using Transports;
@@ -35,12 +35,6 @@
                 await installationTask();
             }
 
-            var persistence = PersistenceFactory.Create(settings);
-
-            var installer = persistence.CreateInstaller();
-
-            await installer.Install();
-
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 EventSourceCreator.Create();
@@ -58,6 +52,13 @@
                 await transportCustomization.ProvisionQueues(transportSettings,
                     componentSetupContext.Queues);
             }
+
+            var hostBuilder = Host.CreateApplicationBuilder();
+            hostBuilder.AddServiceControlInstallers(settings);
+
+            using var host = hostBuilder.Build();
+            await host.StartAsync();
+            await host.StopAsync();
         }
 
         bool ValidateLicense(Settings settings)

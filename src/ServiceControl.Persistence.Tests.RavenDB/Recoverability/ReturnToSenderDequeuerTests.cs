@@ -22,9 +22,8 @@
     [TestFixture]
     class ReturnToSenderDequeuerTests : PersistenceTestBase
     {
-        MessageContext CreateMessage(string id, Dictionary<string, string> headers)
-        {
-            return new MessageContext(
+        MessageContext CreateMessage(string id, Dictionary<string, string> headers) =>
+            new(
                 id,
                 headers,
                 ReadOnlyMemory<byte>.Empty,
@@ -32,7 +31,6 @@
                 "receiveAddress",
                 new ContextBag()
             );
-        }
 
         public ReturnToSenderDequeuerTests() => RegisterServices = services => services.AddSingleton<ReturnToSender>();
 

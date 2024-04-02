@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Threading;
     using System.Threading.Tasks;
     using Audit.Infrastructure.Hosting;
     using Audit.Infrastructure.Hosting.Commands;
@@ -81,16 +80,12 @@
 
         class FakePersistence : IPersistence
         {
-            public IPersistenceLifecycle Configure(IServiceCollection serviceCollection) =>
-                throw new NotImplementedException();
-            public IPersistenceInstaller CreateInstaller() => new FakePersistenceInstaller();
-
-            class FakePersistenceInstaller : IPersistenceInstaller
+            public void AddPersistence(IServiceCollection services)
             {
-                public Task Install(CancellationToken cancellationToken = default)
-                {
-                    return Task.CompletedTask;
-                }
+            }
+
+            public void AddInstaller(IServiceCollection services)
+            {
             }
         }
     }

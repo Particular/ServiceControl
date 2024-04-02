@@ -1,9 +1,9 @@
-﻿namespace ServiceControl.Persistence
+namespace ServiceControl.Persistence.RavenDB
 {
     using System.Threading;
     using System.Threading.Tasks;
 
-    public interface IPersistenceLifecycle
+    interface IRavenPersistenceLifecycle
     {
         Task Initialize(CancellationToken cancellationToken = default);
     }

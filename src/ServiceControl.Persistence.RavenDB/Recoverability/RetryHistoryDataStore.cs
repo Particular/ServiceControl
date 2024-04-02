@@ -3,18 +3,12 @@
     using System;
     using System.Threading.Tasks;
     using ServiceControl.Recoverability;
-    using Raven.Client.Documents;
 
-    class RetryHistoryDataStore : IRetryHistoryDataStore
+    class RetryHistoryDataStore(IRavenSessionProvider sessionProvider) : IRetryHistoryDataStore
     {
-        public RetryHistoryDataStore(IDocumentStore documentStore)
-        {
-            this.documentStore = documentStore;
-        }
-
         public async Task<RetryHistory> GetRetryHistory()
         {
-            using var session = documentStore.OpenAsyncSession();
+            using var session = sessionProvider.OpenSession();
             var id = RetryHistory.MakeId();
             var retryHistory = await session.LoadAsync<RetryHistory>(id);
 
@@ -26,7 +20,7 @@
         public async Task RecordRetryOperationCompleted(string requestId, RetryType retryType, DateTime startTime, DateTime completionTime,
             string originator, string classifier, bool messageFailed, int numberOfMessagesProcessed, DateTime lastProcessed, int retryHistoryDepth)
         {
-            using var session = documentStore.OpenAsyncSession();
+            using var session = sessionProvider.OpenSession();
             var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()) ?? RetryHistory.CreateNew();
 
             retryHistory.AddToUnacknowledged(new UnacknowledgedRetryOperation
@@ -59,7 +53,7 @@
 
         public async Task<bool> AcknowledgeRetryGroup(string groupId)
         {
-            using var session = documentStore.OpenAsyncSession();
+            using var session = sessionProvider.OpenSession();
             var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId());
             if (retryHistory != null)
             {
@@ -74,7 +68,5 @@
 
             return false;
         }
-
-        readonly IDocumentStore documentStore;
     }
 }

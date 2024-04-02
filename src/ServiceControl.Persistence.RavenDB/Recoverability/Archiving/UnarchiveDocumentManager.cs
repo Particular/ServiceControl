@@ -13,10 +13,7 @@
 
     class UnarchiveDocumentManager
     {
-        public Task<UnarchiveOperation> LoadUnarchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType)
-        {
-            return session.LoadAsync<UnarchiveOperation>(UnarchiveOperation.MakeId(groupId, archiveType));
-        }
+        public Task<UnarchiveOperation> LoadUnarchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType) => session.LoadAsync<UnarchiveOperation>(UnarchiveOperation.MakeId(groupId, archiveType));
 
         public async Task<UnarchiveOperation> CreateUnarchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType, int numberOfMessages, string groupName, int batchSize)
         {
@@ -65,12 +62,10 @@
         async Task<IEnumerable<string>> StreamResults(IAsyncDocumentSession session, IQueryable<string> query)
         {
             var results = new List<string>();
-            await using (var enumerator = await session.Advanced.StreamAsync(query))
+            await using var enumerator = await session.Advanced.StreamAsync(query);
+            while (await enumerator.MoveNextAsync())
             {
-                while (await enumerator.MoveNextAsync())
-                {
-                    results.Add(enumerator.Current.Document);
-                }
+                results.Add(enumerator.Current.Document);
             }
 
             return results;
@@ -116,27 +111,25 @@
             }
         }
 
-        public async Task<bool> WaitForIndexUpdateOfUnarchiveOperation(IDocumentStore store, string requestId, TimeSpan timeToWait)
+        public async Task<bool> WaitForIndexUpdateOfUnarchiveOperation(IRavenSessionProvider sessionProvider, string requestId, TimeSpan timeToWait)
         {
-            using (var session = store.OpenAsyncSession())
+            using var session = sessionProvider.OpenSession();
+            var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName)
+                .Customize(x => x.WaitForNonStaleResults(timeToWait));
+
+            var docQuery = indexQuery
+                .Where(failure => failure.FailureGroupId == requestId)
+                .Select(document => document.Id);
+
+            try
             {
-                var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName)
-                    .Customize(x => x.WaitForNonStaleResults(timeToWait));
+                await docQuery.AnyAsync();
 
-                var docQuery = indexQuery
-                    .Where(failure => failure.FailureGroupId == requestId)
-                    .Select(document => document.Id);
-
-                try
-                {
-                    await docQuery.AnyAsync();
-
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -145,9 +138,9 @@
             await session.StoreAsync(unarchiveOperation);
         }
 
-        public async Task RemoveUnarchiveOperation(IDocumentStore store, UnarchiveOperation unarchiveOperation)
+        public async Task RemoveUnarchiveOperation(IRavenSessionProvider sessionProvider, UnarchiveOperation unarchiveOperation)
         {
-            using var session = store.OpenAsyncSession();
+            using var session = sessionProvider.OpenSession();
             session.Advanced.Defer(new DeleteCommandData(unarchiveOperation.Id, null));
             await session.SaveChangesAsync();
         }

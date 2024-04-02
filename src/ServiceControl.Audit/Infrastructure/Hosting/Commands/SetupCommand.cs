@@ -1,10 +1,11 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
 {
     using System.Collections.Generic;
+    using System.Runtime.InteropServices;
     using System.Threading.Tasks;
     using LicenseManagement;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
-    using Persistence;
     using Settings;
     using Transports;
 
@@ -42,14 +43,17 @@
                 }
             }
 
-            EventSource.Create();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                EventSourceCreator.Create();
+            }
 
-            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
-            var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
-            var persistence = persistenceConfiguration.Create(persistenceSettings);
-            var installer = persistence.CreateInstaller();
+            var hostBuilder = Host.CreateApplicationBuilder();
+            hostBuilder.AddServiceControlAuditInstallers(settings);
 
-            await installer.Install();
+            using var host = hostBuilder.Build();
+            await host.StartAsync();
+            await host.StopAsync();
         }
 
         bool ValidateLicense(Settings settings)

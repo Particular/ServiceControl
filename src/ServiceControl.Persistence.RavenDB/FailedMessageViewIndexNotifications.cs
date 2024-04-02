@@ -7,18 +7,13 @@
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Persistence;
+    using Persistence.RavenDB;
     using Raven.Client.Documents;
 
-    class FailedMessageViewIndexNotifications
-        : IFailedMessageViewIndexNotifications
+    class FailedMessageViewIndexNotifications(IRavenSessionProvider sessionProvider, IRavenDocumentStoreProvider documentStoreProvider) : IFailedMessageViewIndexNotifications
         , IDisposable
         , IHostedService
     {
-        public FailedMessageViewIndexNotifications(IDocumentStore store)
-        {
-            this.store = store;
-        }
-
         void OnNext()
         {
             try
@@ -27,54 +22,47 @@
             }
             catch (Exception ex)
             {
-                logging.WarnFormat("Failed to emit MessageFailuresUpdated - {0}", ex);
+                Logger.WarnFormat("Failed to emit MessageFailuresUpdated - {0}", ex);
             }
         }
 
         async Task UpdatedCount()
         {
-            using (var session = store.OpenAsyncSession())
+            using var session = sessionProvider.OpenSession();
+            var failedUnresolvedMessageCount = await session
+                .Query<FailedMessage, FailedMessageViewIndex>()
+                .CountAsync(p => p.Status == FailedMessageStatus.Unresolved);
+
+            var failedArchivedMessageCount = await session
+                .Query<FailedMessage, FailedMessageViewIndex>()
+                .CountAsync(p => p.Status == FailedMessageStatus.Archived);
+
+            if (lastUnresolvedCount == failedUnresolvedMessageCount && lastArchivedCount == failedArchivedMessageCount)
             {
-                var failedUnresolvedMessageCount = await session
-                    .Query<FailedMessage, FailedMessageViewIndex>()
-                    .CountAsync(p => p.Status == FailedMessageStatus.Unresolved);
+                return;
+            }
 
-                var failedArchivedMessageCount = await session
-                    .Query<FailedMessage, FailedMessageViewIndex>()
-                    .CountAsync(p => p.Status == FailedMessageStatus.Archived);
+            lastUnresolvedCount = failedUnresolvedMessageCount;
+            lastArchivedCount = failedArchivedMessageCount;
 
-                if (lastUnresolvedCount == failedUnresolvedMessageCount && lastArchivedCount == failedArchivedMessageCount)
+            if (subscriber != null)
+            {
+                await subscriber(new FailedMessageTotals
                 {
-                    return;
-                }
-
-                lastUnresolvedCount = failedUnresolvedMessageCount;
-                lastArchivedCount = failedArchivedMessageCount;
-
-                if (subscriber != null)
-                {
-                    await subscriber(new FailedMessageTotals
-                    {
-                        ArchivedTotal = failedArchivedMessageCount,
-                        UnresolvedTotal = failedUnresolvedMessageCount
-                    });
-                }
+                    ArchivedTotal = failedArchivedMessageCount,
+                    UnresolvedTotal = failedUnresolvedMessageCount
+                });
             }
         }
 
         public IDisposable Subscribe(Func<FailedMessageTotals, Task> callback)
         {
-            if (callback is null)
-            {
-                throw new ArgumentNullException(nameof(callback));
-            }
-
             if (subscriber is not null)
             {
                 throw new InvalidOperationException("Already a subscriber, only a single subscriber supported");
             }
 
-            subscriber = callback;
+            subscriber = callback ?? throw new ArgumentNullException(nameof(callback));
             return this;
         }
 
@@ -86,7 +74,8 @@
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            subscription = store
+            var documentStore = documentStoreProvider.GetDocumentStore();
+            subscription = documentStore
                 .Changes()
                 .ForIndex(new FailedMessageViewIndex().IndexName)
                 .Subscribe(d => OnNext());
@@ -99,8 +88,7 @@
             return Task.CompletedTask;
         }
 
-        readonly IDocumentStore store;
-        readonly ILog logging = LogManager.GetLogger(typeof(FailedMessageViewIndexNotifications));
+        static readonly ILog Logger = LogManager.GetLogger(typeof(FailedMessageViewIndexNotifications));
 
         Func<FailedMessageTotals, Task> subscriber;
         IDisposable subscription;

@@ -18,6 +18,7 @@ using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Features;
 using NServiceBus.Transport;
 using QueueLength;
+using ServiceControl.Monitoring.Infrastructure.BackgroundTasks;
 using Timings;
 using Transports;
 
@@ -38,7 +39,6 @@ public static class HostApplicationBuilderExtensions
 
         var services = hostBuilder.Services;
         services.AddSingleton(settings);
-        services.AddSingleton<LicenseCheckFeatureStartup>();
         services.AddSingleton<EndpointRegistry>();
         services.AddSingleton<MessageTypeRegistry>();
         services.AddSingleton<EndpointInstanceActivityTracker>();
@@ -61,11 +61,15 @@ public static class HostApplicationBuilderExtensions
         // directly and to make things more complex of course the order of registration still matters ;)
         services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
+        services.AddLicenseCheck();
+
         ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, settings);
         hostBuilder.UseNServiceBus(endpointConfiguration);
+
+        hostBuilder.AddAsyncTimer();
     }
 
-    internal static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, Settings settings)
+    static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, Settings settings)
     {
         if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
         {
@@ -107,8 +111,6 @@ public static class HostApplicationBuilderExtensions
         config.AddDeserializer<TaggedLongValueWriterOccurrenceSerializerDefinition>();
         config.Pipeline.Register(typeof(MessagePoolReleasingBehavior), "Releases pooled message.");
         config.EnableFeature<QueueLength.QueueLength>();
-
-        config.EnableFeature<LicenseCheckFeature>();
     }
 
     static Func<QueueLengthStore, IProvideQueueLength> QueueLengthProviderBuilder(string connectionString,

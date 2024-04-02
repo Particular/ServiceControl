@@ -5,6 +5,7 @@
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Mvc;
     using Operations;
+    using Persistence.RavenDB;
     using Raven.Client.Documents;
 
     public class FailedErrorsCountReponse
@@ -14,14 +15,14 @@
 
     [ApiController]
     [Route("api")]
-    public class FailedErrorsController(IDocumentStore store, ImportFailedErrors failedErrors)
+    public class FailedErrorsController(IRavenSessionProvider sessionProvider, ImportFailedErrors failedErrors)
         : ControllerBase
     {
         [Route("failederrors/count")]
         [HttpGet]
         public async Task<FailedErrorsCountReponse> GetFailedErrorsCount()
         {
-            using var session = store.OpenAsyncSession();
+            using var session = sessionProvider.OpenSession();
             var query =
                 session.Query<FailedErrorImport, FailedErrorImportIndex>().Statistics(out var stats);
 

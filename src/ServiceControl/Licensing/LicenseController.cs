@@ -27,7 +27,7 @@
                 Status = activeLicense.IsValid ? "valid" : "invalid",
                 LicenseType = activeLicense.Details.LicenseType ?? string.Empty,
                 InstanceName = settings.ServiceName ?? string.Empty,
-                LicenseStatus = activeLicense.Details.GetLicenseStatus().ToString()
+                LicenseStatus = activeLicense.Details.Status
             };
 
             return licenseInfo;
