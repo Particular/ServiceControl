@@ -16,7 +16,7 @@ using System.Web;
 using Polly;
 using Polly.Retry;
 
-class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettings) : IThroughputQuery
+public class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettings) : IThroughputQuery
 {
     HttpClient? httpClient;
     readonly ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
@@ -46,7 +46,7 @@ class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettin
         if (!settings.TryGetValue(RabbitMQSettings.API, out var apiUrl) ||
             string.IsNullOrEmpty(apiUrl))
         {
-            apiUrl = $"{(connectionConfiguration.UseTls ? "https://" : "http://")}{connectionConfiguration.Host}:{connectionConfiguration.Port}";
+            apiUrl = $"{(connectionConfiguration.UseTls ? $"https://{connectionConfiguration.Host}:15671" : $"http://{connectionConfiguration.Host}:15672")}";
         }
 
         httpClient = new HttpClient(new SocketsHttpHandler
@@ -240,7 +240,7 @@ class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettin
     public Dictionary<string, string> Data { get; } = [];
     public string MessageTransport => "RabbitMQ";
 
-    static class RabbitMQSettings
+    public static class RabbitMQSettings
     {
         public static readonly string API = "RabbitMQ/ApiUrl";
         public static readonly string APIDescription = "RabbitMQ management URL";
