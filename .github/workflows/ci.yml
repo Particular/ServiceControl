@@ -112,3 +112,4 @@ jobs:
           ServiceControl_LicenseText: ${{ secrets.LICENSETEXT }}
           ServiceControl_Audit_LicenseText: ${{ secrets.LICENSETEXT }}
           Monitoring_LicenseText: ${{ secrets.LICENSETEXT }}
+          RSA_PRIVATE_KEY: ${{ secrets.RSA_PRIVATE_KEY }}
