@@ -65,7 +65,7 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
     }
 
     [Test]
-    public async Task Should_set_monitoring_flag_to_false_when_no_audit_data()
+    public async Task Should_set_monitoring_flag_to_false_when_no_monitoring_data()
     {
         // Arrange
         await DataStore.CreateBuilder()
@@ -85,7 +85,7 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
     }
 
     [Test]
-    public async Task Should_set_monitoring_flag_to_true_when_audit_data_exists()
+    public async Task Should_set_monitoring_flag_to_true_when_monitoring_data_exists()
     {
         // Arrange
         await DataStore.CreateBuilder()
