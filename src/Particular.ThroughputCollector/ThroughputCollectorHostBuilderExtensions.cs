@@ -1,14 +1,19 @@
 namespace Particular.ThroughputCollector;
 
+using System.Collections.Frozen;
 using AuditThroughput;
 using BrokerThroughput;
 using Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ServiceControl.Configuration;
+using ServiceControl.Transports;
 
 public static class ThroughputCollectorHostBuilderExtensions
 {
-    public static IHostApplicationBuilder AddThroughputCollector(this IHostApplicationBuilder hostBuilder, string transportType, string errorQueue, string serviceControlQueue, string persistenceType, string customerName, string serviceControlVersion)
+    static readonly string SettingsNamespace = "ThroughputCollector";
+
+    public static IHostApplicationBuilder AddThroughputCollector(this IHostApplicationBuilder hostBuilder, string transportType, string errorQueue, string serviceControlQueue, string persistenceType, string customerName, string serviceControlVersion, Type? throughputQueryProvider)
     {
         //For testing only until RavenDB Persistence is working
         persistenceType = "InMemory";
@@ -37,7 +42,8 @@ public static class ThroughputCollectorHostBuilderExtensions
                 break;
         }
 
-        services.AddSingleton(new ThroughputSettings(broker, serviceControlQueue, errorQueue, persistenceType, transportType, customerName, serviceControlVersion));
+        var throughputSettings = new ThroughputSettings(broker, serviceControlQueue, errorQueue, persistenceType, transportType, customerName, serviceControlVersion);
+        services.AddSingleton(throughputSettings);
         services.AddHostedService<AuditThroughputCollectorHostedService>();
         services.AddSingleton<IThroughputCollector, ThroughputCollector>();
         services.AddSingleton<AuditQuery>();
@@ -49,7 +55,24 @@ public static class ThroughputCollectorHostBuilderExtensions
 
         hostBuilder.AddThroughputCollectorPersistence(persistenceType);
 
+        if (throughputQueryProvider != null)
+        {
+            services.AddSingleton(throughputQueryProvider);
+            services.AddSingleton<IBrokerThroughputQuery>(provider =>
+            {
+                var queryProvider = (IBrokerThroughputQuery)provider.GetRequiredService(throughputQueryProvider);
+                queryProvider.Initialise(LoadBrokerSettingValues(queryProvider.Settings));
+
+                return queryProvider;
+            });
+        }
+
         return hostBuilder;
+
+        static FrozenDictionary<string, string> LoadBrokerSettingValues(IEnumerable<KeyDescriptionPair> brokerKeys)
+        {
+            return brokerKeys.ToFrozenDictionary(key => key.Key, key => SettingsReader.Read<string>(new SettingsRootNamespace(SettingsNamespace), key.Key));
+        }
     }
 
     public static IHostApplicationBuilder AddThroughputCollectorPersistence(this IHostApplicationBuilder hostBuilder, string persistenceType, string? errorQueue = null, string? serviceControlQueue = null)

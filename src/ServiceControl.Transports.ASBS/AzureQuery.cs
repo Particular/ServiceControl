@@ -174,22 +174,44 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         new KeyDescriptionPair(AzureServiceBusSettings.SubscriptionId, AzureServiceBusSettings.SubscriptionIdDescription),
         new KeyDescriptionPair(AzureServiceBusSettings.ManagementUrl, AzureServiceBusSettings.ManagementUrlDescription)
     ];
+
+    public async Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await foreach (IBrokerQueue brokerQueue in GetQueueNames(cancellationToken))
+            {
+                // Just picking 10 days ago to test the connection
+                await foreach (QueueThroughput _ in GetThroughputPerDay(brokerQueue, DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-10), cancellationToken))
+                {
+                    return (true, []);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, [ex.Message]);
+        }
+
+        return (true, []);
+    }
+
     public Dictionary<string, string> Data { get; } = [];
     public string MessageTransport => "AzureServiceBus";
 
     public static class AzureServiceBusSettings
     {
         public static readonly string ServiceBusName = "ASB/ServiceBusName";
-        public static readonly string ServiceBusNameDescription = "Azure Service Bus namespace to view metrics.";
+        public static readonly string ServiceBusNameDescription = "Azure Service Bus namespace.";
         public static readonly string ClientId = "ASB/ClientId";
         public static readonly string ClientIdDescription = "ClientId for an Azure login that has access to view metrics data for the Azure Service Bus namespace.";
         public static readonly string ClientSecret = "ASB/ClientSecret";
         public static readonly string ClientSecretDescription = "ClientSecret for an Azure login that has access to view metrics data for the Azure Service Bus namespace.";
         public static readonly string TenantId = "ASB/TenantId";
-        public static readonly string TenantIdDescription = "??";
+        public static readonly string TenantIdDescription = "Azure Microsoft Extra ID";
         public static readonly string SubscriptionId = "ASB/SubscriptionId";
-        public static readonly string SubscriptionIdDescription = "??";
+        public static readonly string SubscriptionIdDescription = "Azure subscription ID";
         public static readonly string ManagementUrl = "ASB/ManagementUrl";
-        public static readonly string ManagementUrlDescription = "??";
+        public static readonly string ManagementUrlDescription = "Azure management URL";
     }
 }

@@ -13,17 +13,19 @@ using ThroughputPersistence = ThroughputCollector.Persistence;
 
 class ThroughputComponent : ServiceControlComponent
 {
-    public override void Configure(Settings settings, IHostApplicationBuilder hostBuilder) =>
-        hostBuilder.AddThroughputCollector(
-            transportType: TransportManifestLibrary.GetName(settings.TransportType),
-            serviceControlQueue: settings.ServiceName,
-            errorQueue: settings.ErrorQueue,
-            persistenceType: PersistenceManifestLibrary.GetName(settings.PersistenceType),
-            customerName: LicenseManager.FindLicense().Details.RegisteredTo,
-            serviceControlVersion: ServiceControlVersion.GetFileVersion());
-
     public override void ConfigureInstallation(Settings settings, IHostApplicationBuilder hostBuilder) =>
         hostBuilder.AddThroughputCollectorPersistence(PersistenceManifestLibrary.GetName(settings.PersistenceType));
+
+    public override void Configure(Settings settings, ITransportCustomization transportCustomization,
+        IHostApplicationBuilder hostBuilder) =>
+        hostBuilder.AddThroughputCollector(
+            TransportManifestLibrary.GetName(settings.TransportType),
+            settings.ErrorQueue,
+            settings.ServiceName,
+            PersistenceManifestLibrary.GetName(settings.PersistenceType),
+            LicenseManager.FindLicense().Details.RegisteredTo,
+            ServiceControlVersion.GetFileVersion(),
+            transportCustomization.ThroughputQueryProvider);
 
     public override void Setup(Settings settings, IComponentInstallationContext context) =>
         context.RegisterInstallationTask(serviceProvider => serviceProvider.GetRequiredService<ThroughputPersistence.IPersistenceInstaller>().Install());
