@@ -1,12 +1,12 @@
 ﻿namespace Particular.ThroughputCollector
 {
-    using System.Threading.Tasks;
     using AuditThroughput;
     using Contracts;
-    using Particular.ThroughputCollector.Shared;
     using Persistence;
     using ServiceControl.Api;
     using ServiceControl.Transports;
+    using Shared;
+    using QueueThroughput = Contracts.QueueThroughput;
 
     public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, IConfigurationApi configurationApi, IThroughputQuery? throughputQuery = null)
         : IThroughputCollector
@@ -84,12 +84,12 @@
             return reportGenerationState;
         }
 
-        public async Task<SignedReport> GenerateThroughputReport(string[]? masks, string? spVersion)
+        public async Task<SignedReport> GenerateThroughputReport(string[] masks, string spVersion)
         {
             CreateMasks(masks);
 
             var endpoints = await dataStore.GetAllEndpoints(false);
-            var endpointThroughputs = new List<Contracts.QueueThroughput>();
+            var endpointThroughputs = new List<QueueThroughput>();
             List<string> ignoredQueueNames = [];
 
             //group endpoints by sanitized name - so to group throughput recorded from broker, audit and monitoring
@@ -99,7 +99,7 @@
                 var queueName = endpoint.Any(w => w.Id.Name != w.SanitizedName) ? endpoint.First(w => w.Id.Name != w.SanitizedName).Id.Name : endpoint.Key;
 
                 //get all data that we have, including daily values
-                var endpointThroghput = new Contracts.QueueThroughput
+                var endpointThroghput = new QueueThroughput
                 {
                     QueueName = Mask(queueName),
                     UserIndicator = UserIndicator(endpoint) ?? string.Empty,
@@ -127,7 +127,7 @@
                 MessageTransport = throughputQuery?.MessageTransport ?? throughputSettings.TransportType,
                 ToolVersion = "V3", //ensure we check for this on the other side - ie that we can process V3
                 ServiceControlVersion = throughputSettings.ServiceControlVersion,
-                ServicePulseVersion = spVersion ?? "",
+                ServicePulseVersion = spVersion,
                 IgnoredQueues = ignoredQueueNames?.ToArray() ?? [],
                 Queues = endpointThroughputs.ToArray(),
                 TotalQueues = endpointThroughputs.Count(),
@@ -149,19 +149,16 @@
             return await Task.FromResult(throughputReport);
         }
 
-        void CreateMasks(string[]? wordsToMask)
+        void CreateMasks(string[] wordsToMask)
         {
-            if (wordsToMask != null)
-            {
-                var number = 0;
-                masks = wordsToMask
-                    .Select(mask =>
-                    {
-                        number++;
-                        return (mask, $"REDACTED{number}");
-                    })
-                    .ToArray();
-            }
+            var number = 0;
+            masks = wordsToMask
+                .Select(mask =>
+                {
+                    number++;
+                    return (mask, $"REDACTED{number}");
+                })
+                .ToArray();
         }
 
         string Mask(string stringToMask)
