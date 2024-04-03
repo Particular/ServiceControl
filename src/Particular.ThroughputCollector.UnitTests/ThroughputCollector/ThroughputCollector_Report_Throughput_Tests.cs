@@ -29,7 +29,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(3), $"Incorrect number of endpoints in throughput report");
@@ -45,7 +45,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(4), $"Incorrect number of endpoints in throughput report");
@@ -64,7 +64,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(3), $"Incorrect number of endpoints in throughput report");
@@ -79,7 +79,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(3), $"Incorrect number of endpoints in throughput report");
@@ -94,7 +94,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(3));
@@ -116,7 +116,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(3));
@@ -134,7 +134,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
     {
         EndpointsWithNoThroughput.ForEach(e => DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput));
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(1), "Invalid number of endpoints in throughput report");
@@ -153,7 +153,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(1));
