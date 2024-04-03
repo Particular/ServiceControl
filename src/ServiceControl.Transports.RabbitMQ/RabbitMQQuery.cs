@@ -100,16 +100,27 @@ public class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transpor
         }
     }
 
-    public async Task<(string rabbitVersion, string managementVersion)> GetRabbitDetails(CancellationToken cancellationToken = default)
+    async Task<(string rabbitVersion, string managementVersion)> GetRabbitDetails(bool skipResiliencePipeline, CancellationToken cancellationToken)
     {
         var overviewUrl = "/api/overview";
 
-        JsonObject obj = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonObject>(overviewUrl, token) ?? throw new Exception("The RabbitMQ broker is configured with `management.disable_stats = true` or `management_agent.disable_metrics_collector = true` and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker."), cancellationToken);
+        JsonObject obj;
+
+        if (skipResiliencePipeline)
+        {
+            obj = (await httpClient!.GetFromJsonAsync<JsonObject>(overviewUrl, cancellationToken))!;
+        }
+        else
+        {
+            obj = (await pipeline.ExecuteAsync(async token =>
+                await httpClient!.GetFromJsonAsync<JsonObject>(overviewUrl, token), cancellationToken))!;
+        }
+
         var statsDisabled = obj["disable_stats"]?.GetValue<bool>() ?? false;
 
         if (statsDisabled)
         {
-            throw new Exception("The RabbitMQ broker is configured with `management.disable_stats = true` or `management_agent.disable_metrics_collector = true` and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker.");
+            throw new Exception("The RabbitMQ broker is configured with 'management.disable_stats = true' or 'management_agent.disable_metrics_collector = true' and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker.");
         }
 
         var rabbitVersion = obj["rabbitmq_version"] ?? obj["product_version"];
@@ -118,13 +129,13 @@ public class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transpor
         return (rabbitVersion?.GetValue<string>() ?? "Unknown", mgmtVersion?.GetValue<string>() ?? "Unknown");
     }
 
-    public async IAsyncEnumerable<IBrokerQueue> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<IBrokerQueue> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var page = 1;
         bool morePages;
         var vHosts = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
 
-        var (rabbitVersion, managementVersion) = await GetRabbitDetails(cancellationToken);
+        (string rabbitVersion, string managementVersion) = await GetRabbitDetails(false, cancellationToken);
         Data["RabbitMQVersion"] = rabbitVersion;
         Data["RabbitMQManagementVersionVersion"] = managementVersion;
 
@@ -148,7 +159,7 @@ public class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transpor
         ScopeType = vHosts.Count > 1 ? "VirtualHost" : null;
     }
 
-    async Task AddAdditionalQueueDetails(RabbitMQBrokerQueueDetails brokerQueue, CancellationToken cancellationToken = default)
+    async Task AddAdditionalQueueDetails(RabbitMQBrokerQueueDetails brokerQueue, CancellationToken cancellationToken)
     {
         try
         {
@@ -237,6 +248,21 @@ public class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transpor
         new KeyDescriptionPair(RabbitMQSettings.UserName, RabbitMQSettings.UserNameDescription),
         new KeyDescriptionPair(RabbitMQSettings.Password, RabbitMQSettings.PasswordDescription)
     ];
+
+    public async Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await GetRabbitDetails(true, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            return (false, [ex.Message]);
+        }
+
+        return (true, []);
+    }
+
     public Dictionary<string, string> Data { get; } = [];
     public string MessageTransport => "RabbitMQ";
 

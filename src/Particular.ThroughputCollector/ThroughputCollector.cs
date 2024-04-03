@@ -24,15 +24,19 @@
 
         public async Task<ConnectionTestResults> TestConnectionSettings(CancellationToken cancellationToken = default)
         {
-            var connectionTestResults = new ConnectionTestResults
+            var tasks = new List<Task>();
+            var brokerTask = Task.FromResult(new ConnectionSettingsTestResult { ConnectionSuccessful = false, ConnectionErrorMessages = [] });
+
+            if (throughputQuery != null)
             {
-                Broker = throughputSettings.Broker,
-                AuditConnectionResult = await auditQuery.TestAuditConnection(cancellationToken)
-                //TODO 1
-                //MonitoringConnectionResult = ??
-                //TODO 2
-                //BrokerConnectionResult = ??;
-            };
+                brokerTask = throughputQuery.TestConnection(cancellationToken).ContinueWith(task => new ConnectionSettingsTestResult { ConnectionSuccessful = task.Result.Success, ConnectionErrorMessages = task.Result.Errors }, cancellationToken);
+                tasks.Add(brokerTask);
+            }
+            var auditTask = auditQuery.TestAuditConnection(cancellationToken);
+
+            await Task.WhenAll(tasks);
+
+            var connectionTestResults = new ConnectionTestResults(throughputSettings.Broker, auditTask.Result, new ConnectionSettingsTestResult(), brokerTask.Result);
 
             return await Task.FromResult(connectionTestResults);
         }
