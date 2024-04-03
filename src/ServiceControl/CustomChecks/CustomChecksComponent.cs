@@ -6,10 +6,12 @@
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
+    using Transports;
 
     class CustomChecksComponent : ServiceControlComponent
     {
-        public override void Configure(Settings settings, IHostApplicationBuilder hostBuilder)
+        public override void Configure(Settings settings, ITransportCustomization transportCustomization,
+            IHostApplicationBuilder hostBuilder)
         {
             hostBuilder.Services.AddIntegrationEventPublisher<CustomCheckFailedPublisher>();
             hostBuilder.Services.AddIntegrationEventPublisher<CustomCheckSucceededPublisher>();
