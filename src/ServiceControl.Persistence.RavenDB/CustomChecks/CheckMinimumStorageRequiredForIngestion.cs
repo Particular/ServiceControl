@@ -32,9 +32,9 @@
                 return SuccessResult;
             }
 
-            if (dataPathRoot == null)
+            if (dataPathRoot is null)
             {
-                throw new Exception($"Unable to find the root of the data path {dataPathRoot}");
+                throw new Exception($"Unable to find the root of the data path {settings.DatabasePath}");
             }
 
             var dataDriveInfo = new DriveInfo(dataPathRoot);

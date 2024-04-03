@@ -23,9 +23,9 @@
                 return CheckResult.Pass;
             }
 
-            if (dataPathRoot == null)
+            if (dataPathRoot is null)
             {
-                throw new Exception($"Unable to find the root of the data path {dataPathRoot}");
+                throw new Exception($"Unable to find the root of the data path {databaseConfiguration.ServerConfiguration.DbPath}");
             }
 
             var dataDriveInfo = new DriveInfo(dataPathRoot);

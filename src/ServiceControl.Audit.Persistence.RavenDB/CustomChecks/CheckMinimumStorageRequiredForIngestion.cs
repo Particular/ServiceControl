@@ -15,8 +15,8 @@
         {
             this.stateHolder = stateHolder;
             this.databaseConfiguration = databaseConfiguration;
-            percentageThreshold = this.databaseConfiguration.MinimumStorageLeftRequiredForIngestion / 100m;
             dataPathRoot = Path.GetPathRoot(databaseConfiguration.ServerConfiguration.DbPath);
+            percentageThreshold = this.databaseConfiguration.MinimumStorageLeftRequiredForIngestion / 100m;
         }
 
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
@@ -32,9 +32,9 @@
                 return CheckResult.Pass;
             }
 
-            if (dataPathRoot == null)
+            if (dataPathRoot is null)
             {
-                throw new Exception($"Unable to find the root of the data path {dataPathRoot}");
+                throw new Exception($"Unable to find the root of the data path {databaseConfiguration.ServerConfiguration.DbPath}");
             }
 
             var dataDriveInfo = new DriveInfo(dataPathRoot);
