@@ -38,7 +38,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(3), $"Incorrect number of endpoints in throughput report");
-        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint3")?.DailyThroughputFromBroker?.Length, Is.EqualTo(0), $"Incorrect number of endpoints in throughput report");
+        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint3")?.DailyThroughputFromBroker?.Length, Is.EqualTo(0), $"Daily throughput should not be included for Endpoint3");
     }
 
     [Test]
@@ -62,10 +62,10 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(4), $"Incorrect number of endpoints in throughput report");
-        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint1")?.DailyThroughputFromBroker?.Length, Is.EqualTo(2), $"Incorrect number of endpoints in throughput report");
-        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint2")?.DailyThroughputFromBroker?.Length, Is.EqualTo(2), $"Incorrect number of endpoints in throughput report");
-        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint3")?.DailyThroughputFromBroker?.Length, Is.EqualTo(2), $"Incorrect number of endpoints in throughput report");
-        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint4")?.DailyThroughputFromBroker?.Length, Is.EqualTo(2), $"Incorrect number of endpoints in throughput report");
+        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint1")?.DailyThroughputFromBroker?.Length, Is.EqualTo(2), $"Daily throughput should be included for Endpoint1");
+        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint2")?.DailyThroughputFromBroker?.Length, Is.EqualTo(2), $"Daily throughput should be included for Endpoint2");
+        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint3")?.DailyThroughputFromBroker?.Length, Is.EqualTo(2), $"Daily throughput should be included for Endpoint3");
+        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint4")?.DailyThroughputFromBroker?.Length, Is.EqualTo(2), $"Daily throughput should be included for Endpoint4");
     }
 
     [TestCase(ThroughputSource.Audit)]
@@ -129,8 +129,8 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint2").Throughput, Is.EqualTo(65), $"Incorrect Throughput recorded for Endpoint2");
         Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint3").Throughput, Is.EqualTo(75), $"Incorrect Throughput recorded for Endpoint3");
 
-        Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(195), $"Incorrect TotalThroughput recorded for Endpoint1");
-        Assert.That(report.ReportData.TotalQueues, Is.EqualTo(3), $"Incorrect TotalQueues recorded for Endpoint1");
+        Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(195), $"Incorrect TotalThroughput recorded");
+        Assert.That(report.ReportData.TotalQueues, Is.EqualTo(3), $"Incorrect TotalQueues recorded");
     }
 
     [Test]
@@ -161,8 +161,8 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint2").Throughput, Is.EqualTo(65), $"Incorrect Throughput recorded for Endpoint2");
         Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint3").Throughput, Is.EqualTo(57), $"Incorrect Throughput recorded for Endpoint3");
 
-        Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(187), $"Incorrect TotalThroughput recorded for Endpoint1");
-        Assert.That(report.ReportData.TotalQueues, Is.EqualTo(3), $"Incorrect TotalQueues recorded for Endpoint1");
+        Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(187), $"Incorrect TotalThroughput recorded");
+        Assert.That(report.ReportData.TotalQueues, Is.EqualTo(3), $"Incorrect TotalQueues recorde");
     }
 
     [Test]
@@ -179,8 +179,8 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(1), "Invalid number of endpoints in throughput report");
         Assert.That(report.ReportData.Queues[0].Throughput, Is.EqualTo(0), $"Incorrect Throughput recorded for {report.ReportData.Queues[0].QueueName}");
 
-        Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(0), $"Incorrect TotalThroughput recorded for Endpoint1");
-        Assert.That(report.ReportData.TotalQueues, Is.EqualTo(1), $"Incorrect TotalQueues recorded for Endpoint1");
+        Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(0), $"Incorrect TotalThroughput recorded");
+        Assert.That(report.ReportData.TotalQueues, Is.EqualTo(1), $"Incorrect TotalQueues recorded");
     }
 
     [Test]
@@ -208,7 +208,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         //even though the names are different, we should have matched on the sanitized name and hence displayed max throughput from the 2 endpoints
         Assert.That(report.ReportData.Queues[0].Throughput, Is.EqualTo(75), $"Incorrect Throughput recorded for Endpoint1");
 
-        Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(75), $"Incorrect TotalThroughput recorded for Endpoint1");
-        Assert.That(report.ReportData.TotalQueues, Is.EqualTo(1), $"Incorrect TotalQueues recorded for Endpoint1");
+        Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(75), $"Incorrect TotalThroughput recorded");
+        Assert.That(report.ReportData.TotalQueues, Is.EqualTo(1), $"Incorrect TotalQueues recorded");
     }
 }
