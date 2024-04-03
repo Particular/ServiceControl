@@ -23,14 +23,7 @@ namespace ServiceControl.Transports
         string QueueName { get; }
         string? Scope { get; }
     }
-    public interface IProvideQueueLength
-    {
-        void Initialize(string connectionString, System.Action<ServiceControl.Transports.QueueLengthEntry[], ServiceControl.Transports.EndpointToQueueMapping> store);
-        System.Threading.Tasks.Task Start();
-        System.Threading.Tasks.Task Stop();
-        void TrackEndpointInputQueue(ServiceControl.Transports.EndpointToQueueMapping queueToTrack);
-    }
-    public interface IThroughputQuery
+    public interface IBrokerThroughputQuery
     {
         System.Collections.Generic.Dictionary<string, string> Data { get; }
         string MessageTransport { get; }
@@ -40,6 +33,13 @@ namespace ServiceControl.Transports
         System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.IBrokerQueue> GetQueueNames(System.Threading.CancellationToken cancellationToken);
         System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.QueueThroughput> GetThroughputPerDay(ServiceControl.Transports.IBrokerQueue brokerQueue, System.DateOnly startDate, System.Threading.CancellationToken cancellationToken);
         void Initialise(System.Collections.Frozen.FrozenDictionary<string, string> settings);
+    }
+    public interface IProvideQueueLength
+    {
+        void Initialize(string connectionString, System.Action<ServiceControl.Transports.QueueLengthEntry[], ServiceControl.Transports.EndpointToQueueMapping> store);
+        System.Threading.Tasks.Task Start();
+        System.Threading.Tasks.Task Stop();
+        void TrackEndpointInputQueue(ServiceControl.Transports.EndpointToQueueMapping queueToTrack);
     }
     public interface ITransportCustomization
     {
