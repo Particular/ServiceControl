@@ -1,10 +1,12 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests.Infrastructure
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using Contracts;
     using Microsoft.Extensions.DependencyInjection;
+    using Particular.ThroughputCollector.AuditThroughput;
     using Persistence;
     using Persistence.InMemory;
     using ServiceControl.Api;
@@ -36,7 +38,10 @@
             persistence.Configure(serviceCollection);
 
             serviceCollection.AddSingleton<IConfigurationApi, FakeConfigurationApi>();
+            serviceCollection.AddSingleton<IEndpointsApi, FakeEndpointApi>();
+            serviceCollection.AddSingleton<IAuditCountApi, FakeAuditCountApi>();
             serviceCollection.AddSingleton<IThroughputCollector, ThroughputCollector>();
+            serviceCollection.AddSingleton<AuditQuery>();
             //serviceCollection.AddHostedService<AuditThroughputCollectorHostedService>();
             //serviceCollection.AddHostedService<BrokerThroughputCollectorHostedService>();
 
@@ -59,5 +64,15 @@
         public Task<object> GetRemoteConfigs(CancellationToken cancellationToken = default) => Task.FromResult<object>("[{ api_uri:\"http://localhost:44444\", status:\"online\", version: \"5.1.0\" }]");
 
         public RootUrls GetUrls(string baseUrl) => throw new NotImplementedException();
+    }
+
+    class FakeEndpointApi : IEndpointsApi
+    {
+        public List<ServiceControl.Api.Contracts.Endpoint> GetEndpoints() => throw new NotImplementedException();
+    }
+
+    class FakeAuditCountApi : IAuditCountApi
+    {
+        public Task<IList<ServiceControl.Api.Contracts.AuditCount>> GetEndpointAuditCounts(string endpoint, CancellationToken token) => throw new NotImplementedException();
     }
 }
