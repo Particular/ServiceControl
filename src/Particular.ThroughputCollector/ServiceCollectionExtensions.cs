@@ -7,7 +7,7 @@ using Particular.ThroughputCollector.Persistence;
 
 static class ServiceCollectionExtensions
 {
-    static readonly HashSet<string> persistenceTypes = [];
+    static readonly HashSet<string> PersistenceTypes = [];
 
     /// <remarks>
     /// It is possible for multiple different hosts to be created by Service Control and its associated test infrastructure,
@@ -15,13 +15,13 @@ static class ServiceCollectionExtensions
     /// </remarks>
     public static IServiceCollection AddPersistence(this IServiceCollection services, string persistenceType, Action<PersistenceSettings>? configureSettings = null)
     {
-        if (persistenceTypes.Count == 0)
+        if (PersistenceTypes.Count == 0)
         {
             // Only add the assembly resolver if this is the first time the method has been called
             AssemblyLoadContext.Default.Resolving += ResolvePersistenceAssembly;
         }
 
-        persistenceTypes.Add(persistenceType);
+        PersistenceTypes.Add(persistenceType);
 
         var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(persistenceType);
         var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings();
@@ -43,7 +43,7 @@ static class ServiceCollectionExtensions
 
     static Assembly? ResolvePersistenceAssembly(AssemblyLoadContext loadContext, AssemblyName assemblyName)
     {
-        foreach (var persistenceType in persistenceTypes)
+        foreach (var persistenceType in PersistenceTypes)
         {
             var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(persistenceType);
             if (persistenceFolder == null)

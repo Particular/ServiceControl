@@ -6,7 +6,7 @@
     using ServiceControl.Api;
     using AuditCount = Contracts.AuditCount;
 
-    static class AuditCommands
+    public class AuditQuery(IEndpointsApi endpointsApi, IAuditCountApi auditCountApi, IConfigurationApi configurationApi)
     {
         // Customers are expected to run at least version 4.29 for their Audit instances
         public static readonly SemanticVersion MinAuditCountsVersion = new(4, 29, 0);
@@ -16,9 +16,9 @@
             r.SemanticVersion >= MinAuditCountsVersion &&
             r.Retention >= TimeSpan.FromDays(2);
 
-        public static async Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(IEndpointsApi endpointsApi)
+        public IEnumerable<ServiceControlEndpoint> GetKnownEndpoints()
         {
-            var endpoints = await endpointsApi.GetEndpoints();
+            var endpoints = endpointsApi.GetEndpoints();
 
             var scEndpoints = endpoints?.Select(endpoint => new
             {
@@ -35,12 +35,9 @@
             return scEndpoints ?? [];
         }
 
-        public static async Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(IAuditCountApi auditCountApi, string endpointUrlName)
-        {
-            return (await auditCountApi.GetEndpointAuditCounts(endpointUrlName)).Select(s => new AuditCount { Count = s.Count, UtcDate = DateOnly.FromDateTime(s.UtcDate) });
-        }
+        public async Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName, CancellationToken cancellationToken) => (await auditCountApi.GetEndpointAuditCounts(endpointUrlName, cancellationToken)).Select(s => new AuditCount { Count = s.Count, UtcDate = DateOnly.FromDateTime(s.UtcDate) });
 
-        public static async Task<List<RemoteInstanceInformation>> GetAuditRemotes(IConfigurationApi configurationApi, CancellationToken cancellationToken = default)
+        public async Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken)
         {
             var remotes = await configurationApi.GetRemoteConfigs(cancellationToken);
             var remotesInfo = new List<RemoteInstanceInformation>();
@@ -108,11 +105,11 @@
             return remotesInfo;
         }
 
-        public static async Task<ConnectionSettingsTestResult> TestAuditConnection(IConfigurationApi configurationApi, CancellationToken cancellationToken = default)
+        public async Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken)
         {
             var connectionTestResult = new ConnectionSettingsTestResult();
 
-            var remotesInfo = await GetAuditRemotes(configurationApi, cancellationToken);
+            var remotesInfo = await GetAuditRemotes(cancellationToken);
 
             foreach (var remote in remotesInfo.Where(w => w.Status != "online" && w.SemanticVersion == null))
             {
