@@ -1,19 +1,9 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-
-  <PropertyGroup>
-    <MSBuildAllProjects Condition="'$(MSBuildAssemblyVersion)' == '' Or '$(MSBuildAssemblyVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
-  </PropertyGroup>
+<Project>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)\..\platform\servicecontrol\servicecontrol-instance\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="platform\servicecontrol\servicecontrol-instance" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)\..\platform\servicecontrol\servicecontrol-audit-instance\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="platform\servicecontrol\servicecontrol-audit-instance" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)\..\platform\servicecontrol\monitoring-instance\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="platform\servicecontrol\monitoring-instance" />
+    <None Include="$(MSBuildThisFileDirectory)\..\platform\sc\servicecontrol\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="platform\servicecontrol\servicecontrol-instance" />
+    <None Include="$(MSBuildThisFileDirectory)\..\platform\sc\servicecontrol-audit\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="platform\servicecontrol\servicecontrol-audit-instance" />
+    <None Include="$(MSBuildThisFileDirectory)\..\platform\sc\monitoring\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="platform\servicecontrol\monitoring-instance" />
   </ItemGroup>
 
 </Project>
