@@ -16,7 +16,7 @@ using Amazon.Runtime.CredentialManagement;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 
-public class AmazonSQSQuery(TimeProvider timeProvider) : IThroughputQuery
+public class AmazonSQSQuery(TimeProvider timeProvider) : IBrokerThroughputQuery
 {
     AmazonCloudWatchClient? cloudWatch;
     AmazonSQSClient? sqs;
