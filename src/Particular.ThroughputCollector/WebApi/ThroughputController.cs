@@ -35,18 +35,11 @@
             return await throughputCollector.GetReportGenerationState();
         }
 
-        [Route("throughput/report")]
-        [HttpGet]
-        public async Task<SignedReport> GetThroughputReport([FromQuery(Name = "masks")] string[]? masks, [FromQuery(Name = "spVersion")] string? spVersion)
-        {
-            return await throughputCollector.GenerateThroughputReport(masks, spVersion);
-        }
-
         [Route("throughput/report/file")]
         [HttpGet]
         public async Task<FileContentResult> GetThroughputReportFile([FromQuery(Name = "masks")] string[]? masks, [FromQuery(Name = "spVersion")] string? spVersion)
         {
-            var report = await GetThroughputReport(masks, spVersion);
+            var report = await throughputCollector.GenerateThroughputReport(masks, spVersion);
             var options = new JsonSerializerOptions()
             {
                 WriteIndented = true,
