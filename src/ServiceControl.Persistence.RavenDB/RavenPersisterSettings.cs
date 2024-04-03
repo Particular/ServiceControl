@@ -1,5 +1,4 @@
 ﻿using System;
-using ServiceControl.Operations;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.RavenDB.CustomChecks;
 

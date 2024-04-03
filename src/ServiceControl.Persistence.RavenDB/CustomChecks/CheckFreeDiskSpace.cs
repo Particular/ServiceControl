@@ -8,8 +8,7 @@
     using NServiceBus.Logging;
     using ServiceControl.Persistence.RavenDB;
 
-    class CheckFreeDiskSpace(RavenPersisterSettings settings)
-        : CustomCheck("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
+    class CheckFreeDiskSpace(RavenPersisterSettings settings) : CustomCheck("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
     {
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {

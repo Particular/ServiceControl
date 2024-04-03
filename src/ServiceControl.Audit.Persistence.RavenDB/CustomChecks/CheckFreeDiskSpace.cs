@@ -9,8 +9,7 @@
     using NServiceBus.Logging;
     using RavenDB;
 
-    class CheckFreeDiskSpace(DatabaseConfiguration databaseConfiguration) : CustomCheck("ServiceControl.Audit database",
-        "Storage space", TimeSpan.FromMinutes(5))
+    class CheckFreeDiskSpace(DatabaseConfiguration databaseConfiguration) : CustomCheck("ServiceControl.Audit database", "Storage space", TimeSpan.FromMinutes(5))
     {
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {

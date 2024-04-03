@@ -10,8 +10,7 @@
     using Raven.Client.Documents.Operations;
     using ServiceControl.Audit.Persistence.RavenDB;
 
-    class CheckRavenDBIndexLag(IRavenDocumentStoreProvider documentStoreProvider)
-        : CustomCheck("Audit Database Index Lag", "ServiceControl.Audit Health", TimeSpan.FromMinutes(5))
+    class CheckRavenDBIndexLag(IRavenDocumentStoreProvider documentStoreProvider) : CustomCheck("Audit Database Index Lag", "ServiceControl.Audit Health", TimeSpan.FromMinutes(5))
     {
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {

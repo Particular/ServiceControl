@@ -10,8 +10,7 @@
     using Raven.Client.Documents.Operations.Indexes;
     using ServiceControl.Persistence.RavenDB;
 
-    class CheckRavenDBIndexErrors(IRavenDocumentStoreProvider documentStoreProvider) : CustomCheck("Error Database Index Errors",
-        "ServiceControl Health", TimeSpan.FromMinutes(5))
+    class CheckRavenDBIndexErrors(IRavenDocumentStoreProvider documentStoreProvider) : CustomCheck("Error Database Index Errors", "ServiceControl Health", TimeSpan.FromMinutes(5))
     {
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {

@@ -5,8 +5,6 @@
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Testing;
     using NUnit.Framework;
-    using PersistenceTests;
-    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Recoverability;
 
     [TestFixture]

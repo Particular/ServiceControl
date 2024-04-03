@@ -9,7 +9,7 @@
         [Test]
         public void CheckForBothTypes()
         {
-            // Persistence implementation must register singleton as base type as some compoennts need to inject that
+            // Persistence implementation must register singleton as base type as some components need to inject that
             var baseSettings = ServiceProvider.GetRequiredService<PersistenceSettings>();
 
             var actualType = baseSettings.GetType();

@@ -11,8 +11,7 @@
 
     class CheckMinimumStorageRequiredForIngestion : CustomCheck
     {
-        public CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder,
-            RavenPersisterSettings settings) : base("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
+        public CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder, RavenPersisterSettings settings) : base("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
         {
             this.stateHolder = stateHolder;
             this.settings = settings;

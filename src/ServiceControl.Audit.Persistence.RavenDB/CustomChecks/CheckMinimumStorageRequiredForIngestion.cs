@@ -11,9 +11,7 @@
 
     class CheckMinimumStorageRequiredForIngestion : CustomCheck
     {
-        public CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder,
-            DatabaseConfiguration databaseConfiguration) : base("Audit Message Ingestion Process",
-            "ServiceControl.Audit Health", TimeSpan.FromSeconds(5))
+        public CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder, DatabaseConfiguration databaseConfiguration) : base("Audit Message Ingestion Process", "ServiceControl.Audit Health", TimeSpan.FromSeconds(5))
         {
             this.stateHolder = stateHolder;
             this.databaseConfiguration = databaseConfiguration;
