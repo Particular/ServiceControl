@@ -1,6 +1,6 @@
 ﻿namespace Particular.ThroughputCollector
 {
-    using Particular.ThroughputCollector.Contracts;
+    using Contracts;
 
     public interface IThroughputCollector
     {
@@ -8,7 +8,7 @@
         Task UpdateUserIndicatorsOnEndpoints(List<EndpointThroughputSummary> endpointsThroughputSummary);
         Task<ThroughputConnectionSettings> GetThroughputConnectionSettingsInformation();
         Task<ConnectionTestResults> TestConnectionSettings(CancellationToken cancellationToken = default);
-        Task<SignedReport> GenerateThroughputReport(string[]? masks, string? spVersion);
+        Task<SignedReport> GenerateThroughputReport(string[] masks, string spVersion);
         Task<ReportGenerationState> GetReportGenerationState();
     }
 }
