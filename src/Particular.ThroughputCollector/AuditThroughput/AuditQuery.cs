@@ -111,6 +111,11 @@
 
             var remotesInfo = await GetAuditRemotes(cancellationToken);
 
+            if (!remotesInfo.Any())
+            {
+                connectionTestResult.ConnectionErrorMessages.Add("No Audit Instances configured");
+            }
+
             foreach (var remote in remotesInfo.Where(w => w.Status != "online" && w.SemanticVersion == null))
             {
                 connectionTestResult.ConnectionErrorMessages.Add($"Unable to determine the version of one or more ServiceControl Audit instances. For the instance with URI {remote.ApiUri}, the status was '{remote.Status}' and the version string returned was '{remote.VersionString}'.");
