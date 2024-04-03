@@ -4,16 +4,13 @@ using Contracts;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Persistence;
-using ServiceControl.Api;
 using Shared;
 
 class AuditThroughputCollectorHostedService(
     ILogger<AuditThroughputCollectorHostedService> logger,
     ThroughputSettings throughputSettings,
     IThroughputDataStore dataStore,
-    IConfigurationApi configurationApi,
-    IEndpointsApi endpointsApi,
-    IAuditCountApi auditCountApi,
+    AuditQuery auditQuery,
     TimeProvider timeProvider) : BackgroundService
 {
 
@@ -23,7 +20,7 @@ class AuditThroughputCollectorHostedService(
 
         await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken);
 
-        PlatformEndpointIdentifier.AuditQueues = (await AuditCommands.GetAuditRemotes(configurationApi, cancellationToken))?.SelectMany(s => s.Queues)?.ToList() ?? [];
+        PlatformEndpointIdentifier.AuditQueues = (await auditQuery.GetAuditRemotes(cancellationToken))?.SelectMany(s => s.Queues)?.ToList() ?? [];
 
         using PeriodicTimer timer = new(TimeSpan.FromDays(1), timeProvider);
 
@@ -54,7 +51,7 @@ class AuditThroughputCollectorHostedService(
 
         await VerifyAuditInstances(cancellationToken);
 
-        var knownEndpoints = (await AuditCommands.GetKnownEndpoints(endpointsApi)).ToArray();
+        var knownEndpoints = auditQuery.GetKnownEndpoints().ToArray();
         var knownEndpointsLookup = knownEndpoints
             .ToDictionary(knownEndpoint => new EndpointIdentifier(knownEndpoint.Name, ThroughputSource.Audit));
 
@@ -73,7 +70,7 @@ class AuditThroughputCollectorHostedService(
                 continue;
             }
 
-            var auditCounts = (await AuditCommands.GetAuditCountForEndpoint(auditCountApi, knownEndpointsLookup[endpointId].UrlName)).ToList();
+            var auditCounts = (await auditQuery.GetAuditCountForEndpoint(knownEndpointsLookup[endpointId].UrlName, cancellationToken)).ToList();
 
             if (endpoint == null)
             {
@@ -115,7 +112,7 @@ class AuditThroughputCollectorHostedService(
 
     async Task VerifyAuditInstances(CancellationToken cancellationToken)
     {
-        var remotesInfo = await AuditCommands.GetAuditRemotes(configurationApi, cancellationToken);
+        var remotesInfo = await auditQuery.GetAuditRemotes(cancellationToken);
 
         foreach (var remote in remotesInfo)
         {
@@ -129,10 +126,10 @@ class AuditThroughputCollectorHostedService(
             }
         }
 
-        var allHaveAuditCounts = remotesInfo.All(AuditCommands.ValidRemoteInstances);
+        var allHaveAuditCounts = remotesInfo.All(AuditQuery.ValidRemoteInstances);
         if (!allHaveAuditCounts)
         {
-            logger.LogWarning($"At least one ServiceControl Audit instance is either not running the required version ({AuditCommands.MinAuditCountsVersion}) or is not configured for at least 2 days of retention. Audit throughput will not be available.");
+            logger.LogWarning($"At least one ServiceControl Audit instance is either not running the required version ({AuditQuery.MinAuditCountsVersion}) or is not configured for at least 2 days of retention. Audit throughput will not be available.");
         }
     }
 }
