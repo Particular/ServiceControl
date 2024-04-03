@@ -105,6 +105,26 @@ public class SqlServerQuery(TimeProvider timeProvider, TransportSettings transpo
         new KeyDescriptionPair(SqlServerSettings.ConnectionString, SqlServerSettings.ConnectionStringDescription),
         new KeyDescriptionPair(SqlServerSettings.AdditionalCatalogs, SqlServerSettings.AdditionalCatalogsDescription)
     ];
+
+    public async Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken)
+    {
+        List<string> errors = [];
+
+        foreach (DatabaseDetails db in databases)
+        {
+            try
+            {
+                await db.TestConnection(cancellationToken);
+            }
+            catch (Exception e)
+            {
+                errors.Add(e.Message);
+            }
+        }
+
+        return (errors.Count == 0, errors);
+    }
+
     public Dictionary<string, string> Data { get; } = [];
     public string MessageTransport => "SqlTransport";
 

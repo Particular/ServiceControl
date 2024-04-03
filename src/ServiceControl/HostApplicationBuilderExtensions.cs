@@ -59,10 +59,6 @@ namespace Particular.ServiceControl
             services.AddSingleton<IDomainEvents, DomainEvents>();
             services.AddSingleton(transportSettings);
             services.AddSingleton(transportCustomization);
-            if (transportCustomization.ThroughputQueryProvider != null)
-            {
-                services.AddSingleton(typeof(IBrokerThroughputQuery), transportCustomization.ThroughputQueryProvider);
-            }
 
             services.AddSingleton<MessageStreamerHub>();
             services.AddSingleton(settings);
@@ -109,7 +105,7 @@ namespace Particular.ServiceControl
 
             hostBuilder.Services.AddWindowsService();
 
-            hostBuilder.AddServiceControlComponents(settings, ServiceControlMainInstance.Components);
+            hostBuilder.AddServiceControlComponents(settings, transportCustomization, ServiceControlMainInstance.Components);
         }
 
         public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder, Settings settings)
