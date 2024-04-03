@@ -28,7 +28,7 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
@@ -45,7 +45,7 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
@@ -62,7 +62,7 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
@@ -79,7 +79,7 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
             await DataStore.RecordEndpointThroughput(e.Id, e.DailyThroughput);
         });
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
@@ -97,7 +97,7 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
         });
 
         var spVersion = "5.1";
-        var report = await ThroughputCollector.GenerateThroughputReport(null, spVersion);
+        var report = await ThroughputCollector.GenerateThroughputReport([], spVersion);
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.ServicePulseVersion, Is.Not.Null, $"ServicePulseVersion missing from the report");
@@ -121,7 +121,7 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
         };
         await DataStore.SaveBrokerData(broker, scopeType, brokerData);
 
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
+        var report = await ThroughputCollector.GenerateThroughputReport([], "");
 
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentData, Is.Not.Null, $"Missing EnvironmentData from report");
