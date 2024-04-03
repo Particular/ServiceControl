@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 
-public class SqlServerQuery(TimeProvider timeProvider, TransportSettings transportSettings) : IThroughputQuery
+public class SqlServerQuery(TimeProvider timeProvider, TransportSettings transportSettings) : IBrokerThroughputQuery
 {
     readonly List<DatabaseDetails> databases = [];
 
