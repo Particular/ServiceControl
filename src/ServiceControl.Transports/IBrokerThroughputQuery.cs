@@ -15,7 +15,7 @@ public class DefaultBrokerQueue(string queueName) : IBrokerQueue
     public List<string> EndpointIndicators { get; } = [];
 }
 
-public interface IThroughputQuery
+public interface IBrokerThroughputQuery
 {
     void Initialise(FrozenDictionary<string, string> settings);
     IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
