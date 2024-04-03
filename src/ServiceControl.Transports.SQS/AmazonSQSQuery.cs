@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Amazon;
 using Amazon.CloudWatch;
 using Amazon.CloudWatch.Model;
@@ -185,6 +186,28 @@ public class AmazonSQSQuery(TimeProvider timeProvider) : IBrokerThroughputQuery
         new KeyDescriptionPair(AmazonSQSSettings.Prefix, AmazonSQSSettings.PrefixDescription),
         new KeyDescriptionPair(AmazonSQSSettings.Region, AmazonSQSSettings.RegionDescription)
     ];
+
+    public async Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await foreach (IBrokerQueue brokerQueue in GetQueueNames(cancellationToken))
+            {
+                // Just picking 10 days ago to test the connection
+                await foreach (QueueThroughput _ in GetThroughputPerDay(brokerQueue, DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-10), cancellationToken))
+                {
+                    return (true, []);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, [ex.Message]);
+        }
+
+        return (true, []);
+    }
+
     public Dictionary<string, string> Data { get; } = [];
     public string MessageTransport => "AmazonSQS";
 }
