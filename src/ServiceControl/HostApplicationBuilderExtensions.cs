@@ -61,7 +61,7 @@ namespace Particular.ServiceControl
             services.AddSingleton(transportCustomization);
             if (transportCustomization.ThroughputQueryProvider != null)
             {
-                services.AddSingleton(typeof(IThroughputQuery), transportCustomization.ThroughputQueryProvider);
+                services.AddSingleton(typeof(IBrokerThroughputQuery), transportCustomization.ThroughputQueryProvider);
             }
 
             services.AddSingleton<MessageStreamerHub>();
