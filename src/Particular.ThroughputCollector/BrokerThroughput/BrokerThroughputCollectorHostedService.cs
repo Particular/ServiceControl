@@ -4,14 +4,14 @@ using System.Collections.Frozen;
 using Contracts;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Particular.ThroughputCollector.Shared;
 using Persistence;
 using ServiceControl.Configuration;
 using ServiceControl.Transports;
+using Shared;
 
 internal class BrokerThroughputCollectorHostedService(
     ILogger<BrokerThroughputCollectorHostedService> logger,
-    IThroughputQuery throughputQuery,
+    IBrokerThroughputQuery brokerThroughputQuery,
     ThroughputSettings throughputSettings,
     IThroughputDataStore dataStore,
     TimeProvider timeProvider)
@@ -23,7 +23,7 @@ internal class BrokerThroughputCollectorHostedService(
     {
         logger.LogInformation($"Starting {nameof(BrokerThroughputCollectorHostedService)}");
 
-        throughputQuery.Initialise(LoadBrokerSettingValues(throughputQuery.Settings));
+        brokerThroughputQuery.Initialise(LoadBrokerSettingValues(brokerThroughputQuery.Settings));
 
         await Task.Delay(TimeSpan.FromSeconds(40), stoppingToken);
 
@@ -59,7 +59,7 @@ internal class BrokerThroughputCollectorHostedService(
 
         var waitingTasks = new List<Task>();
 
-        await foreach (var queueName in throughputQuery.GetQueueNames(stoppingToken))
+        await foreach (var queueName in brokerThroughputQuery.GetQueueNames(stoppingToken))
         {
             if (PlatformEndpointIdentifier.IsPlatformEndpoint(queueName.QueueName, throughputSettings))
             {
@@ -72,7 +72,7 @@ internal class BrokerThroughputCollectorHostedService(
         }
 
         await Task.WhenAll(waitingTasks);
-        await dataStore.SaveBrokerData(throughputSettings.Broker, throughputQuery.ScopeType, throughputQuery.Data);
+        await dataStore.SaveBrokerData(throughputSettings.Broker, brokerThroughputQuery.ScopeType, brokerThroughputQuery.Data);
         return;
 
         async Task Exec(IBrokerQueue queueName, DateOnly startDate)
@@ -84,7 +84,7 @@ internal class BrokerThroughputCollectorHostedService(
                 startDate = endpoint.DailyThroughput.Last().DateUTC;
             }
 
-            await foreach (var queueThroughput in throughputQuery.GetThroughputPerDay(queueName, startDate, stoppingToken))
+            await foreach (var queueThroughput in brokerThroughputQuery.GetThroughputPerDay(queueName, startDate, stoppingToken))
             {
                 endpoint = new Endpoint(endpointId)
                 {
@@ -97,7 +97,7 @@ internal class BrokerThroughputCollectorHostedService(
                     DateUTC = queueThroughput.DateUTC
                 });
 
-                if (throughputQuery.SupportsHistoricalMetrics)
+                if (brokerThroughputQuery.SupportsHistoricalMetrics)
                 {
                     await dataStore.RecordEndpointThroughput(endpoint.Id, endpoint.DailyThroughput, stoppingToken);
                 }
