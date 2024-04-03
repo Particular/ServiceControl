@@ -40,6 +40,7 @@ public static class ThroughputCollectorHostBuilderExtensions
         services.AddSingleton(new ThroughputSettings(broker, serviceControlQueue, errorQueue, persistenceType, transportType, customerName, serviceControlVersion));
         services.AddHostedService<AuditThroughputCollectorHostedService>();
         services.AddSingleton<IThroughputCollector, ThroughputCollector>();
+        services.AddSingleton<AuditQuery>();
 
         if (broker != Broker.None)
         {
