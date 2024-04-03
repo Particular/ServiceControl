@@ -1,11 +1,9 @@
 namespace Particular.ThroughputCollector.BrokerThroughput;
 
-using System.Collections.Frozen;
 using Contracts;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Persistence;
-using ServiceControl.Configuration;
 using ServiceControl.Transports;
 using Shared;
 
@@ -17,13 +15,9 @@ internal class BrokerThroughputCollectorHostedService(
     TimeProvider timeProvider)
     : BackgroundService
 {
-    static readonly string SettingsNamespace = "ThroughputCollector";
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation($"Starting {nameof(BrokerThroughputCollectorHostedService)}");
-
-        brokerThroughputQuery.Initialise(LoadBrokerSettingValues(brokerThroughputQuery.Settings));
 
         await Task.Delay(TimeSpan.FromSeconds(40), stoppingToken);
 
@@ -48,10 +42,6 @@ internal class BrokerThroughputCollectorHostedService(
             logger.LogInformation($"Stopping {nameof(BrokerThroughputCollectorHostedService)} timer");
         }
     }
-
-    private FrozenDictionary<string, string> LoadBrokerSettingValues(IEnumerable<KeyDescriptionPair> brokerKeys) => brokerKeys.ToFrozenDictionary(key => key.Key, key => GetConfigSetting(key.Key));
-
-    string GetConfigSetting(string name) => SettingsReader.Read<string>(new SettingsRootNamespace(SettingsNamespace), name);
 
     private async Task GatherThroughput(CancellationToken stoppingToken)
     {
