@@ -3,12 +3,11 @@
     using AuditThroughput;
     using Contracts;
     using Persistence;
-    using ServiceControl.Api;
     using ServiceControl.Transports;
     using Shared;
     using QueueThroughput = Contracts.QueueThroughput;
 
-    public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, IConfigurationApi configurationApi, IThroughputQuery? throughputQuery = null)
+    public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, AuditQuery auditQuery, IThroughputQuery? throughputQuery = null)
         : IThroughputCollector
     {
         public async Task<ThroughputConnectionSettings> GetThroughputConnectionSettingsInformation()
@@ -28,7 +27,7 @@
             var connectionTestResults = new ConnectionTestResults
             {
                 Broker = throughputSettings.Broker,
-                AuditConnectionResult = await AuditCommands.TestAuditConnection(configurationApi, cancellationToken)
+                AuditConnectionResult = await auditQuery.TestAuditConnection(cancellationToken)
                 //TODO 1
                 //MonitoringConnectionResult = ??
                 //TODO 2
