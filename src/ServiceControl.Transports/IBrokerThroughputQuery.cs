@@ -5,6 +5,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 #pragma warning disable CA1711
 public class DefaultBrokerQueue(string queueName) : IBrokerQueue
@@ -20,13 +21,13 @@ public interface IBrokerThroughputQuery
     void Initialise(FrozenDictionary<string, string> settings);
     IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
         CancellationToken cancellationToken);
-
     IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken);
     Dictionary<string, string> Data { get; }
     string MessageTransport { get; }
     string? ScopeType { get; }
     bool SupportsHistoricalMetrics { get; }
     KeyDescriptionPair[] Settings { get; }
+    Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken);
 }
 
 public readonly struct KeyDescriptionPair(string key, string description)
