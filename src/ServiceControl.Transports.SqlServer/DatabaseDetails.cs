@@ -24,21 +24,21 @@
                 DatabaseName = builder.InitialCatalog;
                 this.connectionString = builder.ToString();
             }
-            catch (Exception x) when (x is FormatException or ArgumentException)
+            catch (Exception ex) when (ex is FormatException or ArgumentException)
             {
-                throw new Exception("There's something wrong with the SQL connection string and it could not be parsed.", x);
+                throw new Exception("SQL Connection String could not be parsed.", ex);
             }
         }
 
-        public Task<string> TestConnection(CancellationToken cancellationToken = default)
+        public Task<string> TestConnection(CancellationToken cancellationToken)
         {
             try
             {
                 return GetSqlVersion(cancellationToken);
             }
-            catch (SqlException x) when (IsConnectionOrLoginIssue(x))
+            catch (SqlException ex) when (IsConnectionOrLoginIssue(ex))
             {
-                throw new Exception("Could not access SQL database. Is the connection string correct?", x);
+                throw new Exception($"Could not connect to '{DatabaseName}' SQL Server database.", ex);
             }
         }
 
