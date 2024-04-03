@@ -4,9 +4,9 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Features;
-    using NServiceBus.Logging;
     using NServiceBus.Metrics;
     using ServiceControl.Monitoring.Infrastructure.Api;
 
@@ -18,7 +18,7 @@
         }
     }
 
-    class ReportThroughputFeatureStartup(IEndpointMetricsApi endpointMetricsApi) : FeatureStartupTask, IDisposable
+    class ReportThroughputFeatureStartup(IEndpointMetricsApi endpointMetricsApi, ILogger<ReportThroughputFeatureStartup> logger) : FeatureStartupTask, IDisposable
     {
         public void Dispose()
         {
@@ -41,29 +41,31 @@
             {
                 var endpointData = endpointMetricsApi.GetAllEndpointsMetrics(throughputMinutes);
 
-                var throughputData = new RecordEndpointThroughputData
+                if (endpointData.Length > 0)
                 {
-                    EndDateTime = DateTime.UtcNow,
-                    StartDateTime = DateTime.UtcNow.AddMinutes(throughputMinutes),
-                    EndpointThroughputData = new EndpointThroughputData[endpointData.Length]
-                };
+                    var throughputData = new RecordEndpointThroughputData
+                    {
+                        EndDateTime = DateTime.UtcNow,
+                        StartDateTime = DateTime.UtcNow.AddMinutes(throughputMinutes),
+                        EndpointThroughputData = new EndpointThroughputData[endpointData.Length]
+                    };
 
-                for (int i = 0; i < endpointData.Length; i++)
-                {
-                    var average = endpointData[i].Metrics["Throughput"]?.Average ?? 0;
-                    throughputData.EndpointThroughputData[i] = new EndpointThroughputData { Name = endpointData[i].Name, Throughput = Convert.ToInt64(average * throughputMinutes * 60) };
+                    for (int i = 0; i < endpointData.Length; i++)
+                    {
+                        var average = endpointData[i].Metrics["Throughput"]?.Average ?? 0;
+                        throughputData.EndpointThroughputData[i] = new EndpointThroughputData { Name = endpointData[i].Name, Throughput = Convert.ToInt64(average * throughputMinutes * 60) };
+                    }
+
+                    await session.Send(throughputData);
                 }
-
-                await session.Send(throughputData);
             }
             catch (Exception ex)
             {
-                log.Error($"Error obtaining throughput from Monitoring for {throughputMinutes} minutes interval.", ex);
+                logger.LogError(ex, $"Error obtaining throughput from Monitoring for {throughputMinutes} minutes interval.");
             }
         }
 
         Timer monitoringDataTimer;
         static int throughputMinutes = 5;
-        ILog log = LogManager.GetLogger(typeof(ReportThroughputFeature));
     }
 }
