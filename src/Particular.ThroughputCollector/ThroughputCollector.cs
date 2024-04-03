@@ -7,7 +7,7 @@
     using Shared;
     using QueueThroughput = Contracts.QueueThroughput;
 
-    public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, AuditQuery auditQuery, IThroughputQuery? throughputQuery = null)
+    public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, AuditQuery auditQuery, IBrokerThroughputQuery? throughputQuery = null)
         : IThroughputCollector
     {
         public async Task<ThroughputConnectionSettings> GetThroughputConnectionSettingsInformation()

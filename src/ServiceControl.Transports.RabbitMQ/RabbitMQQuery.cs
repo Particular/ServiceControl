@@ -16,7 +16,7 @@ using System.Web;
 using Polly;
 using Polly.Retry;
 
-public class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettings) : IThroughputQuery
+public class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettings) : IBrokerThroughputQuery
 {
     HttpClient? httpClient;
     readonly ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
