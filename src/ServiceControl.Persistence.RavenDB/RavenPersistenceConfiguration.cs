@@ -34,7 +34,7 @@
             {
                 ConnectionString = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ConnectionStringKey),
                 DatabaseName = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabaseNameKey, RavenPersisterSettings.DatabaseNameDefault),
-                DatabasePath = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.DatabasePathKey),
+                DatabasePath = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.DatabasePathKey, DefaultDatabaseLocation()),
                 DatabaseMaintenancePort = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabaseMaintenancePortKey, RavenPersisterSettings.DatabaseMaintenancePortDefault),
                 ExpirationProcessTimerInSeconds = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.ExpirationProcessTimerInSecondsKey, 600),
                 MinimumStorageLeftRequiredForIngestion = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault),
@@ -52,6 +52,14 @@
             CheckFreeDiskSpace.Validate(settings);
             CheckMinimumStorageRequiredForIngestion.Validate(settings);
             return settings;
+        }
+
+        // SC installer always populates DBPath in app.config on installation/change/upgrade so this will only be used when
+        // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe
+        static string DefaultDatabaseLocation()
+        {
+            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+            return Path.Combine(Path.GetDirectoryName(assemblyLocation), ".db");
         }
 
         // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
