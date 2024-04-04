@@ -96,7 +96,7 @@ class InMemoryThroughputDataStore() : IThroughputDataStore
         endpointsWithUserIndicator.DistinctBy(b => b.SanitizedName).ToList().ForEach(e =>
         {
             //if there are multiple sources of throughput for the endpoint, update them all
-            var existingEndpoints = GetAllEndpointThroughput(e.SanitizedName);
+            var existingEndpoints = GetAllConnectedEndpoints(e.SanitizedName);
 
             existingEndpoints.ForEach(u =>
             {
@@ -112,7 +112,7 @@ class InMemoryThroughputDataStore() : IThroughputDataStore
             t => t.Key >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) &&
                  t.Key <= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1))));
 
-    private List<Endpoint> GetAllEndpointThroughput(string name) => endpoints.Where(w => w.SanitizedName == name).ToList();
+    private List<Endpoint> GetAllConnectedEndpoints(string name) => endpoints.Where(w => w.SanitizedName == name).ToList();
 
     public async Task SaveBrokerData(Broker broker, string? scopeType, Dictionary<string, string> data)
     {
