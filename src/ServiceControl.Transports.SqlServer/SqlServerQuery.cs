@@ -100,7 +100,6 @@ public class SqlServerQuery(TimeProvider timeProvider, TransportSettings transpo
 
     public string? ScopeType { get; set; }
 
-    public bool SupportsHistoricalMetrics => false;
     public KeyDescriptionPair[] Settings => [
         new KeyDescriptionPair(SqlServerSettings.ConnectionString, SqlServerSettings.ConnectionStringDescription),
         new KeyDescriptionPair(SqlServerSettings.AdditionalCatalogs, SqlServerSettings.AdditionalCatalogsDescription)
