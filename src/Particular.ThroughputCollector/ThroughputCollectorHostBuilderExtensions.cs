@@ -69,10 +69,9 @@ public static class ThroughputCollectorHostBuilderExtensions
 
         return hostBuilder;
 
-        static FrozenDictionary<string, string> LoadBrokerSettingValues(IEnumerable<KeyDescriptionPair> brokerKeys)
-        {
-            return brokerKeys.ToFrozenDictionary(key => key.Key, key => SettingsReader.Read<string>(new SettingsRootNamespace(SettingsNamespace), key.Key));
-        }
+        static FrozenDictionary<string, string> LoadBrokerSettingValues(IEnumerable<KeyDescriptionPair> brokerKeys) =>
+            brokerKeys.Select(pair => KeyValuePair.Create(pair.Key, SettingsReader.Read<string>(new SettingsRootNamespace(SettingsNamespace), pair.Key)))
+                .Where(pair => !string.IsNullOrEmpty(pair.Value)).ToFrozenDictionary(key => key.Key, key => key.Value);
     }
 
     public static IHostApplicationBuilder AddThroughputCollectorPersistence(this IHostApplicationBuilder hostBuilder, string persistenceType)
