@@ -32,6 +32,10 @@ namespace ServiceControl.Transports
         System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.IBrokerQueue> GetQueueNames(System.Threading.CancellationToken cancellationToken);
         System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.QueueThroughput> GetThroughputPerDay(ServiceControl.Transports.IBrokerQueue brokerQueue, System.DateOnly startDate, System.Threading.CancellationToken cancellationToken);
         void Initialise(System.Collections.Frozen.FrozenDictionary<string, string> settings);
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Success",
+                "Errors"})]
+        System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>>> TestConnection(System.Threading.CancellationToken cancellationToken);
     }
     public interface IProvideQueueLength
     {
