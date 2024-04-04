@@ -242,7 +242,6 @@ public class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transpor
     }
 
     public string? ScopeType { get; set; }
-    public bool SupportsHistoricalMetrics => false;
     public KeyDescriptionPair[] Settings => [
         new KeyDescriptionPair(RabbitMQSettings.API, RabbitMQSettings.APIDescription),
         new KeyDescriptionPair(RabbitMQSettings.UserName, RabbitMQSettings.UserNameDescription),
