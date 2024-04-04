@@ -10,7 +10,7 @@
     <PackageReference Include="ByteSize" />
     <!--<PackageReference Include="NServiceBus.CustomChecks" />-->
     <PackageReference Include="NServiceBus" />
-    <PackageReference Include="RavenDB.Embedded" />
+    <PackageReference Include="RavenDB.Client" />
   </ItemGroup>
 
   <ItemGroup>
