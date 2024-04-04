@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="NServiceBus" />
+    <PackageReference Include="RavenDB.Client" />
   </ItemGroup>
 
   <ItemGroup>
