@@ -165,7 +165,6 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
     public string? ScopeType { get; }
 
-    public bool SupportsHistoricalMetrics => true;
     public KeyDescriptionPair[] Settings => [
         new KeyDescriptionPair(AzureServiceBusSettings.ServiceBusName, AzureServiceBusSettings.ServiceBusNameDescription),
         new KeyDescriptionPair(AzureServiceBusSettings.ClientId, AzureServiceBusSettings.ClientIdDescription),
