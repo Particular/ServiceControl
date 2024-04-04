@@ -19,7 +19,7 @@ class ThroughputComponent : ServiceControlComponent
     public override void Configure(Settings settings, ITransportCustomization transportCustomization,
         IHostApplicationBuilder hostBuilder) =>
         hostBuilder.AddThroughputCollector(
-            TransportManifestLibrary.GetName(settings.TransportType),
+            TransportManifestLibrary.Find(settings.TransportType)?.Name ?? settings.TransportType,
             settings.ErrorQueue,
             settings.ServiceName,
             PersistenceManifestLibrary.GetName(settings.PersistenceType),
