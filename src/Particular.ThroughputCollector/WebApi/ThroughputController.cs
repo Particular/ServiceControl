@@ -16,9 +16,9 @@
 
         [Route("throughput/endpoints")]
         [HttpGet]
-        public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput(CancellationToken cancellationToken)
+        public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput(CancellationToken token)
         {
-            return await throughputCollector.GetThroughputSummary(cancellationToken);
+            return await throughputCollector.GetThroughputSummary(token);
         }
 
         [Route("throughput/endpoints/update")]
@@ -41,7 +41,7 @@
         public async Task<FileContentResult> GetThroughputReportFile(string[]? mask, CancellationToken token)
         {
             var report = await throughputCollector.GenerateThroughputReport(
-                mask ?? [], 
+                mask ?? [],
                 Request.Headers.TryGetValue("Particular-ServicePulse-Version", out var value) ? value.ToString() : "Unknown",
                 token);
 
