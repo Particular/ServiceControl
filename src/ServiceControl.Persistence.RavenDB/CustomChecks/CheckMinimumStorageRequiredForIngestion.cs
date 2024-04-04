@@ -9,14 +9,8 @@
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.RavenDB;
 
-    class CheckMinimumStorageRequiredForIngestion : CustomCheck
+    class CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder, RavenPersisterSettings settings) : CustomCheck("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
     {
-        public CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder, RavenPersisterSettings settings) : base("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
-        {
-            this.stateHolder = stateHolder;
-            this.settings = settings;
-        }
-
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var percentageThreshold = settings.MinimumStorageLeftRequiredForIngestion / 100m;
@@ -60,29 +54,24 @@
 
         public static void Validate(RavenPersisterSettings settings)
         {
-            int threshold = settings.MinimumStorageLeftRequiredForIngestion;
+            var threshold = settings.MinimumStorageLeftRequiredForIngestion;
 
-            string message;
             if (threshold < 0)
             {
-                message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.";
+                var message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.";
                 Logger.Fatal(message);
                 throw new Exception(message);
             }
 
             if (threshold > 100)
             {
-                message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.";
+                var message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.";
                 Logger.Fatal(message);
                 throw new Exception(message);
             }
         }
 
         public const int MinimumStorageLeftRequiredForIngestionDefault = 5;
-
-        readonly MinimumRequiredStorageState stateHolder;
-        readonly RavenPersisterSettings settings;
-
         static readonly Task<CheckResult> SuccessResult = Task.FromResult(CheckResult.Pass);
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckMinimumStorageRequiredForIngestion));
     }
