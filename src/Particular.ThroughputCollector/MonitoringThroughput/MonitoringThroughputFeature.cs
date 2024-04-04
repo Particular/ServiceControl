@@ -71,13 +71,9 @@ class MonitoringThroughputFeature : Feature
 
                     if (e.Throughput > 0)
                     {
-                        var endpointThroughput = new EndpointDailyThroughput
-                        {
-                            DateUTC = DateOnly.FromDateTime(message.EndDateTime),
-                            TotalThroughput = e.Throughput
-                        };
+                        var endpointThroughput = new EndpointDailyThroughput(DateOnly.FromDateTime(message.EndDateTime), e.Throughput);
 
-                        await dataStore.RecordEndpointThroughput(endpoint.Id, [endpointThroughput], cancellationToken);
+                        await dataStore.RecordEndpointThroughput(e.Name, ThroughputSource.Monitoring, [endpointThroughput], cancellationToken);
                     }
                 });
             }
