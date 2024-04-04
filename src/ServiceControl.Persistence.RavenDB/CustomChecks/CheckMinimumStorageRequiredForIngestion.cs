@@ -15,27 +15,25 @@
         {
             this.stateHolder = stateHolder;
             this.settings = settings;
-            dataPathRoot = Path.GetPathRoot(settings.DatabasePath);
-            percentageThreshold = this.settings.MinimumStorageLeftRequiredForIngestion / 100m;
         }
 
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
+            var percentageThreshold = settings.MinimumStorageLeftRequiredForIngestion / 100m;
+
             if (Logger.IsDebugEnabled)
             {
                 Logger.Debug($"Check ServiceControl data drive space starting. Threshold {percentageThreshold:P0}");
             }
 
-            if (!settings.UseEmbeddedServer)
+            // Should be checking UseEmbeddedServer but need to check DatabasePath instead for the ATT hack to work
+            if (string.IsNullOrEmpty(settings.DatabasePath))
             {
                 stateHolder.CanIngestMore = true;
                 return SuccessResult;
             }
 
-            if (dataPathRoot is null)
-            {
-                throw new Exception($"Unable to find the root of the data path {settings.DatabasePath}");
-            }
+            var dataPathRoot = Path.GetPathRoot(settings.DatabasePath) ?? throw new Exception($"Unable to find the root of the data path {settings.DatabasePath}");
 
             var dataDriveInfo = new DriveInfo(dataPathRoot);
             var availableFreeSpace = (decimal)dataDriveInfo.AvailableFreeSpace;
@@ -82,8 +80,6 @@
 
         public const int MinimumStorageLeftRequiredForIngestionDefault = 5;
 
-        readonly string dataPathRoot;
-        readonly decimal percentageThreshold;
         readonly MinimumRequiredStorageState stateHolder;
         readonly RavenPersisterSettings settings;
 

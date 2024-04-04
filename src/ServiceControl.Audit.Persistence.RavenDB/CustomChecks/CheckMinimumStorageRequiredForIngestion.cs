@@ -15,27 +15,25 @@
         {
             this.stateHolder = stateHolder;
             this.databaseConfiguration = databaseConfiguration;
-            dataPathRoot = Path.GetPathRoot(databaseConfiguration.ServerConfiguration.DbPath);
-            percentageThreshold = this.databaseConfiguration.MinimumStorageLeftRequiredForIngestion / 100m;
         }
 
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
+            var percentageThreshold = databaseConfiguration.MinimumStorageLeftRequiredForIngestion / 100m;
+
             if (Logger.IsDebugEnabled)
             {
                 Logger.Debug($"Check ServiceControl data drive space starting. Threshold {percentageThreshold:P0}");
             }
 
-            if (!databaseConfiguration.ServerConfiguration.UseEmbeddedServer)
+            // Should be checking UseEmbeddedServer but need to check DbPath instead for the ATT hack to work
+            if (string.IsNullOrEmpty(databaseConfiguration.ServerConfiguration.DbPath))
             {
                 stateHolder.CanIngestMore = true;
                 return CheckResult.Pass;
             }
 
-            if (dataPathRoot is null)
-            {
-                throw new Exception($"Unable to find the root of the data path {databaseConfiguration.ServerConfiguration.DbPath}");
-            }
+            var dataPathRoot = Path.GetPathRoot(databaseConfiguration.ServerConfiguration.DbPath) ?? throw new Exception($"Unable to find the root of the data path {databaseConfiguration.ServerConfiguration.DbPath}");
 
             var dataDriveInfo = new DriveInfo(dataPathRoot);
             var availableFreeSpace = (decimal)dataDriveInfo.AvailableFreeSpace;
@@ -100,8 +98,6 @@
 
         public const int MinimumStorageLeftRequiredForIngestionDefault = 5;
 
-        readonly string dataPathRoot;
-        readonly decimal percentageThreshold;
         readonly MinimumRequiredStorageState stateHolder;
         readonly DatabaseConfiguration databaseConfiguration;
 
