@@ -176,8 +176,6 @@ public class AmazonSQSQuery(TimeProvider timeProvider) : IBrokerThroughputQuery
 
     public string? ScopeType => null;
 
-    public bool SupportsHistoricalMetrics => true;
-
     public KeyDescriptionPair[] Settings =>
     [
         new KeyDescriptionPair(AmazonSQSSettings.AccessKey, AmazonSQSSettings.AccessKeyDescription),
