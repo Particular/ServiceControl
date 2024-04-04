@@ -59,7 +59,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             AllowMessageEditing = SettingsReader.Read<bool>(SettingsRootNamespace, "AllowMessageEditing");
             NotificationsFilter = SettingsReader.Read<string>(SettingsRootNamespace, "NotificationsFilter");
             RemoteInstances = GetRemoteInstances().ToArray();
-            DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
 
@@ -177,8 +176,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public int RetryHistoryDepth { get; set; }
 
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
-
-        public int DataSpaceRemainingThreshold { get; set; }
 
         public bool DisableHealthChecks { get; set; }
 
@@ -386,27 +383,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return $"{queue}.log@{machine}";
         }
 
-        int GetDataSpaceRemainingThreshold()
-        {
-            string message;
-            var threshold = SettingsReader.Read(SettingsRootNamespace, "DataSpaceRemainingThreshold", DataSpaceRemainingThresholdDefault);
-            if (threshold < 0)
-            {
-                message = $"{nameof(DataSpaceRemainingThreshold)} is invalid, minimum value is 0.";
-                logger.Fatal(message);
-                throw new Exception(message);
-            }
-
-            if (threshold > 100)
-            {
-                message = $"{nameof(DataSpaceRemainingThreshold)} is invalid, maximum value is 100.";
-                logger.Fatal(message);
-                throw new Exception(message);
-            }
-
-            return threshold;
-        }
-
         void LoadErrorIngestionSettings()
         {
             var serviceBusRootNamespace = new SettingsRootNamespace("ServiceBus");
@@ -440,7 +416,5 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
         public static readonly SettingsRootNamespace SettingsRootNamespace = new("ServiceControl");
-
-        const int DataSpaceRemainingThresholdDefault = 20;
     }
 }

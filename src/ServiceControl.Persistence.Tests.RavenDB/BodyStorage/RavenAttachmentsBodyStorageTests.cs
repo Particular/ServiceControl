@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Transport;
     using NUnit.Framework;
@@ -33,7 +34,7 @@
             var contentType = "NotImportant";
             var endpointName = "EndpointName";
             var body = BitConverter.GetBytes(0xDEADBEEF);
-            var ingestionFactory = GetRequiredService<IIngestionUnitOfWorkFactory>();
+            var ingestionFactory = ServiceProvider.GetRequiredService<IIngestionUnitOfWorkFactory>();
 
             var headers = new Dictionary<string, string>
             {

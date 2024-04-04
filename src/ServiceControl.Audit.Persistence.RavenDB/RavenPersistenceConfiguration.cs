@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
+    using CustomChecks;
     using NServiceBus.Logging;
 
     public class RavenPersistenceConfiguration : IPersistenceConfiguration
@@ -17,6 +18,7 @@
         public const string RavenDbLogLevelKey = "RavenDBLogLevel";
         public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
         public const string BulkInsertCommitTimeoutInSecondsKey = "BulkInsertCommitTimeoutInSeconds";
+        public const string DataSpaceRemainingThresholdKey = "DataSpaceRemainingThreshold";
 
         public IEnumerable<string> ConfigurationKeys => new[]{
             DatabaseNameKey,
@@ -26,6 +28,7 @@
             ExpirationProcessTimerInSecondsKey,
             LogPathKey,
             RavenDbLogLevelKey,
+            DataSpaceRemainingThresholdKey,
             MinimumStorageLeftRequiredForIngestionKey,
             BulkInsertCommitTimeoutInSecondsKey
         };
@@ -91,15 +94,8 @@
                 serverConfiguration = new ServerConfiguration(dbPath, serverUrl, logPath, logsMode);
             }
 
-            if (!settings.PersisterSpecificSettings.TryGetValue(MinimumStorageLeftRequiredForIngestionKey, out var minimumStorageLeftRequiredForIngestionKey))
-            {
-                minimumStorageLeftRequiredForIngestionKey = "5";
-            }
-
-            if (!int.TryParse(minimumStorageLeftRequiredForIngestionKey, out var minimumStorageLeftRequiredForIngestion))
-            {
-                throw new InvalidOperationException($"{MinimumStorageLeftRequiredForIngestionKey} must be an integer.");
-            }
+            var dataSpaceRemainingThreshold = CheckFreeDiskSpace.Parse(settings.PersisterSpecificSettings);
+            var minimumStorageLeftRequiredForIngestion = CheckMinimumStorageRequiredForIngestion.Parse(settings.PersisterSpecificSettings);
 
             var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
 
@@ -111,6 +107,7 @@
                 settings.EnableFullTextSearchOnBodies,
                 settings.AuditRetentionPeriod,
                 settings.MaxBodySizeToStore,
+                dataSpaceRemainingThreshold,
                 minimumStorageLeftRequiredForIngestion,
                 serverConfiguration,
                 bulkInsertTimeout);

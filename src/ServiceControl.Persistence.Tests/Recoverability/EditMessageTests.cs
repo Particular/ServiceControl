@@ -27,7 +27,7 @@
                 .AddTransient<EditHandler>();
 
         [SetUp]
-        public void Setup() => handler = GetRequiredService<EditHandler>();
+        public void Setup() => handler = ServiceProvider.GetRequiredService<EditHandler>();
 
         [Test]
         public async Task Should_discard_edit_when_failed_message_not_exists()

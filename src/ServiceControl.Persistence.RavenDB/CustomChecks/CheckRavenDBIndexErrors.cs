@@ -1,4 +1,4 @@
-﻿namespace ServiceControl
+﻿namespace ServiceControl.Persistence.RavenDB.CustomChecks
 {
     using System;
     using System.Linq;
@@ -7,12 +7,10 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using Persistence.RavenDB;
-    using Raven.Client.Documents;
     using Raven.Client.Documents.Operations.Indexes;
+    using ServiceControl.Persistence.RavenDB;
 
-    class CheckRavenDBIndexErrors(IRavenDocumentStoreProvider documentStoreProvider) : CustomCheck("Error Database Index Errors",
-        "ServiceControl Health", TimeSpan.FromMinutes(5))
+    class CheckRavenDBIndexErrors(IRavenDocumentStoreProvider documentStoreProvider) : CustomCheck("Error Database Index Errors", "ServiceControl Health", TimeSpan.FromMinutes(5))
     {
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {

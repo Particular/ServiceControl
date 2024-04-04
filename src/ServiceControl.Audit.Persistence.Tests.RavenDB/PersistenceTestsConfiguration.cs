@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Raven.Client.Documents;
     using Raven.Client.Documents.BulkInsert;
@@ -15,17 +16,24 @@
 
     class PersistenceTestsConfiguration
     {
-        public IAuditDataStore AuditDataStore { get; protected set; }
-        public IFailedAuditStorage FailedAuditStorage { get; protected set; }
-        public IBodyStorage BodyStorage { get; set; }
-        public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
+        public IAuditDataStore AuditDataStore { get; private set; }
+
+        public IFailedAuditStorage FailedAuditStorage { get; private set; }
+
+        public IBodyStorage BodyStorage { get; private set; }
+
+        public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; private set; }
+
+        public IDocumentStore DocumentStore { get; private set; }
+
+        public IServiceProvider ServiceProvider => host.Services;
+
+        public string Name => "RavenDB";
 
         public async Task Configure(Action<PersistenceSettings> setSettings)
         {
             var config = new RavenPersistenceConfiguration();
-
             var hostBuilder = Host.CreateApplicationBuilder();
-
             var persistenceSettings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
             setSettings(persistenceSettings);
@@ -56,6 +64,16 @@
             var persistence = config.Create(persistenceSettings);
             persistence.AddPersistence(hostBuilder.Services);
             persistence.AddInstaller(hostBuilder.Services);
+
+            var assembly = typeof(RavenPersistenceConfiguration).Assembly;
+
+            foreach (var type in assembly.DefinedTypes)
+            {
+                if (type.IsAssignableTo(typeof(ICustomCheck)))
+                {
+                    hostBuilder.Services.AddTransient(typeof(ICustomCheck), type);
+                }
+            }
 
             host = hostBuilder.Build();
             await host.StartAsync();
@@ -92,9 +110,6 @@
             host.Dispose();
         }
 
-        public string Name => "RavenDB";
-
-        public IDocumentStore DocumentStore { get; private set; }
 
         string databaseName;
         IHost host;

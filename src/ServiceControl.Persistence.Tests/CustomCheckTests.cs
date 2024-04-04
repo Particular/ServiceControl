@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Persistence.Tests
+﻿namespace ServiceControl.PersistenceTests
 {
     using System;
     using System.Linq;
@@ -7,7 +7,7 @@
     using NUnit.Framework;
     using Particular.Approvals;
 
-    class CustomCheckTests : PersistenceTestFixture
+    class CustomCheckTests : PersistenceTestBase
     {
         [Test]
         public void VerifyCustomChecks() =>

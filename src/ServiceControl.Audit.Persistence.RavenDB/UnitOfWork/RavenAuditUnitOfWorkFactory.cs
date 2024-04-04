@@ -5,19 +5,14 @@
     using Persistence.UnitOfWork;
     using Raven.Client.Documents.BulkInsert;
     using RavenDB;
-    using ServiceControl.Audit.Persistence.RavenDB.CustomChecks;
 
-    class RavenAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory
+    class RavenAuditIngestionUnitOfWorkFactory(
+        IRavenDocumentStoreProvider documentStoreProvider,
+        IRavenSessionProvider sessionProvider,
+        DatabaseConfiguration databaseConfiguration,
+        MinimumRequiredStorageState customCheckState)
+        : IAuditIngestionUnitOfWorkFactory
     {
-        public RavenAuditIngestionUnitOfWorkFactory(IRavenDocumentStoreProvider documentStoreProvider, IRavenSessionProvider sessionProvider,
-            DatabaseConfiguration databaseConfiguration, CheckMinimumStorageRequiredForAuditIngestion.State customCheckState)
-        {
-            this.documentStoreProvider = documentStoreProvider;
-            this.sessionProvider = sessionProvider;
-            this.databaseConfiguration = databaseConfiguration;
-            this.customCheckState = customCheckState;
-        }
-
         public IAuditIngestionUnitOfWork StartNew(int batchSize)
         {
             var timedCancellationSource = new CancellationTokenSource(databaseConfiguration.BulkInsertCommitTimeout);
@@ -29,14 +24,6 @@
             );
         }
 
-        public bool CanIngestMore()
-        {
-            return customCheckState.CanIngestMore;
-        }
-
-        readonly IRavenDocumentStoreProvider documentStoreProvider;
-        readonly IRavenSessionProvider sessionProvider;
-        readonly DatabaseConfiguration databaseConfiguration;
-        readonly CheckMinimumStorageRequiredForAuditIngestion.State customCheckState;
+        public bool CanIngestMore() => customCheckState.CanIngestMore;
     }
 }

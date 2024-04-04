@@ -4,44 +4,64 @@
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using NServiceBus.CustomChecks;
     using ServiceControl.Audit.Persistence.InMemory;
     using UnitOfWork;
 
-    partial class PersistenceTestsConfiguration
+    class PersistenceTestsConfiguration
     {
-        public IAuditDataStore AuditDataStore { get; protected set; }
-        public IFailedAuditStorage FailedAuditStorage { get; protected set; }
-        public IBodyStorage BodyStorage { get; protected set; }
-        public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
+        public IAuditDataStore AuditDataStore { get; private set; }
 
-        public Task Configure(Action<PersistenceSettings> setSettings)
+        public IFailedAuditStorage FailedAuditStorage { get; private set; }
+
+        public IBodyStorage BodyStorage { get; private set; }
+
+        public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; private set; }
+
+        public IServiceProvider ServiceProvider => host.Services;
+
+        public string Name => "InMemory";
+
+        public async Task Configure(Action<PersistenceSettings> setSettings)
         {
             var config = new InMemoryPersistenceConfiguration();
-            var serviceCollection = new ServiceCollection();
+            var hostBuilder = Host.CreateApplicationBuilder();
             var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
             setSettings(settings);
+
             var persistence = config.Create(settings);
-            persistence.AddPersistence(serviceCollection);
+            persistence.AddPersistence(hostBuilder.Services);
+            persistence.AddInstaller(hostBuilder.Services);
 
-            var serviceProvider = serviceCollection.BuildServiceProvider();
-            AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
-            FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
-            BodyStorage = serviceProvider.GetService<IBodyStorage>();
-            AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
-            return Task.CompletedTask;
+            var assembly = typeof(InMemoryPersistenceConfiguration).Assembly;
+
+            foreach (var type in assembly.DefinedTypes)
+            {
+                if (type.IsAssignableTo(typeof(ICustomCheck)))
+                {
+                    hostBuilder.Services.AddTransient(typeof(ICustomCheck), type);
+                }
+            }
+
+            host = hostBuilder.Build();
+            await host.StartAsync();
+
+            AuditDataStore = host.Services.GetRequiredService<IAuditDataStore>();
+            FailedAuditStorage = host.Services.GetRequiredService<IFailedAuditStorage>();
+            BodyStorage = host.Services.GetService<IBodyStorage>();
+            AuditIngestionUnitOfWorkFactory = host.Services.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
         }
 
-        public Task CompleteDBOperation()
+        public Task CompleteDBOperation() => Task.CompletedTask;
+
+        public async Task Cleanup()
         {
-            return Task.CompletedTask;
+            await host.StopAsync();
+            host.Dispose();
         }
 
-        public Task Cleanup()
-        {
-            return Task.CompletedTask;
-        }
-
-        public string Name => "InMemory";
+        IHost host;
     }
 }

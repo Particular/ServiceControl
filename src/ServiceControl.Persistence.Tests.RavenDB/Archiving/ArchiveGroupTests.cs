@@ -5,8 +5,6 @@
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Testing;
     using NUnit.Framework;
-    using PersistenceTests;
-    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Recoverability;
 
     [TestFixture]
@@ -48,7 +46,7 @@
                 await session.SaveChangesAsync();
             }
 
-            var handler = GetRequiredService<ArchiveAllInGroupHandler>(); // See this.CreateHostBuilder
+            var handler = ServiceProvider.GetRequiredService<ArchiveAllInGroupHandler>(); // See this.CreateHostBuilder
 
             var context = new TestableMessageHandlerContext();
             var message = new ArchiveAllInGroup { GroupId = groupId };
@@ -96,7 +94,7 @@
                 await session.SaveChangesAsync();
             }
 
-            var handler = GetRequiredService<ArchiveAllInGroupHandler>(); // See this.CreateHostBuilder
+            var handler = ServiceProvider.GetRequiredService<ArchiveAllInGroupHandler>(); // See this.CreateHostBuilder
 
             var context = new TestableMessageHandlerContext();
             var message = new ArchiveAllInGroup { GroupId = groupId + "Invalid" };

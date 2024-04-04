@@ -42,7 +42,6 @@
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             Port = SettingsReader.Read(SettingsRootNamespace, "Port", 44444);
             MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", 32);
-            DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
             EnableFullTextSearchOnBodies = SettingsReader.Read(SettingsRootNamespace, "EnableFullTextSearchOnBodies", true);
@@ -146,8 +145,6 @@
 
         public string TransportConnectionString { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
-        public int DataSpaceRemainingThreshold { get; set; }
-
         public string ServiceControlQueueAddress { get; set; }
 
         public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
@@ -279,27 +276,6 @@
             return $"{queue}.log@{machine}";
         }
 
-        int GetDataSpaceRemainingThreshold()
-        {
-            string message;
-            var threshold = SettingsReader.Read(SettingsRootNamespace, "DataSpaceRemainingThreshold", DataSpaceRemainingThresholdDefault);
-            if (threshold < 0)
-            {
-                message = $"{nameof(DataSpaceRemainingThreshold)} is invalid, minimum value is 0.";
-                logger.Fatal(message);
-                throw new Exception(message);
-            }
-
-            if (threshold > 100)
-            {
-                message = $"{nameof(DataSpaceRemainingThreshold)} is invalid, maximum value is 100.";
-                logger.Fatal(message);
-                throw new Exception(message);
-            }
-
-            return threshold;
-        }
-
         void TryLoadLicenseFromConfig() => LicenseFileText = SettingsReader.Read<string>(SettingsRootNamespace, "LicenseText");
 
         // logger is intentionally not static to prevent it from being initialized before LoggingConfigurator.ConfigureLogging has been called
@@ -311,6 +287,5 @@
         public static readonly SettingsRootNamespace SettingsRootNamespace = new("ServiceControl.Audit");
 
         const int MaxBodySizeToStoreDefault = 102400; //100 kb
-        const int DataSpaceRemainingThresholdDefault = 20;
     }
 }

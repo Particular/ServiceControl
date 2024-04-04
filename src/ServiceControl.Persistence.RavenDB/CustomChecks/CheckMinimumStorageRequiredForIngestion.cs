@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Persistence.RavenDB.CustomChecks
 {
     using System;
     using System.IO;
@@ -6,33 +6,28 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using Persistence.RavenDB;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.RavenDB;
 
-    class CheckMinimumStorageRequiredForIngestion : CustomCheck
+    class CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder, RavenPersisterSettings settings) : CustomCheck("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
     {
-        public CheckMinimumStorageRequiredForIngestion(
-            MinimumRequiredStorageState stateHolder,
-            RavenPersisterSettings settings)
-            : base("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
-        {
-            this.stateHolder = stateHolder;
-            this.settings = settings;
-
-            dataPathRoot = Path.GetPathRoot(settings.DatabasePath);
-        }
-
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
-            percentageThreshold = settings.MinimumStorageLeftRequiredForIngestion / 100m;
+            var percentageThreshold = settings.MinimumStorageLeftRequiredForIngestion / 100m;
 
-            if (dataPathRoot == null)
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.Debug($"Check ServiceControl data drive space starting. Threshold {percentageThreshold:P0}");
+            }
+
+            // Should be checking UseEmbeddedServer but need to check DatabasePath instead for the ATT hack to work
+            if (string.IsNullOrEmpty(settings.DatabasePath))
             {
                 stateHolder.CanIngestMore = true;
                 return SuccessResult;
             }
 
-            Logger.Debug($"Check ServiceControl data drive space starting. Threshold {percentageThreshold:P0}");
+            var dataPathRoot = Path.GetPathRoot(settings.DatabasePath) ?? throw new Exception($"Unable to find the root of the data path {settings.DatabasePath}");
 
             var dataDriveInfo = new DriveInfo(dataPathRoot);
             var availableFreeSpace = (decimal)dataDriveInfo.AvailableFreeSpace;
@@ -59,32 +54,24 @@
 
         public static void Validate(RavenPersisterSettings settings)
         {
-            int threshold = settings.MinimumStorageLeftRequiredForIngestion;
+            var threshold = settings.MinimumStorageLeftRequiredForIngestion;
 
-            string message;
             if (threshold < 0)
             {
-                message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.";
+                var message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.";
                 Logger.Fatal(message);
                 throw new Exception(message);
             }
 
             if (threshold > 100)
             {
-                message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.";
+                var message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.";
                 Logger.Fatal(message);
                 throw new Exception(message);
             }
         }
 
         public const int MinimumStorageLeftRequiredForIngestionDefault = 5;
-
-        readonly MinimumRequiredStorageState stateHolder;
-        readonly RavenPersisterSettings settings;
-        readonly string dataPathRoot;
-
-        decimal percentageThreshold;
-
         static readonly Task<CheckResult> SuccessResult = Task.FromResult(CheckResult.Pass);
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckMinimumStorageRequiredForIngestion));
     }

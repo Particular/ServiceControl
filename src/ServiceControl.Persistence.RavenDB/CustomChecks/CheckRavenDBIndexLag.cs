@@ -1,4 +1,4 @@
-﻿namespace ServiceControl
+﻿namespace ServiceControl.Persistence.RavenDB.CustomChecks
 {
     using System;
     using System.Linq;
@@ -7,9 +7,8 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using Persistence.RavenDB;
-    using Raven.Client.Documents;
     using Raven.Client.Documents.Operations;
+    using ServiceControl.Persistence.RavenDB;
     using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
     class CheckRavenDBIndexLag(IRavenDocumentStoreProvider documentStoreProvider) : CustomCheck("Error Database Index Lag", "ServiceControl Health", TimeSpan.FromMinutes(5))
