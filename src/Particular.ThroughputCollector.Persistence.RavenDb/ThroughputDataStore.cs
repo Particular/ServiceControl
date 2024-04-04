@@ -110,14 +110,8 @@ class ThroughputDataStore(
         using var session = store.OpenAsyncSession("throughput");
 
         var documentId = id.GenerateDocumentId();
-        var document = await session.LoadAsync<EndpointDocument>(documentId, cancellationToken);
-        if (document == null)
-        {
-            document = new EndpointDocument(id);
-
-            await session.StoreAsync(document, documentId, cancellationToken);
-            await session.SaveChangesAsync(cancellationToken);
-        }
+        var document = await session.LoadAsync<EndpointDocument>(documentId, cancellationToken) ??
+            throw new InvalidOperationException($"Endpoint {id.Name} from {id.ThroughputSource} does not exist ");
 
         var timeSeries = session.IncrementalTimeSeriesFor(documentId, ThroughputTimeSeriesName);
 
