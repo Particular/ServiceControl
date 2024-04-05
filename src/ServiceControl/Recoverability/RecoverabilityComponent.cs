@@ -105,7 +105,7 @@
             services.AddEventLogMapping<MessagesSubmittedForRetryFailedDefinition>();
         }
 
-        public override void Setup(Settings settings, IComponentInstallationContext context)
+        public override void Setup(Settings settings, IComponentInstallationContext context, IHostApplicationBuilder hostBuilder)
         {
             context.CreateQueue(settings.StagingQueue);
 
