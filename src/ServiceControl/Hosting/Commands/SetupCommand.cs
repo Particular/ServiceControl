@@ -29,17 +29,11 @@
 
             foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
             {
-                component.ConfigureInstallation(settings, hostBuilder);
-                component.Setup(settings, componentSetupContext);
+                component.Setup(settings, componentSetupContext, hostBuilder);
             }
 
             hostBuilder.AddServiceControlInstallers(settings);
             var host = hostBuilder.Build();
-
-            // TODO: https://github.com/orgs/Particular/projects/197/views/1?pane=issue&itemId=58048957
-            //await host.Services
-            //    .GetRequiredService<IPersistenceInstaller>()
-            //    .Install();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
