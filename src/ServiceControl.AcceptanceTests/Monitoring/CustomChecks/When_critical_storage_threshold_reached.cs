@@ -37,6 +37,7 @@
                     }, (_, __) =>
                     {
                         PersisterSettings.MinimumStorageLeftRequiredForIngestion = 100;
+                        PersisterSettings.DatabasePath = TestContext.CurrentContext.TestDirectory;
                         return Task.CompletedTask;
                     })
                     .When(context =>
@@ -66,6 +67,7 @@
                     }, (session, context) =>
                     {
                         PersisterSettings.MinimumStorageLeftRequiredForIngestion = 100;
+                        PersisterSettings.DatabasePath = TestContext.CurrentContext.TestDirectory;
                         return Task.CompletedTask;
                     })
                     .When(context =>
