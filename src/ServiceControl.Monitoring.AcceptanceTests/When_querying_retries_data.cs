@@ -27,7 +27,7 @@
                 {
                     var result = await this.TryGetMany<MonitoredEndpoint>("/monitored-endpoints?history=1");
 
-                    metricReported = result.HasResult && result.Items[0].Metrics.TryGetValue("Retries", out var retries) && retries.Average > 0;
+                    metricReported = result.HasResult && result.Items[0].Metrics.TryGetValue("retries", out var retries) && retries.Average > 0;
 
                     if (metricReported)
                     {
