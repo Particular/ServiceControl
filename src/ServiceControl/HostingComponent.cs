@@ -17,6 +17,6 @@ namespace Particular.ServiceControl
             services.AddSingleton<IPlatformConnectionBuilder, PlatformConnectionBuilder>();
         }
 
-        public override void Setup(Settings settings, IComponentInstallationContext context) => context.CreateQueue(settings.ServiceName);
+        public override void Setup(Settings settings, IComponentInstallationContext context, IHostApplicationBuilder hostBuilder) => context.CreateQueue(settings.ServiceName);
     }
 }
