@@ -175,9 +175,9 @@
                         .Take(0)
                         .ToArrayAsync();
 
-                    if (stats.LongTotalResults > 0)
+                    if (stats.TotalResults > 0)
                     {
-                        results.Add(new AuditCount { UtcDate = date, Count = stats.LongTotalResults });
+                        results.Add(new AuditCount { UtcDate = date, Count = stats.TotalResults });
                     }
                 }
             }

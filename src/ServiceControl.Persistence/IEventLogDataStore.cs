@@ -8,6 +8,6 @@
     public interface IEventLogDataStore
     {
         Task Add(EventLogItem logItem);
-        Task<(IList<EventLogItem> items, int total, string version)> GetEventLogItems(PagingInfo pagingInfo);
+        Task<(IList<EventLogItem> items, long total, string version)> GetEventLogItems(PagingInfo pagingInfo);
     }
 }
