@@ -69,7 +69,6 @@
   </ItemGroup>
 
   <ItemGroup Label="Versions to pin transitive references">
-    <PackageVersion Include="Microsoft.AspNetCore.JsonPatch" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
     <PackageVersion Include="System.IO.Hashing" Version="8.0.0" />
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
