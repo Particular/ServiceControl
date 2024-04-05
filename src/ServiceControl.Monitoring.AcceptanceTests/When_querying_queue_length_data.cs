@@ -82,8 +82,7 @@
                          return false;
                      }
 
-                     // Metric names are fixed names and therefore are not following the casing rules of the chosen serializer
-                     if (monitoredEndpointDetails.Digest.Metrics.TryGetValue("QueueLength", out var queueLength) && queueLength.Average == 0.0)
+                     if (monitoredEndpointDetails.Digest.Metrics.TryGetValue("queueLength", out var queueLength) && queueLength.Average == 0.0)
                      {
                          return false;
                      }
