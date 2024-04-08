@@ -36,12 +36,14 @@ public class RabbitMQQuery(ILogger<RabbitMQQuery> logger, TimeProvider timeProvi
             if (!settings.TryGetValue(RabbitMQSettings.UserName, out string? username) ||
                 string.IsNullOrEmpty(username))
             {
+                logger.LogInformation("Using username from connectionstring");
                 username = connectionConfiguration.UserName;
             }
 
             if (!settings.TryGetValue(RabbitMQSettings.Password, out string? password) ||
                 string.IsNullOrEmpty(password))
             {
+                logger.LogInformation("Using password from connectionstring");
                 password = connectionConfiguration.UserName;
             }
 

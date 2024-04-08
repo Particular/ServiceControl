@@ -22,6 +22,8 @@ public class SqlServerQuery(ILogger<SqlServerQuery> logger, TimeProvider timePro
         {
             if (!settings.TryGetValue(SqlServerSettings.ConnectionString, out string? connectionString))
             {
+                logger.LogInformation("Using connectionstring used by instance");
+
                 connectionString = transportSettings.ConnectionString;
             }
             if (!settings.TryGetValue(SqlServerSettings.AdditionalCatalogs, out string? catalogs))
