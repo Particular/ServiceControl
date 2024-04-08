@@ -17,13 +17,14 @@ using Transports.SQS;
 [TestFixture]
 class AmazonSQSQueryTests : TransportTestFixture
 {
-    readonly FakeTimeProvider provider = new();
+    FakeTimeProvider provider;
     TransportSettings transportSettings;
     AmazonSQSQuery query;
 
     [SetUp]
     public void Initialise()
     {
+        provider = new();
         provider.SetUtcNow(DateTimeOffset.UtcNow);
         transportSettings = new TransportSettings
         {
