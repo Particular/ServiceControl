@@ -17,13 +17,14 @@ using Transports.RabbitMQ;
 [TestFixture]
 class RabbitMQQueryTests : TransportTestFixture
 {
-    readonly FakeTimeProvider provider = new();
+    FakeTimeProvider provider;
     TransportSettings transportSettings;
     RabbitMQQuery query;
 
     [SetUp]
     public void Initialise()
     {
+        provider = new();
         provider.SetUtcNow(DateTimeOffset.UtcNow);
         transportSettings = new TransportSettings
         {
