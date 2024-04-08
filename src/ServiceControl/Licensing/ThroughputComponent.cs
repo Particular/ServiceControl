@@ -1,6 +1,7 @@
 
 namespace Particular.ServiceControl;
 
+using System;
 using global::ServiceControl.Infrastructure;
 using global::ServiceControl.LicenseManagement;
 using global::ServiceControl.Persistence;
@@ -14,19 +15,27 @@ using ThroughputPersistence = ThroughputCollector.Persistence;
 class ThroughputComponent : ServiceControlComponent
 {
     public override void Configure(Settings settings, ITransportCustomization transportCustomization,
-        IHostApplicationBuilder hostBuilder) =>
+        IHostApplicationBuilder hostBuilder)
+    {
+        var persistenceManifest = PersistenceManifestLibrary.Find(settings.PersistenceType)
+            ?? throw new InvalidOperationException($"No manifest found for {settings.PersistenceType} persistenceType");
+
         hostBuilder.AddThroughputCollector(
             TransportManifestLibrary.Find(settings.TransportType)?.Name ?? settings.TransportType,
             settings.ErrorQueue,
             settings.ServiceName,
-            PersistenceManifestLibrary.GetName(settings.PersistenceType),
+            persistenceManifest.Name,
             LicenseManager.FindLicense().Details.RegisteredTo,
             ServiceControlVersion.GetFileVersion(),
             transportCustomization.ThroughputQueryProvider);
+    }
 
     public override void Setup(Settings settings, IComponentInstallationContext context, IHostApplicationBuilder hostBuilder)
     {
-        hostBuilder.AddThroughputCollectorPersistence(PersistenceManifestLibrary.GetName(settings.PersistenceType));
+        var persistenceManifest = PersistenceManifestLibrary.Find(settings.PersistenceType)
+            ?? throw new InvalidOperationException($"No manifest found for {settings.PersistenceType} persistenceType");
+
+        hostBuilder.AddThroughputCollectorPersistence(persistenceManifest.Name);
         context.RegisterInstallationTask(serviceProvider => serviceProvider.GetRequiredService<ThroughputPersistence.IPersistenceInstaller>().Install());
     }
 }
