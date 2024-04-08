@@ -7,7 +7,7 @@
 
     [ApiController]
     [Route("api")]
-    class UnacknowledgedGroupsController(IRetryHistoryDataStore retryStore, IArchiveMessages archiver) : ControllerBase
+    public class UnacknowledgedGroupsController(IRetryHistoryDataStore retryStore, IArchiveMessages archiver) : ControllerBase
     {
         [Route("recoverability/unacknowledgedgroups/{groupId:required:minlength(1)}")]
         [HttpDelete]
