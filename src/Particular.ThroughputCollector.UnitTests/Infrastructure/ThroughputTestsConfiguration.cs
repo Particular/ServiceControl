@@ -14,6 +14,7 @@
         public IThroughputCollector ThroughputCollector { get; protected set; }
         public ThroughputSettings ThroughputSettings { get; protected set; }
         public AuditQuery AuditQuery { get; protected set; }
+        public IServiceProvider ServiceProvider { get; protected set; }
 
         public Task Configure(Action<ThroughputSettings> setThroughputSettings, Action<ServiceCollection> setExtraDependencies)
         {
@@ -22,6 +23,8 @@
 
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton(throughputSettings);
+
+            serviceCollection.AddLogging();
 
             var config = new InMemoryPersistenceConfiguration();
             var settings = new PersistenceSettings();
@@ -37,12 +40,12 @@
             //serviceCollection.AddHostedService<AuditThroughputCollectorHostedService>();
             //serviceCollection.AddHostedService<BrokerThroughputCollectorHostedService>();
 
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            ServiceProvider = serviceCollection.BuildServiceProvider();
 
-            ThroughputDataStore = serviceProvider.GetRequiredService<IThroughputDataStore>();
-            ThroughputCollector = serviceProvider.GetRequiredService<IThroughputCollector>();
-            ThroughputSettings = serviceProvider.GetRequiredService<ThroughputSettings>();
-            AuditQuery = serviceProvider.GetRequiredService<AuditQuery>();
+            ThroughputDataStore = ServiceProvider.GetRequiredService<IThroughputDataStore>();
+            ThroughputCollector = ServiceProvider.GetRequiredService<IThroughputCollector>();
+            ThroughputSettings = ServiceProvider.GetRequiredService<ThroughputSettings>();
+            AuditQuery = ServiceProvider.GetRequiredService<AuditQuery>();
 
             return Task.CompletedTask;
         }

@@ -3,7 +3,7 @@
     using Particular.ThroughputCollector.Contracts;
     using ServiceControl.Configuration;
 
-    static class PlatformEndpointHelper
+    public static class PlatformEndpointHelper
     {
         public static bool IsPlatformEndpoint(string endpointName, ThroughputSettings throughputSettings)
         {
