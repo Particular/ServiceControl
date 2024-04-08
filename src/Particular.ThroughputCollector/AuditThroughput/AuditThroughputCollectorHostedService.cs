@@ -20,7 +20,7 @@ class AuditThroughputCollectorHostedService(
 
         await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken);
 
-        PlatformEndpointIdentifier.AuditQueues = (await auditQuery.GetAuditRemotes(cancellationToken))?.SelectMany(s => s.Queues)?.ToList() ?? [];
+        PlatformEndpointHelper.AuditQueues = (await auditQuery.GetAuditRemotes(cancellationToken))?.SelectMany(s => s.Queues)?.ToList() ?? [];
 
         using PeriodicTimer timer = new(TimeSpan.FromDays(1), timeProvider);
 
@@ -95,7 +95,7 @@ class AuditThroughputCollectorHostedService(
             EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()]
         };
 
-        if (PlatformEndpointIdentifier.IsPlatformEndpoint(scEndpoint.Name, throughputSettings))
+        if (PlatformEndpointHelper.IsPlatformEndpoint(scEndpoint.Name, throughputSettings))
         {
             endpoint.EndpointIndicators.Append(EndpointIndicator.PlatformEndpoint.ToString());
         }
