@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Config.Tests
 {
+    using System;
     using System.ComponentModel;
     using NUnit.Framework;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
@@ -8,6 +9,9 @@
 
     class AddErrorInstanceScreenLoadedTests
     {
+        static readonly string programDataPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+        static readonly string programX86Path = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+
         [Test]
         public void Error_and_Audit_Instances_are_selected_for_install()
         {
@@ -148,11 +152,11 @@
 
             var errorInfo = (INotifyDataErrorInfo)viewModel;
 
-            Assert.IsNull(viewModel.ErrorDestinationPath);
+            Assert.That(viewModel.ErrorDestinationPath, Is.EqualTo($@"{programX86Path}\Particular Software\Particular.ServiceControl"));
 
             Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.ErrorDestinationPath)));
 
-            Assert.IsNull(viewModel.AuditDestinationPath);
+            Assert.That(viewModel.AuditDestinationPath, Is.EqualTo($@"{programX86Path}\Particular Software\Particular.ServiceControl.Audit"));
 
             Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)));
         }
@@ -164,11 +168,11 @@
 
             var errorInfo = (INotifyDataErrorInfo)viewModel;
 
-            Assert.IsNull(viewModel.ErrorLogPath);
+            Assert.That(viewModel.ErrorLogPath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl\Logs"));
 
             Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.ErrorLogPath)));
 
-            Assert.IsNull(viewModel.AuditLogPath);
+            Assert.That(viewModel.AuditLogPath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl.Audit\Logs"));
 
             Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.AuditLogPath)));
         }
@@ -181,11 +185,11 @@
 
             var errorInfo = (INotifyDataErrorInfo)viewModel;
 
-            Assert.IsNull(viewModel.ErrorDatabasePath);
+            Assert.That(viewModel.ErrorDatabasePath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl\DB"));
 
             Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.ErrorDatabasePath)));
 
-            Assert.IsNull(viewModel.AuditDatabasePath);
+            Assert.That(viewModel.AuditDatabasePath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl.Audit\DB"));
 
             Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)));
         }

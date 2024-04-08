@@ -18,6 +18,31 @@
         {
             DisplayName = "ADD SERVICECONTROL";
             GetWindowsServiceNames = () => ServiceController.GetServices().Select(windowsService => windowsService.ServiceName).ToArray();
+            ConventionName = "Particular.ServiceControl";
+            OnConventionNameChanged();
+
+            var i = 0;
+            while (ConventionName != ErrorInstanceName)
+            {
+                ConventionName = $"Particular.ServiceControl.{++i}";
+                // ErrorInstanceName updated via OnConventionNameChanged added by Fody
+            }
+
+            ServiceControl.PropertyChanged += ServiceControl_PropertyChanged;
+            ServiceControlAudit.PropertyChanged += ServiceControl_PropertyChanged;
+        }
+
+        void ServiceControl_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (sender == ServiceControl)
+            {
+                NotifyOfPropertyChange($"Error{e.PropertyName}");
+            }
+
+            if (sender == ServiceControlAudit)
+            {
+                NotifyOfPropertyChange($"Audit{e.PropertyName}");
+            }
         }
 
         public Func<string[]> GetWindowsServiceNames { get; set; }
