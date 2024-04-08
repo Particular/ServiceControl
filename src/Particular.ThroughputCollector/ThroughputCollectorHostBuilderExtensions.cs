@@ -6,13 +6,12 @@ using BrokerThroughput;
 using Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Particular.ThroughputCollector.Shared;
 using ServiceControl.Configuration;
 using ServiceControl.Transports;
 
 public static class ThroughputCollectorHostBuilderExtensions
 {
-    static readonly string SettingsNamespace = "ThroughputCollector";
-
     public static IHostApplicationBuilder AddThroughputCollector(this IHostApplicationBuilder hostBuilder, string transportType, string errorQueue, string serviceControlQueue, string persistenceType, string customerName, string serviceControlVersion, Type? throughputQueryProvider)
     {
         //For testing only until RavenDB Persistence is working
@@ -58,7 +57,7 @@ public static class ThroughputCollectorHostBuilderExtensions
         if (throughputQueryProvider != null)
         {
             services.AddSingleton(throughputQueryProvider);
-            services.AddSingleton<IBrokerThroughputQuery>(provider =>
+            services.AddSingleton(provider =>
             {
                 var queryProvider = (IBrokerThroughputQuery)provider.GetRequiredService(throughputQueryProvider);
                 queryProvider.Initialise(LoadBrokerSettingValues(queryProvider.Settings));
@@ -70,7 +69,7 @@ public static class ThroughputCollectorHostBuilderExtensions
         return hostBuilder;
 
         static FrozenDictionary<string, string> LoadBrokerSettingValues(IEnumerable<KeyDescriptionPair> brokerKeys) =>
-            brokerKeys.Select(pair => KeyValuePair.Create(pair.Key, SettingsReader.Read<string>(new SettingsRootNamespace(SettingsNamespace), pair.Key)))
+            brokerKeys.Select(pair => KeyValuePair.Create(pair.Key, SettingsReader.Read<string>(new SettingsRootNamespace(PlatformEndpointHelper.SettingsNamespace), pair.Key)))
                 .Where(pair => !string.IsNullOrEmpty(pair.Value)).ToFrozenDictionary(key => key.Key, key => key.Value);
     }
 
