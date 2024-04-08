@@ -19,6 +19,6 @@
 
         public static string ServiceControlThroughputDataQueue = SettingsReader.Read(new SettingsRootNamespace(SettingsNamespace), "ServiceControlThroughputDataQueue", "ServiceControl.ThroughputData");
 
-        public static readonly string SettingsNamespace = "ThroughputCollector";
+        public const string SettingsNamespace = "ThroughputCollector";
     }
 }
