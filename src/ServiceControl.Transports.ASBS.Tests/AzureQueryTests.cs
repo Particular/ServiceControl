@@ -18,13 +18,14 @@ using Transports.ASBS;
 [TestFixture]
 class AzureQueryTests : TransportTestFixture
 {
-    readonly FakeTimeProvider provider = new();
+    FakeTimeProvider provider;
     TransportSettings transportSettings;
     AzureQuery query;
 
     [SetUp]
     public void Initialise()
     {
+        provider = new();
         provider.SetUtcNow(DateTimeOffset.UtcNow);
         transportSettings = new TransportSettings
         {
