@@ -111,11 +111,7 @@
 
             using (new DiagnosticTimer($"Starting ServiceControl {instanceName}"))
             {
-                var hostBuilder = WebApplication.CreateBuilder(new WebApplicationOptions
-                {
-                    // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
-                    EnvironmentName = Environments.Development
-                });
+                var hostBuilder = WebApplication.CreateBuilder();
                 hostBuilder.AddServiceControl(settings, configuration);
                 hostBuilder.AddServiceControlApi();
 
