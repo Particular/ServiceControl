@@ -93,35 +93,14 @@ public static class PersistenceManifestLibrary
         return Path.GetDirectoryName(assemblyLocation);
     }
 
-    public static string Find(string persistenceType)
+    public static PersistenceManifest? Find(string persistenceType)
     {
         if (persistenceType == null)
         {
             throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
         }
 
-        var persistenceManifestDefinition = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
-
-        return persistenceManifestDefinition?.TypeName ?? persistenceType;
-    }
-
-    public static string? GetPersistenceFolder(string persistenceType)
-    {
-        // TODO: Need to add assembly resolver for persistences
-        if (persistenceType == null)
-        {
-            throw new ArgumentNullException(nameof(persistenceType));
-        }
-
-        var persistenceManifestDefinition = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
-        if (persistenceManifestDefinition == null)
-        {
-            var e = new InvalidOperationException("No manifest found for persistenceType");
-            e.Data.Add(nameof(persistenceType), persistenceType);
-            throw e;
-        }
-
-        return persistenceManifestDefinition.Location;
+        return PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
     }
 
     static readonly ILog logger = LogManager.GetLogger(typeof(PersistenceManifestLibrary));
