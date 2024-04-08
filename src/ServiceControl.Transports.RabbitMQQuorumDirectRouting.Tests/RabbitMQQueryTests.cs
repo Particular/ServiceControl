@@ -5,6 +5,7 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting;
@@ -16,21 +17,45 @@ using Transports.RabbitMQ;
 [TestFixture]
 class RabbitMQQueryTests : TransportTestFixture
 {
+    readonly FakeTimeProvider provider = new();
+    TransportSettings transportSettings;
+    RabbitMQQuery query;
+
+    [SetUp]
+    public void Initialise()
+    {
+        provider.SetUtcNow(DateTimeOffset.UtcNow);
+        transportSettings = new TransportSettings
+        {
+            ConnectionString = configuration.ConnectionString,
+            MaxConcurrency = 1,
+            EndpointName = Guid.NewGuid().ToString("N")
+        };
+        query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, transportSettings);
+    }
+
+    [Test]
+    public async Task TestConnectionWithInvalidSettings()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        var dictionary = new Dictionary<string, string>
+        {
+            { RabbitMQQuery.RabbitMQSettings.API, "http://localhost:12345" }
+        };
+        query.Initialise(dictionary.ToFrozenDictionary());
+        (bool success, List<string> _) = await query.TestConnection(cancellationTokenSource.Token);
+
+        Assert.IsFalse(success);
+    }
+
     [Test]
     public async Task RunScenario()
     {
         // We need to wait a bit of time, because the scenario running takes on average 1 sec per run.
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         CancellationToken token = cancellationTokenSource.Token;
-        var provider = new FakeTimeProvider();
-        var transportSettings = new TransportSettings
-        {
-            ConnectionString = configuration.ConnectionString,
-            MaxConcurrency = 1,
-            EndpointName = Guid.NewGuid().ToString("N")
-        };
         var totalWrapper = new TotalWrapper();
-        var query = new RabbitMQQuery(provider, transportSettings);
         IScenarioWithEndpointBehavior<MyContext> scenario = Scenario.Define<MyContext>(c =>
             {
                 c.Total = totalWrapper;
