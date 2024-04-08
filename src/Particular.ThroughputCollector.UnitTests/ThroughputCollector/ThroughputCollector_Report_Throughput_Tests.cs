@@ -3,9 +3,11 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Particular.ThroughputCollector.Contracts;
 using Particular.ThroughputCollector.UnitTests.Infrastructure;
+using ServiceControl.Api;
 
 [TestFixture]
 class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixture
@@ -14,6 +16,13 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
     public override Task Setup()
     {
         SetThroughputSettings = s => s.Broker = broker;
+
+        SetExtraDependencies = d =>
+        {
+            d.AddSingleton<IConfigurationApi, FakeConfigurationApi>();
+            d.AddSingleton<IEndpointsApi, FakeEndpointApi>();
+            d.AddSingleton<IAuditCountApi, FakeAuditCountApi>();
+        };
 
         return base.Setup();
     }

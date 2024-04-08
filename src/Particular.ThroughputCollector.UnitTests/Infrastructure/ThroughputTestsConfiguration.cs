@@ -1,24 +1,21 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests.Infrastructure
 {
     using System;
-    using System.Collections.Generic;
-    using System.Threading;
     using System.Threading.Tasks;
     using Contracts;
     using Microsoft.Extensions.DependencyInjection;
     using Particular.ThroughputCollector.AuditThroughput;
     using Persistence;
     using Persistence.InMemory;
-    using ServiceControl.Api;
-    using ServiceControl.Api.Contracts;
 
     partial class ThroughputTestsConfiguration
     {
         public IThroughputDataStore ThroughputDataStore { get; protected set; }
         public IThroughputCollector ThroughputCollector { get; protected set; }
         public ThroughputSettings ThroughputSettings { get; protected set; }
+        public AuditQuery AuditQuery { get; protected set; }
 
-        public Task Configure(Action<ThroughputSettings> setThroughputSettings)
+        public Task Configure(Action<ThroughputSettings> setThroughputSettings, Action<ServiceCollection> setExtraDependencies)
         {
             var throughputSettings = new ThroughputSettings(broker: Broker.None, serviceControlQueue: "Particular.ServiceControl", errorQueue: "error", persistenceType: "InMemory", transportType: "Learning", customerName: "TestCustomer", serviceControlVersion: "5.0.1");
             setThroughputSettings(throughputSettings);
@@ -28,18 +25,13 @@
 
             var config = new InMemoryPersistenceConfiguration();
             var settings = new PersistenceSettings();
-            //TODO is this still needed since we are now storing this on settings and on the auditCommand?
-            //throughputSettings.AuditQueues.ForEach(a => settings.PlatformEndpointNames.Add(a));
-            //settings.PlatformEndpointNames.Add(throughputSettings.ErrorQueue);
-            //settings.PlatformEndpointNames.Add(throughputSettings.ServiceControlQueue);
             serviceCollection.AddSingleton(settings);
 
             var persistence = config.Create(settings);
             persistence.Configure(serviceCollection);
 
-            serviceCollection.AddSingleton<IConfigurationApi, FakeConfigurationApi>();
-            serviceCollection.AddSingleton<IEndpointsApi, FakeEndpointApi>();
-            serviceCollection.AddSingleton<IAuditCountApi, FakeAuditCountApi>();
+            setExtraDependencies(serviceCollection);
+
             serviceCollection.AddSingleton<IThroughputCollector, ThroughputCollector>();
             serviceCollection.AddSingleton<AuditQuery>();
             //serviceCollection.AddHostedService<AuditThroughputCollectorHostedService>();
@@ -50,29 +42,11 @@
             ThroughputDataStore = serviceProvider.GetRequiredService<IThroughputDataStore>();
             ThroughputCollector = serviceProvider.GetRequiredService<IThroughputCollector>();
             ThroughputSettings = serviceProvider.GetRequiredService<ThroughputSettings>();
+            AuditQuery = serviceProvider.GetRequiredService<AuditQuery>();
 
             return Task.CompletedTask;
         }
 
         public Task Cleanup() => Task.CompletedTask;
-    }
-
-    class FakeConfigurationApi : IConfigurationApi
-    {
-        public object GetConfig() => throw new NotImplementedException();
-
-        public Task<object> GetRemoteConfigs(CancellationToken cancellationToken = default) => Task.FromResult<object>("[{ api_uri:\"http://localhost:44444\", status:\"online\", version: \"5.1.0\" }]");
-
-        public RootUrls GetUrls(string baseUrl) => throw new NotImplementedException();
-    }
-
-    class FakeEndpointApi : IEndpointsApi
-    {
-        public List<ServiceControl.Api.Contracts.Endpoint> GetEndpoints() => throw new NotImplementedException();
-    }
-
-    class FakeAuditCountApi : IAuditCountApi
-    {
-        public Task<IList<ServiceControl.Api.Contracts.AuditCount>> GetEndpointAuditCounts(string endpoint, CancellationToken token) => throw new NotImplementedException();
     }
 }
