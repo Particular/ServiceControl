@@ -13,50 +13,59 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
 
-public class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transportSettings) : IBrokerThroughputQuery
+public class RabbitMQQuery(ILogger<RabbitMQQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings) : IBrokerThroughputQuery
 {
     HttpClient? httpClient;
     readonly ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
         .AddRetry(new RetryStrategyOptions()) // Add retry using the default options
         .AddTimeout(TimeSpan.FromMinutes(2)) // Add timeout if it keeps failing
         .Build();
+    readonly List<string> initialiseErrors = [];
 
     public void Initialise(FrozenDictionary<string, string> settings)
     {
-        string? connectionString = transportSettings.ConnectionString;
-        var connectionConfiguration = ConnectionConfiguration.Create(connectionString, "");
-
-        if (!settings.TryGetValue(RabbitMQSettings.UserName, out var username) ||
-            string.IsNullOrEmpty(username))
+        try
         {
-            username = connectionConfiguration.UserName;
+            string? connectionString = transportSettings.ConnectionString;
+            var connectionConfiguration = ConnectionConfiguration.Create(connectionString, string.Empty);
+
+            if (!settings.TryGetValue(RabbitMQSettings.UserName, out string? username) ||
+                string.IsNullOrEmpty(username))
+            {
+                username = connectionConfiguration.UserName;
+            }
+
+            if (!settings.TryGetValue(RabbitMQSettings.Password, out string? password) ||
+                string.IsNullOrEmpty(password))
+            {
+                password = connectionConfiguration.UserName;
+            }
+
+            var defaultCredential = new NetworkCredential(username, password);
+
+            if (!settings.TryGetValue(RabbitMQSettings.API, out string? apiUrl) ||
+                string.IsNullOrEmpty(apiUrl))
+            {
+                apiUrl =
+                    $"{(connectionConfiguration.UseTls ? $"https://{connectionConfiguration.Host}:15671" : $"http://{connectionConfiguration.Host}:15672")}";
+            }
+
+            httpClient = new HttpClient(new SocketsHttpHandler
+            {
+                Credentials = defaultCredential,
+                PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+            })
+            { BaseAddress = new Uri(apiUrl) };
         }
-
-        if (!settings.TryGetValue(RabbitMQSettings.Password, out var password) ||
-            string.IsNullOrEmpty(password))
+        catch (Exception e)
         {
-            password = connectionConfiguration.UserName;
+            initialiseErrors.Add(e.Message);
+            logger.LogError($"Failed to initialise {nameof(RabbitMQQuery)}");
         }
-
-        var defaultCredential = new NetworkCredential(username, password);
-
-        if (!settings.TryGetValue(RabbitMQSettings.API, out var apiUrl) ||
-            string.IsNullOrEmpty(apiUrl))
-        {
-            apiUrl = $"{(connectionConfiguration.UseTls ? $"https://{connectionConfiguration.Host}:15671" : $"http://{connectionConfiguration.Host}:15672")}";
-        }
-
-        httpClient = new HttpClient(new SocketsHttpHandler
-        {
-            Credentials = defaultCredential,
-            PooledConnectionLifetime = TimeSpan.FromMinutes(2)
-        })
-        {
-            BaseAddress = new Uri(apiUrl)
-        };
     }
 
     public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
@@ -250,12 +259,18 @@ public class RabbitMQQuery(TimeProvider timeProvider, TransportSettings transpor
 
     public async Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken)
     {
+        if (initialiseErrors.Count > 0)
+        {
+            return (false, initialiseErrors);
+        }
+
         try
         {
             await GetRabbitDetails(true, cancellationToken);
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Test connection failed");
             return (false, [ex.Message]);
         }
 

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 using Transports;
@@ -26,7 +27,7 @@ class RabbitMQQueryTests : TransportTestFixture
             MaxConcurrency = 1,
             EndpointName = Guid.NewGuid().ToString("N")
         };
-        var query = new RabbitMQQuery(provider, transportSettings);
+        var query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, transportSettings);
         string[] additionalQueues = Enumerable.Range(1, 10).Select(i => $"myqueue{i}").ToArray();
         await configuration.TransportCustomization.ProvisionQueues(transportSettings, additionalQueues);
 
