@@ -88,13 +88,13 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
             services.AddSingleton<RavenEmbeddedPersistenceLifecycle>();
             services.AddSingleton<IRavenPersistenceLifecycle>(b => b.GetService<RavenEmbeddedPersistenceLifecycle>());
             services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
+            services.AddSingleton(provider => provider.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore());
             return;
         }
 
         services.AddSingleton<RavenExternalPersistenceLifecycle>();
         services.AddSingleton<IRavenPersistenceLifecycle>(b => b.GetService<RavenExternalPersistenceLifecycle>());
         services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
-
         services.AddSingleton(provider => provider.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore());
     }
 }

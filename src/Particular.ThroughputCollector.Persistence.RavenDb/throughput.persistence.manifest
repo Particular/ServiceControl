@@ -3,6 +3,7 @@
   "Name": "RavenDB",
   "DisplayName": "RavenDB",
   "Description": "RavenDB ThroughputCollector persister",
+  "AssemblyName": "Particular.ThroughputCollector.Persistence.RavenDb",
   "TypeName": "Particular.ThroughputCollector.Persistence.RavenDb.RavenPersistenceConfiguration, Particular.ThroughputCollector.Persistence.RavenDb",
   "Settings": [
     {

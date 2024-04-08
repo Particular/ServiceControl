@@ -25,6 +25,7 @@ class ThroughputComponent : ServiceControlComponent
             settings.ErrorQueue,
             settings.ServiceName,
             persistenceManifest.Name,
+            persistenceManifest.AssemblyPath,
             LicenseManager.FindLicense().Details.RegisteredTo,
             ServiceControlVersion.GetFileVersion(),
             transportCustomization.ThroughputQueryProvider);
@@ -35,7 +36,7 @@ class ThroughputComponent : ServiceControlComponent
         var persistenceManifest = PersistenceManifestLibrary.Find(settings.PersistenceType)
             ?? throw new InvalidOperationException($"No manifest found for {settings.PersistenceType} persistenceType");
 
-        hostBuilder.AddThroughputCollectorPersistence(persistenceManifest.Name);
+        hostBuilder.AddThroughputCollectorPersistence(persistenceManifest.Name, persistenceManifest.AssemblyPath);
         context.RegisterInstallationTask(serviceProvider => serviceProvider.GetRequiredService<ThroughputPersistence.IPersistenceInstaller>().Install());
     }
 }

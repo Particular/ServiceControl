@@ -12,7 +12,16 @@ using ServiceControl.Transports;
 
 public static class ThroughputCollectorHostBuilderExtensions
 {
-    public static IHostApplicationBuilder AddThroughputCollector(this IHostApplicationBuilder hostBuilder, string transportType, string errorQueue, string serviceControlQueue, string persistenceType, string customerName, string serviceControlVersion, Type? throughputQueryProvider)
+    public static IHostApplicationBuilder AddThroughputCollector(
+        this IHostApplicationBuilder hostBuilder,
+        string transportType,
+        string errorQueue,
+        string serviceControlQueue,
+        string persistenceType,
+        string persistenceAssembly,
+        string customerName,
+        string serviceControlVersion,
+        Type? throughputQueryProvider)
     {
         //For testing only until RavenDB Persistence is working
         persistenceType = "InMemory";
@@ -52,7 +61,7 @@ public static class ThroughputCollectorHostBuilderExtensions
             services.AddHostedService<BrokerThroughputCollectorHostedService>();
         }
 
-        hostBuilder.AddThroughputCollectorPersistence(persistenceType);
+        hostBuilder.AddThroughputCollectorPersistence(persistenceType, persistenceAssembly);
 
         if (throughputQueryProvider != null)
         {
@@ -73,9 +82,9 @@ public static class ThroughputCollectorHostBuilderExtensions
                 .Where(pair => !string.IsNullOrEmpty(pair.Value)).ToFrozenDictionary(key => key.Key, key => key.Value);
     }
 
-    public static IHostApplicationBuilder AddThroughputCollectorPersistence(this IHostApplicationBuilder hostBuilder, string persistenceType)
+    public static IHostApplicationBuilder AddThroughputCollectorPersistence(this IHostApplicationBuilder hostBuilder, string persistenceType, string persistenceAssembly)
     {
-        hostBuilder.Services.AddPersistence(persistenceType);
+        hostBuilder.Services.AddPersistence(persistenceType, persistenceAssembly);
 
         return hostBuilder;
     }

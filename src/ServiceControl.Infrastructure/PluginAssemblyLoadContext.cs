@@ -1,15 +1,26 @@
 ﻿namespace ServiceControl.Infrastructure;
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 
-public class PluginAssemblyLoadContext(string assemblyPath) : AssemblyLoadContext(assemblyPath)
+public class PluginAssemblyLoadContext : AssemblyLoadContext
 {
-    readonly AssemblyDependencyResolver resolver = new(assemblyPath);
+    readonly List<AssemblyDependencyResolver> resolvers = [];
+    readonly HashSet<string> resolverPaths = [];
+
+    public PluginAssemblyLoadContext(string assemblyPath) : base(assemblyPath)
+    {
+        resolvers.Add(new(assemblyPath));
+        resolverPaths.Add(assemblyPath);
+    }
 
     protected override Assembly Load(AssemblyName assemblyName)
     {
-        var assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
+        var assemblyPath = resolvers
+            .Select(resolver => resolver.ResolveAssemblyToPath(assemblyName))
+            .FirstOrDefault(path => path is not null);
 
         if (assemblyPath is not null)
         {
@@ -33,7 +44,9 @@ public class PluginAssemblyLoadContext(string assemblyPath) : AssemblyLoadContex
 
     protected override nint LoadUnmanagedDll(string unmanagedDllName)
     {
-        var unmanagedDllPath = resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
+        var unmanagedDllPath = resolvers
+            .Select(resolver => resolver.ResolveUnmanagedDllToPath(unmanagedDllName))
+            .FirstOrDefault(path => path is not null);
 
         if (unmanagedDllPath is not null)
         {
@@ -42,4 +55,8 @@ public class PluginAssemblyLoadContext(string assemblyPath) : AssemblyLoadContex
 
         return nint.Zero;
     }
+
+    public bool HasResolver(string path) => resolverPaths.Contains(path);
+
+    public void AddResolver(string path) => resolvers.Add(new(path));
 }

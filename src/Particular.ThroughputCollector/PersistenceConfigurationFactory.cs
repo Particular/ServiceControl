@@ -1,16 +1,30 @@
 namespace Particular.ThroughputCollector;
 
 using System;
+using System.Runtime.Loader;
 using Particular.ThroughputCollector.Configuration;
 using Particular.ThroughputCollector.Persistence;
 using ServiceControl.Configuration;
+using ServiceControl.Infrastructure;
 
 static class PersistenceConfigurationFactory
 {
-    public static IPersistenceConfiguration LoadPersistenceConfiguration(string persistenceType)
+    public static IPersistenceConfiguration LoadPersistenceConfiguration(string persistenceType, string persistenceAssembly)
     {
+        var loadContext = AssemblyLoadContext.All.FirstOrDefault(lc => lc.Name is not null && lc.Name.Equals(persistenceAssembly, StringComparison.OrdinalIgnoreCase));
+        if (loadContext is not PluginAssemblyLoadContext pluginLoadContext)
+        {
+            throw new InvalidOperationException("Could not find ServiceControl persistence seam load context");
+        }
+
         var manifest = PersistenceManifestLibrary.Find(persistenceType) ?? throw new InvalidOperationException($"No manifest found for {persistenceType} persistenceType");
-        var type = Type.GetType(manifest.TypeName) ?? throw new InvalidOperationException($"Could not load type '{manifest.TypeName}' for requested persistence type '{persistenceType}'");
+
+        if (!pluginLoadContext.HasResolver(manifest.AssemblyPath))
+        {
+            pluginLoadContext.AddResolver(manifest.AssemblyPath);
+        }
+
+        var type = Type.GetType(manifest.TypeName, loadContext.LoadFromAssemblyName, null, true) ?? throw new InvalidOperationException($"Could not load type '{manifest.TypeName}' for requested persistence type '{persistenceType}' from '{loadContext.Name}' load context");
 
         if (Activator.CreateInstance(type) is IPersistenceConfiguration config)
         {

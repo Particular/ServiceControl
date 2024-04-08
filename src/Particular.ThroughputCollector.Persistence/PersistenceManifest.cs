@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using NServiceBus.Logging;
 
 public class PersistenceManifest
@@ -19,7 +20,14 @@ public class PersistenceManifest
 
     public required string Description { get; set; }
 
+    public required string AssemblyName { get; set; }
+
     public required string TypeName { get; set; }
+
+    [JsonIgnore]
+    public string? AssemblyPath => Location == null
+        ? null
+        : Path.Combine(Location, $"{AssemblyName}.dll");
 
     public bool IsSupported { get; set; } = true;
 
