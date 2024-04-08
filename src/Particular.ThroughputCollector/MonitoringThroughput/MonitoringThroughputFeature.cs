@@ -15,9 +15,9 @@ using Endpoint = Contracts.Endpoint;
 using Particular.ThroughputCollector.Shared;
 using Microsoft.Extensions.DependencyInjection;
 
-class MonitoringThroughputFeature : Feature
+public class MonitoringThroughputFeature : Feature
 {
-    MonitoringThroughputFeature()
+    public MonitoringThroughputFeature()
     {
         EnableByDefault();
     }
@@ -38,7 +38,7 @@ class MonitoringThroughputFeature : Feature
             onMessage: OnMessage);
     }
 
-    async Task OnMessage(IServiceProvider serviceProvider, MessageContext context, CancellationToken cancellationToken)
+    public async Task OnMessage(IServiceProvider serviceProvider, MessageContext context, CancellationToken cancellationToken)
     {
         var logger = serviceProvider.GetRequiredService<ILogger<MonitoringThroughputFeature>>();
 
