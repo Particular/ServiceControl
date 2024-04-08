@@ -18,13 +18,14 @@ using Transports.SqlServer;
 [TestFixture]
 class SqlServerQueryTests : TransportTestFixture
 {
-    readonly FakeTimeProvider provider = new();
+    FakeTimeProvider provider;
     TransportSettings transportSettings;
     SqlServerQuery query;
 
     [SetUp]
     public void Initialise()
     {
+        provider = new();
         provider.SetUtcNow(DateTimeOffset.UtcNow);
         transportSettings = new TransportSettings
         {
