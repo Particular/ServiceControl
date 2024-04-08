@@ -3,8 +3,10 @@ namespace ServiceControl.Transport.Tests;
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting;
@@ -16,20 +18,62 @@ using Transports.SqlServer;
 [TestFixture]
 class SqlServerQueryTests : TransportTestFixture
 {
+    readonly FakeTimeProvider provider = new();
+    TransportSettings transportSettings;
+    SqlServerQuery query;
+
+    [SetUp]
+    public void Initialise()
+    {
+        provider.SetUtcNow(DateTimeOffset.UtcNow);
+        transportSettings = new TransportSettings
+        {
+            ConnectionString = configuration.ConnectionString,
+            MaxConcurrency = 1,
+            EndpointName = Guid.NewGuid().ToString("N")
+        };
+        query = new SqlServerQuery(NullLogger<SqlServerQuery>.Instance, provider, transportSettings);
+    }
+
+    [Test]
+    public async Task TestConnectionWithInvalidConnectionStringSettings()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        var dictionary = new Dictionary<string, string>
+        {
+            { SqlServerQuery.SqlServerSettings.ConnectionString, "not valid" }
+        };
+        query.Initialise(dictionary.ToFrozenDictionary());
+        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+
+        Assert.IsFalse(success);
+        Assert.AreEqual("SQL Connection String could not be parsed.", errors.Single());
+    }
+
+    [Test]
+    public async Task TestConnectionWithInvalidCatalogSettings()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        var dictionary = new Dictionary<string, string>
+        {
+            { SqlServerQuery.SqlServerSettings.ConnectionString, configuration.ConnectionString },
+            { SqlServerQuery.SqlServerSettings.AdditionalCatalogs, "not_here" }
+        };
+        query.Initialise(dictionary.ToFrozenDictionary());
+        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+
+        Assert.IsFalse(success);
+        StringAssert.StartsWith("Cannot open database \"not_here\"", errors.Single());
+    }
+
     [Test]
     public async Task RunScenario()
     {
         // We need to wait a bit of time, because the scenario running takes on average 1 sec per run.
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(50));
         CancellationToken token = cancellationTokenSource.Token;
-        var provider = new FakeTimeProvider();
-        var transportSettings = new TransportSettings
-        {
-            ConnectionString = configuration.ConnectionString,
-            MaxConcurrency = 1,
-            EndpointName = Guid.NewGuid().ToString("N")
-        };
-        var query = new SqlServerQuery(provider, transportSettings);
         IScenarioWithEndpointBehavior<MyContext> scenario = Scenario.Define<MyContext>()
             .WithEndpoint(new Receiver(transportSettings.EndpointName), b =>
             b
