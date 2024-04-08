@@ -7,7 +7,6 @@ using ServiceControl.Transports;
 using Shared;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using QueueThroughput = Contracts.QueueThroughput;
 
 public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, AuditQuery auditQuery, IBrokerThroughputQuery? throughputQuery = null)
     : IThroughputCollector
@@ -206,7 +205,6 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
     static string? EndpointScope(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.Scope))?.Scope;
 
     bool IsKnownEndpoint(IGrouping<string, Endpoint> endpoint) => endpoint.Any(s => s.EndpointIndicators != null && s.EndpointIndicators.Contains(EndpointIndicator.KnownEndpoint.ToString()));
-    //bool IsPlatformEndpoint(IGrouping<string, Endpoint> endpoint) => endpoint.Any(s => s.EndpointIndicators != null && s.EndpointIndicators.Contains(EndpointIndicator.PlatformEndpoint.ToString()));
 
     string[]? EndpointIndicators(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.EndpointIndicators?.Any() == true)?.SelectMany(s => s.EndpointIndicators)?.Distinct()?.ToArray();
     (string Mask, string Replacement)[] masks = [];
