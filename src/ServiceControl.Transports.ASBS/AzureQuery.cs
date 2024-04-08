@@ -56,6 +56,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
                 serviceBusName = transportSettings.ConnectionString.Substring(startIndex,
                     transportSettings.ConnectionString.IndexOf('.', startIndex) - startIndex);
+                logger.LogInformation("ServiceBus name extracted from connection string");
             }
 
             if (!settings.TryGetValue(AzureServiceBusSettings.SubscriptionId, out string? subscriptionId))
