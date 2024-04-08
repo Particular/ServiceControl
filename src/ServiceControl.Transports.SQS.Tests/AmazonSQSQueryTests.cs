@@ -3,8 +3,10 @@ namespace ServiceControl.Transport.Tests;
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting;
@@ -15,22 +17,63 @@ using Transports.SQS;
 [TestFixture]
 class AmazonSQSQueryTests : TransportTestFixture
 {
+    readonly FakeTimeProvider provider = new();
+    TransportSettings transportSettings;
+    AmazonSQSQuery query;
+
+    [SetUp]
+    public void Initialise()
+    {
+        provider.SetUtcNow(DateTimeOffset.UtcNow);
+        transportSettings = new TransportSettings
+        {
+            ConnectionString = configuration.ConnectionString,
+            MaxConcurrency = 1,
+            EndpointName = Guid.NewGuid().ToString("N")
+        };
+        query = new AmazonSQSQuery(NullLogger<AmazonSQSQuery>.Instance, provider);
+    }
+
+    [Test]
+    public async Task TestConnectionWithInvalidAccessKeySettings()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        var dictionary = new Dictionary<string, string>
+        {
+            { AmazonSQSQuery.AmazonSQSSettings.AccessKey, "not valid" },
+            { AmazonSQSQuery.AmazonSQSSettings.SecretKey, "not valid" }
+        };
+        query.Initialise(dictionary.ToFrozenDictionary());
+        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+
+        Assert.IsFalse(success);
+        StringAssert.Contains("not a valid key", errors.Single());
+    }
+
+    [Test]
+    public async Task TestConnectionWithInvalidRegionSettings()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        var dictionary = new Dictionary<string, string>
+        {
+            { AmazonSQSQuery.AmazonSQSSettings.Region, "not valid" }
+        };
+        query.Initialise(dictionary.ToFrozenDictionary());
+        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+
+        Assert.IsFalse(success);
+        Assert.AreEqual("Invalid region endpoint provided", errors.Single());
+    }
+
     [Test]
     public async Task RunScenario()
     {
         // We need to wait a bit of time, to ensure AWS metrics are retrievable
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(6));
         CancellationToken token = cancellationTokenSource.Token;
-        var provider = new FakeTimeProvider();
-        provider.SetUtcNow(DateTimeOffset.UtcNow);
-        var transportSettings = new TransportSettings
-        {
-            ConnectionString = configuration.ConnectionString,
-            MaxConcurrency = 1,
-            EndpointName = Guid.NewGuid().ToString("N")
-        };
         const int messagesSent = 15;
-        var query = new AmazonSQSQuery(provider);
         await Scenario.Define<MyContext>()
             .WithEndpoint(new Receiver(transportSettings.EndpointName), b =>
             b
