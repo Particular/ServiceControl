@@ -12,7 +12,6 @@ using Particular.ThroughputCollector.Contracts;
 using Particular.ThroughputCollector.UnitTests.Infrastructure;
 using ServiceControl.Api;
 using ServiceControl.Api.Contracts;
-using static System.Net.WebRequestMethods;
 
 [TestFixture]
 class AuditQuery_Tests : ThroughputCollectorTestFixture

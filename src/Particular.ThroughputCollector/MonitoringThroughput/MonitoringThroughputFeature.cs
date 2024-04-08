@@ -9,7 +9,6 @@ using NServiceBus.Transport;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Particular.ThroughputCollector.Persistence;
-using ServiceControl.Configuration;
 using System.Text.Json;
 using Particular.ThroughputCollector.Contracts;
 using Endpoint = Contracts.Endpoint;
@@ -26,7 +25,7 @@ class MonitoringThroughputFeature : Feature
     protected override void Setup(FeatureConfigurationContext context)
     {
         //https://docs.particular.net/nservicebus/satellites/
-        var serviceControlThroughputDataQueue = SettingsReader.Read(new SettingsRootNamespace(SettingsNamespace), "ServiceControlThroughputDataQueue", "ServiceControl.ThroughputData");
+        var serviceControlThroughputDataQueue = PlatformEndpointHelper.ServiceControlThroughputDataQueue;
 
         context.AddSatelliteReceiver(
             name: "ServiceControlThroughputDataQueue",
@@ -83,6 +82,4 @@ class MonitoringThroughputFeature : Feature
             logger.LogError(ex, "Error receiving throughput data from Monitoring");
         }
     }
-
-    static readonly string SettingsNamespace = "ThroughputCollector";
 }
