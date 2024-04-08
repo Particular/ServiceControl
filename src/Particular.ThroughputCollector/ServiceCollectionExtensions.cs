@@ -44,13 +44,13 @@ static class ServiceCollectionExtensions
     {
         foreach (var persistenceType in PersistenceTypes)
         {
-            var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(persistenceType);
-            if (persistenceFolder == null)
+            var manifest = PersistenceManifestLibrary.Find(persistenceType);
+            if (manifest?.Location == null)
             {
                 continue;
             }
 
-            var path = Path.Combine(persistenceFolder, $"{assemblyName.Name}.dll");
+            var path = Path.Combine(manifest.Location, $"{assemblyName.Name}.dll");
 
             if (File.Exists(path))
             {
