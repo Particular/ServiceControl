@@ -14,7 +14,7 @@
         [Test]
         public void Should_find_persistence_type_by_name()
         {
-            var _persistenceType = PersistenceManifestLibrary.Find(persistenceName);
+            var _persistenceType = PersistenceManifestLibrary.Find(persistenceName)?.TypeName;
 
             Assert.That(_persistenceType, Is.EqualTo(persistenceType));
         }
@@ -22,24 +22,15 @@
         [Test]
         public void Should_find_persistence_type_by_type()
         {
-            var _persistenceType = PersistenceManifestLibrary.Find(persistenceType);
+            var _persistenceType = PersistenceManifestLibrary.Find(persistenceType)?.TypeName;
 
             Assert.That(_persistenceType, Is.EqualTo(persistenceType));
         }
 
         [Test]
-        public void Should_return_persistence_type_passed_in_if_not_found()
-        {
-            var fakePersistenceType = "My.fake.persistence, fakeTransportAssembly";
-            var _persistenceType = PersistenceManifestLibrary.Find(fakePersistenceType);
-
-            Assert.That(_persistenceType, Is.EqualTo(fakePersistenceType));
-        }
-
-        [Test]
         public void Should_find_persistence_type_folder_by_name()
         {
-            var _persistenceTypeFolder = PersistenceManifestLibrary.GetPersistenceFolder(persistenceName);
+            var _persistenceTypeFolder = PersistenceManifestLibrary.Find(persistenceType)?.Location;
 
             Assert.That(_persistenceTypeFolder, Is.Not.Null);
         }
@@ -47,7 +38,7 @@
         [Test]
         public void Should_find_persistence_type_folder_by_type()
         {
-            var _persistenceTypeFolder = PersistenceManifestLibrary.GetPersistenceFolder(persistenceType);
+            var _persistenceTypeFolder = PersistenceManifestLibrary.Find(persistenceType)?.Location;
 
             Assert.That(_persistenceTypeFolder, Is.Not.Null);
         }
@@ -60,7 +51,7 @@
             foreach (var definition in PersistenceManifestLibrary.PersistenceManifests)
             {
                 count++;
-                var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(definition.Name);
+                var persistenceFolder = definition.Location;
                 var assemblyName = definition.TypeName.Split(',')[1].Trim();
                 var assemblyFile = Path.Combine(persistenceFolder, assemblyName + ".dll");
                 var assembly = Assembly.LoadFrom(assemblyFile);
