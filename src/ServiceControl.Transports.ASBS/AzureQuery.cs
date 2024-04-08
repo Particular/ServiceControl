@@ -14,6 +14,7 @@ using Azure.Identity;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
 using Azure.ResourceManager;
+using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.ServiceBus;
 using Microsoft.Extensions.Logging;
 
@@ -23,49 +24,76 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     MetricsQueryClient? client;
     ArmClient? armClient;
     string? resourceId;
+    readonly List<string> initialiseErrors = [];
 
     public void Initialise(FrozenDictionary<string, string> settings)
     {
-        settings.TryGetValue(AzureServiceBusSettings.ManagementUrl, out var managementUrl);
+        initialiseErrors.Clear();
 
-        if (settings.TryGetValue(AzureServiceBusSettings.ServiceBusName, out string? serviceBusNameValue))
+        try
         {
-            serviceBusName = serviceBusNameValue.Length == 0 ? string.Empty : serviceBusNameValue;
-        }
+            settings.TryGetValue(AzureServiceBusSettings.ManagementUrl, out string? managementUrl);
 
-        if (string.IsNullOrEmpty(serviceBusName))
-        {
-            // Extract ServiceBus name from connection string
-            const string serviceBusUrlPrefix = "sb://";
-            int serviceBusUrlPrefixLength = serviceBusUrlPrefix.Length;
-            int startIndex = transportSettings.ConnectionString.IndexOf(serviceBusUrlPrefix, StringComparison.Ordinal);
-            if (startIndex == -1)
+            if (settings.TryGetValue(AzureServiceBusSettings.ServiceBusName, out string? serviceBusNameValue))
             {
-                startIndex = 0;
-            }
-            else
-            {
-                startIndex += serviceBusUrlPrefixLength;
+                serviceBusName = serviceBusNameValue.Length == 0 ? string.Empty : serviceBusNameValue;
             }
 
-            serviceBusName = transportSettings.ConnectionString.Substring(startIndex,
-                transportSettings.ConnectionString.IndexOf('.', startIndex) - startIndex);
+            if (string.IsNullOrEmpty(serviceBusName))
+            {
+                // Extract ServiceBus name from connection string
+                const string serviceBusUrlPrefix = "sb://";
+                int serviceBusUrlPrefixLength = serviceBusUrlPrefix.Length;
+                int startIndex = transportSettings.ConnectionString.IndexOf(serviceBusUrlPrefix, StringComparison.Ordinal);
+                if (startIndex == -1)
+                {
+                    startIndex = 0;
+                }
+                else
+                {
+                    startIndex += serviceBusUrlPrefixLength;
+                }
+
+                serviceBusName = transportSettings.ConnectionString.Substring(startIndex,
+                    transportSettings.ConnectionString.IndexOf('.', startIndex) - startIndex);
+            }
+
+            if (!settings.TryGetValue(AzureServiceBusSettings.SubscriptionId, out string? subscriptionId))
+            {
+                initialiseErrors.Add("SubscriptionId is a required setting");
+            }
+            if (!settings.TryGetValue(AzureServiceBusSettings.TenantId, out string? tenantId))
+            {
+                initialiseErrors.Add("TenantId is a required setting");
+            }
+            if (!settings.TryGetValue(AzureServiceBusSettings.ClientId, out string? clientId))
+            {
+                initialiseErrors.Add("ClientId is a required setting");
+            }
+            if (!settings.TryGetValue(AzureServiceBusSettings.ClientSecret, out string? clientSecret))
+            {
+                initialiseErrors.Add("ClientSecret is a required setting");
+            }
+
+            var clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
+            ArmEnvironment environment = GetEnvironment(managementUrl);
+
+            client = new MetricsQueryClient(environment.Endpoint, clientCredentials, new MetricsQueryClientOptions
+            {
+                Transport = new HttpClientTransport(new HttpClient(new SocketsHttpHandler { PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2) }))
+            });
+            armClient = new ArmClient(clientCredentials, subscriptionId,
+                new ArmClientOptions { Environment = environment, Transport = new HttpClientTransport(new HttpClient(new SocketsHttpHandler { PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2) })) });
+        }
+        catch (Exception e)
+        {
+            initialiseErrors.Add(e.Message);
+            logger.LogError($"Failed to initialise {nameof(AzureQuery)}");
         }
 
-        var subscriptionId = settings[AzureServiceBusSettings.SubscriptionId];
-        var environment = GetEnvironment();
-        var clientCredentials = new ClientSecretCredential(settings[AzureServiceBusSettings.TenantId],
-            settings[AzureServiceBusSettings.ClientId], settings[AzureServiceBusSettings.ClientSecret]);
-
-        client = new MetricsQueryClient(environment.Endpoint, clientCredentials, new MetricsQueryClientOptions
-        {
-            Transport = new HttpClientTransport(new HttpClient(new SocketsHttpHandler { PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2) }))
-        });
-        armClient = new ArmClient(clientCredentials, subscriptionId,
-            new ArmClientOptions { Environment = environment, Transport = new HttpClientTransport(new HttpClient(new SocketsHttpHandler { PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2) })) });
         return;
 
-        ArmEnvironment GetEnvironment()
+        ArmEnvironment GetEnvironment(string? managementUrl)
         {
             if (managementUrl == null)
             {
@@ -140,7 +168,12 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     public async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var subscription = await armClient!.GetDefaultSubscriptionAsync(cancellationToken).ConfigureAwait(false);
+        if (initialiseErrors.Count > 0)
+        {
+            yield break;
+        }
+
+        SubscriptionResource? subscription = await armClient!.GetDefaultSubscriptionAsync(cancellationToken);
         var namespaces =
             subscription.GetServiceBusNamespacesAsync(cancellationToken);
 
@@ -176,6 +209,11 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
     public async Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken)
     {
+        if (initialiseErrors.Count > 0)
+        {
+            return (false, initialiseErrors);
+        }
+
         try
         {
             await foreach (IBrokerQueue brokerQueue in GetQueueNames(cancellationToken))
@@ -189,6 +227,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Test connection failed");
             return (false, [ex.Message]);
         }
 
