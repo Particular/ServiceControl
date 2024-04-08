@@ -23,9 +23,6 @@ public static class ThroughputCollectorHostBuilderExtensions
         string serviceControlVersion,
         Type? throughputQueryProvider)
     {
-        //For testing only until RavenDB Persistence is working
-        persistenceType = "InMemory";
-
         var services = hostBuilder.Services;
 
         var broker = Broker.None;
