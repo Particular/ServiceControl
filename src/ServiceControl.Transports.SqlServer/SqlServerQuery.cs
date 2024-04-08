@@ -9,30 +9,40 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 
-public class SqlServerQuery(TimeProvider timeProvider, TransportSettings transportSettings) : IBrokerThroughputQuery
+public class SqlServerQuery(ILogger<SqlServerQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings) : IBrokerThroughputQuery
 {
     readonly List<DatabaseDetails> databases = [];
+    readonly List<string> initialiseErrors = [];
 
     public void Initialise(FrozenDictionary<string, string> settings)
     {
-        if (!settings.TryGetValue(SqlServerSettings.ConnectionString, out var connectionString))
+        try
         {
-            connectionString = transportSettings.ConnectionString;
-        }
-        if (!settings.TryGetValue(SqlServerSettings.AdditionalCatalogs, out var catalogs))
-        {
-            databases.Add(new DatabaseDetails(connectionString));
-            return;
-        }
+            if (!settings.TryGetValue(SqlServerSettings.ConnectionString, out string? connectionString))
+            {
+                connectionString = transportSettings.ConnectionString;
+            }
+            if (!settings.TryGetValue(SqlServerSettings.AdditionalCatalogs, out string? catalogs))
+            {
+                databases.Add(new DatabaseDetails(connectionString));
+                return;
+            }
 
-        var builder = new SqlConnectionStringBuilder { ConnectionString = connectionString };
+            var builder = new SqlConnectionStringBuilder { ConnectionString = connectionString };
 
-        foreach (var catalog in catalogs.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries
-                                                                   | StringSplitOptions.TrimEntries))
+            foreach (string catalog in catalogs.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries
+                                                                          | StringSplitOptions.TrimEntries))
+            {
+                builder.InitialCatalog = catalog;
+                databases.Add(new DatabaseDetails(builder.ToString()));
+            }
+        }
+        catch (Exception e)
         {
-            builder.InitialCatalog = catalog;
-            databases.Add(new DatabaseDetails(builder.ToString()));
+            initialiseErrors.Add(e.Message);
+            logger.LogError($"Failed to initialise {nameof(SqlServerQuery)}");
         }
     }
 
@@ -107,6 +117,11 @@ public class SqlServerQuery(TimeProvider timeProvider, TransportSettings transpo
 
     public async Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken)
     {
+        if (initialiseErrors.Count > 0)
+        {
+            return (false, initialiseErrors);
+        }
+
         List<string> errors = [];
 
         foreach (DatabaseDetails db in databases)
@@ -115,9 +130,10 @@ public class SqlServerQuery(TimeProvider timeProvider, TransportSettings transpo
             {
                 await db.TestConnection(cancellationToken);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                errors.Add(e.Message);
+                logger.LogError(ex, "Test connection failed");
+                errors.Add(ex.Message);
             }
         }
 
