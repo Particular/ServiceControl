@@ -51,7 +51,7 @@ internal class BrokerThroughputCollectorHostedService(
 
         await foreach (var queueName in brokerThroughputQuery.GetQueueNames(stoppingToken))
         {
-            if (PlatformEndpointIdentifier.IsPlatformEndpoint(queueName.QueueName, throughputSettings))
+            if (PlatformEndpointHelper.IsPlatformEndpoint(queueName.QueueName, throughputSettings))
             {
                 continue;
             }
