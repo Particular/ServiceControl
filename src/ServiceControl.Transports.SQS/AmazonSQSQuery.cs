@@ -16,68 +16,71 @@ using Amazon.Runtime;
 using Amazon.Runtime.CredentialManagement;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using Microsoft.Extensions.Logging;
 
-public class AmazonSQSQuery(TimeProvider timeProvider) : IBrokerThroughputQuery
+public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timeProvider) : IBrokerThroughputQuery
 {
     AmazonCloudWatchClient? cloudWatch;
     AmazonSQSClient? sqs;
     string? prefix;
+    readonly List<string> initialiseErrors = [];
 
     public void Initialise(FrozenDictionary<string, string> settings)
     {
-        AWSCredentials credentials = new AnonymousAWSCredentials();
-        RegionEndpoint? regionEndpoint = null;
-        if (settings.TryGetValue(AmazonSQSSettings.Profile, out var profile))
+        try
         {
-            var credentialsFile = new NetSDKCredentialsFile();
-            if (credentialsFile.TryGetProfile(profile, out var credentialProfile))
+            AWSCredentials credentials = FallbackCredentialsFactory.GetCredentials();
+            RegionEndpoint? regionEndpoint = null;
+            if (settings.TryGetValue(AmazonSQSSettings.Profile, out string? profile))
             {
-                if (credentialProfile.CanCreateAWSCredentials)
+                var credentialsFile = new NetSDKCredentialsFile();
+                if (credentialsFile.TryGetProfile(profile, out CredentialProfile? credentialProfile))
                 {
-                    credentials = credentialProfile.GetAWSCredentials(credentialProfile.CredentialProfileStore);
-                }
+                    if (credentialProfile.CanCreateAWSCredentials)
+                    {
+                        credentials = credentialProfile.GetAWSCredentials(credentialProfile.CredentialProfileStore);
+                        logger.LogInformation($"Using credentials set in '{profile}' profile");
+                    }
 
-                regionEndpoint = new ProfileAWSRegion(credentialsFile, profile).Region;
-            }
-        }
-        else
-        {
-            settings.TryGetValue(AmazonSQSSettings.AccessKey, out var accessKey);
-            settings.TryGetValue(AmazonSQSSettings.SecretKey, out var secretKey);
-            if (accessKey != null && secretKey != null)
-            {
-                credentials = new BasicAWSCredentials(accessKey, secretKey);
+                    logger.LogInformation($"Using region set in '{profile}' profile");
+                    regionEndpoint = new ProfileAWSRegion(credentialsFile, profile).Region;
+                }
             }
             else
             {
-                try
+                settings.TryGetValue(AmazonSQSSettings.AccessKey, out string? accessKey);
+                settings.TryGetValue(AmazonSQSSettings.SecretKey, out string? secretKey);
+                if (accessKey != null && secretKey != null)
                 {
-                    credentials = new EnvironmentVariablesAWSCredentials();
+                    logger.LogInformation("Using basic credentials");
+                    credentials = new BasicAWSCredentials(accessKey, secretKey);
                 }
-                catch (InvalidOperationException)
-                { }
+                else
+                {
+                    logger.LogInformation("Attempting to use existing environment variables or IAM role credentials");
+                }
             }
-        }
 
-        if (settings.TryGetValue(AmazonSQSSettings.Region, out var region))
-        {
-            regionEndpoint = RegionEndpoint.GetBySystemName(region);
-        }
-        else if (regionEndpoint == null)
-        {
-            try
+            if (settings.TryGetValue(AmazonSQSSettings.Region, out string? region))
             {
+                regionEndpoint = RegionEndpoint.GetBySystemName(region);
+            }
+            else if (regionEndpoint == null)
+            {
+                logger.LogInformation("Using AWS environment variable for region");
                 regionEndpoint = new EnvironmentVariableAWSRegion().Region;
             }
-            catch (InvalidOperationException)
-            {
-            }
+
+            sqs = new AmazonSQSClient(credentials, new AmazonSQSConfig { RegionEndpoint = regionEndpoint, RetryMode = RequestRetryMode.Adaptive, HttpClientFactory = new AwsHttpClientFactory() });
+            cloudWatch = new AmazonCloudWatchClient(credentials, new AmazonCloudWatchConfig { RegionEndpoint = regionEndpoint, RetryMode = RequestRetryMode.Adaptive, HttpClientFactory = new AwsHttpClientFactory() });
+
+            settings.TryGetValue(AmazonSQSSettings.Prefix, out prefix);
         }
-
-        sqs = new AmazonSQSClient(credentials, new AmazonSQSConfig { RegionEndpoint = regionEndpoint, RetryMode = RequestRetryMode.Adaptive, HttpClientFactory = new AwsHttpClientFactory() });
-        cloudWatch = new AmazonCloudWatchClient(credentials, new AmazonCloudWatchConfig { RegionEndpoint = regionEndpoint, RetryMode = RequestRetryMode.Adaptive, HttpClientFactory = new AwsHttpClientFactory() });
-
-        settings.TryGetValue(AmazonSQSSettings.Prefix, out prefix);
+        catch (Exception e)
+        {
+            initialiseErrors.Add(e.Message);
+            logger.LogError($"Failed to initialise {nameof(AmazonSQSQuery)}");
+        }
     }
 
     public static class AmazonSQSSettings
@@ -187,6 +190,11 @@ public class AmazonSQSQuery(TimeProvider timeProvider) : IBrokerThroughputQuery
 
     public async Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken)
     {
+        if (initialiseErrors.Count > 0)
+        {
+            return (false, initialiseErrors);
+        }
+
         try
         {
             await foreach (IBrokerQueue brokerQueue in GetQueueNames(cancellationToken))
@@ -200,6 +208,7 @@ public class AmazonSQSQuery(TimeProvider timeProvider) : IBrokerThroughputQuery
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Test connection failed");
             return (false, [ex.Message]);
         }
 
