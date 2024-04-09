@@ -13,6 +13,7 @@ public class BrokerQueueTable(DatabaseDetails databaseDetails, string tableSchem
     public string FullName => $"[{Schema}].[{Name}]";
 
     public string QueueName => $"[{DatabaseDetails.DatabaseName}].{FullName}";
+    public string SanitizedName => Name;
     public string? Scope { get; set; }
     public List<string> EndpointIndicators { get; } = [];
 
