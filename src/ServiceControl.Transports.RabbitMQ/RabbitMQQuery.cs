@@ -55,13 +55,23 @@ public class RabbitMQQuery(ILogger<RabbitMQQuery> logger, TimeProvider timeProvi
                 apiUrl =
                     $"{(connectionConfiguration.UseTls ? $"https://{connectionConfiguration.Host}:15671" : $"http://{connectionConfiguration.Host}:15672")}";
             }
-
-            httpClient = new HttpClient(new SocketsHttpHandler
+            else
             {
-                Credentials = defaultCredential,
-                PooledConnectionLifetime = TimeSpan.FromMinutes(2)
-            })
-            { BaseAddress = new Uri(apiUrl) };
+                if (!Uri.TryCreate(apiUrl, UriKind.Absolute, out _))
+                {
+                    initialiseErrors.Add("API url configured is invalid");
+                }
+            }
+
+            if (initialiseErrors.Count == 0)
+            {
+                httpClient = new HttpClient(new SocketsHttpHandler
+                {
+                    Credentials = defaultCredential,
+                    PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+                })
+                { BaseAddress = new Uri(apiUrl) };
+            }
         }
         catch (Exception e)
         {
