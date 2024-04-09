@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Contracts;
 
-class InMemoryThroughputDataStore() : IThroughputDataStore
+public class InMemoryThroughputDataStore : IThroughputDataStore
 {
     private readonly EndpointCollection endpoints = [];
     private readonly Dictionary<EndpointIdentifier, ThroughputData> allThroughput = [];
