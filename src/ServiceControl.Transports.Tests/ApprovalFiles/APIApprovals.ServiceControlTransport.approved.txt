@@ -6,6 +6,7 @@ namespace ServiceControl.Transports
         public DefaultBrokerQueue(string queueName) { }
         public System.Collections.Generic.List<string> EndpointIndicators { get; }
         public string QueueName { get; }
+        public string SanitizedName { get; set; }
         public string? Scope { get; }
     }
     public class EndpointToQueueMapping
@@ -21,6 +22,7 @@ namespace ServiceControl.Transports
     {
         System.Collections.Generic.List<string> EndpointIndicators { get; }
         string QueueName { get; }
+        string SanitizedName { get; }
         string? Scope { get; }
     }
     public interface IBrokerThroughputQuery
