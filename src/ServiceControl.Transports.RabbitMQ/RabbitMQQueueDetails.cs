@@ -7,6 +7,7 @@ using System.Text.Json.Nodes;
 public class RabbitMQBrokerQueueDetails(JsonNode token) : IBrokerQueue
 {
     public string QueueName { get; } = token["name"]!.GetValue<string>();
+    public string SanitizedName => QueueName;
     public string? Scope => VHost;
     public string VHost { get; } = token["vhost"]!.GetValue<string>();
     public long? AckedMessages { get; set; }
