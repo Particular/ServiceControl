@@ -32,7 +32,13 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
         try
         {
-            settings.TryGetValue(AzureServiceBusSettings.ManagementUrl, out string? managementUrl);
+            if (settings.TryGetValue(AzureServiceBusSettings.ManagementUrl, out string? managementUrl))
+            {
+                if (!Uri.TryCreate(managementUrl, UriKind.Absolute, out _))
+                {
+                    initialiseErrors.Add("Management url configured is invalid");
+                }
+            }
 
             if (settings.TryGetValue(AzureServiceBusSettings.ServiceBusName, out string? serviceBusNameValue))
             {
