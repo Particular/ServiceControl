@@ -2,9 +2,10 @@
 {
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Text.Json;
+    using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
+    using JsonSerializer = System.Text.Json.JsonSerializer;
 
     [ApiController]
     [Route("api")]
@@ -16,11 +17,20 @@
         {
             var platformConnectionDetails = await builder.BuildPlatformConnection();
             var connectionDetails = new ConnectionDetails(platformConnectionDetails.ToDictionary(), platformConnectionDetails.Errors);
-            // by default snake case is used for serialization so we take care of explicitly serializing here
             var content = JsonSerializer.Serialize(connectionDetails);
             return Content(content, "application/json");
         }
 
-        public record ConnectionDetails(IDictionary<string, object> Settings, ConcurrentBag<string> Errors);
+        // Backward compatibility reason:
+        // to make it so that the latest ServicePulse can talk to ServiceControl 5.0.5
+        // the Errors and Settings properties must be serialized camelCase 
+        class ConnectionDetails(IDictionary<string, object> settings, ConcurrentBag<string> errors)
+        {
+            [JsonPropertyName("settings")]
+            public IDictionary<string, object> Settings { get; init; } = settings;
+
+            [JsonPropertyName("errors")]
+            public ConcurrentBag<string> Errors { get; init; } = errors;
+        }
     }
 }

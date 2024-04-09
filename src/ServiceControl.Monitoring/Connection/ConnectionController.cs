@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Monitoring.Connection
 {
     using System;
+    using System.Text.Json.Serialization;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
 
@@ -23,8 +24,12 @@
                 }
             };
 
+        // Backward compatibility reason:
+        // to make it so that the latest ServicePulse can talk to ServiceControl 5.0.5
+        // the Metrics property must be serialized PascalCase 
         public class ConnectionDetails
         {
+            [JsonPropertyName("Metrics")]
             public MetricsConnectionDetails Metrics { get; set; }
         }
 
