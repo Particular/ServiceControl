@@ -5,6 +5,7 @@ using MessageRedirects;
 using Microsoft.Extensions.DependencyInjection;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 using Persistence.Recoverability;
+using Raven.Client.Documents;
 using Recoverability;
 using ServiceControl.CustomChecks;
 using ServiceControl.Infrastructure.RavenDB.Subscriptions;
@@ -88,13 +89,13 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
             services.AddSingleton<RavenEmbeddedPersistenceLifecycle>();
             services.AddSingleton<IRavenPersistenceLifecycle>(b => b.GetService<RavenEmbeddedPersistenceLifecycle>());
             services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
-            services.AddSingleton(provider => provider.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore());
+            services.AddSingleton(provider => new Lazy<IDocumentStore>(() => provider.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore()));
             return;
         }
 
         services.AddSingleton<RavenExternalPersistenceLifecycle>();
         services.AddSingleton<IRavenPersistenceLifecycle>(b => b.GetService<RavenExternalPersistenceLifecycle>());
         services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
-        services.AddSingleton(provider => provider.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore());
+        services.AddSingleton(provider => new Lazy<IDocumentStore>(() => provider.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore()));
     }
 }

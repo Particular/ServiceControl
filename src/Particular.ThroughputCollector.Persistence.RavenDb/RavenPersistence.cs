@@ -1,6 +1,7 @@
 ﻿namespace Particular.ThroughputCollector.Persistence.RavenDb;
 
 using Microsoft.Extensions.DependencyInjection;
+using Raven.Client.Documents;
 
 class RavenPersistence(DatabaseConfiguration databaseConfiguration) : IPersistence
 {
@@ -8,11 +9,12 @@ class RavenPersistence(DatabaseConfiguration databaseConfiguration) : IPersisten
     {
         services.AddSingleton(databaseConfiguration);
         services.AddSingleton<IThroughputDataStore, ThroughputDataStore>();
-        services.AddSingleton<IPersistenceInstaller, RavenInstaller>(provider => new RavenInstaller(provider, databaseConfiguration));
+        services.AddSingleton<IPersistenceInstaller, RavenInstaller>(provider =>
+        {
+            var store = provider.GetRequiredService<Lazy<IDocumentStore>>();
 
-        //serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenAuditIngestionUnitOfWorkFactory>();
-        //serviceCollection.AddSingleton<IFailedAuditStorage, RavenFailedAuditStorage>();
-        //serviceCollection.AddSingleton<CheckMinimumStorageRequiredForAuditIngestion.State>();
+            return new RavenInstaller(store, databaseConfiguration);
+        });
 
         return services;
     }
