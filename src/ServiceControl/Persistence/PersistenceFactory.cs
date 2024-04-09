@@ -1,9 +1,6 @@
 namespace ServiceControl.Persistence;
 
 using System;
-using System.IO;
-using System.Reflection;
-using Configuration;
 using ServiceBus.Management.Infrastructure.Settings;
 
 static class PersistenceFactory
@@ -28,12 +25,11 @@ static class PersistenceFactory
             var loadContext = settings.AssemblyLoadContextResolver(manifest.AssemblyPath);
             var customizationType = Type.GetType(manifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
 
-                return (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Could not load persistence customization type {settings.PersistenceType}.", e);
-            }
+            return (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
+        }
+        catch (Exception e)
+        {
+            throw new Exception($"Could not load persistence customization type {settings.PersistenceType}.", e);
         }
     }
 }
