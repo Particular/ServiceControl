@@ -12,6 +12,7 @@ public class DefaultBrokerQueue(string queueName) : IBrokerQueue
 #pragma warning restore CA1711
 {
     public string QueueName { get; } = queueName;
+    public string SanitizedName { get; set; } = queueName;
     public string? Scope { get; } = null;
     public List<string> EndpointIndicators { get; } = [];
 }
@@ -46,6 +47,7 @@ public interface IBrokerQueue
 #pragma warning restore CA1711
 {
     public string QueueName { get; }
+    public string SanitizedName { get; }
     public string? Scope { get; }
     public List<string> EndpointIndicators { get; }
 }
