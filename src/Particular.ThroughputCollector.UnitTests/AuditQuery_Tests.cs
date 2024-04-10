@@ -16,7 +16,7 @@ using ServiceControl.Api.Contracts;
 [TestFixture]
 class AuditQuery_Tests : ThroughputCollectorTestFixture
 {
-    readonly Broker broker = Broker.AzureServiceBus;
+    readonly Broker broker = Broker.None;
 
     public override Task Setup()
     {
