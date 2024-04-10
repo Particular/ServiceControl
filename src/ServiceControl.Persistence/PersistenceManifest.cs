@@ -5,6 +5,7 @@ namespace ServiceControl.Persistence
     using System.IO;
     using System.Linq;
     using System.Text.Json;
+    using System.Text.Json.Serialization;
     using NServiceBus.Logging;
 
     public class PersistenceManifest
@@ -18,6 +19,11 @@ namespace ServiceControl.Persistence
         public string Description { get; set; }
 
         public string AssemblyName { get; set; }
+
+        [JsonIgnore]
+        public string AssemblyPath => Location == null
+            ? null
+            : Path.Combine(Location, $"{AssemblyName}.dll");
 
         public string TypeName { get; set; }
 
