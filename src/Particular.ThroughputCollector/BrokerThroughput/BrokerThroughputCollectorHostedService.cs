@@ -19,6 +19,12 @@ public class BrokerThroughputCollectorHostedService(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (brokerThroughputQuery.HasInitialisationErrors(out var errorMessage))
+        {
+            logger.LogError($"Could not start {nameof(BrokerThroughputCollectorHostedService)}, due to initialisation errors:\n{errorMessage}");
+            return;
+        }
+
         logger.LogInformation($"Starting {nameof(BrokerThroughputCollectorHostedService)}");
 
         try
