@@ -1,6 +1,28 @@
 [assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v8.0", FrameworkDisplayName=".NET 8.0")]
 namespace ServiceControl.Transports
 {
+    public abstract class BrokerThroughputQuery : ServiceControl.Transports.IBrokerThroughputQuery
+    {
+        protected readonly System.Collections.Generic.List<string> InitialiseErrors;
+        protected BrokerThroughputQuery(Microsoft.Extensions.Logging.ILogger logger, string transport) { }
+        public System.Collections.Generic.Dictionary<string, string> Data { get; set; }
+        public string MessageTransport { get; }
+        public string? ScopeType { get; set; }
+        public abstract ServiceControl.Transports.KeyDescriptionPair[] Settings { get; }
+        public abstract System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.IBrokerQueue> GetQueueNames(System.Threading.CancellationToken cancellationToken);
+        public abstract System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.QueueThroughput> GetThroughputPerDay(ServiceControl.Transports.IBrokerQueue brokerQueue, System.DateOnly startDate, System.Threading.CancellationToken cancellationToken);
+        public bool HasInitialisationErrors(out string errorMessage) { }
+        public void Initialise(System.Collections.Frozen.FrozenDictionary<string, string> settings) { }
+        protected abstract void InitialiseCore(System.Collections.Frozen.FrozenDictionary<string, string> settings);
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Success",
+                "Errors"})]
+        public System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>>> TestConnection(System.Threading.CancellationToken cancellationToken) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Success",
+                "Errors"})]
+        public abstract System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>>> TestConnectionCore(System.Threading.CancellationToken cancellationToken);
+    }
     public class DefaultBrokerQueue : ServiceControl.Transports.IBrokerQueue
     {
         public DefaultBrokerQueue(string queueName) { }
@@ -33,6 +55,7 @@ namespace ServiceControl.Transports
         ServiceControl.Transports.KeyDescriptionPair[] Settings { get; }
         System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.IBrokerQueue> GetQueueNames(System.Threading.CancellationToken cancellationToken);
         System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.QueueThroughput> GetThroughputPerDay(ServiceControl.Transports.IBrokerQueue brokerQueue, System.DateOnly startDate, System.Threading.CancellationToken cancellationToken);
+        bool HasInitialisationErrors(out string errorMessage);
         void Initialise(System.Collections.Frozen.FrozenDictionary<string, string> settings);
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "Success",
