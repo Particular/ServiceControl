@@ -126,6 +126,7 @@ class ThroughputDataStore(
     public Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator) => throw new NotImplementedException();
 
     public Task<bool> IsThereThroughputForLastXDays(int days) => throw new NotImplementedException();
+    public Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource) => throw new NotImplementedException();
     public Task<BrokerData?> GetBrokerData(Broker broker) => throw new NotImplementedException();
 
     public Task SaveBrokerData(Broker broker, string? scopeType, Dictionary<string, string> data) =>
