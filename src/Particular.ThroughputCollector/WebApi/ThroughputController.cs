@@ -38,19 +38,25 @@
 
         [Route("throughput/report/file")]
         [HttpGet]
-        public async Task<FileContentResult> GetThroughputReportFile(string[]? mask, CancellationToken token)
+        public async Task<IActionResult> GetThroughputReportFile(string[]? mask, CancellationToken token)
         {
-            var report = await throughputCollector.GenerateThroughputReport(
-                mask ?? [],
-                Request.Headers.TryGetValue("Particular-ServicePulse-Version", out var value) ? value.ToString() : "Unknown",
-                token);
-
-            var options = new JsonSerializerOptions
+            var reportStatus = await CanThroughputReportBeGenerated(token);
+            if (reportStatus.ReportCanBeGenerated)
             {
-                WriteIndented = true,
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
-            return File(JsonSerializer.SerializeToUtf8Bytes(report, options), "application/json", fileDownloadName: $"{report.ReportData.CustomerName}.throughput-report-{report.ReportData.EndTime:yyyyMMdd-HHmmss}.json");
+                var report = await throughputCollector.GenerateThroughputReport(
+                    mask ?? [],
+                    Request.Headers.TryGetValue("Particular-ServicePulse-Version", out var value) ? value.ToString() : "Unknown",
+                    token);
+
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
+                return File(JsonSerializer.SerializeToUtf8Bytes(report, options), "application/json", fileDownloadName: $"{report.ReportData.CustomerName}.throughput-report-{report.ReportData.EndTime:yyyyMMdd-HHmmss}.json");
+            }
+
+            return BadRequest("Report cannot be generated.");
         }
 
         [Route("throughput/settings/info")]
