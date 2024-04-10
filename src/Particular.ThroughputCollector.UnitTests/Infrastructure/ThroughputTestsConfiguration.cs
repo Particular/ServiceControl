@@ -5,6 +5,7 @@
     using Contracts;
     using Microsoft.Extensions.DependencyInjection;
     using Particular.ThroughputCollector.AuditThroughput;
+    using Particular.ThroughputCollector.MonitoringThroughput;
     using Persistence;
     using Persistence.InMemory;
 
@@ -14,7 +15,7 @@
         public IThroughputCollector ThroughputCollector { get; protected set; }
         public ThroughputSettings ThroughputSettings { get; protected set; }
         public AuditQuery AuditQuery { get; protected set; }
-        public IServiceProvider ServiceProvider { get; protected set; }
+        public MonitoringService MonitoringService { get; protected set; }
 
         public Task Configure(Action<ThroughputSettings> setThroughputSettings, Action<ServiceCollection> setExtraDependencies)
         {
@@ -37,15 +38,15 @@
 
             serviceCollection.AddSingleton<IThroughputCollector, ThroughputCollector>();
             serviceCollection.AddSingleton<AuditQuery>();
-            //serviceCollection.AddHostedService<AuditThroughputCollectorHostedService>();
-            //serviceCollection.AddHostedService<BrokerThroughputCollectorHostedService>();
+            serviceCollection.AddSingleton<MonitoringService>();
 
-            ServiceProvider = serviceCollection.BuildServiceProvider();
+            var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            ThroughputDataStore = ServiceProvider.GetRequiredService<IThroughputDataStore>();
-            ThroughputCollector = ServiceProvider.GetRequiredService<IThroughputCollector>();
-            ThroughputSettings = ServiceProvider.GetRequiredService<ThroughputSettings>();
-            AuditQuery = ServiceProvider.GetRequiredService<AuditQuery>();
+            ThroughputDataStore = serviceProvider.GetRequiredService<IThroughputDataStore>();
+            ThroughputCollector = serviceProvider.GetRequiredService<IThroughputCollector>();
+            ThroughputSettings = serviceProvider.GetRequiredService<ThroughputSettings>();
+            AuditQuery = serviceProvider.GetRequiredService<AuditQuery>();
+            MonitoringService = serviceProvider.GetRequiredService<MonitoringService>();
 
             return Task.CompletedTask;
         }
