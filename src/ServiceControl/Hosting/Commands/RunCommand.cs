@@ -23,7 +23,7 @@
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
             hostBuilder.AddServiceControlApi();
 
-            var app = hostBuilder.Build();
+            await using var app = hostBuilder.Build();
             app.UseServiceControl();
             await app.RunAsync(settings.RootUrl);
         }

@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Hosting.Commands
 {
+    using System;
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
     using LicenseManagement;
@@ -34,7 +35,7 @@
             }
 
             hostBuilder.AddServiceControlInstallers(settings);
-            var host = hostBuilder.Build();
+            using IHost host = hostBuilder.Build();
 
             // TODO: https://github.com/orgs/Particular/projects/197/views/1?pane=issue&itemId=58048957
             //await host.Services
@@ -48,25 +49,30 @@
 
             await host.StartAsync();
 
-            foreach (var installationTask in componentSetupContext.InstallationTasks)
+            try
             {
-                await installationTask(host.Services);
-            }
+                foreach (Func<IServiceProvider, Task> installationTask in componentSetupContext.InstallationTasks)
+                {
+                    await installationTask(host.Services);
+                }
 
-            if (settings.SkipQueueCreation)
+                if (settings.SkipQueueCreation)
+                {
+                    Logger.Info("Skipping queue creation");
+                }
+                else
+                {
+                    TransportSettings transportSettings = MapSettings(settings);
+                    ITransportCustomization transportCustomization = settings.LoadTransportCustomization();
+
+                    await transportCustomization.ProvisionQueues(transportSettings,
+                        componentSetupContext.Queues);
+                }
+            }
+            finally
             {
-                Logger.Info("Skipping queue creation");
+                await host.StopAsync();
             }
-            else
-            {
-                var transportSettings = MapSettings(settings);
-                var transportCustomization = settings.LoadTransportCustomization();
-
-                await transportCustomization.ProvisionQueues(transportSettings,
-                    componentSetupContext.Queues);
-            }
-
-            await host.StopAsync();
         }
 
         static bool ValidateLicense(Settings settings)
