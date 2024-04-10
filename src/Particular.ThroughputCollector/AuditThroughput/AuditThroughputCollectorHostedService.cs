@@ -1,4 +1,4 @@
-﻿namespace Particular.ThroughputCollector.AuditThroughput;
+namespace Particular.ThroughputCollector.AuditThroughput;
 
 using Contracts;
 using Microsoft.Extensions.Hosting;
@@ -19,14 +19,14 @@ public class AuditThroughputCollectorHostedService(
     {
         logger.LogInformation($"Starting {nameof(AuditThroughputCollectorHostedService)}");
 
-        await Task.Delay(DelayStart, cancellationToken);
-
-        PlatformEndpointHelper.AuditQueues = (await auditQuery.GetAuditRemotes(cancellationToken))?.SelectMany(s => s.Queues)?.ToList() ?? [];
-
-        using PeriodicTimer timer = new(TimeSpan.FromDays(1), timeProvider);
-
         try
         {
+            await Task.Delay(DelayStart, cancellationToken);
+
+            PlatformEndpointHelper.AuditQueues = (await auditQuery.GetAuditRemotes(cancellationToken))?.SelectMany(s => s.Queues)?.ToList() ?? [];
+
+            using PeriodicTimer timer = new(TimeSpan.FromDays(1), timeProvider);
+
             do
             {
                 try
