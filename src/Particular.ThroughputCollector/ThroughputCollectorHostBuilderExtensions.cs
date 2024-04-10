@@ -46,7 +46,7 @@ public static class ThroughputCollectorHostBuilderExtensions
         services.AddSingleton(throughputSettings);
         services.AddHostedService<AuditThroughputCollectorHostedService>();
         services.AddSingleton<IThroughputCollector, ThroughputCollector>();
-        services.AddSingleton<AuditQuery>();
+        services.AddSingleton<IAuditQuery, AuditQuery>();
         services.AddSingleton<MonitoringService>();
 
         if (broker != Broker.None)

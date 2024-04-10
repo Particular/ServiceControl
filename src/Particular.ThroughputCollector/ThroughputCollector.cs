@@ -9,7 +9,7 @@ using Shared;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, AuditQuery auditQuery, MonitoringService monitoringService, IBrokerThroughputQuery? throughputQuery = null)
+public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, IAuditQuery auditQuery, MonitoringService monitoringService, IBrokerThroughputQuery? throughputQuery = null)
     : IThroughputCollector
 {
     public async Task<ThroughputConnectionSettings> GetThroughputConnectionSettingsInformation()
