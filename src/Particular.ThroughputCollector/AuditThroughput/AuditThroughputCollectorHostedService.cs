@@ -6,19 +6,20 @@ using Microsoft.Extensions.Logging;
 using Persistence;
 using Shared;
 
-class AuditThroughputCollectorHostedService(
+public class AuditThroughputCollectorHostedService(
     ILogger<AuditThroughputCollectorHostedService> logger,
     ThroughputSettings throughputSettings,
     IThroughputDataStore dataStore,
-    AuditQuery auditQuery,
+    IAuditQuery auditQuery,
     TimeProvider timeProvider) : BackgroundService
 {
+    public TimeSpan DelayStart { get; set; } = TimeSpan.FromSeconds(40);
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation($"Starting {nameof(AuditThroughputCollectorHostedService)}");
 
-        await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken);
+        await Task.Delay(DelayStart, cancellationToken);
 
         PlatformEndpointHelper.AuditQueues = (await auditQuery.GetAuditRemotes(cancellationToken))?.SelectMany(s => s.Queues)?.ToList() ?? [];
 
@@ -119,10 +120,10 @@ class AuditThroughputCollectorHostedService(
             }
         }
 
-        var allHaveAuditCounts = remotesInfo.All(AuditQuery.ValidRemoteInstances);
+        var allHaveAuditCounts = remotesInfo.All(auditQuery.ValidRemoteInstances);
         if (!allHaveAuditCounts)
         {
-            logger.LogWarning($"At least one ServiceControl Audit instance is either not running the required version ({AuditQuery.MinAuditCountsVersion}) or is not configured for at least 2 days of retention. Audit throughput will not be available.");
+            logger.LogWarning($"At least one ServiceControl Audit instance is either not running the required version ({auditQuery.MinAuditCountsVersion}) or is not configured for at least 2 days of retention. Audit throughput will not be available.");
         }
     }
 }

@@ -2,16 +2,17 @@
 {
     using System.Text.Json.Nodes;
     using Contracts;
+    using Microsoft.Extensions.Logging;
     using NuGet.Versioning;
     using ServiceControl.Api;
     using AuditCount = Contracts.AuditCount;
 
-    public class AuditQuery(IEndpointsApi endpointsApi, IAuditCountApi auditCountApi, IConfigurationApi configurationApi)
+    public class AuditQuery(ILogger<AuditQuery> logger, IEndpointsApi endpointsApi, IAuditCountApi auditCountApi, IConfigurationApi configurationApi) : IAuditQuery
     {
         // Customers are expected to run at least version 4.29 for their Audit instances
-        public static readonly SemanticVersion MinAuditCountsVersion = new(4, 29, 0);
-        // Want 2d audit retention so we get one complete UTC day no matter what time it is.
-        public static Func<RemoteInstanceInformation, bool> ValidRemoteInstances = r =>
+        public SemanticVersion MinAuditCountsVersion => new(4, 29, 0);
+        // Want 2d audit retention so we get one complete UTC day no matter what time it is.        
+        public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => r =>
             r.SemanticVersion != null &&
             r.SemanticVersion >= MinAuditCountsVersion &&
             r.Retention >= TimeSpan.FromDays(2);
@@ -39,70 +40,78 @@
 
         public async Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken)
         {
-            var remotes = await configurationApi.GetRemoteConfigs(cancellationToken);
-            var remotesInfo = new List<RemoteInstanceInformation>();
-            var valueType = remotes.GetType();
-
-            if (remotes != null && valueType.IsArray)
+            try
             {
-                var remoteObjects = (object[])remotes;
-                if (remoteObjects.Length > 0)
+                var remotes = await configurationApi.GetRemoteConfigs(cancellationToken);
+                var remotesInfo = new List<RemoteInstanceInformation>();
+                var valueType = remotes.GetType();
+
+                if (remotes != null && valueType.IsArray)
                 {
-                    List<string> queues = [];
-                    var props = remoteObjects[0].GetType().GetProperties();
-
-                    var apiUriProp = props.FirstOrDefault(w => w.Name == "ApiUri");
-                    var versionProp = props.FirstOrDefault(w => w.Name == "Version");
-                    var statusProp = props.FirstOrDefault(w => w.Name == "Status");
-                    var configurationProp = props.FirstOrDefault(w => w.Name == "Configuration");
-
-                    foreach (var remote in remoteObjects)
+                    var remoteObjects = (object[])remotes;
+                    if (remoteObjects.Length > 0)
                     {
-                        var config = configurationProp != null ? configurationProp.GetValue(remote) as JsonNode : null;
-                        string? retention = null;
-                        if (config != null)
+                        List<string> queues = [];
+                        var props = remoteObjects[0].GetType().GetProperties();
+
+                        var apiUriProp = props.FirstOrDefault(w => w.Name == "ApiUri");
+                        var versionProp = props.FirstOrDefault(w => w.Name == "Version");
+                        var statusProp = props.FirstOrDefault(w => w.Name == "Status");
+                        var configurationProp = props.FirstOrDefault(w => w.Name == "Configuration");
+
+                        foreach (var remote in remoteObjects)
                         {
-                            retention = config?.AsObject().TryGetPropertyValue("data_retention", out var dataRetention) == true &&
-                                        dataRetention?.AsObject().TryGetPropertyValue("audit_retention_period", out var auditRetentionPeriod) == true
-                                        ? auditRetentionPeriod!.GetValue<string>()
-                                        : null;
-
-                            if (config?.AsObject().TryGetPropertyValue("host", out var host) == true &&
-                                        host?.AsObject().TryGetPropertyValue("service_name", out var serviceName) == true)
+                            var config = configurationProp != null ? configurationProp.GetValue(remote) as JsonNode : null;
+                            string? retention = null;
+                            if (config != null)
                             {
-                                queues.Add(serviceName!.GetValue<string>());
+                                retention = config?.AsObject().TryGetPropertyValue("data_retention", out var dataRetention) == true &&
+                                            dataRetention?.AsObject().TryGetPropertyValue("audit_retention_period", out var auditRetentionPeriod) == true
+                                            ? auditRetentionPeriod!.GetValue<string>()
+                                            : null;
+
+                                if (config?.AsObject().TryGetPropertyValue("host", out var host) == true &&
+                                            host?.AsObject().TryGetPropertyValue("service_name", out var serviceName) == true)
+                                {
+                                    queues.Add(serviceName!.GetValue<string>());
+                                }
+
+                                if (config?.AsObject().TryGetPropertyValue("transport", out var transport) == true)
+                                {
+                                    if (transport?.AsObject().TryGetPropertyValue("audit_queue", out var auditQueue) == true)
+                                    {
+                                        queues.Add(auditQueue!.GetValue<string>());
+                                    }
+                                    if (transport?.AsObject().TryGetPropertyValue("audit_log_queue", out var auditLogQueue) == true)
+                                    {
+                                        queues.Add(auditLogQueue!.GetValue<string>());
+                                    }
+                                }
                             }
 
-                            if (config?.AsObject().TryGetPropertyValue("transport", out var transport) == true)
+                            var remoteInstance = new RemoteInstanceInformation
                             {
-                                if (transport?.AsObject().TryGetPropertyValue("audit_queue", out var auditQueue) == true)
-                                {
-                                    queues.Add(auditQueue!.GetValue<string>());
-                                }
-                                if (transport?.AsObject().TryGetPropertyValue("audit_log_queue", out var auditLogQueue) == true)
-                                {
-                                    queues.Add(auditLogQueue!.GetValue<string>());
-                                }
-                            }
+                                ApiUri = apiUriProp != null ? apiUriProp.GetValue(remote)?.ToString() : "",
+                                VersionString = versionProp != null ? versionProp.GetValue(remote)?.ToString() : "",
+                                Status = statusProp != null ? statusProp.GetValue(remote)?.ToString() : "",
+                                Retention = TimeSpan.TryParse(retention, out var ts) ? ts : TimeSpan.Zero,
+                                Queues = queues
+                            };
+
+                            remoteInstance.SemanticVersion = SemanticVersion.TryParse(remoteInstance.VersionString ?? string.Empty, out var v) ? v : null;
+
+                            remotesInfo.Add(remoteInstance);
                         }
-
-                        var remoteInstance = new RemoteInstanceInformation
-                        {
-                            ApiUri = apiUriProp != null ? apiUriProp.GetValue(remote)?.ToString() : "",
-                            VersionString = versionProp != null ? versionProp.GetValue(remote)?.ToString() : "",
-                            Status = statusProp != null ? statusProp.GetValue(remote)?.ToString() : "",
-                            Retention = TimeSpan.TryParse(retention, out var ts) ? ts : TimeSpan.Zero,
-                            Queues = queues
-                        };
-
-                        remoteInstance.SemanticVersion = SemanticVersion.TryParse(remoteInstance.VersionString ?? string.Empty, out var v) ? v : null;
-
-                        remotesInfo.Add(remoteInstance);
                     }
                 }
-            }
 
-            return remotesInfo;
+                return remotesInfo;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to get Audit Remotes");
+                return [];
+            }
         }
 
         public async Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken)
