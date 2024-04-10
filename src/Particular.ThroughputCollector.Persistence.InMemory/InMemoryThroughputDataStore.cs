@@ -112,6 +112,11 @@ class InMemoryThroughputDataStore() : IThroughputDataStore
             t => t.Key >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) &&
                  t.Key <= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1))));
 
+    public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource) => await Task.FromResult(
+        allThroughput.Any(endpointThroughput => endpointThroughput.Key.ThroughputSource == throughputSource && endpointThroughput.Value.Any(
+            t => t.Key >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) &&
+                 t.Key <= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1))));
+
     private List<Endpoint> GetAllConnectedEndpoints(string name) => endpoints.Where(w => w.SanitizedName == name).ToList();
 
     public async Task SaveBrokerData(Broker broker, string? scopeType, Dictionary<string, string> data)
