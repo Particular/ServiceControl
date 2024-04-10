@@ -7,6 +7,7 @@ using global::ServiceControl.Persistence;
 using global::ServiceControl.Transports;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Particular.ThroughputCollector.Shared;
 using ServiceBus.Management.Infrastructure.Settings;
 using ThroughputCollector;
 using ThroughputPersistence = ThroughputCollector.Persistence;
@@ -27,6 +28,9 @@ class ThroughputComponent : ServiceControlComponent
             ServiceControlVersion.GetFileVersion(),
             transportCustomization.ThroughputQueryProvider);
 
-    public override void Setup(Settings settings, IComponentInstallationContext context) =>
+    public override void Setup(Settings settings, IComponentInstallationContext context)
+    {
+        context.CreateQueue(PlatformEndpointHelper.ServiceControlThroughputDataQueue);
         context.RegisterInstallationTask(serviceProvider => serviceProvider.GetRequiredService<ThroughputPersistence.IPersistenceInstaller>().Install());
+    }
 }
