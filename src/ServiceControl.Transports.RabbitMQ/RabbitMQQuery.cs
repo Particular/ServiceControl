@@ -86,27 +86,39 @@ public class RabbitMQQuery(ILogger<RabbitMQQuery> logger, TimeProvider timeProvi
         var queue = (RabbitMQBrokerQueueDetails)brokerQueue;
         var url = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}";
 
+        logger.LogDebug($"Querying {url}");
         var node = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonNode>(url, token), cancellationToken);
         queue.AckedMessages = GetAck();
 
         // looping for 24hrs, in 4 increments of 15 minutes
         for (var i = 0; i < 24 * 4; i++)
         {
+            bool throughputSent = false;
             await Task.Delay(TimeSpan.FromMinutes(15), timeProvider, cancellationToken);
-
+            logger.LogDebug($"Querying {url}");
             node = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonNode>(url, token), cancellationToken);
             var newReading = GetAck();
             if (newReading is not null)
             {
-                if (newReading > queue.AckedMessages)
+                if (newReading >= queue.AckedMessages)
                 {
                     yield return new QueueThroughput
                     {
                         DateUTC = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
                         TotalThroughput = newReading.Value - queue.AckedMessages.Value
                     };
+                    throughputSent = true;
                 }
                 queue.AckedMessages = newReading;
+            }
+
+            if (!throughputSent)
+            {
+                yield return new QueueThroughput
+                {
+                    DateUTC = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
+                    TotalThroughput = 0
+                };
             }
         }
         yield break;
