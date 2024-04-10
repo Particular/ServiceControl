@@ -25,6 +25,7 @@ public interface IThroughputDataStore
     Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator);
 
     Task<bool> IsThereThroughputForLastXDays(int days);
+    Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource);
 
     Task<BrokerData?> GetBrokerData(Broker broker);
 
