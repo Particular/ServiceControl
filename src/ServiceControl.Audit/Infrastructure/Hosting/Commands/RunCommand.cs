@@ -22,7 +22,7 @@
             }, settings, endpointConfiguration);
             hostBuilder.AddServiceControlAuditApi();
 
-            var app = hostBuilder.Build();
+            await using var app = hostBuilder.Build();
             app.UseServiceControlAudit();
             await app.RunAsync(settings.RootUrl);
         }

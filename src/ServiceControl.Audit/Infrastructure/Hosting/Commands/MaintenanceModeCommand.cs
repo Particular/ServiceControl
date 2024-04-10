@@ -19,7 +19,7 @@
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.Services.AddPersistence(persistenceSettings, persistenceConfiguration);
 
-            var host = hostBuilder.Build();
+            using var host = hostBuilder.Build();
 
             if (WindowsServiceHelpers.IsWindowsService())
             {
