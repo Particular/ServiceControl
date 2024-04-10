@@ -24,6 +24,7 @@
             }
 
             var hostBuilder = Host.CreateApplicationBuilder();
+            hostBuilder.AddServiceControlInstallers(settings);
 
             var componentSetupContext = new ComponentInstallationContext();
 
@@ -32,7 +33,6 @@
                 component.Setup(settings, componentSetupContext, hostBuilder);
             }
 
-            hostBuilder.AddServiceControlInstallers(settings);
             var host = hostBuilder.Build();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
