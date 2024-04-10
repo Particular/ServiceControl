@@ -74,8 +74,6 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
            .Build();
 
         // Act
-        var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
-
         var connectionSettingsResult = await configuration.MonitoringService.TestMonitoringConnection(default);
 
         // Assert
