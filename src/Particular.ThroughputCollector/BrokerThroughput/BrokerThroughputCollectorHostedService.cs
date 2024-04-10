@@ -21,12 +21,12 @@ public class BrokerThroughputCollectorHostedService(
     {
         logger.LogInformation($"Starting {nameof(BrokerThroughputCollectorHostedService)}");
 
-        await Task.Delay(DelayStart, stoppingToken);
-
-        using PeriodicTimer timer = new(TimeSpan.FromDays(1), timeProvider);
-
         try
         {
+            await Task.Delay(DelayStart, stoppingToken);
+
+            using PeriodicTimer timer = new(TimeSpan.FromDays(1), timeProvider);
+
             do
             {
                 try
