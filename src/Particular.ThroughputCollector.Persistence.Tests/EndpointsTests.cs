@@ -179,4 +179,22 @@ class EndpointsTests : PersistenceTestFixture
 
         Assert.That(await DataStore.IsThereThroughputForLastXDays(timeFrameToCheck), expectedValue ? Is.True : Is.False);
     }
+
+    [TestCase(10, 5, ThroughputSource.Monitoring, ThroughputSource.Monitoring, false)]
+    [TestCase(10, 20, ThroughputSource.Monitoring, ThroughputSource.Monitoring, true)]
+    [TestCase(10, 20, ThroughputSource.Audit, ThroughputSource.Monitoring, false)]
+    public async Task Should_correctly_report_throughput_existence_for_X_days_for_specific_source(int daysSinceLastThroughputEntry, int timeFrameToCheck, ThroughputSource throughputSourceToRecord, ThroughputSource throughputSourceToCheck, bool expectedValue)
+    {
+        // Arrange
+        var endpointAudit = new Endpoint("Endpoint", throughputSourceToRecord);
+        await DataStore.SaveEndpoint(endpointAudit);
+
+        await DataStore.RecordEndpointThroughput(
+            endpointAudit.Id.Name,
+            throughputSourceToRecord,
+            DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-daysSinceLastThroughputEntry),
+            50);
+
+        Assert.That(await DataStore.IsThereThroughputForLastXDaysForSource(timeFrameToCheck, throughputSourceToCheck), expectedValue ? Is.True : Is.False);
+    }
 }

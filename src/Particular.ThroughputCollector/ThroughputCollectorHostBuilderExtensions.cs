@@ -6,6 +6,7 @@ using BrokerThroughput;
 using Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Particular.ThroughputCollector.MonitoringThroughput;
 using Particular.ThroughputCollector.Shared;
 using ServiceControl.Configuration;
 using ServiceControl.Transports;
@@ -46,6 +47,7 @@ public static class ThroughputCollectorHostBuilderExtensions
         services.AddHostedService<AuditThroughputCollectorHostedService>();
         services.AddSingleton<IThroughputCollector, ThroughputCollector>();
         services.AddSingleton<AuditQuery>();
+        services.AddSingleton<MonitoringService>();
 
         if (broker != Broker.None)
         {

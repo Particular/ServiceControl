@@ -2,13 +2,14 @@
 
 using AuditThroughput;
 using Contracts;
+using Particular.ThroughputCollector.MonitoringThroughput;
 using Persistence;
 using ServiceControl.Transports;
 using Shared;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, AuditQuery auditQuery, IBrokerThroughputQuery? throughputQuery = null)
+public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, AuditQuery auditQuery, MonitoringService monitoringService, IBrokerThroughputQuery? throughputQuery = null)
     : IThroughputCollector
 {
     public async Task<ThroughputConnectionSettings> GetThroughputConnectionSettingsInformation()
@@ -37,9 +38,12 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         var auditTask = auditQuery.TestAuditConnection(cancellationToken);
         tasks.Add(auditTask);
 
+        var monitoringTask = monitoringService.TestMonitoringConnection(cancellationToken);
+        tasks.Add(monitoringTask);
+
         await Task.WhenAll(tasks);
 
-        var connectionTestResults = new ConnectionTestResults(throughputSettings.Broker, auditTask.Result, new ConnectionSettingsTestResult(), brokerTask.Result);
+        var connectionTestResults = new ConnectionTestResults(throughputSettings.Broker, auditTask.Result, monitoringTask.Result, brokerTask.Result);
 
         return await Task.FromResult(connectionTestResults);
     }
