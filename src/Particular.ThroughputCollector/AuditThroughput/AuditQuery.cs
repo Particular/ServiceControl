@@ -118,13 +118,12 @@
 
             foreach (var remote in remotesInfo.Where(w => w.Status != "online" && w.SemanticVersion == null))
             {
-                connectionTestResult.ConnectionErrorMessages.Add($"Unable to determine the version of one or more ServiceControl Audit instances. For the instance with URI {remote.ApiUri}, the status was '{remote.Status}' and the version string returned was '{remote.VersionString}'.");
+                connectionTestResult.ConnectionErrorMessages.Add($"Unable to determine the version of ServiceControl Audit instance at URI {remote.ApiUri}. The instance status was '{remote.Status}' and the version string returned was '{remote.VersionString}'.");
             }
 
-            var allHaveAuditCounts = remotesInfo.All(ValidRemoteInstances);
-            if (!allHaveAuditCounts)
+            foreach (var remote in remotesInfo.Where(w => !ValidRemoteInstances(w)))
             {
-                connectionTestResult.ConnectionErrorMessages.Add($"At least one ServiceControl Audit instance is either not running the required version ({MinAuditCountsVersion}) or is not configured for at least 2 days of retention. Audit throughput will not be available.");
+                connectionTestResult.ConnectionErrorMessages.Add($"Invalid ServiceControl Audit instance found with version {remote.VersionString} (minimum version {MinAuditCountsVersion}) and configured retention period of {remote.Retention.Days} days (minimum 2 days). Audit throughput will not be available.");
             }
 
             connectionTestResult.ConnectionSuccessful = !connectionTestResult.ConnectionErrorMessages.Any();
