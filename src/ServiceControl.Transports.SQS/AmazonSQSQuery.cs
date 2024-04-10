@@ -18,69 +18,73 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.Logging;
 
-public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timeProvider) : IBrokerThroughputQuery
+public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timeProvider)
+    : BrokerThroughputQuery(logger, "AmazonSQS")
 {
     AmazonCloudWatchClient? cloudWatch;
     AmazonSQSClient? sqs;
     string? prefix;
-    readonly List<string> initialiseErrors = [];
 
-    public void Initialise(FrozenDictionary<string, string> settings)
+    protected override void InitialiseCore(FrozenDictionary<string, string> settings)
     {
-        try
+        AWSCredentials credentials = FallbackCredentialsFactory.GetCredentials();
+        RegionEndpoint? regionEndpoint = null;
+        if (settings.TryGetValue(AmazonSQSSettings.Profile, out string? profile))
         {
-            AWSCredentials credentials = FallbackCredentialsFactory.GetCredentials();
-            RegionEndpoint? regionEndpoint = null;
-            if (settings.TryGetValue(AmazonSQSSettings.Profile, out string? profile))
+            var credentialsFile = new NetSDKCredentialsFile();
+            if (credentialsFile.TryGetProfile(profile, out CredentialProfile? credentialProfile))
             {
-                var credentialsFile = new NetSDKCredentialsFile();
-                if (credentialsFile.TryGetProfile(profile, out CredentialProfile? credentialProfile))
+                if (credentialProfile.CanCreateAWSCredentials)
                 {
-                    if (credentialProfile.CanCreateAWSCredentials)
-                    {
-                        credentials = credentialProfile.GetAWSCredentials(credentialProfile.CredentialProfileStore);
-                        logger.LogInformation($"Using credentials set in '{profile}' profile");
-                    }
-
-                    logger.LogInformation($"Using region set in '{profile}' profile");
-                    regionEndpoint = new ProfileAWSRegion(credentialsFile, profile).Region;
+                    credentials = credentialProfile.GetAWSCredentials(credentialProfile.CredentialProfileStore);
+                    logger.LogInformation($"Using credentials set in '{profile}' profile");
                 }
+
+                logger.LogInformation($"Using region set in '{profile}' profile");
+                regionEndpoint = new ProfileAWSRegion(credentialsFile, profile).Region;
+            }
+        }
+        else
+        {
+            settings.TryGetValue(AmazonSQSSettings.AccessKey, out string? accessKey);
+            settings.TryGetValue(AmazonSQSSettings.SecretKey, out string? secretKey);
+            if (accessKey != null && secretKey != null)
+            {
+                logger.LogInformation("Using basic credentials");
+                credentials = new BasicAWSCredentials(accessKey, secretKey);
             }
             else
             {
-                settings.TryGetValue(AmazonSQSSettings.AccessKey, out string? accessKey);
-                settings.TryGetValue(AmazonSQSSettings.SecretKey, out string? secretKey);
-                if (accessKey != null && secretKey != null)
-                {
-                    logger.LogInformation("Using basic credentials");
-                    credentials = new BasicAWSCredentials(accessKey, secretKey);
-                }
-                else
-                {
-                    logger.LogInformation("Attempting to use existing environment variables or IAM role credentials");
-                }
+                logger.LogInformation("Attempting to use existing environment variables or IAM role credentials");
             }
-
-            if (settings.TryGetValue(AmazonSQSSettings.Region, out string? region))
-            {
-                regionEndpoint = RegionEndpoint.GetBySystemName(region);
-            }
-            else if (regionEndpoint == null)
-            {
-                logger.LogInformation("Using AWS environment variable for region");
-                regionEndpoint = new EnvironmentVariableAWSRegion().Region;
-            }
-
-            sqs = new AmazonSQSClient(credentials, new AmazonSQSConfig { RegionEndpoint = regionEndpoint, RetryMode = RequestRetryMode.Adaptive, HttpClientFactory = new AwsHttpClientFactory() });
-            cloudWatch = new AmazonCloudWatchClient(credentials, new AmazonCloudWatchConfig { RegionEndpoint = regionEndpoint, RetryMode = RequestRetryMode.Adaptive, HttpClientFactory = new AwsHttpClientFactory() });
-
-            settings.TryGetValue(AmazonSQSSettings.Prefix, out prefix);
         }
-        catch (Exception e)
+
+        if (settings.TryGetValue(AmazonSQSSettings.Region, out string? region))
         {
-            initialiseErrors.Add(e.Message);
-            logger.LogError($"Failed to initialise {nameof(AmazonSQSQuery)}");
+            regionEndpoint = RegionEndpoint.GetBySystemName(region);
         }
+        else if (regionEndpoint == null)
+        {
+            logger.LogInformation("Using AWS environment variable for region");
+            regionEndpoint = new EnvironmentVariableAWSRegion().Region;
+        }
+
+        sqs = new AmazonSQSClient(credentials,
+            new AmazonSQSConfig
+            {
+                RegionEndpoint = regionEndpoint,
+                RetryMode = RequestRetryMode.Adaptive,
+                HttpClientFactory = new AwsHttpClientFactory()
+            });
+        cloudWatch = new AmazonCloudWatchClient(credentials,
+            new AmazonCloudWatchConfig
+            {
+                RegionEndpoint = regionEndpoint,
+                RetryMode = RequestRetryMode.Adaptive,
+                HttpClientFactory = new AwsHttpClientFactory()
+            });
+
+        settings.TryGetValue(AmazonSQSSettings.Prefix, out prefix);
     }
 
     public static class AmazonSQSSettings
@@ -114,7 +118,8 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         public override bool DisposeHttpClientsAfterUse(IClientConfig clientConfig) => false;
     }
 
-    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
+    public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,
+        DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var endDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
@@ -149,7 +154,8 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         }
     }
 
-    public async IAsyncEnumerable<IBrokerQueue> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var request = new ListQueuesRequest
         {
@@ -177,9 +183,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         }
     }
 
-    public string? ScopeType => null;
-
-    public KeyDescriptionPair[] Settings =>
+    public override KeyDescriptionPair[] Settings =>
     [
         new KeyDescriptionPair(AmazonSQSSettings.AccessKey, AmazonSQSSettings.AccessKeyDescription),
         new KeyDescriptionPair(AmazonSQSSettings.SecretKey, AmazonSQSSettings.SecretKeyDescription),
@@ -188,33 +192,20 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         new KeyDescriptionPair(AmazonSQSSettings.Region, AmazonSQSSettings.RegionDescription)
     ];
 
-    public async Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken)
+    public override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
+        CancellationToken cancellationToken)
     {
-        if (initialiseErrors.Count > 0)
+        await foreach (IBrokerQueue brokerQueue in GetQueueNames(cancellationToken))
         {
-            return (false, initialiseErrors);
-        }
-
-        try
-        {
-            await foreach (IBrokerQueue brokerQueue in GetQueueNames(cancellationToken))
+            // Just picking 10 days ago to test the connection
+            await foreach (QueueThroughput _ in GetThroughputPerDay(brokerQueue,
+                               DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-10),
+                               cancellationToken))
             {
-                // Just picking 10 days ago to test the connection
-                await foreach (QueueThroughput _ in GetThroughputPerDay(brokerQueue, DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-10), cancellationToken))
-                {
-                    return (true, []);
-                }
+                return (true, []);
             }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Test connection failed");
-            return (false, [ex.Message]);
         }
 
         return (true, []);
     }
-
-    public Dictionary<string, string> Data { get; } = [];
-    public string MessageTransport => "AmazonSQS";
 }

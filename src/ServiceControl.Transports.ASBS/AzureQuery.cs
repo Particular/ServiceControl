@@ -18,85 +18,91 @@ using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.ServiceBus;
 using Microsoft.Extensions.Logging;
 
-public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings) : IBrokerThroughputQuery
+public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings)
+    : BrokerThroughputQuery(logger, "AzureServiceBus")
 {
     string serviceBusName = string.Empty;
     MetricsQueryClient? client;
     ArmClient? armClient;
     string? resourceId;
-    readonly List<string> initialiseErrors = [];
 
-    public void Initialise(FrozenDictionary<string, string> settings)
+    protected override void InitialiseCore(FrozenDictionary<string, string> settings)
     {
-        initialiseErrors.Clear();
-
-        try
+        if (settings.TryGetValue(AzureServiceBusSettings.ManagementUrl, out string? managementUrl))
         {
-            if (settings.TryGetValue(AzureServiceBusSettings.ManagementUrl, out string? managementUrl))
+            if (!Uri.TryCreate(managementUrl, UriKind.Absolute, out _))
             {
-                if (!Uri.TryCreate(managementUrl, UriKind.Absolute, out _))
-                {
-                    initialiseErrors.Add("Management url configured is invalid");
-                }
+                InitialiseErrors.Add("Management url configured is invalid");
+            }
+        }
+
+        if (settings.TryGetValue(AzureServiceBusSettings.ServiceBusName, out string? serviceBusNameValue))
+        {
+            serviceBusName = serviceBusNameValue.Length == 0 ? string.Empty : serviceBusNameValue;
+        }
+
+        if (string.IsNullOrEmpty(serviceBusName))
+        {
+            // Extract ServiceBus name from connection string
+            const string serviceBusUrlPrefix = "sb://";
+            int serviceBusUrlPrefixLength = serviceBusUrlPrefix.Length;
+            int startIndex = transportSettings.ConnectionString.IndexOf(serviceBusUrlPrefix, StringComparison.Ordinal);
+            if (startIndex == -1)
+            {
+                startIndex = 0;
+            }
+            else
+            {
+                startIndex += serviceBusUrlPrefixLength;
             }
 
-            if (settings.TryGetValue(AzureServiceBusSettings.ServiceBusName, out string? serviceBusNameValue))
-            {
-                serviceBusName = serviceBusNameValue.Length == 0 ? string.Empty : serviceBusNameValue;
-            }
+            serviceBusName = transportSettings.ConnectionString.Substring(startIndex,
+                transportSettings.ConnectionString.IndexOf('.', startIndex) - startIndex);
+            logger.LogInformation("ServiceBus name extracted from connection string");
+        }
 
-            if (string.IsNullOrEmpty(serviceBusName))
-            {
-                // Extract ServiceBus name from connection string
-                const string serviceBusUrlPrefix = "sb://";
-                int serviceBusUrlPrefixLength = serviceBusUrlPrefix.Length;
-                int startIndex = transportSettings.ConnectionString.IndexOf(serviceBusUrlPrefix, StringComparison.Ordinal);
-                if (startIndex == -1)
-                {
-                    startIndex = 0;
-                }
-                else
-                {
-                    startIndex += serviceBusUrlPrefixLength;
-                }
+        if (!settings.TryGetValue(AzureServiceBusSettings.SubscriptionId, out string? subscriptionId))
+        {
+            InitialiseErrors.Add("SubscriptionId is a required setting");
+        }
 
-                serviceBusName = transportSettings.ConnectionString.Substring(startIndex,
-                    transportSettings.ConnectionString.IndexOf('.', startIndex) - startIndex);
-                logger.LogInformation("ServiceBus name extracted from connection string");
-            }
+        if (!settings.TryGetValue(AzureServiceBusSettings.TenantId, out string? tenantId))
+        {
+            InitialiseErrors.Add("TenantId is a required setting");
+        }
 
-            if (!settings.TryGetValue(AzureServiceBusSettings.SubscriptionId, out string? subscriptionId))
-            {
-                initialiseErrors.Add("SubscriptionId is a required setting");
-            }
-            if (!settings.TryGetValue(AzureServiceBusSettings.TenantId, out string? tenantId))
-            {
-                initialiseErrors.Add("TenantId is a required setting");
-            }
-            if (!settings.TryGetValue(AzureServiceBusSettings.ClientId, out string? clientId))
-            {
-                initialiseErrors.Add("ClientId is a required setting");
-            }
-            if (!settings.TryGetValue(AzureServiceBusSettings.ClientSecret, out string? clientSecret))
-            {
-                initialiseErrors.Add("ClientSecret is a required setting");
-            }
+        if (!settings.TryGetValue(AzureServiceBusSettings.ClientId, out string? clientId))
+        {
+            InitialiseErrors.Add("ClientId is a required setting");
+        }
 
-            var clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
-            ArmEnvironment environment = GetEnvironment(managementUrl);
+        if (!settings.TryGetValue(AzureServiceBusSettings.ClientSecret, out string? clientSecret))
+        {
+            InitialiseErrors.Add("ClientSecret is a required setting");
+        }
 
-            client = new MetricsQueryClient(environment.Endpoint, clientCredentials, new MetricsQueryClientOptions
+        var clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
+        ArmEnvironment environment = GetEnvironment(managementUrl);
+
+        client = new MetricsQueryClient(environment.Endpoint, clientCredentials,
+            new MetricsQueryClientOptions
             {
-                Transport = new HttpClientTransport(new HttpClient(new SocketsHttpHandler { PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2) }))
+                Transport = new HttpClientTransport(
+                    new HttpClient(new SocketsHttpHandler
+                    {
+                        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
+                    }))
             });
-            armClient = new ArmClient(clientCredentials, subscriptionId,
-                new ArmClientOptions { Environment = environment, Transport = new HttpClientTransport(new HttpClient(new SocketsHttpHandler { PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2) })) });
-        }
-        catch (Exception e)
-        {
-            initialiseErrors.Add(e.Message);
-            logger.LogError($"Failed to initialise {nameof(AzureQuery)}");
-        }
+        armClient = new ArmClient(clientCredentials, subscriptionId,
+            new ArmClientOptions
+            {
+                Environment = environment,
+                Transport = new HttpClientTransport(
+                    new HttpClient(new SocketsHttpHandler
+                    {
+                        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
+                    }))
+            });
 
         return;
 
@@ -129,7 +135,8 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         }
     }
 
-    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
+    public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,
+        DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         logger.LogInformation($"Gathering metrics for \"{brokerQueue}\" queue");
@@ -172,14 +179,9 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         return metricValues;
     }
 
-    public async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
+    public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        if (initialiseErrors.Count > 0)
-        {
-            yield break;
-        }
-
         SubscriptionResource? subscription = await armClient!.GetDefaultSubscriptionAsync(cancellationToken);
         var namespaces =
             subscription.GetServiceBusNamespacesAsync(cancellationToken);
@@ -203,9 +205,8 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         throw new Exception($"Could not find a ServiceBus named \"{serviceBusName}\"");
     }
 
-    public string? ScopeType { get; }
-
-    public KeyDescriptionPair[] Settings => [
+    public override KeyDescriptionPair[] Settings =>
+    [
         new KeyDescriptionPair(AzureServiceBusSettings.ServiceBusName, AzureServiceBusSettings.ServiceBusNameDescription),
         new KeyDescriptionPair(AzureServiceBusSettings.ClientId, AzureServiceBusSettings.ClientIdDescription),
         new KeyDescriptionPair(AzureServiceBusSettings.ClientSecret, AzureServiceBusSettings.ClientSecretDescription),
@@ -214,35 +215,22 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         new KeyDescriptionPair(AzureServiceBusSettings.ManagementUrl, AzureServiceBusSettings.ManagementUrlDescription)
     ];
 
-    public async Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken)
+    public override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
+        CancellationToken cancellationToken)
     {
-        if (initialiseErrors.Count > 0)
+        await foreach (IBrokerQueue brokerQueue in GetQueueNames(cancellationToken))
         {
-            return (false, initialiseErrors);
-        }
-
-        try
-        {
-            await foreach (IBrokerQueue brokerQueue in GetQueueNames(cancellationToken))
+            // Just picking 10 days ago to test the connection
+            await foreach (QueueThroughput _ in GetThroughputPerDay(brokerQueue,
+                               DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-10),
+                               cancellationToken))
             {
-                // Just picking 10 days ago to test the connection
-                await foreach (QueueThroughput _ in GetThroughputPerDay(brokerQueue, DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-10), cancellationToken))
-                {
-                    return (true, []);
-                }
+                return (true, []);
             }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Test connection failed");
-            return (false, [ex.Message]);
         }
 
         return (true, []);
     }
-
-    public Dictionary<string, string> Data { get; } = [];
-    public string MessageTransport => "AzureServiceBus";
 
     public static class AzureServiceBusSettings
     {
