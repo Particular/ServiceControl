@@ -11,44 +11,40 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 
-public class SqlServerQuery(ILogger<SqlServerQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings) : IBrokerThroughputQuery
+public class SqlServerQuery(
+    ILogger<SqlServerQuery> logger,
+    TimeProvider timeProvider,
+    TransportSettings transportSettings) : BrokerThroughputQuery(logger, "SqlTransport")
 {
     readonly List<DatabaseDetails> databases = [];
-    readonly List<string> initialiseErrors = [];
 
-    public void Initialise(FrozenDictionary<string, string> settings)
+    protected override void InitialiseCore(FrozenDictionary<string, string> settings)
     {
-        try
+        if (!settings.TryGetValue(SqlServerSettings.ConnectionString, out string? connectionString))
         {
-            if (!settings.TryGetValue(SqlServerSettings.ConnectionString, out string? connectionString))
-            {
-                logger.LogInformation("Using connectionstring used by instance");
+            logger.LogInformation("Using connectionstring used by instance");
 
-                connectionString = transportSettings.ConnectionString;
-            }
-            if (!settings.TryGetValue(SqlServerSettings.AdditionalCatalogs, out string? catalogs))
-            {
-                databases.Add(new DatabaseDetails(connectionString));
-                return;
-            }
-
-            var builder = new SqlConnectionStringBuilder { ConnectionString = connectionString };
-
-            foreach (string catalog in catalogs.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries
-                                                                          | StringSplitOptions.TrimEntries))
-            {
-                builder.InitialCatalog = catalog;
-                databases.Add(new DatabaseDetails(builder.ToString()));
-            }
+            connectionString = transportSettings.ConnectionString;
         }
-        catch (Exception e)
+
+        if (!settings.TryGetValue(SqlServerSettings.AdditionalCatalogs, out string? catalogs))
         {
-            initialiseErrors.Add(e.Message);
-            logger.LogError($"Failed to initialise {nameof(SqlServerQuery)}");
+            databases.Add(new DatabaseDetails(connectionString));
+            return;
+        }
+
+        var builder = new SqlConnectionStringBuilder { ConnectionString = connectionString };
+
+        foreach (string catalog in catalogs.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries
+                                                                      | StringSplitOptions.TrimEntries))
+        {
+            builder.InitialCatalog = catalog;
+            databases.Add(new DatabaseDetails(builder.ToString()));
         }
     }
 
-    public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
+    public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,
+        DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var queueTableName = (BrokerQueueTable)brokerQueue;
@@ -72,7 +68,7 @@ public class SqlServerQuery(ILogger<SqlServerQuery> logger, TimeProvider timePro
         }
     }
 
-    public async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
+    public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var tables = new List<BrokerQueueTable>();
@@ -110,20 +106,15 @@ public class SqlServerQuery(ILogger<SqlServerQuery> logger, TimeProvider timePro
         }
     }
 
-    public string? ScopeType { get; set; }
-
-    public KeyDescriptionPair[] Settings => [
+    public override KeyDescriptionPair[] Settings =>
+    [
         new KeyDescriptionPair(SqlServerSettings.ConnectionString, SqlServerSettings.ConnectionStringDescription),
         new KeyDescriptionPair(SqlServerSettings.AdditionalCatalogs, SqlServerSettings.AdditionalCatalogsDescription)
     ];
 
-    public async Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken)
+    public override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
+        CancellationToken cancellationToken)
     {
-        if (initialiseErrors.Count > 0)
-        {
-            return (false, initialiseErrors);
-        }
-
         List<string> errors = [];
 
         foreach (DatabaseDetails db in databases)
@@ -141,9 +132,6 @@ public class SqlServerQuery(ILogger<SqlServerQuery> logger, TimeProvider timePro
 
         return (errors.Count == 0, errors);
     }
-
-    public Dictionary<string, string> Data { get; } = [];
-    public string MessageTransport => "SqlTransport";
 
     public static class SqlServerSettings
     {

@@ -92,6 +92,12 @@ class BrokerThroughputCollectorHostedServiceTests
 
     class MockedBrokerThroughputQueryThatThrowsExceptions : IBrokerThroughputQuery
     {
+        public bool HasInitialisationErrors(out string errorMessage)
+        {
+            errorMessage = string.Empty;
+            return false;
+        }
+
         public void Initialise(FrozenDictionary<string, string> settings)
         { }
 
@@ -127,6 +133,12 @@ class BrokerThroughputCollectorHostedServiceTests
 
     class MockedBrokerThroughputQuery : IBrokerThroughputQuery
     {
+        public bool HasInitialisationErrors(out string errorMessage)
+        {
+            errorMessage = string.Empty;
+            return false;
+        }
+
         public void Initialise(FrozenDictionary<string, string> settings)
         { }
 
