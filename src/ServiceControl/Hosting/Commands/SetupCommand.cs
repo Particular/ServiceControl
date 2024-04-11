@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Hosting.Commands
 {
-    using System;
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
     using LicenseManagement;
@@ -35,7 +34,7 @@
             }
 
             hostBuilder.AddServiceControlInstallers(settings);
-            using IHost host = hostBuilder.Build();
+            var host = hostBuilder.Build();
 
             // TODO: https://github.com/orgs/Particular/projects/197/views/1?pane=issue&itemId=58048957
             //await host.Services
@@ -49,30 +48,25 @@
 
             await host.StartAsync();
 
-            try
+            foreach (var installationTask in componentSetupContext.InstallationTasks)
             {
-                foreach (Func<IServiceProvider, Task> installationTask in componentSetupContext.InstallationTasks)
-                {
-                    await installationTask(host.Services);
-                }
-
-                if (settings.SkipQueueCreation)
-                {
-                    Logger.Info("Skipping queue creation");
-                }
-                else
-                {
-                    TransportSettings transportSettings = MapSettings(settings);
-                    ITransportCustomization transportCustomization = settings.LoadTransportCustomization();
-
-                    await transportCustomization.ProvisionQueues(transportSettings,
-                        componentSetupContext.Queues);
-                }
+                await installationTask(host.Services);
             }
-            finally
+
+            if (settings.SkipQueueCreation)
             {
-                await host.StopAsync();
+                Logger.Info("Skipping queue creation");
             }
+            else
+            {
+                var transportSettings = MapSettings(settings);
+                var transportCustomization = settings.LoadTransportCustomization();
+
+                await transportCustomization.ProvisionQueues(transportSettings,
+                    componentSetupContext.Queues);
+            }
+
+            await host.StopAsync();
         }
 
         static bool ValidateLicense(Settings settings)
