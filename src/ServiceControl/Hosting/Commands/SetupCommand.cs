@@ -1,6 +1,5 @@
 namespace ServiceControl.Hosting.Commands
 {
-    using System;
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
     using LicenseManagement;
@@ -47,10 +46,16 @@ namespace ServiceControl.Hosting.Commands
             {
                 Logger.Info("Skipping queue creation");
             }
-            finally
+            else
             {
-                await host.StopAsync();
+                var transportSettings = MapSettings(settings);
+                var transportCustomization = settings.LoadTransportCustomization();
+
+                await transportCustomization.ProvisionQueues(transportSettings,
+                    componentSetupContext.Queues);
             }
+
+            await host.StopAsync();
         }
 
         static bool ValidateLicense(Settings settings)
