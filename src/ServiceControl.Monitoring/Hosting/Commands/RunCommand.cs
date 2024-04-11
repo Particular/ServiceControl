@@ -16,7 +16,7 @@ namespace ServiceControl.Monitoring
             hostBuilder.AddServiceControlMonitoring((_, __) => Task.CompletedTask, settings, endpointConfiguration);
             hostBuilder.AddServiceControlMonitoringApi();
 
-            await using var app = hostBuilder.Build();
+            var app = hostBuilder.Build();
             app.UseServiceControlMonitoring();
             await app.RunAsync(settings.RootUrl);
         }
