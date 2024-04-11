@@ -32,7 +32,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         {
             if (!Uri.TryCreate(managementUrl, UriKind.Absolute, out _))
             {
-                InitialiseErrors.Add("Management url configured is invalid");
+                InitialiseErrors.Add("Management url configuration is invalid");
             }
         }
 
@@ -59,30 +59,64 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             serviceBusName = transportSettings.ConnectionString.Substring(startIndex,
                 transportSettings.ConnectionString.IndexOf('.', startIndex) - startIndex);
             logger.LogInformation("ServiceBus name extracted from connection string");
+            Diagnostics.AppendLine($"ServiceBus name not set to, defaulted to \"{serviceBusName}\"");
+        }
+        else
+        {
+            Diagnostics.AppendLine($"ServiceBus name set to \"{serviceBusName}\"");
         }
 
         if (!settings.TryGetValue(AzureServiceBusSettings.SubscriptionId, out string? subscriptionId))
         {
             InitialiseErrors.Add("SubscriptionId is a required setting");
+            Diagnostics.AppendLine("SubscriptionId not set");
+        }
+        else
+        {
+            Diagnostics.AppendLine($"SubscriptionId set to \"{subscriptionId}\"");
         }
 
         if (!settings.TryGetValue(AzureServiceBusSettings.TenantId, out string? tenantId))
         {
             InitialiseErrors.Add("TenantId is a required setting");
+            Diagnostics.AppendLine("TenantId not set");
+        }
+        else
+        {
+            Diagnostics.AppendLine($"TenantId set to \"{tenantId}\"");
         }
 
         if (!settings.TryGetValue(AzureServiceBusSettings.ClientId, out string? clientId))
         {
             InitialiseErrors.Add("ClientId is a required setting");
+            Diagnostics.AppendLine("ClientId not set");
+        }
+        else
+        {
+            Diagnostics.AppendLine($"ClientId set to \"{clientId}\"");
         }
 
         if (!settings.TryGetValue(AzureServiceBusSettings.ClientSecret, out string? clientSecret))
         {
             InitialiseErrors.Add("ClientSecret is a required setting");
+            Diagnostics.AppendLine("Client secret not set");
+        }
+        else
+        {
+            Diagnostics.AppendLine("Client secret set");
         }
 
         var clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
-        ArmEnvironment environment = GetEnvironment(managementUrl);
+        ArmEnvironment environment = GetEnvironment();
+
+        if (managementUrl == null)
+        {
+            Diagnostics.AppendLine($"Management Url not set, defaulted to \"{environment.Endpoint}\"");
+        }
+        else
+        {
+            Diagnostics.AppendLine($"Management Url set to \"{managementUrl}\"");
+        }
 
         client = new MetricsQueryClient(environment.Endpoint, clientCredentials,
             new MetricsQueryClientOptions
@@ -106,7 +140,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
         return;
 
-        ArmEnvironment GetEnvironment(string? managementUrl)
+        ArmEnvironment GetEnvironment()
         {
             if (managementUrl == null)
             {
@@ -130,6 +164,14 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             {
                 return ArmEnvironment.AzureGovernment;
             }
+
+            string options = string.Join(", ",
+                new[]
+                {
+                    ArmEnvironment.AzurePublicCloud, ArmEnvironment.AzureGermany, ArmEnvironment.AzureGovernment,
+                    ArmEnvironment.AzureChina
+                }.Select(armEnvironment => $"\"{armEnvironment.Endpoint}\""));
+            InitialiseErrors.Add($"Management url configuration is invalid, available options are {options}");
 
             return ArmEnvironment.AzurePublicCloud;
         }
