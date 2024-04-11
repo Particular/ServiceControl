@@ -46,7 +46,7 @@ class AmazonSQSQueryTests : TransportTestFixture
             { AmazonSQSQuery.AmazonSQSSettings.SecretKey, "not valid" }
         };
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, _) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
         StringAssert.Contains("not a valid key", errors.Single());
@@ -62,7 +62,7 @@ class AmazonSQSQueryTests : TransportTestFixture
             { AmazonSQSQuery.AmazonSQSSettings.Region, "not valid" }
         };
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, _) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
         Assert.AreEqual("Invalid region endpoint provided", errors.Single());
