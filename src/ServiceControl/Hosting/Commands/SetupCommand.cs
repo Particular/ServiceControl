@@ -40,7 +40,7 @@
                 EventSourceCreator.Create();
             }
 
-            await host.StartAsync();
+            await host.RunAsync();
 
             foreach (var installationTask in componentSetupContext.InstallationTasks)
             {

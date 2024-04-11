@@ -45,7 +45,7 @@ class RabbitMQQueryTests : TransportTestFixture
             { RabbitMQQuery.RabbitMQSettings.API, "http://localhost:12345" }
         };
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> _) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, _, _) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
     }
