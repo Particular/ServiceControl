@@ -67,8 +67,10 @@ public class RabbitMQQuery(
         {
             httpClient = new HttpClient(new SocketsHttpHandler
             {
-                Credentials = defaultCredential, PooledConnectionLifetime = TimeSpan.FromMinutes(2)
-            }) { BaseAddress = new Uri(apiUrl) };
+                Credentials = defaultCredential,
+                PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+            })
+            { BaseAddress = new Uri(apiUrl) };
         }
     }
 
