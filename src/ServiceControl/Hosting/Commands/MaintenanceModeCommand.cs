@@ -15,7 +15,7 @@
 
             hostBuilder.Services.AddWindowsService();
 
-            using var host = hostBuilder.Build();
+            var host = hostBuilder.Build();
             await host.RunAsync();
         }
     }
