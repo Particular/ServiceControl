@@ -31,6 +31,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         RegionEndpoint? regionEndpoint = null;
         if (settings.TryGetValue(AmazonSQSSettings.Profile, out string? profile))
         {
+            Diagnostics.Append($"Profile set to {profile}");
             var credentialsFile = new NetSDKCredentialsFile();
             if (credentialsFile.TryGetProfile(profile, out CredentialProfile? credentialProfile))
             {
@@ -38,16 +39,39 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
                 {
                     credentials = credentialProfile.GetAWSCredentials(credentialProfile.CredentialProfileStore);
                     logger.LogInformation($"Using credentials set in '{profile}' profile");
+                    Diagnostics.AppendLine(", using profile credentials");
                 }
 
                 logger.LogInformation($"Using region set in '{profile}' profile");
                 regionEndpoint = new ProfileAWSRegion(credentialsFile, profile).Region;
             }
+            else
+            {
+                Diagnostics.AppendLine($"Profile set to {profile}");
+            }
         }
         else
         {
-            settings.TryGetValue(AmazonSQSSettings.AccessKey, out string? accessKey);
-            settings.TryGetValue(AmazonSQSSettings.SecretKey, out string? secretKey);
+            Diagnostics.AppendLine("Profile not set");
+
+            if (settings.TryGetValue(AmazonSQSSettings.AccessKey, out string? accessKey))
+            {
+                Diagnostics.AppendLine($"AccessKey set to {accessKey}");
+            }
+            else
+            {
+                Diagnostics.AppendLine("AccessKey not set");
+            }
+
+            if (settings.TryGetValue(AmazonSQSSettings.SecretKey, out string? secretKey))
+            {
+                Diagnostics.AppendLine("SecretKey set");
+            }
+            else
+            {
+                Diagnostics.AppendLine("SecretKey not set");
+            }
+
             if (accessKey != null && secretKey != null)
             {
                 logger.LogInformation("Using basic credentials");
@@ -55,18 +79,38 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
             }
             else
             {
+                Diagnostics.AppendLine("Attempting to use existing environment variables or IAM role credentials");
                 logger.LogInformation("Attempting to use existing environment variables or IAM role credentials");
             }
         }
 
         if (settings.TryGetValue(AmazonSQSSettings.Region, out string? region))
         {
+            string? previousSetSystemName = regionEndpoint?.SystemName;
             regionEndpoint = RegionEndpoint.GetBySystemName(region);
+
+            Diagnostics.Append($"Region set to \"{regionEndpoint.SystemName}\"");
+            if (previousSetSystemName != regionEndpoint.SystemName)
+            {
+                Diagnostics.Append(", this setting overrides the profile setting");
+            }
+
+            Diagnostics.AppendLine();
         }
         else if (regionEndpoint == null)
         {
-            logger.LogInformation("Using AWS environment variable for region");
-            regionEndpoint = new EnvironmentVariableAWSRegion().Region;
+            logger.LogInformation("Attempting to use AWS environment variable for region");
+            try
+            {
+                regionEndpoint = new EnvironmentVariableAWSRegion().Region;
+                Diagnostics.AppendLine(
+                    $"Region not set, using \"{regionEndpoint.SystemName}\" set by the environment setting");
+            }
+            catch (InvalidOperationException)
+            {
+                Diagnostics.AppendLine("Region not set,");
+                throw;
+            }
         }
 
         sqs = new AmazonSQSClient(credentials,
