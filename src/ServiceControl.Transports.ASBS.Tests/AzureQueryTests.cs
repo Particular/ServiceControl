@@ -42,7 +42,7 @@ class AzureQueryTests : TransportTestFixture
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         query.Initialise(FrozenDictionary<string, string>.Empty);
-        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, _) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
         CollectionAssert.Contains(errors, "SubscriptionId is a required setting");
@@ -64,7 +64,7 @@ class AzureQueryTests : TransportTestFixture
             { AzureQuery.AzureServiceBusSettings.SubscriptionId, "not valid" }
         };
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, _) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
         StringAssert.StartsWith("Invalid tenant id provided", errors.Single());
@@ -83,7 +83,7 @@ class AzureQueryTests : TransportTestFixture
             { AzureQuery.AzureServiceBusSettings.SubscriptionId, "not valid" }
         };
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, _) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
         StringAssert.StartsWith("The GUID for subscription is invalid", errors.Single());
@@ -97,7 +97,7 @@ class AzureQueryTests : TransportTestFixture
         Dictionary<string, string> dictionary = GetSettings();
         dictionary[AzureQuery.AzureServiceBusSettings.ClientId] = "not valid";
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, _) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
         StringAssert.StartsWith("ClientSecretCredential authentication failed", errors.Single());
@@ -111,7 +111,7 @@ class AzureQueryTests : TransportTestFixture
         Dictionary<string, string> dictionary = GetSettings();
         dictionary[AzureQuery.AzureServiceBusSettings.ClientSecret] = "not valid";
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, _) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
         StringAssert.StartsWith("ClientSecretCredential authentication failed", errors.Single());
