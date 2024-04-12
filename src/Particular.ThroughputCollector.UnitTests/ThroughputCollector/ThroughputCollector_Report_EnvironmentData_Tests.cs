@@ -11,11 +11,8 @@ using ServiceControl.Api;
 [TestFixture]
 class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTestFixture
 {
-    readonly Broker broker = Broker.AzureServiceBus;
     public override Task Setup()
     {
-        SetThroughputSettings = s => s.Broker = broker;
-
         SetExtraDependencies = d =>
         {
             d.AddSingleton<IConfigurationApi, FakeConfigurationApi>();
@@ -42,8 +39,8 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
-        Assert.That(report.ReportData.EnvironmentData.ContainsKey(EnvironmentData.AuditEnabled.ToString()), Is.True, $"AuditEnabled missing from Environment data");
-        Assert.That(report.ReportData.EnvironmentData[EnvironmentData.AuditEnabled.ToString()], Is.EqualTo("False"), $"AuditEnabled should be False");
+        Assert.That(report.ReportData.EnvironmentData.ContainsKey(EnvironmentDataType.AuditEnabled.ToString()), Is.True, $"AuditEnabled missing from Environment data");
+        Assert.That(report.ReportData.EnvironmentData[EnvironmentDataType.AuditEnabled.ToString()], Is.EqualTo("False"), $"AuditEnabled should be False");
     }
 
     [Test]
@@ -69,8 +66,8 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
-        Assert.That(report.ReportData.EnvironmentData.ContainsKey(EnvironmentData.AuditEnabled.ToString()), Is.True, $"AuditEnabled missing from Environment data");
-        Assert.That(report.ReportData.EnvironmentData[EnvironmentData.AuditEnabled.ToString()], Is.EqualTo("True"), $"AuditEnabled should be True");
+        Assert.That(report.ReportData.EnvironmentData.ContainsKey(EnvironmentDataType.AuditEnabled.ToString()), Is.True, $"AuditEnabled missing from Environment data");
+        Assert.That(report.ReportData.EnvironmentData[EnvironmentDataType.AuditEnabled.ToString()], Is.EqualTo("True"), $"AuditEnabled should be True");
     }
 
     [Test]
@@ -89,8 +86,8 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
-        Assert.That(report.ReportData.EnvironmentData.ContainsKey(EnvironmentData.MonitoringEnabled.ToString()), Is.True, $"MonitoringEnabled missing from Environment data");
-        Assert.That(report.ReportData.EnvironmentData[EnvironmentData.MonitoringEnabled.ToString()], Is.EqualTo("False"), $"MonitoringEnabled should be False");
+        Assert.That(report.ReportData.EnvironmentData.ContainsKey(EnvironmentDataType.MonitoringEnabled.ToString()), Is.True, $"MonitoringEnabled missing from Environment data");
+        Assert.That(report.ReportData.EnvironmentData[EnvironmentDataType.MonitoringEnabled.ToString()], Is.EqualTo("False"), $"MonitoringEnabled should be False");
     }
 
     [Test]
@@ -116,8 +113,8 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
-        Assert.That(report.ReportData.EnvironmentData.ContainsKey(EnvironmentData.MonitoringEnabled.ToString()), Is.True, $"MonitoringEnabled missing from Environment data");
-        Assert.That(report.ReportData.EnvironmentData[EnvironmentData.MonitoringEnabled.ToString()], Is.EqualTo("True"), $"MonitoringEnabled should be True");
+        Assert.That(report.ReportData.EnvironmentData.ContainsKey(EnvironmentDataType.MonitoringEnabled.ToString()), Is.True, $"MonitoringEnabled missing from Environment data");
+        Assert.That(report.ReportData.EnvironmentData[EnvironmentDataType.MonitoringEnabled.ToString()], Is.EqualTo("True"), $"MonitoringEnabled should be True");
     }
 
     [Test]
@@ -148,7 +145,7 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
     }
 
     [Test]
-    public async Task Should_include_broker_data_in_report()
+    public async Task Should_include_environment_data_in_report()
     {
         // Arrange
         await DataStore.CreateBuilder()
@@ -161,9 +158,9 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
         var scopeType = "testingScope";
         var brokerData = new Dictionary<string, string>
         {
-            { EnvironmentData.Version.ToString(), version }
+            { EnvironmentDataType.Version.ToString(), version }
         };
-        await DataStore.SaveBrokerData(broker, scopeType, brokerData);
+        await DataStore.SaveEnvironmentData(scopeType, brokerData);
 
         // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "");
@@ -173,7 +170,7 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
         Assert.That(report.ReportData.EnvironmentData, Is.Not.Null, $"Missing EnvironmentData from report");
         Assert.That(report.ReportData.ScopeType, Is.Not.Null, $"Missing ScopeType from report");
         Assert.That(report.ReportData.ScopeType, Is.EqualTo(scopeType), $"Invalid ScopeType on report");
-        Assert.That(report.ReportData.EnvironmentData.ContainsKey(EnvironmentData.Version.ToString()), Is.True, $"Missing EnvironmentData.Version from report");
-        Assert.That(report.ReportData.EnvironmentData[EnvironmentData.Version.ToString()], Is.EqualTo(version), $"Incorrect EnvironmentData.Version on report");
+        Assert.That(report.ReportData.EnvironmentData.ContainsKey(EnvironmentDataType.Version.ToString()), Is.True, $"Missing EnvironmentData.Version from report");
+        Assert.That(report.ReportData.EnvironmentData[EnvironmentDataType.Version.ToString()], Is.EqualTo(version), $"Incorrect EnvironmentData.Version on report");
     }
 }

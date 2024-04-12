@@ -1,10 +1,7 @@
 ﻿namespace Particular.ThroughputCollector.Contracts;
-using System.Text.Json.Serialization;
 
-[JsonConverter(typeof(JsonStringEnumConverter))]
-public enum EnvironmentData
+public record EnvironmentData
 {
-    AuditEnabled,
-    MonitoringEnabled,
-    Version
+    public string? ScopeType { get; set; }
+    public Dictionary<string, string> Data { get; set; } = [];
 }
