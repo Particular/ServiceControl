@@ -8,7 +8,7 @@
     <PackageVersion Include="AWSSDK.CloudWatch" Version="3.7.303" />
     <PackageVersion Include="AWSSDK.SQS" Version="3.7.300.55" />
     <PackageVersion Include="Azure.Core" Version="1.38.0" />
-    <PackageVersion Include="Azure.Identity" Version="1.10.4" />
+    <PackageVersion Include="Azure.Identity" Version="1.11.0" />
     <PackageVersion Include="Azure.Monitor.Query" Version="1.2.0" />
     <PackageVersion Include="Azure.ResourceManager" Version="1.10.2"/>
     <PackageVersion Include="Azure.ResourceManager.ServiceBus" Version="1.0.0" />
