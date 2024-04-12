@@ -11,12 +11,8 @@ using ServiceControl.Api;
 [TestFixture]
 class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixture
 {
-    readonly Broker broker = Broker.AzureServiceBus;
-
     public override Task Setup()
     {
-        SetThroughputSettings = s => s.Broker = broker;
-
         SetExtraDependencies = d =>
         {
             d.AddSingleton<IConfigurationApi, FakeConfigurationApi>();

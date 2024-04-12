@@ -7,7 +7,7 @@ using Particular.ThroughputCollector.Persistence;
 using Particular.ThroughputCollector.Shared;
 using System.Text.Json;
 
-public class MonitoringService(IThroughputDataStore dataStore, ThroughputSettings throughputSettings)
+public class MonitoringService(IThroughputDataStore dataStore)
 {
     public async Task RecordMonitoringThroughput(byte[] throughputMessage, CancellationToken cancellationToken)
     {
@@ -28,7 +28,7 @@ public class MonitoringService(IThroughputDataStore dataStore, ThroughputSetting
                 {
                     endpoint = new Endpoint(e.Name, ThroughputSource.Monitoring)
                     {
-                        SanitizedName = EndpointNameSanitizer.SanitizeEndpointName(e.Name, throughputSettings.Broker),
+                        SanitizedName = e.Name,
                         EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()],
                     };
                     await dataStore.SaveEndpoint(endpoint, cancellationToken);
