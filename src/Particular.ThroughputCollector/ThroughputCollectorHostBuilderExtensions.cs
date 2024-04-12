@@ -20,44 +20,18 @@ public static class ThroughputCollectorHostBuilderExtensions
 
         var services = hostBuilder.Services;
 
-        var broker = Broker.None;
-        switch (transportType)
-        {
-            case "NetStandardAzureServiceBus":
-                broker = Broker.AzureServiceBus;
-                break;
-            case "RabbitMQ.ClassicConventionalRouting":
-            case "RabbitMQ.ClassicDirectRouting":
-            case "RabbitMQ.QuorumConventionalRouting":
-            case "RabbitMQ.QuorumDirectRouting":
-            case "RabbitMQ.ConventionalRouting":
-            case "RabbitMQ.DirectRouting":
-                broker = Broker.RabbitMQ;
-                break;
-            case "SQLServer":
-                broker = Broker.SqlServer;
-                break;
-            case "AmazonSQS":
-                broker = Broker.AmazonSQS;
-                break;
-        }
-
-        var throughputSettings = new ThroughputSettings(broker, serviceControlQueue, errorQueue, persistenceType, transportType, customerName, serviceControlVersion);
+        var throughputSettings = new ThroughputSettings(serviceControlQueue, errorQueue, persistenceType, transportType, customerName, serviceControlVersion);
         services.AddSingleton(throughputSettings);
         services.AddHostedService<AuditThroughputCollectorHostedService>();
         services.AddSingleton<IThroughputCollector, ThroughputCollector>();
         services.AddSingleton<IAuditQuery, AuditQuery>();
         services.AddSingleton<MonitoringService>();
 
-        if (broker != Broker.None)
-        {
-            services.AddHostedService<BrokerThroughputCollectorHostedService>();
-        }
-
         hostBuilder.AddThroughputCollectorPersistence(persistenceType);
 
         if (throughputQueryProvider != null)
         {
+            services.AddHostedService<BrokerThroughputCollectorHostedService>();
             services.AddSingleton(throughputQueryProvider);
             services.AddSingleton(provider =>
             {
