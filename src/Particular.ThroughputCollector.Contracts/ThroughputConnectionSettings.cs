@@ -1,12 +1,9 @@
 ﻿namespace Particular.ThroughputCollector.Contracts;
 
-using System.Text.Json.Serialization;
-
 public class ThroughputConnectionSettings
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public Broker Broker { get; set; }
-    public List<ThroughputConnectionSetting> Settings { get; set; } = [];
+    public List<ThroughputConnectionSetting> ServiceControlSettings { get; set; } = [];
+    public List<ThroughputConnectionSetting> BrokerSettings { get; set; } = [];
 }
 
 public class ThroughputConnectionSetting(string name, string description)

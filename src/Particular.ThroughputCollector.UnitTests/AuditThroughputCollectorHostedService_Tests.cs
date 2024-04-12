@@ -17,12 +17,8 @@ using ServiceControl.Api;
 [TestFixture]
 class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixture
 {
-    readonly Broker broker = Broker.None;
-
     public override Task Setup()
     {
-        SetThroughputSettings = s => s.Broker = broker;
-
         SetExtraDependencies = d =>
         {
             d.AddSingleton<IConfigurationApi, FakeConfigurationApi>();
