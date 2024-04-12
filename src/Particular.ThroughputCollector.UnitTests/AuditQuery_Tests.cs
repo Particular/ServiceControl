@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Particular.ThroughputCollector.Contracts;
 using Particular.ThroughputCollector.UnitTests.Infrastructure;
 using ServiceControl.Api;
 using ServiceControl.Api.Contracts;
@@ -16,12 +15,8 @@ using ServiceControl.Api.Contracts;
 [TestFixture]
 class AuditQuery_Tests : ThroughputCollectorTestFixture
 {
-    readonly Broker broker = Broker.None;
-
     public override Task Setup()
     {
-        SetThroughputSettings = s => s.Broker = broker;
-
         SetExtraDependencies = d =>
         {
             d.AddSingleton<IConfigurationApi, ConfigurationApi_ReturningOneAuditConfigs>();
@@ -99,11 +94,11 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
 
     class EndpointsApi_ReturningTwoEndpoints : IEndpointsApi
     {
-        public List<ServiceControl.Api.Contracts.Endpoint> GetEndpoints()
+        public List<Endpoint> GetEndpoints()
         {
             return [
-                new ServiceControl.Api.Contracts.Endpoint { Id = Guid.NewGuid(), Name = "Endpoint1" },
-                new ServiceControl.Api.Contracts.Endpoint { Id = Guid.NewGuid(), Name = "Endpoint2" }
+                new Endpoint { Id = Guid.NewGuid(), Name = "Endpoint1" },
+                new Endpoint { Id = Guid.NewGuid(), Name = "Endpoint2" }
             ];
         }
 
@@ -111,13 +106,13 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
 
     class AuditCountApi_ReturningThreeAuditCounts : IAuditCountApi
     {
-        public async Task<IList<ServiceControl.Api.Contracts.AuditCount>> GetEndpointAuditCounts(string endpoint, CancellationToken token)
+        public async Task<IList<AuditCount>> GetEndpointAuditCounts(string endpoint, CancellationToken token)
         {
-            var auditCounts = new List<ServiceControl.Api.Contracts.AuditCount>
+            var auditCounts = new List<AuditCount>
             {
-                new ServiceControl.Api.Contracts.AuditCount() { UtcDate = DateTime.UtcNow.AddDays(-1).Date, Count = 5 },
-                new ServiceControl.Api.Contracts.AuditCount() { UtcDate = DateTime.UtcNow.AddDays(-2).Date, Count = 10 },
-                new ServiceControl.Api.Contracts.AuditCount() { UtcDate = DateTime.UtcNow.AddDays(-3).Date, Count = 15 }
+                new AuditCount() { UtcDate = DateTime.UtcNow.AddDays(-1).Date, Count = 5 },
+                new AuditCount() { UtcDate = DateTime.UtcNow.AddDays(-2).Date, Count = 10 },
+                new AuditCount() { UtcDate = DateTime.UtcNow.AddDays(-3).Date, Count = 15 }
             };
 
             return await Task.FromResult(auditCounts);
