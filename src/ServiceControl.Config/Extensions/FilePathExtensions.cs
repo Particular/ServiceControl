@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Config.Extensions
 {
-    using System;
     using System.Linq;
     using System.Text;
     using System.Text.RegularExpressions;
@@ -52,21 +51,14 @@
             var segments = name.Split('\\');
 
             var nameBuilder = new StringBuilder();
-            bool hasMoreThanRootPath = true;
 
             if (root != string.Empty)
             {
-                hasMoreThanRootPath = false;
                 nameBuilder.Append(root);
             }
 
             foreach (var segment in segments)
             {
-                if (nameBuilder.Length > 0 && hasMoreThanRootPath)
-                {
-                    nameBuilder.Append("\\");
-                }
-
                 foreach (char character in segment)
                 {
                     if (Path.GetInvalidFileNameChars().Contains(character))
@@ -75,11 +67,12 @@
                     }
 
                     nameBuilder.Append(character);
-                    hasMoreThanRootPath = true;
                 }
+
+                nameBuilder.Append("\\");
             }
 
-            return nameBuilder.ToString();
+            return nameBuilder.ToString().TrimEnd('\\');
         }
 
         public static string SanitizeFilePath(this string name)

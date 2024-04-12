@@ -11,8 +11,7 @@
             TimeSpan auditRetentionPeriod,
             int maxBodySizeToStore,
             int minimumStorageLeftRequiredForIngestion,
-            ServerConfiguration serverConfiguration,
-            TimeSpan bulkInsertCommitTimeout)
+            ServerConfiguration serverConfiguration)
         {
             Name = name;
             ExpirationProcessTimerInSeconds = expirationProcessTimerInSeconds;
@@ -20,7 +19,6 @@
             AuditRetentionPeriod = auditRetentionPeriod;
             MaxBodySizeToStore = maxBodySizeToStore;
             ServerConfiguration = serverConfiguration;
-            BulkInsertCommitTimeout = bulkInsertCommitTimeout;
             MinimumStorageLeftRequiredForIngestion = minimumStorageLeftRequiredForIngestion;
         }
 
@@ -39,7 +37,5 @@
         public int MaxBodySizeToStore { get; }
 
         public int MinimumStorageLeftRequiredForIngestion { get; internal set; } //Setting for ATT only
-
-        public TimeSpan BulkInsertCommitTimeout { get; }
     }
 }
