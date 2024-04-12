@@ -2,9 +2,8 @@
 
 public class ThroughputSettings
 {
-    public ThroughputSettings(Broker broker, string serviceControlQueue, string errorQueue, string persistenceType, string transportType, string customerName, string serviceControlVersion)
+    public ThroughputSettings(string serviceControlQueue, string errorQueue, string persistenceType, string transportType, string customerName, string serviceControlVersion)
     {
-        Broker = broker;
         ServiceControlQueue = serviceControlQueue;
         ErrorQueue = errorQueue;
         PersistenceType = persistenceType;
@@ -13,7 +12,6 @@ public class ThroughputSettings
         ServiceControlVersion = serviceControlVersion;
     }
 
-    public Broker Broker { get; set; }
     public string ErrorQueue { get; }
     public string ServiceControlQueue { get; }
     public string PersistenceType { get; set; }

@@ -12,7 +12,7 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
 {
     private readonly EndpointCollection endpoints = [];
     private readonly Dictionary<EndpointIdentifier, ThroughputData> allThroughput = [];
-    private readonly List<BrokerData> brokerData = [];
+    private EnvironmentData? environmentData;
 
     public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints = true, CancellationToken cancellationToken = default)
     {
@@ -119,23 +119,25 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
 
     private List<Endpoint> GetAllConnectedEndpoints(string name) => endpoints.Where(w => w.SanitizedName == name).ToList();
 
-    public async Task SaveBrokerData(Broker broker, string? scopeType, Dictionary<string, string> data)
+    public async Task SaveEnvironmentData(string? scopeType, Dictionary<string, string> data)
     {
-        var existingBrokerData = await GetBrokerData(broker);
-        if (existingBrokerData == null)
+        var existingEnvironmentData = await GetEnvironmentData();
+        if (existingEnvironmentData == null)
         {
-            existingBrokerData = new BrokerData { Broker = broker };
-            brokerData.Add(existingBrokerData);
+            existingEnvironmentData = new EnvironmentData();
+            environmentData = existingEnvironmentData;
         }
-        existingBrokerData.ScopeType = scopeType;
-        existingBrokerData.Data = data;
+        existingEnvironmentData.ScopeType = scopeType;
+        existingEnvironmentData.Data = existingEnvironmentData.Data.Concat(data)
+               .GroupBy(kv => kv.Key)
+               .ToDictionary(g => g.Key, g => g.Last().Value);
 
         await Task.CompletedTask;
     }
 
-    public async Task<BrokerData?> GetBrokerData(Broker broker)
+    public async Task<EnvironmentData?> GetEnvironmentData()
     {
-        return await Task.FromResult(brokerData.FirstOrDefault(w => w.Broker == broker));
+        return await Task.FromResult(environmentData);
     }
 
     class EndpointCollection : KeyedCollection<EndpointIdentifier, Endpoint>
