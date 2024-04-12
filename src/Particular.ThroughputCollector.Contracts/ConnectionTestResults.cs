@@ -1,15 +1,12 @@
 ﻿namespace Particular.ThroughputCollector.Contracts;
 
-using System.Text.Json.Serialization;
-
 public class ConnectionTestResults(
-    Broker broker,
+    string transport,
     ConnectionSettingsTestResult auditConnectionResult,
     ConnectionSettingsTestResult monitoringConnectionResult,
     ConnectionSettingsTestResult brokerConnectionResult)
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public Broker Broker { get; } = broker;
+    public string Transport { get; } = transport;
 
     public ConnectionSettingsTestResult AuditConnectionResult { get; } = auditConnectionResult;
     public ConnectionSettingsTestResult MonitoringConnectionResult { get; } = monitoringConnectionResult;

@@ -27,7 +27,7 @@ public interface IThroughputDataStore
     Task<bool> IsThereThroughputForLastXDays(int days);
     Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource);
 
-    Task<BrokerData?> GetBrokerData(Broker broker);
+    Task<EnvironmentData?> GetEnvironmentData();
 
-    Task SaveBrokerData(Broker broker, string? scopeType, Dictionary<string, string> data);
+    Task SaveEnvironmentData(string? scopeType, Dictionary<string, string> data);
 }
