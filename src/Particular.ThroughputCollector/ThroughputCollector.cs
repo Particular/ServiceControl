@@ -16,10 +16,8 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
     {
         var throughputConnectionSettings = new ThroughputConnectionSettings
         {
-            Broker = throughputSettings.Broker,
-            Settings = throughputSettings.Broker != Broker.None
-                ? throughputQuery?.Settings.Select(pair => new ThroughputConnectionSetting(pair.Key, pair.Description)).ToList() ?? []
-                : ServiceControlSettings.GetServiceControlConnectionSettings()
+            ServiceControlSettings = ServiceControlSettings.GetServiceControlConnectionSettings(),
+            BrokerSettings = throughputQuery?.Settings.Select(pair => new ThroughputConnectionSetting(pair.Key, pair.Description)).ToList() ?? []
         };
         return await Task.FromResult(throughputConnectionSettings);
     }
@@ -43,7 +41,7 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
 
         await Task.WhenAll(tasks);
 
-        var connectionTestResults = new ConnectionTestResults(throughputSettings.Broker, auditTask.Result, monitoringTask.Result, brokerTask.Result);
+        var connectionTestResults = new ConnectionTestResults(transport, auditTask.Result, monitoringTask.Result, brokerTask.Result);
 
         return await Task.FromResult(connectionTestResults);
     }
@@ -92,9 +90,8 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
 
     public async Task<ReportGenerationState> GetReportGenerationState()
     {
-        var reportGenerationState = new ReportGenerationState
+        var reportGenerationState = new ReportGenerationState(transport)
         {
-            Broker = throughputSettings.Broker,
             ReportCanBeGenerated = await dataStore.IsThereThroughputForLastXDays(30)
         };
 
@@ -144,16 +141,16 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
             queueThroughputs.Add(queueThroughput);
         }
 
-        var brokerData = await dataStore.GetBrokerData(throughputSettings.Broker);
+        var environmentData = await dataStore.GetEnvironmentData();
         var yesterday = DateTime.UtcNow.Date.AddDays(-1);
         var report = new Report
         {
             EndTime = new DateTimeOffset(yesterday, TimeSpan.Zero),
             CustomerName = throughputSettings.CustomerName, //who the license is registeredTo
             ReportMethod = "NA",
-            ScopeType = brokerData?.ScopeType ?? "",
+            ScopeType = environmentData?.ScopeType ?? "",
             Prefix = null,
-            MessageTransport = throughputQuery?.MessageTransport ?? throughputSettings.TransportType,
+            MessageTransport = transport,
             ToolVersion = "V3", //ensure we check for this on the other side - ie that we can process V3
             ServiceControlVersion = throughputSettings.ServiceControlVersion,
             ServicePulseVersion = spVersion,
@@ -161,7 +158,7 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
             Queues = [.. queueThroughputs],
             TotalQueues = queueThroughputs.Count,
             TotalThroughput = queueThroughputs.Sum(q => q.Throughput ?? 0),
-            EnvironmentData = brokerData?.Data ?? []
+            EnvironmentData = environmentData?.Data ?? []
         };
 
         var auditThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromAudit);
@@ -175,8 +172,8 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         report.StartTime = new DateTimeOffset(new[] { firstAuditThroughputDate, firstMonitoringThroughputDate, firstBrokerThroughputDate }.Min(), TimeSpan.Zero);
         report.ReportDuration = report.EndTime - report.StartTime;
 
-        report.EnvironmentData.Add(EnvironmentData.AuditEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Audit).ToString());
-        report.EnvironmentData.Add(EnvironmentData.MonitoringEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Monitoring).ToString());
+        report.EnvironmentData.Add(EnvironmentDataType.AuditEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Audit).ToString());
+        report.EnvironmentData.Add(EnvironmentDataType.MonitoringEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Monitoring).ToString());
 
         var throughputReport = new SignedReport() { ReportData = report, Signature = Signature.SignReport(report) };
         return throughputReport;
@@ -212,4 +209,6 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
 
     string[]? EndpointIndicators(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.EndpointIndicators?.Any() == true)?.SelectMany(s => s.EndpointIndicators)?.Distinct()?.ToArray();
     (string Mask, string Replacement)[] masks = [];
+
+    string transport = throughputQuery?.MessageTransport ?? throughputSettings.TransportType;
 }
