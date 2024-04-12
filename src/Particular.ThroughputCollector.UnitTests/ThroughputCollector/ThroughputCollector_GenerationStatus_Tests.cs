@@ -4,18 +4,14 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Particular.ThroughputCollector.Contracts;
 using Particular.ThroughputCollector.UnitTests.Infrastructure;
 using ServiceControl.Api;
 
 [TestFixture]
 class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixture
 {
-    readonly Broker broker = Broker.AzureServiceBus;
     public override Task Setup()
     {
-        SetThroughputSettings = s => s.Broker = broker;
-
         SetExtraDependencies = d =>
         {
             d.AddSingleton<IConfigurationApi, FakeConfigurationApi>();

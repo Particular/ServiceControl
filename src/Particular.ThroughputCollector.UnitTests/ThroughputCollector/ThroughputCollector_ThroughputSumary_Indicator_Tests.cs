@@ -13,10 +13,8 @@ using ServiceControl.Api;
 [TestFixture]
 class ThroughputCollector_ThroughputSumary_Indicator_Tests : ThroughputCollectorTestFixture
 {
-    readonly Broker broker = Broker.AzureServiceBus;
     public override Task Setup()
     {
-        SetThroughputSettings = s => s.Broker = broker;
 
         SetExtraDependencies = d =>
         {
