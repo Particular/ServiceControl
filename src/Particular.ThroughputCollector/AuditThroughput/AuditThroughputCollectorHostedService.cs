@@ -92,7 +92,7 @@ public class AuditThroughputCollectorHostedService(
     {
         var endpoint = new Endpoint(scEndpoint.Name, ThroughputSource.Audit)
         {
-            SanitizedName = EndpointNameSanitizer.SanitizeEndpointName(scEndpoint.Name, throughputSettings.Broker),
+            SanitizedName = scEndpoint.Name,
             EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()]
         };
 

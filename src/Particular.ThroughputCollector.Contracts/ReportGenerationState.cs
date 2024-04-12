@@ -1,10 +1,7 @@
 ﻿namespace Particular.ThroughputCollector.Contracts;
 
-using System.Text.Json.Serialization;
-
-public class ReportGenerationState
+public class ReportGenerationState(string transport)
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public Broker Broker { get; set; }
+    public string Transport { get; set; } = transport;
     public bool ReportCanBeGenerated { get; set; }
 }
