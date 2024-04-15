@@ -33,7 +33,7 @@
                 component.Setup(settings, componentSetupContext, hostBuilder);
             }
 
-            var host = hostBuilder.Build();
+            using IHost host = hostBuilder.Build();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
