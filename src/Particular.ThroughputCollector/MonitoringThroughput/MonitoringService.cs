@@ -8,7 +8,7 @@ using Particular.ThroughputCollector.Shared;
 using System.Text.Json;
 using ServiceControl.Transports;
 
-public class MonitoringService(IThroughputDataStore dataStore, IBrokerThroughputQuery brokerThroughputQuery)
+public class MonitoringService(IThroughputDataStore dataStore, IBrokerThroughputQuery? brokerThroughputQuery = null)
 {
     public async Task RecordMonitoringThroughput(byte[] throughputMessage, CancellationToken cancellationToken)
     {
