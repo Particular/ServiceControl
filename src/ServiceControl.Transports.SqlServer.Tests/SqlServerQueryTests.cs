@@ -12,6 +12,7 @@ using NServiceBus;
 using NServiceBus.AcceptanceTesting;
 using NServiceBus.AcceptanceTesting.Support;
 using NUnit.Framework;
+using Particular.Approvals;
 using Transports;
 using Transports.SqlServer;
 
@@ -46,10 +47,12 @@ class SqlServerQueryTests : TransportTestFixture
             { SqlServerQuery.SqlServerSettings.ConnectionString, "not valid" }
         };
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> errors, _) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, string diagnostics) =
+            await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
         Assert.AreEqual("SQL Connection String could not be parsed.", errors.Single());
+        Approver.Verify(diagnostics);
     }
 
     [Test]
@@ -63,10 +66,28 @@ class SqlServerQueryTests : TransportTestFixture
             { SqlServerQuery.SqlServerSettings.AdditionalCatalogs, "not_here" }
         };
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> errors, _) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, string diagnostics) =
+            await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
         StringAssert.StartsWith("Cannot open database \"not_here\"", errors.Single());
+        Approver.Verify(diagnostics);
+    }
+
+    [Test]
+    public async Task TestConnectionWithValidSettings()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        var dictionary = new Dictionary<string, string>
+        {
+            { SqlServerQuery.SqlServerSettings.ConnectionString, configuration.ConnectionString }
+        };
+        query.Initialise(dictionary.ToFrozenDictionary());
+        (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
+
+        Assert.IsTrue(success);
+        Approver.Verify(diagnostics);
     }
 
     [Test]

@@ -99,9 +99,25 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
         {
             (bool success, List<string> errors) = await TestConnectionCore(cancellationToken);
 
-            sb.AppendLine($"Connection test to {transport} was successful");
+            if (success)
+            {
+                sb.AppendLine($"Connection test to {transport} was successful");
+            }
+            else
+            {
+                sb.AppendLine($"Connection test to {transport} failed:");
+                errors.ForEach(s => sb.AppendLine(s));
+            }
             sb.AppendLine();
-            sb.AppendLine("Connection settings used:");
+            if (success)
+            {
+                sb.AppendLine("Connection settings used:");
+            }
+            else
+            {
+                sb.AppendLine("Connection attempted with the following settings:");
+            }
+
             sb.Append(Diagnostics.ToString());
 
             return (success, errors, sb.ToString());

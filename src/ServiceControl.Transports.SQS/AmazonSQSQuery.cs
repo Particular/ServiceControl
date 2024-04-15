@@ -47,7 +47,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
             }
             else
             {
-                Diagnostics.AppendLine($"Profile set to {profile}");
+                Diagnostics.AppendLine($"Profile set to \"{profile}\"");
             }
         }
         else
@@ -56,7 +56,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
 
             if (settings.TryGetValue(AmazonSQSSettings.AccessKey, out string? accessKey))
             {
-                Diagnostics.AppendLine($"AccessKey set to {accessKey}");
+                Diagnostics.AppendLine($"AccessKey set to \"{accessKey}\"");
             }
             else
             {
@@ -79,7 +79,8 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
             }
             else
             {
-                Diagnostics.AppendLine("Attempting to use existing environment variables or IAM role credentials");
+                Diagnostics.AppendLine(
+                    "Attempting to use existing environment variables (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY) or IAM role credentials");
                 logger.LogInformation("Attempting to use existing environment variables or IAM role credentials");
             }
         }
@@ -104,7 +105,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
             {
                 regionEndpoint = new EnvironmentVariableAWSRegion().Region;
                 Diagnostics.AppendLine(
-                    $"Region not set, using \"{regionEndpoint.SystemName}\" set by the environment setting");
+                    $"Region not set, using \"{regionEndpoint.SystemName}\" set by the environment setting (AWS_REGION)");
             }
             catch (InvalidOperationException)
             {
@@ -188,13 +189,23 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
 
         var resp = await cloudWatch!.GetMetricStatisticsAsync(req, cancellationToken);
 
+        DateOnly currentDate = startDate;
+        var data = new Dictionary<DateOnly, QueueThroughput>();
+        while (currentDate <= endDate)
+        {
+            data.Add(currentDate, new QueueThroughput { TotalThroughput = 0, DateUTC = currentDate });
+
+            currentDate = currentDate.AddDays(1);
+        }
+
         foreach (var datapoint in resp.Datapoints)
         {
-            yield return new QueueThroughput
-            {
-                TotalThroughput = (long)datapoint.Sum,
-                DateUTC = DateOnly.FromDateTime(datapoint.Timestamp.ToUniversalTime())
-            };
+            data[DateOnly.FromDateTime(datapoint.Timestamp.ToUniversalTime())].TotalThroughput = (long)datapoint.Sum;
+        }
+
+        foreach (QueueThroughput queueThroughput in data.Values)
+        {
+            yield return queueThroughput;
         }
     }
 

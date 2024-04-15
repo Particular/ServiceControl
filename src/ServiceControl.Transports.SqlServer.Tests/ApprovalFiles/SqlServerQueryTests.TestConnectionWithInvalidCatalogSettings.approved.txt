@@ -1,0 +1,7 @@
+Connection test to SqlTransport failed:
+Cannot open database "not_here" requested by the login. The login failed.
+Login failed for user 'sa'.
+
+Connection attempted with the following settings:
+ConnectionString set
+Additional catalogs set to "not_here"
