@@ -19,12 +19,17 @@
     <PackageReference Include="NServiceBus.Persistence.NonDurable"/>
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="Particular.Approvals"/>
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\ServiceControl.Transports.Tests\*.cs" LinkBase="Shared" />
     <Compile Remove="..\ServiceControl.Transports.Tests\TransportManifestLibraryTests.cs" />
     <Compile Remove="..\ServiceControl.Transports.Tests\TestsFilter.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ApprovalFiles\"/>
   </ItemGroup>
 
 </Project>

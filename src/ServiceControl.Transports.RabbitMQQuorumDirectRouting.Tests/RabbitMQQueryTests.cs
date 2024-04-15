@@ -11,6 +11,7 @@ using NServiceBus;
 using NServiceBus.AcceptanceTesting;
 using NServiceBus.AcceptanceTesting.Support;
 using NUnit.Framework;
+using Particular.Approvals;
 using Transports;
 using Transports.RabbitMQ;
 
@@ -45,9 +46,23 @@ class RabbitMQQueryTests : TransportTestFixture
             { RabbitMQQuery.RabbitMQSettings.API, "http://localhost:12345" }
         };
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, _, _) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
+        Approver.Verify(diagnostics);
+    }
+
+    [Test]
+    public async Task TestConnectionWithValidSettings()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        var dictionary = new Dictionary<string, string>();
+        query.Initialise(dictionary.ToFrozenDictionary());
+        (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
+
+        Assert.IsTrue(success);
+        Approver.Verify(diagnostics);
     }
 
     [Test]
