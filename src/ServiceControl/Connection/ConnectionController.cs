@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Connection
 {
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Text.Json;
     using System.Text.Json.Serialization;
@@ -19,18 +18,18 @@
         public async Task<IActionResult> GetConnectionDetails()
         {
             var platformConnectionDetails = await builder.BuildPlatformConnection();
-            return new JsonResult(new ConnectionDetails(platformConnectionDetails.ToDictionary(), platformConnectionDetails.Errors), JsonSerializerOptions.Default);
+            return new JsonResult(new ConnectionDetails(new Dictionary<string, object>(platformConnectionDetails.ToDictionary()), [.. platformConnectionDetails.Errors]), JsonSerializerOptions.Default);
         }
 
         // The Settings and Errors properties are serialized as settings and errors
         // because ServicePulse expects them te be lowercase 
-        class ConnectionDetails(IDictionary<string, object> settings, ConcurrentBag<string> errors)
+        class ConnectionDetails(Dictionary<string, object> settings, List<string> errors)
         {
             [JsonPropertyName("settings")]
-            public IDictionary<string, object> Settings { get; init; } = settings;
+            public Dictionary<string, object> Settings { get; init; } = settings;
 
             [JsonPropertyName("errors")]
-            public ConcurrentBag<string> Errors { get; init; } = errors;
+            public List<string> Errors { get; init; } = errors;
         }
     }
 }
