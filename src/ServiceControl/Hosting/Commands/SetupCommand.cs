@@ -40,7 +40,7 @@ namespace ServiceControl.Hosting.Commands
                 await installationTask(host.Services);
             }
 
-            await host.RunAsync();
+            await host.StartAsync();
 
             if (settings.SkipQueueCreation)
             {
