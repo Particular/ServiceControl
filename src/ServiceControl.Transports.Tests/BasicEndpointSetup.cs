@@ -16,7 +16,7 @@
 
             // we don't use installers
             //endpointConfiguration.EnableInstallers();
-            endpointConfiguration.UseSerialization<NewtonsoftJsonSerializer>();
+            endpointConfiguration.UseSerialization<SystemJsonSerializer>();
             endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
             var recoverability = endpointConfiguration.Recoverability();

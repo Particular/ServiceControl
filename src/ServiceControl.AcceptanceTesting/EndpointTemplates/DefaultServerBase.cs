@@ -33,7 +33,7 @@
             endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
             await endpointConfiguration.DefinePersistence(runDescriptor, endpointCustomizations);
 
-            endpointConfiguration.UseSerialization<NewtonsoftJsonSerializer>();
+            endpointConfiguration.UseSerialization<SystemJsonSerializer>();
 
             endpointConfiguration.Pipeline.Register<TraceIncomingBehavior.Registration>();
             endpointConfiguration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
