@@ -3,6 +3,7 @@ namespace ServiceControl.Transports
 {
     public abstract class BrokerThroughputQuery : ServiceControl.Transports.IBrokerThroughputQuery
     {
+        protected readonly System.Text.StringBuilder Diagnostics;
         protected readonly System.Collections.Generic.List<string> InitialiseErrors;
         protected BrokerThroughputQuery(Microsoft.Extensions.Logging.ILogger logger, string transport) { }
         public System.Collections.Generic.Dictionary<string, string> Data { get; set; }
@@ -17,12 +18,13 @@ namespace ServiceControl.Transports
         public virtual string SanitizeEndpointName(string endpointName) { }
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "Success",
-                "Errors"})]
-        public System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>>> TestConnection(System.Threading.CancellationToken cancellationToken) { }
+                "Errors",
+                "Diagnostics"})]
+        public System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>, string>> TestConnection(System.Threading.CancellationToken cancellationToken) { }
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "Success",
                 "Errors"})]
-        public abstract System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>>> TestConnectionCore(System.Threading.CancellationToken cancellationToken);
+        protected abstract System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>>> TestConnectionCore(System.Threading.CancellationToken cancellationToken);
     }
     public class DefaultBrokerQueue : ServiceControl.Transports.IBrokerQueue
     {
@@ -61,8 +63,9 @@ namespace ServiceControl.Transports
         string SanitizeEndpointName(string endpointName);
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "Success",
-                "Errors"})]
-        System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>>> TestConnection(System.Threading.CancellationToken cancellationToken);
+                "Errors",
+                "Diagnostics"})]
+        System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>, string>> TestConnection(System.Threading.CancellationToken cancellationToken);
     }
     public interface IProvideQueueLength
     {
