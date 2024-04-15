@@ -17,8 +17,11 @@ namespace ServiceControl.Audit.Connection
             new JsonResult(
                 new ConnectionDetails
                 {
-                    MessageAudit =
-                        new MessageAuditConnectionDetails { Enabled = true, AuditQueue = settings.AuditQueue },
+                    MessageAudit = new MessageAuditConnectionDetails
+                    {
+                        Enabled = true,
+                        AuditQueue = settings.AuditQueue
+                    },
                     SagaAudit = new SagaAuditConnectionDetails
                     {
                         Enabled = true,
@@ -31,7 +34,6 @@ namespace ServiceControl.Audit.Connection
     {
         public MessageAuditConnectionDetails MessageAudit { get; set; }
         public SagaAuditConnectionDetails SagaAudit { get; set; }
-
     }
 
     // HINT: This should match the type in the PlatformConnector package
