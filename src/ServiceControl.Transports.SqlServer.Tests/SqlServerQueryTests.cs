@@ -4,6 +4,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -71,7 +72,8 @@ class SqlServerQueryTests : TransportTestFixture
 
         Assert.IsFalse(success);
         StringAssert.StartsWith("Cannot open database \"not_here\"", errors.Single());
-        Approver.Verify(diagnostics);
+        Approver.Verify(diagnostics,
+            s => Regex.Replace(s, "^Login failed for user .*$", "Login failed for user.", RegexOptions.Multiline));
     }
 
     [Test]
