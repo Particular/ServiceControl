@@ -4,6 +4,7 @@ namespace ServiceControl.Transports;
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -29,14 +30,14 @@ public interface IBrokerThroughputQuery
     string MessageTransport { get; }
     string? ScopeType { get; }
     KeyDescriptionPair[] Settings { get; }
-    Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken);
-
+    Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(CancellationToken cancellationToken);
     string SanitizeEndpointName(string endpointName);
 }
 
 public abstract class BrokerThroughputQuery(ILogger logger, string transport) : IBrokerThroughputQuery
 {
     protected readonly List<string> InitialiseErrors = [];
+    protected readonly StringBuilder Diagnostics = new();
 
     public bool HasInitialisationErrors(out string errorMessage)
     {
@@ -55,6 +56,7 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
     public void Initialise(FrozenDictionary<string, string> settings)
     {
         InitialiseErrors.Clear();
+        Diagnostics.Clear();
 
         try
         {
@@ -79,25 +81,62 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
     public string? ScopeType { get; set; }
     public abstract KeyDescriptionPair[] Settings { get; }
 
-    public async Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken)
+    public async Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
+        CancellationToken cancellationToken)
     {
+        var sb = new StringBuilder();
         if (InitialiseErrors.Count > 0)
         {
-            return (false, InitialiseErrors);
+            sb.AppendLine($"Connection settings to {transport} have some errors:");
+            InitialiseErrors.ForEach(s => sb.AppendLine(s));
+            sb.AppendLine();
+            sb.AppendLine("Connection attempted with the following settings:");
+            sb.Append(Diagnostics.ToString());
+            return (false, InitialiseErrors, sb.ToString());
         }
 
         try
         {
-            return await TestConnectionCore(cancellationToken);
+            (bool success, List<string> errors) = await TestConnectionCore(cancellationToken);
+
+            if (success)
+            {
+                sb.AppendLine($"Connection test to {transport} was successful");
+            }
+            else
+            {
+                sb.AppendLine($"Connection test to {transport} failed:");
+                errors.ForEach(s => sb.AppendLine(s));
+            }
+            sb.AppendLine();
+            if (success)
+            {
+                sb.AppendLine("Connection settings used:");
+            }
+            else
+            {
+                sb.AppendLine("Connection attempted with the following settings:");
+            }
+
+            sb.Append(Diagnostics.ToString());
+
+            return (success, errors, sb.ToString());
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Test connection failed");
-            return (false, [ex.Message]);
+
+            sb.AppendLine($"Connection test to {transport} failed:");
+            sb.AppendLine(ex.Message);
+            sb.AppendLine();
+            sb.AppendLine("Connection attempted with the following settings:");
+            sb.Append(Diagnostics.ToString());
+            return (false, [ex.Message], sb.ToString());
         }
     }
 
-    public abstract Task<(bool Success, List<string> Errors)> TestConnectionCore(CancellationToken cancellationToken);
+    protected abstract Task<(bool Success, List<string> Errors)>
+        TestConnectionCore(CancellationToken cancellationToken);
 
     public virtual string SanitizeEndpointName(string endpointName) => endpointName;
 }

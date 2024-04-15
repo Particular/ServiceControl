@@ -32,7 +32,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         {
             if (!Uri.TryCreate(managementUrl, UriKind.Absolute, out _))
             {
-                InitialiseErrors.Add("Management url configured is invalid");
+                InitialiseErrors.Add("Management url configuration is invalid");
             }
         }
 
@@ -44,45 +44,72 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         if (string.IsNullOrEmpty(serviceBusName))
         {
             // Extract ServiceBus name from connection string
-            const string serviceBusUrlPrefix = "sb://";
-            int serviceBusUrlPrefixLength = serviceBusUrlPrefix.Length;
-            int startIndex = transportSettings.ConnectionString.IndexOf(serviceBusUrlPrefix, StringComparison.Ordinal);
-            if (startIndex == -1)
-            {
-                startIndex = 0;
-            }
-            else
-            {
-                startIndex += serviceBusUrlPrefixLength;
-            }
-
-            serviceBusName = transportSettings.ConnectionString.Substring(startIndex,
-                transportSettings.ConnectionString.IndexOf('.', startIndex) - startIndex);
+            serviceBusName = ExtractServiceBusName();
             logger.LogInformation("ServiceBus name extracted from connection string");
+            Diagnostics.AppendLine($"ServiceBus name not set, defaulted to \"{serviceBusName}\"");
+        }
+        else
+        {
+            Diagnostics.AppendLine($"ServiceBus name set to \"{serviceBusName}\"");
         }
 
         if (!settings.TryGetValue(AzureServiceBusSettings.SubscriptionId, out string? subscriptionId))
         {
             InitialiseErrors.Add("SubscriptionId is a required setting");
+            Diagnostics.AppendLine("SubscriptionId not set");
+        }
+        else
+        {
+            Diagnostics.AppendLine($"SubscriptionId set to \"{subscriptionId}\"");
         }
 
         if (!settings.TryGetValue(AzureServiceBusSettings.TenantId, out string? tenantId))
         {
             InitialiseErrors.Add("TenantId is a required setting");
+            Diagnostics.AppendLine("TenantId not set");
+        }
+        else
+        {
+            Diagnostics.AppendLine($"TenantId set to \"{tenantId}\"");
         }
 
         if (!settings.TryGetValue(AzureServiceBusSettings.ClientId, out string? clientId))
         {
             InitialiseErrors.Add("ClientId is a required setting");
+            Diagnostics.AppendLine("ClientId not set");
+        }
+        else
+        {
+            Diagnostics.AppendLine($"ClientId set to \"{clientId}\"");
         }
 
         if (!settings.TryGetValue(AzureServiceBusSettings.ClientSecret, out string? clientSecret))
         {
             InitialiseErrors.Add("ClientSecret is a required setting");
+            Diagnostics.AppendLine("Client secret not set");
+        }
+        else
+        {
+            Diagnostics.AppendLine("Client secret set");
+        }
+
+        ArmEnvironment environment = GetEnvironment();
+
+        if (managementUrl == null)
+        {
+            Diagnostics.AppendLine($"Management Url not set, defaulted to \"{environment.Endpoint}\"");
+        }
+        else
+        {
+            Diagnostics.AppendLine($"Management Url set to \"{managementUrl}\"");
+        }
+
+        if (InitialiseErrors.Count > 0)
+        {
+            return;
         }
 
         var clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
-        ArmEnvironment environment = GetEnvironment(managementUrl);
 
         client = new MetricsQueryClient(environment.Endpoint, clientCredentials,
             new MetricsQueryClientOptions
@@ -106,9 +133,15 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
         return;
 
-        ArmEnvironment GetEnvironment(string? managementUrl)
+        ArmEnvironment GetEnvironment()
         {
             if (managementUrl == null)
+            {
+                return ArmEnvironment.AzurePublicCloud;
+            }
+
+            if (managementUrl.Equals(ArmEnvironment.AzurePublicCloud.Endpoint.ToString(),
+                    StringComparison.CurrentCultureIgnoreCase))
             {
                 return ArmEnvironment.AzurePublicCloud;
             }
@@ -131,8 +164,34 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
                 return ArmEnvironment.AzureGovernment;
             }
 
+            string options = string.Join(", ",
+                new[]
+                {
+                    ArmEnvironment.AzurePublicCloud, ArmEnvironment.AzureGermany, ArmEnvironment.AzureGovernment,
+                    ArmEnvironment.AzureChina
+                }.Select(armEnvironment => $"\"{armEnvironment.Endpoint}\""));
+            InitialiseErrors.Add($"Management url configuration is invalid, available options are {options}");
+
             return ArmEnvironment.AzurePublicCloud;
         }
+    }
+
+    public string ExtractServiceBusName()
+    {
+        const string serviceBusUrlPrefix = "sb://";
+        int serviceBusUrlPrefixLength = serviceBusUrlPrefix.Length;
+        int startIndex = transportSettings.ConnectionString.IndexOf(serviceBusUrlPrefix, StringComparison.Ordinal);
+        if (startIndex == -1)
+        {
+            startIndex = 0;
+        }
+        else
+        {
+            startIndex += serviceBusUrlPrefixLength;
+        }
+
+        return transportSettings.ConnectionString.Substring(startIndex,
+            transportSettings.ConnectionString.IndexOf('.', startIndex) - startIndex);
     }
 
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,
@@ -150,13 +209,23 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         var metrics = await GetMetrics(brokerQueue.QueueName, startDate,
             endDate, cancellationToken);
 
+        DateOnly currentDate = startDate;
+        var data = new Dictionary<DateOnly, QueueThroughput>();
+        while (currentDate <= endDate)
+        {
+            data.Add(currentDate, new QueueThroughput { TotalThroughput = 0, DateUTC = currentDate });
+
+            currentDate = currentDate.AddDays(1);
+        }
+
         foreach (var metricValue in metrics)
         {
-            yield return new QueueThroughput
-            {
-                TotalThroughput = (long)(metricValue.Total ?? 0),
-                DateUTC = DateOnly.FromDateTime(metricValue.TimeStamp.UtcDateTime)
-            };
+            data[DateOnly.FromDateTime(metricValue.TimeStamp.UtcDateTime)].TotalThroughput = (long)(metricValue.Total ?? 0);
+        }
+
+        foreach (QueueThroughput queueThroughput in data.Values)
+        {
+            yield return queueThroughput;
         }
     }
 
@@ -215,7 +284,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         new KeyDescriptionPair(AzureServiceBusSettings.ManagementUrl, AzureServiceBusSettings.ManagementUrlDescription)
     ];
 
-    public override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
+    protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
         CancellationToken cancellationToken)
     {
         await foreach (IBrokerQueue brokerQueue in GetQueueNames(cancellationToken))

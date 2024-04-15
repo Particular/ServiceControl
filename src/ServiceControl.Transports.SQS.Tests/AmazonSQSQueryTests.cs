@@ -11,6 +11,7 @@ using Microsoft.Extensions.Time.Testing;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting;
 using NUnit.Framework;
+using Particular.Approvals;
 using Transports;
 using Transports.SQS;
 
@@ -42,14 +43,17 @@ class AmazonSQSQueryTests : TransportTestFixture
 
         var dictionary = new Dictionary<string, string>
         {
-            { AmazonSQSQuery.AmazonSQSSettings.AccessKey, "not valid" },
-            { AmazonSQSQuery.AmazonSQSSettings.SecretKey, "not valid" }
+            { AmazonSQSQuery.AmazonSQSSettings.AccessKey, "not_valid" },
+            { AmazonSQSQuery.AmazonSQSSettings.SecretKey, "not_valid" },
+            { AmazonSQSQuery.AmazonSQSSettings.Region, "us-east-1" }
         };
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, string diagnostics) =
+            await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
-        StringAssert.Contains("not a valid key", errors.Single());
+        Assert.AreEqual("The security token included in the request is invalid.", errors.Single());
+        Approver.Verify(diagnostics);
     }
 
     [Test]
@@ -59,13 +63,28 @@ class AmazonSQSQueryTests : TransportTestFixture
 
         var dictionary = new Dictionary<string, string>
         {
-            { AmazonSQSQuery.AmazonSQSSettings.Region, "not valid" }
+            { AmazonSQSQuery.AmazonSQSSettings.Region, "not_valid" }
         };
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, string diagnostics) =
+            await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
         Assert.AreEqual("Invalid region endpoint provided", errors.Single());
+        Approver.Verify(diagnostics);
+    }
+
+    [Test]
+    public async Task TestConnectionWithValidSettings()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(332240));
+
+        var dictionary = new Dictionary<string, string>();
+        query.Initialise(dictionary.ToFrozenDictionary());
+        (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
+
+        Approver.Verify(diagnostics);
+        Assert.IsTrue(success);
     }
 
     [Test]

@@ -3,6 +3,7 @@ namespace ServiceControl.Transport.Tests;
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -11,6 +12,7 @@ using NServiceBus;
 using NServiceBus.AcceptanceTesting;
 using NServiceBus.AcceptanceTesting.Support;
 using NUnit.Framework;
+using Particular.Approvals;
 using Transports;
 using Transports.RabbitMQ;
 
@@ -45,9 +47,34 @@ class RabbitMQQueryTests : TransportTestFixture
             { RabbitMQQuery.RabbitMQSettings.API, "http://localhost:12345" }
         };
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> _) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
+        Approver.Verify(diagnostics,
+            s => Regex.Replace(s, "defaulted to using \"\\w*\" username", "defaulted to using \"xxxxx\" username",
+                RegexOptions.Multiline));
+    }
+
+    [Test]
+    public async Task TestConnectionWithValidSettings()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        var dictionary = new Dictionary<string, string>();
+        query.Initialise(dictionary.ToFrozenDictionary());
+        (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
+
+        Assert.IsTrue(success);
+        Approver.Verify(diagnostics,
+            s =>
+            {
+                s = Regex.Replace(s,
+                    "RabbitMQ API Url not set, defaulted to using \"http://[\\w.]*:15672\" from the ConnectionString used by instance",
+                    "RabbitMQ API Url not set, defaulted to using \"xxxx\" from the ConnectionString used by instance",
+                    RegexOptions.Multiline);
+                return Regex.Replace(s, "defaulted to using \"\\w*\" username", "defaulted to using \"xxxxx\" username",
+                    RegexOptions.Multiline);
+            });
     }
 
     [Test]

@@ -22,16 +22,27 @@ public class SqlServerQuery(
     {
         if (!settings.TryGetValue(SqlServerSettings.ConnectionString, out string? connectionString))
         {
-            logger.LogInformation("Using connectionstring used by instance");
+            logger.LogInformation("Using ConnectionString used by instance");
 
             connectionString = transportSettings.ConnectionString;
+
+            Diagnostics.AppendLine("ConnectionString not set, defaulted to using ConnectionString used by instance");
+        }
+        else
+        {
+            Diagnostics.AppendLine("ConnectionString set");
         }
 
         if (!settings.TryGetValue(SqlServerSettings.AdditionalCatalogs, out string? catalogs))
         {
             databases.Add(new DatabaseDetails(connectionString));
+            Diagnostics.AppendLine("Additional catalogs not set");
+
             return;
         }
+
+        Diagnostics.AppendLine(
+            $"Additional catalogs set to {string.Join(", ", catalogs.Split([' ', ',']).Select(s => $"\"{s}\""))}");
 
         var builder = new SqlConnectionStringBuilder { ConnectionString = connectionString };
 
@@ -112,7 +123,7 @@ public class SqlServerQuery(
         new KeyDescriptionPair(SqlServerSettings.AdditionalCatalogs, SqlServerSettings.AdditionalCatalogsDescription)
     ];
 
-    public override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
+    protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
         CancellationToken cancellationToken)
     {
         List<string> errors = [];

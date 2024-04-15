@@ -5,6 +5,7 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Time.Testing;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting;
 using NUnit.Framework;
+using Particular.Approvals;
 using Transports;
 using Transports.ASBS;
 
@@ -41,20 +43,48 @@ class AzureQueryTests : TransportTestFixture
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
+        transportSettings.ConnectionString =
+            "Endpoint=sb://testmenow.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=xxxxxxxxxxxxx";
         query.Initialise(FrozenDictionary<string, string>.Empty);
-        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, string diagnostics) =
+            await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
         CollectionAssert.Contains(errors, "SubscriptionId is a required setting");
         CollectionAssert.Contains(errors, "ClientId is a required setting");
         CollectionAssert.Contains(errors, "ClientSecret is a required setting");
         CollectionAssert.Contains(errors, "TenantId is a required setting");
+
+        Approver.Verify(diagnostics);
+    }
+
+    [Test]
+    public async Task TestConnectionWithValidSettings()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        string serviceBusName = query.ExtractServiceBusName();
+        Dictionary<string, string> dictionary = GetSettings();
+        query.Initialise(dictionary.ToFrozenDictionary());
+        (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
+
+        Assert.IsTrue(success);
+        Approver.Verify(diagnostics, s =>
+        {
+            s = s.Replace(dictionary[AzureQuery.AzureServiceBusSettings.TenantId], "xxxxx");
+            s = s.Replace(dictionary[AzureQuery.AzureServiceBusSettings.SubscriptionId], "xxxxx");
+            s = s.Replace(dictionary[AzureQuery.AzureServiceBusSettings.ClientId], "xxxxx");
+            s = s.Replace(serviceBusName, "xxxxx");
+            return s;
+        });
     }
 
     [Test]
     public async Task TestConnectionWithInvalidTenantIdSetting()
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        transportSettings.ConnectionString =
+            "Endpoint=sb://testmenow.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=xxxxxxxxxxxxx";
 
         var dictionary = new Dictionary<string, string>
         {
@@ -64,43 +94,60 @@ class AzureQueryTests : TransportTestFixture
             { AzureQuery.AzureServiceBusSettings.SubscriptionId, "not valid" }
         };
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, string diagnostics) =
+            await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
         StringAssert.StartsWith("Invalid tenant id provided", errors.Single());
+        Approver.Verify(diagnostics);
     }
 
     [Test]
     public async Task TestConnectionWithInvalidSubscriptionIdSettings()
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        transportSettings.ConnectionString =
+            "Endpoint=sb://testmenow.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=xxxxxxxxxxxxx";
 
         var dictionary = new Dictionary<string, string>
         {
             { AzureQuery.AzureServiceBusSettings.ClientId, "not valid" },
             { AzureQuery.AzureServiceBusSettings.ClientSecret, "not valid" },
-            { AzureQuery.AzureServiceBusSettings.TenantId, Guid.NewGuid().ToString() },
+            { AzureQuery.AzureServiceBusSettings.TenantId, Guid.Empty.ToString() },
             { AzureQuery.AzureServiceBusSettings.SubscriptionId, "not valid" }
         };
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, string diagnostics) =
+            await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
         StringAssert.StartsWith("The GUID for subscription is invalid", errors.Single());
+        Approver.Verify(diagnostics);
     }
 
     [Test]
     public async Task TestConnectionWithInvalidClientIdSettings()
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        transportSettings.ConnectionString =
+            "Endpoint=sb://testmenow.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=xxxxxxxxxxxxx";
 
         Dictionary<string, string> dictionary = GetSettings();
         dictionary[AzureQuery.AzureServiceBusSettings.ClientId] = "not valid";
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, string diagnostics) =
+            await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
         StringAssert.StartsWith("ClientSecretCredential authentication failed", errors.Single());
+        Approver.Verify(diagnostics, s =>
+        {
+            s = s.Replace(dictionary[AzureQuery.AzureServiceBusSettings.TenantId], "xxxxx");
+            s = s.Replace(dictionary[AzureQuery.AzureServiceBusSettings.SubscriptionId], "xxxxx");
+            return Regex.Replace(s, "^ClientSecretCredential authentication failed: .*$",
+                "ClientSecretCredential authentication failed: AADSTS700016: Application with identifier 'not valid' was not found in the directory",
+                RegexOptions.Multiline);
+        });
     }
 
     [Test]
@@ -111,7 +158,7 @@ class AzureQueryTests : TransportTestFixture
         Dictionary<string, string> dictionary = GetSettings();
         dictionary[AzureQuery.AzureServiceBusSettings.ClientSecret] = "not valid";
         query.Initialise(dictionary.ToFrozenDictionary());
-        (bool success, List<string> errors) = await query.TestConnection(cancellationTokenSource.Token);
+        (bool success, List<string> errors, _) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
         StringAssert.StartsWith("ClientSecretCredential authentication failed", errors.Single());
@@ -179,7 +226,10 @@ class AzureQueryTests : TransportTestFixture
             { AzureQuery.AzureServiceBusSettings.ClientSecret, jsonCredentials["clientSecret"].GetValue<string>() },
             { AzureQuery.AzureServiceBusSettings.TenantId, jsonCredentials["tenantId"].GetValue<string>() },
             { AzureQuery.AzureServiceBusSettings.SubscriptionId, jsonCredentials["subscriptionId"].GetValue<string>() },
-            { AzureQuery.AzureServiceBusSettings.ManagementUrl, jsonCredentials["managementEndpointUrl"].GetValue<string>() }
+            {
+                AzureQuery.AzureServiceBusSettings.ManagementUrl,
+                jsonCredentials["resourceManagerEndpointUrl"].GetValue<string>()
+            }
         };
         return dictionary;
     }

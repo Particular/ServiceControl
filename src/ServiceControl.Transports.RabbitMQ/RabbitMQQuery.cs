@@ -38,13 +38,25 @@ public class RabbitMQQuery(
         {
             logger.LogInformation("Using username from connectionstring");
             username = connectionConfiguration.UserName;
+            Diagnostics.AppendLine(
+                $"Username not set, defaulted to using \"{username}\" username from the ConnectionString used by instance");
+        }
+        else
+        {
+            Diagnostics.AppendLine($"Username set to \"{username}\"");
         }
 
         if (!settings.TryGetValue(RabbitMQSettings.Password, out string? password) ||
             string.IsNullOrEmpty(password))
         {
             logger.LogInformation("Using password from connectionstring");
-            password = connectionConfiguration.UserName;
+            password = connectionConfiguration.Password;
+            Diagnostics.AppendLine(
+                "Password not set, defaulted to using password from the ConnectionString used by instance");
+        }
+        else
+        {
+            Diagnostics.AppendLine("Password set");
         }
 
         var defaultCredential = new NetworkCredential(username, password);
@@ -54,9 +66,12 @@ public class RabbitMQQuery(
         {
             apiUrl =
                 $"{(connectionConfiguration.UseTls ? $"https://{connectionConfiguration.Host}:15671" : $"http://{connectionConfiguration.Host}:15672")}";
+            Diagnostics.AppendLine(
+                $"RabbitMQ API Url not set, defaulted to using \"{apiUrl}\" from the ConnectionString used by instance");
         }
         else
         {
+            Diagnostics.AppendLine($"RabbitMQ API Url set to \"{apiUrl}\"");
             if (!Uri.TryCreate(apiUrl, UriKind.Absolute, out _))
             {
                 InitialiseErrors.Add("API url configured is invalid");
@@ -277,10 +292,17 @@ public class RabbitMQQuery(
         new KeyDescriptionPair(RabbitMQSettings.Password, RabbitMQSettings.PasswordDescription)
     ];
 
-    public override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
+    protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
         CancellationToken cancellationToken)
     {
-        await GetRabbitDetails(true, cancellationToken);
+        try
+        {
+            await GetRabbitDetails(true, cancellationToken);
+        }
+        catch (HttpRequestException e)
+        {
+            throw new Exception($"Failed to connect to '{httpClient!.BaseAddress}'", e);
+        }
 
         return (true, []);
     }

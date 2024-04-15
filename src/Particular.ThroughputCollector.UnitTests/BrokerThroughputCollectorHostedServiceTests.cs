@@ -128,7 +128,8 @@ class BrokerThroughputCollectorHostedServiceTests
         public string MessageTransport { get; }
         public string ScopeType { get; }
         public KeyDescriptionPair[] Settings { get; }
-        public Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
+            CancellationToken cancellationToken) => throw new NotImplementedException();
         public string SanitizeEndpointName(string endpointName) => endpointName;
     }
 
@@ -165,7 +166,8 @@ class BrokerThroughputCollectorHostedServiceTests
         public string MessageTransport { get; }
         public string ScopeType { get; }
         public KeyDescriptionPair[] Settings { get; }
-        public Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
+            CancellationToken cancellationToken) => throw new NotImplementedException();
         public string SanitizeEndpointName(string endpointName) => endpointName;
     }
 }
