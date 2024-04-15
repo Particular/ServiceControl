@@ -12,8 +12,8 @@ public class AuditThroughputCollectorHostedService(
     ThroughputSettings throughputSettings,
     IThroughputDataStore dataStore,
     IAuditQuery auditQuery,
-    IBrokerThroughputQuery brokerThroughputQuery,
-    TimeProvider timeProvider) : BackgroundService
+    TimeProvider timeProvider,
+    IBrokerThroughputQuery? brokerThroughputQuery = null) : BackgroundService
 {
     public TimeSpan DelayStart { get; set; } = TimeSpan.FromSeconds(40);
 
