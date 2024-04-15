@@ -292,7 +292,7 @@ public class RabbitMQQuery(
         new KeyDescriptionPair(RabbitMQSettings.Password, RabbitMQSettings.PasswordDescription)
     ];
 
-    public override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
+    protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
         CancellationToken cancellationToken)
     {
         await GetRabbitDetails(true, cancellationToken);
