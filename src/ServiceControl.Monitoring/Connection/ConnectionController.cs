@@ -22,7 +22,7 @@
                     MetricsQueue = mainInputQueue,
                     Interval = defaultInterval
                 }
-            }, new JsonSerializerOptions());
+            }, JsonSerializerOptions.Default);
 
         // ServicePulse expects as result an object with a Metrics root property
         class ConnectionDetails

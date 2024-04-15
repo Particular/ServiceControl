@@ -24,7 +24,7 @@ namespace ServiceControl.Audit.Connection
                         Enabled = true,
                         SagaAuditQueue = settings.AuditQueue,
                     }
-                }, new JsonSerializerOptions());
+                }, JsonSerializerOptions.Default);
     }
 
     public class ConnectionDetails

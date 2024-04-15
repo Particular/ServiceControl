@@ -19,7 +19,7 @@
         public async Task<IActionResult> GetConnectionDetails()
         {
             var platformConnectionDetails = await builder.BuildPlatformConnection();
-            return new JsonResult(new ConnectionDetails(platformConnectionDetails.ToDictionary(), platformConnectionDetails.Errors), new JsonSerializerOptions());
+            return new JsonResult(new ConnectionDetails(platformConnectionDetails.ToDictionary(), platformConnectionDetails.Errors), JsonSerializerOptions.Default);
         }
 
         // The Settings and Errors properties are serialized as settings and errors
