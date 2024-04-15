@@ -3,6 +3,7 @@ namespace ServiceControl.Transport.Tests;
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -49,7 +50,9 @@ class RabbitMQQueryTests : TransportTestFixture
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
-        Approver.Verify(diagnostics);
+        Approver.Verify(diagnostics,
+            s => Regex.Replace(s, "defaulted to using \"\\w*\" username", "defaulted to using \"xxxxx\" username",
+                RegexOptions.Multiline));
     }
 
     [Test]
@@ -62,7 +65,9 @@ class RabbitMQQueryTests : TransportTestFixture
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsTrue(success);
-        Approver.Verify(diagnostics);
+        Approver.Verify(diagnostics,
+            s => Regex.Replace(s, "defaulted to using \"\\w*\" username", "defaulted to using \"xxxxx\" username",
+                RegexOptions.Multiline));
     }
 
     [Test]
