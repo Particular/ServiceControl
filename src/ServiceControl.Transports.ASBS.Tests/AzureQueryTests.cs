@@ -59,6 +59,27 @@ class AzureQueryTests : TransportTestFixture
     }
 
     [Test]
+    public async Task TestConnectionWithValidSettings()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        string serviceBusName = query.ExtractServiceBusName();
+        Dictionary<string, string> dictionary = GetSettings();
+        query.Initialise(dictionary.ToFrozenDictionary());
+        (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
+
+        Assert.IsTrue(success);
+        Approver.Verify(diagnostics, s =>
+        {
+            s = s.Replace(dictionary[AzureQuery.AzureServiceBusSettings.TenantId], "xxxxx");
+            s = s.Replace(dictionary[AzureQuery.AzureServiceBusSettings.SubscriptionId], "xxxxx");
+            s = s.Replace(dictionary[AzureQuery.AzureServiceBusSettings.ClientId], "xxxxx");
+            s = s.Replace(serviceBusName, "xxxxx");
+            return s;
+        });
+    }
+
+    [Test]
     public async Task TestConnectionWithInvalidTenantIdSetting()
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
