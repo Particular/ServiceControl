@@ -69,7 +69,7 @@ class RabbitMQQueryTests : TransportTestFixture
             s =>
             {
                 s = Regex.Replace(s,
-                    "RabbitMQ API Url not set, defaulted to using \"http://\\w*:15672\" from the ConnectionString used by instance",
+                    "RabbitMQ API Url not set, defaulted to using \"http://[\\w.]*:15672\" from the ConnectionString used by instance",
                     "RabbitMQ API Url not set, defaulted to using \"xxxx\" from the ConnectionString used by instance",
                     RegexOptions.Multiline);
                 return Regex.Replace(s, "defaulted to using \"\\w*\" username", "defaulted to using \"xxxxx\" username",
