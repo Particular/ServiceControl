@@ -30,14 +30,12 @@
 
         public Task SendFeedBack(string emailAddress, string message, bool includeSystemInfo)
         {
-            raygunClient.UserInfo = new RaygunIdentifierMessage(trackingId.BareString())
-            {
-                Email = emailAddress,
-                UUID = trackingId.BareString()
-            };
-
             var raygunMessage = RaygunMessageBuilder.New(new RaygunSettings())
-                .SetUser(raygunClient.UserInfo)
+                .SetUser(new RaygunIdentifierMessage(trackingId.BareString())
+                {
+                    Email = emailAddress,
+                    UUID = trackingId.BareString()
+                })
                 .SetVersion(Version)
                 .SetExceptionDetails(new Feedback(message));
 
@@ -53,13 +51,11 @@
 
         public Task SendException(Exception ex, bool includeSystemInfo)
         {
-            raygunClient.UserInfo = new RaygunIdentifierMessage(trackingId.BareString())
-            {
-                UUID = trackingId.BareString()
-            };
-
             var raygunMessage = RaygunMessageBuilder.New(new RaygunSettings())
-                .SetUser(raygunClient.UserInfo)
+                .SetUser(new RaygunIdentifierMessage(trackingId.BareString())
+                {
+                    UUID = trackingId.BareString()
+                })
                 .SetVersion(Version)
                 .SetExceptionDetails(ex);
 

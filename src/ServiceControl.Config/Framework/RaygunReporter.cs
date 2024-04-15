@@ -73,7 +73,7 @@
             return versionParts?[0];
         }
 
-        protected RaygunClient raygunClient = new RaygunClient(RaygunApiKey);
+        protected RaygunClient raygunClient = new(new RaygunSettings { ApiKey = RaygunApiKey });
         Task init;
         bool enabled;
         protected const string RaygunApiKey = "zdm49nndHCXZ3NVzM8Kzug==";
