@@ -208,4 +208,17 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
 
         return (true, []);
     }
+
+    public override string SanitizeEndpointName(string endpointName)
+    {
+        try
+        {
+            return QueueNameHelper.GetSqsQueueName(endpointName);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, $"Failed to sanitize endpoint name {endpointName}");
+            return endpointName;
+        }
+    }
 }

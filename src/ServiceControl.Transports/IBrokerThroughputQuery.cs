@@ -30,6 +30,8 @@ public interface IBrokerThroughputQuery
     string? ScopeType { get; }
     KeyDescriptionPair[] Settings { get; }
     Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken);
+
+    string SanitizeEndpointName(string endpointName);
 }
 
 public abstract class BrokerThroughputQuery(ILogger logger, string transport) : IBrokerThroughputQuery
@@ -96,6 +98,8 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
     }
 
     public abstract Task<(bool Success, List<string> Errors)> TestConnectionCore(CancellationToken cancellationToken);
+
+    public virtual string SanitizeEndpointName(string endpointName) => endpointName;
 }
 
 public readonly struct KeyDescriptionPair(string key, string description)

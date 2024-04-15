@@ -4,6 +4,7 @@ using Contracts;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Persistence;
+using ServiceControl.Transports;
 using Shared;
 
 public class AuditThroughputCollectorHostedService(
@@ -11,6 +12,7 @@ public class AuditThroughputCollectorHostedService(
     ThroughputSettings throughputSettings,
     IThroughputDataStore dataStore,
     IAuditQuery auditQuery,
+    IBrokerThroughputQuery brokerThroughputQuery,
     TimeProvider timeProvider) : BackgroundService
 {
     public TimeSpan DelayStart { get; set; } = TimeSpan.FromSeconds(40);
@@ -92,7 +94,7 @@ public class AuditThroughputCollectorHostedService(
     {
         var endpoint = new Endpoint(scEndpoint.Name, ThroughputSource.Audit)
         {
-            SanitizedName = scEndpoint.Name,
+            SanitizedName = brokerThroughputQuery != null ? brokerThroughputQuery.SanitizeEndpointName(scEndpoint.Name) : scEndpoint.Name,
             EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()]
         };
 

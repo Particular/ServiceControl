@@ -129,6 +129,7 @@ class BrokerThroughputCollectorHostedServiceTests
         public string ScopeType { get; }
         public KeyDescriptionPair[] Settings { get; }
         public Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken) => throw new NotImplementedException();
+        public string SanitizeEndpointName(string endpointName) => endpointName;
     }
 
     class MockedBrokerThroughputQuery : IBrokerThroughputQuery
@@ -165,5 +166,6 @@ class BrokerThroughputCollectorHostedServiceTests
         public string ScopeType { get; }
         public KeyDescriptionPair[] Settings { get; }
         public Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken) => throw new NotImplementedException();
+        public string SanitizeEndpointName(string endpointName) => endpointName;
     }
 }
