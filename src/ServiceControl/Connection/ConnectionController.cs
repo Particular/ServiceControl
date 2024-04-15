@@ -2,28 +2,28 @@
 {
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Text.Json;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
-    using JsonSerializer = System.Text.Json.JsonSerializer;
 
     [ApiController]
     [Route("api")]
     public class ConnectionController(IPlatformConnectionBuilder builder) : ControllerBase
     {
+        // This controller doesn't use the default serialization settings because
+        // ServicePulse and the Platform Connector Plugin expect the connection
+        // details the be serialized and formatted in a specific way
         [Route("connection")]
         [HttpGet]
         public async Task<IActionResult> GetConnectionDetails()
         {
             var platformConnectionDetails = await builder.BuildPlatformConnection();
-            var connectionDetails = new ConnectionDetails(platformConnectionDetails.ToDictionary(), platformConnectionDetails.Errors);
-            var content = JsonSerializer.Serialize(connectionDetails);
-            return Content(content, "application/json");
+            return new JsonResult(new ConnectionDetails(platformConnectionDetails.ToDictionary(), platformConnectionDetails.Errors), new JsonSerializerOptions());
         }
 
-        // Backward compatibility reason:
-        // to make it so that the latest ServicePulse can talk to ServiceControl 5.0.5
-        // the Errors and Settings properties must be serialized camelCase 
+        // The Settings and Errors properties are serialized as settings and errors
+        // because ServicePulse expects them te be lowercase 
         class ConnectionDetails(IDictionary<string, object> settings, ConcurrentBag<string> errors)
         {
             [JsonPropertyName("settings")]

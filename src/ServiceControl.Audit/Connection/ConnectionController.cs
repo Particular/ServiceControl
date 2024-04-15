@@ -8,27 +8,23 @@ namespace ServiceControl.Audit.Connection
     [Route("api")]
     public class ConnectionController(Settings settings) : ControllerBase
     {
+        // This controller doesn't use the default serialization settings because
+        // ServicePulse and the Platform Connector Plugin expect the connection
+        // details the be serialized and formatted in a specific way
         [Route("connection")]
         [HttpGet]
-        public IActionResult GetConnectionDetails()
-        {
-            var connectionDetails = new ConnectionDetails
-            {
-                MessageAudit = new MessageAuditConnectionDetails
+        public IActionResult GetConnectionDetails() =>
+            new JsonResult(
+                new ConnectionDetails
                 {
-                    Enabled = true,
-                    AuditQueue = settings.AuditQueue
-                },
-                SagaAudit = new SagaAuditConnectionDetails
-                {
-                    Enabled = true,
-                    SagaAuditQueue = settings.AuditQueue,
-                }
-            };
-            // by default snake case is used for serialization so we take care of explicitly serializing here
-            var content = JsonSerializer.Serialize(connectionDetails);
-            return Content(content, "application/json");
-        }
+                    MessageAudit =
+                        new MessageAuditConnectionDetails { Enabled = true, AuditQueue = settings.AuditQueue },
+                    SagaAudit = new SagaAuditConnectionDetails
+                    {
+                        Enabled = true,
+                        SagaAuditQueue = settings.AuditQueue,
+                    }
+                }, new JsonSerializerOptions());
     }
 
     public class ConnectionDetails
