@@ -91,7 +91,7 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
             InitialiseErrors.ForEach(s => sb.AppendLine(s));
             sb.AppendLine();
             sb.AppendLine("Connection attempted with the following settings:");
-            sb.AppendLine(Diagnostics.ToString());
+            sb.Append(Diagnostics.ToString());
             return (false, InitialiseErrors, sb.ToString());
         }
 
@@ -102,7 +102,7 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
             sb.AppendLine($"Connection test to {transport} was successful");
             sb.AppendLine();
             sb.AppendLine("Connection settings used:");
-            sb.AppendLine(Diagnostics.ToString());
+            sb.Append(Diagnostics.ToString());
 
             return (success, errors, sb.ToString());
         }
@@ -114,12 +114,13 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
             sb.AppendLine(ex.Message);
             sb.AppendLine();
             sb.AppendLine("Connection attempted with the following settings:");
-            sb.AppendLine(Diagnostics.ToString());
+            sb.Append(Diagnostics.ToString());
             return (false, [ex.Message], sb.ToString());
         }
     }
 
-    public abstract Task<(bool Success, List<string> Errors)> TestConnectionCore(CancellationToken cancellationToken);
+    protected abstract Task<(bool Success, List<string> Errors)>
+        TestConnectionCore(CancellationToken cancellationToken);
 
     public virtual string SanitizeEndpointName(string endpointName) => endpointName;
 }
