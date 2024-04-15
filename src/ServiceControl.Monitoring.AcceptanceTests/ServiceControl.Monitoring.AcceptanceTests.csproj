@@ -24,8 +24,4 @@
     <PackageReference Include="Particular.Approvals" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ApprovalFiles\" />
-  </ItemGroup>
-
 </Project>
