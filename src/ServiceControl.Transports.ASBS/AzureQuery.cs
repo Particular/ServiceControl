@@ -59,7 +59,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             serviceBusName = transportSettings.ConnectionString.Substring(startIndex,
                 transportSettings.ConnectionString.IndexOf('.', startIndex) - startIndex);
             logger.LogInformation("ServiceBus name extracted from connection string");
-            Diagnostics.AppendLine($"ServiceBus name not set to, defaulted to \"{serviceBusName}\"");
+            Diagnostics.AppendLine($"ServiceBus name not set, defaulted to \"{serviceBusName}\"");
         }
         else
         {
@@ -106,7 +106,6 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             Diagnostics.AppendLine("Client secret set");
         }
 
-        var clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
         ArmEnvironment environment = GetEnvironment();
 
         if (managementUrl == null)
@@ -117,6 +116,13 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         {
             Diagnostics.AppendLine($"Management Url set to \"{managementUrl}\"");
         }
+
+        if (InitialiseErrors.Count > 0)
+        {
+            return;
+        }
+
+        var clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
 
         client = new MetricsQueryClient(environment.Endpoint, clientCredentials,
             new MetricsQueryClientOptions
@@ -143,6 +149,12 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         ArmEnvironment GetEnvironment()
         {
             if (managementUrl == null)
+            {
+                return ArmEnvironment.AzurePublicCloud;
+            }
+
+            if (managementUrl.Equals(ArmEnvironment.AzurePublicCloud.Endpoint.ToString(),
+                    StringComparison.CurrentCultureIgnoreCase))
             {
                 return ArmEnvironment.AzurePublicCloud;
             }
@@ -257,7 +269,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         new KeyDescriptionPair(AzureServiceBusSettings.ManagementUrl, AzureServiceBusSettings.ManagementUrlDescription)
     ];
 
-    public override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
+    protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
         CancellationToken cancellationToken)
     {
         await foreach (IBrokerQueue brokerQueue in GetQueueNames(cancellationToken))

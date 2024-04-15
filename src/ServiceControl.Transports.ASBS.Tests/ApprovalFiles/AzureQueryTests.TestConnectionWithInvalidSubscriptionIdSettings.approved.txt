@@ -1,0 +1,10 @@
+Connection test to AzureServiceBus failed:
+The GUID for subscription is invalid not valid.
+
+Connection attempted with the following settings:
+ServiceBus name not set, defaulted to "testmenow"
+SubscriptionId set to "not valid"
+TenantId set to "00000000-0000-0000-0000-000000000000"
+ClientId set to "not valid"
+Client secret set
+Management Url not set, defaulted to "https://management.azure.com/"
