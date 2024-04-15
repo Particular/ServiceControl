@@ -14,6 +14,7 @@ namespace ServiceControl.Transports
         public bool HasInitialisationErrors(out string errorMessage) { }
         public void Initialise(System.Collections.Frozen.FrozenDictionary<string, string> settings) { }
         protected abstract void InitialiseCore(System.Collections.Frozen.FrozenDictionary<string, string> settings);
+        public virtual string SanitizeEndpointName(string endpointName) { }
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "Success",
                 "Errors"})]
@@ -57,6 +58,7 @@ namespace ServiceControl.Transports
         System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.QueueThroughput> GetThroughputPerDay(ServiceControl.Transports.IBrokerQueue brokerQueue, System.DateOnly startDate, System.Threading.CancellationToken cancellationToken);
         bool HasInitialisationErrors(out string errorMessage);
         void Initialise(System.Collections.Frozen.FrozenDictionary<string, string> settings);
+        string SanitizeEndpointName(string endpointName);
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "Success",
                 "Errors"})]
