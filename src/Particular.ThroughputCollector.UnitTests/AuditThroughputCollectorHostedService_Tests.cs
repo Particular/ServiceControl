@@ -224,6 +224,8 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         public IAsyncEnumerable<ServiceControl.Transports.QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate, CancellationToken cancellationToken) => throw new NotImplementedException();
         public bool HasInitialisationErrors(out string errorMessage) => throw new NotImplementedException();
         public void Initialise(FrozenDictionary<string, string> settings) => throw new NotImplementedException();
+        public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(CancellationToken cancellationToken) => throw new NotImplementedException();
+
         public string SanitizeEndpointName(string endpointName)
         {
             var queueNameBuilder = new StringBuilder(endpointName);
@@ -241,6 +243,5 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
 
             return queueNameBuilder.ToString();
         }
-        public Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 }
