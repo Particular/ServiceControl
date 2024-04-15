@@ -44,20 +44,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         if (string.IsNullOrEmpty(serviceBusName))
         {
             // Extract ServiceBus name from connection string
-            const string serviceBusUrlPrefix = "sb://";
-            int serviceBusUrlPrefixLength = serviceBusUrlPrefix.Length;
-            int startIndex = transportSettings.ConnectionString.IndexOf(serviceBusUrlPrefix, StringComparison.Ordinal);
-            if (startIndex == -1)
-            {
-                startIndex = 0;
-            }
-            else
-            {
-                startIndex += serviceBusUrlPrefixLength;
-            }
-
-            serviceBusName = transportSettings.ConnectionString.Substring(startIndex,
-                transportSettings.ConnectionString.IndexOf('.', startIndex) - startIndex);
+            serviceBusName = ExtractServiceBusName();
             logger.LogInformation("ServiceBus name extracted from connection string");
             Diagnostics.AppendLine($"ServiceBus name not set, defaulted to \"{serviceBusName}\"");
         }
@@ -189,6 +176,24 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         }
     }
 
+    public string ExtractServiceBusName()
+    {
+        const string serviceBusUrlPrefix = "sb://";
+        int serviceBusUrlPrefixLength = serviceBusUrlPrefix.Length;
+        int startIndex = transportSettings.ConnectionString.IndexOf(serviceBusUrlPrefix, StringComparison.Ordinal);
+        if (startIndex == -1)
+        {
+            startIndex = 0;
+        }
+        else
+        {
+            startIndex += serviceBusUrlPrefixLength;
+        }
+
+        return transportSettings.ConnectionString.Substring(startIndex,
+            transportSettings.ConnectionString.IndexOf('.', startIndex) - startIndex);
+    }
+
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,
         DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -204,13 +209,23 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         var metrics = await GetMetrics(brokerQueue.QueueName, startDate,
             endDate, cancellationToken);
 
+        DateOnly currentDate = startDate;
+        var data = new Dictionary<DateOnly, QueueThroughput>();
+        while (currentDate <= endDate)
+        {
+            data.Add(currentDate, new QueueThroughput { TotalThroughput = 0, DateUTC = currentDate });
+
+            currentDate = currentDate.AddDays(1);
+        }
+
         foreach (var metricValue in metrics)
         {
-            yield return new QueueThroughput
-            {
-                TotalThroughput = (long)(metricValue.Total ?? 0),
-                DateUTC = DateOnly.FromDateTime(metricValue.TimeStamp.UtcDateTime)
-            };
+            data[DateOnly.FromDateTime(metricValue.TimeStamp.UtcDateTime)].TotalThroughput = (long)(metricValue.Total ?? 0);
+        }
+
+        foreach (QueueThroughput queueThroughput in data.Values)
+        {
+            yield return queueThroughput;
         }
     }
 
