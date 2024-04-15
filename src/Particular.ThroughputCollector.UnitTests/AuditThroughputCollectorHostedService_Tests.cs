@@ -42,7 +42,7 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         var auditQuery = new AuditQuery_NoAuditRemotes();
 
         using var auditThroughputCollectorHostedService = new AuditThroughputCollectorHostedService(
-                NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore, auditQuery, null, fakeTimeProvider)
+                NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore, auditQuery, fakeTimeProvider, null)
         { DelayStart = TimeSpan.Zero };
 
         //Act
@@ -70,7 +70,7 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         var auditQuery = new AuditQuery_ThrowingAnExceptionOnKnownEndpointsCall();
 
         using var auditThroughputCollectorHostedService = new AuditThroughputCollectorHostedService(
-                NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore, auditQuery, null, fakeTimeProvider)
+                NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore, auditQuery, fakeTimeProvider, null)
         { DelayStart = TimeSpan.Zero };
 
         //Act
@@ -97,7 +97,7 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         var fakeTimeProvider = new FakeTimeProvider();
 
         using var auditThroughputCollectorHostedService = new AuditThroughputCollectorHostedService(
-               NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore, configuration.AuditQuery, null, fakeTimeProvider)
+               NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore, configuration.AuditQuery, fakeTimeProvider, null)
         { DelayStart = TimeSpan.Zero };
 
         //Act
@@ -121,7 +121,7 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         var endpointNameSanitized = "e-ndpoint-1";
 
         using var auditThroughputCollectorHostedService = new AuditThroughputCollectorHostedService(
-                NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore, auditQuery, new BrokerThroughputQuery_WithSanitization(), fakeTimeProvider)
+                NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore, auditQuery, fakeTimeProvider, new BrokerThroughputQuery_WithSanitization())
         { DelayStart = TimeSpan.Zero };
 
         //Act
