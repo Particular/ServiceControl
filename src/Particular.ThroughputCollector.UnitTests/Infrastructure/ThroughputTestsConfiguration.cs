@@ -8,6 +8,7 @@
     using Particular.ThroughputCollector.MonitoringThroughput;
     using Persistence;
     using Persistence.InMemory;
+    using ServiceControl.Transports;
 
     partial class ThroughputTestsConfiguration
     {
@@ -37,6 +38,7 @@
             setExtraDependencies(serviceCollection);
 
             serviceCollection.AddSingleton<IThroughputCollector, ThroughputCollector>();
+            serviceCollection.AddSingleton<IBrokerThroughputQuery, FakeBrokerThroughputQuery>();
             serviceCollection.AddSingleton<IAuditQuery, AuditQuery>();
             serviceCollection.AddSingleton<MonitoringService>();
 

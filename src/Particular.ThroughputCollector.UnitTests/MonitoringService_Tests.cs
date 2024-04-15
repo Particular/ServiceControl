@@ -1,8 +1,12 @@
 namespace Particular.ThroughputCollector.UnitTests;
 
 using System;
+using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -10,6 +14,7 @@ using Particular.ThroughputCollector.Contracts;
 using Particular.ThroughputCollector.MonitoringThroughput;
 using Particular.ThroughputCollector.UnitTests.Infrastructure;
 using ServiceControl.Api;
+using ServiceControl.Transports;
 
 [TestFixture]
 class MonitoringService_Tests : ThroughputCollectorTestFixture
@@ -61,6 +66,32 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
     }
 
     [Test]
+    public async Task Should_sanitize_endpoint_name()
+    {
+        // Arrange
+        var endpointName = "e$ndpoint*1";
+        var message = new RecordEndpointThroughputData()
+        {
+            StartDateTime = DateTime.UtcNow.AddMinutes(-5),
+            EndDateTime = DateTime.UtcNow,
+            EndpointThroughputData = new EndpointThroughputData[] { new EndpointThroughputData { Name = endpointName, Throughput = 15 } }
+        };
+
+        var monitoringService = new MonitoringService(DataStore, new BrokerThroughputQuery_WithSanitization());
+        var messageBytes = JsonSerializer.SerializeToUtf8Bytes(message);
+        await monitoringService.RecordMonitoringThroughput(messageBytes, default);
+        var endpointNameSanitized = "e-ndpoint-1";
+
+        // Act
+        var foundEndpoint = await DataStore.GetEndpoint(endpointName, ThroughputSource.Monitoring);
+
+        // Assert        
+        Assert.That(foundEndpoint, Is.Not.Null, $"Expected endpoint {endpointName} not found.");
+        Assert.That(foundEndpoint.SanitizedName, Is.EqualTo(endpointNameSanitized), $"Endpoint {endpointName} name not sanitized correctly.");
+    }
+
+
+    [Test]
     public async Task Should_return_successful_monitoring_connection_if_monitoring_throughput_exists()
     {
         // Arrange
@@ -76,5 +107,39 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         Assert.That(connectionSettingsResult, Is.Not.Null, "connectionSettingsResult should be returned");
         Assert.That(connectionSettingsResult.ConnectionSuccessful, Is.True, "Connection status should be successful");
         Assert.That(connectionSettingsResult.ConnectionErrorMessages.Count, Is.EqualTo(0), "Unexpected ConnectionErrorMessages");
+    }
+
+    class BrokerThroughputQuery_WithSanitization : IBrokerThroughputQuery
+    {
+        public Dictionary<string, string> Data => throw new NotImplementedException();
+
+        public string MessageTransport => "";
+
+        public string ScopeType => "";
+
+        public KeyDescriptionPair[] Settings => throw new NotImplementedException();
+
+        public IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken) => throw new NotImplementedException();
+        public IAsyncEnumerable<ServiceControl.Transports.QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public bool HasInitialisationErrors(out string errorMessage) => throw new NotImplementedException();
+        public void Initialise(FrozenDictionary<string, string> settings) => throw new NotImplementedException();
+        public string SanitizeEndpointName(string endpointName)
+        {
+            var queueNameBuilder = new StringBuilder(endpointName);
+
+            for (var i = 0; i < queueNameBuilder.Length; ++i)
+            {
+                var c = queueNameBuilder[i];
+                if (!char.IsLetterOrDigit(c)
+                    && c != '-'
+                    && c != '_')
+                {
+                    queueNameBuilder[i] = '-';
+                }
+            }
+
+            return queueNameBuilder.ToString();
+        }
+        public Task<(bool Success, List<string> Errors)> TestConnection(CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 }
