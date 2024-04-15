@@ -123,7 +123,7 @@ public class SqlServerQuery(
         new KeyDescriptionPair(SqlServerSettings.AdditionalCatalogs, SqlServerSettings.AdditionalCatalogsDescription)
     ];
 
-    public override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
+    protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
         CancellationToken cancellationToken)
     {
         List<string> errors = [];

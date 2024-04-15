@@ -2,12 +2,11 @@
 
 using AuditThroughput;
 using Contracts;
-using Particular.ThroughputCollector.MonitoringThroughput;
+using MonitoringThroughput;
 using Persistence;
 using ServiceControl.Transports;
 using Shared;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using QueueThroughput = Contracts.QueueThroughput;
 
 public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, IAuditQuery auditQuery, MonitoringService monitoringService, IBrokerThroughputQuery? throughputQuery = null)
     : IThroughputCollector
@@ -29,7 +28,11 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
 
         if (throughputQuery != null)
         {
-            brokerTask = throughputQuery.TestConnection(cancellationToken).ContinueWith(task => new ConnectionSettingsTestResult { ConnectionSuccessful = task.Result.Success, ConnectionErrorMessages = task.Result.Errors }, cancellationToken);
+            brokerTask = throughputQuery.TestConnection(cancellationToken).ContinueWith(task =>
+            {
+                var (success, errors, diagnostics) = task.Result;
+                return new ConnectionSettingsTestResult { ConnectionSuccessful = success, ConnectionErrorMessages = errors, Diagnostics = diagnostics };
+            }, cancellationToken);
             tasks.Add(brokerTask);
         }
 
@@ -105,7 +108,7 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         var endpoints = await dataStore.GetAllEndpoints(false, cancellationToken);
         var queueNames = endpoints.Select(endpoint => endpoint.SanitizedName).Distinct();
         var endpointThroughputPerQueue = await dataStore.GetEndpointThroughputByQueueName(queueNames, cancellationToken);
-        var queueThroughputs = new List<Contracts.QueueThroughput>();
+        var queueThroughputs = new List<QueueThroughput>();
         List<string> ignoredQueueNames = [];
 
         //group endpoints by sanitized name - so to group throughput recorded from broker, audit and monitoring
@@ -125,7 +128,7 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
             var notAnNsbEndpoint = userIndicator.Equals(Contracts.UserIndicator.NotNServicebusEndpoint.ToString(), StringComparison.OrdinalIgnoreCase);
 
             //get all data that we have, including daily values
-            var queueThroughput = new Contracts.QueueThroughput
+            var queueThroughput = new QueueThroughput
             {
                 QueueName = Mask(endpointName),
                 UserIndicator = userIndicator,
