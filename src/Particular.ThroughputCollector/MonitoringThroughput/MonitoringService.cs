@@ -6,8 +6,9 @@ using System.Threading;
 using Particular.ThroughputCollector.Persistence;
 using Particular.ThroughputCollector.Shared;
 using System.Text.Json;
+using ServiceControl.Transports;
 
-public class MonitoringService(IThroughputDataStore dataStore)
+public class MonitoringService(IThroughputDataStore dataStore, IBrokerThroughputQuery brokerThroughputQuery)
 {
     public async Task RecordMonitoringThroughput(byte[] throughputMessage, CancellationToken cancellationToken)
     {
@@ -28,7 +29,7 @@ public class MonitoringService(IThroughputDataStore dataStore)
                 {
                     endpoint = new Endpoint(e.Name, ThroughputSource.Monitoring)
                     {
-                        SanitizedName = e.Name,
+                        SanitizedName = brokerThroughputQuery != null ? brokerThroughputQuery.SanitizeEndpointName(e.Name) : e.Name,
                         EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()],
                     };
                     await dataStore.SaveEndpoint(endpoint, cancellationToken);
