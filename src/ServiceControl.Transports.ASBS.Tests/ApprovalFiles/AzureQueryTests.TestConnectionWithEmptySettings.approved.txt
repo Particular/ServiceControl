@@ -1,0 +1,13 @@
+Connection settings to AzureServiceBus have some errors:
+SubscriptionId is a required setting
+TenantId is a required setting
+ClientId is a required setting
+ClientSecret is a required setting
+
+Connection attempted with the following settings:
+ServiceBus name not set, defaulted to "testmenow"
+SubscriptionId not set
+TenantId not set
+ClientId not set
+Client secret not set
+Management Url not set, defaulted to "https://management.azure.com/"
