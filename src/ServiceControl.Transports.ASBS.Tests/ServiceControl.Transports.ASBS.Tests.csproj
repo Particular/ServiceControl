@@ -19,6 +19,7 @@
     <PackageReference Include="NServiceBus.Persistence.NonDurable"/>
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="Particular.Approvals"/>
   </ItemGroup>
 
   <ItemGroup>
