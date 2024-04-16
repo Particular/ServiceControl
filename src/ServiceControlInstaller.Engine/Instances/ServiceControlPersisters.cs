@@ -1,10 +1,9 @@
 ﻿namespace ServiceControlInstaller.Engine.Instances
 {
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Reflection;
-    using Newtonsoft.Json;
+    using System.Text.Json;
 
     public static class ServiceControlPersisters
     {
@@ -58,14 +57,9 @@
 
         static PersistenceManifest Load(Assembly assembly, string resourceName)
         {
-            using (var stream = assembly.GetManifestResourceStream(resourceName))
-            using (var reader = new StreamReader(stream))
-            {
-                var manifestContent = reader.ReadToEnd();
-                var manifest = JsonConvert.DeserializeObject<PersistenceManifest>(manifestContent);
-
-                return manifest;
-            }
+            using var stream = assembly.GetManifestResourceStream(resourceName)!;
+            var manifest = JsonSerializer.Deserialize<PersistenceManifest>(stream);
+            return manifest;
         }
     }
 }

@@ -1,10 +1,9 @@
 ﻿namespace ServiceControlInstaller.Engine.Instances
 {
     using System;
-    using System.IO;
     using System.Linq;
     using System.Reflection;
-    using Newtonsoft.Json;
+    using System.Text.Json;
 
     public static class ServiceControlCoreTransports
     {
@@ -37,14 +36,9 @@
 
         static TransportInfo[] Load(Assembly assembly, string resourceName)
         {
-            using (var stream = assembly.GetManifestResourceStream(resourceName))
-            using (var reader = new StreamReader(stream))
-            {
-                var manifestContent = reader.ReadToEnd();
-                var manifest = JsonConvert.DeserializeObject<TransportManifest>(manifestContent);
-
-                return manifest.Definitions;
-            }
+            using var stream = assembly.GetManifestResourceStream(resourceName)!;
+            var manifest = JsonSerializer.Deserialize<TransportManifest>(stream);
+            return manifest.Definitions;
         }
 
         static bool IncludeLearningTransport()
