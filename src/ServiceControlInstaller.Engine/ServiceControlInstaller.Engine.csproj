@@ -17,7 +17,6 @@
   <ItemGroup>
     <PackageReference Include="DotNetZip" />
     <PackageReference Include="Microsoft.Data.SqlClient" />
-    <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="System.DirectoryServices.AccountManagement" />
     <PackageReference Include="System.Management" />
