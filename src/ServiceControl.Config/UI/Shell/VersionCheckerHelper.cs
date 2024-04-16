@@ -6,8 +6,9 @@
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Net.Http.Json;
+    using System.Text.Json.Serialization;
     using System.Threading.Tasks;
-    using Newtonsoft.Json;
     using NuGet.Versioning;
 
     public static class VersionCheckerHelper
@@ -34,9 +35,7 @@
         {
             try
             {
-                var json = await httpClient.GetStringAsync("https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt");
-
-                return JsonConvert.DeserializeObject<List<Release>>(json);
+                return await httpClient.GetFromJsonAsync<List<Release>>("https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt");
             }
             catch
             {
@@ -64,21 +63,18 @@
             {
             }
 
-            public Release(SemanticVersion current)
-            {
-                Tag = current.ToNormalizedString();
-            }
+            public Release(SemanticVersion current) => Tag = current.ToNormalizedString();
 
-            [JsonProperty("tag")]
+            [JsonPropertyName("tag")]
             public string Tag { get; set; }
 
-            [JsonProperty("release")]
+            [JsonPropertyName("release")]
             public Uri ReleaseUri { get; set; }
 
-            [JsonProperty("published")]
+            [JsonPropertyName("published")]
             public DateTimeOffset Published { get; set; }
 
-            [JsonProperty("assets")]
+            [JsonPropertyName("assets")]
             public List<Asset> Assets { get; set; }
 
             [JsonIgnore]
@@ -87,13 +83,13 @@
 
         public class Asset
         {
-            [JsonProperty("name")]
+            [JsonPropertyName("name")]
             public string Name { get; set; }
 
-            [JsonProperty("size")]
+            [JsonPropertyName("size")]
             public long Size { get; set; }
 
-            [JsonProperty("download")]
+            [JsonPropertyName("download")]
             public Uri Download { get; set; }
         }
     }
