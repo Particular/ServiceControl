@@ -7,14 +7,9 @@
     using NServiceBus;
     using Persistence;
 
-    class UnArchiveMessagesHandler : IHandleMessages<UnArchiveMessages>
+    class UnArchiveMessagesHandler(IErrorMessageDataStore store, IDomainEvents domainEvents)
+        : IHandleMessages<UnArchiveMessages>
     {
-        public UnArchiveMessagesHandler(IErrorMessageDataStore store, IDomainEvents domainEvents)
-        {
-            this.store = store;
-            this.domainEvents = domainEvents;
-        }
-
         public async Task Handle(UnArchiveMessages messages, IMessageHandlerContext context)
         {
             var ids = await store.UnArchiveMessages(messages.FailedMessageIds);
@@ -25,8 +20,5 @@
                 MessagesCount = ids.Length
             });
         }
-
-        IErrorMessageDataStore store;
-        IDomainEvents domainEvents;
     }
 }

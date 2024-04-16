@@ -2,7 +2,7 @@
 
 namespace NServiceBus.Metrics
 {
-    using global::Newtonsoft.Json.Linq;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// The reporting message.
@@ -12,6 +12,6 @@ namespace NServiceBus.Metrics
         /// <summary>
         /// Serialized raw data of the report.
         /// </summary>
-        public JObject Data { get; set; }
+        public JsonNode Data { get; set; }
     }
 }
