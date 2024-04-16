@@ -6,8 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <!-- Needed for build ordering -->
-  <Import Project="..\ProjectReferences.Persisters.ThroughputCollector.props" />
   <ItemGroup>
     <None Remove="public-key.pem" />
   </ItemGroup>

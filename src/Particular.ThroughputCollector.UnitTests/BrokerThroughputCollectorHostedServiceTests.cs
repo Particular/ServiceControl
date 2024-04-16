@@ -28,7 +28,8 @@ class BrokerThroughputCollectorHostedServiceTests
         var dataStore = new InMemoryThroughputDataStore();
         using var brokerThroughputCollectorHostedService = new BrokerThroughputCollectorHostedService(
                 NullLogger<BrokerThroughputCollectorHostedService>.Instance,
-                new MockedBrokerThroughputQuery(), new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
+                new MockedBrokerThroughputQuery(),
+                new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
                 dataStore, TimeProvider.System)
         { DelayStart = TimeSpan.Zero };
         await brokerThroughputCollectorHostedService.StartAsync(token);
@@ -53,7 +54,8 @@ class BrokerThroughputCollectorHostedServiceTests
         var mockedBrokerThroughputQueryThatThrowsExceptions = new MockedBrokerThroughputQueryThatThrowsExceptions();
         using var brokerThroughputCollectorHostedService = new BrokerThroughputCollectorHostedService(
                 NullLogger<BrokerThroughputCollectorHostedService>.Instance,
-                mockedBrokerThroughputQueryThatThrowsExceptions, new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
+                mockedBrokerThroughputQueryThatThrowsExceptions,
+                new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
                 dataStore, fakeTimeProvider)
         { DelayStart = TimeSpan.Zero };
         await brokerThroughputCollectorHostedService.StartAsync(token);
@@ -80,7 +82,8 @@ class BrokerThroughputCollectorHostedServiceTests
         var dataStore = new InMemoryThroughputDataStore();
         using var brokerThroughputCollectorHostedService = new BrokerThroughputCollectorHostedService(
                 NullLogger<BrokerThroughputCollectorHostedService>.Instance,
-                new MockedBrokerThroughputQuery(), new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
+                new MockedBrokerThroughputQuery(),
+                new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
                 dataStore, TimeProvider.System)
         { DelayStart = TimeSpan.Zero };
         await brokerThroughputCollectorHostedService.StartAsync(token);
