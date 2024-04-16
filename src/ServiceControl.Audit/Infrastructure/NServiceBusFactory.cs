@@ -49,7 +49,7 @@ namespace ServiceControl.Audit.Infrastructure
             configuration.GetSettings().Set(settings.LoggingSettings);
             configuration.SetDiagnosticsPath(settings.LoggingSettings.LogPath);
 
-            configuration.UseSerialization<NewtonsoftJsonSerializer>();
+            configuration.UseSerialization<SystemJsonSerializer>();
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
