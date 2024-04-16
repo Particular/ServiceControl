@@ -8,11 +8,7 @@
 
   <ItemGroup>
     <!-- Private=false & ExcludeAssets=runtime prevent repeatedly including binary dependencies of ThroughputCollector.Persistence in each persister directory -->
-    <ProjectReference Include="..\Particular.ThroughputCollector.Persistence\Particular.ThroughputCollector.Persistence.csproj" Private="false" ExcludeAssets="runtime" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="throughput.persistence.manifest" CopyToOutputDirectory="PreserveNewest" />
+    <ProjectReference Include="..\Particular.ThroughputCollector.Persistence\Particular.ThroughputCollector.Persistence.csproj"/>
   </ItemGroup>
 
   <ItemGroup>

@@ -1,6 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests.Infrastructure;
 
-using Particular.ThroughputCollector.Persistence;
+using Persistence;
 
 static class ThroughputDataStoreExtensions
 {

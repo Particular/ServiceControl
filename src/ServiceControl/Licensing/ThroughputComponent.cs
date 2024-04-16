@@ -1,31 +1,26 @@
-
 namespace Particular.ServiceControl;
 
 using System;
+using System.Reflection;
 using global::ServiceControl.Infrastructure;
 using global::ServiceControl.LicenseManagement;
-using global::ServiceControl.Persistence;
 using global::ServiceControl.Transports;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Particular.ThroughputCollector.Shared;
 using ServiceBus.Management.Infrastructure.Settings;
 using ThroughputCollector;
-using ThroughputPersistence = ThroughputCollector.Persistence;
+using ThroughputCollector.Persistence;
+using ThroughputCollector.Shared;
 
 class ThroughputComponent : ServiceControlComponent
 {
     public override void Configure(Settings settings, ITransportCustomization transportCustomization,
         IHostApplicationBuilder hostBuilder)
     {
-        var persistenceManifest = PersistenceManifestLibrary.Find(settings.PersistenceType)
-            ?? throw new InvalidOperationException($"No manifest found for {settings.PersistenceType} persistenceType");
-
         hostBuilder.AddThroughputCollector(
             TransportManifestLibrary.Find(settings.TransportType)?.Name ?? settings.TransportType,
             settings.ErrorQueue,
             settings.ServiceName,
-            persistenceManifest.Name,
             LicenseManager.FindLicense().Details.RegisteredTo,
             ServiceControlVersion.GetFileVersion(),
             transportCustomization.ThroughputQueryProvider);
@@ -35,10 +30,7 @@ class ThroughputComponent : ServiceControlComponent
     {
         context.CreateQueue(PlatformEndpointHelper.ServiceControlThroughputDataQueue);
 
-        var persistenceManifest = PersistenceManifestLibrary.Find(settings.PersistenceType)
-            ?? throw new InvalidOperationException($"No manifest found for {settings.PersistenceType} persistenceType");
-
-        hostBuilder.AddThroughputCollectorPersistence(persistenceManifest.Name);
-        context.RegisterInstallationTask(serviceProvider => serviceProvider.GetRequiredService<ThroughputPersistence.IPersistenceInstaller>().Install());
+        context.RegisterInstallationTask(serviceProvider =>
+            serviceProvider.GetRequiredService<IPersistenceInstaller>().Install());
     }
 }
