@@ -17,8 +17,6 @@
 
         public static List<string> AuditQueues { get; set; } = [];
 
-        public static string ServiceControlThroughputDataQueue = SettingsReader.Read(new SettingsRootNamespace(SettingsNamespace), "ServiceControlThroughputDataQueue", "ServiceControl.ThroughputData");
-
-        public const string SettingsNamespace = "ThroughputCollector";
+        public static string ServiceControlThroughputDataQueue = SettingsReader.Read(ThroughputSettings.SettingsNamespace, "ServiceControlThroughputDataQueue", "ServiceControl.ThroughputData");
     }
 }

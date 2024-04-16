@@ -7,7 +7,6 @@ using Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Particular.ThroughputCollector.MonitoringThroughput;
-using Particular.ThroughputCollector.Shared;
 using ServiceControl.Configuration;
 using ServiceControl.Transports;
 
@@ -45,7 +44,7 @@ public static class ThroughputCollectorHostBuilderExtensions
         return hostBuilder;
 
         static FrozenDictionary<string, string> LoadBrokerSettingValues(IEnumerable<KeyDescriptionPair> brokerKeys) =>
-            brokerKeys.Select(pair => KeyValuePair.Create(pair.Key, SettingsReader.Read<string>(new SettingsRootNamespace(PlatformEndpointHelper.SettingsNamespace), pair.Key)))
+            brokerKeys.Select(pair => KeyValuePair.Create(pair.Key, SettingsReader.Read<string>(ThroughputSettings.SettingsNamespace, pair.Key)))
                 .Where(pair => !string.IsNullOrEmpty(pair.Value)).ToFrozenDictionary(key => key.Key, key => key.Value);
     }
 
