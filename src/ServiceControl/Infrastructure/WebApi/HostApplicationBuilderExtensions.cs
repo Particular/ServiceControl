@@ -2,12 +2,13 @@
 {
     using System.Linq;
     using System.Reflection;
+    using CompositeViews.Messages;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
-    using ServiceControl.CompositeViews.Messages;
+    using Particular.ThroughputCollector.WebApi;
 
     static class HostApplicationBuilderExtensions
     {
@@ -33,6 +34,7 @@
                 options.ModelBinderProviders.Insert(0, new SortInfoModelBindingProvider());
             });
             controllers.AddApplicationPart(Assembly.GetExecutingAssembly());
+            controllers.AddApplicationPart(typeof(ThroughputController).Assembly);
             controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
 
             var signalR = builder.Services.AddSignalR();
