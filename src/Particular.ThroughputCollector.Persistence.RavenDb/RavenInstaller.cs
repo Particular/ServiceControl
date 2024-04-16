@@ -11,15 +11,15 @@ class RavenInstaller(IServiceProvider provider, DatabaseConfiguration databaseCo
 {
     public async Task Install(CancellationToken cancellationToken)
     {
-        var store = provider.GetRequiredService<IDocumentStore>();
+        var store = provider.GetRequiredService<Lazy<IDocumentStore>>();
 
-        var record = await store.Maintenance.Server
+        var record = await store.Value.Maintenance.Server
             .SendAsync(new GetDatabaseRecordOperation(databaseConfiguration.Name), cancellationToken)
             .ConfigureAwait(false);
 
         if (record == null)
         {
-            await store.Maintenance.Server
+            await store.Value.Maintenance.Server
                 .SendAsync(new CreateDatabaseOperation(new DatabaseRecord(databaseConfiguration.Name)), cancellationToken)
                 .ConfigureAwait(false);
         }
