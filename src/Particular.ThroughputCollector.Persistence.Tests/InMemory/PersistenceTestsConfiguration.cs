@@ -1,24 +1,18 @@
 ﻿namespace Particular.ThroughputCollector.Persistence.Tests
 {
-    using System;
     using System.Threading.Tasks;
+    using InMemory;
     using Microsoft.Extensions.DependencyInjection;
-    using Particular.ThroughputCollector.Persistence.InMemory;
 
     partial class PersistenceTestsConfiguration
     {
         public IThroughputDataStore ThroughputDataStore { get; protected set; }
 
-        public Task Configure(Action<PersistenceSettings> setSettings)
+        public Task Configure()
         {
-            var config = new InMemoryPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
-            var settings = new PersistenceSettings();
 
-            setSettings(settings);
-            serviceCollection.AddSingleton(settings);
-
-            var persistence = config.Create(settings);
+            var persistence = new InMemoryPersistence();
             persistence.Configure(serviceCollection);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();

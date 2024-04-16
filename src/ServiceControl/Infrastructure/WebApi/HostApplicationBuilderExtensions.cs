@@ -8,6 +8,7 @@ namespace ServiceControl.Infrastructure.WebApi
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
+    using Particular.ThroughputCollector.WebApi;
 
     static class HostApplicationBuilderExtensions
     {
@@ -33,6 +34,7 @@ namespace ServiceControl.Infrastructure.WebApi
                 options.ModelBinderProviders.Insert(0, new SortInfoModelBindingProvider());
             });
             controllers.AddApplicationPart(Assembly.GetExecutingAssembly());
+            controllers.AddApplicationPart(typeof(ThroughputController).Assembly);
             controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
 
             var signalR = builder.Services.AddSignalR();
