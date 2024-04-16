@@ -6,14 +6,14 @@ using Raven.Client.Documents;
 using Raven.Client.Documents.Linq;
 
 class ThroughputDataStore(
-    IDocumentStore store,
+    Lazy<IDocumentStore> store,
     DatabaseConfiguration databaseConfiguration) : IThroughputDataStore
 {
     const string ThroughputTimeSeriesName = "INC: throughput data";
 
     public async Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken)
     {
-        using var session = store.OpenAsyncSession(databaseConfiguration.Name);
+        using var session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
         var baseQuery = session.Query<EndpointDocument>();
 
@@ -28,7 +28,7 @@ class ThroughputDataStore(
 
     public async Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken)
     {
-        using var session = store.OpenAsyncSession(databaseConfiguration.Name);
+        using var session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
         var documentId = id.GenerateDocumentId();
 
@@ -54,7 +54,7 @@ class ThroughputDataStore(
     {
         var endpoints = new List<(EndpointIdentifier, Endpoint?)>();
 
-        using var session = store.OpenAsyncSession(databaseConfiguration.Name);
+        using var session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
         var documentIdLookup = endpointIds.ToDictionary(
             endpointId => endpointId,
@@ -91,7 +91,7 @@ class ThroughputDataStore(
     {
         var document = endpoint.ToEndpointDocument();
 
-        using var session = store.OpenAsyncSession("throughput");
+        using var session = store.Value.OpenAsyncSession("throughput");
 
         await session.StoreAsync(document, document.GenerateDocumentId(), cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
@@ -107,7 +107,7 @@ class ThroughputDataStore(
         }
 
         var id = new EndpointIdentifier(endpointName, throughputSource);
-        using var session = store.OpenAsyncSession("throughput");
+        using var session = store.Value.OpenAsyncSession("throughput");
 
         var documentId = id.GenerateDocumentId();
         var document = await session.LoadAsync<EndpointDocument>(documentId, cancellationToken) ??
