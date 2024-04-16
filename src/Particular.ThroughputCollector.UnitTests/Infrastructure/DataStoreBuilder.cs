@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Particular.ThroughputCollector.Contracts;
-using Particular.ThroughputCollector.Persistence;
+using Contracts;
+using Persistence;
 
 class DataStoreBuilder(IThroughputDataStore store)
 {

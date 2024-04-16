@@ -2,10 +2,10 @@
 {
     using System;
     using System.Threading.Tasks;
+    using AuditThroughput;
     using Contracts;
     using Microsoft.Extensions.DependencyInjection;
-    using Particular.ThroughputCollector.AuditThroughput;
-    using Particular.ThroughputCollector.MonitoringThroughput;
+    using MonitoringThroughput;
     using Persistence;
     using Persistence.InMemory;
     using ServiceControl.Api;
@@ -21,7 +21,8 @@
 
         public Task Configure(Action<ThroughputSettings> setThroughputSettings, Action<ServiceCollection> setExtraDependencies)
         {
-            var throughputSettings = new ThroughputSettings(serviceControlQueue: "Particular.ServiceControl", errorQueue: "error", persistenceType: "InMemory", transportType: "Learning", customerName: "TestCustomer", serviceControlVersion: "5.0.1");
+            var throughputSettings = new ThroughputSettings("Particular.ServiceControl", "error", "Learning",
+                "TestCustomer", "5.0.1");
             setThroughputSettings(throughputSettings);
 
             var serviceCollection = new ServiceCollection();
@@ -29,11 +30,7 @@
 
             serviceCollection.AddLogging();
 
-            var config = new InMemoryPersistenceConfiguration();
-            var settings = new PersistenceSettings();
-            serviceCollection.AddSingleton(settings);
-
-            var persistence = config.Create(settings);
+            var persistence = new InMemoryPersistence();
             persistence.Configure(serviceCollection);
 
             setExtraDependencies(serviceCollection);
