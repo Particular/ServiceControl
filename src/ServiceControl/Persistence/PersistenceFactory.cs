@@ -1,7 +1,10 @@
 namespace ServiceControl.Persistence
 {
     using System;
+    using System.Linq;
+    using System.Runtime.Loader;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
 
     static class PersistenceFactory
     {
@@ -22,7 +25,7 @@ namespace ServiceControl.Persistence
             try
             {
                 var manifest = PersistenceManifestLibrary.Find(settings.PersistenceType) ?? throw new InvalidOperationException($"Cannot find persistence manifest for {settings.PersistenceType}");
-                var loadContext = settings.AssemblyLoadContextResolver(manifest.AssemblyPath);
+                var loadContext = DetermineLoadContext(settings, manifest.AssemblyPath);
                 var customizationType = Type.GetType(manifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
 
                 return (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
@@ -31,6 +34,20 @@ namespace ServiceControl.Persistence
             {
                 throw new Exception($"Could not load persistence customization type {settings.PersistenceType}.", e);
             }
+        }
+
+        public static AssemblyLoadContext DetermineLoadContext(Settings settings, string assemblyPath)
+        {
+            if (settings.UseDefaultAssemblyLoadContext)
+            {
+                return AssemblyLoadContext.Default;
+            }
+
+            var loadContext = AssemblyLoadContext.All.FirstOrDefault(alc => alc.Name is not null && alc.Name.Equals(assemblyPath, StringComparison.OrdinalIgnoreCase));
+
+            return loadContext is null
+                ? new PluginAssemblyLoadContext(assemblyPath)
+                : loadContext;
         }
     }
 }

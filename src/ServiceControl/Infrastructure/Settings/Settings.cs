@@ -6,7 +6,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using System.IO;
     using System.Linq;
     using System.Runtime.Loader;
-    using System.Text.Json.Serialization;
     using NLog.Common;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
@@ -61,12 +60,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
             RemoteInstances = GetRemoteInstances().ToArray();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
-
-            AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
 
-        [JsonIgnore]
-        public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
+        public bool UseDefaultAssemblyLoadContext { get; set; }
 
         public LoggingSettings LoggingSettings { get; }
 
@@ -185,7 +181,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
             {
                 var transportManifest = TransportManifestLibrary.Find(TransportType);
                 var assemblyPath = Path.Combine(transportManifest.Location, $"{transportManifest.AssemblyName}.dll");
-                var loadContext = AssemblyLoadContextResolver(assemblyPath);
+                var loadContext = UseDefaultAssemblyLoadContext
+                    ? AssemblyLoadContext.Default
+                    : new PluginAssemblyLoadContext(assemblyPath);
                 var customizationType = Type.GetType(transportManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
 
                 return (ITransportCustomization)Activator.CreateInstance(customizationType);
