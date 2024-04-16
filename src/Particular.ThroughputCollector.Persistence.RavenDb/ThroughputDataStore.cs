@@ -11,7 +11,7 @@ class ThroughputDataStore(
 {
     const string ThroughputTimeSeriesName = "INC: throughput data";
 
-    public async Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints = true, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken)
     {
         using var session = store.OpenAsyncSession(databaseConfiguration.Name);
 
@@ -26,7 +26,7 @@ class ThroughputDataStore(
         return documents.Select(document => document.ToEndpoint());
     }
 
-    public async Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken = default)
+    public async Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken)
     {
         using var session = store.OpenAsyncSession(databaseConfiguration.Name);
 
@@ -50,7 +50,7 @@ class ThroughputDataStore(
         return endpoint;
     }
 
-    public async Task<IEnumerable<(EndpointIdentifier, Endpoint?)>> GetEndpoints(IEnumerable<EndpointIdentifier> endpointIds, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<(EndpointIdentifier, Endpoint?)>> GetEndpoints(IEnumerable<EndpointIdentifier> endpointIds, CancellationToken cancellationToken)
     {
         var endpoints = new List<(EndpointIdentifier, Endpoint?)>();
 
@@ -87,7 +87,7 @@ class ThroughputDataStore(
         return endpoints;
     }
 
-    public async Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken = default)
+    public async Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken)
     {
         var document = endpoint.ToEndpointDocument();
 
@@ -97,9 +97,9 @@ class ThroughputDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IEnumerable<string> queueNames, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IEnumerable<string> queueNames, CancellationToken cancellationToken) => throw new NotImplementedException();
 
-    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IEnumerable<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default)
+    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IEnumerable<EndpointDailyThroughput> throughput, CancellationToken cancellationToken)
     {
         if (!throughput.Any())
         {
@@ -123,12 +123,12 @@ class ThroughputDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator) => throw new NotImplementedException();
+    public Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator, CancellationToken cancellationToken) => throw new NotImplementedException();
 
-    public Task<bool> IsThereThroughputForLastXDays(int days) => throw new NotImplementedException();
-    public Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource) => throw new NotImplementedException();
-    public Task<EnvironmentData?> GetEnvironmentData() => throw new NotImplementedException();
+    public Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken) => throw new NotImplementedException();
+    public Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken) => throw new NotImplementedException();
+    public Task<EnvironmentData?> GetEnvironmentData(CancellationToken cancellationToken) => throw new NotImplementedException();
 
-    public Task SaveEnvironmentData(string? scopeType, Dictionary<string, string> data) =>
+    public Task SaveEnvironmentData(string? scopeType, Dictionary<string, string> data, CancellationToken cancellationToken) =>
         throw new NotImplementedException();
 }

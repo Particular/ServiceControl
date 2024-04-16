@@ -14,7 +14,7 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
     private readonly Dictionary<EndpointIdentifier, ThroughputData> allThroughput = [];
     private EnvironmentData? environmentData;
 
-    public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints = true, CancellationToken cancellationToken = default)
+    public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken)
     {
         var filteredEndpoints = includePlatformEndpoints
             ? endpoints
@@ -24,13 +24,13 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
         return Task.FromResult(filteredEndpoints);
     }
 
-    public Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken = default)
+    public Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken)
     {
         endpoints.TryGetValue(id, out var endpoint);
         return Task.FromResult(endpoint);
     }
 
-    public Task<IEnumerable<(EndpointIdentifier, Endpoint?)>> GetEndpoints(IEnumerable<EndpointIdentifier> endpointIds, CancellationToken cancellationToken = default)
+    public Task<IEnumerable<(EndpointIdentifier, Endpoint?)>> GetEndpoints(IEnumerable<EndpointIdentifier> endpointIds, CancellationToken cancellationToken)
     {
         var endpointLookup = endpointIds.Select(id => (id, endpoints.TryGetValue(id, out var endpoint) ? endpoint : null));
 
@@ -48,7 +48,7 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
         return Task.FromResult(endpointLookup);
     }
 
-    public Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken = default)
+    public Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken)
     {
         if (endpoints.TryGetValue(endpoint.Id, out var existingEndpoint))
         {
@@ -59,7 +59,7 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
         return Task.CompletedTask;
     }
 
-    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IEnumerable<string> queueNames, CancellationToken cancellationToken = default)
+    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IEnumerable<string> queueNames, CancellationToken cancellationToken)
     {
         var result = endpoints
             .Where(endpoint => queueNames.Contains(endpoint.SanitizedName))
@@ -73,7 +73,7 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
         return Task.FromResult((IDictionary<string, IEnumerable<ThroughputData>>)result);
     }
 
-    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IEnumerable<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default)
+    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IEnumerable<EndpointDailyThroughput> throughput, CancellationToken cancellationToken)
     {
         var id = new EndpointIdentifier(endpointName, throughputSource);
         if (!endpoints.TryGetValue(id, out _))
@@ -102,7 +102,7 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
         await Task.CompletedTask;
     }
 
-    public async Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator)
+    public async Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator, CancellationToken cancellationToken)
     {
         endpointsWithUserIndicator.DistinctBy(b => b.SanitizedName).ToList().ForEach(e =>
         {
@@ -118,21 +118,21 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
         await Task.CompletedTask;
     }
 
-    public async Task<bool> IsThereThroughputForLastXDays(int days) => await Task.FromResult(
+    public async Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken) => await Task.FromResult(
         allThroughput.Any(endpointThroughput => endpointThroughput.Value.Any(
             t => t.Key >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) &&
                  t.Key <= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1))));
 
-    public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource) => await Task.FromResult(
+    public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken) => await Task.FromResult(
         allThroughput.Any(endpointThroughput => endpointThroughput.Key.ThroughputSource == throughputSource && endpointThroughput.Value.Any(
             t => t.Key >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) &&
                  t.Key <= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1))));
 
     private List<Endpoint> GetAllConnectedEndpoints(string name) => endpoints.Where(w => w.SanitizedName == name).ToList();
 
-    public async Task SaveEnvironmentData(string? scopeType, Dictionary<string, string> data)
+    public async Task SaveEnvironmentData(string? scopeType, Dictionary<string, string> data, CancellationToken cancellationToken)
     {
-        var existingEnvironmentData = await GetEnvironmentData();
+        var existingEnvironmentData = await GetEnvironmentData(cancellationToken);
         if (existingEnvironmentData == null)
         {
             existingEnvironmentData = new EnvironmentData();
@@ -146,7 +146,7 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
         await Task.CompletedTask;
     }
 
-    public async Task<EnvironmentData?> GetEnvironmentData()
+    public async Task<EnvironmentData?> GetEnvironmentData(CancellationToken cancellationToken)
     {
         return await Task.FromResult(environmentData);
     }

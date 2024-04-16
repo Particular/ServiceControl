@@ -36,7 +36,7 @@ class ThroughputCollector_ThroughputSumary_Indicator_Tests : ThroughputCollector
             .Build();
 
         // Act
-        var summary = await ThroughputCollector.GetThroughputSummary();
+        var summary = await ThroughputCollector.GetThroughputSummary(default);
 
         // Assert
         Assert.That(summary, Is.Not.Null);
@@ -54,14 +54,14 @@ class ThroughputCollector_ThroughputSumary_Indicator_Tests : ThroughputCollector
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Monitoring]).WithThroughput(days: 2)
             .Build();
-        var summary = await ThroughputCollector.GetThroughputSummary();
+        var summary = await ThroughputCollector.GetThroughputSummary(default);
 
         // Act
         List<EndpointThroughputSummary> endpointsWithUpdates = [new EndpointThroughputSummary { Name = "Endpoint1", UserIndicator = userIndicator }];
-        await ThroughputCollector.UpdateUserIndicatorsOnEndpoints(endpointsWithUpdates);
+        await ThroughputCollector.UpdateUserIndicatorsOnEndpoints(endpointsWithUpdates, default);
 
         // Assert
-        var updatedEndpoints = await DataStore.GetAllEndpoints();
+        var updatedEndpoints = await DataStore.GetAllEndpoints(true, default);
         Assert.That(updatedEndpoints, Is.Not.Null);
         Assert.That(updatedEndpoints.Count, Is.EqualTo(2));
 

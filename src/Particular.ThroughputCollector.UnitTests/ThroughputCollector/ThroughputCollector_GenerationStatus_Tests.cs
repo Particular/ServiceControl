@@ -25,7 +25,7 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
             .Build();
 
         // Act
-        var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
+        var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
 
         // Assert
         Assert.That(reportGenerationState.ReportCanBeGenerated, Is.False);
@@ -41,7 +41,7 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
             .Build();
 
         // Act
-        var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
+        var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
 
         // Assert
         Assert.That(reportGenerationState.ReportCanBeGenerated, Is.True);
@@ -57,7 +57,7 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
             .Build();
 
         // Act
-        var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
+        var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
 
         // Assert
         Assert.That(reportGenerationState.ReportCanBeGenerated, Is.False);

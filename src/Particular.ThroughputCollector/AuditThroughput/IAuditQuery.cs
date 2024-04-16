@@ -8,7 +8,7 @@
         SemanticVersion MinAuditCountsVersion { get; }
         Func<RemoteInstanceInformation, bool> ValidRemoteInstances { get; }
 
-        IEnumerable<ServiceControlEndpoint> GetKnownEndpoints();
+        Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken);
 
         Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName, CancellationToken cancellationToken);
         Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken);

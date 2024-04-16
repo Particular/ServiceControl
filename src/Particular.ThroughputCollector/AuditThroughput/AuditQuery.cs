@@ -18,9 +18,9 @@
             r.SemanticVersion >= MinAuditCountsVersion &&
             r.Retention >= TimeSpan.FromDays(2);
 
-        public IEnumerable<ServiceControlEndpoint> GetKnownEndpoints()
+        public async Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken)
         {
-            var endpoints = endpointsApi.GetEndpoints();
+            var endpoints = await endpointsApi.GetEndpoints(default);
 
             var scEndpoints = endpoints?.Select(endpoint => new
             {

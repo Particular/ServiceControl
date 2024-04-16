@@ -32,7 +32,7 @@ class ThroughputCollector_Report_Indicator_Tests : ThroughputCollectorTestFixtur
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "");
+        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -53,7 +53,7 @@ class ThroughputCollector_Report_Indicator_Tests : ThroughputCollectorTestFixtur
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "");
+        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);

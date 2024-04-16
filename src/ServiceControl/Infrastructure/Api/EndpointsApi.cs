@@ -4,10 +4,12 @@
     using ServiceControl.Api.Contracts;
     using ServiceControl.Persistence;
     using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     class EndpointsApi(IEndpointInstanceMonitoring monitoring) : IEndpointsApi
     {
-        public List<Endpoint> GetEndpoints()
+        public Task<List<Endpoint>> GetEndpoints(CancellationToken cancellationToken)
         {
             var endpoints = new List<Endpoint>();
             foreach (var endpointsView in monitoring.GetEndpoints())
@@ -23,7 +25,7 @@
                 });
             }
 
-            return endpoints;
+            return Task.FromResult(endpoints);
         }
     }
 }
