@@ -17,7 +17,7 @@ class ConfigurationApi(ActiveLicense license,
     Settings settings,
     IHttpClientFactory httpClientFactory) : IConfigurationApi
 {
-    public RootUrls GetUrls(string baseUrl)
+    public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken)
     {
         var model = new RootUrls
         {
@@ -45,11 +45,11 @@ class ConfigurationApi(ActiveLicense license,
             GetArchiveGroup = baseUrl + "archive/groups/id/{groupId}",
         };
 
-        return model;
+        return Task.FromResult(model);
     }
 
 
-    public object GetConfig()
+    public Task<object> GetConfig(CancellationToken cancellationToken)
     {
         object content = new
         {
@@ -85,7 +85,7 @@ class ConfigurationApi(ActiveLicense license,
             }
         };
 
-        return content;
+        return Task.FromResult(content);
     }
 
     public async Task<object> GetRemoteConfigs(CancellationToken cancellationToken = default)

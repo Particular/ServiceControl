@@ -84,14 +84,14 @@ class DataStoreBuilder(IThroughputDataStore store)
     {
         foreach (var endpoint in endpoints)
         {
-            await store.SaveEndpoint(endpoint);
+            await store.SaveEndpoint(endpoint, default);
         };
 
         foreach (var (endpointId, throughputList) in endpointThroughput)
         {
             foreach (var throughput in throughputList)
             {
-                await store.RecordEndpointThroughput(endpointId.Name, throughput.ThroughputSource, throughput.Select(entry => new EndpointDailyThroughput(entry.Key, entry.Value)));
+                await store.RecordEndpointThroughput(endpointId.Name, throughput.ThroughputSource, throughput.Select(entry => new EndpointDailyThroughput(entry.Key, entry.Value)), default);
             }
         }
     }
