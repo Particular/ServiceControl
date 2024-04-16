@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Particular.ThroughputCollector.Contracts\Particular.ThroughputCollector.Contracts.csproj" />
+    <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
   </ItemGroup>
 
 </Project>
