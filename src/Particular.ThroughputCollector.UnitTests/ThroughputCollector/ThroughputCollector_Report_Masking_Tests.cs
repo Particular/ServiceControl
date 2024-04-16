@@ -28,7 +28,7 @@ class ThroughputCollector_Report_Masking_Tests : ThroughputCollectorTestFixture
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport(["Endpoint1"], "");
+        var report = await ThroughputCollector.GenerateThroughputReport(["Endpoint1"], "", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -50,7 +50,7 @@ class ThroughputCollector_Report_Masking_Tests : ThroughputCollectorTestFixture
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "");
+        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
