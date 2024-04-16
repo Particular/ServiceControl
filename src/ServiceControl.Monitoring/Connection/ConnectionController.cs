@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Monitoring.Connection
 {
     using System;
+    using System.Text.Json;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
 
@@ -12,8 +13,8 @@
 
         [Route("connection")]
         [HttpGet]
-        public ActionResult<ConnectionDetails> GetConnectionDetails() =>
-            new ConnectionDetails
+        public IActionResult GetConnectionDetails() =>
+            new JsonResult(new ConnectionDetails
             {
                 Metrics = new MetricsConnectionDetails
                 {
@@ -21,15 +22,16 @@
                     MetricsQueue = mainInputQueue,
                     Interval = defaultInterval
                 }
-            };
+            }, JsonSerializerOptions.Default);
 
-        public class ConnectionDetails
+        // ServicePulse expects as result an object with a Metrics root property
+        class ConnectionDetails
         {
             public MetricsConnectionDetails Metrics { get; set; }
         }
 
         // HINT: This should match the type in the PlatformConnector package
-        public class MetricsConnectionDetails
+        class MetricsConnectionDetails
         {
             public bool Enabled { get; set; }
             public string MetricsQueue { get; set; }

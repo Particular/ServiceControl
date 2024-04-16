@@ -2,11 +2,10 @@
 {
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Text.Json;
 
     public class PlatformConnectionDetails
     {
-        readonly ConcurrentDictionary<string, object> values = new ConcurrentDictionary<string, object>();
+        readonly ConcurrentDictionary<string, object> values = new();
 
         public void Add(string key, object value)
         {

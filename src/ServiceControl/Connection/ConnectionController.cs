@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Connection
 {
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Text.Json;
+    using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
 
@@ -10,17 +10,26 @@
     [Route("api")]
     public class ConnectionController(IPlatformConnectionBuilder builder) : ControllerBase
     {
+        // This controller doesn't use the default serialization settings because
+        // ServicePulse and the Platform Connector Plugin expect the connection
+        // details the be serialized and formatted in a specific way
         [Route("connection")]
         [HttpGet]
         public async Task<IActionResult> GetConnectionDetails()
         {
             var platformConnectionDetails = await builder.BuildPlatformConnection();
-            var connectionDetails = new ConnectionDetails(platformConnectionDetails.ToDictionary(), platformConnectionDetails.Errors);
-            // by default snake case is used for serialization so we take care of explicitly serializing here
-            var content = JsonSerializer.Serialize(connectionDetails);
-            return Content(content, "application/json");
+            return new JsonResult(new ConnectionDetails(new Dictionary<string, object>(platformConnectionDetails.ToDictionary()), [.. platformConnectionDetails.Errors]), JsonSerializerOptions.Default);
         }
 
-        public record ConnectionDetails(IDictionary<string, object> Settings, ConcurrentBag<string> Errors);
+        // The Settings and Errors properties are serialized as settings and errors
+        // because ServicePulse expects them te be lowercase 
+        class ConnectionDetails(Dictionary<string, object> settings, List<string> errors)
+        {
+            [JsonPropertyName("settings")]
+            public Dictionary<string, object> Settings { get; init; } = settings;
+
+            [JsonPropertyName("errors")]
+            public List<string> Errors { get; init; } = errors;
+        }
     }
 }
