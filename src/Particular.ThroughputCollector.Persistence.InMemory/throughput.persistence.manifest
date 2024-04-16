@@ -3,5 +3,6 @@
   "Name": "InMemory",
   "DisplayName": "In-memory",
   "Description": "InMemory ThroughputCollector persister",
+  "AssemblyName": "Particular.ThroughputCollector.Persistence.InMemory",
   "TypeName": "Particular.ThroughputCollector.Persistence.InMemory.InMemoryPersistenceConfiguration, Particular.ThroughputCollector.Persistence.InMemory"
 }
