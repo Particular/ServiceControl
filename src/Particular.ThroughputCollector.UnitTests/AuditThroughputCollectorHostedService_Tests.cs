@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NuGet.Versioning;
@@ -15,7 +14,6 @@ using NUnit.Framework;
 using Particular.ThroughputCollector.AuditThroughput;
 using Particular.ThroughputCollector.Contracts;
 using Particular.ThroughputCollector.UnitTests.Infrastructure;
-using ServiceControl.Api;
 using ServiceControl.Transports;
 
 [TestFixture]
@@ -23,12 +21,7 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
 {
     public override Task Setup()
     {
-        SetExtraDependencies = d =>
-        {
-            d.AddSingleton<IConfigurationApi, FakeConfigurationApi>();
-            d.AddSingleton<IEndpointsApi, FakeEndpointApi>();
-            d.AddSingleton<IAuditCountApi, FakeAuditCountApi>();
-        };
+        SetExtraDependencies = d => { };
 
         return base.Setup();
     }
