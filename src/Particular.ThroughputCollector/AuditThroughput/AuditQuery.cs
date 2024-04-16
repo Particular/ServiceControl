@@ -1,5 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.AuditThroughput
 {
+    using System.Text;
     using System.Text.Json.Nodes;
     using Contracts;
     using Microsoft.Extensions.Logging;
@@ -116,26 +117,54 @@
 
         public async Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken)
         {
-            var connectionTestResult = new ConnectionSettingsTestResult();
+            var connectionTestResult = new ConnectionSettingsTestResult { ConnectionSuccessful = true };
 
             var remotesInfo = await GetAuditRemotes(cancellationToken);
 
             if (!remotesInfo.Any())
             {
-                connectionTestResult.ConnectionErrorMessages.Add("No Audit Instances configured");
+                connectionTestResult.Diagnostics = "No Audit Instances configured";
+                return connectionTestResult;
             }
 
             foreach (var remote in remotesInfo.Where(w => w.Status != "online" && w.SemanticVersion == null))
             {
-                connectionTestResult.ConnectionErrorMessages.Add($"Unable to determine the version of ServiceControl Audit instance at URI {remote.ApiUri}. The instance status was '{remote.Status}' and the version string returned was '{remote.VersionString}'.");
+                connectionTestResult.ConnectionErrorMessages.Add($"{remote.ApiUri} - unable to determine the version of ServiceControl Audit instance. The instance status is '{remote.Status}' and the version is '{remote.VersionString}'.");
             }
 
             foreach (var remote in remotesInfo.Where(w => !ValidRemoteInstances(w)))
             {
-                connectionTestResult.ConnectionErrorMessages.Add($"Invalid ServiceControl Audit instance found with version {remote.VersionString} (minimum version {MinAuditCountsVersion}) and configured retention period of {remote.Retention.Days} days (minimum 2 days). Audit throughput will not be available.");
+                if (remote.SemanticVersion == null || remote.SemanticVersion < MinAuditCountsVersion)
+                {
+                    connectionTestResult.ConnectionErrorMessages.Add($"{remote.ApiUri} - ServiceControl Audit instance with invalid version of '{remote.VersionString}' (minimum version is {MinAuditCountsVersion}). Audit throughput will not be available.");
+                }
+                if (remote.Retention < TimeSpan.FromDays(2))
+                {
+                    connectionTestResult.ConnectionErrorMessages.Add($"{remote.ApiUri} - ServiceControl Audit instance with invalid retention period configuration of {remote.Retention.Days} days (minimum is 2 days). Audit throughput will not be available.");
+                }
             }
 
             connectionTestResult.ConnectionSuccessful = !connectionTestResult.ConnectionErrorMessages.Any();
+
+            var diagnostics = new StringBuilder();
+            if (connectionTestResult.ConnectionSuccessful)
+            {
+                diagnostics.AppendLine($"Connection test to Audit Instance{(remotesInfo.Count == 1 ? "" : "(s)")} was successful");
+                diagnostics.AppendLine();
+                diagnostics.AppendLine("Connected to the following Audit instances:");
+            }
+            else
+            {
+                diagnostics.AppendLine($"Connection test to Audit Instance{(remotesInfo.Count == 1 ? "" : "(s)")} failed:");
+                connectionTestResult.ConnectionErrorMessages.ForEach(e => diagnostics.AppendLine(e));
+                diagnostics.AppendLine();
+                diagnostics.AppendLine("Connection attempted to the following Audit instances:");
+            }
+
+            remotesInfo.ForEach(r => diagnostics.AppendLine(r.ApiUri));
+
+
+            connectionTestResult.Diagnostics = diagnostics.ToString();
 
             return connectionTestResult;
         }
