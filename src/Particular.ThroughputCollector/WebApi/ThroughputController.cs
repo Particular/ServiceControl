@@ -2,6 +2,7 @@
 {
     using System.Text.Encodings.Web;
     using System.Text.Json;
+    using System.Threading;
     using Contracts;
     using Microsoft.AspNetCore.Mvc;
 
@@ -16,37 +17,37 @@
 
         [Route("endpoints")]
         [HttpGet]
-        public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput(CancellationToken token)
+        public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput(CancellationToken cancellationToken)
         {
-            return await throughputCollector.GetThroughputSummary(token);
+            return await throughputCollector.GetThroughputSummary(cancellationToken);
         }
 
         [Route("endpoints/update")]
         [HttpPost]
-        public async Task<IActionResult> UpdateUserSelectionOnEndpointThroughput(List<EndpointThroughputSummary> endpointThroughputs, CancellationToken token)
+        public async Task<IActionResult> UpdateUserSelectionOnEndpointThroughput(List<EndpointThroughputSummary> endpointThroughputs, CancellationToken cancellationToken)
         {
-            await throughputCollector.UpdateUserIndicatorsOnEndpoints(endpointThroughputs);
+            await throughputCollector.UpdateUserIndicatorsOnEndpoints(endpointThroughputs, cancellationToken);
             return Ok();
         }
 
         [Route("report/available")]
         [HttpGet]
-        public async Task<ReportGenerationState> CanThroughputReportBeGenerated(CancellationToken token)
+        public async Task<ReportGenerationState> CanThroughputReportBeGenerated(CancellationToken cancellationToken)
         {
-            return await throughputCollector.GetReportGenerationState();
+            return await throughputCollector.GetReportGenerationState(cancellationToken);
         }
 
         [Route("report/file")]
         [HttpGet]
-        public async Task<IActionResult> GetThroughputReportFile(string[]? mask, CancellationToken token)
+        public async Task<IActionResult> GetThroughputReportFile(string[]? mask, CancellationToken cancellationToken)
         {
-            var reportStatus = await CanThroughputReportBeGenerated(token);
+            var reportStatus = await CanThroughputReportBeGenerated(cancellationToken);
             if (reportStatus.ReportCanBeGenerated)
             {
                 var report = await throughputCollector.GenerateThroughputReport(
                     mask ?? [],
                     Request.Headers.TryGetValue("Particular-ServicePulse-Version", out var value) ? value.ToString() : "Unknown",
-                    token);
+                    cancellationToken);
 
                 var options = new JsonSerializerOptions
                 {
@@ -61,14 +62,14 @@
 
         [Route("settings/info")]
         [HttpGet]
-        public async Task<ThroughputConnectionSettings> GetThroughputSettingsInformation(CancellationToken token)
+        public async Task<ThroughputConnectionSettings> GetThroughputSettingsInformation(CancellationToken cancellationToken)
         {
-            return await throughputCollector.GetThroughputConnectionSettingsInformation();
+            return await throughputCollector.GetThroughputConnectionSettingsInformation(cancellationToken);
         }
 
         [Route("settings/test")]
         [HttpGet]
-        public async Task<ConnectionTestResults> TestThroughputConnectionSettings(CancellationToken token) => await throughputCollector.TestConnectionSettings(token);
+        public async Task<ConnectionTestResults> TestThroughputConnectionSettings(CancellationToken cancellationToken) => await throughputCollector.TestConnectionSettings(cancellationToken);
 
         readonly IThroughputCollector throughputCollector;
     }
