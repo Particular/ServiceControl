@@ -34,6 +34,17 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
     {
         var endpointLookup = endpointIds.Select(id => (id, endpoints.TryGetValue(id, out var endpoint) ? endpoint : null));
 
+        foreach (var endpoint in endpointLookup)
+        {
+            if (endpoint.Item2 != null)
+            {
+                if (allThroughput.TryGetValue(endpoint.id, out var endpointThroughput))
+                {
+                    endpoint.Item2.LastCollectedDate = endpointThroughput.LastOrDefault().Key;
+                }
+            }
+        }
+
         return Task.FromResult(endpointLookup);
     }
 
