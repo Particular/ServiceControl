@@ -7,6 +7,7 @@ using Particular.ThroughputCollector.Persistence;
 using Particular.ThroughputCollector.Shared;
 using System.Text.Json;
 using ServiceControl.Transports;
+using System.Text;
 
 public class MonitoringService(IThroughputDataStore dataStore, IBrokerThroughputQuery? brokerThroughputQuery = null)
 {
@@ -49,15 +50,20 @@ public class MonitoringService(IThroughputDataStore dataStore, IBrokerThroughput
     {
         //NOTE can't actually test the monitoring connection apart from seeing if there has been any throughput recorded from Monitoring
 
-        var connectionTestResult = new ConnectionSettingsTestResult
-        {
-            ConnectionSuccessful = await dataStore.IsThereThroughputForLastXDaysForSource(30, ThroughputSource.Monitoring)
-        };
+        var connectionTestResult = new ConnectionSettingsTestResult { ConnectionSuccessful = true };
 
-        if (!connectionTestResult.ConnectionSuccessful)
+        var diagnostics = new StringBuilder();
+        if (await dataStore.IsThereThroughputForLastXDaysForSource(30, ThroughputSource.Monitoring))
         {
-            connectionTestResult.ConnectionErrorMessages.Add($"No throughput from Monitoring recorded in the last 30 days. Listening on queue {PlatformEndpointHelper.ServiceControlThroughputDataQueue}");
+            diagnostics.AppendLine("Throughput from Monitoring recorded in the last 30 days");
         }
+        else
+        {
+            diagnostics.AppendLine("No throughput from Monitoring recorded in the last 30 days");
+        }
+        diagnostics.AppendLine($"Listening on queue {PlatformEndpointHelper.ServiceControlThroughputDataQueue}");
+
+        connectionTestResult.Diagnostics = diagnostics.ToString();
 
         return connectionTestResult;
     }

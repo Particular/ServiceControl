@@ -94,7 +94,7 @@ class ConfigurationApi(ActiveLicense license,
         var tasks = remotes
             .Select(async remote =>
             {
-                string status = remote.TemporarilyUnavailable ? "unavailable" : "online";
+                string status = "online";
                 var version = "Unknown";
                 HttpClient httpClient = httpClientFactory.CreateClient(remote.InstanceId);
                 JsonNode config = null;
@@ -110,6 +110,10 @@ class ConfigurationApi(ActiveLicense license,
 
                     await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken);
                     config = await JsonNode.ParseAsync(stream, cancellationToken: cancellationToken);
+                }
+                catch (HttpRequestException ex)
+                {
+                    status = ex.StatusCode >= System.Net.HttpStatusCode.InternalServerError ? "error" : "unavailable";
                 }
                 catch (Exception)
                 {
