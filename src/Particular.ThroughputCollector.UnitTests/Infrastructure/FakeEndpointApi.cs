@@ -2,10 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
     using ServiceControl.Api;
+    using ServiceControl.Api.Contracts;
 
     class FakeEndpointApi : IEndpointsApi
     {
-        public List<ServiceControl.Api.Contracts.Endpoint> GetEndpoints() => throw new NotImplementedException();
+        public Task<List<Endpoint>> GetEndpoints(CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 }

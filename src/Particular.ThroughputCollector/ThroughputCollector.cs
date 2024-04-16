@@ -1,5 +1,6 @@
 ﻿namespace Particular.ThroughputCollector;
 
+using System.Threading;
 using AuditThroughput;
 using Contracts;
 using MonitoringThroughput;
@@ -11,7 +12,7 @@ using QueueThroughput = Contracts.QueueThroughput;
 public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSettings throughputSettings, IAuditQuery auditQuery, MonitoringService monitoringService, IBrokerThroughputQuery? throughputQuery = null)
     : IThroughputCollector
 {
-    public async Task<ThroughputConnectionSettings> GetThroughputConnectionSettingsInformation()
+    public async Task<ThroughputConnectionSettings> GetThroughputConnectionSettingsInformation(CancellationToken cancellationToken)
     {
         var throughputConnectionSettings = new ThroughputConnectionSettings
         {
@@ -21,7 +22,7 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         return await Task.FromResult(throughputConnectionSettings);
     }
 
-    public async Task<ConnectionTestResults> TestConnectionSettings(CancellationToken cancellationToken = default)
+    public async Task<ConnectionTestResults> TestConnectionSettings(CancellationToken cancellationToken)
     {
         var tasks = new List<Task>();
         var brokerTask = Task.FromResult(new ConnectionSettingsTestResult { ConnectionSuccessful = false, ConnectionErrorMessages = [] });
@@ -49,19 +50,19 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         return await Task.FromResult(connectionTestResults);
     }
 
-    public async Task UpdateUserIndicatorsOnEndpoints(List<EndpointThroughputSummary> endpointThroughputs)
+    public async Task UpdateUserIndicatorsOnEndpoints(List<EndpointThroughputSummary> endpointThroughputs, CancellationToken cancellationToken)
     {
         await dataStore.UpdateUserIndicatorOnEndpoints(endpointThroughputs.Select(e =>
             new Endpoint(e.Name, ThroughputSource.None)
             {
                 SanitizedName = e.Name,
                 UserIndicator = e.UserIndicator,
-            }).ToList());
+            }).ToList(), cancellationToken);
 
         await Task.CompletedTask;
     }
 
-    public async Task<List<EndpointThroughputSummary>> GetThroughputSummary(CancellationToken cancellationToken = default)
+    public async Task<List<EndpointThroughputSummary>> GetThroughputSummary(CancellationToken cancellationToken)
     {
         var endpoints = (await dataStore.GetAllEndpoints(false, cancellationToken)).ToList();
         var queueNames = endpoints.Select(endpoint => endpoint.SanitizedName).Distinct();
@@ -92,11 +93,11 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         return endpointSummaries;
     }
 
-    public async Task<ReportGenerationState> GetReportGenerationState()
+    public async Task<ReportGenerationState> GetReportGenerationState(CancellationToken cancellationToken)
     {
         var reportGenerationState = new ReportGenerationState(transport)
         {
-            ReportCanBeGenerated = await dataStore.IsThereThroughputForLastXDays(30)
+            ReportCanBeGenerated = await dataStore.IsThereThroughputForLastXDays(30, cancellationToken)
         };
 
         return reportGenerationState;
@@ -145,7 +146,7 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
             queueThroughputs.Add(queueThroughput);
         }
 
-        var environmentData = await dataStore.GetEnvironmentData();
+        var environmentData = await dataStore.GetEnvironmentData(cancellationToken);
         var yesterday = DateTime.UtcNow.Date.AddDays(-1);
         var report = new Report
         {
