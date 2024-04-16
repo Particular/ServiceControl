@@ -6,7 +6,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Newtonsoft.Json;
     using ServiceBus.Management.Infrastructure.Settings;
 
     static class HttpExtensionsMultiInstance
