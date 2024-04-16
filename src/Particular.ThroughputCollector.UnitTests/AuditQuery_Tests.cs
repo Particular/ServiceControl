@@ -25,13 +25,13 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
     }
 
     [Test]
-    public void Should_return_known_endpoints_if_any()
+    public async Task Should_return_known_endpoints_if_any()
     {
         //Arrange
         var auditQuery = new AuditQuery(NullLogger<AuditQuery>.Instance, new EndpointsApi_ReturningTwoEndpoints(), new FakeAuditCountApi(), new FakeConfigurationApi());
 
         //Act
-        var endpoints = auditQuery.GetKnownEndpoints();
+        var endpoints = await auditQuery.GetKnownEndpoints(default);
 
         //Assert
         Assert.That(endpoints, Is.Not.Null, "Endpoints should be found");
@@ -134,7 +134,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
 
     class ConfigurationApi_ReturningOneValidAuditConfig : IConfigurationApi
     {
-        public object GetConfig() => throw new NotImplementedException();
+        public Task<object> GetConfig(CancellationToken cancellationToken) => throw new NotImplementedException();
 
         public Task<object> GetRemoteConfigs(CancellationToken cancellationToken = default)
         {
@@ -148,12 +148,12 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
             return [remote];
         }
 
-        public RootUrls GetUrls(string baseUrl) => throw new NotImplementedException();
+        public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 
     class ConfigurationApi_Configurable : IConfigurationApi
     {
-        public object GetConfig() => throw new NotImplementedException();
+        public Task<object> GetConfig(CancellationToken cancellationToken) => throw new NotImplementedException();
 
         public Task<object> GetRemoteConfigs(CancellationToken cancellationToken = default)
         {
@@ -172,7 +172,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
             return [remote];
         }
 
-        public RootUrls GetUrls(string baseUrl) => throw new NotImplementedException();
+        public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken) => throw new NotImplementedException();
 
         public bool ReturnAuditConfig { get; set; }
         public string RemoteStatus { get; set; }
@@ -182,12 +182,12 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
 
     class EndpointsApi_ReturningTwoEndpoints : IEndpointsApi
     {
-        public List<Endpoint> GetEndpoints()
+        public Task<List<Endpoint>> GetEndpoints(CancellationToken cancellationToken)
         {
-            return [
+            return Task.FromResult<List<Endpoint>>([
                 new Endpoint { Id = Guid.NewGuid(), Name = "Endpoint1" },
                 new Endpoint { Id = Guid.NewGuid(), Name = "Endpoint2" }
-            ];
+            ]);
         }
 
     }
