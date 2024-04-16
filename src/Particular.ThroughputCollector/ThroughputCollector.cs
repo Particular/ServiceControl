@@ -71,9 +71,10 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         //group endpoints by sanitized name - so to group throughput recorded from broker, audit and monitoring
         foreach (var endpointGroupPerQueue in endpoints.GroupBy(g => g.SanitizedName))
         {
-            if (!endpointThroughputPerQueue.TryGetValue(endpointGroupPerQueue.Key, out var data))
+            var data = new List<ThroughputData>();
+            if (endpointThroughputPerQueue.TryGetValue(endpointGroupPerQueue.Key, out var tempData))
             {
-                data = [];
+                data.AddRange(tempData);
             }
 
             var endpointSummary = new EndpointThroughputSummary
@@ -105,7 +106,7 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
     {
         CreateMasks(masks);
 
-        var endpoints = await dataStore.GetAllEndpoints(false, cancellationToken);
+        var endpoints = (await dataStore.GetAllEndpoints(false, cancellationToken)).ToArray();
         var queueNames = endpoints.Select(endpoint => endpoint.SanitizedName).Distinct();
         var endpointThroughputPerQueue = await dataStore.GetEndpointThroughputByQueueName(queueNames, cancellationToken);
         var queueThroughputs = new List<QueueThroughput>();
@@ -164,9 +165,9 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
             EnvironmentData = environmentData?.Data ?? []
         };
 
-        var auditThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromAudit);
-        var monitoringThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromMonitoring);
-        var brokerThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromBroker);
+        var auditThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromAudit).ToArray();
+        var monitoringThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromMonitoring).ToArray();
+        var brokerThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromBroker).ToArray();
 
         //this will be the date of the first throughput that we have received
         var firstAuditThroughputDate = auditThroughput.Any() ? auditThroughput.MinBy(m => m.DateUTC).DateUTC.ToDateTime(TimeOnly.MinValue) : yesterday.AddDays(-1);
