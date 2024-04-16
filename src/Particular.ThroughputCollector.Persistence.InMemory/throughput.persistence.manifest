@@ -1,7 +1,0 @@
-﻿{
-  "Version": "1.0.0",
-  "Name": "InMemory",
-  "DisplayName": "In-memory",
-  "Description": "InMemory ThroughputCollector persister",
-  "TypeName": "Particular.ThroughputCollector.Persistence.InMemory.InMemoryPersistenceConfiguration, Particular.ThroughputCollector.Persistence.InMemory"
-}

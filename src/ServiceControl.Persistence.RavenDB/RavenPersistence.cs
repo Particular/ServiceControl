@@ -1,20 +1,23 @@
 ﻿namespace ServiceControl.Persistence.RavenDB;
 
 using CustomChecks;
+using MessageFailures;
 using MessageRedirects;
 using Microsoft.Extensions.DependencyInjection;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
+using Operations.BodyStorage;
+using Operations.BodyStorage.RavenAttachments;
+using Particular.ThroughputCollector.Persistence.RavenDb;
+using Persistence.MessageRedirects;
 using Persistence.Recoverability;
 using Recoverability;
+using SagaAudit;
 using ServiceControl.CustomChecks;
 using ServiceControl.Infrastructure.RavenDB.Subscriptions;
-using ServiceControl.MessageFailures;
-using ServiceControl.Operations.BodyStorage;
-using ServiceControl.Operations.BodyStorage.RavenAttachments;
-using ServiceControl.Persistence.MessageRedirects;
-using ServiceControl.Persistence.UnitOfWork;
 using ServiceControl.Recoverability;
-using ServiceControl.SagaAudit;
+using UnitOfWork;
+using IPersistence = IPersistence;
+using PersistenceSettings = PersistenceSettings;
 
 class RavenPersistence(RavenPersisterSettings settings) : IPersistence
 {
@@ -31,7 +34,6 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddSingleton<ISubscriptionStorage>(p => p.GetRequiredService<IServiceControlSubscriptionStorage>());
 
         services.AddSingleton<IMonitoringDataStore, RavenMonitoringDataStore>();
-        services.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
         services.AddUnitOfWorkFactory<RavenIngestionUnitOfWorkFactory>();
         services.AddSingleton<ExpirationManager>();
         services.AddSingleton<MinimumRequiredStorageState>();
@@ -51,6 +53,8 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
 
         services.AddSingleton<OperationsManager>();
+
+        services.AddThroughputRavenPersistence();
 
         services.AddSingleton<IArchiveMessages, MessageArchiver>();
         services.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
@@ -72,7 +76,11 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddSingleton<SagaAuditDestinationCustomCheck.State>();
     }
 
-    public void AddInstaller(IServiceCollection services) => ConfigureLifecycle(services);
+    public void AddInstaller(IServiceCollection services)
+    {
+        ConfigureLifecycle(services);
+        services.AddThroughputRavenPersistence();
+    }
 
     void ConfigureLifecycle(IServiceCollection services)
     {
