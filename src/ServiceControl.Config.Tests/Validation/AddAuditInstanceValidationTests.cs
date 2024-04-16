@@ -30,9 +30,9 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.That(instanceNamesProvided); // Provided because the convention auto-fills them on instantiation
+            Assert.IsFalse(instanceNamesProvided);
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)));
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)));
         }
 
         [Test]

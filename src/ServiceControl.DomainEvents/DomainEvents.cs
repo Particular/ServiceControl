@@ -3,12 +3,9 @@
     using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
-    using NServiceBus.Logging;
 
     public class DomainEvents : IDomainEvents
     {
-        static readonly ILog Log = LogManager.GetLogger<DomainEvents>();
-
         readonly IServiceProvider serviceProvider;
         public DomainEvents(IServiceProvider serviceProvider) => this.serviceProvider = serviceProvider;
 
@@ -17,31 +14,15 @@
             var handlers = serviceProvider.GetServices<IDomainHandler<T>>();
             foreach (var handler in handlers)
             {
-                try
-                {
-                    await handler.Handle(domainEvent)
-                        .ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"Unexpected error publishing domain event {typeof(T)}", e);
-                    throw;
-                }
+                await handler.Handle(domainEvent)
+                    .ConfigureAwait(false);
             }
 
             var ieventHandlers = serviceProvider.GetServices<IDomainHandler<IDomainEvent>>();
             foreach (var handler in ieventHandlers)
             {
-                try
-                {
-                    await handler.Handle(domainEvent)
+                await handler.Handle(domainEvent)
                     .ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"Unexpected error publishing domain event {typeof(T)}", e);
-                    throw;
-                }
             }
         }
     }

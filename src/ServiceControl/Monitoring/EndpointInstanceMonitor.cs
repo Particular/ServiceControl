@@ -5,8 +5,6 @@ namespace ServiceControl.Monitoring
     using Contracts.HeartbeatMonitoring;
     using EndpointControl.Contracts;
     using Infrastructure.DomainEvents;
-    using NLog.Fluent;
-    using NServiceBus.Logging;
     using ServiceControl.Operations;
     using ServiceControl.Persistence;
 
@@ -40,7 +38,6 @@ namespace ServiceControl.Monitoring
             if (newStatus != status)
             {
                 await RaiseStateChangeEvents(newStatus, latestTimestamp);
-                Log.DebugFormat("Endpoint {0} status updated from {1} to {2}", Id.LogicalName, status, newStatus);
             }
 
             lastSeen = latestTimestamp;
@@ -134,8 +131,6 @@ namespace ServiceControl.Monitoring
                 EndpointDetails = Convert(Id)
             };
         }
-
-        static readonly ILog Log = LogManager.GetLogger<EndpointInstanceMonitor>();
 
         IDomainEvents domainEvents;
         DateTime? lastSeen;

@@ -20,7 +20,7 @@
 
         public IAuditIngestionUnitOfWork StartNew(int batchSize)
         {
-            var timedCancellationSource = new CancellationTokenSource(databaseConfiguration.BulkInsertCommitTimeout);
+            var timedCancellationSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
             var bulkInsert = documentStoreProvider.GetDocumentStore()
                 .BulkInsert(new BulkInsertOptions { SkipOverwriteIfUnchanged = true, }, timedCancellationSource.Token);
 

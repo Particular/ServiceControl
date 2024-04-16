@@ -69,6 +69,8 @@ namespace ServiceControl.Config.UI.InstanceEdit
                     .WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding"))
                 .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString))
                     .WithMessage(string.Format(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Audit"))
+                .MustNotBeIn(x => Validations.UsedAuditQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString))
+                    .WithMessage(string.Format(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Audit"))
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.AuditForwardingQueueName)
@@ -76,6 +78,8 @@ namespace ServiceControl.Config.UI.InstanceEdit
                     .WithMessage(string.Format(Validation.Validations.MSG_FORWARDINGQUEUENAME, "Audit Forwarding"))
                 .NotEqual(x => x.AuditQueueName)
                     .WithMessage(string.Format(Validation.Validations.MSG_QUEUENAMES_NOT_EQUAL, "Audit Forwarding", "Audit"))
+                .MustNotBeIn(x => Validations.UsedAuditQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString))
+                    .WithMessage(string.Format(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Audit Forwarding"))
                 .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString))
                     .WithMessage(string.Format(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Audit Forwarding"))
                 .When(x => x.SubmitAttempted && x.AuditForwarding.Value);
