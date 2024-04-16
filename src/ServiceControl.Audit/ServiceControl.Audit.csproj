@@ -48,4 +48,9 @@
     <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Audit.dll.config" DirExclude=".logs" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Audit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.SagaAudit\Messages\*.cs" LinkBase="SagaAudit\Messages" />
+    <Compile Include="..\ServiceControl.SagaAudit\*.cs" LinkBase="SagaAudit" />
+  </ItemGroup>
+
 </Project>
