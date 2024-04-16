@@ -54,7 +54,7 @@ public class AuditThroughputCollectorHostedService(
 
         await VerifyAuditInstances(cancellationToken);
 
-        var knownEndpoints = auditQuery.GetKnownEndpoints().ToArray();
+        var knownEndpoints = (await auditQuery.GetKnownEndpoints(cancellationToken)).ToArray();
         var knownEndpointsLookup = knownEndpoints
             .ToDictionary(knownEndpoint => new EndpointIdentifier(knownEndpoint.Name, ThroughputSource.Audit));
 

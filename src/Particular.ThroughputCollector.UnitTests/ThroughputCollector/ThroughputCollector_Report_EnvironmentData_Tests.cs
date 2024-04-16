@@ -27,7 +27,7 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "");
+        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -54,7 +54,7 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "");
+        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -74,7 +74,7 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "");
+        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -101,7 +101,7 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "");
+        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -129,7 +129,7 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
 
         // Act
         var spVersion = "5.1";
-        var report = await ThroughputCollector.GenerateThroughputReport([], spVersion);
+        var report = await ThroughputCollector.GenerateThroughputReport([], spVersion, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -153,10 +153,10 @@ class ThroughputCollector_Report_EnvironmentData_Tests : ThroughputCollectorTest
         {
             { EnvironmentDataType.Version.ToString(), version }
         };
-        await DataStore.SaveEnvironmentData(scopeType, brokerData);
+        await DataStore.SaveEnvironmentData(scopeType, brokerData, default);
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "");
+        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
