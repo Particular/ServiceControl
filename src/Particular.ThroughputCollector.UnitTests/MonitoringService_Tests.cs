@@ -40,8 +40,8 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         await configuration.MonitoringService.RecordMonitoringThroughput(messageBytes, default);
 
         // Act
-        var foundEndpoint = await DataStore.GetEndpoint("Endpoint1", ThroughputSource.Monitoring);
-        var foundEndpointThroughput = await DataStore.GetEndpointThroughputByQueueName(["Endpoint1"]);
+        var foundEndpoint = await DataStore.GetEndpoint("Endpoint1", ThroughputSource.Monitoring, default);
+        var foundEndpointThroughput = await DataStore.GetEndpointThroughputByQueueName(["Endpoint1"], default);
         var throughputData = foundEndpointThroughput["Endpoint1"].ToArray();
 
         // Assert
@@ -77,7 +77,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         var endpointNameSanitized = "e-ndpoint-1";
 
         // Act
-        var foundEndpoint = await DataStore.GetEndpoint(endpointName, ThroughputSource.Monitoring);
+        var foundEndpoint = await DataStore.GetEndpoint(endpointName, ThroughputSource.Monitoring, default);
 
         // Assert        
         Assert.That(foundEndpoint, Is.Not.Null, $"Expected endpoint {endpointName} not found.");

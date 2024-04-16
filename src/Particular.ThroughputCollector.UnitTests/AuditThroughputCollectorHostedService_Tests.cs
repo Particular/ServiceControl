@@ -129,7 +129,7 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
             } while (!token.IsCancellationRequested);
         });
 
-        var foundEndpoint = await DataStore.GetEndpoint(endpointName, throughputSource: ThroughputSource.Audit);
+        var foundEndpoint = await DataStore.GetEndpoint(endpointName, throughputSource: ThroughputSource.Audit, default);
 
         //Assert
         Assert.That(foundEndpoint, Is.Not.Null, $"Expected endpoint {endpointName} not found.");
@@ -175,8 +175,8 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         });
         await auditThroughputCollectorHostedService.StopAsync(token2);
 
-        var foundEndpoint = await DataStore.GetEndpoint(endpointName, throughputSource: ThroughputSource.Audit);
-        var foundEndpointThroughput = await DataStore.GetEndpointThroughputByQueueName([endpointName]);
+        var foundEndpoint = await DataStore.GetEndpoint(endpointName, throughputSource: ThroughputSource.Audit, default);
+        var foundEndpointThroughput = await DataStore.GetEndpointThroughputByQueueName([endpointName], default);
         var throughputData = foundEndpointThroughput[endpointName].ToArray();
 
         // Assert
@@ -199,11 +199,11 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
 
         public Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName, CancellationToken cancellationToken) => Task.FromResult<IEnumerable<AuditCount>>([]);
         public Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken) => Task.FromResult<List<RemoteInstanceInformation>>([]);
-        public IEnumerable<ServiceControlEndpoint> GetKnownEndpoints()
+        public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken)
         {
             InstanceParameter = true;
 
-            return [];
+            return Task.FromResult<IEnumerable<ServiceControlEndpoint>>([]);
         }
 
         public Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken) => Task.FromResult(new ConnectionSettingsTestResult() { ConnectionSuccessful = true, ConnectionErrorMessages = [] });
@@ -234,14 +234,14 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
             return Task.FromResult(new List<AuditCount> { auditCount }.AsEnumerable());
         }
         public Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken) => Task.FromResult<List<RemoteInstanceInformation>>([]);
-        public IEnumerable<ServiceControlEndpoint> GetKnownEndpoints()
+        public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken)
         {
             var scEndpoint = new ServiceControlEndpoint
             {
                 Name = EndpointName,
                 HeartbeatsEnabled = true
             };
-            return [scEndpoint];
+            return Task.FromResult<IEnumerable<ServiceControlEndpoint>>([scEndpoint]);
         }
 
         public Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken) => Task.FromResult(new ConnectionSettingsTestResult() { ConnectionSuccessful = true, ConnectionErrorMessages = [] });
@@ -260,7 +260,7 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         public Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken) => Task.FromResult<List<RemoteInstanceInformation>>([]);
 
-        public IEnumerable<ServiceControlEndpoint> GetKnownEndpoints()
+        public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken)
         {
             InstanceParameter = true;
 
