@@ -8,12 +8,11 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Particular.Approvals;
 using Particular.ThroughputCollector.Contracts;
 using Particular.ThroughputCollector.MonitoringThroughput;
 using Particular.ThroughputCollector.UnitTests.Infrastructure;
-using ServiceControl.Api;
 using ServiceControl.Transports;
 
 [TestFixture]
@@ -21,12 +20,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
 {
     public override Task Setup()
     {
-        SetExtraDependencies = d =>
-        {
-            d.AddSingleton<IConfigurationApi, FakeConfigurationApi>();
-            d.AddSingleton<IEndpointsApi, FakeEndpointApi>();
-            d.AddSingleton<IAuditCountApi, FakeAuditCountApi>();
-        };
+        SetExtraDependencies = d => { };
 
         return base.Setup();
     }
@@ -91,14 +85,20 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
     }
 
 
-    [Test]
-    public async Task Should_return_successful_monitoring_connection_if_monitoring_throughput_exists()
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task Should_always_return_successful_monitoring_connection_and_diagnostics(bool hasMonitoringThroughput)
     {
         // Arrange
-        await DataStore.CreateBuilder()
-           .AddEndpoint(sources: [ThroughputSource.Monitoring])
-           .WithThroughput(days: 2)
-           .Build();
+        var builder = DataStore.CreateBuilder()
+           .AddEndpoint(sources: [ThroughputSource.Monitoring]);
+
+        if (hasMonitoringThroughput)
+        {
+            builder.WithThroughput(days: 2);
+        }
+
+        await builder.Build();
 
         // Act
         var connectionSettingsResult = await configuration.MonitoringService.TestMonitoringConnection(default);
@@ -107,6 +107,8 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         Assert.That(connectionSettingsResult, Is.Not.Null, "connectionSettingsResult should be returned");
         Assert.That(connectionSettingsResult.ConnectionSuccessful, Is.True, "Connection status should be successful");
         Assert.That(connectionSettingsResult.ConnectionErrorMessages.Count, Is.EqualTo(0), "Unexpected ConnectionErrorMessages");
+
+        Approver.Verify(connectionSettingsResult.Diagnostics, scenario: $"hasMonitoringThroughput_{hasMonitoringThroughput}");
     }
 
     class BrokerThroughputQuery_WithSanitization : IBrokerThroughputQuery
