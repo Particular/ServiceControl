@@ -6,7 +6,7 @@
     using Microsoft.AspNetCore.Mvc;
 
     [ApiController]
-    [Route("api")]
+    [Route("api/throughput")]
     public class ThroughputController : ControllerBase
     {
         public ThroughputController(IThroughputCollector throughputCollector)
@@ -14,14 +14,14 @@
             this.throughputCollector = throughputCollector;
         }
 
-        [Route("throughput/endpoints")]
+        [Route("endpoints")]
         [HttpGet]
         public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput(CancellationToken token)
         {
             return await throughputCollector.GetThroughputSummary(token);
         }
 
-        [Route("throughput/endpoints/update")]
+        [Route("endpoints/update")]
         [HttpPost]
         public async Task<IActionResult> UpdateUserSelectionOnEndpointThroughput(List<EndpointThroughputSummary> endpointThroughputs, CancellationToken token)
         {
@@ -29,14 +29,14 @@
             return Ok();
         }
 
-        [Route("throughput/report/available")]
+        [Route("report/available")]
         [HttpGet]
         public async Task<ReportGenerationState> CanThroughputReportBeGenerated(CancellationToken token)
         {
             return await throughputCollector.GetReportGenerationState();
         }
 
-        [Route("throughput/report/file")]
+        [Route("report/file")]
         [HttpGet]
         public async Task<IActionResult> GetThroughputReportFile(string[]? mask, CancellationToken token)
         {
@@ -59,14 +59,14 @@
             return BadRequest("Report cannot be generated.");
         }
 
-        [Route("throughput/settings/info")]
+        [Route("settings/info")]
         [HttpGet]
         public async Task<ThroughputConnectionSettings> GetThroughputSettingsInformation(CancellationToken token)
         {
             return await throughputCollector.GetThroughputConnectionSettingsInformation();
         }
 
-        [Route("throughput/settings/test")]
+        [Route("settings/test")]
         [HttpGet]
         public async Task<ConnectionTestResults> TestThroughputConnectionSettings(CancellationToken token) => await throughputCollector.TestConnectionSettings(token);
 
