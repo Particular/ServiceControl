@@ -4,11 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Particular.ThroughputCollector.Contracts;
 using Particular.ThroughputCollector.UnitTests.Infrastructure;
-using ServiceControl.Api;
 
 [TestFixture]
 class ThroughputCollector_ThroughputSumary_Indicator_Tests : ThroughputCollectorTestFixture
@@ -16,12 +14,7 @@ class ThroughputCollector_ThroughputSumary_Indicator_Tests : ThroughputCollector
     public override Task Setup()
     {
 
-        SetExtraDependencies = d =>
-        {
-            d.AddSingleton<IConfigurationApi, FakeConfigurationApi>();
-            d.AddSingleton<IEndpointsApi, FakeEndpointApi>();
-            d.AddSingleton<IAuditCountApi, FakeAuditCountApi>();
-        };
+        SetExtraDependencies = d => { };
 
         return base.Setup();
     }
