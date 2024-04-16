@@ -33,7 +33,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var summary = await ThroughputCollector.GetThroughputSummary();
+        var summary = await ThroughputCollector.GetThroughputSummary(default);
 
         // Assert
         Assert.That(summary, Is.Not.Null);
@@ -53,7 +53,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var summary = await ThroughputCollector.GetThroughputSummary();
+        var summary = await ThroughputCollector.GetThroughputSummary(default);
 
         // Assert
         Assert.That(summary, Is.Not.Null);
@@ -71,7 +71,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var summary = await ThroughputCollector.GetThroughputSummary();
+        var summary = await ThroughputCollector.GetThroughputSummary(default);
 
         // Assert
         Assert.That(summary, Is.Not.Null);
@@ -91,7 +91,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var summary = await ThroughputCollector.GetThroughputSummary();
+        var summary = await ThroughputCollector.GetThroughputSummary(default);
 
         // Assert
         Assert.That(summary, Is.Not.Null);
@@ -120,7 +120,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var summary = await ThroughputCollector.GetThroughputSummary();
+        var summary = await ThroughputCollector.GetThroughputSummary(default);
 
         // Assert
         Assert.That(summary, Is.Not.Null);
@@ -138,7 +138,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
         await DataStore.CreateBuilder().AddEndpoint().Build();
 
         // Act
-        var summary = await ThroughputCollector.GetThroughputSummary();
+        var summary = await ThroughputCollector.GetThroughputSummary(default);
 
         // Assert
         Assert.That(summary, Is.Not.Null);
@@ -159,7 +159,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var summary = await ThroughputCollector.GetThroughputSummary();
+        var summary = await ThroughputCollector.GetThroughputSummary(default);
 
         // Assert
         Assert.That(summary, Is.Not.Null);
