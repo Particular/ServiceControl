@@ -1,0 +1,6 @@
+Connection test to Audit Instance failed:
+http://localhost:44444/api/ - unable to determine the version of ServiceControl Audit instance. The instance status is 'error' and the version is ''.
+http://localhost:44444/api/ - ServiceControl Audit instance with invalid version of '' (minimum version is 4.29.0). Audit throughput will not be available.
+
+Connection attempted to the following Audit instances:
+http://localhost:44444/api/
