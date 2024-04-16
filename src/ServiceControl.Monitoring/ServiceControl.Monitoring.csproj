@@ -25,7 +25,6 @@
     <PackageReference Include="NLog.Extensions.Logging" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" />
     <PackageReference Include="NServiceBus.Extensions.Logging" />
-    <PackageReference Include="NServiceBus.Newtonsoft.Json" />
     <PackageReference Include="NServiceBus.Persistence.NonDurable" />
     <PackageReference Include="System.Configuration.ConfigurationManager" />
   </ItemGroup>

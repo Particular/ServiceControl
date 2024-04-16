@@ -19,7 +19,6 @@
     <PackageReference Include="Particular.Approvals" />
     <PackageReference Include="PublicApiGenerator" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" />
-    <PackageReference Include="NServiceBus.Newtonsoft.Json"/>
     <PackageReference Include="NServiceBus.Persistence.NonDurable"/>
     <PackageReference Include="System.Reflection.MetadataLoadContext" />
   </ItemGroup>
