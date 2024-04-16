@@ -1,8 +1,0 @@
-<Project>
-
-  <ItemGroup Label="Persisters">
-    <ProjectReference Include="..\Particular.ThroughputCollector.Persistence.InMemory\Particular.ThroughputCollector.Persistence.InMemory.csproj" ReferenceOutputAssembly="false" Private="false" />
-    <ProjectReference Include="..\Particular.ThroughputCollector.Persistence.RavenDb\Particular.ThroughputCollector.Persistence.RavenDb.csproj" ReferenceOutputAssembly="false" Private="false" />
-  </ItemGroup>
-
-</Project>

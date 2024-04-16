@@ -1,13 +1,12 @@
 ﻿namespace Particular.ThroughputCollector.MonitoringThroughput;
 
-using Particular.ThroughputCollector.Contracts;
 using System.Diagnostics;
-using System.Threading;
-using Particular.ThroughputCollector.Persistence;
-using Particular.ThroughputCollector.Shared;
-using System.Text.Json;
-using ServiceControl.Transports;
 using System.Text;
+using System.Text.Json;
+using Contracts;
+using Persistence;
+using ServiceControl.Transports;
+using Shared;
 
 public class MonitoringService(IThroughputDataStore dataStore, IBrokerThroughputQuery? brokerThroughputQuery = null)
 {

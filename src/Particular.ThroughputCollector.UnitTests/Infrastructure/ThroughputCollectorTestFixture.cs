@@ -5,7 +5,7 @@
     using Contracts;
     using Microsoft.Extensions.DependencyInjection;
     using NUnit.Framework;
-    using Particular.ThroughputCollector.Persistence;
+    using Persistence;
 
     [TestFixture]
     abstract class ThroughputCollectorTestFixture
