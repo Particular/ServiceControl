@@ -11,7 +11,7 @@ namespace ServiceControl.Persistence
 
     static class PersistenceFactory
     {
-        static List<string> loadedComponentPersisters = [];
+        static readonly HashSet<string> loadedComponentPersisters = [];
 
         public static IPersistence Create(Settings settings, bool maintenanceMode = false)
         {
@@ -55,20 +55,12 @@ namespace ServiceControl.Persistence
                 : loadContext;
         }
 
-        public static T LoadComponentPersistence<T>(Settings settings, string componentPersistenceAssemblyPath, string componentPersistenceType)
+        public static T LoadComponentPersistence<T>(Settings settings, string componentPersistenceLocation, string componentPersistenceAssemblyPath, string componentPersistenceType)
         {
-            if (!loadedComponentPersisters.Contains(componentPersistenceType))
-            {
-                AssemblyLoadContext.Default.Resolving += ResolvePersistenceAssemblyInDefaultContext;
-            }
-
-            Assembly ResolvePersistenceAssemblyInDefaultContext(AssemblyLoadContext context, AssemblyName name) =>
-                File.Exists(componentPersistenceAssemblyPath)
-                ? context.LoadFromAssemblyPath(componentPersistenceAssemblyPath)
-                : null;
+            AddDefaultComponentResolver(componentPersistenceLocation);
 
             var hostPersistenceManifest = PersistenceManifestLibrary.Find(settings.PersistenceType)
-            ?? throw new InvalidOperationException($"No manifest found for {settings.PersistenceType} persistenceType");
+                ?? throw new InvalidOperationException($"No manifest found for {settings.PersistenceType} persistenceType");
 
             var loadContext = DetermineLoadContext(settings, hostPersistenceManifest.AssemblyPath);
             if (loadContext is PluginAssemblyLoadContext pluginLoadContext)
@@ -80,15 +72,38 @@ namespace ServiceControl.Persistence
             }
 
             var type = Type.GetType(componentPersistenceType, loadContext.LoadFromAssemblyName, null, true)
-            ?? throw new InvalidOperationException($"Could not load type '{componentPersistenceType}' for requested persistence type '{hostPersistenceManifest.Name}' from '{loadContext.Name}' load context");
+                ?? throw new InvalidOperationException($"Could not load type '{componentPersistenceType}' for requested persistence type '{hostPersistenceManifest.Name}' from '{loadContext.Name}' load context");
 
-            loadedComponentPersisters.Add(componentPersistenceType);
             if (Activator.CreateInstance(type) is not T typedComponentPersistence)
             {
                 throw new InvalidOperationException($"{componentPersistenceType} is not of type {typeof(T).Name}");
             }
 
             return typedComponentPersistence;
+        }
+
+        static void AddDefaultComponentResolver(string componentPersistenceLocation)
+        {
+            if (componentPersistenceLocation == null)
+            {
+                throw new ArgumentNullException(nameof(componentPersistenceLocation));
+            }
+
+            if (!loadedComponentPersisters.Contains(componentPersistenceLocation))
+            {
+                AssemblyLoadContext.Default.Resolving += ResolveComponentPersistenceAssembly;
+                loadedComponentPersisters.Add(componentPersistenceLocation);
+
+                Assembly ResolveComponentPersistenceAssembly(AssemblyLoadContext context, AssemblyName name)
+                {
+                    var location = componentPersistenceLocation;
+                    var path = Path.Combine(location, $"{name.Name}.dll");
+
+                    return File.Exists(path)
+                        ? context.LoadFromAssemblyPath(path)
+                        : null;
+                }
+            }
         }
     }
 }

@@ -3,7 +3,6 @@ namespace Particular.ServiceControl;
 
 using global::ServiceControl.Infrastructure;
 using global::ServiceControl.LicenseManagement;
-using global::ServiceControl.Persistence;
 using global::ServiceControl.Transports;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -11,8 +10,7 @@ using Particular.ThroughputCollector.Persistence;
 using Particular.ThroughputCollector.Shared;
 using ServiceBus.Management.Infrastructure.Settings;
 using ThroughputCollector;
-using PersistenceManifestLibrary = global::ServiceControl.Persistence.PersistenceManifestLibrary;
-using ThroughputPersistence = ThroughputCollector.Persistence;
+using ServiceControlPersistence = global::ServiceControl.Persistence;
 
 class ThroughputComponent : ServiceControlComponent
 {
@@ -36,10 +34,17 @@ class ThroughputComponent : ServiceControlComponent
         context.RegisterInstallationTask(serviceProvider => serviceProvider.GetRequiredService<IPersistenceInstaller>().Install());
     }
 
-    void AddPersistence(Settings settings, IServiceCollection services)
+    static void AddPersistence(Settings settings, IServiceCollection services)
     {
-        var componentPersistenceManifest = ThroughputPersistence.PersistenceManifestLibrary.Find(PersistenceManifestLibrary.GetName(settings.PersistenceType));
+        var persistenceTypeName = ServiceControlPersistence.PersistenceManifestLibrary.GetName(settings.PersistenceType);
+        var componentPersistenceManifest = PersistenceManifestLibrary.Find(persistenceTypeName);
 
-        services.AddThroughputPersistence(PersistenceFactory.LoadComponentPersistence<ThroughputPersistence.IPersistenceConfiguration>(settings, componentPersistenceManifest.AssemblyPath, componentPersistenceManifest.TypeName));
+        var persistenceConfiguration = ServiceControlPersistence.PersistenceFactory.LoadComponentPersistence<IPersistenceConfiguration>(
+            settings,
+            componentPersistenceManifest.Location,
+            componentPersistenceManifest.AssemblyPath,
+            componentPersistenceManifest.TypeName);
+
+        services.AddThroughputPersistence(persistenceConfiguration);
     }
 }
