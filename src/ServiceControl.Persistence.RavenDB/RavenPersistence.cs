@@ -12,7 +12,9 @@
     using Persistence.Recoverability;
     using Recoverability;
     using SagaAudit;
+    using ServiceControl.CustomChecks;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
+    using ServiceControl.Persistence.RavenDB.CustomChecks;
     using ServiceControl.Recoverability;
     using UnitOfWork;
 
@@ -47,10 +49,10 @@
             services.AddSingleton<IExternalIntegrationRequestsDataStore>(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
             services.AddHostedService(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
 
-            //services.AddCustomCheck<CheckRavenDBIndexErrors>();
-            //services.AddCustomCheck<CheckRavenDBIndexLag>();
-            //services.AddCustomCheck<CheckFreeDiskSpace>();
-            //services.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
+            services.AddCustomCheck<CheckRavenDBIndexErrors>();
+            services.AddCustomCheck<CheckRavenDBIndexLag>();
+            services.AddCustomCheck<CheckFreeDiskSpace>();
+            services.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
 
             services.AddSingleton<OperationsManager>();
 
@@ -70,7 +72,7 @@
 
             // Forward saga audit messages and warn in ServiceControl 5, remove in 6
             services.AddSingleton<ISagaAuditDataStore, SagaAuditDeprecationDataStore>();
-            //services.AddCustomCheck<SagaAuditDestinationCustomCheck>();
+            services.AddCustomCheck<SagaAuditDestinationCustomCheck>();
             services.AddSingleton<SagaAuditDestinationCustomCheck.State>();
         }
 
