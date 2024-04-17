@@ -30,7 +30,6 @@
             services.AddSingleton<IServiceControlSubscriptionStorage, RavenSubscriptionStorage>();
             services.AddSingleton<ISubscriptionStorage>(p => p.GetRequiredService<IServiceControlSubscriptionStorage>());
 
-            services.AddSingleton<IMonitoringDataStore, RavenMonitoringDataStore>();
             services.AddUnitOfWorkFactory<RavenIngestionUnitOfWorkFactory>();
             services.AddSingleton<ExpirationManager>();
             services.AddSingleton<MinimumRequiredStorageState>();
