@@ -12,6 +12,8 @@
     <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" Private="false" ExcludeAssets="runtime" />
     <ProjectReference Include="..\ServiceControl.DomainEvents\ServiceControl.DomainEvents.csproj" Private="false" ExcludeAssets="runtime" />
     <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\ServiceControl.Persistence.NewFeature\ServiceControl.Persistence.NewFeature.csproj"/>
+    <ProjectReference Include="..\ServiceControl.Persistence.RavenDB.NewFeature\ServiceControl.Persistence.RavenDB.NewFeature.csproj"/>
     <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" Private="false" ExcludeAssets="runtime" />
   </ItemGroup>
 

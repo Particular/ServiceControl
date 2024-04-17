@@ -1,20 +1,20 @@
 ﻿namespace ServiceControl.Persistence.RavenDB
 {
-    using CustomChecks;
+    using MessageFailures;
     using MessageRedirects;
     using Microsoft.Extensions.DependencyInjection;
+    using NewFeature;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
+    using Operations.BodyStorage;
+    using Operations.BodyStorage.RavenAttachments;
+    using Persistence.MessageRedirects;
+    using Persistence.NewFeature;
     using Persistence.Recoverability;
     using Recoverability;
-    using ServiceControl.CustomChecks;
+    using SagaAudit;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
-    using ServiceControl.MessageFailures;
-    using ServiceControl.Operations.BodyStorage;
-    using ServiceControl.Operations.BodyStorage.RavenAttachments;
-    using ServiceControl.Persistence.MessageRedirects;
-    using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Recoverability;
-    using ServiceControl.SagaAudit;
+    using UnitOfWork;
 
     class RavenPersistence(RavenPersisterSettings settings) : IPersistence
     {
@@ -26,6 +26,8 @@
             {
                 return;
             }
+
+            services.AddSingleton<INewFeatureDataStore, RavenNewFeatureDataStore>();
 
             services.AddSingleton<IServiceControlSubscriptionStorage, RavenSubscriptionStorage>();
             services.AddSingleton<ISubscriptionStorage>(p => p.GetRequiredService<IServiceControlSubscriptionStorage>());
@@ -45,10 +47,10 @@
             services.AddSingleton<IExternalIntegrationRequestsDataStore>(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
             services.AddHostedService(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
 
-            services.AddCustomCheck<CheckRavenDBIndexErrors>();
-            services.AddCustomCheck<CheckRavenDBIndexLag>();
-            services.AddCustomCheck<CheckFreeDiskSpace>();
-            services.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
+            //services.AddCustomCheck<CheckRavenDBIndexErrors>();
+            //services.AddCustomCheck<CheckRavenDBIndexLag>();
+            //services.AddCustomCheck<CheckFreeDiskSpace>();
+            //services.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
 
             services.AddSingleton<OperationsManager>();
 
@@ -68,7 +70,7 @@
 
             // Forward saga audit messages and warn in ServiceControl 5, remove in 6
             services.AddSingleton<ISagaAuditDataStore, SagaAuditDeprecationDataStore>();
-            services.AddCustomCheck<SagaAuditDestinationCustomCheck>();
+            //services.AddCustomCheck<SagaAuditDestinationCustomCheck>();
             services.AddSingleton<SagaAuditDestinationCustomCheck.State>();
         }
 

@@ -20,6 +20,7 @@
     <ProjectReference Include="..\ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
     <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.NewFeature\ServiceControl.Persistence.NewFeature.csproj"/>
     <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
   </ItemGroup>
