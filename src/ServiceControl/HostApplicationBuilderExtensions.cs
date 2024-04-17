@@ -59,10 +59,6 @@ namespace Particular.ServiceControl
             services.AddSingleton<IDomainEvents, DomainEvents>();
             services.AddSingleton(transportSettings);
             services.AddSingleton(transportCustomization);
-            if (transportCustomization.ThroughputQueryProvider != null)
-            {
-                services.AddSingleton(typeof(IThroughputQuery), transportCustomization.ThroughputQueryProvider);
-            }
 
             services.AddSingleton<MessageStreamerHub>();
             services.AddSingleton(settings);
