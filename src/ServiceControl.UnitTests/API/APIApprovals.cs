@@ -13,7 +13,6 @@
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Particular.Approvals;
-    using Particular.ServiceControl;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.Api;
