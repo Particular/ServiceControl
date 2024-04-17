@@ -31,7 +31,6 @@
             services.AddSingleton<ISubscriptionStorage>(p => p.GetRequiredService<IServiceControlSubscriptionStorage>());
 
             services.AddSingleton<IMonitoringDataStore, RavenMonitoringDataStore>();
-            services.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
             services.AddUnitOfWorkFactory<RavenIngestionUnitOfWorkFactory>();
             services.AddSingleton<ExpirationManager>();
             services.AddSingleton<MinimumRequiredStorageState>();
@@ -57,7 +56,6 @@
             services.AddSingleton<IErrorMessageDataStore, ErrorMessagesDataStore>();
             services.AddSingleton<IEventLogDataStore, EventLogDataStore>();
             services.AddSingleton<IFailedErrorImportDataStore, FailedErrorImportDataStore>();
-            services.AddSingleton<IGroupsDataStore, GroupsDataStore>();
             services.AddSingleton<IGroupsDataStore, GroupsDataStore>();
             services.AddSingleton<IMessageRedirectsDataStore, MessageRedirectsDataStore>();
             services.AddSingleton<IMonitoringDataStore, RavenMonitoringDataStore>();
