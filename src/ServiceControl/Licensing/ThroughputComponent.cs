@@ -40,6 +40,6 @@ class ThroughputComponent : ServiceControlComponent
     {
         var componentPersistenceManifest = ThroughputPersistence.PersistenceManifestLibrary.Find(PersistenceManifestLibrary.GetName(settings.PersistenceType));
 
-        services.AddThroughputPersistence(PersistenceFactory.LoadComponentPersistence(settings, componentPersistenceManifest.AssemblyPath, componentPersistenceManifest.TypeName) as ThroughputPersistence.IPersistenceConfiguration);
+        services.AddThroughputPersistence(PersistenceFactory.LoadComponentPersistence<ThroughputPersistence.IPersistenceConfiguration>(settings, componentPersistenceManifest.AssemblyPath, componentPersistenceManifest.TypeName));
     }
 }
