@@ -55,7 +55,7 @@ namespace ServiceControl.Persistence
                 : loadContext;
         }
 
-        public static object LoadComponentPersistence(Settings settings, string componentPersistenceAssemblyPath, string componentPersistenceType)
+        public static T LoadComponentPersistence<T>(Settings settings, string componentPersistenceAssemblyPath, string componentPersistenceType)
         {
             if (!loadedComponentPersisters.Contains(componentPersistenceType))
             {
@@ -83,7 +83,12 @@ namespace ServiceControl.Persistence
             ?? throw new InvalidOperationException($"Could not load type '{componentPersistenceType}' for requested persistence type '{hostPersistenceManifest.Name}' from '{loadContext.Name}' load context");
 
             loadedComponentPersisters.Add(componentPersistenceType);
-            return Activator.CreateInstance(type);
+            if (Activator.CreateInstance(type) is not T typedComponentPersistence)
+            {
+                throw new InvalidOperationException($"{componentPersistenceType} is not of type {typeof(T).Name}");
+            }
+
+            return typedComponentPersistence;
         }
     }
 }
