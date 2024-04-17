@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.RavenDB;
 
+using System;
 using CustomChecks;
 using MessageFailures;
 using MessageRedirects;
@@ -10,6 +11,7 @@ using Operations.BodyStorage.RavenAttachments;
 using Particular.ThroughputCollector.Persistence.RavenDb;
 using Persistence.MessageRedirects;
 using Persistence.Recoverability;
+using Raven.Client.Documents;
 using Recoverability;
 using SagaAudit;
 using ServiceControl.CustomChecks;
@@ -90,6 +92,9 @@ internal class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddSingleton<IRavenSessionProvider, RavenSessionProvider>();
         services.AddHostedService<RavenPersistenceLifecycleHostedService>();
 
+        services.AddSingleton(provider =>
+            new Lazy<IDocumentStore>(() => provider.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore()));
+
         if (settings.UseEmbeddedServer)
         {
             services.AddSingleton<RavenEmbeddedPersistenceLifecycle>();
@@ -102,7 +107,5 @@ internal class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddSingleton<RavenExternalPersistenceLifecycle>();
         services.AddSingleton<IRavenPersistenceLifecycle>(b => b.GetService<RavenExternalPersistenceLifecycle>());
         services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
-
-        services.AddSingleton(provider => provider.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore());
     }
 }
