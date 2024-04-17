@@ -13,12 +13,12 @@ namespace ServiceControl.Infrastructure.WebApi
     {
         [Route("")]
         [HttpGet]
-        public async Task<RootUrls> Urls(CancellationToken cancellationToken) => await configurationApi.GetUrls(Request.GetDisplayUrl() + "/", cancellationToken);
+        public RootUrls Urls() => configurationApi.GetUrls(Request.GetDisplayUrl() + "/", default).Result;
 
         [Route("instance-info")]
         [Route("configuration")]
         [HttpGet]
-        public async Task<object> Config(CancellationToken cancellationToken) => await configurationApi.GetConfig(cancellationToken);
+        public object Config() => configurationApi.GetConfig(default).Result;
 
         [Route("configuration/remotes")]
         [HttpGet]
