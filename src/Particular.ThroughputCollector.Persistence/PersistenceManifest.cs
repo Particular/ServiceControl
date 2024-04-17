@@ -101,14 +101,22 @@ public static class PersistenceManifestLibrary
         return Path.GetDirectoryName(assemblyLocation);
     }
 
-    public static PersistenceManifest? Find(string persistenceType)
+    public static PersistenceManifest Find(string persistenceType)
     {
         if (persistenceType == null)
         {
             throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
         }
 
-        return PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
+        var persistence = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
+        if (persistence == null)
+        {
+            throw new InvalidOperationException($"No persistence manifest found for persistenceType {persistenceType} in ThroughputCollector");
+        }
+        else
+        {
+            return persistence;
+        }
     }
 
     static readonly ILog logger = LogManager.GetLogger(typeof(PersistenceManifestLibrary));

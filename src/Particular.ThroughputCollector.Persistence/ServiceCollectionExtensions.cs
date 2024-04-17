@@ -1,11 +1,10 @@
-﻿namespace Particular.ThroughputCollector;
+﻿namespace Particular.ThroughputCollector.Persistence;
 
 using Microsoft.Extensions.DependencyInjection;
-using Particular.ThroughputCollector.Persistence;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddPersistence(this IServiceCollection services, IPersistenceConfiguration persistenceConfiguration)
+    public static IServiceCollection AddThroughputPersistence(this IServiceCollection services, IPersistenceConfiguration persistenceConfiguration)
     {
         var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings();
         var persistence = persistenceConfiguration.Create(persistenceSettings);
