@@ -14,7 +14,7 @@
         [Test]
         public void Should_find_persistence_type_by_name()
         {
-            var _persistenceType = PersistenceManifestLibrary.Find(persistenceName)?.TypeName;
+            var _persistenceType = PersistenceManifestLibrary.Find(persistenceName).TypeName;
 
             Assert.That(_persistenceType, Is.EqualTo(persistenceType));
         }
@@ -22,7 +22,7 @@
         [Test]
         public void Should_find_persistence_type_by_type()
         {
-            var _persistenceType = PersistenceManifestLibrary.Find(persistenceType)?.TypeName;
+            var _persistenceType = PersistenceManifestLibrary.Find(persistenceType).TypeName;
 
             Assert.That(_persistenceType, Is.EqualTo(persistenceType));
         }
@@ -30,7 +30,7 @@
         [Test]
         public void Should_find_persistence_type_folder_by_name()
         {
-            var _persistenceTypeFolder = PersistenceManifestLibrary.Find(persistenceType)?.Location;
+            var _persistenceTypeFolder = PersistenceManifestLibrary.Find(persistenceType).Location;
 
             Assert.That(_persistenceTypeFolder, Is.Not.Null);
         }
@@ -38,7 +38,7 @@
         [Test]
         public void Should_find_persistence_type_folder_by_type()
         {
-            var _persistenceTypeFolder = PersistenceManifestLibrary.Find(persistenceType)?.Location;
+            var _persistenceTypeFolder = PersistenceManifestLibrary.Find(persistenceType).Location;
 
             Assert.That(_persistenceTypeFolder, Is.Not.Null);
         }
