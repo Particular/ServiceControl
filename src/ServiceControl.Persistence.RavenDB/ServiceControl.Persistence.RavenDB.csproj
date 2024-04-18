@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <!-- Private=false & ExcludeAssets=runtime prevent repeatedly including binary dependencies of ServiceControl.Persistence and its depenencies in each persister directory -->
+    <ProjectReference Include="..\Particular.ThroughputCollector.Persistence.InMemory\Particular.ThroughputCollector.Persistence.InMemory.csproj"/>
     <ProjectReference Include="..\Particular.ThroughputCollector.Persistence.RavenDb\Particular.ThroughputCollector.Persistence.RavenDb.csproj"/>
     <ProjectReference Include="..\Particular.ThroughputCollector.Persistence\Particular.ThroughputCollector.Persistence.csproj" Private="false" ExcludeAssets="runtime"/>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.SagaAudit\ServiceControl.Audit.Persistence.SagaAudit.csproj" Private="false" ExcludeAssets="runtime" />
