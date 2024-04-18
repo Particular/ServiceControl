@@ -9,7 +9,7 @@
     class FakeConfigurationApi : IConfigurationApi
     {
         public Task<object> GetConfig(CancellationToken cancellationToken) => throw new NotImplementedException();
-        public Task<object> GetRemoteConfigs(CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 }
