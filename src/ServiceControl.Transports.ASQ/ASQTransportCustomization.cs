@@ -35,7 +35,7 @@
                 transport.Subscriptions.SubscriptionTableName = subscriptionTableName;
             }
 
-            transport.MessageWrapperSerializationDefinition = new NewtonsoftJsonSerializer();
+            transport.MessageWrapperSerializationDefinition = new SystemJsonSerializer();
 
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 

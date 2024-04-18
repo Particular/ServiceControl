@@ -97,7 +97,7 @@ public static class HostApplicationBuilderExtensions
         config.SetDiagnosticsPath(settings.LoggingSettings.LogPath);
         config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
-        config.UseSerialization<NewtonsoftJsonSerializer>();
+        config.UseSerialization<SystemJsonSerializer>();
         config.UsePersistence<NonDurablePersistence>();
 
         var recoverability = config.Recoverability();

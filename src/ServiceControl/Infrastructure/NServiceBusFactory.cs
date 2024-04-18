@@ -44,7 +44,7 @@ namespace ServiceBus.Management.Infrastructure
             recoverability.CustomPolicy(SendEmailNotificationHandler.RecoverabilityPolicy);
 
             configuration.UsePersistence<ServiceControlSubscriptionPersistence, StorageType.Subscriptions>();
-            configuration.UseSerialization<NewtonsoftJsonSerializer>();
+            configuration.UseSerialization<SystemJsonSerializer>();
 
             configuration.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 

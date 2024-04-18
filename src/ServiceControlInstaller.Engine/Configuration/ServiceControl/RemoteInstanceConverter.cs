@@ -1,35 +1,28 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
     using System.Collections.Generic;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Serialization;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
 
     public static class RemoteInstanceConverter
     {
-        public static List<RemoteInstanceSetting> FromJson(string json)
-        {
-            return JsonConvert.DeserializeObject<List<RemoteInstanceSetting>>(json, Settings);
-        }
+        public static List<RemoteInstanceSetting> FromJson(string json) => JsonSerializer.Deserialize<List<RemoteInstanceSetting>>(json, Options);
 
-        public static string ToJson(IList<RemoteInstanceSetting> settings)
-        {
-            return JsonConvert.SerializeObject(settings, Settings);
-        }
+        public static string ToJson(IList<RemoteInstanceSetting> settings) => JsonSerializer.Serialize(settings, Options);
 
-        static JsonSerializerSettings Settings = new JsonSerializerSettings
+        static readonly JsonSerializerOptions Options = new()
         {
-            ContractResolver = new DefaultContractResolver
-            {
-                NamingStrategy = new SnakeCaseNamingStrategy()
-            },
-            Formatting = Formatting.None,
-            NullValueHandling = NullValueHandling.Ignore
+            WriteIndented = false,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
     }
 
     public class RemoteInstanceSetting
     {
+        [JsonPropertyName("api_uri")]
         public string ApiUri { get; set; }
+
+        [JsonPropertyName("queue_address")]
         public string QueueAddress { get; set; }
     }
 }

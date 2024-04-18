@@ -21,7 +21,7 @@
                         var sendOptions = new SendOptions();
                         sendOptions.SetDestination(Settings.DEFAULT_ENDPOINT_NAME);
                         sendOptions.SetHeader(MetricHeaders.MetricInstanceId, "MetricInstanceId");
-                        return session.Send(new MetricReport(), sendOptions);
+                        return session.Send(new MetricReport { Data = "{}" }, sendOptions);
                     }))
                 .Done(ctx => ctx.Logs.Any(x => x.Message == "Legacy queue length report received from MetricInstanceId instance of SendingLegacyMetricReport.EndpointSendingLegacyMetricReport"))
                 .Run();

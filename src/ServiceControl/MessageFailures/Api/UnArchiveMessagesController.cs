@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System;
-    using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
@@ -15,7 +14,7 @@
     {
         [Route("errors/unarchive")]
         [HttpPatch]
-        public async Task<IActionResult> Unarchive(List<string> ids)
+        public async Task<IActionResult> Unarchive(string[] ids)
         {
             if (ids.Any(string.IsNullOrEmpty))
             {

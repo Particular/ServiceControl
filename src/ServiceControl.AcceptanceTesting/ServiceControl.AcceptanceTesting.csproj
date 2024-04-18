@@ -12,7 +12,6 @@
   <ItemGroup>
     <PackageReference Include="NServiceBus.AcceptanceTesting" />
     <PackageReference Include="NServiceBus.Extensions.Logging" />
-    <PackageReference Include="NServiceBus.Newtonsoft.Json" />
     <PackageReference Include="NServiceBus.Persistence.NonDurable" />
   </ItemGroup>
 

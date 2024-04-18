@@ -3,11 +3,10 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.IO;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using Infrastructure;
     using Monitoring;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
@@ -18,7 +17,6 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Metrics;
     using ServiceControl.SagaAudit;
-    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     class AuditPersister
     {
@@ -215,13 +213,8 @@
         {
             try
             {
-                SagaUpdatedMessage message;
-                using (var memoryStream = new ReadOnlyStream(context.Body))
-                using (var streamReader = new StreamReader(memoryStream))
-                using (var reader = new JsonTextReader(streamReader))
-                {
-                    message = sagaAuditSerializer.Deserialize<SagaUpdatedMessage>(reader);
-                }
+                using var stream = new ReadOnlyStream(context.Body);
+                SagaUpdatedMessage message = JsonSerializer.Deserialize<SagaUpdatedMessage>(stream);
 
                 var sagaSnapshot = SagaSnapshotFactory.Create(message);
 
@@ -316,7 +309,6 @@
         readonly IMessageSession messageSession;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
 
-        readonly JsonSerializer sagaAuditSerializer = new JsonSerializer();
         readonly IEnrichImportedAuditMessages[] enrichers;
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         static readonly ILog Logger = LogManager.GetLogger<AuditPersister>();

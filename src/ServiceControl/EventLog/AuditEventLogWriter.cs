@@ -40,13 +40,12 @@
                 // Yes this is on purpose.
                 // The reason is because this data is not useful for end users, so for now we just empty it.
                 // At the moment too much data is being populated in this field, and this has significant down sides to the amount of data we are sending down to ServicePulse (it actually crashes it).
-                RelatedTo = emptyArray
+                RelatedTo = []
             });
         }
 
         readonly GlobalEventHandler broadcaster;
         readonly IErrorMessageDataStore dataStore;
         readonly EventLogMappings mappings;
-        static string[] emptyArray = new string[0];
     }
 }
