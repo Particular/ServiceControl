@@ -136,16 +136,11 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
     {
         public Task<object> GetConfig(CancellationToken cancellationToken) => throw new NotImplementedException();
 
-        public Task<object> GetRemoteConfigs(CancellationToken cancellationToken = default)
+        public Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(CreateObject() as object);
-        }
+            var remote = new RemoteConfiguration { ApiUri = "http://localhost:44444/api/", Status = "online", Version = "5.1.0", Configuration = JsonNode.Parse("{\"data_retention\":{ \"audit_retention_period\":\"7.00:00:00\"},\"transport\":{\"audit_log_queue\":\"audit.log\",\"audit_queue\":\"audit\" }}") };
 
-        object[] CreateObject()
-        {
-            object remote = new { ApiUri = "http://localhost:44444/api/", Status = "online", Version = "5.1.0", Configuration = JsonNode.Parse("{\"data_retention\":{ \"audit_retention_period\":\"7.00:00:00\"},\"transport\":{\"audit_log_queue\":\"audit.log\",\"audit_queue\":\"audit\" }}") };
-
-            return [remote];
+            return Task.FromResult<RemoteConfiguration[]>([remote]);
         }
 
         public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken) => throw new NotImplementedException();
@@ -155,21 +150,16 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
     {
         public Task<object> GetConfig(CancellationToken cancellationToken) => throw new NotImplementedException();
 
-        public Task<object> GetRemoteConfigs(CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(CreateObject() as object);
-        }
-
-        object[] CreateObject()
+        public Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default)
         {
             if (!ReturnAuditConfig)
             {
-                return [];
+                return default;
             }
 
-            object remote = new { ApiUri = "http://localhost:44444/api/", Status = RemoteStatus, Version = RemoteVersion, Configuration = JsonNode.Parse("{\"data_retention\":{ \"audit_retention_period\":\"" + AuditRetensionPeriod + "\"},\"transport\":{\"audit_log_queue\":\"audit.log\",\"audit_queue\":\"audit\" }}") };
+            var remote = new RemoteConfiguration { ApiUri = "http://localhost:44444/api/", Status = RemoteStatus, Version = RemoteVersion, Configuration = JsonNode.Parse("{\"data_retention\":{ \"audit_retention_period\":\"" + AuditRetensionPeriod + "\"},\"transport\":{\"audit_log_queue\":\"audit.log\",\"audit_queue\":\"audit\" }}") };
 
-            return [remote];
+            return Task.FromResult<RemoteConfiguration[]>([remote]);
         }
 
         public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken) => throw new NotImplementedException();
