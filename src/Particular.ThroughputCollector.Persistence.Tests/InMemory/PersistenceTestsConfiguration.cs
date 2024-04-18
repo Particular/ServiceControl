@@ -12,8 +12,7 @@
         {
             var serviceCollection = new ServiceCollection();
 
-            var persistence = new InMemoryPersistence();
-            persistence.Configure(serviceCollection);
+            serviceCollection.AddThroughputInMemoryPersistence();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             ThroughputDataStore = serviceProvider.GetRequiredService<IThroughputDataStore>();
