@@ -8,7 +8,8 @@ namespace ServiceControl.Persistence.RavenDB
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
 
-    sealed class RavenExternalPersistenceLifecycle(RavenPersisterSettings settings) : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
+    sealed class RavenPersistenceLifecycle(RavenPersisterSettings settings, IConnectionStringProvider connectionStringProvider)
+        : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider
     {
         public IDocumentStore GetDocumentStore()
         {
@@ -25,7 +26,7 @@ namespace ServiceControl.Persistence.RavenDB
             var store = new DocumentStore
             {
                 Database = settings.DatabaseName,
-                Urls = [settings.ConnectionString],
+                Urls = [await connectionStringProvider.GetConnectionString()],
                 Conventions = new DocumentConventions
                 {
                     SaveEnumsAsIntegers = true

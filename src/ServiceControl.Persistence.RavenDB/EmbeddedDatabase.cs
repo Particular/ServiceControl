@@ -10,7 +10,6 @@ namespace ServiceControl.Persistence.RavenDB
     using System.Threading;
     using System.Threading.Tasks;
     using ByteSizeLib;
-    using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
@@ -19,12 +18,10 @@ namespace ServiceControl.Persistence.RavenDB
 
     public sealed class EmbeddedDatabase : IDisposable
     {
-        EmbeddedDatabase(RavenPersisterSettings configuration, IHostApplicationLifetime lifetime)
+        EmbeddedDatabase(RavenPersisterSettings configuration)
         {
             this.configuration = configuration;
             ServerUrl = configuration.ServerUrl;
-            shutdownTokenSourceRegistration = shutdownTokenSource.Token.Register(() => isStopping = true);
-            applicationStoppingRegistration = lifetime.ApplicationStopping.Register(() => isStopping = true);
         }
 
         public string ServerUrl { get; private set; }
@@ -47,7 +44,7 @@ namespace ServiceControl.Persistence.RavenDB
             throw new Exception($"RavenDB license not found. Make sure the RavenDB license file '{licenseFileName}' is stored in the same directory as {assemblyName}.");
         }
 
-        internal static EmbeddedDatabase Start(RavenPersisterSettings settings, IHostApplicationLifetime lifetime)
+        internal static EmbeddedDatabase Start(RavenPersisterSettings settings)
         {
             var licenseFileNameAndServerDirectory = GetRavenLicenseFileNameAndServerDirectory();
 
@@ -75,7 +72,7 @@ namespace ServiceControl.Persistence.RavenDB
                 serverOptions.ServerDirectory = licenseFileNameAndServerDirectory.ServerDirectory;
             }
 
-            var embeddedDatabase = new EmbeddedDatabase(settings, lifetime);
+            var embeddedDatabase = new EmbeddedDatabase(settings);
             embeddedDatabase.Start(serverOptions);
 
             RecordStartup(settings);
@@ -169,13 +166,13 @@ namespace ServiceControl.Persistence.RavenDB
                 return;
             }
 
+            isStopping = true;
+
             EmbeddedServer.Instance.ServerProcessExited -= OnServerProcessExited;
 
             shutdownTokenSource.Cancel();
             EmbeddedServer.Instance.Dispose();
             shutdownTokenSource.Dispose();
-            applicationStoppingRegistration.Dispose();
-            shutdownTokenSourceRegistration.Dispose();
 
             disposed = true;
         }
@@ -255,8 +252,6 @@ RavenDB Logging Level:              {settings.LogsMode}
         bool isStopping;
         readonly CancellationTokenSource shutdownTokenSource = new();
         readonly RavenPersisterSettings configuration;
-        readonly CancellationTokenRegistration applicationStoppingRegistration;
-        readonly CancellationTokenRegistration shutdownTokenSourceRegistration;
 
         static TimeSpan delayBetweenRestarts = TimeSpan.FromSeconds(60);
         static readonly ILog Logger = LogManager.GetLogger<EmbeddedDatabase>();

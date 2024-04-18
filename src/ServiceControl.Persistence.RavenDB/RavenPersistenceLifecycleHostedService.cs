@@ -1,13 +1,17 @@
-namespace ServiceControl.Persistence.RavenDB
+#nullable enable
+namespace ServiceControl.Persistence.RavenDB;
+
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+
+class RavenPersistenceLifecycleHostedService(IRavenPersistenceLifecycle persistenceLifecycle) : IHostedService
 {
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Microsoft.Extensions.Hosting;
+    public Task StartAsync(CancellationToken cancellationToken) => persistenceLifecycle.Initialize(cancellationToken);
 
-    class RavenPersistenceLifecycleHostedService(IRavenPersistenceLifecycle persistenceLifecycle) : IHostedService
+    public Task StopAsync(CancellationToken cancellationToken)
     {
-        public Task StartAsync(CancellationToken cancellationToken) => persistenceLifecycle.Initialize(cancellationToken);
-
-        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        persistenceLifecycle.Dispose();
+        return Task.CompletedTask;
     }
 }

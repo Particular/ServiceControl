@@ -1,20 +1,20 @@
 ﻿namespace ServiceControl.Persistence.RavenDB
 {
     using CustomChecks;
+    using MessageFailures;
     using MessageRedirects;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
+    using Operations.BodyStorage;
+    using Operations.BodyStorage.RavenAttachments;
+    using Persistence.MessageRedirects;
     using Persistence.Recoverability;
     using Recoverability;
+    using SagaAudit;
     using ServiceControl.CustomChecks;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
-    using ServiceControl.MessageFailures;
-    using ServiceControl.Operations.BodyStorage;
-    using ServiceControl.Operations.BodyStorage.RavenAttachments;
-    using ServiceControl.Persistence.MessageRedirects;
-    using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Recoverability;
-    using ServiceControl.SagaAudit;
+    using UnitOfWork;
 
     class RavenPersistence(RavenPersisterSettings settings) : IPersistence
     {
@@ -77,19 +77,24 @@
             services.AddSingleton(settings);
 
             services.AddSingleton<IRavenSessionProvider, RavenSessionProvider>();
-            services.AddHostedService<RavenPersistenceLifecycleHostedService>();
 
             if (settings.UseEmbeddedServer)
             {
-                services.AddSingleton<RavenEmbeddedPersistenceLifecycle>();
-                services.AddSingleton<IRavenPersistenceLifecycle>(b => b.GetService<RavenEmbeddedPersistenceLifecycle>());
-                services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenEmbeddedPersistenceLifecycle>());
-                return;
+                services.AddSingleton<RavenEmbeddedHostedService>();
+                services.AddHostedService(provider => provider.GetRequiredService<RavenEmbeddedHostedService>());
+                services.AddSingleton<IConnectionStringProvider>(provider =>
+                    provider.GetRequiredService<RavenEmbeddedHostedService>());
+            }
+            else
+            {
+                services.AddSingleton<IConnectionStringProvider, RavenExternalConnectionStringProvider>();
             }
 
-            services.AddSingleton<RavenExternalPersistenceLifecycle>();
-            services.AddSingleton<IRavenPersistenceLifecycle>(b => b.GetService<RavenExternalPersistenceLifecycle>());
-            services.AddSingleton<IRavenDocumentStoreProvider>(provider => provider.GetRequiredService<RavenExternalPersistenceLifecycle>());
+            services.AddHostedService<RavenPersistenceLifecycleHostedService>();
+            services.AddSingleton<RavenPersistenceLifecycle>();
+            services.AddSingleton<IRavenPersistenceLifecycle>(b => b.GetService<RavenPersistenceLifecycle>());
+            services.AddSingleton<IRavenDocumentStoreProvider>(provider =>
+                provider.GetRequiredService<RavenPersistenceLifecycle>());
         }
     }
 }
