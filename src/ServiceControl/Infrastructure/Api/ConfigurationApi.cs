@@ -88,7 +88,7 @@ class ConfigurationApi(ActiveLicense license,
         return Task.FromResult(content);
     }
 
-    public async Task<object> GetRemoteConfigs(CancellationToken cancellationToken = default)
+    public async Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default)
     {
         var remotes = settings.RemoteInstances;
         var tasks = remotes
@@ -120,7 +120,7 @@ class ConfigurationApi(ActiveLicense license,
                     status = "error";
                 }
 
-                return new
+                return new RemoteConfiguration
                 {
                     ApiUri = remote.BaseAddress,
                     Version = version,

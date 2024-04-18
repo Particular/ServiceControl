@@ -45,64 +45,52 @@
             {
                 var remotes = await configurationApi.GetRemoteConfigs(cancellationToken);
                 var remotesInfo = new List<RemoteInstanceInformation>();
-                var valueType = remotes.GetType();
 
-                if (remotes != null && valueType.IsArray)
+                if (remotes.Any())
                 {
-                    var remoteObjects = (object[])remotes;
-                    if (remoteObjects.Length > 0)
+                    List<string> queues = [];
+
+                    foreach (var remote in remotes)
                     {
-                        List<string> queues = [];
-                        var props = remoteObjects[0].GetType().GetProperties();
-
-                        var apiUriProp = props.FirstOrDefault(w => w.Name == "ApiUri");
-                        var versionProp = props.FirstOrDefault(w => w.Name == "Version");
-                        var statusProp = props.FirstOrDefault(w => w.Name == "Status");
-                        var configurationProp = props.FirstOrDefault(w => w.Name == "Configuration");
-
-                        foreach (var remote in remoteObjects)
+                        string? retention = null;
+                        if (remote.Configuration != null)
                         {
-                            var config = configurationProp != null ? configurationProp.GetValue(remote) as JsonNode : null;
-                            string? retention = null;
-                            if (config != null)
+                            retention = remote.Configuration.AsObject().TryGetPropertyValue("data_retention", out var dataRetention) &&
+                                        dataRetention?.AsObject().TryGetPropertyValue("audit_retention_period", out var auditRetentionPeriod) == true
+                                        ? auditRetentionPeriod!.GetValue<string>()
+                                        : null;
+
+                            if (remote.Configuration.AsObject().TryGetPropertyValue("host", out var host) &&
+                                        host?.AsObject().TryGetPropertyValue("service_name", out var serviceName) == true)
                             {
-                                retention = config?.AsObject().TryGetPropertyValue("data_retention", out var dataRetention) == true &&
-                                            dataRetention?.AsObject().TryGetPropertyValue("audit_retention_period", out var auditRetentionPeriod) == true
-                                            ? auditRetentionPeriod!.GetValue<string>()
-                                            : null;
-
-                                if (config?.AsObject().TryGetPropertyValue("host", out var host) == true &&
-                                            host?.AsObject().TryGetPropertyValue("service_name", out var serviceName) == true)
-                                {
-                                    queues.Add(serviceName!.GetValue<string>());
-                                }
-
-                                if (config?.AsObject().TryGetPropertyValue("transport", out var transport) == true)
-                                {
-                                    if (transport?.AsObject().TryGetPropertyValue("audit_queue", out var auditQueue) == true)
-                                    {
-                                        queues.Add(auditQueue!.GetValue<string>());
-                                    }
-                                    if (transport?.AsObject().TryGetPropertyValue("audit_log_queue", out var auditLogQueue) == true)
-                                    {
-                                        queues.Add(auditLogQueue!.GetValue<string>());
-                                    }
-                                }
+                                queues.Add(serviceName!.GetValue<string>());
                             }
 
-                            var remoteInstance = new RemoteInstanceInformation
+                            if (remote.Configuration.AsObject().TryGetPropertyValue("transport", out var transport))
                             {
-                                ApiUri = apiUriProp != null ? apiUriProp.GetValue(remote)?.ToString() : "",
-                                VersionString = versionProp != null ? versionProp.GetValue(remote)?.ToString() : "",
-                                Status = statusProp != null ? statusProp.GetValue(remote)?.ToString() : "",
-                                Retention = TimeSpan.TryParse(retention, out var ts) ? ts : TimeSpan.Zero,
-                                Queues = queues
-                            };
-
-                            remoteInstance.SemanticVersion = SemanticVersion.TryParse(remoteInstance.VersionString ?? string.Empty, out var v) ? v : null;
-
-                            remotesInfo.Add(remoteInstance);
+                                if (transport?.AsObject().TryGetPropertyValue("audit_queue", out var auditQueue) == true)
+                                {
+                                    queues.Add(auditQueue!.GetValue<string>());
+                                }
+                                if (transport?.AsObject().TryGetPropertyValue("audit_log_queue", out var auditLogQueue) == true)
+                                {
+                                    queues.Add(auditLogQueue!.GetValue<string>());
+                                }
+                            }
                         }
+
+                        var remoteInstance = new RemoteInstanceInformation
+                        {
+                            ApiUri = remote.ApiUri,
+                            VersionString = remote.Version,
+                            Status = remote.Status,
+                            Retention = TimeSpan.TryParse(retention, out var ts) ? ts : TimeSpan.Zero,
+                            Queues = queues
+                        };
+
+                        remoteInstance.SemanticVersion = SemanticVersion.TryParse(remoteInstance.VersionString ?? string.Empty, out var v) ? v : null;
+
+                        remotesInfo.Add(remoteInstance);
                     }
                 }
 
