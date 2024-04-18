@@ -21,7 +21,7 @@ using UnitOfWork;
 using IPersistence = IPersistence;
 using PersistenceSettings = PersistenceSettings;
 
-internal class RavenPersistence(RavenPersisterSettings settings) : IPersistence
+class RavenPersistence(RavenPersisterSettings settings) : IPersistence
 {
     public void AddPersistence(IServiceCollection services)
     {
@@ -94,7 +94,7 @@ internal class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddThroughputInMemoryPersistence();
     }
 
-    private void ConfigureLifecycle(IServiceCollection services)
+    void ConfigureLifecycle(IServiceCollection services)
     {
         services.AddSingleton<PersistenceSettings>(settings);
         services.AddSingleton(settings);

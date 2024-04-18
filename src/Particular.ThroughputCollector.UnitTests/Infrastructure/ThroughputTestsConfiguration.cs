@@ -30,8 +30,7 @@
 
             serviceCollection.AddLogging();
 
-            var persistence = new InMemoryPersistence();
-            persistence.Configure(serviceCollection);
+            serviceCollection.AddThroughputInMemoryPersistence();
 
             setExtraDependencies(serviceCollection);
 
