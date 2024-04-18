@@ -91,7 +91,7 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddThroughputInMemoryPersistence();
     }
 
-    private void ConfigureLifecycle(IServiceCollection services)
+    void ConfigureLifecycle(IServiceCollection services)
     {
         ConfigureLifecycle(services);
     }
