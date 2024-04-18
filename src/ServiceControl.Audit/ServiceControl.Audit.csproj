@@ -33,6 +33,10 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" />
   </ItemGroup>
 
+   <ItemGroup>
+    <Compile Include="..\ServiceControl.SagaAudit\**\*.cs" Exclude="..\ServiceControl.SagaAudit\obj\**\*" LinkBase="SagaAudit" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Remove="Infrastructure\Hosting\Help.txt" />
     <EmbeddedResource Include="Infrastructure\Hosting\Help.txt" />
