@@ -32,7 +32,7 @@
             {
                 Script = @$"
                     var insert = {document};
-                    
+
                     for(var key in insert) {{
                         if(insert.hasOwnProperty(key)) {{
                             this[key] = insert[key];
