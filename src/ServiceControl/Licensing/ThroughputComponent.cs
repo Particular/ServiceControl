@@ -1,7 +1,5 @@
 namespace Particular.ServiceControl;
 
-using System;
-using System.Reflection;
 using global::ServiceControl.Infrastructure;
 using global::ServiceControl.LicenseManagement;
 using global::ServiceControl.Transports;

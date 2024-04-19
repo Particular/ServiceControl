@@ -132,4 +132,5 @@ public class ThroughputDataStore(
 
     public Task SaveEnvironmentData(string? scopeType, Dictionary<string, string> data, CancellationToken cancellationToken) =>
         throw new NotImplementedException();
+    public Task SaveAuditInstancesInEnvironmentData(List<AuditInstance> auditInstances, CancellationToken cancellationToken) => throw new NotImplementedException();
 }

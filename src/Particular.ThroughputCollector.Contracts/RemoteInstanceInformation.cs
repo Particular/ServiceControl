@@ -10,4 +10,5 @@ public class RemoteInstanceInformation
     public List<string> Queues { get; set; } = [];
     public SemanticVersion? SemanticVersion { get; set; }
     public TimeSpan Retention { get; set; }
+    public string? Transport { get; set; }
 }
