@@ -120,20 +120,22 @@
                 return connectionTestResult;
             }
 
-            foreach (var remote in remotesInfo.Where(w => w.Status != "online" && w.SemanticVersion == null))
+            foreach (var remote in remotesInfo)
             {
-                connectionTestResult.ConnectionErrorMessages.Add($"{remote.ApiUri} - unable to determine the version of ServiceControl Audit instance. The instance status is '{remote.Status}' and the version is '{remote.VersionString}'.");
-            }
-
-            foreach (var remote in remotesInfo.Where(w => !ValidRemoteInstances(w)))
-            {
-                if (remote.SemanticVersion == null || remote.SemanticVersion < MinAuditCountsVersion)
+                if (remote.Status != "online" && remote.SemanticVersion == null)
                 {
-                    connectionTestResult.ConnectionErrorMessages.Add($"{remote.ApiUri} - ServiceControl Audit instance with invalid version of '{remote.VersionString}' (minimum version is {MinAuditCountsVersion}). Audit throughput will not be available.");
+                    connectionTestResult.ConnectionErrorMessages.Add($"{remote.ApiUri} - version of ServiceControl Audit instance could not be determined, hence audit throughput data will not be available.");
                 }
-                if (remote.Retention < TimeSpan.FromDays(2))
+                else
                 {
-                    connectionTestResult.ConnectionErrorMessages.Add($"{remote.ApiUri} - ServiceControl Audit instance with invalid retention period configuration of {remote.Retention.Days} days (minimum is 2 days). Audit throughput will not be available.");
+                    if (remote.SemanticVersion == null || remote.SemanticVersion < MinAuditCountsVersion)
+                    {
+                        connectionTestResult.ConnectionErrorMessages.Add($"{remote.ApiUri} - version ({remote.VersionString}) of ServiceControl Audit instance is too old (minimum version is {MinAuditCountsVersion}), hence audit throughput data will not be available.");
+                    }
+                    if (remote.Retention < TimeSpan.FromDays(2))
+                    {
+                        connectionTestResult.ConnectionErrorMessages.Add($"{remote.ApiUri} - retention period of ServiceControl Audit instance is set to {remote.Retention.Days} days (minimum is 2 days),  hence audit throughput data will not be available.");
+                    }
                 }
             }
 
