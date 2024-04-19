@@ -29,6 +29,7 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
 
         // Assert
         Assert.That(reportGenerationState.ReportCanBeGenerated, Is.False);
+        Assert.That(reportGenerationState.Reason.Contains("24hrs"), Is.True);
     }
 
     [Test]
@@ -45,6 +46,7 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
 
         // Assert
         Assert.That(reportGenerationState.ReportCanBeGenerated, Is.True);
+        Assert.That(reportGenerationState.Reason, Is.EqualTo(""));
     }
 
     [Test]

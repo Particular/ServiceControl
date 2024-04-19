@@ -1,7 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.AuditThroughput
 {
     using System.Text;
-    using System.Text.Json.Nodes;
     using Contracts;
     using Microsoft.Extensions.Logging;
     using NuGet.Versioning;
@@ -53,6 +52,7 @@
                     foreach (var remote in remotes)
                     {
                         string? retention = null;
+                        string? transportTypeUsed = null;
                         if (remote.Configuration != null)
                         {
                             retention = remote.Configuration.AsObject().TryGetPropertyValue("data_retention", out var dataRetention) &&
@@ -76,6 +76,10 @@
                                 {
                                     queues.Add(auditLogQueue!.GetValue<string>());
                                 }
+                                if (transport?.AsObject().TryGetPropertyValue("transport_type", out var transportType) == true)
+                                {
+                                    transportTypeUsed = transportType!.GetValue<string>();
+                                }
                             }
                         }
 
@@ -85,7 +89,8 @@
                             VersionString = remote.Version,
                             Status = remote.Status,
                             Retention = TimeSpan.TryParse(retention, out var ts) ? ts : TimeSpan.Zero,
-                            Queues = queues
+                            Queues = queues,
+                            Transport = transportTypeUsed ?? ""
                         };
 
                         remoteInstance.SemanticVersion = SemanticVersion.TryParse(remoteInstance.VersionString ?? string.Empty, out var v) ? v : null;
