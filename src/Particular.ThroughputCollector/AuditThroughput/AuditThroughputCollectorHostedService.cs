@@ -1,5 +1,6 @@
 namespace Particular.ThroughputCollector.AuditThroughput;
 
+using System.Threading;
 using Contracts;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -24,8 +25,6 @@ public class AuditThroughputCollectorHostedService(
         try
         {
             await Task.Delay(DelayStart, cancellationToken);
-
-            PlatformEndpointHelper.AuditQueues = (await auditQuery.GetAuditRemotes(cancellationToken))?.SelectMany(s => s.Queues)?.ToList() ?? [];
 
             using PeriodicTimer timer = new(TimeSpan.FromDays(1), timeProvider);
 
@@ -109,6 +108,7 @@ public class AuditThroughputCollectorHostedService(
     async Task VerifyAuditInstances(CancellationToken cancellationToken)
     {
         var remotesInfo = await auditQuery.GetAuditRemotes(cancellationToken);
+        await SaveAuditInstanceData(remotesInfo, cancellationToken);
 
         foreach (var remote in remotesInfo)
         {
@@ -126,6 +126,23 @@ public class AuditThroughputCollectorHostedService(
         if (!allHaveAuditCounts)
         {
             logger.LogWarning($"At least one ServiceControl Audit instance is either not running the required version ({auditQuery.MinAuditCountsVersion}) or is not configured for at least 2 days of retention. Audit throughput will not be available.");
+        }
+    }
+
+    async Task SaveAuditInstanceData(List<RemoteInstanceInformation>? auditRemotes, CancellationToken cancellationToken)
+    {
+        PlatformEndpointHelper.AuditQueues = auditRemotes?.SelectMany(s => s.Queues)?.ToList() ?? [];
+
+        if (auditRemotes != null)
+        {
+            var auditRemoteInstances = auditRemotes.Select(s => new AuditInstance
+            {
+                Url = s.ApiUri ?? "",
+                MessageTransport = s.Transport,
+                Version = s.VersionString
+            });
+
+            await dataStore.SaveAuditInstancesInEnvironmentData(auditRemoteInstances.ToList(), cancellationToken);
         }
     }
 }
