@@ -57,7 +57,7 @@
                 return File(JsonSerializer.SerializeToUtf8Bytes(report, options), "application/json", fileDownloadName: $"{report.ReportData.CustomerName}.throughput-report-{report.ReportData.EndTime:yyyyMMdd-HHmmss}.json");
             }
 
-            return BadRequest("Report cannot be generated.");
+            return BadRequest($"Report cannot be generated - {reportStatus.Reason}");
         }
 
         [Route("settings/info")]
