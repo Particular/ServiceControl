@@ -151,6 +151,17 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
         return await Task.FromResult(environmentData);
     }
 
+    public async Task SaveAuditInstancesInEnvironmentData(List<AuditInstance> auditInstances, CancellationToken cancellationToken)
+    {
+        var existingEnvironmentData = await GetEnvironmentData(cancellationToken);
+        if (existingEnvironmentData == null)
+        {
+            existingEnvironmentData = new EnvironmentData();
+            environmentData = existingEnvironmentData;
+        }
+        existingEnvironmentData.AuditInstances = auditInstances.ToArray();
+    }
+
     class EndpointCollection : KeyedCollection<EndpointIdentifier, Endpoint>
     {
         protected override EndpointIdentifier GetKeyForItem(Endpoint item) => item.Id;
