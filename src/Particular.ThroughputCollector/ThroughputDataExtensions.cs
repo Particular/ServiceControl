@@ -1,7 +1,6 @@
 ﻿namespace Particular.ThroughputCollector;
 
-using System.Linq;
-using Particular.ThroughputCollector.Contracts;
+using Contracts;
 
 static class ThroughputDataExtensions
 {
@@ -11,10 +10,17 @@ static class ThroughputDataExtensions
 
     public static long Sum(this List<ThroughputData> throughputs) => throughputs.SelectMany(t => t).Sum(kvp => kvp.Value);
 
-    public static long Max(this List<ThroughputData> throughputs) =>
-        throughputs.Any()
-            ? throughputs.SelectMany(t => t).Max(kvp => kvp.Value)
-            : 0;
+    public static long Max(this List<ThroughputData> throughputs)
+    {
+        var items = throughputs.SelectMany(t => t).ToArray();
+
+        if (items.Any())
+        {
+            return items.Max(kvp => kvp.Value);
+        }
+
+        return 0;
+    }
 
     public static bool HasDataFromSource(this IDictionary<string, IEnumerable<ThroughputData>> throughputPerQueue, ThroughputSource source) =>
         throughputPerQueue.Any(queueName => queueName.Value.Any(data => data.ThroughputSource == source && data.Count > 0));
