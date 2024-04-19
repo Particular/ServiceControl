@@ -1,6 +1,5 @@
 ﻿namespace Particular.ThroughputCollector;
 
-using System.Threading;
 using AuditThroughput;
 using Contracts;
 using MonitoringThroughput;
@@ -132,7 +131,7 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
             var throughputData = data.ToList();
 
             var userIndicator = UserIndicator(endpointGroupPerQueue) ?? string.Empty;
-            var notAnNsbEndpoint = userIndicator.Equals(Contracts.UserIndicator.NotNServicebusEndpoint.ToString(), StringComparison.OrdinalIgnoreCase);
+            var notAnNsbEndpoint = userIndicator.Equals(Contracts.UserIndicator.NotNServiceBusEndpoint.ToString(), StringComparison.OrdinalIgnoreCase);
 
             //get all data that we have, including daily values
             var queueThroughput = new QueueThroughput
