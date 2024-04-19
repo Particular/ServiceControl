@@ -21,11 +21,6 @@ public class Report
 
     public string ToolVersion { get; init; }
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
-    public string ServiceControlVersion { get; set; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
-    public string ServicePulseVersion { get; set; }
-
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string? Prefix { get; init; }
 
@@ -52,7 +47,7 @@ public class Report
     public string[] IgnoredQueues { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
-    public Dictionary<string, string> EnvironmentData { get; set; }
+    public EnvironmentInformation EnvironmentInformation { get; set; }
 }
 
 public class QueueThroughput
@@ -80,4 +75,12 @@ public class QueueThroughput
     public EndpointDailyThroughput[] DailyThroughputFromAudit { get; init; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public EndpointDailyThroughput[] DailyThroughputFromMonitoring { get; init; }
+}
+
+public class EnvironmentInformation
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
+    public AuditInstance[] AuditInstances { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string> EnvironmentData { get; set; }
 }

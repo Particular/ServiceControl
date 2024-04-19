@@ -30,4 +30,5 @@ public interface IThroughputDataStore
     Task<EnvironmentData?> GetEnvironmentData(CancellationToken cancellationToken);
 
     Task SaveEnvironmentData(string? scopeType, Dictionary<string, string> data, CancellationToken cancellationToken);
+    Task SaveAuditInstancesInEnvironmentData(List<AuditInstance> auditInstances, CancellationToken cancellationToken);
 }
