@@ -1,11 +1,10 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests;
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Contracts;
+using Infrastructure;
 using NUnit.Framework;
-using Particular.ThroughputCollector.Contracts;
-using Particular.ThroughputCollector.UnitTests.Infrastructure;
 
 [TestFixture]
 class ThroughputCollector_Report_Indicator_Tests : ThroughputCollectorTestFixture
@@ -47,7 +46,8 @@ class ThroughputCollector_Report_Indicator_Tests : ThroughputCollectorTestFixtur
         // Arrange
         await DataStore.CreateBuilder()
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker, ThroughputSource.Monitoring])
-            .ConfigureEndpoint(ThroughputSource.Broker, endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpointScaledOut.ToString())
+            .ConfigureEndpoint(ThroughputSource.Broker,
+                endpoint => endpoint.UserIndicator = UserIndicator.TransactionSessionEndpoint.ToString())
             .WithThroughput(ThroughputSource.Broker, days: 2)
             .WithThroughput(ThroughputSource.Monitoring, days: 2)
             .Build();
@@ -59,6 +59,7 @@ class ThroughputCollector_Report_Indicator_Tests : ThroughputCollectorTestFixtur
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Length, Is.EqualTo(1));
 
-        Assert.That(report.ReportData.Queues[0].UserIndicator, Is.EqualTo(UserIndicator.NServicebusEndpointScaledOut.ToString()));
+        Assert.That(report.ReportData.Queues[0].UserIndicator,
+            Is.EqualTo(UserIndicator.TransactionSessionEndpoint.ToString()));
     }
 }
