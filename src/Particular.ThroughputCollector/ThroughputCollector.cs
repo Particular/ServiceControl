@@ -97,8 +97,13 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
     {
         var reportGenerationState = new ReportGenerationState(transport)
         {
-            ReportCanBeGenerated = await dataStore.IsThereThroughputForLastXDays(30, cancellationToken)
+            ReportCanBeGenerated = await dataStore.IsThereThroughputForLastXDays(30, cancellationToken),
         };
+
+        if (!reportGenerationState.ReportCanBeGenerated)
+        {
+            reportGenerationState.Reason = "24hrs worth of data needs to exist in the last 30 days.";
+        }
 
         return reportGenerationState;
     }
@@ -157,13 +162,11 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
             Prefix = null,
             MessageTransport = transport,
             ToolVersion = "V3", //ensure we check for this on the other side - ie that we can process V3
-            ServiceControlVersion = throughputSettings.ServiceControlVersion,
-            ServicePulseVersion = spVersion,
             IgnoredQueues = [.. ignoredQueueNames],
             Queues = [.. queueThroughputs],
             TotalQueues = queueThroughputs.Count,
             TotalThroughput = queueThroughputs.Sum(q => q.Throughput ?? 0),
-            EnvironmentData = environmentData?.Data ?? []
+            EnvironmentInformation = new EnvironmentInformation { AuditInstances = environmentData?.AuditInstances ?? [], EnvironmentData = environmentData?.Data ?? [] }
         };
 
         var auditThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromAudit).ToArray();
@@ -177,8 +180,27 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         report.StartTime = new DateTimeOffset(new[] { firstAuditThroughputDate, firstMonitoringThroughputDate, firstBrokerThroughputDate }.Min(), TimeSpan.Zero);
         report.ReportDuration = report.EndTime - report.StartTime;
 
-        report.EnvironmentData.Add(EnvironmentDataType.AuditEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Audit).ToString());
-        report.EnvironmentData.Add(EnvironmentDataType.MonitoringEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Monitoring).ToString());
+        report.EnvironmentInformation.EnvironmentData.AddOrUpdate(EnvironmentDataType.ServiceControlVersion.ToString(), throughputSettings.ServiceControlVersion);
+        report.EnvironmentInformation.EnvironmentData.AddOrUpdate(EnvironmentDataType.ServicePulseVersion.ToString(), spVersion);
+        report.EnvironmentInformation.EnvironmentData.AddOrUpdate(EnvironmentDataType.AuditEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Audit).ToString());
+        report.EnvironmentInformation.EnvironmentData.AddOrUpdate(EnvironmentDataType.MonitoringEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Monitoring).ToString());
+
+        //if (!report.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.ServiceControlVersion.ToString()))
+        //{
+        //    report.EnvironmentInformation.EnvironmentData.Add(EnvironmentDataType.ServiceControlVersion.ToString(), throughputSettings.ServiceControlVersion);
+        //}
+        //if (!report.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.ServicePulseVersion.ToString()))
+        //{
+        //    report.EnvironmentInformation.EnvironmentData.Add(EnvironmentDataType.ServicePulseVersion.ToString(), spVersion);
+        //}
+        //if (!report.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.AuditEnabled.ToString()))
+        //{
+        //    report.EnvironmentInformation.EnvironmentData.Add(EnvironmentDataType.AuditEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Audit).ToString());
+        //}
+        //if (!report.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.MonitoringEnabled.ToString()))
+        //{
+        //    report.EnvironmentInformation.EnvironmentData.Add(EnvironmentDataType.MonitoringEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Monitoring).ToString());
+        //}
 
         var throughputReport = new SignedReport() { ReportData = report, Signature = Signature.SignReport(report) };
         return throughputReport;
