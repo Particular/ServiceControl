@@ -1,11 +1,10 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests;
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Contracts;
+using Infrastructure;
 using NUnit.Framework;
-using Particular.ThroughputCollector.Contracts;
-using Particular.ThroughputCollector.UnitTests.Infrastructure;
 
 [TestFixture]
 class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixture
@@ -24,11 +23,14 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         // Arrange
         await DataStore.CreateBuilder()
             .AddEndpoint(sources: [ThroughputSource.Broker])
-            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpoint.ToString()).WithThroughput(days: 2)
+            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServiceBusEndpoint.ToString())
+            .WithThroughput(days: 2)
             .AddEndpoint(sources: [ThroughputSource.Broker])
-            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpoint.ToString()).WithThroughput(days: 2)
+            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServiceBusEndpoint.ToString())
+            .WithThroughput(days: 2)
             .AddEndpoint("Endpoint3", sources: [ThroughputSource.Broker])
-            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NotNServicebusEndpoint.ToString()).WithThroughput(days: 2)
+            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NotNServiceBusEndpoint.ToString())
+            .WithThroughput(days: 2)
             .Build();
 
         // Act
@@ -46,13 +48,19 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         // Arrange
         await DataStore.CreateBuilder()
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker])
-            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpoint.ToString()).WithThroughput(days: 2)
+            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServiceBusEndpoint.ToString())
+            .WithThroughput(days: 2)
             .AddEndpoint("Endpoint2", sources: [ThroughputSource.Broker])
-            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpointNoLongerInUse.ToString()).WithThroughput(days: 2)
+            .ConfigureEndpoint(endpoint =>
+                endpoint.UserIndicator = UserIndicator.NServiceBusEndpointNoLongerInUse.ToString())
+            .WithThroughput(days: 2)
             .AddEndpoint("Endpoint3", sources: [ThroughputSource.Broker])
-            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpointSendOnly.ToString()).WithThroughput(days: 2)
+            .ConfigureEndpoint(
+                endpoint => endpoint.UserIndicator = UserIndicator.NServiceBusEndpointSendOnly.ToString())
+            .WithThroughput(days: 2)
             .AddEndpoint("Endpoint4", sources: [ThroughputSource.Broker])
-            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NServicebusEndpointScaledOut.ToString()).WithThroughput(days: 2)
+            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.PlannedToDecommission.ToString())
+            .WithThroughput(days: 2)
             .Build();
 
         // Act
