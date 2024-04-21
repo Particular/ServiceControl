@@ -1,5 +1,6 @@
 namespace Particular.ThroughputCollector.AuditThroughput;
 
+using System;
 using System.Threading;
 using Contracts;
 using Microsoft.Extensions.Hosting;
@@ -135,14 +136,17 @@ public class AuditThroughputCollectorHostedService(
 
         if (auditRemotes != null)
         {
-            var auditRemoteInstances = auditRemotes.Select(s => new AuditInstance
-            {
-                Url = s.ApiUri ?? "",
-                MessageTransport = s.Transport,
-                Version = s.VersionString
-            });
+            var versions = auditRemotes
+                .Where(s => s.VersionString is not null)
+                .GroupBy(s => s.VersionString!)
+                .ToDictionary(g => g.Key, g => g.Count());
 
-            await dataStore.SaveAuditInstancesInEnvironmentData(auditRemoteInstances.ToList(), cancellationToken);
+            var transports = auditRemotes
+                .Where(s => s.Transport is not null)
+                .GroupBy(s => s.Transport!)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            await dataStore.SaveAuditServiceMetadata(new AuditServiceMetadata(versions, transports), cancellationToken);
         }
     }
 }
