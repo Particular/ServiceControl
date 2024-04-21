@@ -1,5 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.Persistence.RavenDb;
 
+using System.Threading;
 using Contracts;
 using Models;
 using Raven.Client.Documents;
@@ -11,10 +12,15 @@ public class ThroughputDataStore(
     DatabaseConfiguration databaseConfiguration) : IThroughputDataStore
 {
     const string ThroughputTimeSeriesName = "INC: throughput data";
+    const string AuditServiceMetadataDocumentId = "AuditServiceMetadata";
+    const string BrokerMetadataDocumentId = "BrokerMetadata";
+
+    static readonly AuditServiceMetadata DefaultAuditServiceMetadata = new([], []);
+    static readonly BrokerMetadata DefaultBrokerMetadata = new(null, []);
 
     public async Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken)
     {
-        using IAsyncDocumentSession? session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
         var baseQuery = session.Query<EndpointDocument>();
 
@@ -29,7 +35,7 @@ public class ThroughputDataStore(
 
     public async Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken)
     {
-        using IAsyncDocumentSession? session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
         var documentId = id.GenerateDocumentId();
 
@@ -55,7 +61,7 @@ public class ThroughputDataStore(
     {
         var endpoints = new List<(EndpointIdentifier, Endpoint?)>();
 
-        using IAsyncDocumentSession? session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
         var documentIdLookup = endpointIds.ToDictionary(
             endpointId => endpointId,
@@ -92,7 +98,7 @@ public class ThroughputDataStore(
     {
         var document = endpoint.ToEndpointDocument();
 
-        using IAsyncDocumentSession? session = store.Value.OpenAsyncSession("throughput");
+        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
         await session.StoreAsync(document, document.GenerateDocumentId(), cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
@@ -108,7 +114,7 @@ public class ThroughputDataStore(
         }
 
         var id = new EndpointIdentifier(endpointName, throughputSource);
-        using IAsyncDocumentSession? session = store.Value.OpenAsyncSession("throughput");
+        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
         var documentId = id.GenerateDocumentId();
         var document = await session.LoadAsync<EndpointDocument>(documentId, cancellationToken) ??
@@ -127,10 +133,36 @@ public class ThroughputDataStore(
     public Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator, CancellationToken cancellationToken) => throw new NotImplementedException();
 
     public Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken) => throw new NotImplementedException();
-    public Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken) => throw new NotImplementedException();
-    public Task<EnvironmentData?> GetEnvironmentData(CancellationToken cancellationToken) => throw new NotImplementedException();
 
-    public Task SaveEnvironmentData(string? scopeType, Dictionary<string, string> data, CancellationToken cancellationToken) =>
-        throw new NotImplementedException();
-    public Task SaveAuditInstancesInEnvironmentData(List<AuditInstance> auditInstances, CancellationToken cancellationToken) => throw new NotImplementedException();
+    public Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken) => throw new NotImplementedException();
+
+    public async Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken)
+    {
+        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+
+        return await session.LoadAsync<BrokerMetadata>(BrokerMetadataDocumentId, cancellationToken) ?? DefaultBrokerMetadata;
+    }
+
+    public async Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken)
+    {
+        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+
+        await session.StoreAsync(brokerMetadata, BrokerMetadataDocumentId, cancellationToken);
+        await session.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<AuditServiceMetadata> GetAuditServiceMetadata(CancellationToken cancellationToken)
+    {
+        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+
+        return await session.LoadAsync<AuditServiceMetadata>(AuditServiceMetadataDocumentId, cancellationToken) ?? DefaultAuditServiceMetadata;
+    }
+
+    public async Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken)
+    {
+        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+
+        await session.StoreAsync(auditServiceMetadata, AuditServiceMetadataDocumentId, cancellationToken);
+        await session.SaveChangesAsync(cancellationToken);
+    }
 }

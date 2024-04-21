@@ -12,7 +12,8 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
 {
     private readonly EndpointCollection endpoints = [];
     private readonly Dictionary<EndpointIdentifier, ThroughputData> allThroughput = [];
-    private EnvironmentData? environmentData;
+    private BrokerMetadata brokerMetadata = new(null, []);
+    private AuditServiceMetadata auditServiceMetadata = new([], []);
 
     public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken)
     {
@@ -130,36 +131,20 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
 
     private List<Endpoint> GetAllConnectedEndpoints(string name) => endpoints.Where(w => w.SanitizedName == name).ToList();
 
-    public async Task SaveEnvironmentData(string? scopeType, Dictionary<string, string> data, CancellationToken cancellationToken)
-    {
-        var existingEnvironmentData = await GetEnvironmentData(cancellationToken);
-        if (existingEnvironmentData == null)
-        {
-            existingEnvironmentData = new EnvironmentData();
-            environmentData = existingEnvironmentData;
-        }
-        existingEnvironmentData.ScopeType = scopeType;
-        existingEnvironmentData.Data = existingEnvironmentData.Data.Concat(data)
-               .GroupBy(kv => kv.Key)
-               .ToDictionary(g => g.Key, g => g.Last().Value);
+    public Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken) => Task.FromResult(brokerMetadata);
 
-        await Task.CompletedTask;
+    public Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken)
+    {
+        this.brokerMetadata = brokerMetadata;
+        return Task.CompletedTask;
     }
 
-    public async Task<EnvironmentData?> GetEnvironmentData(CancellationToken cancellationToken)
-    {
-        return await Task.FromResult(environmentData);
-    }
+    public Task<AuditServiceMetadata> GetAuditServiceMetadata(CancellationToken cancellationToken) => Task.FromResult(auditServiceMetadata);
 
-    public async Task SaveAuditInstancesInEnvironmentData(List<AuditInstance> auditInstances, CancellationToken cancellationToken)
+    public Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken)
     {
-        var existingEnvironmentData = await GetEnvironmentData(cancellationToken);
-        if (existingEnvironmentData == null)
-        {
-            existingEnvironmentData = new EnvironmentData();
-            environmentData = existingEnvironmentData;
-        }
-        existingEnvironmentData.AuditInstances = auditInstances.ToArray();
+        this.auditServiceMetadata = auditServiceMetadata;
+        return Task.CompletedTask;
     }
 
     class EndpointCollection : KeyedCollection<EndpointIdentifier, Endpoint>
