@@ -153,14 +153,15 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
             queueThroughputs.Add(queueThroughput);
         }
 
-        var environmentData = await dataStore.GetEnvironmentData(cancellationToken);
+        var auditServiceMetadata = await dataStore.GetAuditServiceMetadata(cancellationToken);
+        var brokerMetaData = await dataStore.GetBrokerMetadata(cancellationToken);
         var yesterday = DateTime.UtcNow.Date.AddDays(-1);
         var report = new Report
         {
             EndTime = new DateTimeOffset(yesterday, TimeSpan.Zero),
             CustomerName = throughputSettings.CustomerName, //who the license is registeredTo
             ReportMethod = "NA",
-            ScopeType = environmentData?.ScopeType ?? "",
+            ScopeType = brokerMetaData.ScopeType ?? "",
             Prefix = null,
             MessageTransport = transport,
             ToolVersion = "V3", //ensure we check for this on the other side - ie that we can process V3
@@ -168,7 +169,7 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
             Queues = [.. queueThroughputs],
             TotalQueues = queueThroughputs.Count,
             TotalThroughput = queueThroughputs.Sum(q => q.Throughput ?? 0),
-            EnvironmentInformation = new EnvironmentInformation { AuditInstances = environmentData?.AuditInstances ?? [], EnvironmentData = environmentData?.Data ?? [] }
+            EnvironmentInformation = new EnvironmentInformation { AuditServiceMetadata = auditServiceMetadata, EnvironmentData = brokerMetaData.Data }
         };
 
         var auditThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromAudit).ToArray();

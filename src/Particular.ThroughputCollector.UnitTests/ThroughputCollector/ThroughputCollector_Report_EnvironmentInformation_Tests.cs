@@ -1,7 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests;
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.ThroughputCollector.Contracts;
@@ -154,16 +153,13 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
             .AddEndpoint(sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
             .Build();
 
-        var version = "1.2";
-        var scopeType = "testingScope";
-        var auditInstance1 = new AuditInstance { Url = "http://localhost:44", MessageTransport = "AzureServiceBus", Version = "4.3.6" };
-        var auditInstance2 = new AuditInstance { Url = "http://localhost:43", MessageTransport = "AzureServiceBus", Version = "4.3.6" };
-        var brokerData = new Dictionary<string, string>
-        {
-            { EnvironmentDataType.Version.ToString(), version }
-        };
-        await DataStore.SaveEnvironmentData(scopeType, brokerData, default);
-        await DataStore.SaveAuditInstancesInEnvironmentData([auditInstance1, auditInstance2], default);
+        var expectedBrokerVersion = "1.2";
+        var expectedScopeType = "testingScope";
+        await DataStore.SaveBrokerMetadata(new BrokerMetadata(expectedScopeType, new Dictionary<string, string> { [EnvironmentDataType.Version.ToString()] = expectedBrokerVersion }));
+
+        var expectedAuditVersionSummary = new Dictionary<string, int> { ["4.3.6"] = 2 };
+        var expectedAuditTransportSummary = new Dictionary<string, int> { ["AzureServiceBus"] = 2 };
+        await DataStore.SaveAuditServiceMetadata(new AuditServiceMetadata(expectedAuditVersionSummary, expectedAuditTransportSummary));
 
         // Act
         var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
@@ -173,13 +169,10 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
         Assert.That(report.ReportData.EnvironmentInformation, Is.Not.Null, $"Environment information missing from the report");
         Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
         Assert.That(report.ReportData.ScopeType, Is.Not.Null, $"Missing ScopeType from report");
-        Assert.That(report.ReportData.ScopeType, Is.EqualTo(scopeType), $"Invalid ScopeType on report");
+        Assert.That(report.ReportData.ScopeType, Is.EqualTo(expectedScopeType), $"Invalid ScopeType on report");
         Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.Version.ToString()), Is.True, $"Missing EnvironmentData.Version from report");
-        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData[EnvironmentDataType.Version.ToString()], Is.EqualTo(version), $"Incorrect EnvironmentData.Version on report");
-        Assert.That(report.ReportData.EnvironmentInformation.AuditInstances, Is.Not.Null, $"Missing AuditInstances from report");
-        Assert.That(report.ReportData.EnvironmentInformation.AuditInstances.Count, Is.EqualTo(2), $"Invalid AuditInstances number on report");
-        Assert.That(report.ReportData.EnvironmentInformation.AuditInstances.Any(a => a.Url == "http://localhost:44"), Is.True, $"Expected audit instnace http://localhost:44 on report");
-        Assert.That(report.ReportData.EnvironmentInformation.AuditInstances.Any(a => a.Url == "http://localhost:43"), Is.True, $"Expected audit instnace http://localhost:43 on report");
+        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData[EnvironmentDataType.Version.ToString()], Is.EqualTo(expectedBrokerVersion), $"Incorrect EnvironmentData.Version on report");
+        Assert.That(report.ReportData.EnvironmentInformation.AuditServiceMetadata.Versions, Is.EquivalentTo(expectedAuditVersionSummary), $"Invalid AuditInstance version summary on report");
+        Assert.That(report.ReportData.EnvironmentInformation.AuditServiceMetadata.Transports, Is.EquivalentTo(expectedAuditTransportSummary), $"Invalid AuditInstance transport summary on report");
     }
-
 }

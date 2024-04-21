@@ -80,7 +80,7 @@ public class QueueThroughput
 public class EnvironmentInformation
 {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
-    public AuditInstance[] AuditInstances { get; set; }
+    public AuditServiceMetadata AuditServiceMetadata { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, string> EnvironmentData { get; set; }
 }

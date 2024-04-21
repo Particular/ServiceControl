@@ -70,7 +70,7 @@ public class BrokerThroughputCollectorHostedService(
         }
 
         await Task.WhenAll(waitingTasks);
-        await dataStore.SaveEnvironmentData(brokerThroughputQuery.ScopeType, brokerThroughputQuery.Data, stoppingToken);
+        await dataStore.SaveBrokerMetadata(new(brokerThroughputQuery.ScopeType, brokerThroughputQuery.Data), stoppingToken);
         return;
 
         async Task Exec(IBrokerQueue queueName, string postfix)
