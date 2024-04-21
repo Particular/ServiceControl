@@ -4,7 +4,7 @@ using Particular.ThroughputCollector.Contracts;
 
 class EndpointDocument(EndpointIdentifier id)
 {
-    public EndpointIdentifier EndpointId { get; } = id;
+    public EndpointIdentifier EndpointId { get; set; } = id;
 
     public string SanitizedName { get; set; } = string.Empty;
 
