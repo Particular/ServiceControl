@@ -27,8 +27,11 @@ public interface IThroughputDataStore
     Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken);
     Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken);
 
-    Task<EnvironmentData?> GetEnvironmentData(CancellationToken cancellationToken);
+    Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken = default);
 
-    Task SaveEnvironmentData(string? scopeType, Dictionary<string, string> data, CancellationToken cancellationToken);
-    Task SaveAuditInstancesInEnvironmentData(List<AuditInstance> auditInstances, CancellationToken cancellationToken);
+    Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken = default);
+
+    Task<AuditServiceMetadata> GetAuditServiceMetadata(CancellationToken cancellationToken = default);
+
+    Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken = default);
 }
