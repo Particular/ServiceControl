@@ -15,7 +15,7 @@
 
         public async Task<MessageBodyStreamResult> TryFetch(string bodyId)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
 
             // BodyId could be a MessageID or a UniqueID, but if a UniqueID then it will be a DeterministicGuid of MessageID and endpoint name and be Guid-parseable
             // This is preferred, then we know we're getting the correct message body that is attached to the FailedMessage document

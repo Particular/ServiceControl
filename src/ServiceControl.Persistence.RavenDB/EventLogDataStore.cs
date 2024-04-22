@@ -10,14 +10,14 @@
     {
         public async Task Add(EventLogItem logItem)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             await session.StoreAsync(logItem);
             await session.SaveChangesAsync();
         }
 
         public async Task<(IList<EventLogItem>, int, string)> GetEventLogItems(PagingInfo pagingInfo)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var results = await session
                 .Query<EventLogItem>()
                 .Statistics(out var stats)

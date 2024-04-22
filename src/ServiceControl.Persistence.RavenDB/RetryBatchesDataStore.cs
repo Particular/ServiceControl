@@ -16,12 +16,10 @@
     {
         static readonly ILog Log = LogManager.GetLogger(typeof(RetryBatchesDataStore));
 
-        public Task<IRetryBatchesManager> CreateRetryBatchesManager()
+        public async Task<IRetryBatchesManager> CreateRetryBatchesManager()
         {
-            var session = sessionProvider.OpenSession();
-            var manager = new RetryBatchesManager(session, expirationManager);
-
-            return Task.FromResult<IRetryBatchesManager>(manager);
+            var session = await sessionProvider.OpenSession();
+            return new RetryBatchesManager(session, expirationManager);
         }
 
         public async Task RecordFailedStagingAttempt(IReadOnlyCollection<FailedMessage> messages,
@@ -51,8 +49,8 @@
 
             try
             {
-                using var session = sessionProvider.OpenSession();
-                var documentStore = documentStoreProvider.GetDocumentStore();
+                using var session = await sessionProvider.OpenSession();
+                var documentStore = await documentStoreProvider.GetDocumentStore();
 
                 var batch = new SingleNodeBatchCommand(documentStore.Conventions, session.Advanced.Context, commands);
                 await session.Advanced.RequestExecutor.ExecuteAsync(batch, session.Advanced.Context);
@@ -69,7 +67,7 @@
         {
             try
             {
-                var documentStore = documentStoreProvider.GetDocumentStore();
+                var documentStore = await documentStoreProvider.GetDocumentStore();
                 await documentStore.Operations.SendAsync(new PatchOperation(message.Id, null, new PatchRequest
                 {
                     Script = @"this.StageAttempts += 1"
@@ -83,7 +81,7 @@
 
         public async Task DeleteFailedMessageRetry(string uniqueMessageId)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null), session.Advanced.Context);
         }
     }

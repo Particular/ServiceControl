@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace ServiceControl.Persistence.RavenDB
 {
     using System.Threading;

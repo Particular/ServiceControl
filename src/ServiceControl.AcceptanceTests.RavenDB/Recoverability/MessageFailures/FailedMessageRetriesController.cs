@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.AcceptanceTests.RavenDB.Recoverability.MessageFailures
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Mvc;
@@ -18,10 +19,10 @@
     {
         [Route("failedmessageretries/count")]
         [HttpGet]
-        public async Task<FailedMessageRetriesCountReponse> GetFailedMessageRetriesCount()
+        public async Task<FailedMessageRetriesCountReponse> GetFailedMessageRetriesCount(CancellationToken cancellationToken)
         {
-            using var session = sessionProvider.OpenSession();
-            await session.Query<FailedMessageRetry>().Statistics(out var stats).ToListAsync();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            await session.Query<FailedMessageRetry>().Statistics(out var stats).ToListAsync(cancellationToken);
 
             Response.WithEtag(stats.ResultEtag.ToString());
 

@@ -10,36 +10,54 @@ namespace ServiceControl.Persistence.RavenDB
 
     sealed class RavenExternalPersistenceLifecycle(RavenPersisterSettings settings) : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
     {
-        public IDocumentStore GetDocumentStore()
+        public async ValueTask<IDocumentStore> GetDocumentStore(CancellationToken cancellationToken = default)
         {
-            if (documentStore == null)
+            if (documentStore != null)
             {
-                throw new InvalidOperationException("Document store is not available. Ensure `IRavenPersistenceLifecycle.Initialize` is invoked");
+                return documentStore;
             }
 
-            return documentStore;
+            try
+            {
+                await initializeSemaphore.WaitAsync(cancellationToken);
+                return documentStore ?? throw new InvalidOperationException("Document store is not available. Ensure `IRavenPersistenceLifecycle.Initialize` is invoked");
+            }
+            finally
+            {
+                initializeSemaphore.Release();
+            }
         }
 
         public async Task Initialize(CancellationToken cancellationToken)
         {
-            var store = new DocumentStore
+            try
             {
-                Database = settings.DatabaseName,
-                Urls = [settings.ConnectionString],
-                Conventions = new DocumentConventions
+                await initializeSemaphore.WaitAsync(cancellationToken);
+
+                var store = new DocumentStore
                 {
-                    SaveEnumsAsIntegers = true
-                }
-            };
+                    Database = settings.DatabaseName,
+                    Urls = [settings.ConnectionString],
+                    Conventions = new DocumentConventions
+                    {
+                        SaveEnumsAsIntegers = true
+                    }
+                };
 
-            documentStore = store.Initialize();
+                documentStore = store.Initialize();
 
-            var databaseSetup = new DatabaseSetup(settings);
-            await databaseSetup.Execute(store, cancellationToken).ConfigureAwait(false);
+                var databaseSetup = new DatabaseSetup(settings);
+                await databaseSetup.Execute(store, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                initializeSemaphore.Release();
+            }
         }
 
         public void Dispose() => documentStore?.Dispose();
 
         IDocumentStore? documentStore;
+        readonly SemaphoreSlim initializeSemaphore = new(1, 1);
     }
 }

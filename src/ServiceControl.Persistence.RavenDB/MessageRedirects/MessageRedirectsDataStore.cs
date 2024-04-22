@@ -7,7 +7,7 @@
     {
         public async Task<MessageRedirectsCollection> GetOrCreate()
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var redirects = await session.LoadAsync<MessageRedirectsCollection>(DefaultId);
 
             if (redirects != null)
@@ -23,7 +23,7 @@
 
         public async Task Save(MessageRedirectsCollection redirects)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             await session.StoreAsync(redirects, redirects.ETag, DefaultId);
             await session.SaveChangesAsync();
         }

@@ -37,7 +37,7 @@
             bool includeSystemMessages
             )
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                 .IncludeSystemMessagesWhere(includeSystemMessages)
                 .Statistics(out var stats)
@@ -58,7 +58,7 @@
             bool includeSystemMessages
             )
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                 .IncludeSystemMessagesWhere(includeSystemMessages)
                 .Where(m => m.ReceivingEndpointName == endpointName)
@@ -81,7 +81,7 @@
             SortInfo sortInfo
             )
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                 .Statistics(out var stats)
                 .Search(x => x.Query, searchKeyword)
@@ -103,7 +103,7 @@
             bool includeSystemMessages
             )
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                 .Statistics(out var stats)
                 .Where(m => m.ConversationId == conversationId)
@@ -123,7 +123,7 @@
             SortInfo sortInfo
             )
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                 .Statistics(out var stats)
                 .Search(x => x.Query, searchTerms)
@@ -139,7 +139,7 @@
 
         public async Task FailedMessageMarkAsArchived(string failedMessageId)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
 
             if (failedMessage.Status != FailedMessageStatus.Archived)
@@ -154,7 +154,7 @@
 
         public async Task<FailedMessage[]> FailedMessagesFetch(Guid[] ids)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var docIds = ids.Select(g => FailedMessageIdGenerator.MakeDocumentId(g.ToString()));
             var results = await session.LoadAsync<FailedMessage>(docIds);
             return results.Values.Where(x => x != null).ToArray();
@@ -162,22 +162,19 @@
 
         public async Task StoreFailedErrorImport(FailedErrorImport failure)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             await session.StoreAsync(failure);
 
             await session.SaveChangesAsync();
         }
 
-        public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager()
-        {
-            var session = sessionProvider.OpenSession();
-            var manager = new EditFailedMessageManager(session, expirationManager);
-            return Task.FromResult((IEditFailedMessagesManager)manager);
-        }
+        public async Task<IEditFailedMessagesManager> CreateEditFailedMessageManager() =>
+            // the edit failed message manager manages the lifetime of the session
+            new EditFailedMessageManager(await sessionProvider.OpenSession(), expirationManager);
 
         public async Task<QueryResult<FailureGroupView>> GetFailureGroupView(string groupId, string status, string modified)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var document = await session.Advanced
                 .AsyncDocumentQuery<FailureGroupView, ArchivedGroupsViewIndex>()
                 .Statistics(out var stats)
@@ -191,7 +188,7 @@
 
         public async Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var groups = session
                 .Query<FailureGroupView, ArchivedGroupsViewIndex>()
                 .Where(v => v.Type == classifier);
@@ -212,7 +209,7 @@
             SortInfo sortInfo
             )
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query = session.Advanced
                 .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                 .Statistics(out var stats)
@@ -237,7 +234,7 @@
             string queueAddress
             )
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var stats = await session.Advanced
                 .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                 .FilterByStatusWhere(status)
@@ -256,7 +253,7 @@
             SortInfo sortInfo
             )
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query = session.Advanced
                 .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                 .Statistics(out var stats)
@@ -278,7 +275,7 @@
 
         public async Task<IDictionary<string, object>> ErrorsSummary()
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var facetResults = await session.Query<FailedMessage, FailedMessageFacetsIndex>()
                 .AggregateBy(new List<Facet>
                 {
@@ -312,22 +309,18 @@
 
         async Task<FailedMessage> ErrorByDocumentId(string documentId)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var message = await session.LoadAsync<FailedMessage>(documentId);
             return message;
         }
 
-        public Task<INotificationsManager> CreateNotificationsManager()
-        {
-            // the session manager manages the lifetime of the session
-            var manager = new NotificationsManager(sessionProvider.OpenSession());
-
-            return Task.FromResult<INotificationsManager>(manager);
-        }
+        public async Task<INotificationsManager> CreateNotificationsManager() =>
+            // the notifications manager manages the lifetime of the session
+            new NotificationsManager(await sessionProvider.OpenSession());
 
         public async Task<FailedMessageView> ErrorLastBy(string failedMessageId)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var message = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
             if (message == null)
             {
@@ -388,7 +381,7 @@
 
         public async Task EditComment(string groupId, string comment)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var groupComment =
                 await session.LoadAsync<GroupComment>(GroupComment.MakeId(groupId))
                 ?? new GroupComment { Id = GroupComment.MakeId(groupId) };
@@ -401,7 +394,7 @@
 
         public async Task DeleteComment(string groupId)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             session.Delete(GroupComment.MakeId(groupId));
             await session.SaveChangesAsync();
         }
@@ -414,7 +407,7 @@
             PagingInfo pagingInfo
             )
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query = session.Advanced
                 .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
                 .Statistics(out var stats)
@@ -435,7 +428,7 @@
 
         public async Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var queryResult = await session.Advanced
                 .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
                 .WhereEquals(view => view.FailureGroupId, groupId)
@@ -448,7 +441,7 @@
 
         public async Task<QueryResult<IList<FailureGroupView>>> GetGroup(string groupId, string status, string modified)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var queryResult = await session.Advanced
                 .AsyncDocumentQuery<FailureGroupView, FailureGroupsViewIndex>()
                 .Statistics(out var stats)
@@ -464,7 +457,7 @@
         {
             var documentId = FailedMessageIdGenerator.MakeDocumentId(failedMessageId);
 
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             session.Advanced.UseOptimisticConcurrency = true;
 
             var failedMessage = await session.LoadAsync<FailedMessage>(documentId);
@@ -485,7 +478,7 @@
 
         public async Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, Task> processCallback)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var prequery = session.Advanced
                 .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                 .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
@@ -547,7 +540,7 @@
                 RetrieveDetails = true
             });
 
-            var documentStore = documentStoreProvider.GetDocumentStore();
+            var documentStore = await documentStoreProvider.GetDocumentStore();
             var operation = await documentStore.Operations.SendAsync(patch);
 
             var result = await operation.WaitForCompletionAsync<BulkOperationResult>();
@@ -563,7 +556,7 @@
         {
             Dictionary<string, FailedMessage> failedMessages;
 
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             session.Advanced.UseOptimisticConcurrency = true;
 
             var documentIds = failedMessageIds.Select(FailedMessageIdGenerator.MakeDocumentId);
@@ -587,7 +580,7 @@
 
         public async Task RevertRetry(string messageUniqueId)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var failedMessage = await session
                 .LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(messageUniqueId));
             if (failedMessage != null)
@@ -607,13 +600,13 @@
 
         public async Task RemoveFailedMessageRetryDocument(string uniqueMessageId)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null), session.Advanced.Context);
         }
 
         public async Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query = session
                 .Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                 .Where(o => o.Status == FailedMessageStatus.RetryIssued && o.LastModified >= from.Ticks && o.LastModified <= to.Ticks && o.QueueAddress == queueAddress)
@@ -661,7 +654,7 @@
 
         public async Task StoreEventLogItem(EventLogItem logItem)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             await session.StoreAsync(logItem);
 
             expirationManager.EnableExpiration(session, logItem);
@@ -671,7 +664,7 @@
 
         public async Task StoreFailedMessagesForTestsOnly(params FailedMessage[] failedMessages)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             foreach (var message in failedMessages)
             {
                 await session.StoreAsync(message);

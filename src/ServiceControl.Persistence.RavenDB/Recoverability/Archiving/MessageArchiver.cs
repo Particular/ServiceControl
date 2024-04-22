@@ -37,7 +37,7 @@
             logger.Info($"Archiving of {groupId} started");
             ArchiveOperation archiveOperation;
 
-            using (var session = sessionProvider.OpenSession())
+            using (var session = await sessionProvider.OpenSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true; // Ensure 2 messages don't split the same operation into batches at once
 
@@ -64,7 +64,7 @@
 
             while (archiveOperation.CurrentBatch < archiveOperation.NumberOfBatches)
             {
-                using (var batchSession = sessionProvider.OpenSession())
+                using (var batchSession = await sessionProvider.OpenSession())
                 {
                     var nextBatch = await archiveDocumentManager.GetArchiveBatch(batchSession, archiveOperation.Id, archiveOperation.CurrentBatch);
                     if (nextBatch == null)
@@ -129,7 +129,7 @@
             logger.Info($"Unarchiving of {groupId} started");
             UnarchiveOperation unarchiveOperation;
 
-            using (var session = sessionProvider.OpenSession())
+            using (var session = await sessionProvider.OpenSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true; // Ensure 2 messages don't split the same operation into batches at once
 
@@ -157,7 +157,7 @@
 
             while (unarchiveOperation.CurrentBatch < unarchiveOperation.NumberOfBatches)
             {
-                using var batchSession = sessionProvider.OpenSession();
+                using var batchSession = await sessionProvider.OpenSession();
                 var nextBatch = await unarchiveDocumentManager.GetUnarchiveBatch(batchSession, unarchiveOperation.Id, unarchiveOperation.CurrentBatch);
                 if (nextBatch == null)
                 {

@@ -43,7 +43,7 @@
 
         public async Task Initialize()
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var primeSubscriptions = await LoadSubscriptions(session) ?? await MigrateSubscriptions(session, localClient);
 
             await SetSubscriptions(primeSubscriptions);
@@ -148,7 +148,7 @@
 
         async Task SaveSubscriptions()
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId);
             UpdateLookup();
             await session.SaveChangesAsync();

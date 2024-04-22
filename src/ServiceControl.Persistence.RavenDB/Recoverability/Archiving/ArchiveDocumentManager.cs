@@ -110,7 +110,7 @@
 
         public async Task<bool> WaitForIndexUpdateOfArchiveOperation(IRavenSessionProvider sessionProvider, string requestId, TimeSpan timeToWait)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName)
                 .Customize(x => x.WaitForNonStaleResults(timeToWait));
 
@@ -134,7 +134,7 @@
 
         public async Task RemoveArchiveOperation(IRavenSessionProvider sessionProvider, ArchiveOperation archiveOperation)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             session.Advanced.Defer(new DeleteCommandData(archiveOperation.Id, null));
             await session.SaveChangesAsync();
 

@@ -41,7 +41,7 @@
 
         public async Task StoreDispatchRequest(IEnumerable<ExternalIntegrationDispatchRequest> dispatchRequests)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             foreach (var dispatchRequest in dispatchRequests)
             {
                 if (dispatchRequest.Id != null)
@@ -128,7 +128,7 @@
 
         async Task<bool> TryDispatchEventBatch()
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var awaitingDispatching = await session
                 .Query<ExternalIntegrationDispatchRequest>()
                 .Statistics(out var stats)
@@ -160,9 +160,9 @@
             return true;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var documentStore = documentStoreProvider.GetDocumentStore();
+            var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
             subscription = documentStore
                 .Changes()
                 .ForDocumentsStartingWith(KeyPrefix)
@@ -171,8 +171,6 @@
                 {
                     signal.Set();
                 });
-
-            return Task.CompletedTask;
         }
 
         public async Task StopAsync(CancellationToken cancellationToken) => await DisposeAsync();
@@ -186,7 +184,7 @@
 
             isDisposed = true;
             subscription?.Dispose();
-            tokenSource?.Cancel();
+            await tokenSource?.CancelAsync();
 
             if (task != null)
             {

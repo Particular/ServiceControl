@@ -18,7 +18,7 @@
             var status = CheckStateChange.Unchanged;
             var id = MakeId(detail.GetDeterministicId());
 
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var customCheck = await session.LoadAsync<CustomCheck>(id);
 
             if (customCheck == null ||
@@ -46,7 +46,7 @@
 
         public async Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query =
                 session.Query<CustomCheck, CustomChecksIndex>().Statistics(out var stats);
 
@@ -62,13 +62,13 @@
         public async Task DeleteCustomCheck(Guid id)
         {
             var documentId = MakeId(id);
-            using var session = sessionProvider.OpenSession(new SessionOptions { NoTracking = true, NoCaching = true });
+            using var session = await sessionProvider.OpenSession(new SessionOptions { NoTracking = true, NoCaching = true });
             await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(documentId, null), session.Advanced.Context);
         }
 
         public async Task<int> GetNumberOfFailedChecks()
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var failedCustomCheckCount = await session.Query<CustomCheck, CustomChecksIndex>().CountAsync(p => p.Status == Status.Fail);
 
             return failedCustomCheckCount;
