@@ -8,3 +8,9 @@ public class EndpointThroughputSummary
     public string UserIndicator { get; set; }
     public long MaxDailyThroughput { get; set; }
 }
+
+public class UpdateUserIndicator
+{
+    public string Name { get; set; }
+    public string UserIndicator { get; set; }
+}
