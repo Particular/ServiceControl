@@ -1,10 +1,7 @@
 <Project>
-  <Target Name="ClearOutput" AfterTargets="AfterClean">
-    <ItemGroup>
-      <FoldersToDelete Include="$([System.IO.Directory]::GetDirectories('$(OutputPath)'))"/>
-    </ItemGroup>
- 
-    <Message Importance="high" Text="Cleaning @(FoldersToDelete->Count()) folder(s)"/>
-    <RemoveDir Directories="@(FoldersToDelete)" Condition="@(FoldersToDelete)!=''"/>
-  </Target>
+
+  <PropertyGroup>
+    <NuGetAuditMode Condition="'$(PackAsTool)' == 'true'">all</NuGetAuditMode>
+  </PropertyGroup>
+
 </Project>
