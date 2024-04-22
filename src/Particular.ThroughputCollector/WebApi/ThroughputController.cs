@@ -24,9 +24,9 @@
 
         [Route("endpoints/update")]
         [HttpPost]
-        public async Task<IActionResult> UpdateUserSelectionOnEndpointThroughput(List<EndpointThroughputSummary> endpointThroughputs, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateUserSelectionOnEndpointThroughput(List<UpdateUserIndicator> updateUserIndicators, CancellationToken cancellationToken)
         {
-            await throughputCollector.UpdateUserIndicatorsOnEndpoints(endpointThroughputs, cancellationToken);
+            await throughputCollector.UpdateUserIndicatorsOnEndpoints(updateUserIndicators, cancellationToken);
             return Ok();
         }
 

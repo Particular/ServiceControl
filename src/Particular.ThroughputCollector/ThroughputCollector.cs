@@ -49,7 +49,7 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         return await Task.FromResult(connectionTestResults);
     }
 
-    public async Task UpdateUserIndicatorsOnEndpoints(List<EndpointThroughputSummary> endpointThroughputs, CancellationToken cancellationToken)
+    public async Task UpdateUserIndicatorsOnEndpoints(List<UpdateUserIndicator> endpointThroughputs, CancellationToken cancellationToken)
     {
         await dataStore.UpdateUserIndicatorOnEndpoints(endpointThroughputs.Select(e =>
             new Endpoint(e.Name, ThroughputSource.None)
@@ -77,12 +77,13 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
                 data.AddRange(tempData);
             }
 
+            var isKnownEndpoint = IsKnownEndpoint(endpointGroupPerQueue);
             var endpointSummary = new EndpointThroughputSummary
             {
                 //want to display the endpoint name to the user if it's different to the sanitized endpoint name
                 Name = endpointGroupPerQueue.FirstOrDefault(endpoint => endpoint.Id.Name != endpoint.SanitizedName)?.Id.Name ?? endpointGroupPerQueue.Key,
-                UserIndicator = UserIndicator(endpointGroupPerQueue) ?? string.Empty,
-                IsKnownEndpoint = IsKnownEndpoint(endpointGroupPerQueue),
+                UserIndicator = UserIndicator(endpointGroupPerQueue) ?? (isKnownEndpoint ? Contracts.UserIndicator.NServiceBusEndpoint.ToString() : string.Empty),
+                IsKnownEndpoint = isKnownEndpoint,
                 MaxDailyThroughput = data.Max(),
             };
 
@@ -107,9 +108,11 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         return reportGenerationState;
     }
 
-    public async Task<SignedReport> GenerateThroughputReport(string[] masks, string spVersion, CancellationToken cancellationToken)
+    public async Task<SignedReport> GenerateThroughputReport(string[] userMasks, string spVersion, CancellationToken cancellationToken)
     {
-        CreateMasks(masks);
+        (string Mask, string Replacement)[] masks = [];
+
+        CreateMasks(userMasks);
 
         var endpoints = (await dataStore.GetAllEndpoints(false, cancellationToken)).ToArray();
         var queueNames = endpoints.Select(endpoint => endpoint.SanitizedName).Distinct();
@@ -184,47 +187,30 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         report.EnvironmentInformation.EnvironmentData.AddOrUpdate(EnvironmentDataType.AuditEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Audit).ToString());
         report.EnvironmentInformation.EnvironmentData.AddOrUpdate(EnvironmentDataType.MonitoringEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Monitoring).ToString());
 
-        //if (!report.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.ServiceControlVersion.ToString()))
-        //{
-        //    report.EnvironmentInformation.EnvironmentData.Add(EnvironmentDataType.ServiceControlVersion.ToString(), throughputSettings.ServiceControlVersion);
-        //}
-        //if (!report.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.ServicePulseVersion.ToString()))
-        //{
-        //    report.EnvironmentInformation.EnvironmentData.Add(EnvironmentDataType.ServicePulseVersion.ToString(), spVersion);
-        //}
-        //if (!report.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.AuditEnabled.ToString()))
-        //{
-        //    report.EnvironmentInformation.EnvironmentData.Add(EnvironmentDataType.AuditEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Audit).ToString());
-        //}
-        //if (!report.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.MonitoringEnabled.ToString()))
-        //{
-        //    report.EnvironmentInformation.EnvironmentData.Add(EnvironmentDataType.MonitoringEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Monitoring).ToString());
-        //}
-
         var throughputReport = new SignedReport() { ReportData = report, Signature = Signature.SignReport(report) };
         return throughputReport;
-    }
 
-    void CreateMasks(string[] wordsToMask)
-    {
-        var number = 0;
-        masks = wordsToMask
-            .Select(mask =>
-            {
-                number++;
-                return (mask, $"REDACTED{number}");
-            })
-            .ToArray();
-    }
-
-    string Mask(string stringToMask)
-    {
-        foreach (var (mask, replacement) in masks)
+        void CreateMasks(string[] wordsToMask)
         {
-            stringToMask = stringToMask.Replace(mask, replacement, StringComparison.OrdinalIgnoreCase);
+            var number = 0;
+            masks = wordsToMask
+                .Select(mask =>
+                {
+                    number++;
+                    return (mask, $"REDACTED{number}");
+                })
+                .ToArray();
         }
 
-        return stringToMask;
+        string Mask(string stringToMask)
+        {
+            foreach (var (mask, replacement) in masks)
+            {
+                stringToMask = stringToMask.Replace(mask, replacement, StringComparison.OrdinalIgnoreCase);
+            }
+
+            return stringToMask;
+        }
     }
 
     static string? UserIndicator(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.UserIndicator))?.UserIndicator;
@@ -234,7 +220,6 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
     bool IsKnownEndpoint(IGrouping<string, Endpoint> endpoint) => endpoint.Any(s => s.EndpointIndicators != null && s.EndpointIndicators.Contains(EndpointIndicator.KnownEndpoint.ToString()));
 
     string[]? EndpointIndicators(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.EndpointIndicators?.Any() == true)?.SelectMany(s => s.EndpointIndicators)?.Distinct()?.ToArray();
-    (string Mask, string Replacement)[] masks = [];
 
     string transport = throughputQuery?.MessageTransport ?? throughputSettings.TransportType;
 }
