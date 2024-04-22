@@ -105,7 +105,38 @@ public class ThroughputDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IEnumerable<string> queueNames, CancellationToken cancellationToken) => throw new NotImplementedException();
+    public async Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IEnumerable<string> queueNames, CancellationToken cancellationToken)
+    {
+        var results = queueNames.ToDictionary(queueName => queueName, queueNames => new List<ThroughputData>() as IEnumerable<ThroughputData>);
+
+        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+
+        var query = session.Query<EndpointDocument>()
+            .Where(document => document.SanitizedName.In(queueNames))
+            .Include(builder => builder.IncludeTimeSeries(ThroughputTimeSeriesName));
+
+        var documents = await query.ToListAsync(cancellationToken);
+
+        foreach (var document in documents)
+        {
+            var timeSeries = await session
+                .IncrementalTimeSeriesFor(document.GenerateDocumentId(), ThroughputTimeSeriesName)
+                .GetAsync(token: cancellationToken);
+
+            if (results.TryGetValue(document.SanitizedName, out var throughputDatas) &&
+                throughputDatas is List<ThroughputData> throughputDataList)
+            {
+                var endpointDailyThroughputs = timeSeries.Select(entry => new EndpointDailyThroughput(DateOnly.FromDateTime(entry.Timestamp), (long)entry.Value));
+                var throughputData = new ThroughputData(endpointDailyThroughputs)
+                {
+                    ThroughputSource = document.EndpointId.ThroughputSource
+                };
+                throughputDataList.Add(throughputData);
+            }
+        }
+
+        return results;
+    }
 
     public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IEnumerable<EndpointDailyThroughput> throughput, CancellationToken cancellationToken)
     {
