@@ -49,17 +49,8 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         return await Task.FromResult(connectionTestResults);
     }
 
-    public async Task UpdateUserIndicatorsOnEndpoints(List<UpdateUserIndicator> endpointThroughputs, CancellationToken cancellationToken)
-    {
-        await dataStore.UpdateUserIndicatorOnEndpoints(endpointThroughputs.Select(e =>
-            new Endpoint(e.Name, ThroughputSource.None)
-            {
-                SanitizedName = e.Name,
-                UserIndicator = e.UserIndicator,
-            }).ToList(), cancellationToken);
-
-        await Task.CompletedTask;
-    }
+    public async Task UpdateUserIndicatorsOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken) =>
+        await dataStore.UpdateUserIndicatorOnEndpoints(userIndicatorUpdates, cancellationToken);
 
     public async Task<List<EndpointThroughputSummary>> GetThroughputSummary(CancellationToken cancellationToken)
     {
