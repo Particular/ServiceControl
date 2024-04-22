@@ -57,7 +57,7 @@ class ThroughputCollector_ThroughputSumary_Indicator_Tests : ThroughputCollector
         var summary = await ThroughputCollector.GetThroughputSummary(default);
 
         // Act
-        List<EndpointThroughputSummary> endpointsWithUpdates = [new EndpointThroughputSummary { Name = "Endpoint1", UserIndicator = userIndicator }];
+        List<UpdateUserIndicator> endpointsWithUpdates = [new UpdateUserIndicator() { Name = "Endpoint1", UserIndicator = userIndicator }];
         await ThroughputCollector.UpdateUserIndicatorsOnEndpoints(endpointsWithUpdates, default);
 
         // Assert
