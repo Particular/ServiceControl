@@ -1,5 +1,5 @@
 GET /endpoints => Particular.ThroughputCollector.WebApi.ThroughputController:GetEndpointThroughput(CancellationToken cancellationToken)
-POST /endpoints/update => Particular.ThroughputCollector.WebApi.ThroughputController:UpdateUserSelectionOnEndpointThroughput(List<EndpointThroughputSummary> endpointThroughputs, CancellationToken cancellationToken)
+POST /endpoints/update => Particular.ThroughputCollector.WebApi.ThroughputController:UpdateUserSelectionOnEndpointThroughput(List<UpdateUserIndicator> updateUserIndicators, CancellationToken cancellationToken)
 GET /report/available => Particular.ThroughputCollector.WebApi.ThroughputController:CanThroughputReportBeGenerated(CancellationToken cancellationToken)
 GET /report/file => Particular.ThroughputCollector.WebApi.ThroughputController:GetThroughputReportFile(String[] mask, CancellationToken cancellationToken)
 GET /settings/info => Particular.ThroughputCollector.WebApi.ThroughputController:GetThroughputSettingsInformation(CancellationToken cancellationToken)
