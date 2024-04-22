@@ -103,17 +103,14 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
         await Task.CompletedTask;
     }
 
-    public async Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator, CancellationToken cancellationToken)
+    public async Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken)
     {
-        endpointsWithUserIndicator.DistinctBy(b => b.SanitizedName).ToList().ForEach(e =>
+        userIndicatorUpdates.ForEach(e =>
         {
             //if there are multiple sources of throughput for the endpoint, update them all
-            var existingEndpoints = GetAllConnectedEndpoints(e.SanitizedName);
+            var existingEndpoints = GetAllConnectedEndpoints(e.Name);
 
-            existingEndpoints.ForEach(u =>
-            {
-                u.UserIndicator = e.UserIndicator;
-            });
+            existingEndpoints.ForEach(u => u.UserIndicator = e.UserIndicator);
         });
 
         await Task.CompletedTask;
