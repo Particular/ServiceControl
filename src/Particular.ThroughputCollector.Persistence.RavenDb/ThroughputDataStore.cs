@@ -1,5 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.Persistence.RavenDb;
 
+using System.Collections.Generic;
 using System.Threading;
 using Contracts;
 using Models;
@@ -130,7 +131,25 @@ public class ThroughputDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public Task UpdateUserIndicatorOnEndpoints(List<Endpoint> endpointsWithUserIndicator, CancellationToken cancellationToken) => throw new NotImplementedException();
+    public async Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken)
+    {
+        var updates = userIndicatorUpdates.ToDictionary(u => u.Name, u => u.UserIndicator);
+        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+
+        var query = session.Query<EndpointDocument>()
+            .Where(document => document.SanitizedName.In(updates.Keys));
+
+        var documents = await query.ToListAsync(cancellationToken);
+        foreach (var document in documents)
+        {
+            if (updates.TryGetValue(document.SanitizedName, out var newValue))
+            {
+                document.UserIndicator = newValue;
+            }
+        }
+
+        await session.SaveChangesAsync(cancellationToken);
+    }
 
     public Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken) => throw new NotImplementedException();
 
