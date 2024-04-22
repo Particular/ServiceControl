@@ -107,7 +107,7 @@ class EndpointsTests : PersistenceTestFixture
         await DataStore.SaveEndpoint(endpoint, default);
 
         // Act
-        await DataStore.UpdateUserIndicatorOnEndpoints([new Endpoint("Endpoint") { SanitizedName = "Endpoint", UserIndicator = userIndicator }], default);
+        await DataStore.UpdateUserIndicatorOnEndpoints([new UpdateUserIndicator { Name = "Endpoint", UserIndicator = userIndicator }], default);
 
         // Assert
         var foundEndpoint = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Audit, default);
@@ -120,20 +120,18 @@ class EndpointsTests : PersistenceTestFixture
     public async Task Should_not_add_endpoint_when_updating_user_indication()
     {
         // Arrange
-        var endpointWithUserIndicators = new Endpoint("Endpoint", ThroughputSource.Audit)
+        var userIndicatorUpate = new UpdateUserIndicator
         {
-            SanitizedName = "Endpoint",
+            Name = "Endpoint",
             UserIndicator = "someIndicator",
         };
 
         // Act
-        await DataStore.UpdateUserIndicatorOnEndpoints([endpointWithUserIndicators], default);
+        await DataStore.UpdateUserIndicatorOnEndpoints([userIndicatorUpate], default);
 
         // Assert
-        var foundEndpoint = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Audit, default);
         var allEndpoints = await DataStore.GetAllEndpoints(true, default);
 
-        Assert.That(foundEndpoint, Is.Null);
         Assert.That(allEndpoints.Count, Is.EqualTo(0));
     }
 
@@ -150,7 +148,7 @@ class EndpointsTests : PersistenceTestFixture
         await DataStore.SaveEndpoint(endpointMonitoring, default);
 
         // Act
-        await DataStore.UpdateUserIndicatorOnEndpoints([new Endpoint("Endpoint") { SanitizedName = "Endpoint", UserIndicator = userIndicator }], default);
+        await DataStore.UpdateUserIndicatorOnEndpoints([new UpdateUserIndicator { Name = "Endpoint", UserIndicator = userIndicator }], default);
 
         // Assert
         var foundEndpointAudit = await DataStore.GetEndpoint("Endpoint", ThroughputSource.Audit, default);
