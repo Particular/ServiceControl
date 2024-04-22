@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import DropDown, { type Item } from "@/components/DropDown.vue";
-import { computed, reactive } from "vue";
-import { data } from "@/views/throughputreport/randomData";
+import { computed, onMounted, reactive, ref } from "vue";
 import { onBeforeRouteLeave } from "vue-router";
+import EndpointThroughputSummary from "@/resources/EndpointThroughputSummary";
+import { useShowToast } from "@/composables/toast";
+import { TYPE } from "vue-toastification";
+import throughputClient from "@/views/throughputreport/throughputClient";
+import UpdateUserIndicator from "@/resources/UpdateUserIndicator";
 
 enum DataSource {
   "wellKnownEndpoint" = "ServiceControl",
@@ -15,24 +19,16 @@ enum NameFilterType {
   endsWith = "Ends with",
 }
 
-interface ThroughputEndpoint {
-  source: DataSource;
-  name: string;
-  throughputValue: number;
-  sendOnly?: boolean;
-  doNotInclude?: boolean;
-}
-
 interface SortData {
   text: string;
   value: string;
-  comparer: (a: ThroughputEndpoint, b: ThroughputEndpoint) => number;
+  comparer: (a: EndpointThroughputSummary, b: EndpointThroughputSummary) => number;
 }
 
 const sortData: SortData[] = [
-  { text: "By name", comparer: (a: ThroughputEndpoint, b: ThroughputEndpoint) => a.name.localeCompare(b.name) },
-  { text: "By throughput", comparer: (a: ThroughputEndpoint, b: ThroughputEndpoint) => a.throughputValue - b.throughputValue },
-  { text: "By source", comparer: (a: ThroughputEndpoint, b: ThroughputEndpoint) => a.source.localeCompare(b.source) },
+  { text: "By name", comparer: (a: EndpointThroughputSummary, b: EndpointThroughputSummary) => a.name.localeCompare(b.name) },
+  { text: "By throughput", comparer: (a: EndpointThroughputSummary, b: EndpointThroughputSummary) => a.max_daily_throughput - b.max_daily_throughput },
+  { text: "By source", comparer: (a: EndpointThroughputSummary, b: EndpointThroughputSummary) => (a.is_known_endpoint === b.is_known_endpoint ? 0 : 1) },
 ].flatMap((item) => {
   return [
     { text: item.text, value: item.text, comparer: item.comparer },
@@ -40,16 +36,46 @@ const sortData: SortData[] = [
   ];
 });
 
-let copyOfOriginalDataChanges: Map<string, { sendOnly: boolean; doNotInclude: true }>;
+enum UserIndicator {
+  NServiceBusEndpoint = "NServiceBusEndpoint",
+  NotNServiceBusEndpoint = "NotNServiceBusEndpoint",
+  NServiceBusEndpointSendOnly = "NServiceBusEndpointSendOnly",
+  NServiceBusEndpointNoLongerInUse = "NServiceBusEndpointNoLongerInUse",
+  TransactionSessionEndpoint = "TransactionSessionEndpoint",
+  PlannedToDecommission = "PlannedToDecommission",
+}
 
-const dataChanges = reactive(new Map(data.map((item) => [item.name, { sendOnly: item.sendOnly, doNotInclude: item.doNotInclude }])));
+const userIndicatorMapper = new Map<UserIndicator, string>([
+  [UserIndicator.NServiceBusEndpoint, "NServiceBus Endpoint"],
+  [UserIndicator.NServiceBusEndpointNoLongerInUse, "No longer in use"],
+  [UserIndicator.NServiceBusEndpointSendOnly, "SendOnly Endpoint"],
+  [UserIndicator.PlannedToDecommission, "Planned to be decommissioned"],
+  [UserIndicator.TransactionSessionEndpoint, "SendOnly Endpoint using Transaction Session"],
+  [UserIndicator.NotNServiceBusEndpoint, "Not a NServiceBus Endpoint"],
+]);
+
+const endpointTypesForKnownEndpointWithThroughput = [UserIndicator.NServiceBusEndpoint, UserIndicator.TransactionSessionEndpoint, UserIndicator.PlannedToDecommission];
+const endpointTypesForKnownEndpointWithZeroThroughput = [UserIndicator.NServiceBusEndpoint, UserIndicator.NServiceBusEndpointSendOnly, UserIndicator.NServiceBusEndpointNoLongerInUse];
+const endpointTypesForBroker = [UserIndicator.NServiceBusEndpoint, UserIndicator.NotNServiceBusEndpoint, UserIndicator.TransactionSessionEndpoint, UserIndicator.NServiceBusEndpointNoLongerInUse, UserIndicator.PlannedToDecommission];
+
+let copyOfOriginalDataChanges: Map<string, { indicator: string }>;
+const data = ref<EndpointThroughputSummary[]>([]);
+
+onMounted(async () => {
+  await refreshData();
+});
+
+const dataChanges = computed(() => new Map(data.value.map((item) => [item.name, { indicator: item.user_indicator }])));
 const filterData = reactive({ display: "", name: "", nameFilterType: NameFilterType.beginsWith, sort: "" });
 
-updateCopyOfOriginalDataChanges();
+async function refreshData() {
+  data.value = await throughputClient.endpoints();
+  updateCopyOfOriginalDataChanges();
+}
 
 function updateCopyOfOriginalDataChanges() {
   // We need to do a deep copy, see https://stackoverflow.com/a/56853666
-  copyOfOriginalDataChanges = new Map(JSON.parse(JSON.stringify(Array.from(dataChanges))));
+  copyOfOriginalDataChanges = new Map(JSON.parse(JSON.stringify(Array.from(dataChanges.value))));
 }
 function displayFilterChanged(item: Item) {
   filterData.display = item.value;
@@ -66,17 +92,17 @@ const displayFilterData = [
 ];
 
 const filterNameOptions = [
-  { text: NameFilterType.beginsWith, filter: (a: ThroughputEndpoint) => a.name.toLowerCase().startsWith(filterData.name.toLowerCase()) },
-  { text: NameFilterType.contains, filter: (a: ThroughputEndpoint) => a.name.toLowerCase().includes(filterData.name.toLowerCase()) },
-  { text: NameFilterType.endsWith, filter: (a: ThroughputEndpoint) => a.name.toLowerCase().endsWith(filterData.name.toLowerCase()) },
+  { text: NameFilterType.beginsWith, filter: (a: EndpointThroughputSummary) => a.name.toLowerCase().startsWith(filterData.name.toLowerCase()) },
+  { text: NameFilterType.contains, filter: (a: EndpointThroughputSummary) => a.name.toLowerCase().includes(filterData.name.toLowerCase()) },
+  { text: NameFilterType.endsWith, filter: (a: EndpointThroughputSummary) => a.name.toLowerCase().endsWith(filterData.name.toLowerCase()) },
 ];
 const filteredData = computed(() => {
   const sortItem = sortData.find((value) => value.value === filterData.sort);
 
-  return (data as ThroughputEndpoint[])
+  return data.value
     .filter((row) => !row.name || filterNameOptions.find((v) => v.text === filterData.nameFilterType)?.filter(row))
     .filter((row) => {
-      return !filterData.display || row.source === filterData.display;
+      return !filterData.display || row.is_known_endpoint === (filterData.display === DataSource.wellKnownEndpoint);
     })
     .sort(sortItem?.comparer);
 });
@@ -89,32 +115,19 @@ function searchTypeChanged(event: Event) {
   filterData.nameFilterType = (event.target as HTMLInputElement).value as NameFilterType;
 }
 
-function markResultsAsDoNotInclude(value: boolean) {
+function updateIndicator(event: Event, name: string) {
+  const value = (event.target as HTMLSelectElement).value;
+  updateDataChanged(name, (item) => (item.indicator = value));
+}
+
+function updateIndicators(indicator: UserIndicator) {
   filteredData.value.forEach((item) => {
-    updateDataChanged(item.name, (item) => (item.doNotInclude = value));
+    updateDataChanged(item.name, (item) => (item.indicator = indicator));
   });
 }
 
-function markResultsAsDoSendOnly(value: boolean) {
-  filteredData.value.forEach((item) => {
-    updateDataChanged(item.name, (item) => (item.sendOnly = value));
-  });
-}
-
-function updateSendOnlyCheckbox(event: Event, name: string) {
-  const checked = (event.target as HTMLInputElement).checked;
-
-  updateDataChanged(name, (item) => (item.sendOnly = checked));
-}
-
-function updateDoNotIncludeCheckbox(event: Event, name: string) {
-  const checked = (event.target as HTMLInputElement).checked;
-
-  updateDataChanged(name, (item) => (item.doNotInclude = checked));
-}
-
-function updateDataChanged(name: string, action: (item: { doNotInclude: boolean; sendOnly: boolean }) => void) {
-  const item = dataChanges.get(name);
+function updateDataChanged(name: string, action: (item: { indicator: string }) => void) {
+  const item = dataChanges.value.get(name);
   if (item) {
     action(item);
   }
@@ -122,17 +135,17 @@ function updateDataChanged(name: string, action: (item: { doNotInclude: boolean;
 
 onBeforeRouteLeave(() => {
   function anyChanges() {
-    if (copyOfOriginalDataChanges.size !== dataChanges.size) {
+    if (copyOfOriginalDataChanges.size !== dataChanges.value.size) {
       return true;
     }
-    for (const [key, { sendOnly, doNotInclude }] of copyOfOriginalDataChanges) {
-      const a = dataChanges.get(key);
+    for (const [key, { indicator }] of copyOfOriginalDataChanges) {
+      const a = dataChanges.value.get(key);
 
       if (a === undefined) {
         return true;
       }
 
-      if (a.sendOnly !== sendOnly || a.doNotInclude !== doNotInclude) {
+      if (a.indicator !== indicator) {
         return true;
       }
     }
@@ -149,9 +162,36 @@ onBeforeRouteLeave(() => {
   }
 });
 
-function save() {
-  //TODO: Save data to backend
-  updateCopyOfOriginalDataChanges();
+function getDefaultEndpointType(row: EndpointThroughputSummary) {
+  if (row.is_known_endpoint) {
+    return UserIndicator.NServiceBusEndpoint.toString();
+  }
+
+  return undefined;
+}
+
+function getEndpointTypes(row: EndpointThroughputSummary) {
+  if (row.is_known_endpoint && row.max_daily_throughput === 0) {
+    return endpointTypesForKnownEndpointWithZeroThroughput;
+  }
+  if (row.is_known_endpoint) {
+    return endpointTypesForKnownEndpointWithThroughput;
+  }
+
+  return endpointTypesForBroker;
+}
+
+async function save() {
+  const data: UpdateUserIndicator[] = [];
+  dataChanges.value.forEach((value, key) => {
+    data.push({ name: key, user_indicator: value.indicator });
+  });
+
+  await throughputClient.updateIndicators(data);
+
+  useShowToast(TYPE.INFO, "Info", "Saved");
+
+  await refreshData();
 }
 </script>
 
@@ -189,10 +229,14 @@ function save() {
         <div class="dropdown">
           <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Mark results as</button>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#" @click.prevent="() => markResultsAsDoNotInclude(true)">Do not include</a></li>
-            <li><a class="dropdown-item" href="#" @click.prevent="() => markResultsAsDoNotInclude(false)">Include</a></li>
-            <li><a class="dropdown-item" href="#" @click.prevent="() => markResultsAsDoSendOnly(true)">Send only</a></li>
-            <li><a class="dropdown-item" href="#" @click.prevent="() => markResultsAsDoSendOnly(false)">Not Send only</a></li>
+            <li>
+              <a href="#" @click.prevent="updateIndicators(UserIndicator.NServiceBusEndpoint)">{{ userIndicatorMapper.get(UserIndicator.NServiceBusEndpoint) }}</a>
+              <a href="#" @click.prevent="updateIndicators(UserIndicator.NotNServiceBusEndpoint)">{{ userIndicatorMapper.get(UserIndicator.NotNServiceBusEndpoint) }}</a>
+              <a href="#" @click.prevent="updateIndicators(UserIndicator.TransactionSessionEndpoint)">{{ userIndicatorMapper.get(UserIndicator.TransactionSessionEndpoint) }}</a>
+              <a href="#" @click.prevent="updateIndicators(UserIndicator.PlannedToDecommission)">{{ userIndicatorMapper.get(UserIndicator.PlannedToDecommission) }}</a>
+              <a href="#" @click.prevent="updateIndicators(UserIndicator.NServiceBusEndpointSendOnly)">{{ userIndicatorMapper.get(UserIndicator.NServiceBusEndpointSendOnly) }}</a>
+              <a href="#" @click.prevent="updateIndicators(UserIndicator.NServiceBusEndpointNoLongerInUse)">{{ userIndicatorMapper.get(UserIndicator.NServiceBusEndpointNoLongerInUse) }}</a>
+            </li>
           </ul>
         </div>
       </div>
@@ -204,38 +248,25 @@ function save() {
     <thead>
       <tr>
         <th scope="col">Endpoint (Queue)</th>
-        <th scope="col">Max daily throughput<br />this month</th>
-        <th scope="col">Is Send only <i class="fa fa-info-circle info" title="Queues with 0 throughput are candidates to be send only endpoint." /></th>
-        <th scope="col">Do not include <i class="fa fa-info-circle info" title="What queues are part of NServiceBus" /></th>
+        <th scope="col">Maximum daily throughput</th>
+        <th scope="col">Endpoint Type <i class="fa fa-info-circle info" title="Pick the most correct option" /></th>
       </tr>
     </thead>
     <tbody>
       <tr v-for="row in filteredData" :key="row.name">
         <td class="col">
-          <template v-if="row.source === DataSource.broker"><i class="fa fa-cloud-download" aria-hidden="true" title="Discovered from querying broker directly" /></template>
+          <template v-if="!row.is_known_endpoint"><i class="fa fa-cloud-download" aria-hidden="true" title="Discovered from querying broker directly" /></template>
           <template v-else>
             <i class="fa fa-check knownEndpoint" aria-hidden="true" title="Service Control known endpoint" />
           </template>
           {{ row.name }}
         </td>
-        <td class="col">{{ row.throughputValue }}</td>
+        <td class="col">{{ row.max_daily_throughput }}</td>
         <td class="col">
-          <div v-if="row.throughputValue === 0" class="form-check">
-            <input class="form-check-input" type="checkbox" :checked="dataChanges.get(row.name)?.sendOnly" @change="(e) => updateSendOnlyCheckbox(e, row.name)" :id="`sendonly[${row.name}]`" /><label
-              class="form-check-label override-font"
-              :for="`sendonly[${row.name}]`"
-              >Send only</label
-            >
-          </div>
-        </td>
-        <td class="col">
-          <div v-if="row.source !== DataSource.wellKnownEndpoint" class="form-check">
-            <input class="form-check-input" type="checkbox" :checked="dataChanges.get(row.name)?.doNotInclude" @change="(e) => updateDoNotIncludeCheckbox(e, row.name)" :id="`doNotInclude[${row.name}]`" /><label
-              class="form-check-label override-font"
-              :for="`doNotInclude[${row.name}]`"
-              >Do not include</label
-            >
-          </div>
+          <select class="form-select endpointType format-text" @change="(event) => updateIndicator(event, row.name)">
+            <option value="">Pick the most appropriate option</option>
+            <option v-for="item in getEndpointTypes(row)" :key="item" :value="item" :selected="(dataChanges.get(row.name)?.indicator ?? getDefaultEndpointType(row)) === item">{{ userIndicatorMapper.get(item) }}</option>
+          </select>
         </td>
       </tr>
     </tbody>
@@ -267,5 +298,8 @@ function save() {
 }
 .knownEndpoint {
   color: #00c468;
+}
+.endpointType {
+  width: 340px;
 }
 </style>
