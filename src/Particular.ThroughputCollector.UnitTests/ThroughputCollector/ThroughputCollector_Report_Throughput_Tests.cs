@@ -34,7 +34,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -64,7 +64,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -88,7 +88,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -106,7 +106,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -126,7 +126,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -158,7 +158,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -179,7 +179,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         await DataStore.CreateBuilder().AddEndpoint().Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -203,7 +203,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);

@@ -16,9 +16,11 @@ public class ThroughputDataStore(
     internal const string ThroughputTimeSeriesName = "INC: throughput data";
     const string AuditServiceMetadataDocumentId = "AuditServiceMetadata";
     const string BrokerMetadataDocumentId = "BrokerMetadata";
+    const string ReportMasksDocumentId = "ReportMasks";
 
     static readonly AuditServiceMetadata DefaultAuditServiceMetadata = new([], []);
     static readonly BrokerMetadata DefaultBrokerMetadata = new(null, []);
+    static readonly List<string> DefaultReportMasks = [];
 
     public async Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken)
     {
@@ -239,6 +241,21 @@ public class ThroughputDataStore(
         using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
         await session.StoreAsync(auditServiceMetadata, AuditServiceMetadataDocumentId, cancellationToken);
+        await session.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<List<string>> GetReportMasks(CancellationToken cancellationToken)
+    {
+        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+
+        return await session.LoadAsync<List<string>>(ReportMasksDocumentId, cancellationToken) ?? DefaultReportMasks;
+    }
+
+    public async Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken)
+    {
+        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+
+        await session.StoreAsync(reportMasks, ReportMasksDocumentId, cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
     }
 }
