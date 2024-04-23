@@ -39,13 +39,12 @@
 
         [Route("report/file")]
         [HttpGet]
-        public async Task<IActionResult> GetThroughputReportFile(string[]? mask, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetThroughputReportFile(CancellationToken cancellationToken)
         {
             var reportStatus = await CanThroughputReportBeGenerated(cancellationToken);
             if (reportStatus.ReportCanBeGenerated)
             {
                 var report = await throughputCollector.GenerateThroughputReport(
-                    mask ?? [],
                     Request.Headers.TryGetValue("Particular-ServicePulse-Version", out var value) ? value.ToString() : "Unknown",
                     cancellationToken);
 
@@ -70,6 +69,22 @@
         [Route("settings/test")]
         [HttpGet]
         public async Task<ConnectionTestResults> TestThroughputConnectionSettings(CancellationToken cancellationToken) => await throughputCollector.TestConnectionSettings(cancellationToken);
+
+        [Route("settings/masks")]
+        [HttpPost]
+        public async Task<IActionResult> GetMasks(CancellationToken cancellationToken)
+        {
+            await throughputCollector.GetReportMasks(cancellationToken);
+            return Ok();
+        }
+
+        [Route("settings/masks/update")]
+        [HttpPost]
+        public async Task<IActionResult> UpdateMasks(List<string> updateMasks, CancellationToken cancellationToken)
+        {
+            await throughputCollector.UpdateReportMasks(updateMasks, cancellationToken);
+            return Ok();
+        }
 
         readonly IThroughputCollector throughputCollector;
     }
