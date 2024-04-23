@@ -41,7 +41,7 @@ class ThroughputCollector_Report_Dates_Tests : ThroughputCollectorTestFixture
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", default);
 
         // Assert
         var minDateInReport = new DateTimeOffset(minDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
