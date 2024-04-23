@@ -10,10 +10,11 @@ using Contracts;
 
 public class InMemoryThroughputDataStore : IThroughputDataStore
 {
-    private readonly EndpointCollection endpoints = [];
-    private readonly Dictionary<EndpointIdentifier, ThroughputData> allThroughput = [];
-    private BrokerMetadata brokerMetadata = new(null, []);
-    private AuditServiceMetadata auditServiceMetadata = new([], []);
+    readonly EndpointCollection endpoints = [];
+    readonly Dictionary<EndpointIdentifier, ThroughputData> allThroughput = [];
+    BrokerMetadata brokerMetadata = new(null, []);
+    AuditServiceMetadata auditServiceMetadata = new([], []);
+    List<string> reportMasks = [];
 
     public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken)
     {
@@ -126,7 +127,7 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
             t => t.Key >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) &&
                  t.Key <= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1))));
 
-    private List<Endpoint> GetAllConnectedEndpoints(string name) => endpoints.Where(w => w.SanitizedName == name).ToList();
+    List<Endpoint> GetAllConnectedEndpoints(string name) => endpoints.Where(w => w.SanitizedName == name).ToList();
 
     public Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken) => Task.FromResult(brokerMetadata);
 
@@ -141,6 +142,14 @@ public class InMemoryThroughputDataStore : IThroughputDataStore
     public Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken)
     {
         this.auditServiceMetadata = auditServiceMetadata;
+        return Task.CompletedTask;
+    }
+
+    public Task<List<string>> GetReportMasks(CancellationToken cancellationToken) => Task.FromResult(reportMasks);
+
+    public Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken)
+    {
+        this.reportMasks = reportMasks;
         return Task.CompletedTask;
     }
 
