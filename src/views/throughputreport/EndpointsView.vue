@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import DropDown, { type Item } from "@/components/DropDown.vue";
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { onBeforeRouteLeave } from "vue-router";
 import EndpointThroughputSummary from "@/resources/EndpointThroughputSummary";
 import { useShowToast } from "@/composables/toast";
@@ -58,39 +58,15 @@ const endpointTypesForKnownEndpointWithThroughput = [UserIndicator.NServiceBusEn
 const endpointTypesForKnownEndpointWithZeroThroughput = [UserIndicator.NServiceBusEndpoint, UserIndicator.NServiceBusEndpointSendOnly, UserIndicator.NServiceBusEndpointNoLongerInUse];
 const endpointTypesForBroker = [UserIndicator.NServiceBusEndpoint, UserIndicator.NotNServiceBusEndpoint, UserIndicator.TransactionSessionEndpoint, UserIndicator.NServiceBusEndpointNoLongerInUse, UserIndicator.PlannedToDecommission];
 
-let copyOfOriginalDataChanges: Map<string, { indicator: string }>;
+let copyOfOriginalDataChanges = new Map<string, { indicator: string }>();
 const data = ref<EndpointThroughputSummary[]>([]);
-
-onMounted(async () => {
-  await refreshData();
-});
-
-const dataChanges = computed(() => new Map(data.value.map((item) => [item.name, { indicator: item.user_indicator }])));
+const dataChanges = ref(new Map<string, { indicator: string }>());
 const filterData = reactive({ display: "", name: "", nameFilterType: NameFilterType.beginsWith, sort: "" });
-
-async function refreshData() {
-  data.value = await throughputClient.endpoints();
-  updateCopyOfOriginalDataChanges();
-}
-
-function updateCopyOfOriginalDataChanges() {
-  // We need to do a deep copy, see https://stackoverflow.com/a/56853666
-  copyOfOriginalDataChanges = new Map(JSON.parse(JSON.stringify(Array.from(dataChanges.value))));
-}
-function displayFilterChanged(item: Item) {
-  filterData.display = item.value;
-}
-
-function nameFilterChanged(event: Event) {
-  filterData.name = (event.target as HTMLInputElement).value;
-}
-
 const displayFilterData = [
   { value: "", text: "All" },
   { value: DataSource.broker, text: "Broker queues only" },
   { value: DataSource.wellKnownEndpoint, text: "Known Endpoints to ServiceControl" },
 ];
-
 const filterNameOptions = [
   { text: NameFilterType.beginsWith, filter: (a: EndpointThroughputSummary) => a.name.toLowerCase().startsWith(filterData.name.toLowerCase()) },
   { text: NameFilterType.contains, filter: (a: EndpointThroughputSummary) => a.name.toLowerCase().includes(filterData.name.toLowerCase()) },
@@ -106,6 +82,59 @@ const filteredData = computed(() => {
     })
     .sort(sortItem?.comparer);
 });
+const hasChanges = computed(() => {
+  if (dataChanges.value.size === 0) {
+    return false;
+  }
+  if (copyOfOriginalDataChanges.size !== dataChanges.value.size) {
+    return true;
+  }
+  for (const [key, { indicator }] of copyOfOriginalDataChanges) {
+    const a = dataChanges.value.get(key);
+
+    if (a === undefined) {
+      return true;
+    }
+
+    if (a.indicator !== indicator) {
+      return true;
+    }
+  }
+
+  return false;
+});
+
+onMounted(async () => {
+  data.value = await throughputClient.endpoints();
+});
+
+watch(
+  data,
+  (value) => {
+    dataChanges.value = new Map(value.map((item) => [item.name, { indicator: item.user_indicator }]));
+    // We need to do a deep copy, see https://stackoverflow.com/a/56853666
+    copyOfOriginalDataChanges = new Map(JSON.parse(JSON.stringify(Array.from(dataChanges.value))));
+  },
+  { deep: true }
+);
+
+onBeforeRouteLeave(() => {
+  if (hasChanges.value) {
+    const answer = window.confirm("You have unsaved changes! Do you want to proceed and lose changes?");
+    // cancel the navigation and stay on the same page
+    if (!answer) {
+      return false;
+    }
+  }
+});
+
+function displayFilterChanged(item: Item) {
+  filterData.display = item.value;
+}
+
+function nameFilterChanged(event: Event) {
+  filterData.name = (event.target as HTMLInputElement).value;
+}
 
 function sortChanged(item: Item) {
   filterData.sort = item.value;
@@ -133,35 +162,6 @@ function updateDataChanged(name: string, action: (item: { indicator: string }) =
   }
 }
 
-onBeforeRouteLeave(() => {
-  function anyChanges() {
-    if (copyOfOriginalDataChanges.size !== dataChanges.value.size) {
-      return true;
-    }
-    for (const [key, { indicator }] of copyOfOriginalDataChanges) {
-      const a = dataChanges.value.get(key);
-
-      if (a === undefined) {
-        return true;
-      }
-
-      if (a.indicator !== indicator) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  if (anyChanges()) {
-    const answer = window.confirm("You have unsaved changes! Do you want to proceed and lose changes?");
-    // cancel the navigation and stay on the same page
-    if (!answer) {
-      return false;
-    }
-  }
-});
-
 function getDefaultEndpointType(row: EndpointThroughputSummary) {
   if (row.is_known_endpoint) {
     return UserIndicator.NServiceBusEndpoint.toString();
@@ -182,16 +182,16 @@ function getEndpointTypes(row: EndpointThroughputSummary) {
 }
 
 async function save() {
-  const data: UpdateUserIndicator[] = [];
+  const updateData: UpdateUserIndicator[] = [];
   dataChanges.value.forEach((value, key) => {
-    data.push({ name: key, user_indicator: value.indicator });
+    updateData.push({ name: key, user_indicator: value.indicator });
   });
 
-  await throughputClient.updateIndicators(data);
+  await throughputClient.updateIndicators(updateData);
 
-  useShowToast(TYPE.INFO, "Info", "Saved");
+  useShowToast(TYPE.INFO, "Saved", "");
 
-  await refreshData();
+  data.value = await throughputClient.endpoints();
 }
 </script>
 
@@ -206,7 +206,7 @@ async function save() {
             </select>
           </div>
           <div>
-            <input type="text" class="form-control format-text" :value="filterData.name" @input="nameFilterChanged" placeholder="Filter by name..." />
+            <input type="search" class="form-control format-text" :value="filterData.name" @input="nameFilterChanged" placeholder="Filter by name..." />
           </div>
         </div>
       </div>
@@ -217,7 +217,7 @@ async function save() {
         <drop-down label="Sort" :select-item="sortData.find((v) => v.value === filterData.sort)" :callback="sortChanged" :items="sortData" />
       </div>
       <div class="col-1 text-end">
-        <button class="btn btn-primary" type="button" @click="save">Save</button>
+        <button class="btn btn-primary" type="button" @click="save" :disabled="!hasChanges">Save</button>
       </div>
     </div>
     <div class="row results">
