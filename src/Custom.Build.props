@@ -9,6 +9,7 @@
     <PowerShellModuleArtifactsPath>$(ArtifactsPath)PowerShellModules\$(PowerShellModuleName)\</PowerShellModuleArtifactsPath>
     <!-- Remove after upgrading to NServiceBus 8.x -->
     <ParticularAnalyzersVersion>0.9.0</ParticularAnalyzersVersion>
+    <NuGetAuditMode>all</NuGetAuditMode>
   </PropertyGroup>
 
   <PropertyGroup>
