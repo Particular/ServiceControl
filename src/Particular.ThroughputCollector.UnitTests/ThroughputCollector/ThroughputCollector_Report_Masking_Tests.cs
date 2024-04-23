@@ -1,5 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests;
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -26,9 +27,11 @@ class ThroughputCollector_Report_Masking_Tests : ThroughputCollectorTestFixture
             .AddEndpoint("Endpoint2", sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
             .AddEndpoint("Endpoint3", sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
             .Build();
+        var expectedReportMasks = new List<string> { "Endpoint1" };
+        await DataStore.SaveReportMasks(expectedReportMasks, default);
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport(["Endpoint1"], "", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -50,7 +53,7 @@ class ThroughputCollector_Report_Masking_Tests : ThroughputCollectorTestFixture
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport([], "", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
