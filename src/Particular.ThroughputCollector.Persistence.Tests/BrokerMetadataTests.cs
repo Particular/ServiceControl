@@ -13,10 +13,10 @@ class BrokerMetadataTests : PersistenceTestFixture
     {
         //Arrange
         var expectedBrokerMetadata = new BrokerMetadata("Some scope", new Dictionary<string, string> { ["Some key"] = "Some value" });
-        await DataStore.SaveBrokerMetadata(expectedBrokerMetadata);
+        await DataStore.SaveBrokerMetadata(expectedBrokerMetadata, default);
 
         //Act
-        var retrievedBrokerMetadata = await DataStore.GetBrokerMetadata();
+        var retrievedBrokerMetadata = await DataStore.GetBrokerMetadata(default);
 
         //Assert
         Assert.That(retrievedBrokerMetadata, Is.Not.Null);
@@ -29,12 +29,12 @@ class BrokerMetadataTests : PersistenceTestFixture
     {
         // Arrange
         var oldBrokerMetadata = new BrokerMetadata("Some scope", new Dictionary<string, string> { ["Some key"] = "Some value" });
-        await DataStore.SaveBrokerMetadata(oldBrokerMetadata);
+        await DataStore.SaveBrokerMetadata(oldBrokerMetadata, default);
 
         // Act
         var expectedBrokerMetadata = new BrokerMetadata("New scope", new Dictionary<string, string> { ["New key"] = "New value" });
-        await DataStore.SaveBrokerMetadata(expectedBrokerMetadata);
-        var retrievedBrokerMetadata = await DataStore.GetBrokerMetadata();
+        await DataStore.SaveBrokerMetadata(expectedBrokerMetadata, default);
+        var retrievedBrokerMetadata = await DataStore.GetBrokerMetadata(default);
 
         // Assert
         Assert.That(retrievedBrokerMetadata, Is.Not.Null);

@@ -1,5 +1,6 @@
 ﻿namespace Particular.ThroughputCollector;
 
+using System.Threading;
 using AuditThroughput;
 using Contracts;
 using MonitoringThroughput;
@@ -52,6 +53,9 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
     public async Task UpdateUserIndicatorsOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken) =>
         await dataStore.UpdateUserIndicatorOnEndpoints(userIndicatorUpdates, cancellationToken);
 
+    public async Task<List<string>> GetReportMasks(CancellationToken cancellationToken) => await dataStore.GetReportMasks(cancellationToken);
+    public async Task UpdateReportMasks(List<string> reportMaskUpdates, CancellationToken cancellationToken) => await dataStore.SaveReportMasks(reportMaskUpdates, cancellationToken);
+
     public async Task<List<EndpointThroughputSummary>> GetThroughputSummary(CancellationToken cancellationToken)
     {
         var endpoints = (await dataStore.GetAllEndpoints(false, cancellationToken)).ToList();
@@ -99,11 +103,11 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         return reportGenerationState;
     }
 
-    public async Task<SignedReport> GenerateThroughputReport(string[] userMasks, string spVersion, CancellationToken cancellationToken)
+    public async Task<SignedReport> GenerateThroughputReport(string spVersion, CancellationToken cancellationToken)
     {
         (string Mask, string Replacement)[] masks = [];
-
-        CreateMasks(userMasks);
+        var reportMasks = await dataStore.GetReportMasks(cancellationToken);
+        CreateMasks(reportMasks.ToArray());
 
         var endpoints = (await dataStore.GetAllEndpoints(false, cancellationToken)).ToArray();
         var queueNames = endpoints.Select(endpoint => endpoint.SanitizedName).Distinct();
@@ -155,7 +159,7 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
             ScopeType = brokerMetaData.ScopeType ?? "",
             Prefix = null,
             MessageTransport = transport,
-            ToolVersion = "V3", //ensure we check for this on the other side - ie that we can process V3
+            ToolVersion = "V2", //ensure we check for this on the other side - ie that we can process V2
             IgnoredQueues = [.. ignoredQueueNames],
             Queues = [.. queueThroughputs],
             TotalQueues = queueThroughputs.Count,
