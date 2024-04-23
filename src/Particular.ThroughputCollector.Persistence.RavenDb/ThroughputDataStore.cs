@@ -6,13 +6,14 @@ using Contracts;
 using Models;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Linq;
+using Raven.Client.Documents.Queries;
 using Raven.Client.Documents.Session;
 
 public class ThroughputDataStore(
     Lazy<IDocumentStore> store,
     DatabaseConfiguration databaseConfiguration) : IThroughputDataStore
 {
-    const string ThroughputTimeSeriesName = "INC: throughput data";
+    internal const string ThroughputTimeSeriesName = "INC: throughput data";
     const string AuditServiceMetadataDocumentId = "AuditServiceMetadata";
     const string BrokerMetadataDocumentId = "BrokerMetadata";
 
@@ -182,9 +183,34 @@ public class ThroughputDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken) => throw new NotImplementedException();
+    public Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken)
+    {
+        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
-    public Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken) => throw new NotImplementedException();
+        return IsThereThroughputForLastXDaysInternal(session.Query<EndpointDocument>(), days, cancellationToken);
+    }
+
+    public Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken)
+    {
+        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+
+        var baseQuery = session.Query<EndpointDocument>()
+            .Where(endpoint => endpoint.EndpointId.ThroughputSource == throughputSource);
+
+        return IsThereThroughputForLastXDaysInternal(baseQuery, days, cancellationToken);
+    }
+
+    static async Task<bool> IsThereThroughputForLastXDaysInternal(IRavenQueryable<EndpointDocument> baseQuery, int days, CancellationToken cancellationToken)
+    {
+        DateTime fromDate = DateTime.UtcNow.AddDays(-days).Date;
+        DateTime yesterday = DateTime.UtcNow.AddDays(-1).Date;
+
+        var documents = await baseQuery
+            .Select(e => RavenQuery.TimeSeries(e, ThroughputTimeSeriesName, fromDate, yesterday).ToList())
+            .ToListAsync(cancellationToken);
+
+        return documents.SelectMany(timeSeries => timeSeries.Results).Any();
+    }
 
     public async Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken)
     {
