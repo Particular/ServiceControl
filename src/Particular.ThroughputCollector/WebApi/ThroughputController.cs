@@ -48,7 +48,7 @@
                     Request.Headers.TryGetValue("Particular-ServicePulse-Version", out var value) ? value.ToString() : "Unknown",
                     cancellationToken);
 
-                return File(JsonSerializer.SerializeToUtf8Bytes(report, SerializationOptions.SerializeIndented), "application/json", fileDownloadName: $"{report.ReportData.CustomerName}.throughput-report-{report.ReportData.EndTime:yyyyMMdd-HHmmss}.json");
+                return File(JsonSerializer.SerializeToUtf8Bytes(report, SerializationOptions.IndentedWithNoEscaping), "application/json", fileDownloadName: $"{report.ReportData.CustomerName}.throughput-report-{report.ReportData.EndTime:yyyyMMdd-HHmmss}.json");
             }
 
             return BadRequest($"Report cannot be generated - {reportStatus.Reason}");
