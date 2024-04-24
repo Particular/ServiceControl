@@ -72,10 +72,9 @@
 
         [Route("settings/masks")]
         [HttpPost]
-        public async Task<IActionResult> GetMasks(CancellationToken cancellationToken)
+        public async Task<List<string>> GetMasks(CancellationToken cancellationToken)
         {
-            await throughputCollector.GetReportMasks(cancellationToken);
-            return Ok();
+            return await throughputCollector.GetReportMasks(cancellationToken);
         }
 
         [Route("settings/masks/update")]
