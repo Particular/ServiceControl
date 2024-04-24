@@ -138,7 +138,7 @@ public class ThroughputCollector_Report_Signature_Tests
 
         var reportDataString = File.ReadAllText(reportFile);
 
-        var reportData = JsonSerializer.Deserialize<Report>(reportDataString, SerializationOptions.DeserializeNotIndentedOptions);
+        var reportData = JsonSerializer.Deserialize<Report>(reportDataString, SerializationOptions.NotIndentedWithNoEscaping);
         var signedReport = new SignedReport
         {
             ReportData = reportData,
@@ -200,14 +200,14 @@ public class ThroughputCollector_Report_Signature_Tests
 
     string SerializeReport(SignedReport report)
     {
-        var stringReport = JsonSerializer.Serialize(report, SerializationOptions.SerializeIndented);
+        var stringReport = JsonSerializer.Serialize(report, SerializationOptions.IndentedWithNoEscaping);
 
         return stringReport;
     }
 
     SignedReport DeserializeReport(string reportString)
     {
-        return JsonSerializer.Deserialize<SignedReport>(reportString, SerializationOptions.DeserializeDefaultOptions);
+        return JsonSerializer.Deserialize<SignedReport>(reportString, SerializationOptions.DefaultWithNoEscaping);
     }
 
     bool PrivateKeyAvailable => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RSA_PRIVATE_KEY"));
@@ -228,7 +228,7 @@ public class ThroughputCollector_Report_Signature_Tests
         }
 #endif
 
-        var reserializedReportBytes = JsonSerializer.SerializeToUtf8Bytes(signedReport.ReportData, SerializationOptions.SerializeNotIndented);
+        var reserializedReportBytes = JsonSerializer.SerializeToUtf8Bytes(signedReport.ReportData, SerializationOptions.NotIndentedWithNoEscaping);
         var correctSignature = Convert.ToBase64String(GetShaHash(reserializedReportBytes));
 
         try

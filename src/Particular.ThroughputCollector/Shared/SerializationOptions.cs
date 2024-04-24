@@ -6,28 +6,21 @@ using System.Text.Json;
 
 public static class SerializationOptions
 {
-    public static readonly JsonSerializerOptions SerializeIndented = new()
+    public static readonly JsonSerializerOptions IndentedWithNoEscaping = new()
     {
         WriteIndented = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
-    public static readonly JsonSerializerOptions SerializeNotIndented = new()
+    public static readonly JsonSerializerOptions NotIndentedWithNoEscaping = new()
     {
         WriteIndented = false,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
-    public static readonly JsonSerializerOptions DeserializeNotIndentedOptions = new()
-    {
-        WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-    };
-
-    public static readonly JsonSerializerOptions DeserializeDefaultOptions = new()
+    public static readonly JsonSerializerOptions DefaultWithNoEscaping = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
