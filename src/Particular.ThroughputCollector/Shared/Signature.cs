@@ -21,7 +21,7 @@ public static class Signature
 
     public static string SignReport(Report report)
     {
-        var bytesToSign = JsonSerializer.SerializeToUtf8Bytes(report, SerializationOptions.SerializeNotIndented);
+        var bytesToSign = JsonSerializer.SerializeToUtf8Bytes(report, SerializationOptions.NotIndentedWithNoEscaping);
 
         using (var rsa = RSA.Create())
         using (var sha = SHA512.Create())
