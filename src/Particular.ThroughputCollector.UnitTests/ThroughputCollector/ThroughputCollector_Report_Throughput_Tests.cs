@@ -8,6 +8,7 @@ using Contracts;
 using Infrastructure;
 using NUnit.Framework;
 using Particular.Approvals;
+using Particular.ThroughputCollector.Shared;
 
 [TestFixture]
 class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixture
@@ -261,15 +262,9 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
 
         // Act
         var report = await ThroughputCollector.GenerateThroughputReport("2.3.1", default);
-        var options = new JsonSerializerOptions()
-        {
-            WriteIndented = true,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-        };
-        var stringReport = JsonSerializer.Serialize(report, options);
 
         // Assert
-        Approver.Verify(stringReport,
+        Approver.Verify(report,
             scrubber: input => input.Replace(report.Signature, "SIGNATURE"));
     }
 }
