@@ -1,21 +1,33 @@
 <script setup lang="ts">
-import { setupData } from "@/views/throughputreport/randomData";
+import { computed, onMounted, ref } from "vue";
+import ConnectionTestResults from "@/resources/ConnectionTestResults";
+import ThroughputConnectionSettings from "@/resources/ThroughputConnectionSettings";
+import { Transport } from "./Transport";
+import throughputClient from "@/views/throughputreport/throughputClient";
 
-enum Transport {
-  MSMQ,
-  AzureStorageQueue,
-  NetStandardAzureServiceBus,
-  LearningTransport,
-  "RabbitMQ.ClassicConventionalRouting",
-  "RabbitMQ.ClassicDirectRouting",
-  "SQLServer",
-  "AmazonSQS",
+const testResults = ref<ConnectionTestResults | null>(null);
+const settingsInfo = ref<ThroughputConnectionSettings | null>(null);
+
+onMounted(async () => {
+  await getTestResults();
+});
+
+const transport = computed(() => {
+  if (testResults.value == null) {
+    return Transport.None;
+  }
+
+  return testResults.value.transport as Transport;
+});
+
+async function getTestResults() {
+  const [test, settings] = await Promise.all([throughputClient.test(), throughputClient.setting()]);
+  testResults.value = test;
+  settingsInfo.value = settings;
 }
 
-const transport: Transport = Transport.MSMQ; //["RabbitMQ.ClassicConventionalRouting"];
-
 function displayTransportNameForInstructions() {
-  switch (transport) {
+  switch (transport.value) {
     case Transport.AzureStorageQueue:
     case Transport.NetStandardAzureServiceBus:
       return "Azure";
@@ -31,7 +43,9 @@ function displayTransportNameForInstructions() {
   }
 }
 
-function test() {}
+async function test() {
+  await getTestResults();
+}
 </script>
 
 <template>
@@ -45,14 +59,14 @@ function test() {}
     <div class="intro">
       <p>In order for ServicePulse to collect throughput data directly from {{ displayTransportNameForInstructions() }} you need to setup the following settings in ServiceControl.</p>
       <p>There are two options to set the settings, you can either set environment variables or alternative is to set it directly in the <code>ServiceControl.exe.config</code> file.</p>
-      <p>For more information read this documentation.</p>
+      <p>For more information read <a href="https://docs.particular.net/servicecontrol/creating-config-file">this documentation</a>.</p>
     </div>
     <div class="row">
       <div class="card">
         <div class="card-body">
-          <h5 class="card-title">List of settings required</h5>
+          <h5 class="card-title">List of settings</h5>
           <ul class="card-text settingsList">
-            <li v-for="item in setupData" :key="item.name">
+            <li v-for="item in settingsInfo?.broker_settings" :key="item.name">
               <div>
                 <strong>{{ item.name }}</strong>
               </div>
@@ -63,6 +77,15 @@ function test() {}
       </div>
     </div>
     <div class="row"><button class="btn btn-primary actions" type="button" @click="test">Test Connection</button></div>
+    <div class="row">
+      <h3>Test Connection results</h3>
+      <h4>Broker</h4>
+      <pre>{{ testResults?.broker_connection_result.diagnostics }}</pre>
+      <h4>Audit</h4>
+      <pre>{{ testResults?.audit_connection_result.diagnostics }}</pre>
+      <h4>Monitoring</h4>
+      <pre>{{ testResults?.monitoring_connection_result.diagnostics }}</pre>
+    </div>
   </template>
 </template>
 
