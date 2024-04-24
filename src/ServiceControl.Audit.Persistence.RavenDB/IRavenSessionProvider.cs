@@ -1,9 +1,13 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDB
+﻿#nullable enable
+
+namespace ServiceControl.Audit.Persistence.RavenDB
 {
+    using System.Threading;
+    using System.Threading.Tasks;
     using Raven.Client.Documents.Session;
 
     interface IRavenSessionProvider
     {
-        IAsyncDocumentSession OpenSession();
+        ValueTask<IAsyncDocumentSession> OpenSession(SessionOptions? options = default, CancellationToken cancellationToken = default);
     }
 }

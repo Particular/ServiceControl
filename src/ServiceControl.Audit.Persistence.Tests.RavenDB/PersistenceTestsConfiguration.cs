@@ -82,7 +82,7 @@
             FailedAuditStorage = host.Services.GetRequiredService<IFailedAuditStorage>();
 
             var documentStoreProvider = host.Services.GetRequiredService<IRavenDocumentStoreProvider>();
-            DocumentStore = documentStoreProvider.GetDocumentStore();
+            DocumentStore = await documentStoreProvider.GetDocumentStore();
             var bulkInsert = DocumentStore.BulkInsert(
                 options: new BulkInsertOptions { SkipOverwriteIfUnchanged = true, });
 

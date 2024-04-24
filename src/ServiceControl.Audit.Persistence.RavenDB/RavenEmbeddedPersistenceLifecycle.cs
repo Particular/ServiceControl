@@ -12,34 +12,51 @@ namespace ServiceControl.Audit.Persistence.RavenDB
 
     sealed class RavenEmbeddedPersistenceLifecycle(DatabaseConfiguration databaseConfiguration, IHostApplicationLifetime lifetime) : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
     {
-        public IDocumentStore GetDocumentStore()
+        public async ValueTask<IDocumentStore> GetDocumentStore(CancellationToken cancellationToken = default)
         {
-            if (documentStore == null)
+            if (documentStore != null)
             {
-                throw new InvalidOperationException("Document store is not available until the persistence have been started");
+                return documentStore;
             }
 
-            return documentStore;
+            try
+            {
+                await initializeSemaphore.WaitAsync(cancellationToken);
+                return documentStore ?? throw new InvalidOperationException("Document store is not available. Ensure `IRavenPersistenceLifecycle.Initialize` is invoked");
+            }
+            finally
+            {
+                initializeSemaphore.Release();
+            }
         }
 
         public async Task Initialize(CancellationToken cancellationToken = default)
         {
-            database = EmbeddedDatabase.Start(databaseConfiguration, lifetime);
-
-            while (true)
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                await initializeSemaphore.WaitAsync(cancellationToken);
 
-                try
+                database = EmbeddedDatabase.Start(databaseConfiguration, lifetime);
+
+                while (true)
                 {
-                    documentStore = await database.Connect(cancellationToken);
-                    return;
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    try
+                    {
+                        documentStore = await database.Connect(cancellationToken);
+                        return;
+                    }
+                    catch (DatabaseLoadTimeoutException e)
+                    {
+                        Log.Warn("Could not connect to database. Retrying in 500ms...", e);
+                        await Task.Delay(500, cancellationToken);
+                    }
                 }
-                catch (DatabaseLoadTimeoutException e)
-                {
-                    Log.Warn("Could not connect to database. Retrying in 500ms...", e);
-                    await Task.Delay(500, cancellationToken);
-                }
+            }
+            finally
+            {
+                initializeSemaphore.Release();
             }
         }
 
@@ -51,6 +68,8 @@ namespace ServiceControl.Audit.Persistence.RavenDB
 
         IDocumentStore? documentStore;
         EmbeddedDatabase? database;
+        readonly SemaphoreSlim initializeSemaphore = new(1, 1);
+
         static readonly ILog Log = LogManager.GetLogger(typeof(RavenEmbeddedPersistenceLifecycle));
     }
 }

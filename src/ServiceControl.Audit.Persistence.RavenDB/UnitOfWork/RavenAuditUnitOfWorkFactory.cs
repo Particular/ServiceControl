@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB.UnitOfWork
 {
-    using System;
     using System.Threading;
+    using System.Threading.Tasks;
     using Persistence.UnitOfWork;
     using Raven.Client.Documents.BulkInsert;
     using RavenDB;
@@ -13,10 +13,10 @@
         MinimumRequiredStorageState customCheckState)
         : IAuditIngestionUnitOfWorkFactory
     {
-        public IAuditIngestionUnitOfWork StartNew(int batchSize)
+        public async ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize)
         {
             var timedCancellationSource = new CancellationTokenSource(databaseConfiguration.BulkInsertCommitTimeout);
-            var bulkInsert = documentStoreProvider.GetDocumentStore()
+            var bulkInsert = (await documentStoreProvider.GetDocumentStore(timedCancellationSource.Token))
                 .BulkInsert(new BulkInsertOptions { SkipOverwriteIfUnchanged = true, }, timedCancellationSource.Token);
 
             return new RavenAuditIngestionUnitOfWork(

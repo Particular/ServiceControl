@@ -53,7 +53,7 @@
 
         async Task IngestKnownEndpoints(params KnownEndpoint[] knownEndpoints)
         {
-            var unitOfWork = StartAuditUnitOfWork(knownEndpoints.Length);
+            var unitOfWork = await StartAuditUnitOfWork(knownEndpoints.Length);
             foreach (var knownEndpoint in knownEndpoints)
             {
                 await unitOfWork.RecordKnownEndpoint(knownEndpoint);

@@ -21,7 +21,7 @@
     {
         public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var sagaHistory = await
                 session.Query<SagaHistory, SagaDetailsIndex>()
                     .Statistics(out var stats)
@@ -32,7 +32,7 @@
 
         public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                 .Statistics(out var stats)
                 .IncludeSystemMessagesWhere(includeSystemMessages)
@@ -46,7 +46,7 @@
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                 .Statistics(out var stats)
                 .Search(x => x.Query, searchParam)
@@ -60,7 +60,7 @@
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                 .Statistics(out var stats)
                 .Search(x => x.Query, keyword)
@@ -75,7 +75,7 @@
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                 .Statistics(out var stats)
                 .IncludeSystemMessagesWhere(includeSystemMessages)
@@ -90,7 +90,7 @@
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                 .Statistics(out var stats)
                 .Where(m => m.ConversationId == conversationId)
@@ -104,7 +104,7 @@
 
         public async Task<MessageBodyView> GetMessageBody(string messageId)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var result = await session.Advanced.Attachments.GetAsync(messageId, "body");
 
             if (result == null)
@@ -122,7 +122,7 @@
 
         public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints()
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var endpoints = await session.Advanced.LoadStartingWithAsync<KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024);
 
             var knownEndpoints = endpoints
@@ -146,7 +146,7 @@
         {
             var indexName = GetIndexName(isFullTextSearchEnabled);
 
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             // Maximum should really be 31 queries if there are 30 days of audit data, but default limit is 30
             session.Advanced.MaxNumberOfRequestsPerSession = 40;
 

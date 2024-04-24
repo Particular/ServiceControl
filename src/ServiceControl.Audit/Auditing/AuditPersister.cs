@@ -53,7 +53,7 @@
             {
 
                 // deliberately not using the using statement because we dispose async explicitly
-                unitOfWork = unitOfWorkFactory.StartNew(contexts.Count);
+                unitOfWork = await unitOfWorkFactory.StartNew(contexts.Count);
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {

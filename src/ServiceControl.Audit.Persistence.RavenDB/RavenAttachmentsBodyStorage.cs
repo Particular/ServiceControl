@@ -24,7 +24,7 @@
 
         public async Task<StreamResult> TryFetch(string bodyId)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var result = await session.Advanced.Attachments.GetAsync($"MessageBodies/{bodyId}", "body");
 
             if (result == null)
