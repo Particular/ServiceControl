@@ -1,10 +1,13 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests;
 
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Contracts;
 using Infrastructure;
 using NUnit.Framework;
+using Particular.Approvals;
 
 [TestFixture]
 class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixture
@@ -217,5 +220,56 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
 
         Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(75), $"Incorrect TotalThroughput recorded");
         Assert.That(report.ReportData.TotalQueues, Is.EqualTo(1), $"Incorrect TotalQueues recorded");
+    }
+
+    [Test]
+    public async Task Should_generate_correct_report()
+    {
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker, ThroughputSource.Monitoring])
+                .WithThroughput(ThroughputSource.Broker, data: [50, 55])
+                .WithThroughput(ThroughputSource.Monitoring, data: [60, 65])
+                .ConfigureEndpoint(endpoint => endpoint.EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()])
+            .AddEndpoint("Endpoint2", sources: [ThroughputSource.Broker, ThroughputSource.Audit])
+                .WithThroughput(ThroughputSource.Broker, data: [60, 65])
+                .WithThroughput(ThroughputSource.Audit, data: [61, 64])
+                .ConfigureEndpoint(endpoint => endpoint.EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()])
+            .AddEndpoint("Endpoint3", sources: [ThroughputSource.Broker, ThroughputSource.Monitoring, ThroughputSource.Audit])
+                .WithThroughput(ThroughputSource.Broker, data: [50, 57])
+                .WithThroughput(ThroughputSource.Monitoring, data: [40, 45])
+                .WithThroughput(ThroughputSource.Audit, data: [42, 47])
+                .ConfigureEndpoint(endpoint => endpoint.EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()])
+            .AddEndpoint("Endpoint4", sources: [ThroughputSource.Broker])
+                .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.PlannedToDecommission.ToString())
+                .WithThroughput(ThroughputSource.Broker, data: [42, 47])
+            .AddEndpoint("Endpoint5", sources: [ThroughputSource.Broker])
+            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NotNServiceBusEndpoint.ToString())
+            .WithThroughput(ThroughputSource.Broker, data: [15, 4])
+            .Build();
+
+        var expectedReportMasks = new List<string> { "Endpoint1" };
+        await DataStore.SaveReportMasks(expectedReportMasks, default);
+
+        var expectedBrokerVersion = "1.2";
+        var expectedScopeType = "testingScope";
+        await DataStore.SaveBrokerMetadata(new BrokerMetadata(expectedScopeType, new Dictionary<string, string> { [EnvironmentDataType.BrokerVersion.ToString()] = expectedBrokerVersion }), default);
+
+        var expectedAuditVersionSummary = new Dictionary<string, int> { ["4.3.6"] = 2 };
+        var expectedAuditTransportSummary = new Dictionary<string, int> { ["AzureServiceBus"] = 2 };
+        await DataStore.SaveAuditServiceMetadata(new AuditServiceMetadata(expectedAuditVersionSummary, expectedAuditTransportSummary), default);
+
+        // Act
+        var report = await ThroughputCollector.GenerateThroughputReport("2.3.1", default);
+        var options = new JsonSerializerOptions()
+        {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+        var stringReport = JsonSerializer.Serialize(report, options);
+
+        // Assert
+        Approver.Verify(stringReport,
+            scrubber: input => input.Replace(report.Signature, "SIGNATURE"));
     }
 }
