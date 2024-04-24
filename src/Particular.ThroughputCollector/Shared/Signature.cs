@@ -1,7 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.Shared;
 
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using Particular.ThroughputCollector.Contracts;
 
@@ -22,13 +21,7 @@ public static class Signature
 
     public static string SignReport(Report report)
     {
-        var options = new JsonSerializerOptions()
-        {
-            WriteIndented = false
-        };
-        var jsonToSign = JsonSerializer.Serialize(report, options);
-
-        var bytesToSign = Encoding.UTF8.GetBytes(jsonToSign);
+        var bytesToSign = JsonSerializer.SerializeToUtf8Bytes(report, SerializationOptions.SerializeNotIndented);
 
         using (var rsa = RSA.Create())
         using (var sha = SHA512.Create())
