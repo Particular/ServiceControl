@@ -1,10 +1,10 @@
 ﻿namespace Particular.ThroughputCollector.WebApi
 {
-    using System.Text.Encodings.Web;
     using System.Text.Json;
     using System.Threading;
     using Contracts;
     using Microsoft.AspNetCore.Mvc;
+    using Particular.ThroughputCollector.Shared;
 
     [ApiController]
     [Route("api/throughput")]
@@ -48,12 +48,7 @@
                     Request.Headers.TryGetValue("Particular-ServicePulse-Version", out var value) ? value.ToString() : "Unknown",
                     cancellationToken);
 
-                var options = new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                };
-                return File(JsonSerializer.SerializeToUtf8Bytes(report, options), "application/json", fileDownloadName: $"{report.ReportData.CustomerName}.throughput-report-{report.ReportData.EndTime:yyyyMMdd-HHmmss}.json");
+                return File(JsonSerializer.SerializeToUtf8Bytes(report, SerializationOptions.SerializeIndented), "application/json", fileDownloadName: $"{report.ReportData.CustomerName}.throughput-report-{report.ReportData.EndTime:yyyyMMdd-HHmmss}.json");
             }
 
             return BadRequest($"Report cannot be generated - {reportStatus.Reason}");
