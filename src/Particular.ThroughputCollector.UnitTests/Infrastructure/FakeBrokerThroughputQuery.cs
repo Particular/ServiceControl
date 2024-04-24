@@ -11,7 +11,7 @@
     {
         public Dictionary<string, string> Data => throw new NotImplementedException();
 
-        public string MessageTransport => "";
+        public string MessageTransport => "AzureServiceBus";
 
         public string ScopeType => "";
 
