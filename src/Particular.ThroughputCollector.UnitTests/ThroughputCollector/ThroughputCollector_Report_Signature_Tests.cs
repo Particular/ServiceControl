@@ -86,6 +86,73 @@ public class ThroughputCollector_Report_Signature_Tests
         Assert.That(ValidateReport(report));
     }
 
+    [Test]
+    public void Should_be_able_to_read_a_V2_report()
+    {
+        var reportString = GetResource("throughput-report-v2.0.json");
+
+        var report = DeserializeReport(reportString);
+        var data = report.ReportData;
+
+        // Want to be explicit with asserts to ensure that a 2.0 report can be read correctly
+        // An approval test would be too easy to just accept changes on
+        Assert.That(data.CustomerName, Is.EqualTo("TestCustomer"));
+        Assert.That(data.MessageTransport, Is.EqualTo("AzureServiceBus"));
+        Assert.That(data.ReportMethod, Is.EqualTo("NA"));
+        Assert.That(data.ToolVersion, Is.EqualTo("2.0.0"));
+        Assert.That(data.StartTime.ToString("O"), Is.EqualTo("2024-04-22T00:00:00.0000000+00:00"));
+        Assert.That(data.EndTime.ToString("O"), Is.EqualTo("2024-04-23T00:00:00.0000000+00:00"));
+        Assert.That(data.ReportDuration, Is.EqualTo(TimeSpan.Parse("1.00:00:00")));
+
+        Assert.That(data.Queues, Has.Length.EqualTo(5));
+        Assert.That(data.Queues.All(q => !string.IsNullOrEmpty(q.QueueName)));
+        Assert.That(data.Queues.All(q => q.NoDataOrSendOnly == false));
+        Assert.That(data.Queues.Any(q => q.EndpointIndicators?.Contains(EndpointIndicator.KnownEndpoint.ToString()) ?? false), Is.True);
+
+        Assert.That(data.TotalThroughput, Is.EqualTo(249));
+        Assert.That(data.TotalQueues, Is.EqualTo(5));
+        Assert.That(data.EnvironmentInformation.AuditServiceMetadata.Versions.Count, Is.EqualTo(1));
+        Assert.That(data.EnvironmentInformation.AuditServiceMetadata.Transports.Count, Is.EqualTo(1));
+        Assert.That(data.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.ServiceControlVersion.ToString()), Is.True);
+        Assert.That(data.EnvironmentInformation.EnvironmentData[EnvironmentDataType.ServiceControlVersion.ToString()], Is.EqualTo("5.0.1"));
+        Assert.That(data.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.ServicePulseVersion.ToString()), Is.True);
+        Assert.That(data.EnvironmentInformation.EnvironmentData[EnvironmentDataType.ServicePulseVersion.ToString()], Is.EqualTo("2.3.1"));
+        Assert.That(data.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.AuditEnabled.ToString()), Is.True);
+        Assert.That(data.EnvironmentInformation.EnvironmentData[EnvironmentDataType.AuditEnabled.ToString()], Is.EqualTo("True"));
+        Assert.That(data.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.MonitoringEnabled.ToString()), Is.True);
+        Assert.That(data.EnvironmentInformation.EnvironmentData[EnvironmentDataType.MonitoringEnabled.ToString()], Is.EqualTo("True"));
+
+        Assert.That(report.Signature, Is.EqualTo("veu3QRby2Kq3cFLcrhTWyaGqVyLBOANaQ2MC+onthtBEz8AlTebgiG/ASnBkwf5Cg1Q6evq7faRZpbFyxjkKKA1Kz1nfeZc8T9c8jX2Gy4t2XTYtr+Dx/PvCq9pCu/7LrTZRwO+Ndw9a51M2OZpKL07zhP97/IzzcJv+gpdo//L7Haw6iIHhT/IwgwZN4GaTMOVprn5MnS/+9Csh27JMCITFPwpaIm2p7KZz0ycoexaNnxhcXF7vzhAVOzOmtZcp1XJ33TBd2lkQ7v8EWWp7ZXPed7Vgt1+42taa9QRWe0huiBnlp+fWZLFPuD6dbLEjpd9InYETkxsrcKkA2S5vag=="));
+
+        Assert.That(ValidateReport(report));
+    }
+
+#if !DEBUG
+    [Ignore("This test is here to help with generating a signed report file from a file that only contains report data")]
+#endif
+    [TestCase(@"C:\DEV\ThroughputReports\ReportData.json")]
+    public void SignReport(string reportFile)
+    {
+        if (!File.Exists(reportFile))
+        {
+            Assert.Ignore($"Ignoring SignReport test as test report data file {reportFile} was not found.");
+        }
+
+        var reportDataString = File.ReadAllText(reportFile);
+
+        var reportData = JsonSerializer.Deserialize<Report>(reportDataString);
+        var signedReport = new SignedReport
+        {
+            ReportData = reportData,
+            Signature = Shared.Signature.SignReport(reportData)
+        };
+
+        var reportString = SerializeReport(signedReport);
+        Assert.That(reportString, Is.Not.Null);
+        Assert.That(signedReport.Signature, Is.Not.Null);
+    }
+
+
     string GetResource(string resourceName)
     {
         var assembly = typeof(ThroughputCollector_Report_Signature_Tests).Assembly;
