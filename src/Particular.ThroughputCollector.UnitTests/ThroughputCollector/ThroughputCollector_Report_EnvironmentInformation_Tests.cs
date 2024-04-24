@@ -155,7 +155,7 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
 
         var expectedBrokerVersion = "1.2";
         var expectedScopeType = "testingScope";
-        await DataStore.SaveBrokerMetadata(new BrokerMetadata(expectedScopeType, new Dictionary<string, string> { [EnvironmentDataType.Version.ToString()] = expectedBrokerVersion }), default);
+        await DataStore.SaveBrokerMetadata(new BrokerMetadata(expectedScopeType, new Dictionary<string, string> { [EnvironmentDataType.BrokerVersion.ToString()] = expectedBrokerVersion }), default);
 
         var expectedAuditVersionSummary = new Dictionary<string, int> { ["4.3.6"] = 2 };
         var expectedAuditTransportSummary = new Dictionary<string, int> { ["AzureServiceBus"] = 2 };
@@ -170,8 +170,8 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
         Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
         Assert.That(report.ReportData.ScopeType, Is.Not.Null, $"Missing ScopeType from report");
         Assert.That(report.ReportData.ScopeType, Is.EqualTo(expectedScopeType), $"Invalid ScopeType on report");
-        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.Version.ToString()), Is.True, $"Missing EnvironmentData.Version from report");
-        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData[EnvironmentDataType.Version.ToString()], Is.EqualTo(expectedBrokerVersion), $"Incorrect EnvironmentData.Version on report");
+        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.BrokerVersion.ToString()), Is.True, $"Missing EnvironmentData.Version from report");
+        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData[EnvironmentDataType.BrokerVersion.ToString()], Is.EqualTo(expectedBrokerVersion), $"Incorrect EnvironmentData.Version on report");
         Assert.That(report.ReportData.EnvironmentInformation.AuditServiceMetadata.Versions, Is.EquivalentTo(expectedAuditVersionSummary), $"Invalid AuditInstance version summary on report");
         Assert.That(report.ReportData.EnvironmentInformation.AuditServiceMetadata.Transports, Is.EquivalentTo(expectedAuditTransportSummary), $"Invalid AuditInstance transport summary on report");
     }

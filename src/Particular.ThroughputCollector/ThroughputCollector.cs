@@ -159,7 +159,7 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
             ScopeType = brokerMetaData.ScopeType ?? "",
             Prefix = null,
             MessageTransport = transport,
-            ToolVersion = "V2", //ensure we check for this on the other side - ie that we can process V2
+            ToolVersion = "2.0.0", //ensure we check for this on the other side - ie that we can process 2.0.0
             IgnoredQueues = [.. ignoredQueueNames],
             Queues = [.. queueThroughputs],
             TotalQueues = queueThroughputs.Count,
