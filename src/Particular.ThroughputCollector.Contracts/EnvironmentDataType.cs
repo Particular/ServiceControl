@@ -6,7 +6,7 @@ public enum EnvironmentDataType
 {
     AuditEnabled,
     MonitoringEnabled,
-    Version,
+    BrokerVersion,
     AuditInstances,
     ServiceControlVersion,
     ServicePulseVersion
