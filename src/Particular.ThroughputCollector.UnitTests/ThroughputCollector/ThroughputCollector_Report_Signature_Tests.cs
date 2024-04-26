@@ -233,8 +233,6 @@ public class ThroughputCollector_Report_Signature_Tests
         };
     }
 
-    bool PrivateKeyAvailable => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RSA_PRIVATE_KEY"));
-
     bool ValidateReport(SignedReport signedReport)
     {
         if (signedReport.Signature is null)
@@ -243,7 +241,7 @@ public class ThroughputCollector_Report_Signature_Tests
         }
 
 #if DEBUG
-        if (!PrivateKeyAvailable)
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RSA_PRIVATE_KEY")))
         {
             // We don't distribute the private key to do local testing, this only happens during CI
             Assert.Ignore("Ignoring report validation as this is a DEBUG build and the RSA_PRIVATE_KEY environment variable is missing.");
