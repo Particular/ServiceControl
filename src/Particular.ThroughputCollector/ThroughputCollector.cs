@@ -140,9 +140,9 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
                 NoDataOrSendOnly = throughputData.Sum() == 0,
                 Scope = EndpointScope(endpointGroupPerQueue) ?? "",
                 Throughput = throughputData.Max(),
-                DailyThroughputFromAudit = throughputData.FromSource(ThroughputSource.Audit).ToArray(),
-                DailyThroughputFromMonitoring = throughputData.FromSource(ThroughputSource.Monitoring).ToArray(),
-                DailyThroughputFromBroker = notAnNsbEndpoint ? [] : throughputData.FromSource(ThroughputSource.Broker).ToArray()
+                DailyThroughputFromAudit = throughputData.FromSource(ThroughputSource.Audit).Select(s => new DailyThroughput { DateUTC = s.DateUTC, MessageCount = s.MessageCount }).ToArray(),
+                DailyThroughputFromMonitoring = throughputData.FromSource(ThroughputSource.Monitoring).Select(s => new DailyThroughput { DateUTC = s.DateUTC, MessageCount = s.MessageCount }).ToArray(),
+                DailyThroughputFromBroker = notAnNsbEndpoint ? [] : throughputData.FromSource(ThroughputSource.Broker).Select(s => new DailyThroughput { DateUTC = s.DateUTC, MessageCount = s.MessageCount }).ToArray()
             };
 
             queueThroughputs.Add(queueThroughput);
@@ -164,7 +164,7 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
             Queues = [.. queueThroughputs],
             TotalQueues = queueThroughputs.Count,
             TotalThroughput = queueThroughputs.Sum(q => q.Throughput ?? 0),
-            EnvironmentInformation = new EnvironmentInformation { AuditServiceMetadata = auditServiceMetadata, EnvironmentData = brokerMetaData.Data }
+            EnvironmentInformation = new EnvironmentInformation { AuditServicesData = new AuditServicesData(auditServiceMetadata.Versions, auditServiceMetadata.Transports), EnvironmentData = brokerMetaData.Data }
         };
 
         var auditThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromAudit).ToArray();
