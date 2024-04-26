@@ -7,6 +7,7 @@ using Contracts;
 using Infrastructure;
 using NUnit.Framework;
 using Particular.Approvals;
+using Particular.ThroughputCollector.Shared;
 
 [TestFixture]
 class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixture

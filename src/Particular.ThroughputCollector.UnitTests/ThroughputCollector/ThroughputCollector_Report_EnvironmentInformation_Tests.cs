@@ -172,7 +172,7 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
         Assert.That(report.ReportData.ScopeType, Is.EqualTo(expectedScopeType), $"Invalid ScopeType on report");
         Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.BrokerVersion.ToString()), Is.True, $"Missing EnvironmentData.Version from report");
         Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData[EnvironmentDataType.BrokerVersion.ToString()], Is.EqualTo(expectedBrokerVersion), $"Incorrect EnvironmentData.Version on report");
-        Assert.That(report.ReportData.EnvironmentInformation.AuditServiceMetadata.Versions, Is.EquivalentTo(expectedAuditVersionSummary), $"Invalid AuditInstance version summary on report");
-        Assert.That(report.ReportData.EnvironmentInformation.AuditServiceMetadata.Transports, Is.EquivalentTo(expectedAuditTransportSummary), $"Invalid AuditInstance transport summary on report");
+        Assert.That(report.ReportData.EnvironmentInformation.AuditServicesData.Versions, Is.EquivalentTo(expectedAuditVersionSummary), $"Invalid AuditInstance version summary on report");
+        Assert.That(report.ReportData.EnvironmentInformation.AuditServicesData.Transports, Is.EquivalentTo(expectedAuditTransportSummary), $"Invalid AuditInstance transport summary on report");
     }
 }
