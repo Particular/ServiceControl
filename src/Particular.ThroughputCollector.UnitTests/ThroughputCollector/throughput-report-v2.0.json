@@ -5,36 +5,34 @@
     "ReportMethod": "NA",
     "ToolVersion": "2.0.0",
     "ScopeType": "testingScope",
-    "StartTime": "2024-04-22T00:00:00+00:00",
-    "EndTime": "2024-04-23T00:00:00+00:00",
+    "StartTime": "2024-04-24T00:00:00+00:00",
+    "EndTime": "2024-04-25T00:00:00+00:00",
     "ReportDuration": "1.00:00:00",
     "Queues": [
       {
         "QueueName": "REDACTED1",
         "Throughput": 65,
-        "EndpointIndicators": [
-          "KnownEndpoint"
-        ],
+        "EndpointIndicators": [ "KnownEndpoint" ],
         "UserIndicator": "",
         "Scope": "",
         "DailyThroughputFromBroker": [
           {
-            "DateUTC": "2024-04-22",
+            "DateUTC": "2024-04-24",
             "MessageCount": 50
           },
           {
-            "DateUTC": "2024-04-23",
+            "DateUTC": "2024-04-25",
             "MessageCount": 55
           }
         ],
         "DailyThroughputFromAudit": [],
         "DailyThroughputFromMonitoring": [
           {
-            "DateUTC": "2024-04-22",
+            "DateUTC": "2024-04-24",
             "MessageCount": 60
           },
           {
-            "DateUTC": "2024-04-23",
+            "DateUTC": "2024-04-25",
             "MessageCount": 65
           }
         ]
@@ -42,28 +40,26 @@
       {
         "QueueName": "Endpoint2",
         "Throughput": 65,
-        "EndpointIndicators": [
-          "KnownEndpoint"
-        ],
+        "EndpointIndicators": [ "KnownEndpoint" ],
         "UserIndicator": "",
         "Scope": "",
         "DailyThroughputFromBroker": [
           {
-            "DateUTC": "2024-04-22",
+            "DateUTC": "2024-04-24",
             "MessageCount": 60
           },
           {
-            "DateUTC": "2024-04-23",
+            "DateUTC": "2024-04-25",
             "MessageCount": 65
           }
         ],
         "DailyThroughputFromAudit": [
           {
-            "DateUTC": "2024-04-22",
+            "DateUTC": "2024-04-24",
             "MessageCount": 61
           },
           {
-            "DateUTC": "2024-04-23",
+            "DateUTC": "2024-04-25",
             "MessageCount": 64
           }
         ],
@@ -72,38 +68,36 @@
       {
         "QueueName": "Endpoint3",
         "Throughput": 57,
-        "EndpointIndicators": [
-          "KnownEndpoint"
-        ],
+        "EndpointIndicators": [ "KnownEndpoint" ],
         "UserIndicator": "",
         "Scope": "",
         "DailyThroughputFromBroker": [
           {
-            "DateUTC": "2024-04-22",
+            "DateUTC": "2024-04-24",
             "MessageCount": 50
           },
           {
-            "DateUTC": "2024-04-23",
+            "DateUTC": "2024-04-25",
             "MessageCount": 57
           }
         ],
         "DailyThroughputFromAudit": [
           {
-            "DateUTC": "2024-04-22",
+            "DateUTC": "2024-04-24",
             "MessageCount": 42
           },
           {
-            "DateUTC": "2024-04-23",
+            "DateUTC": "2024-04-25",
             "MessageCount": 47
           }
         ],
         "DailyThroughputFromMonitoring": [
           {
-            "DateUTC": "2024-04-22",
+            "DateUTC": "2024-04-24",
             "MessageCount": 40
           },
           {
-            "DateUTC": "2024-04-23",
+            "DateUTC": "2024-04-25",
             "MessageCount": 45
           }
         ]
@@ -116,11 +110,11 @@
         "Scope": "",
         "DailyThroughputFromBroker": [
           {
-            "DateUTC": "2024-04-22",
+            "DateUTC": "2024-04-24",
             "MessageCount": 42
           },
           {
-            "DateUTC": "2024-04-23",
+            "DateUTC": "2024-04-25",
             "MessageCount": 47
           }
         ],
@@ -142,13 +136,9 @@
     "TotalQueues": 5,
     "IgnoredQueues": [],
     "EnvironmentInformation": {
-      "AuditServiceMetadata": {
-        "Versions": {
-          "4.3.6": 2
-        },
-        "Transports": {
-          "AzureServiceBus": 2
-        }
+      "AuditServicesData": {
+        "Versions": { "4.3.6": 2 },
+        "Transports": { "AzureServiceBus": 2 }
       },
       "EnvironmentData": {
         "BrokerVersion": "1.2",
@@ -159,5 +149,5 @@
       }
     }
   },
-  "Signature": "t0Hz+mq+hE5fPH13x4ifug3at1c2NIH94gwvTudSaijuPMxTPcPOLB7rh5zmglEcEhmMBqEe/XTgggIkhoyo+jhlquIZY27+feBePpPykitZ09/Ptv32sf3UNRAq/wIWvAhQf1NMFcIeFiU0g5V1l1cvVucJr7hWueDebBFff14+m9NBMqVO90rnJgYb4B9Se4iQ/dBnOBnO746cyJd1UPE1fqjCMkKoctDXWJaTl3H5Rg/ig6DQeLDYoCzU2Zz+x3KeLbSTspT8HlffWnPl8Z8qT4wMglU+YE1heovjv9jpZTBvxdamiLDaCSNNcDlPjrjhavHGgmAejUwIt3ANDw=="
+  "Signature": "wT/9H8NO43sGw6NUh1a7dFMBTpTtInNMgXREJWahfroA3W9B6RcYiNpPTwLIJZ671ZO9aalsZzj9SPPPXs36Z+YkAde77WUeYSTemaT0+2jQlltltXA6az6BALnRXzTKFlus0BK+3++3aK9+0TZkbTmPRURhF7cxv9fW18EsnXBoBF5c1VG3Eaim0AKJAH1rrxflGjodsegUcSBBCioaG4bpfGn7GTHiuBm6yaw0Ww8LHxbz9VVoCMI6MeRvsLFwfEnB3nYyV3cLt4XIzFkkFWu+NcMpBTYD6iZDK7KF7kiKYNiFMCMlMlSLyyaVThTPe7csMhnCjNC1Ls4DvHBAtA=="
 }

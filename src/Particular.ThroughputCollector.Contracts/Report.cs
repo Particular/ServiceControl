@@ -4,14 +4,14 @@ using System.Text.Json.Serialization;
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
 //NOTE do not change fields to be nullable as this needs to be compatible with older versions of the report
-public class SignedReport
+public record SignedReport
 {
 
     public Report ReportData { get; init; }
     public string Signature { get; init; }
 }
 
-public class Report
+public record Report
 {
     public string CustomerName { get; init; }
 
@@ -50,7 +50,7 @@ public class Report
     public EnvironmentInformation EnvironmentInformation { get; set; }
 }
 
-public class QueueThroughput
+public record QueueThroughput
 {
     public string QueueName { get; set; }
 
@@ -70,17 +70,28 @@ public class QueueThroughput
     public string Scope { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
-    public EndpointDailyThroughput[] DailyThroughputFromBroker { get; init; }
+    public DailyThroughput[] DailyThroughputFromBroker { get; init; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
-    public EndpointDailyThroughput[] DailyThroughputFromAudit { get; init; }
+    public DailyThroughput[] DailyThroughputFromAudit { get; init; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
-    public EndpointDailyThroughput[] DailyThroughputFromMonitoring { get; init; }
+    public DailyThroughput[] DailyThroughputFromMonitoring { get; init; }
 }
 
-public class EnvironmentInformation
+public record EnvironmentInformation
 {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
-    public AuditServiceMetadata AuditServiceMetadata { get; set; }
+    public AuditServicesData AuditServicesData { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, string> EnvironmentData { get; set; }
+}
+
+public record DailyThroughput
+{
+    public DateOnly DateUTC { get; init; }
+
+    public long MessageCount { get; init; }
+}
+
+public record AuditServicesData(Dictionary<string, int> Versions, Dictionary<string, int> Transports)
+{
 }

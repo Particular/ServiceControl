@@ -17,10 +17,13 @@ public class ThroughputCollector_Report_Signature_Tests
     [Test]
     public void Should_serialize_report_with_signature()
     {
+        //Arrange
         var report = CreateReport();
 
-        var reportString = SerializeReport(report);
+        //Act
+        var reportString = JsonSerializer.Serialize(report, SerializationOptions.IndentedWithNoEscaping);
 
+        //Assert
         Approver.Verify(reportString,
             scrubber: input => input.Replace(report.Signature, "SIGNATURE"));
     }
@@ -28,38 +31,43 @@ public class ThroughputCollector_Report_Signature_Tests
     [Test]
     public void Should_deserialize_report_with_signature()
     {
+        //Arrange
         var report = CreateReport();
 
-        var reportString = SerializeReport(report);
-        var deserialized = DeserializeReport(reportString);
+        //Act
+        var reportString = JsonSerializer.Serialize(report, SerializationOptions.NotIndentedWithNoEscaping);
+        var deserialized = JsonSerializer.Deserialize<SignedReport>(reportString, SerializationOptions.NotIndentedWithNoEscaping);
 
+        //Assert
         Assert.That(ValidateReport(deserialized));
     }
 
     [Test]
     public void Should_not_allow_tempering_with_report()
     {
+        //Arrange
         var report = CreateReport();
-        var reportString = SerializeReport(report);
+        var reportString = JsonSerializer.Serialize(report, SerializationOptions.IndentedWithNoEscaping);
 
+        //Act
         reportString = reportString.Replace("\"Throughput\": 42", "\"Throughput\": 13");
+        var deserialized = JsonSerializer.Deserialize<SignedReport>(reportString, SerializationOptions.NotIndentedWithNoEscaping);
 
-        var deserialized = DeserializeReport(reportString);
-
-        if (PrivateKeyAvailable)
-        {
-            Assert.That(ValidateReport(deserialized), Is.False);
-        }
+        //Assert
+        Assert.That(ValidateReport(deserialized), Is.False);
     }
 
     [Test]
     public void Should_be_able_to_read_a_V1_report()
     {
+        //Arrange
         var reportString = GetResource("throughput-report-v1.0.json");
 
-        var report = DeserializeReport(reportString);
+        //Act
+        var report = JsonSerializer.Deserialize<SignedReport>(reportString, SerializationOptions.NotIndentedWithNoEscaping);
         var data = report.ReportData;
 
+        //Assert
         // Want to be explicit with asserts to ensure that a 1.0 report can be read correctly
         // An approval test would be too easy to just accept changes on
         Assert.That(data.CustomerName, Is.EqualTo("Testing"));
@@ -87,30 +95,34 @@ public class ThroughputCollector_Report_Signature_Tests
     [Test]
     public void Should_be_able_to_read_a_V2_report()
     {
+        //Arrange
         var reportString = GetResource("throughput-report-v2.0.json");
 
-        var report = DeserializeReport(reportString);
+        //Act
+        var report = JsonSerializer.Deserialize<SignedReport>(reportString, SerializationOptions.NotIndentedWithNoEscaping);
         var data = report.ReportData;
 
+        //Assert
         // Want to be explicit with asserts to ensure that a 2.0 report can be read correctly
         // An approval test would be too easy to just accept changes on
         Assert.That(data.CustomerName, Is.EqualTo("TestCustomer"));
         Assert.That(data.MessageTransport, Is.EqualTo("AzureServiceBus"));
         Assert.That(data.ReportMethod, Is.EqualTo("NA"));
         Assert.That(data.ToolVersion, Is.EqualTo("2.0.0"));
-        Assert.That(data.StartTime.ToString("O"), Is.EqualTo("2024-04-22T00:00:00.0000000+00:00"));
-        Assert.That(data.EndTime.ToString("O"), Is.EqualTo("2024-04-23T00:00:00.0000000+00:00"));
+        Assert.That(data.StartTime.ToString("O"), Is.EqualTo("2024-04-24T00:00:00.0000000+00:00"));
+        Assert.That(data.EndTime.ToString("O"), Is.EqualTo("2024-04-25T00:00:00.0000000+00:00"));
         Assert.That(data.ReportDuration, Is.EqualTo(TimeSpan.Parse("1.00:00:00")));
 
         Assert.That(data.Queues, Has.Length.EqualTo(5));
         Assert.That(data.Queues.All(q => !string.IsNullOrEmpty(q.QueueName)));
         Assert.That(data.Queues.All(q => q.NoDataOrSendOnly == false));
+        Assert.That(data.Queues.Any(q => q.QueueName == "Endpoint2" && q.DailyThroughputFromBroker.Any(t => t.MessageCount == 60 && t.DateUTC.ToString("yyyy-MM-dd") == "2024-04-24")));
         Assert.That(data.Queues.Any(q => q.EndpointIndicators?.Contains(EndpointIndicator.KnownEndpoint.ToString()) ?? false), Is.True);
 
         Assert.That(data.TotalThroughput, Is.EqualTo(249));
         Assert.That(data.TotalQueues, Is.EqualTo(5));
-        Assert.That(data.EnvironmentInformation.AuditServiceMetadata.Versions.Count, Is.EqualTo(1));
-        Assert.That(data.EnvironmentInformation.AuditServiceMetadata.Transports.Count, Is.EqualTo(1));
+        Assert.That(data.EnvironmentInformation.AuditServicesData.Versions.Count, Is.EqualTo(1));
+        Assert.That(data.EnvironmentInformation.AuditServicesData.Transports.Count, Is.EqualTo(1));
         Assert.That(data.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.ServiceControlVersion.ToString()), Is.True);
         Assert.That(data.EnvironmentInformation.EnvironmentData[EnvironmentDataType.ServiceControlVersion.ToString()], Is.EqualTo("5.0.1"));
         Assert.That(data.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.ServicePulseVersion.ToString()), Is.True);
@@ -120,9 +132,9 @@ public class ThroughputCollector_Report_Signature_Tests
         Assert.That(data.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.MonitoringEnabled.ToString()), Is.True);
         Assert.That(data.EnvironmentInformation.EnvironmentData[EnvironmentDataType.MonitoringEnabled.ToString()], Is.EqualTo("True"));
 
-        Assert.That(report.Signature, Is.EqualTo("t0Hz+mq+hE5fPH13x4ifug3at1c2NIH94gwvTudSaijuPMxTPcPOLB7rh5zmglEcEhmMBqEe/XTgggIkhoyo+jhlquIZY27+feBePpPykitZ09/Ptv32sf3UNRAq/wIWvAhQf1NMFcIeFiU0g5V1l1cvVucJr7hWueDebBFff14+m9NBMqVO90rnJgYb4B9Se4iQ/dBnOBnO746cyJd1UPE1fqjCMkKoctDXWJaTl3H5Rg/ig6DQeLDYoCzU2Zz+x3KeLbSTspT8HlffWnPl8Z8qT4wMglU+YE1heovjv9jpZTBvxdamiLDaCSNNcDlPjrjhavHGgmAejUwIt3ANDw=="));
+        Assert.That(report.Signature, Is.EqualTo("wT/9H8NO43sGw6NUh1a7dFMBTpTtInNMgXREJWahfroA3W9B6RcYiNpPTwLIJZ671ZO9aalsZzj9SPPPXs36Z+YkAde77WUeYSTemaT0+2jQlltltXA6az6BALnRXzTKFlus0BK+3++3aK9+0TZkbTmPRURhF7cxv9fW18EsnXBoBF5c1VG3Eaim0AKJAH1rrxflGjodsegUcSBBCioaG4bpfGn7GTHiuBm6yaw0Ww8LHxbz9VVoCMI6MeRvsLFwfEnB3nYyV3cLt4XIzFkkFWu+NcMpBTYD6iZDK7KF7kiKYNiFMCMlMlSLyyaVThTPe7csMhnCjNC1Ls4DvHBAtA=="));
 
-        //Assert.That(ValidateReport(report));
+        Assert.That(ValidateReport(report));
     }
 
 #if !DEBUG
@@ -136,18 +148,41 @@ public class ThroughputCollector_Report_Signature_Tests
             Assert.Ignore($"Ignoring SignReport test as test report data file {reportFile} was not found.");
         }
 
+        //Arrange
         var reportDataString = File.ReadAllText(reportFile);
-
         var reportData = JsonSerializer.Deserialize<Report>(reportDataString, SerializationOptions.NotIndentedWithNoEscaping);
+
+        //Act
         var signedReport = new SignedReport
         {
             ReportData = reportData,
             Signature = Signature.SignReport(reportData)
         };
 
-        var reportString = SerializeReport(signedReport);
+        var reportString = JsonSerializer.Serialize(signedReport, SerializationOptions.IndentedWithNoEscaping);
+
+        //Assert
         Assert.That(reportString, Is.Not.Null);
         Assert.That(signedReport.Signature, Is.Not.Null);
+    }
+
+#if !DEBUG
+    [Ignore("This test is here to validate generated reports")]
+#endif
+    [TestCase(@"C:\DEV\ThroughputReports\ReportDataWithSignature.json")]
+    public void ValidateReport(string reportFile)
+    {
+        if (!File.Exists(reportFile))
+        {
+            Assert.Ignore($"Ignoring ValidateReport test as test report data file {reportFile} was not found.");
+        }
+
+        //Arrange
+        var reportString = File.ReadAllText(reportFile);
+        var report = JsonSerializer.Deserialize<SignedReport>(reportString, SerializationOptions.NotIndentedWithNoEscaping);
+
+        //Assert
+        Assert.That(ValidateReport(report));
     }
 
 
@@ -196,18 +231,6 @@ public class ThroughputCollector_Report_Signature_Tests
             ReportData = reportData,
             Signature = Signature.SignReport(reportData)
         };
-    }
-
-    string SerializeReport(SignedReport report)
-    {
-        var stringReport = JsonSerializer.Serialize(report, SerializationOptions.IndentedWithNoEscaping);
-
-        return stringReport;
-    }
-
-    SignedReport DeserializeReport(string reportString)
-    {
-        return JsonSerializer.Deserialize<SignedReport>(reportString, SerializationOptions.DefaultWithNoEscaping);
     }
 
     bool PrivateKeyAvailable => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RSA_PRIVATE_KEY"));
