@@ -167,14 +167,14 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
             EnvironmentInformation = new EnvironmentInformation { AuditServicesData = new AuditServicesData(auditServiceMetadata.Versions, auditServiceMetadata.Transports), EnvironmentData = brokerMetaData.Data }
         };
 
-        var auditThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromAudit).ToArray();
-        var monitoringThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromMonitoring).ToArray();
-        var brokerThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromBroker).ToArray();
+        var auditThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromAudit);
+        var monitoringThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromMonitoring);
+        var brokerThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromBroker);
 
         //this will be the date of the first throughput that we have received
-        var firstAuditThroughputDate = auditThroughput.Any() ? auditThroughput.MinBy(m => m.DateUTC).DateUTC.ToDateTime(TimeOnly.MinValue) : yesterday.AddDays(-1);
-        var firstMonitoringThroughputDate = monitoringThroughput.Any() ? monitoringThroughput.MinBy(m => m.DateUTC).DateUTC.ToDateTime(TimeOnly.MinValue) : yesterday.AddDays(-1);
-        var firstBrokerThroughputDate = brokerThroughput.Any() ? brokerThroughput.MinBy(m => m.DateUTC).DateUTC.ToDateTime(TimeOnly.MinValue) : yesterday.AddDays(-1);
+        var firstAuditThroughputDate = auditThroughput is not null && auditThroughput.Any() ? auditThroughput.MinBy(m => m.DateUTC)!.DateUTC.ToDateTime(TimeOnly.MinValue) : yesterday.AddDays(-1);
+        var firstMonitoringThroughputDate = monitoringThroughput is not null && monitoringThroughput.Any() ? monitoringThroughput.MinBy(m => m.DateUTC)!.DateUTC.ToDateTime(TimeOnly.MinValue) : yesterday.AddDays(-1);
+        var firstBrokerThroughputDate = brokerThroughput is not null && brokerThroughput.Any() ? brokerThroughput.MinBy(m => m.DateUTC)!.DateUTC.ToDateTime(TimeOnly.MinValue) : yesterday.AddDays(-1);
         report.StartTime = new DateTimeOffset(new[] { firstAuditThroughputDate, firstMonitoringThroughputDate, firstBrokerThroughputDate }.Min(), TimeSpan.Zero);
         report.ReportDuration = report.EndTime - report.StartTime;
 
