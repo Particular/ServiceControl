@@ -1,0 +1,20 @@
+<script setup lang="ts">
+import { RouterLink } from "vue-router";
+import routeLinks from "@/router/routeLinks";
+import { useHeartbeatsStore } from "@/stores/HeartbeatsStore";
+
+const store = useHeartbeatsStore();
+</script>
+
+<template>
+  <RouterLink :to="routeLinks.heartbeats.root">
+    <i class="fa fa-heartbeat icon-white" title="Heartbeats"></i>
+    <span class="navbar-label">Heartbeats</span>
+    <span v-if="store.failedHeartbeatsCount > 0" class="badge badge-important">{{ store.failedHeartbeatsCount }}</span>
+  </RouterLink>
+</template>
+
+<style scoped>
+@import "@/assets/navbar.css";
+@import "@/assets/header-menu-item.css";
+</style>

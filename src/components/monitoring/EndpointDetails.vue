@@ -1,0 +1,218 @@
+﻿<script setup lang="ts">
+// Composables
+import { computed, watch, onMounted, onUnmounted } from "vue";
+import { useRoute, useRouter, RouterLink } from "vue-router";
+import { monitoringConnectionState, connectionState } from "../../composables/serviceServiceControl";
+import { licenseStatus } from "../../composables/serviceLicense";
+import { useIsMonitoringDisabled } from "../../composables/serviceServiceControlUrls";
+import { storeToRefs } from "pinia";
+//stores
+import { useMonitoringEndpointDetailsStore } from "../../stores/MonitoringEndpointDetailsStore";
+// Components
+import LicenseExpired from "../../components/LicenseExpired.vue";
+import ServiceControlNotAvailable from "../../components/ServiceControlNotAvailable.vue";
+import MonitoringNotAvailable from "./MonitoringNotAvailable.vue";
+import PeriodSelector from "./MonitoringHistoryPeriod.vue";
+import EndpointBacklog from "./EndpointBacklog.vue";
+import EndpointWorkload from "./EndpointWorkload.vue";
+import EndpointTimings from "./EndpointTimings.vue";
+import EndpointInstances from "./EndpointInstances.vue";
+import EndpointMessageTypes from "./EndpointMessageTypes.vue";
+import { useMonitoringHistoryPeriodStore } from "@/stores/MonitoringHistoryPeriodStore";
+import routeLinks from "@/router/routeLinks";
+
+const route = useRoute();
+const router = useRouter();
+const endpointName = route.params.endpointName.toString();
+let refreshInterval: number;
+
+const monitoringStore = useMonitoringEndpointDetailsStore();
+const monitoringHistoryPeriodStore = useMonitoringHistoryPeriodStore();
+
+const { historyPeriod } = storeToRefs(monitoringHistoryPeriodStore);
+const { negativeCriticalTimeIsPresent, endpointDetails: endpoint } = storeToRefs(monitoringStore);
+
+watch(historyPeriod, (newValue) => {
+  changeRefreshInterval(newValue.refreshIntervalVal);
+});
+
+const tabs = Object.freeze({
+  messageTypeBreakdown: "messageTypeBreakdown",
+  instancesBreakdown: "instancesBreakdown",
+});
+
+const activeTab = computed({
+  get() {
+    return route?.query?.tab ?? tabs.messageTypeBreakdown;
+  },
+  set(newValue) {
+    router.replace({ query: { ...route.query, tab: newValue } });
+  },
+});
+
+async function getEndpointDetails() {
+  await monitoringStore.getEndpointDetails(endpointName);
+}
+
+function changeRefreshInterval(milliseconds: number) {
+  if (typeof refreshInterval !== "undefined") {
+    clearInterval(refreshInterval);
+  }
+  getEndpointDetails();
+  refreshInterval = window.setInterval(() => {
+    getEndpointDetails();
+  }, milliseconds);
+}
+onUnmounted(() => {
+  if (typeof refreshInterval !== "undefined") {
+    clearInterval(refreshInterval);
+  }
+});
+
+onMounted(() => {
+  changeRefreshInterval(historyPeriod.value.refreshIntervalVal);
+});
+</script>
+
+<template>
+  <LicenseExpired />
+  <template v-if="!licenseStatus.isExpired">
+    <div class="container monitoring-view">
+      <ServiceControlNotAvailable />
+      <template v-if="connectionState.connected">
+        <!--MonitoringNotAvailable-->
+        <div class="row">
+          <div class="col-sm-12">
+            <MonitoringNotAvailable v-if="monitoringConnectionState.unableToConnect || useIsMonitoringDisabled()"></MonitoringNotAvailable>
+          </div>
+        </div>
+        <!--Header-->
+        <div class="monitoring-head">
+          <div class="endpoint-title no-side-padding list-section">
+            <h1 class="righ-side-ellipsis" v-tooltip :title="endpointName">
+              {{ endpointName }}
+            </h1>
+            <div class="endpoint-status">
+              <span class="warning" v-if="negativeCriticalTimeIsPresent">
+                <i class="fa pa-warning" v-tooltip :title="`Warning: endpoint currently has negative critical time, possibly because of a clock drift.`"></i>
+              </span>
+              <span v-if="endpoint.isStale" class="warning">
+                <i class="fa pa-endpoint-lost endpoint-details" v-tooltip :title="`Unable to connect to endpoint`"></i>
+              </span>
+              <span class="warning" v-if="endpoint.isScMonitoringDisconnected">
+                <i class="fa pa-monitoring-lost endpoint-details" v-tooltip :title="`Unable to connect to monitoring server`"></i>
+              </span>
+              <span class="warning" v-if="endpoint.errorCount" v-tooltip :title="endpoint.errorCount + ` failed messages associated with this endpoint. Click to see list.`">
+                <RouterLink :to="routeLinks.failedMessage.group.link(endpoint.serviceControlId)" v-if="endpoint.errorCount" class="warning cursorpointer">
+                  <i class="fa fa-envelope"></i>
+                  <span class="badge badge-important ng-binding cursorpointer"> {{ endpoint.errorCount }}</span>
+                </RouterLink>
+              </span>
+            </div>
+          </div>
+          <!--filters-->
+          <div class="no-side-padding toolbar-menus">
+            <div class="filter-monitoring">
+              <PeriodSelector />
+            </div>
+          </div>
+        </div>
+        <!--large graphs-->
+        <div class="large-graphs">
+          <div class="container">
+            <div class="row">
+              <EndpointBacklog v-model="endpoint" />
+              <EndpointWorkload v-model="endpoint" />
+              <EndpointTimings v-model="endpoint" />
+            </div>
+          </div>
+        </div>
+
+        <!--Messagetypes and instances-->
+        <div>
+          <!--tabs-->
+          <div class="tabs">
+            <h5 :class="{ active: activeTab === tabs.messageTypeBreakdown }">
+              <a @click="activeTab = tabs.messageTypeBreakdown" class="cursorpointer ng-binding">Message Types ({{ endpoint.messageTypes.length }})</a>
+            </h5>
+            <h5 :class="{ active: activeTab === tabs.instancesBreakdown }">
+              <a @click="activeTab = tabs.instancesBreakdown" class="cursorpointer ng-binding">Instances ({{ endpoint.instances.length }})</a>
+            </h5>
+          </div>
+
+          <!--showInstancesBreakdown-->
+          <section v-if="activeTab === tabs.instancesBreakdown" class="endpoint-instances">
+            <EndpointInstances />
+          </section>
+
+          <!--ShowMessagetypes breakdown-->
+          <section v-if="activeTab === tabs.messageTypeBreakdown" class="endpoint-message-types">
+            <EndpointMessageTypes />
+          </section>
+        </div>
+      </template>
+    </div>
+  </template>
+</template>
+
+<style scoped>
+@import "../list.css";
+@import "./monitoring.css";
+@import "./endpoint.css";
+
+.monitoring-head {
+  display: flex;
+  justify-content: space-between;
+}
+
+.monitoring-head h1 {
+  margin-bottom: 10px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.monitoring-head .msg-group-menu {
+  margin: 6px 0px 0 6px;
+  padding-right: 0;
+}
+
+.monitoring-head .endpoint-status {
+  top: 4px;
+}
+
+.monitoring-head i.fa.fa-envelope {
+  font-size: 26px;
+  position: relative;
+  top: -4px;
+  left: 1px;
+}
+
+.monitoring-head .endpoint-status .badge {
+  position: absolute;
+  font-size: 10px;
+  right: -10px;
+  left: unset;
+  top: unset;
+  bottom: 5px;
+}
+
+.monitoring-head .endpoint-status .pa-endpoint-lost.endpoint-details,
+.monitoring-head .endpoint-status .pa-monitoring-lost.endpoint-details {
+  width: 32px;
+  height: 30px;
+}
+
+.endpoint-title {
+  flex: 0;
+  display: flex;
+  align-items: center;
+}
+
+.large-graphs {
+  width: 100%;
+  background-color: white;
+  margin-bottom: 34px;
+  padding: 30px 0;
+}
+</style>

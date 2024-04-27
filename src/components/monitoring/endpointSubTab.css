@@ -1,0 +1,51 @@
+.endpoint-row {
+  padding: 0.5em 1.5em;
+  margin: 0;
+}
+
+.box {
+  box-shadow: none;
+  margin: 0;
+}
+
+.box-no-click {
+  background: none;
+  border-bottom: 1px solid #ced6d3;
+  border-left: none;
+  border-right: none;
+  cursor: default;
+}
+
+.box-no-click:first-child {
+  border-top: 1px solid #ced6d3;
+}
+
+.box-no-click {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.box-no-click:hover {
+  background: none !important;
+  border-bottom: 1px solid #ced6d3 !important;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  cursor: default;
+  padding-top: 21px;
+}
+
+.box-no-click:first-child:hover {
+  border-top: 1px solid #ced6d3 !important;
+  padding-top: 20px;
+}
+
+.box-no-click > div > div {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.box-no-click > div > div > div {
+  padding-left: 0;
+  padding-right: 0;
+}

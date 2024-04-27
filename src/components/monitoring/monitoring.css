@@ -1,0 +1,123 @@
+div.avg-tooltip {
+  position: absolute;
+  text-align: left;
+  padding: 0.3rem;
+  line-height: 1;
+  background: var(--avg-tooltip-background-color);
+  color: #ffffff;
+  border-radius: 8px 1px 1px 8px;
+  pointer-events: none;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+div.avg-tooltip.left {
+  border-radius: 1px 8px 8px 1px;
+}
+
+div.avg-tooltip:before {
+  content: "";
+  display: block;
+  z-index: -1;
+  right: 0;
+  position: absolute;
+  top: 50%;
+  background-color: var(--avg-tooltip-background-color);
+  width: 24px;
+  height: 24px;
+  margin-top: -12px;
+  margin-right: -12px;
+
+  transform: rotate(45deg);
+}
+
+div.avg-tooltip.left:before {
+  right: inherit;
+  margin-right: inherit;
+  margin-left: -12px;
+  left: 0;
+}
+
+div.avg-tooltip .value {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+div.avg-tooltip .value span {
+  font-size: 11px;
+  font-weight: normal;
+}
+
+.queue-length {
+  color: var(--monitoring-queue-length);
+  stroke: var(--monitoring-queue-length);
+}
+
+.queue-length .graph-data-fill {
+  fill: var(--monitoring-queue-length-light);
+  stroke: none;
+}
+
+.queue-length.avg-tooltip {
+  --avg-tooltip-background-color: var(--monitoring-queue-length);
+}
+
+.throughput {
+  color: var(--monitoring-throughput);
+  stroke: var(--monitoring-throughput);
+}
+
+.throughput .graph-data-fill {
+  fill: var(--monitoring-throughput-light);
+  stroke: none;
+}
+
+.throughput.avg-tooltip {
+  --avg-tooltip-background-color: var(--monitoring-throughput);
+}
+
+.retries {
+  color: var(--monitoring-retries);
+  stroke: var(--monitoring-retries);
+}
+
+.retries .graph-data-fill {
+  fill: var(--monitoring-retries-light);
+  stroke: none;
+}
+
+.retries.avg-tooltip {
+  --avg-tooltip-background-color: var(--monitoring-retries);
+}
+
+.processing-time {
+  color: var(--monitoring-processing-time);
+  stroke: var(--monitoring-processing-time);
+}
+
+.processing-time .graph-data-fill {
+  fill: var(--monitoring-processing-time-light);
+  stroke: none;
+}
+
+.processing-time.avg-tooltip {
+  --avg-tooltip-background-color: var(--monitoring-processing-time);
+}
+
+.critical-time {
+  color: var(--monitoring-critical-time);
+  stroke: var(--monitoring-critical-time);
+}
+
+.critical-time .graph-data-fill {
+  fill: var(--monitoring-critical-time-light);
+  stroke: none;
+}
+
+.critical-time.avg-tooltip {
+  --avg-tooltip-background-color: var(--monitoring-critical-time);
+}
+
+.avg-tooltip {
+  color: white;
+}

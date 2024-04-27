@@ -1,0 +1,362 @@
+[
+    {
+        "tag": "5.0.4",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/5.0.4",
+        "published": "2024-01-23T09:56:56Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-5.0.4.exe",
+                "size": 210944576,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/5.0.4/Particular.ServiceControl-5.0.4.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.33.2",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.33.2",
+        "published": "2024-01-23T15:47:12Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.33.2.exe",
+                "size": 218503936,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.33.2/Particular.ServiceControl-4.33.2.exe"
+            }
+        ]
+    },
+    {
+        "tag": "5.0.3",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/5.0.3",
+        "published": "2023-12-19T23:44:11Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-5.0.3.exe",
+                "size": 210914368,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/5.0.3/Particular.ServiceControl-5.0.3.exe"
+            }
+        ]
+    },
+    {
+        "tag": "5.0.2",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/5.0.2",
+        "published": "2023-12-19T13:31:02Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-5.0.2.exe",
+                "size": 210914368,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/5.0.2/Particular.ServiceControl-5.0.2.exe"
+            }
+        ]
+    },
+    {
+        "tag": "5.0.1",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/5.0.1",
+        "published": "2023-12-08T10:33:57Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-5.0.1.exe",
+                "size": 210914368,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/5.0.1/Particular.ServiceControl-5.0.1.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.33.1",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.33.1",
+        "published": "2023-12-08T10:00:43Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.33.1.exe",
+                "size": 218425824,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.33.1/Particular.ServiceControl-4.33.1.exe"
+            }
+        ]
+    },
+    {
+        "tag": "5.0.0",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/5.0.0",
+        "published": "2023-12-01T20:15:16Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-5.0.0.exe",
+                "size": 210913856,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/5.0.0/Particular.ServiceControl-5.0.0.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.33.0",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.33.0",
+        "published": "2023-11-20T20:07:51Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.33.0.exe",
+                "size": 218426576,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.33.0/Particular.ServiceControl-4.33.0.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.32.4",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.32.4",
+        "published": "2023-11-15T10:06:55Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.32.4.exe",
+                "size": 208523728,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.32.4/Particular.ServiceControl-4.32.4.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.32.3",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.32.3",
+        "published": "2023-11-06T11:33:37Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.32.3.exe",
+                "size": 208291904,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.32.3/Particular.ServiceControl-4.32.3.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.32.2",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.32.2",
+        "published": "2023-07-21T16:50:47Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.32.2.exe",
+                "size": 208290904,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.32.2/Particular.ServiceControl-4.32.2.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.32.1",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.32.1",
+        "published": "2023-07-05T07:00:57Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.32.1.exe",
+                "size": 208294512,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.32.1/Particular.ServiceControl-4.32.1.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.32.0",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.32.0",
+        "published": "2023-06-22T19:11:16Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.32.0.exe",
+                "size": 208281552,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.32.0/Particular.ServiceControl-4.32.0.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.31.0",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.31.0",
+        "published": "2023-06-07T01:38:57Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.31.0.exe",
+                "size": 208351048,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.31.0/Particular.ServiceControl-4.31.0.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.30.1",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.30.1",
+        "published": "2023-05-29T09:26:53Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.30.1.exe",
+                "size": 200771168,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.30.1/Particular.ServiceControl-4.30.1.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.30.0",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.30.0",
+        "published": "2023-04-14T12:46:46Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.30.0.exe",
+                "size": 200759440,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.30.0/Particular.ServiceControl-4.30.0.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.29.3",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.29.3",
+        "published": "2023-03-07T04:52:45Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.29.3.exe",
+                "size": 200022320,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.29.3/Particular.ServiceControl-4.29.3.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.29.1",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.29.1",
+        "published": "2023-02-24T22:58:52Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.29.1.exe",
+                "size": 199745856,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.29.1/Particular.ServiceControl-4.29.1.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.29.0",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.29.0",
+        "published": "2023-02-23T01:08:20Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.29.0.exe",
+                "size": 199697368,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.29.0/Particular.ServiceControl-4.29.0.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.28.4",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.28.4",
+        "published": "2023-02-10T18:38:48Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.28.4.exe",
+                "size": 199647800,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.28.4/Particular.ServiceControl-4.28.4.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.28.3",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.28.3",
+        "published": "2023-02-03T06:32:00Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.28.3.exe",
+                "size": 199646592,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.28.3/Particular.ServiceControl-4.28.3.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.27.7",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.27.7",
+        "published": "2023-02-02T09:36:05Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.27.7.exe",
+                "size": 198134184,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.27.7/Particular.ServiceControl-4.27.7.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.27.6",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.27.6",
+        "published": "2023-01-18T19:22:00Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.27.6.exe",
+                "size": 197958208,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.27.6/Particular.ServiceControl-4.27.6.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.27.4",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.27.4",
+        "published": "2022-12-21T18:23:30Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.27.4.exe",
+                "size": 197961632,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.27.4/Particular.ServiceControl-4.27.4.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.26.0",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.26.0",
+        "published": "2022-11-08T15:15:42Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.26.0.exe",
+                "size": 176393512,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.26.0/Particular.ServiceControl-4.26.0.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.25.2",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.25.2",
+        "published": "2022-09-07T23:55:39Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.25.2.exe",
+                "size": 97388096,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.25.2/Particular.ServiceControl-4.25.2.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.25.1",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.25.1",
+        "published": "2022-09-06T04:56:05Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.25.1.exe",
+                "size": 97516296,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.25.1/Particular.ServiceControl-4.25.1.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.23.0",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.23.0",
+        "published": "2022-08-05T20:51:49Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.23.0.exe",
+                "size": 99709160,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.23.0/Particular.ServiceControl-4.23.0.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.22.0",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.22.0",
+        "published": "2022-06-15T09:24:56Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.22.0.exe",
+                "size": 99463704,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.22.0/Particular.ServiceControl-4.22.0.exe"
+            }
+        ]
+    },
+    {
+        "tag": "4.21.8",
+        "release": "https://github.com/Particular/ServiceControl/releases/tag/4.21.8",
+        "published": "2022-03-03T12:33:24Z",
+        "assets": [
+            {
+                "name": "Particular.ServiceControl-4.21.8.exe",
+                "size": 97310320,
+                "download": "https://github.com/Particular/ServiceControl/releases/download/4.21.8/Particular.ServiceControl-4.21.8.exe"
+            }
+        ]
+    }
+]

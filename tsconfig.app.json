@@ -1,0 +1,20 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["env.d.ts", "src/**/*.js", "src/**/*.ts", "src/**/*.vue", "./test/**/*.ts"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "composite": true,
+    "allowJs": false,
+    "alwaysStrict": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@component-test-utils": ["./test/utils.ts"]
+    },
+    "strict": true,
+    "sourceMap": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
+  }
+}
