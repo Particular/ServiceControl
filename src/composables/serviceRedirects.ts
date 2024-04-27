@@ -1,6 +1,8 @@
 import { useDeleteFromServiceControl, usePostToServiceControl, usePutToServiceControl, useTypedFetchFromServiceControl } from "./serviceServiceControlUrls";
 import type Redirect from "@/resources/Redirect";
 import type QueueAddress from "@/resources/QueueAddress";
+import { useIsSupported } from "@/composables/serviceSemVer";
+import { environment } from "@/composables/serviceServiceControl";
 
 export interface Redirects {
   data: Redirect[];
@@ -46,10 +48,18 @@ export async function useUpdateRedirects(redirectId: string, sourceEndpoint: str
     fromphysicaladdress: sourceEndpoint,
     tophysicaladdress: targetEndpoint,
   });
+
+  let responseStatusText;
+  if (useIsSupported(environment.sc_version, "5.2.0")) {
+    responseStatusText = response.headers.get("X-Particular-Reason");
+  } else{
+    responseStatusText = response.statusText;
+  }
+
   return {
     message: response.ok ? "success" : `error:${response.statusText}`,
     status: response.status,
-    statusText: response.statusText,
+    statusText: responseStatusText,
     data: response,
   };
 }
@@ -59,19 +69,35 @@ export async function useCreateRedirects(sourceEndpoint: string, targetEndpoint:
     fromphysicaladdress: sourceEndpoint,
     tophysicaladdress: targetEndpoint,
   });
+
+  let responseStatusText;
+  if (useIsSupported(environment.sc_version, "5.2.0")) {
+    responseStatusText = response.headers.get("X-Particular-Reason");
+  } else{
+    responseStatusText = response.statusText;
+  }
+
   return {
     message: response.ok ? "success" : `error:${response.statusText}`,
     status: response.status,
-    statusText: response.statusText,
+    statusText: responseStatusText,
   };
 }
 
 export async function useDeleteRedirects(redirectId: string) {
   const response = await useDeleteFromServiceControl(`redirects/${redirectId}`);
+  
+  let responseStatusText;
+  if (useIsSupported(environment.sc_version, "5.2.0")) {
+    responseStatusText = response.headers.get("X-Particular-Reason");
+  } else{
+    responseStatusText = response.statusText;
+  }
+
   return {
     message: response.ok ? "success" : `error:${response.statusText}`,
     status: response.status,
-    statusText: response.statusText,
+    statusText: responseStatusText,
     data: response,
   };
 }

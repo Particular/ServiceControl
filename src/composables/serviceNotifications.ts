@@ -2,6 +2,8 @@ import { usePostToServiceControl, useTypedFetchFromServiceControl } from "./serv
 
 import type EmailNotifications from "@/resources/EmailNotifications";
 import type UpdateEmailNotificationsSettingsRequest from "@/resources/UpdateEmailNotificationsSettingsRequest";
+import { useIsSupported } from "@/composables/serviceSemVer";
+import { environment } from "@/composables/serviceServiceControl";
 
 export async function useEmailNotifications() {
   try {
@@ -33,8 +35,16 @@ export async function useUpdateEmailNotifications(settings: UpdateEmailNotificat
 export async function useTestEmailNotifications() {
   try {
     const response = await usePostToServiceControl("notifications/email/test");
+
+    let responseStatusText;
+    if (useIsSupported(environment.sc_version, "5.2")) {
+      responseStatusText = response.headers.get("X-Particular-Reason");
+    } else{
+      responseStatusText = response.statusText;
+    }
+
     return {
-      message: response.ok ? "success" : "error:" + response.statusText,
+      message: response.ok ? "success" : "error:" + responseStatusText,
     };
   } catch (err) {
     console.log(err);
