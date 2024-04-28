@@ -49,13 +49,7 @@ export async function useUpdateRedirects(redirectId: string, sourceEndpoint: str
     tophysicaladdress: targetEndpoint,
   });
 
-  let responseStatusText;
-  if (useIsSupported(environment.sc_version, "5.2.0")) {
-    responseStatusText = response.headers.get("X-Particular-Reason");
-  } else{
-    responseStatusText = response.statusText;
-  }
-
+  const responseStatusText = useIsSupported(environment.sc_version, "5.2.0") ? response.headers.get("X-Particular-Reason") : response.statusText;
   return {
     message: response.ok ? "success" : `error:${response.statusText}`,
     status: response.status,
@@ -70,13 +64,7 @@ export async function useCreateRedirects(sourceEndpoint: string, targetEndpoint:
     tophysicaladdress: targetEndpoint,
   });
 
-  let responseStatusText;
-  if (useIsSupported(environment.sc_version, "5.2.0")) {
-    responseStatusText = response.headers.get("X-Particular-Reason");
-  } else{
-    responseStatusText = response.statusText;
-  }
-
+  const responseStatusText = useIsSupported(environment.sc_version, "5.2.0") ? response.headers.get("X-Particular-Reason") : response.statusText;
   return {
     message: response.ok ? "success" : `error:${response.statusText}`,
     status: response.status,
@@ -86,14 +74,7 @@ export async function useCreateRedirects(sourceEndpoint: string, targetEndpoint:
 
 export async function useDeleteRedirects(redirectId: string) {
   const response = await useDeleteFromServiceControl(`redirects/${redirectId}`);
-  
-  let responseStatusText;
-  if (useIsSupported(environment.sc_version, "5.2.0")) {
-    responseStatusText = response.headers.get("X-Particular-Reason");
-  } else{
-    responseStatusText = response.statusText;
-  }
-
+  const responseStatusText = useIsSupported(environment.sc_version, "5.2.0") ? response.headers.get("X-Particular-Reason") : response.statusText;
   return {
     message: response.ok ? "success" : `error:${response.statusText}`,
     status: response.status,

@@ -22,7 +22,7 @@ export async function useUpdateEmailNotifications(settings: UpdateEmailNotificat
   try {
     const response = await usePostToServiceControl("notifications/email", settings);
     return {
-      message: response.ok ? "success" : "error:" + response.statusText,
+      message: response.ok ? "success" : `error:${response.statusText}`,
     };
   } catch (err) {
     console.log(err);
@@ -35,16 +35,10 @@ export async function useUpdateEmailNotifications(settings: UpdateEmailNotificat
 export async function useTestEmailNotifications() {
   try {
     const response = await usePostToServiceControl("notifications/email/test");
-
-    let responseStatusText;
-    if (useIsSupported(environment.sc_version, "5.2")) {
-      responseStatusText = response.headers.get("X-Particular-Reason");
-    } else{
-      responseStatusText = response.statusText;
-    }
-
+    const responseStatusText = useIsSupported(environment.sc_version, "5.2") ?
+      response.headers.get("X-Particular-Reason") : response.statusText;
     return {
-      message: response.ok ? "success" : "error:" + responseStatusText,
+      message: response.ok ? "success" : `error:${responseStatusText}`,
     };
   } catch (err) {
     console.log(err);
@@ -60,7 +54,7 @@ export async function useToggleEmailNotifications(enabled: boolean) {
       enabled: enabled,
     });
     return {
-      message: response.ok ? "success" : "error:" + response.statusText,
+      message: response.ok ? "success" : `error:${response.statusText}`,
     };
   } catch (err) {
     console.log(err);
