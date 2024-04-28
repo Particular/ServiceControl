@@ -35,8 +35,7 @@ export async function useUpdateEmailNotifications(settings: UpdateEmailNotificat
 export async function useTestEmailNotifications() {
   try {
     const response = await usePostToServiceControl("notifications/email/test");
-    const responseStatusText = useIsSupported(environment.sc_version, "5.2") ?
-      response.headers.get("X-Particular-Reason") : response.statusText;
+    const responseStatusText = useIsSupported(environment.sc_version, "5.2") ? response.headers.get("X-Particular-Reason") : response.statusText;
     return {
       message: response.ok ? "success" : `error:${responseStatusText}`,
     };
