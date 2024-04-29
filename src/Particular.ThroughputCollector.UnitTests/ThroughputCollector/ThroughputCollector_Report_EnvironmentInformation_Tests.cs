@@ -27,7 +27,7 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -55,7 +55,7 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -76,7 +76,7 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -104,7 +104,7 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -133,7 +133,7 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
 
         // Act
         var spVersion = "5.1";
-        var report = await ThroughputCollector.GenerateThroughputReport(spVersion, default);
+        var report = await ThroughputCollector.GenerateThroughputReport(spVersion, null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -162,7 +162,7 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
         await DataStore.SaveAuditServiceMetadata(new AuditServiceMetadata(expectedAuditVersionSummary, expectedAuditTransportSummary), default);
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
