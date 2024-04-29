@@ -31,7 +31,7 @@ class ThroughputCollector_Report_Masking_Tests : ThroughputCollectorTestFixture
         await DataStore.SaveReportMasks(expectedReportMasks, default);
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -53,7 +53,7 @@ class ThroughputCollector_Report_Masking_Tests : ThroughputCollectorTestFixture
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
