@@ -1,5 +1,6 @@
 ﻿namespace Particular.ThroughputCollector.UnitTests;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,7 +37,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -66,7 +67,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -90,7 +91,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -108,7 +109,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -128,7 +129,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -160,7 +161,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -181,7 +182,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         await DataStore.CreateBuilder().AddEndpoint().Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -205,7 +206,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -227,24 +228,24 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         // Arrange
         await DataStore.CreateBuilder()
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker, ThroughputSource.Monitoring])
-                .WithThroughput(ThroughputSource.Broker, data: [50, 55])
-                .WithThroughput(ThroughputSource.Monitoring, data: [60, 65])
+                .WithThroughput(ThroughputSource.Broker, data: [50, 55], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
+                .WithThroughput(ThroughputSource.Monitoring, data: [60, 65], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
                 .ConfigureEndpoint(endpoint => endpoint.EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()])
             .AddEndpoint("Endpoint2", sources: [ThroughputSource.Broker, ThroughputSource.Audit])
-                .WithThroughput(ThroughputSource.Broker, data: [60, 65])
-                .WithThroughput(ThroughputSource.Audit, data: [61, 64])
+                .WithThroughput(ThroughputSource.Broker, data: [60, 65], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
+                .WithThroughput(ThroughputSource.Audit, data: [61, 64], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
                 .ConfigureEndpoint(endpoint => endpoint.EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()])
             .AddEndpoint("Endpoint3", sources: [ThroughputSource.Broker, ThroughputSource.Monitoring, ThroughputSource.Audit])
-                .WithThroughput(ThroughputSource.Broker, data: [50, 57])
-                .WithThroughput(ThroughputSource.Monitoring, data: [40, 45])
-                .WithThroughput(ThroughputSource.Audit, data: [42, 47])
+                .WithThroughput(ThroughputSource.Broker, data: [50, 57], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
+                .WithThroughput(ThroughputSource.Monitoring, data: [40, 45], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
+                .WithThroughput(ThroughputSource.Audit, data: [42, 47], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
                 .ConfigureEndpoint(endpoint => endpoint.EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()])
             .AddEndpoint("Endpoint4", sources: [ThroughputSource.Broker])
                 .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.PlannedToDecommission.ToString())
-                .WithThroughput(ThroughputSource.Broker, data: [42, 47])
+                .WithThroughput(ThroughputSource.Broker, data: [42, 47], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
             .AddEndpoint("Endpoint5", sources: [ThroughputSource.Broker])
             .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NotNServiceBusEndpoint.ToString())
-            .WithThroughput(ThroughputSource.Broker, data: [15, 4])
+            .WithThroughput(ThroughputSource.Broker, data: [15, 4], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
             .Build();
 
         var expectedReportMasks = new List<string> { "Endpoint1" };
@@ -259,7 +260,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         await DataStore.SaveAuditServiceMetadata(new AuditServiceMetadata(expectedAuditVersionSummary, expectedAuditTransportSummary), default);
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("2.3.1", default);
+        var report = await ThroughputCollector.GenerateThroughputReport("2.3.1", new DateTime(2024, 4, 25), default);
 
         // Assert
         Approver.Verify(report,
