@@ -46,6 +46,7 @@
             {
                 var report = await throughputCollector.GenerateThroughputReport(
                     Request.Headers.TryGetValue("Particular-ServicePulse-Version", out var value) ? value.ToString() : "Unknown",
+                    null,
                     cancellationToken);
 
                 return File(JsonSerializer.SerializeToUtf8Bytes(report, SerializationOptions.IndentedWithNoEscaping), "application/json", fileDownloadName: $"{report.ReportData.CustomerName}.throughput-report-{report.ReportData.EndTime:yyyyMMdd-HHmmss}.json");
