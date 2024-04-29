@@ -158,7 +158,7 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         {
             EndTime = new DateTimeOffset((DateTime)reportEndDate, TimeSpan.Zero),
             CustomerName = throughputSettings.CustomerName, //who the license is registeredTo
-            ReportMethod = "NA",
+            ReportMethod = "Throughput Collector",
             ScopeType = brokerMetaData.ScopeType ?? "",
             Prefix = null,
             MessageTransport = transport,
