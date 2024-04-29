@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <Description>Particular ServiceControl binaries for use by Particular.PlatformSample. Not intended for use outside of Particular.PlatformSample.</Description>
     <PackageProjectUrl>https://docs.particular.net/servicecontrol/</PackageProjectUrl>
     <NoWarn>$(NoWarn);NU5100;NU5118</NoWarn>
@@ -13,6 +12,10 @@
 
   <ItemGroup Label="Needed for build ordering">
     <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" ReferenceOutputAssembly="false" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RavenDB.Embedded" PrivateAssets="none" />
   </ItemGroup>
 
   <ItemGroup>
