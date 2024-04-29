@@ -2,7 +2,7 @@
   "ReportData": {
     "CustomerName": "TestCustomer",
     "MessageTransport": "AzureServiceBus",
-    "ReportMethod": "NA",
+    "ReportMethod": "Throughput Collector",
     "ToolVersion": "2.0.0",
     "ScopeType": "testingScope",
     "StartTime": "2024-04-24T00:00:00+00:00",
