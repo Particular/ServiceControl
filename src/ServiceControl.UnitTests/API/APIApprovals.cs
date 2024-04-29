@@ -13,7 +13,6 @@
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Particular.Approvals;
-    using Particular.ServiceControl;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
@@ -94,6 +93,7 @@
 
             foreach (var type in controllers)
             {
+                Assert.True(type.IsPublic, $"Controller {type.FullName} must be public.");
                 foreach (var method in type.GetMethods())
                 {
                     var routeAtts = method.GetCustomAttributes(true).OfType<RouteAttribute>();
