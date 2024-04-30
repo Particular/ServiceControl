@@ -2,8 +2,9 @@
   "ReportData": {
     "CustomerName": "TestCustomer",
     "MessageTransport": "AzureServiceBus",
-    "ReportMethod": "Throughput Collector",
-    "ToolVersion": "2.0.0",
+    "ReportMethod": "Broker",
+    "ToolType": "Throughput Collector",
+    "ToolVersion": "5.0.1",
     "ScopeType": "testingScope",
     "StartTime": "2024-04-24T00:00:00+00:00",
     "EndTime": "2024-04-25T00:00:00+00:00",
@@ -15,7 +16,6 @@
         "EndpointIndicators": [
           "KnownEndpoint"
         ],
-        "UserIndicator": "",
         "Scope": "",
         "DailyThroughputFromBroker": [
           {
@@ -45,7 +45,6 @@
         "EndpointIndicators": [
           "KnownEndpoint"
         ],
-        "UserIndicator": "",
         "Scope": "",
         "DailyThroughputFromBroker": [
           {
@@ -75,7 +74,6 @@
         "EndpointIndicators": [
           "KnownEndpoint"
         ],
-        "UserIndicator": "",
         "Scope": "",
         "DailyThroughputFromBroker": [
           {
