@@ -16,7 +16,7 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton(databaseConfiguration);
         services.AddSingleton<IThroughputDataStore, ThroughputDataStore>();
-        services.AddSingleton<IPersistenceInstaller, RavenInstaller>(provider => new RavenInstaller(provider, databaseConfiguration));
+        services.AddSingleton<IPersistenceInstaller, RavenInstaller>(provider => new RavenInstaller(provider));
 
         return services;
     }
