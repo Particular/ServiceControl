@@ -2,8 +2,9 @@
   "ReportData": {
     "CustomerName": "TestCustomer",
     "MessageTransport": "AzureServiceBus",
-    "ReportMethod": "NA",
-    "ToolVersion": "2.0.0",
+    "ReportMethod": "Broker",
+    "ToolType": "Throughput Collector",
+    "ToolVersion": "5.0.1",
     "ScopeType": "testingScope",
     "StartTime": "2024-04-24T00:00:00+00:00",
     "EndTime": "2024-04-25T00:00:00+00:00",
@@ -13,7 +14,6 @@
         "QueueName": "REDACTED1",
         "Throughput": 65,
         "EndpointIndicators": [ "KnownEndpoint" ],
-        "UserIndicator": "",
         "Scope": "",
         "DailyThroughputFromBroker": [
           {
@@ -41,7 +41,6 @@
         "QueueName": "Endpoint2",
         "Throughput": 65,
         "EndpointIndicators": [ "KnownEndpoint" ],
-        "UserIndicator": "",
         "Scope": "",
         "DailyThroughputFromBroker": [
           {
@@ -69,7 +68,6 @@
         "QueueName": "Endpoint3",
         "Throughput": 57,
         "EndpointIndicators": [ "KnownEndpoint" ],
-        "UserIndicator": "",
         "Scope": "",
         "DailyThroughputFromBroker": [
           {
@@ -149,5 +147,5 @@
       }
     }
   },
-  "Signature": "wT/9H8NO43sGw6NUh1a7dFMBTpTtInNMgXREJWahfroA3W9B6RcYiNpPTwLIJZ671ZO9aalsZzj9SPPPXs36Z+YkAde77WUeYSTemaT0+2jQlltltXA6az6BALnRXzTKFlus0BK+3++3aK9+0TZkbTmPRURhF7cxv9fW18EsnXBoBF5c1VG3Eaim0AKJAH1rrxflGjodsegUcSBBCioaG4bpfGn7GTHiuBm6yaw0Ww8LHxbz9VVoCMI6MeRvsLFwfEnB3nYyV3cLt4XIzFkkFWu+NcMpBTYD6iZDK7KF7kiKYNiFMCMlMlSLyyaVThTPe7csMhnCjNC1Ls4DvHBAtA=="
+  "Signature": "aH69RgZwrRujF0PiFK/cAni5sTpyXHF3ybOs/iHafHXc8OOs+3XmC/jMkbKa1zcT1KTCRf9JRhu6iSKD/l8NKvkjOlpvpDGgalF6FLtgzNNE3gCm6ATxzbwvP1iRpo+VNuQtrnpo9oqRvbkGm4UA74Hx8GsoyBsxhlsEinneHfDYLenXD3zSQwpFKDuP/qpEA+xBNJeCYdH8OaScpeTZGm2MMar2KmgKPLZ5SdZAXM8f1TK4tuIUtCw3MmFjmvuzEZCh2+B+V5/TUJnrXxHm6kccfmGYJAKlEeMXYjVI2ZzdHFpFD4RSr3wKPh2hwAuAKpK5/JVqrYd7PN48cPqeYg=="
 }
