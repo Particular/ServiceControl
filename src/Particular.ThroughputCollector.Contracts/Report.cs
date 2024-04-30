@@ -19,6 +19,8 @@ public record Report
 
     public string ReportMethod { get; init; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
+    public string? ToolType { get; init; }
     public string ToolVersion { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]

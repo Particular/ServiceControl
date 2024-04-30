@@ -107,8 +107,9 @@ public class ThroughputCollector_Report_Signature_Tests
         // An approval test would be too easy to just accept changes on
         Assert.That(data.CustomerName, Is.EqualTo("TestCustomer"));
         Assert.That(data.MessageTransport, Is.EqualTo("AzureServiceBus"));
-        Assert.That(data.ReportMethod, Is.EqualTo("NA"));
-        Assert.That(data.ToolVersion, Is.EqualTo("2.0.0"));
+        Assert.That(data.ReportMethod, Is.EqualTo("Broker"));
+        Assert.That(data.ToolType, Is.EqualTo("Throughput Collector"));
+        Assert.That(data.ToolVersion, Is.EqualTo("5.0.1"));
         Assert.That(data.StartTime.ToString("O"), Is.EqualTo("2024-04-24T00:00:00.0000000+00:00"));
         Assert.That(data.EndTime.ToString("O"), Is.EqualTo("2024-04-25T00:00:00.0000000+00:00"));
         Assert.That(data.ReportDuration, Is.EqualTo(TimeSpan.Parse("1.00:00:00")));
@@ -132,7 +133,7 @@ public class ThroughputCollector_Report_Signature_Tests
         Assert.That(data.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.MonitoringEnabled.ToString()), Is.True);
         Assert.That(data.EnvironmentInformation.EnvironmentData[EnvironmentDataType.MonitoringEnabled.ToString()], Is.EqualTo("True"));
 
-        Assert.That(report.Signature, Is.EqualTo("wT/9H8NO43sGw6NUh1a7dFMBTpTtInNMgXREJWahfroA3W9B6RcYiNpPTwLIJZ671ZO9aalsZzj9SPPPXs36Z+YkAde77WUeYSTemaT0+2jQlltltXA6az6BALnRXzTKFlus0BK+3++3aK9+0TZkbTmPRURhF7cxv9fW18EsnXBoBF5c1VG3Eaim0AKJAH1rrxflGjodsegUcSBBCioaG4bpfGn7GTHiuBm6yaw0Ww8LHxbz9VVoCMI6MeRvsLFwfEnB3nYyV3cLt4XIzFkkFWu+NcMpBTYD6iZDK7KF7kiKYNiFMCMlMlSLyyaVThTPe7csMhnCjNC1Ls4DvHBAtA=="));
+        Assert.That(report.Signature, Is.EqualTo("aH69RgZwrRujF0PiFK/cAni5sTpyXHF3ybOs/iHafHXc8OOs+3XmC/jMkbKa1zcT1KTCRf9JRhu6iSKD/l8NKvkjOlpvpDGgalF6FLtgzNNE3gCm6ATxzbwvP1iRpo+VNuQtrnpo9oqRvbkGm4UA74Hx8GsoyBsxhlsEinneHfDYLenXD3zSQwpFKDuP/qpEA+xBNJeCYdH8OaScpeTZGm2MMar2KmgKPLZ5SdZAXM8f1TK4tuIUtCw3MmFjmvuzEZCh2+B+V5/TUJnrXxHm6kccfmGYJAKlEeMXYjVI2ZzdHFpFD4RSr3wKPh2hwAuAKpK5/JVqrYd7PN48cPqeYg=="));
 
         Assert.That(ValidateReport(report));
     }
