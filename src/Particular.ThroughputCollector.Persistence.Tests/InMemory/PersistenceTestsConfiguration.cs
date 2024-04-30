@@ -4,7 +4,7 @@
     using InMemory;
     using Microsoft.Extensions.DependencyInjection;
 
-    partial class PersistenceTestsConfiguration
+    class PersistenceTestsConfiguration
     {
         public IThroughputDataStore ThroughputDataStore { get; protected set; }
 

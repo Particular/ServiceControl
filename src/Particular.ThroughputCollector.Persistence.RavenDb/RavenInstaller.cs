@@ -5,11 +5,12 @@ using Raven.Client.Documents;
 using Raven.Client.ServerWide;
 using Raven.Client.ServerWide.Operations;
 
-class RavenInstaller(IServiceProvider provider, DatabaseConfiguration databaseConfiguration) : IPersistenceInstaller
+class RavenInstaller(IServiceProvider provider) : IPersistenceInstaller
 {
     public async Task Install(CancellationToken cancellationToken)
     {
-        Lazy<IDocumentStore> store = provider.GetRequiredService<Lazy<IDocumentStore>>();
+        var store = provider.GetRequiredService<Lazy<IDocumentStore>>();
+        var databaseConfiguration = provider.GetRequiredService<DatabaseConfiguration>();
 
         DatabaseRecordWithEtag? record = await store.Value.Maintenance.Server
             .SendAsync(new GetDatabaseRecordOperation(databaseConfiguration.Name), cancellationToken)
