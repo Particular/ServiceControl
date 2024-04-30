@@ -57,7 +57,7 @@ public record QueueThroughput
     public string QueueName { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
-    public long? Throughput { get; init; }
+    public long? Throughput { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool NoDataOrSendOnly { get; init; }
