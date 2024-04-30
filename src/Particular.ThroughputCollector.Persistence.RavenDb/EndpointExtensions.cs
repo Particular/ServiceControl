@@ -25,7 +25,7 @@ static class EndpointExtensions
             UserIndicator = endpoint.UserIndicator
         };
 
-        foreach (var indicator in endpoint.EndpointIndicators)
+        foreach (var indicator in endpoint.EndpointIndicators ?? [])
         {
             document.EndpointIndicators.Add(indicator);
         }
