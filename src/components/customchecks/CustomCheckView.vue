@@ -12,10 +12,10 @@ const store = useCustomChecksStore();
   <div class="row box box-warning box-no-click">
     <div class="col-sm-12 no-side-padding">
       <div class="custom-check-row">
-        <div>
+        <div class="custom-check-row-detail">
           <div class="row box-header">
             <div class="col-sm-12 no-side-padding">
-              <p class="lead pre-wrap">{{ customCheck.failure_reason }}</p>
+              <p class="lead">{{ customCheck.failure_reason }}</p>
               <div class="row">
                 <div class="col-sm-12 no-side-padding">
                   <p class="metadata">
@@ -45,5 +45,14 @@ const store = useCustomChecksStore();
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1em;
+}
+
+.custom-check-row-detail {
+  min-width: 0;
+}
+
+.custom-check-row-detail .lead {
+  text-wrap: wrap;
 }
 </style>
