@@ -1,93 +1,67 @@
-﻿namespace Particular.ThroughputCollector.Persistence.Tests.RavenDb
+﻿namespace Particular.ThroughputCollector.Persistence.Tests;
+
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Particular.ThroughputCollector.Persistence;
+using Particular.ThroughputCollector.Persistence.RavenDb;
+using Particular.ThroughputCollector.Persistence.Tests.RavenDb;
+using Raven.Client.Documents;
+using Raven.Client.ServerWide.Operations;
+
+partial class PersistenceTestsConfiguration
 {
-    //using System;
-    using System.Threading.Tasks;
-    //using Microsoft.Extensions.DependencyInjection;
-    using Particular.ThroughputCollector.Persistence;
-    //using Particular.ThroughputCollector.Persistence.RavenDb;
-    using Raven.Client.Documents;
-    //using Raven.Client.ServerWide.Operations;
+    public IThroughputDataStore ThroughputDataStore { get; protected set; }
 
-    partial class PersistenceTestsConfiguration
+    public IDocumentStore DocumentStore { get; private set; }
+
+    public string Name => "RavenDB";
+
+    public async Task Configure()
     {
-        public IThroughputDataStore ThroughputDataStore { get; protected set; }
+        var services = new ServiceCollection();
+        services.AddThroughputRavenPersistence();
 
-        //public async Task Configure(Action<PersistenceSettings> setSettings)
-        //{
-        //var config = new RavenPersistenceConfiguration();
-        //var serviceCollection = new ServiceCollection();
+        DocumentStore = await SharedEmbeddedServer.GetInstance();
 
-        //var settings = new PersistenceSettings();
-
-        //setSettings(settings);
-
-        //databaseName = string.Empty;
-        //if (!settings.PersisterSpecificSettings.ContainsKey(RavenPersistenceConfiguration.DatabasePathKey))
-        //{
-        //    var instance = await SharedEmbeddedServer.GetInstance();
-
-        //    settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = instance.ServerUrl;
-        //}
-
-        //if (!settings.PersisterSpecificSettings.ContainsKey(RavenPersistenceConfiguration.LogPathKey))
-        //{
-        //    settings.PersisterSpecificSettings[RavenPersistenceConfiguration.LogPathKey] = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs");
-        //}
-
-        //if (settings.PersisterSpecificSettings.TryGetValue(RavenPersistenceConfiguration.DatabaseNameKey, out var configuredDatabaseName))
-        //{
-        //    databaseName = configuredDatabaseName;
-        //}
-        //else
-        //{
-        //    databaseName = Guid.NewGuid().ToString();
-
-        //    settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabaseNameKey] = databaseName;
-        //}
-
-        //var persistence = config.Create(settings);
-        //await persistence.CreateInstaller().Install();
-        //persistenceService = persistence.Configure(serviceCollection);
-        //await persistenceService.StartAsync(default);
-
-        //var serviceProvider = serviceCollection.BuildServiceProvider();
-
-        //ThroughputDataStore = serviceProvider.GetRequiredService<IThroughputDataStore>();
-
-        //var documentStoreProvider = serviceProvider.GetRequiredService<IRavenDocumentStoreProvider>();
-        //DocumentStore = documentStoreProvider.GetDocumentStore();
-        //var bulkInsert = DocumentStore.BulkInsert(
-        //    options: new BulkInsertOptions { SkipOverwriteIfUnchanged = true, });
-
-        //var sessionProvider = serviceProvider.GetRequiredService<IRavenSessionProvider>();
-        //}
-
-        public Task CompleteDBOperation()
+        // replace DatabaseConfiguration registration
+        var databaseConfigurationServiceDescriptor = services.FirstOrDefault(sd => sd.ServiceType == typeof(DatabaseConfiguration));
+        if (databaseConfigurationServiceDescriptor != null)
         {
-            DocumentStore.WaitForIndexing();
-            return Task.CompletedTask;
+            services.Remove(databaseConfigurationServiceDescriptor);
+        }
+        services.AddSingleton(new DatabaseConfiguration(DocumentStore.Database));
+
+        // Register the IDocumentStore expected by the RavenDB persistence
+        services.AddSingleton(new Lazy<IDocumentStore>(() => DocumentStore));
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        var installer = serviceProvider.GetRequiredService<IPersistenceInstaller>();
+        await installer.Install();
+
+        ThroughputDataStore = serviceProvider.GetRequiredService<IThroughputDataStore>();
+    }
+
+    public Task CompleteDBOperation()
+    {
+        DocumentStore.WaitForIndexing();
+        return Task.CompletedTask;
+    }
+
+    public async Task Cleanup()
+    {
+        if (DocumentStore == null)
+        {
+            return;
         }
 
-        //public async Task Cleanup()
-        //{
-        //    if (DocumentStore != null)
-        //    {
-        //        await DocumentStore.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(
-        //            new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { databaseName }, HardDelete = true }));
-        //    }
-
-        //    if (persistenceService != null)
-        //    {
-        //        await persistenceService.StopAsync(default);
-        //    }
-        //}
-
-        public string Name => "RavenDB";
-
-        public IDocumentStore DocumentStore { get; private set; }
-
-        //PersistenceService persistenceService;
-
-        //string databaseName;
+        await DocumentStore.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(
+            new DeleteDatabasesOperation.Parameters
+            {
+                DatabaseNames = [DocumentStore.Database],
+                HardDelete = true
+            }));
     }
 }
