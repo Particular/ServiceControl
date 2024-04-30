@@ -1,6 +1,4 @@
 import { type Ref, ref } from "vue";
-import servicePulseFetch from "@/composables/servicePulseFetch";
-import { environment } from "./serviceServiceControl";
 
 const serviceControlUrl = ref<string | null>();
 const monitoringUrl = ref<string | null>();
@@ -50,11 +48,11 @@ export function useIsMonitoringEnabled() {
 }
 
 export function useFetchFromServiceControl(suffix: string) {
-  return servicePulseFetch(serviceControlUrl.value + suffix, environment.sc_version);
+  return fetch(serviceControlUrl.value + suffix);
 }
 
 export async function useTypedFetchFromServiceControl<T>(suffix: string): Promise<[Response, T]> {
-  const response = await servicePulseFetch(`${serviceControlUrl.value}${suffix}`, environment.sc_version);
+  const response = await fetch(`${serviceControlUrl.value}${suffix}`);
   if (!response?.ok) throw new Error(response?.statusText ?? "No response");
   const data = await response.json();
 
@@ -66,7 +64,7 @@ export async function useTypedFetchFromMonitoring<T>(suffix: string): Promise<[R
     return [];
   }
 
-  const response = await servicePulseFetch(`${monitoringUrl.value}${suffix}`, environment.monitoring_version);
+  const response = await fetch(`${monitoringUrl.value}${suffix}`);
   const data = await response.json();
 
   return [response, data];
@@ -80,7 +78,7 @@ export function usePostToServiceControl(suffix: string, payload: object | null =
     requestOptions.headers = { "Content-Type": "application/json" };
     requestOptions.body = JSON.stringify(payload);
   }
-  return servicePulseFetch(serviceControlUrl.value + suffix, environment.sc_version, requestOptions);
+  return fetch(serviceControlUrl.value + suffix, requestOptions);
 }
 
 export function usePutToServiceControl(suffix: string, payload: object | null) {
@@ -91,20 +89,20 @@ export function usePutToServiceControl(suffix: string, payload: object | null) {
     requestOptions.headers = { "Content-Type": "application/json" };
     requestOptions.body = JSON.stringify(payload);
   }
-  return servicePulseFetch(serviceControlUrl.value + suffix, environment.sc_version, requestOptions);
+  return fetch(serviceControlUrl.value + suffix, requestOptions);
 }
 
 export function useDeleteFromServiceControl(suffix: string) {
   const requestOptions: RequestInit = {
     method: "DELETE",
   };
-  return servicePulseFetch(serviceControlUrl.value + suffix, environment.sc_version, requestOptions);
+  return fetch(serviceControlUrl.value + suffix, requestOptions);
 }
 export function useDeleteFromMonitoring(suffix: string) {
   const requestOptions = {
     method: "DELETE",
   };
-  return servicePulseFetch(monitoringUrl.value + suffix, environment.monitoring_version, requestOptions);
+  return fetch(monitoringUrl.value + suffix, requestOptions);
 }
 
 export function useOptionsFromMonitoring() {
@@ -115,7 +113,7 @@ export function useOptionsFromMonitoring() {
   const requestOptions = {
     method: "OPTIONS",
   };
-  return servicePulseFetch(monitoringUrl.value ?? "", environment.monitoring_version, requestOptions);
+  return fetch(monitoringUrl.value ?? "", requestOptions);
 }
 
 export function usePatchToServiceControl(suffix: string, payload: object | null) {
@@ -126,7 +124,7 @@ export function usePatchToServiceControl(suffix: string, payload: object | null)
     requestOptions.headers = { "Content-Type": "application/json" };
     requestOptions.body = JSON.stringify(payload);
   }
-  return servicePulseFetch(serviceControlUrl.value + suffix, environment.sc_version, requestOptions);
+  return fetch(serviceControlUrl.value + suffix, requestOptions);
 }
 
 export function updateServiceControlUrls(newServiceControlUrl: Ref<string | null | undefined>, newMonitoringUrl: Ref<string | null | undefined>) {
