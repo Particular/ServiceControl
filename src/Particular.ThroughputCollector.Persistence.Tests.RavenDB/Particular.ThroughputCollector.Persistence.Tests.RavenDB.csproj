@@ -18,12 +18,18 @@
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="Particular.Approvals" />
+    <PackageReference Include="RavenDB.Embedded" />
   </ItemGroup>
 
-  <!--<ItemGroup>
-    <Compile Include="..Particular.ThroughputCollector.Persistence.Tests\*.cs" LinkBase="Shared" />
-    <Compile Remove="..Particular.ThroughputCollector.Persistence.Tests\PersistenceManifestLibraryTests.cs" />
+  <ItemGroup>
+    <Compile Include="..\Particular.ThroughputCollector.Persistence.Tests\*.cs" LinkBase="Shared" />
     <Compile Remove="..\Particular.ThroughputCollector.Persistence.Tests\TestsFilter.cs" />
-  </ItemGroup>-->
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="RavenLicense.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>

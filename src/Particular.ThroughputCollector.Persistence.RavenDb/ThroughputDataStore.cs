@@ -185,21 +185,25 @@ public class ThroughputDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken)
+    public async Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken)
     {
         using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
-        return IsThereThroughputForLastXDaysInternal(session.Query<EndpointDocument>(), days, cancellationToken);
+        var result = await IsThereThroughputForLastXDaysInternal(session.Query<EndpointDocument>(), days, cancellationToken);
+
+        return result;
     }
 
-    public Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken)
+    public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken)
     {
         using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
         var baseQuery = session.Query<EndpointDocument>()
             .Where(endpoint => endpoint.EndpointId.ThroughputSource == throughputSource);
 
-        return IsThereThroughputForLastXDaysInternal(baseQuery, days, cancellationToken);
+        var result = await IsThereThroughputForLastXDaysInternal(baseQuery, days, cancellationToken);
+
+        return result;
     }
 
     static async Task<bool> IsThereThroughputForLastXDaysInternal(IRavenQueryable<EndpointDocument> baseQuery, int days, CancellationToken cancellationToken)
