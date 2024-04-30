@@ -20,7 +20,7 @@ public class ThroughputDataStore(
 
     static readonly AuditServiceMetadata DefaultAuditServiceMetadata = new([], []);
     static readonly BrokerMetadata DefaultBrokerMetadata = new(null, []);
-    static readonly List<string> DefaultReportMasks = [];
+    static readonly ReportConfigurationDocument DefaultReportConfiguration = new();
 
     public async Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken)
     {
@@ -185,21 +185,25 @@ public class ThroughputDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken)
+    public async Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken)
     {
         using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
-        return IsThereThroughputForLastXDaysInternal(session.Query<EndpointDocument>(), days, cancellationToken);
+        var result = await IsThereThroughputForLastXDaysInternal(session.Query<EndpointDocument>(), days, cancellationToken);
+
+        return result;
     }
 
-    public Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken)
+    public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken)
     {
         using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
         var baseQuery = session.Query<EndpointDocument>()
             .Where(endpoint => endpoint.EndpointId.ThroughputSource == throughputSource);
 
-        return IsThereThroughputForLastXDaysInternal(baseQuery, days, cancellationToken);
+        var result = await IsThereThroughputForLastXDaysInternal(baseQuery, days, cancellationToken);
+
+        return result;
     }
 
     static async Task<bool> IsThereThroughputForLastXDaysInternal(IRavenQueryable<EndpointDocument> baseQuery, int days, CancellationToken cancellationToken)
@@ -248,14 +252,16 @@ public class ThroughputDataStore(
     {
         using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
-        return await session.LoadAsync<List<string>>(ReportMasksDocumentId, cancellationToken) ?? DefaultReportMasks;
+        var config = await session.LoadAsync<ReportConfigurationDocument>(ReportMasksDocumentId, cancellationToken) ?? DefaultReportConfiguration;
+
+        return config.MaskedStrings;
     }
 
     public async Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken)
     {
         using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
 
-        await session.StoreAsync(reportMasks, ReportMasksDocumentId, cancellationToken);
+        await session.StoreAsync(new ReportConfigurationDocument { MaskedStrings = reportMasks }, ReportMasksDocumentId, cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
     }
 }
