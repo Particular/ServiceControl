@@ -23,7 +23,7 @@ class MonitoringThroughputFeature : Feature
         var serviceControlThroughputDataQueue = PlatformEndpointHelper.ServiceControlThroughputDataQueue;
 
         context.AddSatelliteReceiver(
-            name: "ServiceControlThroughputDataQueue",
+            name: PlatformEndpointHelper.ServiceControlThroughputDataQueueSetting,
             transportAddress: new QueueAddress(serviceControlThroughputDataQueue),
             runtimeSettings: PushRuntimeSettings.Default,
             recoverabilityPolicy: (config, errorContext) =>
