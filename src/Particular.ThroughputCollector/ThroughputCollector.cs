@@ -128,8 +128,8 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
 
             var throughputData = data.ToList();
 
-            var userIndicator = UserIndicator(endpointGroupPerQueue) ?? string.Empty;
-            var notAnNsbEndpoint = userIndicator.Equals(Contracts.UserIndicator.NotNServiceBusEndpoint.ToString(), StringComparison.OrdinalIgnoreCase);
+            var userIndicator = UserIndicator(endpointGroupPerQueue) ?? null;
+            var notAnNsbEndpoint = userIndicator?.Equals(Contracts.UserIndicator.NotNServiceBusEndpoint.ToString(), StringComparison.OrdinalIgnoreCase) ?? false;
 
             //get all data that we have, including daily values
             var queueThroughput = new QueueThroughput
@@ -158,11 +158,12 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         {
             EndTime = new DateTimeOffset((DateTime)reportEndDate, TimeSpan.Zero),
             CustomerName = throughputSettings.CustomerName, //who the license is registeredTo
-            ReportMethod = "Throughput Collector",
+            ReportMethod = "Broker",
             ScopeType = brokerMetaData.ScopeType ?? "",
             Prefix = null,
             MessageTransport = transport,
-            ToolVersion = "2.0.0", //ensure we check for this on the other side - ie that we can process 2.0.0
+            ToolType = "Throughput Collector",
+            ToolVersion = throughputSettings.ServiceControlVersion,
             IgnoredQueues = [.. ignoredQueueNames],
             Queues = [.. queueThroughputs],
             TotalQueues = queueThroughputs.Count,
