@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 using Operations.BodyStorage;
 using Operations.BodyStorage.RavenAttachments;
-using Particular.ThroughputCollector.Persistence.InMemory;
+using Particular.ThroughputCollector.Persistence.RavenDb;
 using Persistence.MessageRedirects;
 using Persistence.Recoverability;
 using Raven.Client.Documents;
@@ -54,8 +54,7 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
 
         services.AddSingleton<OperationsManager>();
 
-        //TODO: Change this to call the RavenDB persistence once done
-        services.AddThroughputInMemoryPersistence();
+        services.AddThroughputRavenPersistence();
 
         services.AddSingleton<IArchiveMessages, MessageArchiver>();
         services.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
@@ -87,8 +86,8 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
     public void AddInstaller(IServiceCollection services)
     {
         ConfigureLifecycle(services);
-        //TODO: Change this to call the RavenDB persistence once done
-        services.AddThroughputInMemoryPersistence();
+
+        services.AddThroughputRavenPersistence();
     }
 
     void ConfigureLifecycle(IServiceCollection services)
