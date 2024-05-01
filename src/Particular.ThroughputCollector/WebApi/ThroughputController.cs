@@ -39,13 +39,13 @@
 
         [Route("report/file")]
         [HttpGet]
-        public async Task<IActionResult> GetThroughputReportFile(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetThroughputReportFile([FromQuery(Name = "spVersion")] string? spVersion, CancellationToken cancellationToken)
         {
             var reportStatus = await CanThroughputReportBeGenerated(cancellationToken);
             if (reportStatus.ReportCanBeGenerated)
             {
                 var report = await throughputCollector.GenerateThroughputReport(
-                    Request.Headers.TryGetValue("Particular-ServicePulse-Version", out var value) ? value.ToString() : "Unknown",
+                    spVersion ?? "Unknown",
                     null,
                     cancellationToken);
 
