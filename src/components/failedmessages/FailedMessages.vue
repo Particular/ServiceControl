@@ -5,7 +5,7 @@ import { connectionState } from "../../composables/serviceServiceControl";
 import { useFetchFromServiceControl, usePatchToServiceControl, useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
 import { useShowToast } from "../../composables/toast";
 import { useRetryMessages } from "../../composables/serviceFailedMessage";
-import { useDownloadFile } from "../../composables/fileDownloadCreator";
+import { useDownloadFileFromString } from "../../composables/fileDownloadCreator";
 import { onBeforeRouteLeave, useRoute } from "vue-router";
 import { useArchiveExceptionGroup, useRetryExceptionGroup } from "../../composables/serviceMessageGroup";
 import LicenseExpired from "../../components/LicenseExpired.vue";
@@ -176,7 +176,7 @@ function exportSelected() {
   }
 
   const csvStr = toCSV(preparedMessagesForExport);
-  useDownloadFile(csvStr, "text/csv", "failedMessages.csv");
+  useDownloadFileFromString(csvStr, "text/csv", "failedMessages.csv");
 }
 
 function numberSelected() {

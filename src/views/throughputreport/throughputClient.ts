@@ -3,7 +3,7 @@ import EndpointThroughputSummary from "@/resources/EndpointThroughputSummary";
 import UpdateUserIndicator from "@/resources/UpdateUserIndicator";
 import ConnectionTestResults from "@/resources/ConnectionTestResults";
 import ThroughputConnectionSettings from "@/resources/ThroughputConnectionSettings";
-import { useDownloadFile } from "@/composables/fileDownloadCreator";
+import { useDownloadFileFromResponse } from "@/composables/fileDownloadCreator";
 import ReportGenerationState from "@/resources/ReportGenerationState";
 
 class ThroughputClient {
@@ -34,9 +34,22 @@ class ThroughputClient {
     return data;
   }
 
-  public downloadReport(masks: string[]) {
-    //useDownloadFile();
-    //const response = await useFetchFromServiceControl(`${this.basePath}/report/file`);
+  public async downloadReport(spVersion: string) {
+    const response = await useFetchFromServiceControl(`${this.basePath}/report/file?${spVersion}`);
+    if (response.status == 200) {
+      var fileName = "throughput-report.json";
+      const contentDisposition = response.headers.get("Content-Disposition");
+      if (contentDisposition != null) {
+        try {
+          fileName = contentDisposition.split("filename=")[1].split(";")[0].replaceAll('"', "");
+        } catch {
+          //do nothing
+        }
+      }
+      await useDownloadFileFromResponse(response, "application/json", fileName);
+      return fileName;
+    }
+    return "";
   }
 }
 
