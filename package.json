@@ -61,10 +61,5 @@
     "vite-plugin-checker": "^0.6.4",
     "vitest": "^1.2.2",
     "vue-tsc": "^1.8.25"
-  },
-  "msw": {
-    "workerDirectory": [
-      "public"
-    ]
-  }
+  }  
 }
