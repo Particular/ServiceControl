@@ -13,6 +13,7 @@
     using InstanceDetails;
     using NuGet.Versioning;
     using PropertyChanging;
+    using ServiceControl.Config.Extensions;
     using ServiceControlInstaller.Engine.Instances;
 
     class ListInstancesViewModel : RxScreen, IHandle<RefreshInstances>, IHandle<ResetInstances>, IHandle<LicenseUpdated>
@@ -73,6 +74,7 @@
         public async Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
         {
             AddAndRemoveInstances();
+            Validations.RefreshInstances();
             await EventAggregator.PublishOnUIThreadAsync(new PostRefreshInstances(), cancellationToken);
         }
 
