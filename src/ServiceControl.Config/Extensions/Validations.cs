@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Linq;
     using ServiceControlInstaller.Engine.Instances;
 
@@ -9,12 +10,9 @@
     {
         public static List<string> UsedPaths(string instanceName = null)
         {
-            var monitoringInstances = InstanceFinder.MonitoringInstances();
-            var serviceControlAuditInstances = InstanceFinder.ServiceControlAuditInstances();
-            var serviceControlInstances = InstanceFinder.ServiceControlInstances();
             var result = new List<string>();
 
-            result.AddRange(monitoringInstances
+            result.AddRange(monitoringInstances.Value
                 .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
                 .SelectMany(p => new[]
                 {
@@ -22,7 +20,7 @@
                     p.InstallPath
                 }));
 
-            result.AddRange(serviceControlAuditInstances
+            result.AddRange(serviceControlAuditInstances.Value
                 .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
                 .SelectMany(p => new[]
                 {
@@ -31,7 +29,7 @@
                     p.InstallPath
                 }));
 
-            result.AddRange(serviceControlInstances
+            result.AddRange(serviceControlInstances.Value
                 .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
                 .SelectMany(p => new[]
                 {
@@ -46,8 +44,7 @@
         // We need this to ignore the instance that represents the edit screen
         public static List<string> UsedErrorQueueNames(TransportInfo transportInfo = null, string instanceName = null, string connectionString = null)
         {
-            var serviceControlInstances = InstanceFinder.ServiceControlInstances();
-            var instancesByTransport = serviceControlInstances.Where(p => p.TransportPackage.Equals(transportInfo) &&
+            var instancesByTransport = serviceControlInstances.Value.Where(p => p.TransportPackage.Equals(transportInfo) &&
                                                                           string.Equals(p.ConnectionString, connectionString, StringComparison.OrdinalIgnoreCase)).ToList();
 
             return instancesByTransport
@@ -63,8 +60,7 @@
 
         public static List<string> UsedAuditQueueNames(TransportInfo transportInfo = null, string instanceName = null, string connectionString = null)
         {
-            var serviceControlInstances = InstanceFinder.ServiceControlAuditInstances();
-            var instancesByTransport = serviceControlInstances.Where(p => p.TransportPackage.Equals(transportInfo) &&
+            var instancesByTransport = serviceControlInstances.Value.Where(p => p.TransportPackage.Equals(transportInfo) &&
                                                                           string.Equals(p.ConnectionString, connectionString, StringComparison.OrdinalIgnoreCase)).ToList();
 
             return instancesByTransport
@@ -80,8 +76,7 @@
 
         public static int? GetErrorInstancePort(string instanceName)
         {
-            var serviceControlInstances = InstanceFinder.ServiceControlInstances();
-            var port = serviceControlInstances
+            var port = serviceControlInstances.Value
                     .Where(x => x.Name == instanceName)
                     .Select(x => x.Port)
                     .FirstOrDefault();
@@ -91,8 +86,7 @@
 
         public static int? GetErrorInstanceDatabaseMaintenancePort(string instanceName)
         {
-            var serviceControlInstances = InstanceFinder.ServiceControlInstances();
-            var port = serviceControlInstances
+            var port = serviceControlInstances.Value
                 .Where(x => x.Name == instanceName)
                 .Select(x => x.DatabaseMaintenancePort)
                 .FirstOrDefault();
@@ -102,8 +96,7 @@
 
         public static int? GetAuditInstancePort(string instanceName)
         {
-            var serviceControlInstances = InstanceFinder.ServiceControlAuditInstances();
-            var port = serviceControlInstances
+            var port = serviceControlInstances.Value
                 .Where(x => x.Name == instanceName)
                 .Select(x => x.Port)
                 .FirstOrDefault();
@@ -113,8 +106,7 @@
 
         public static int? GetAuditInstanceDatabaseMaintenancePort(string instanceName)
         {
-            var serviceControlInstances = InstanceFinder.ServiceControlAuditInstances();
-            var port = serviceControlInstances
+            var port = serviceControlInstances.Value
                 .Where(x => x.Name == instanceName)
                 .Select(x => x.DatabaseMaintenancePort)
                 .FirstOrDefault();
@@ -124,8 +116,7 @@
 
         public static int? GetMonitoringInstancePort(string instanceName)
         {
-            var serviceControlInstances = InstanceFinder.MonitoringInstances();
-            var port = serviceControlInstances
+            var port = serviceControlInstances.Value
                 .Where(x => x.Name == instanceName)
                 .Select(x => x.Port)
                 .FirstOrDefault();
@@ -135,16 +126,13 @@
 
         public static List<string> UsedPorts(string instanceName = null)
         {
-            var monitoringInstances = InstanceFinder.MonitoringInstances();
-            var serviceControlAuditInstances = InstanceFinder.ServiceControlAuditInstances();
-            var serviceControlInstances = InstanceFinder.ServiceControlInstances();
             var result = new List<string>();
 
-            result.AddRange(monitoringInstances
+            result.AddRange(monitoringInstances.Value
                 .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
                 .Select(p => p.Port.ToString()));
 
-            result.AddRange(serviceControlInstances
+            result.AddRange(serviceControlInstances.Value
                 .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
                 .SelectMany(p => new[]
                 {
@@ -152,7 +140,7 @@
                     p.DatabaseMaintenancePort.ToString()
                 }));
 
-            result.AddRange(serviceControlAuditInstances
+            result.AddRange(serviceControlAuditInstances.Value
                 .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
                 .SelectMany(p => new[]
                 {
@@ -162,5 +150,16 @@
 
             return result.Distinct().ToList();
         }
+
+        public static void RefreshInstances()
+        {
+            monitoringInstances = new Lazy<ReadOnlyCollection<MonitoringInstance>>(() => InstanceFinder.MonitoringInstances());
+            serviceControlAuditInstances = new Lazy<ReadOnlyCollection<ServiceControlAuditInstance>>(() => InstanceFinder.ServiceControlAuditInstances());
+            serviceControlInstances = new Lazy<ReadOnlyCollection<ServiceControlInstance>>(() => InstanceFinder.ServiceControlInstances());
+        }
+
+        static Lazy<ReadOnlyCollection<MonitoringInstance>> monitoringInstances = new Lazy<ReadOnlyCollection<MonitoringInstance>>(() => InstanceFinder.MonitoringInstances());
+        static Lazy<ReadOnlyCollection<ServiceControlAuditInstance>> serviceControlAuditInstances = new Lazy<ReadOnlyCollection<ServiceControlAuditInstance>>(() => InstanceFinder.ServiceControlAuditInstances());
+        static Lazy<ReadOnlyCollection<ServiceControlInstance>> serviceControlInstances = new Lazy<ReadOnlyCollection<ServiceControlInstance>>(() => InstanceFinder.ServiceControlInstances());
     }
 }
