@@ -127,12 +127,12 @@ function close() {
 
                   <template v-if="noKnownQueues">
                     <div :class="{ 'has-error': noKnownQueues }">
-                      <p class="control-label">No known queues found. You can provide a non-audited queue name, but if you don't provide a valid address, the redirected message will be lost.</p>
+                      <p class="control-label">No known queues found. You can enter a queue name manually, but if you don't provide a valid address, the redirected message will be lost.</p>
                     </div>
                   </template>
                   <template v-if="notKnownQueue">
                     <div :class="{ 'has-error': notKnownQueue }">
-                      <p class="control-label">Target queue does not match any known queue. You can provide a non-audited queue name, but if you don't provide a valid address, the redirected message will be lost.</p>
+                      <p class="control-label">Target queue does not match any known queue. You can enter a queue name manually, but if you don't provide a valid address, the redirected message will be lost.</p>
                     </div>
                   </template>
                 </div>
