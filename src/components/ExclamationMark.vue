@@ -3,7 +3,7 @@ import { WarningLevel } from "@/components/WarningLevel";
 
 const props = withDefaults(
   defineProps<{
-    type: WarningLevel;
+    type?: WarningLevel;
   }>(),
   { type: WarningLevel.None }
 );

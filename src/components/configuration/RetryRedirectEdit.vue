@@ -18,7 +18,7 @@ const model = withDefaults(
     message_redirect_id: string;
     from_physical_address: string;
     to_physical_address: string;
-    immediately_retry: boolean;
+    immediately_retry?: boolean;
     queues: string[];
   }>(),
   { immediately_retry: false }

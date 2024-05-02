@@ -1,7 +1,7 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
-    options: number[];
+    options?: number[];
   }>(),
   { options: () => [20, 35, 50, 75] }
 );

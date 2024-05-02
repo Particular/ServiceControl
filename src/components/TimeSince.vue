@@ -4,7 +4,7 @@ import moment from "moment";
 
 const emptyDate = "0001-01-01T00:00:00";
 
-const props = withDefaults(defineProps<{ dateUtc: string }>(), { dateUtc: emptyDate });
+const props = withDefaults(defineProps<{ dateUtc?: string }>(), { dateUtc: emptyDate });
 
 let interval: number | undefined = undefined;
 
