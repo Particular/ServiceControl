@@ -4,10 +4,12 @@ import routeLinks from "@/router/routeLinks";
 import isRouteSelected from "@/composables/isRouteSelected";
 import { connectionState } from "@/composables/serviceServiceControl";
 import ServiceControlNotAvailable from "@/components/ServiceControlNotAvailable.vue";
+import ThroughputNotAvailable from "@/views/throughputreport/ThroughputNotAvailable.vue";
 import ReportGenerationState from "@/resources/ReportGenerationState";
 import throughputClient from "@/views/throughputreport/throughputClient";
 import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
+import { useIsThroughputSupported } from "@/views/throughputreport/IsThroughputSupported";
 
 const reportState = ref<ReportGenerationState | null>(null);
 
@@ -26,8 +28,9 @@ async function generateReport() {
 </script>
 
 <template>
+  <ThroughputNotAvailable />
   <ServiceControlNotAvailable />
-  <template v-if="connectionState.connected">
+  <template v-if="connectionState.connected && useIsThroughputSupported()">
     <div class="container">
       <div class="row">
         <div class="col-sm-12">
@@ -49,10 +52,6 @@ async function generateReport() {
               </h5> -->
             </div>
             <div class="filter-group">
-              <!-- <div>
-                <a v-if="reportState?.report_can_be_generated" class="btn btn-primary actions" role="button" :href="generateReportUrl()"><i class="fa fa-download"></i> Generate Report</a>
-                <a v-else class="btn btn-primary disabled actions" aria-disabled="true" role="button">Generate Report</a>
-              </div> -->
               <div>
                 <p v-if="!reportState?.report_can_be_generated">{{ reportState?.reason }}</p>
               </div>
