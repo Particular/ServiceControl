@@ -74,7 +74,6 @@
         public async Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
         {
             AddAndRemoveInstances();
-            Validations.RefreshInstances();
             await EventAggregator.PublishOnUIThreadAsync(new PostRefreshInstances(), cancellationToken);
         }
 
@@ -109,6 +108,8 @@
             {
                 Instances.Add(instanceDetailsFunc(item));
             }
+
+            Validations.RefreshInstances();
 
             NotifyOfPropertyChange(nameof(OrderedInstances));
         }
