@@ -1,20 +1,15 @@
 ﻿namespace Particular.ThroughputCollector.Contracts;
 
-public class ThroughputSettings
-{
-    public ThroughputSettings(string serviceControlQueue, string errorQueue, string transportType, string customerName,
-        string serviceControlVersion)
-    {
-        ServiceControlQueue = serviceControlQueue;
-        ErrorQueue = errorQueue;
-        TransportType = transportType;
-        CustomerName = customerName;
-        ServiceControlVersion = serviceControlVersion;
-    }
+using ServiceControl.Configuration;
 
-    public string ErrorQueue { get; }
-    public string ServiceControlQueue { get; }
-    public string TransportType { get; set; }
-    public string CustomerName { get; }
-    public string ServiceControlVersion { get; }
+public class ThroughputSettings(string serviceControlQueue, string errorQueue, string transportType, string customerName, string serviceControlVersion)
+{
+    public static readonly SettingsRootNamespace SettingsNamespace = new("ThroughputCollector");
+
+
+    public string ErrorQueue { get; } = errorQueue;
+    public string ServiceControlQueue { get; } = serviceControlQueue;
+    public string TransportType { get; set; } = transportType;
+    public string CustomerName { get; } = customerName;
+    public string ServiceControlVersion { get; } = serviceControlVersion;
 }
