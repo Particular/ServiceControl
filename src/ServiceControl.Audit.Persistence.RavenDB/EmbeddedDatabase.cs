@@ -23,8 +23,8 @@ namespace ServiceControl.Audit.Persistence.RavenDB
         {
             this.configuration = configuration;
             ServerUrl = configuration.ServerConfiguration.ServerUrl;
-            shutdownTokenSourceRegistration = shutdownTokenSource.Token.Register(() => isStopping = true);
-            applicationStoppingRegistration = lifetime.ApplicationStopping.Register(() => isStopping = true);
+            shutdownCancellationToken = shutdownTokenSource.Token;
+            applicationStoppingRegistration = lifetime.ApplicationStopping.Register(() => shutdownTokenSource.Cancel());
         }
 
         public string ServerUrl { get; private set; }
@@ -78,6 +78,8 @@ namespace ServiceControl.Audit.Persistence.RavenDB
             var embeddedDatabase = new EmbeddedDatabase(databaseConfiguration, lifetime);
             embeddedDatabase.Start(serverOptions);
 
+            RecordStartup(databaseConfiguration);
+
             return embeddedDatabase;
         }
 
@@ -88,16 +90,18 @@ namespace ServiceControl.Audit.Persistence.RavenDB
 
             _ = Task.Run(async () =>
             {
-                while (!isStopping)
+                while (!shutdownCancellationToken.IsCancellationRequested)
                 {
                     try
                     {
-                        await Task.Delay(delayBetweenRestarts, shutdownTokenSource.Token);
+                        await Task.Delay(delayBetweenRestarts, shutdownCancellationToken);
 
                         if (!restartRequired)
                         {
                             continue;
                         }
+
+                        shutdownCancellationToken.ThrowIfCancellationRequested();
 
                         Logger.Info("Restarting RavenDB server process");
 
@@ -115,14 +119,12 @@ namespace ServiceControl.Audit.Persistence.RavenDB
                         Logger.Fatal($"RavenDB server restart failed. Restart will be retried in {delayBetweenRestarts}.", e);
                     }
                 }
-            });
-
-            RecordStartup();
+            }, CancellationToken.None);
         }
 
         void OnServerProcessExited(object? sender, ServerProcessExitedEventArgs _)
         {
-            if (isStopping)
+            if (shutdownCancellationToken.IsCancellationRequested)
             {
                 return;
             }
@@ -180,13 +182,13 @@ namespace ServiceControl.Audit.Persistence.RavenDB
             EmbeddedServer.Instance.Dispose();
             shutdownTokenSource.Dispose();
             applicationStoppingRegistration.Dispose();
-            shutdownTokenSourceRegistration.Dispose();
+
             disposed = true;
         }
 
-        void RecordStartup()
+        static void RecordStartup(DatabaseConfiguration configuration)
         {
-            var dataSize = DataSize();
+            var dataSize = DataSize(configuration);
             var folderSize = FolderSize(configuration.ServerConfiguration.DbPath);
 
             var startupMessage = $@"
@@ -200,7 +202,7 @@ RavenDB Logging Level:              {configuration.ServerConfiguration.LogsMode}
             Logger.Info(startupMessage);
         }
 
-        long DataSize()
+        static long DataSize(DatabaseConfiguration configuration)
         {
             var datafilePath = Path.Combine(configuration.ServerConfiguration.DbPath, "Databases", configuration.Name, "Raven.voron");
 
@@ -219,7 +221,7 @@ RavenDB Logging Level:              {configuration.ServerConfiguration.LogsMode}
             }
         }
 
-        long FolderSize(string path)
+        static long FolderSize(string path)
         {
             try
             {
@@ -256,11 +258,10 @@ RavenDB Logging Level:              {configuration.ServerConfiguration.LogsMode}
 
         bool disposed;
         bool restartRequired;
-        bool isStopping;
         readonly CancellationTokenSource shutdownTokenSource = new();
         readonly DatabaseConfiguration configuration;
+        readonly CancellationToken shutdownCancellationToken;
         readonly CancellationTokenRegistration applicationStoppingRegistration;
-        readonly CancellationTokenRegistration shutdownTokenSourceRegistration;
 
         static TimeSpan delayBetweenRestarts = TimeSpan.FromSeconds(60);
         static readonly ILog Logger = LogManager.GetLogger<EmbeddedDatabase>();
