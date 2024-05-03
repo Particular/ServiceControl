@@ -37,6 +37,11 @@
 
         async Task RefreshAuditQueue()
         {
+            if (nextAuditQueueNameRefresh > DateTime.UtcNow)
+            {
+                return;
+            }
+
             await semaphore.WaitAsync();
             try
             {
