@@ -11,18 +11,12 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.Persistence;
 
-    class SagaUpdatedHandler : IHandleMessages<SagaUpdatedMessage>
+    class SagaUpdatedHandler(ISagaAuditDataStore sagaAuditStore, IPlatformConnectionBuilder connectionBuilder)
+        : IHandleMessages<SagaUpdatedMessage>
     {
-        public SagaUpdatedHandler(ISagaAuditDataStore sagaAuditStore, IPlatformConnectionBuilder connectionBuilder)
-        {
-            this.sagaAuditStore = sagaAuditStore;
-            this.connectionBuilder = connectionBuilder;
-        }
-
         public async Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
         {
             var sagaSnapshot = SagaSnapshotFactory.Create(message);
-
             var supportedByDataStore = await sagaAuditStore.StoreSnapshot(sagaSnapshot);
 
             if (!supportedByDataStore)
@@ -72,9 +66,6 @@
                 semaphore.Release();
             }
         }
-
-        readonly ISagaAuditDataStore sagaAuditStore;
-        readonly IPlatformConnectionBuilder connectionBuilder;
 
         static string auditQueueName;
         static DateTime nextAuditQueueNameRefresh;
