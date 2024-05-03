@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.UnitTests.BodyStorage
+﻿namespace ServiceControl.Persistence.Tests.BodyStorage
 {
     using System;
     using System.Collections.Generic;

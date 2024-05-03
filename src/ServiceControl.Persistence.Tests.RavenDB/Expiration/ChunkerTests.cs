@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.UnitTests.Expiration
+﻿namespace ServiceControl.Persistence.Tests.RavenDB.Expiration
 {
     using System.Collections.Generic;
     using NUnit.Framework;
