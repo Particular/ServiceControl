@@ -10,4 +10,8 @@
     <PackageReference Include="NuGet.Versioning" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
+  </ItemGroup>
+
 </Project>
