@@ -32,7 +32,7 @@ public class PersistenceTestsContext : IPersistenceTestsContext
             EventsRetentionPeriod = retentionPeriod,
             DatabaseName = databaseName,
             ConnectionString = embeddedServer.ServerUrl,
-            ThroughputDatabaseName = $"throughput-persistence-tests-{DateTime.Now:yyMMdd-HHmmss}",
+            ThroughputDatabaseName = $"{databaseName}-throughput",
         };
 
         var persistence = new RavenPersistenceConfiguration().Create(PersistenceSettings);
