@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.UnitTests.Recoverability
+﻿namespace ServiceControl.Persistence.Tests.RavenDB.Recoverability
 {
     using System;
     using System.Linq;
@@ -13,7 +13,7 @@
     using ServiceControl.Persistence.Tests.RavenDB;
 
     [TestFixture]
-    class ErrorMessageDataStoreTests : PersistenceTestBase
+    class ErrorMessageDataStoreTests : RavenPersistenceTestBase
     {
         IErrorMessageDataStore store;
         FailedMessage processedMessage1, processedMessage2;

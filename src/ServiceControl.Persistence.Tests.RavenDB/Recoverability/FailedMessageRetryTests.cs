@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.UnitTests.Recoverability
+﻿namespace ServiceControl.Persistence.Tests.RavenDB.Recoverability
 {
     using System;
     using NUnit.Framework;
