@@ -1,4 +1,0 @@
-[*.cs]
-
-# Justification: Test project
-dotnet_diagnostic.CA2007.severity = none
