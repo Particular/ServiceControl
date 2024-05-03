@@ -34,8 +34,8 @@ namespace ServiceControl.Persistence.RavenDB
 
             documentStore = store.Initialize();
 
-            var databaseSetup = new DatabaseSetup(settings);
-            await databaseSetup.Execute(store, cancellationToken).ConfigureAwait(false);
+            var databaseSetup = new DatabaseSetup(settings, store);
+            await databaseSetup.Execute(cancellationToken).ConfigureAwait(false);
         }
 
         public void Dispose() => documentStore?.Dispose();
