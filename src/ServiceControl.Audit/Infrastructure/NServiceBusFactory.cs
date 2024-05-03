@@ -2,13 +2,16 @@ namespace ServiceControl.Audit.Infrastructure
 {
     using System;
     using System.Diagnostics;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using Contracts.EndpointControl;
     using Contracts.MessageFailures;
+    using Monitoring;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using ServiceControl.Infrastructure;
+    using ServiceControl.SagaAudit;
     using Transports;
 
     static class NServiceBusFactory
@@ -49,7 +52,15 @@ namespace ServiceControl.Audit.Infrastructure
             configuration.GetSettings().Set(settings.LoggingSettings);
             configuration.SetDiagnosticsPath(settings.LoggingSettings.LogPath);
 
-            configuration.UseSerialization<SystemJsonSerializer>();
+            var serialization = configuration.UseSerialization<SystemJsonSerializer>();
+            serialization.Options(new JsonSerializerOptions
+            {
+                TypeInfoResolverChain =
+                {
+                    MonitoringMessagesSerializationContext.Default,
+                    RecoverabilityessagesSerializationContext.Default,
+                }
+            });
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
