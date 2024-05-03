@@ -51,6 +51,16 @@ class ThroughputClient {
     }
     return "";
   }
+
+  public async getMasks() {
+    //return await useFetchFromServiceControl(`${this.basePath}/settings/masks`);
+    const [, data] = await useTypedFetchFromServiceControl<string[]>(`${this.basePath}/settings/masks`);
+    return data;
+  }
+
+  public async updateMasks(data: string[]): Promise<void> {
+    const response = await usePostToServiceControl(`${this.basePath}/settings/masks/update`, data);
+  }
 }
 
 export default new ThroughputClient("throughput");
