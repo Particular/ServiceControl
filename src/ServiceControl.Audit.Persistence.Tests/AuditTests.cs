@@ -81,7 +81,7 @@
         public async Task Can_roundtrip_message_body()
         {
             string expectedContentType = "text/xml";
-            var unitOfWork = AuditIngestionUnitOfWorkFactory.StartNew(1);
+            var unitOfWork = await StartAuditUnitOfWork(1);
 
             var body = new byte[100];
             Random.Shared.NextBytes(body);
@@ -113,7 +113,7 @@
         [Test]
         public async Task Does_respect_max_message_body()
         {
-            var unitOfWork = AuditIngestionUnitOfWorkFactory.StartNew(1);
+            var unitOfWork = await StartAuditUnitOfWork(1);
 
             var body = new byte[MAX_BODY_SIZE + 1000];
             Random.Shared.NextBytes(body);
@@ -136,7 +136,7 @@
         [Test]
         public async Task Deduplicates_messages_in_same_batch()
         {
-            var unitOfWork = AuditIngestionUnitOfWorkFactory.StartNew(1);
+            var unitOfWork = await StartAuditUnitOfWork(1);
             var messageId = "duplicatedId";
             var processingEndpoint = "endpoint";
             var processingStarted = DateTime.UtcNow;
@@ -163,12 +163,12 @@
             var processingStarted = DateTime.UtcNow;
 
             var processedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
-            var unitOfWork1 = AuditIngestionUnitOfWorkFactory.StartNew(1);
+            var unitOfWork1 = await StartAuditUnitOfWork(1);
             await unitOfWork1.RecordProcessedMessage(processedMessage);
             await unitOfWork1.DisposeAsync();
 
             var duplicatedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
-            var unitOfWork2 = AuditIngestionUnitOfWorkFactory.StartNew(1);
+            var unitOfWork2 = await StartAuditUnitOfWork(1);
             await unitOfWork2.RecordProcessedMessage(duplicatedMessage);
             await unitOfWork2.DisposeAsync();
 
@@ -182,7 +182,7 @@
         [Test]
         public async Task Does_not_deduplicate_with_different_processing_started_header()
         {
-            var unitOfWork = AuditIngestionUnitOfWorkFactory.StartNew(1);
+            var unitOfWork = await StartAuditUnitOfWork(1);
             var messageId = "duplicatedId";
             var processingEndpoint = "endpoint";
             var processingStarted = DateTime.UtcNow;
@@ -264,7 +264,7 @@
 
         async Task IngestProcessedMessagesAudits(params ProcessedMessage[] processedMessages)
         {
-            var unitOfWork = StartAuditUnitOfWork(processedMessages.Length);
+            var unitOfWork = await StartAuditUnitOfWork(processedMessages.Length);
             foreach (var processedMessage in processedMessages)
             {
                 await unitOfWork.RecordProcessedMessage(processedMessage);

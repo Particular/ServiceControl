@@ -133,7 +133,7 @@
 
         async Task IngestProcessedMessagesAudits(params ProcessedMessage[] processedMessages)
         {
-            var unitOfWork = StartAuditUnitOfWork(processedMessages.Length);
+            var unitOfWork = await StartAuditUnitOfWork(processedMessages.Length);
             foreach (var processedMessage in processedMessages)
             {
                 await unitOfWork.RecordProcessedMessage(processedMessage);
@@ -144,7 +144,7 @@
 
         async Task IngestKnownEndpoints(params KnownEndpoint[] knownEndpoints)
         {
-            var unitOfWork = StartAuditUnitOfWork(knownEndpoints.Length);
+            var unitOfWork = await StartAuditUnitOfWork(knownEndpoints.Length);
             foreach (var knownEndpoint in knownEndpoints)
             {
                 await unitOfWork.RecordKnownEndpoint(knownEndpoint);
@@ -155,7 +155,7 @@
 
         async Task IngestSagaAudits(params SagaSnapshot[] snapshots)
         {
-            var unitOfWork = StartAuditUnitOfWork(snapshots.Length);
+            var unitOfWork = await StartAuditUnitOfWork(snapshots.Length);
             foreach (var snapshot in snapshots)
             {
                 await unitOfWork.RecordSagaSnapshot(snapshot);

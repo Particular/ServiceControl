@@ -64,7 +64,7 @@ public abstract class PersistenceTestBase
         host = hostBuilder.Build();
         await host.StartAsync();
 
-        DocumentStore = host.Services.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore();
+        DocumentStore = await host.Services.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore();
         SessionProvider = host.Services.GetRequiredService<IRavenSessionProvider>();
 
         CompleteDatabaseOperation();

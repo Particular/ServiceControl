@@ -26,8 +26,8 @@
                 commands[i] = CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
             }
 
-            using var session = sessionProvider.OpenSession();
-            var documentStore = documentStoreProvider.GetDocumentStore();
+            using var session = await sessionProvider.OpenSession();
+            var documentStore = await documentStoreProvider.GetDocumentStore();
             var batch = new SingleNodeBatchCommand(documentStore.Conventions, session.Advanced.Context, commands);
             await session.Advanced.RequestExecutor.ExecuteAsync(batch, session.Advanced.Context);
         }
@@ -36,7 +36,7 @@
         {
             try
             {
-                var documentStore = documentStoreProvider.GetDocumentStore();
+                var documentStore = await documentStoreProvider.GetDocumentStore();
                 await documentStore.Operations.SendAsync(new PatchOperation(batchDocumentId, null, new PatchRequest
                 {
                     Script = @"this.Status = args.Status",
@@ -57,7 +57,7 @@
             DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             await session.StoreAsync(new RetryBatch
             {
                 Id = batchDocumentId,
@@ -80,7 +80,7 @@
 
         public async Task<QueryResult<IList<RetryBatch>>> QueryOrphanedBatches(string retrySessionId)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var orphanedBatches = await session
                 .Query<RetryBatch, RetryBatches_ByStatusAndSession>()
 
@@ -93,7 +93,7 @@
 
         public async Task<IList<RetryBatchGroup>> QueryAvailableBatches()
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var results = await session.Query<RetryBatchGroup, RetryBatches_ByStatus_ReduceInitialBatchSize>()
                 .Where(b => b.HasStagingBatches || b.HasForwardingBatches)
                 .ToListAsync();
@@ -118,7 +118,7 @@
 
         public async Task GetBatchesForAll(DateTime cutoff, Func<string, DateTime, Task> callback)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query = session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                 .Where(d => d.Status == FailedMessageStatus.Unresolved)
                 .Select(m => new
@@ -137,7 +137,7 @@
 
         public async Task GetBatchesForEndpoint(DateTime cutoff, string endpoint, Func<string, DateTime, Task> callback)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query = session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                 .Where(d => d.Status == FailedMessageStatus.Unresolved)
                 .Where(m => m.ReceivingEndpointName == endpoint)
@@ -157,7 +157,7 @@
 
         public async Task GetBatchesForFailedQueueAddress(DateTime cutoff, string failedQueueAddress, FailedMessageStatus status, Func<string, DateTime, Task> callback)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query = session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                 .Where(d => d.Status == FailedMessageStatus.Unresolved)
                 .Where(m => m.QueueAddress == failedQueueAddress && m.Status == status)
@@ -177,7 +177,7 @@
 
         public async Task GetBatchesForFailureGroup(string groupId, string groupTitle, string groupType, DateTime cutoff, Func<string, DateTime, Task> callback)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query = session.Query<FailureGroupMessageView, FailedMessages_ByGroup>()
                 .Where(d => d.Status == FailedMessageStatus.Unresolved)
                 .Where(m => m.FailureGroupId == groupId)
@@ -197,7 +197,7 @@
 
         public async Task<FailureGroupView> QueryFailureGroupViewOnGroupId(string groupId)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var group = await session.Query<FailureGroupView, FailureGroupsViewIndex>()
                 .FirstOrDefaultAsync(x => x.Id == groupId);
             return group;

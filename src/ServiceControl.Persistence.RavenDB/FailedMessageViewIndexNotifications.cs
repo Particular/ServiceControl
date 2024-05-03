@@ -28,7 +28,7 @@
 
         async Task UpdatedCount()
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var failedUnresolvedMessageCount = await session
                 .Query<FailedMessage, FailedMessageViewIndex>()
                 .CountAsync(p => p.Status == FailedMessageStatus.Unresolved);
@@ -72,14 +72,13 @@
             subscription?.Dispose();
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var documentStore = documentStoreProvider.GetDocumentStore();
+            var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
             subscription = documentStore
                 .Changes()
                 .ForIndex(new FailedMessageViewIndex().IndexName)
                 .Subscribe(d => OnNext());
-            return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

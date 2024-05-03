@@ -12,7 +12,7 @@
     {
         public async Task<QueryResult<IList<QueueAddress>>> GetAddresses(PagingInfo pagingInfo)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var addresses = await session
                 .Query<QueueAddress, QueueAddressIndex>()
                 .Statistics(out var stats)
@@ -25,7 +25,7 @@
 
         public async Task<QueryResult<IList<QueueAddress>>> GetAddressesBySearchTerm(string search, PagingInfo pagingInfo)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var failedMessageQueues = await session
                     .Query<QueueAddress, QueueAddressIndex>()
                     .Statistics(out var stats)

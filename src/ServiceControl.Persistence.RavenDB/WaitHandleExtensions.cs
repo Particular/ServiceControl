@@ -27,7 +27,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             finally
             {
                 registeredHandle?.Unregister(null);
-                tokenRegistration.Dispose();
+                await tokenRegistration.DisposeAsync();
             }
         }
 

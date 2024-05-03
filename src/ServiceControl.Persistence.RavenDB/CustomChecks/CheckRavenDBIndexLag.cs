@@ -15,7 +15,7 @@
     {
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
-            var documentStore = documentStoreProvider.GetDocumentStore();
+            var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
             var statistics = await documentStore.Maintenance.SendAsync(new GetStatisticsOperation(), cancellationToken);
             var indexes = statistics.Indexes.OrderBy(x => x.Name).ToArray();
 

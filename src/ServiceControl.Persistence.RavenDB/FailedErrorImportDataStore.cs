@@ -15,7 +15,7 @@
         {
             var succeeded = 0;
             var failed = 0;
-            using (var session = sessionProvider.OpenSession())
+            using (var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken))
             {
                 var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
                 await using var stream = await session.Advanced.StreamAsync(query, cancellationToken);
@@ -57,7 +57,7 @@
 
         public async Task<bool> QueryContainsFailedImports()
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
             await using var ie = await session.Advanced.StreamAsync(query);
             return await ie.MoveNextAsync();

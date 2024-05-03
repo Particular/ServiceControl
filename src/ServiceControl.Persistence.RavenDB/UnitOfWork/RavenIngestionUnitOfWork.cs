@@ -24,7 +24,7 @@
 
         public override async Task Complete()
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             // not really interested in the batch results since a batch is atomic
             session.Advanced.Defer(commands.ToArray());
             await session.SaveChangesAsync();

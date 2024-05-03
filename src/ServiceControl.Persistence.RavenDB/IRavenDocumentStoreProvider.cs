@@ -1,9 +1,13 @@
+#nullable enable
+
 namespace ServiceControl.Persistence.RavenDB
 {
+    using System.Threading;
+    using System.Threading.Tasks;
     using Raven.Client.Documents;
 
     interface IRavenDocumentStoreProvider
     {
-        IDocumentStore GetDocumentStore();
+        ValueTask<IDocumentStore> GetDocumentStore(CancellationToken cancellationToken = default);
     }
 }

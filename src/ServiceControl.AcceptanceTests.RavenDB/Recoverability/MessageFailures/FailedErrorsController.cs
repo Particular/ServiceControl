@@ -20,13 +20,13 @@
     {
         [Route("failederrors/count")]
         [HttpGet]
-        public async Task<FailedErrorsCountReponse> GetFailedErrorsCount()
+        public async Task<FailedErrorsCountReponse> GetFailedErrorsCount(CancellationToken cancellationToken)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query =
                 session.Query<FailedErrorImport, FailedErrorImportIndex>().Statistics(out var stats);
 
-            var count = await query.CountAsync();
+            var count = await query.CountAsync(cancellationToken);
 
             Response.WithEtag(stats.ResultEtag.ToString());
 

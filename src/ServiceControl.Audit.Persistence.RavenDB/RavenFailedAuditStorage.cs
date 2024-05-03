@@ -14,7 +14,7 @@
     {
         public async Task SaveFailedAuditImport(FailedAuditImport message)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             await session.StoreAsync(message);
             await session.SaveChangesAsync();
         }
@@ -23,7 +23,7 @@
             Func<FailedTransportMessage, Func<CancellationToken, Task>, CancellationToken, Task> onMessage,
             CancellationToken cancellationToken)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
 
             IAsyncEnumerator<StreamResult<FailedAuditImport>> stream = default;
@@ -57,7 +57,7 @@
 
         public async Task<int> GetFailedAuditsCount()
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             return await session.Query<FailedAuditImport, FailedAuditImportIndex>()
                 .CountAsync();
         }

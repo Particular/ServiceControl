@@ -10,41 +10,59 @@ namespace ServiceControl.Audit.Persistence.RavenDB
 
     sealed class RavenExternalPersistenceLifecycle(DatabaseConfiguration configuration) : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
     {
-        public IDocumentStore GetDocumentStore()
+        public async ValueTask<IDocumentStore> GetDocumentStore(CancellationToken cancellationToken = default)
         {
-            if (documentStore == null)
+            if (documentStore != null)
             {
-                throw new InvalidOperationException("Document store is not available until the persistence have been started");
+                return documentStore;
             }
 
-            return documentStore;
+            try
+            {
+                await initializeSemaphore.WaitAsync(cancellationToken);
+                return documentStore ?? throw new InvalidOperationException("Document store is not available. Ensure `IRavenPersistenceLifecycle.Initialize` is invoked");
+            }
+            finally
+            {
+                initializeSemaphore.Release();
+            }
         }
 
         public async Task Initialize(CancellationToken cancellationToken = default)
         {
-            var store = new DocumentStore
+            try
             {
-                Database = configuration.Name,
-                Urls = [configuration.ServerConfiguration.ConnectionString],
-                Conventions = new DocumentConventions
+                await initializeSemaphore.WaitAsync(cancellationToken);
+
+                var store = new DocumentStore
                 {
-                    SaveEnumsAsIntegers = true
+                    Database = configuration.Name,
+                    Urls = [configuration.ServerConfiguration.ConnectionString],
+                    Conventions = new DocumentConventions
+                    {
+                        SaveEnumsAsIntegers = true
+                    }
+                };
+
+                if (configuration.FindClrType != null)
+                {
+                    store.Conventions.FindClrType += configuration.FindClrType;
                 }
-            };
 
-            if (configuration.FindClrType != null)
-            {
-                store.Conventions.FindClrType += configuration.FindClrType;
+                documentStore = store.Initialize();
+
+                var databaseSetup = new DatabaseSetup(configuration);
+                await databaseSetup.Execute(store, cancellationToken);
             }
-
-            documentStore = store.Initialize();
-
-            var databaseSetup = new DatabaseSetup(configuration);
-            await databaseSetup.Execute(store, cancellationToken);
+            finally
+            {
+                initializeSemaphore.Release();
+            }
         }
 
         public void Dispose() => documentStore?.Dispose();
 
         IDocumentStore? documentStore;
+        readonly SemaphoreSlim initializeSemaphore = new(1, 1);
     }
 }

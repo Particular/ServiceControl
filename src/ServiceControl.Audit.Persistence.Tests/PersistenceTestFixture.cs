@@ -58,7 +58,7 @@
         protected IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory =>
             configuration.AuditIngestionUnitOfWorkFactory;
 
-        protected IAuditIngestionUnitOfWork StartAuditUnitOfWork(int batchSize) =>
+        protected ValueTask<IAuditIngestionUnitOfWork> StartAuditUnitOfWork(int batchSize) =>
             AuditIngestionUnitOfWorkFactory.StartNew(batchSize);
 
         protected IServiceProvider ServiceProvider => configuration.ServiceProvider;

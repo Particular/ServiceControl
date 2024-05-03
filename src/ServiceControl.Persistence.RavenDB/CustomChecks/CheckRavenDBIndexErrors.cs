@@ -14,7 +14,7 @@
     {
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
-            var documentStore = documentStoreProvider.GetDocumentStore();
+            var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
             var response = await documentStore.Maintenance.SendAsync(new GetIndexErrorsOperation(), cancellationToken);
 
             // Filter response as RavenDB5+ will return entries without errors

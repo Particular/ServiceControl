@@ -13,7 +13,7 @@
     {
         public async Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier, string classifierFilter)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var query = Queryable.Where(session.Query<FailureGroupView, FailureGroupsViewIndex>(), v => v.Type == classifier);
 
             if (!string.IsNullOrWhiteSpace(classifierFilter))
@@ -39,7 +39,7 @@
 
         public async Task<RetryBatch> GetCurrentForwardingBatch()
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var nowForwarding = await session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
                 .LoadAsync<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
 

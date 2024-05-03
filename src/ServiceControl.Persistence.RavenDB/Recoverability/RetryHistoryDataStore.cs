@@ -8,7 +8,7 @@
     {
         public async Task<RetryHistory> GetRetryHistory()
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var id = RetryHistory.MakeId();
             var retryHistory = await session.LoadAsync<RetryHistory>(id);
 
@@ -20,7 +20,7 @@
         public async Task RecordRetryOperationCompleted(string requestId, RetryType retryType, DateTime startTime, DateTime completionTime,
             string originator, string classifier, bool messageFailed, int numberOfMessagesProcessed, DateTime lastProcessed, int retryHistoryDepth)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()) ?? RetryHistory.CreateNew();
 
             retryHistory.AddToUnacknowledged(new UnacknowledgedRetryOperation
@@ -53,7 +53,7 @@
 
         public async Task<bool> AcknowledgeRetryGroup(string groupId)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId());
             if (retryHistory != null)
             {

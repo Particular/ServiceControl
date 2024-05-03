@@ -16,7 +16,7 @@
             var id = endpoint.GetDeterministicId();
             var docId = MakeDocumentId(id);
 
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
 
             var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId);
 
@@ -42,7 +42,7 @@
             var id = endpoint.GetDeterministicId();
             var docId = MakeDocumentId(id);
 
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
 
             var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId);
 
@@ -70,7 +70,7 @@
             var id = endpoint.GetDeterministicId();
             var docId = MakeDocumentId(id);
 
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
 
             var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId);
 
@@ -84,7 +84,7 @@
 
         public async Task WarmupMonitoringFromPersistence(IEndpointInstanceMonitoring endpointInstanceMonitoring)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             await using var endpointsEnumerator = await session.Advanced.StreamAsync(session.Query<KnownEndpoint, KnownEndpointIndex>());
 
             while (await endpointsEnumerator.MoveNextAsync())
@@ -97,14 +97,14 @@
 
         public async Task Delete(Guid endpointId)
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
             session.Delete(MakeDocumentId(endpointId));
             await session.SaveChangesAsync();
         }
 
         public async Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints()
         {
-            using var session = sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession();
 
             var knownEndpoints = await session.Query<KnownEndpoint, KnownEndpointIndex>()
                 .ToListAsync();
