@@ -67,7 +67,7 @@
         public async Task<ConnectionTestResults> TestThroughputConnectionSettings(CancellationToken cancellationToken) => await throughputCollector.TestConnectionSettings(cancellationToken);
 
         [Route("settings/masks")]
-        [HttpPost]
+        [HttpGet]
         public async Task<List<string>> GetMasks(CancellationToken cancellationToken)
         {
             return await throughputCollector.GetReportMasks(cancellationToken);
