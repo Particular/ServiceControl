@@ -173,11 +173,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.Persistence.InMemory", "Particular.ThroughputCollector.Persistence.InMemory\Particular.ThroughputCollector.Persistence.InMemory.csproj", "{9D134CF7-F1A3-4935-BCBD-458406F8AA97}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.Persistence.Tests", "Particular.ThroughputCollector.Persistence.Tests\Particular.ThroughputCollector.Persistence.Tests.csproj", "{A6CAC642-98D9-47B6-85FC-4B51B4A195BF}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Api", "ServiceControl.Api\ServiceControl.Api.csproj", "{D101BDEE-85BB-46C5-85E0-6BD8A1B197B1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.Contracts", "Particular.ThroughputCollector.Contracts\Particular.ThroughputCollector.Contracts.csproj", "{6D07AC20-25B3-423F-A88E-64DED435DA06}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Persistence.Tests.InMemory", "ServiceControl.Persistence.Tests.InMemory\ServiceControl.Persistence.Tests.InMemory.csproj", "{71F18E74-944B-49B9-9AA9-EA2B253CAF0C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -940,18 +940,6 @@ Global
 		{9D134CF7-F1A3-4935-BCBD-458406F8AA97}.Release|x64.Build.0 = Release|Any CPU
 		{9D134CF7-F1A3-4935-BCBD-458406F8AA97}.Release|x86.ActiveCfg = Release|Any CPU
 		{9D134CF7-F1A3-4935-BCBD-458406F8AA97}.Release|x86.Build.0 = Release|Any CPU
-		{A6CAC642-98D9-47B6-85FC-4B51B4A195BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A6CAC642-98D9-47B6-85FC-4B51B4A195BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A6CAC642-98D9-47B6-85FC-4B51B4A195BF}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{A6CAC642-98D9-47B6-85FC-4B51B4A195BF}.Debug|x64.Build.0 = Debug|Any CPU
-		{A6CAC642-98D9-47B6-85FC-4B51B4A195BF}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A6CAC642-98D9-47B6-85FC-4B51B4A195BF}.Debug|x86.Build.0 = Debug|Any CPU
-		{A6CAC642-98D9-47B6-85FC-4B51B4A195BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A6CAC642-98D9-47B6-85FC-4B51B4A195BF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A6CAC642-98D9-47B6-85FC-4B51B4A195BF}.Release|x64.ActiveCfg = Release|Any CPU
-		{A6CAC642-98D9-47B6-85FC-4B51B4A195BF}.Release|x64.Build.0 = Release|Any CPU
-		{A6CAC642-98D9-47B6-85FC-4B51B4A195BF}.Release|x86.ActiveCfg = Release|Any CPU
-		{A6CAC642-98D9-47B6-85FC-4B51B4A195BF}.Release|x86.Build.0 = Release|Any CPU
 		{D101BDEE-85BB-46C5-85E0-6BD8A1B197B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D101BDEE-85BB-46C5-85E0-6BD8A1B197B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D101BDEE-85BB-46C5-85E0-6BD8A1B197B1}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -976,6 +964,18 @@ Global
 		{6D07AC20-25B3-423F-A88E-64DED435DA06}.Release|x64.Build.0 = Release|Any CPU
 		{6D07AC20-25B3-423F-A88E-64DED435DA06}.Release|x86.ActiveCfg = Release|Any CPU
 		{6D07AC20-25B3-423F-A88E-64DED435DA06}.Release|x86.Build.0 = Release|Any CPU
+		{71F18E74-944B-49B9-9AA9-EA2B253CAF0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71F18E74-944B-49B9-9AA9-EA2B253CAF0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71F18E74-944B-49B9-9AA9-EA2B253CAF0C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{71F18E74-944B-49B9-9AA9-EA2B253CAF0C}.Debug|x64.Build.0 = Debug|Any CPU
+		{71F18E74-944B-49B9-9AA9-EA2B253CAF0C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{71F18E74-944B-49B9-9AA9-EA2B253CAF0C}.Debug|x86.Build.0 = Debug|Any CPU
+		{71F18E74-944B-49B9-9AA9-EA2B253CAF0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71F18E74-944B-49B9-9AA9-EA2B253CAF0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71F18E74-944B-49B9-9AA9-EA2B253CAF0C}.Release|x64.ActiveCfg = Release|Any CPU
+		{71F18E74-944B-49B9-9AA9-EA2B253CAF0C}.Release|x64.Build.0 = Release|Any CPU
+		{71F18E74-944B-49B9-9AA9-EA2B253CAF0C}.Release|x86.ActiveCfg = Release|Any CPU
+		{71F18E74-944B-49B9-9AA9-EA2B253CAF0C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1056,9 +1056,9 @@ Global
 		{62AB95DB-2621-4A91-8D84-72D12D9F2D87} = {2D732554-9C3D-4509-8D0B-5595266A4D92}
 		{E64B0BEF-B729-411D-9FE9-7AB52FE7E6C6} = {94BDFE10-0672-4299-A7D8-2283789F4549}
 		{9D134CF7-F1A3-4935-BCBD-458406F8AA97} = {C22BFC89-851E-4D42-A878-C13B3F206908}
-		{A6CAC642-98D9-47B6-85FC-4B51B4A195BF} = {94BDFE10-0672-4299-A7D8-2283789F4549}
 		{D101BDEE-85BB-46C5-85E0-6BD8A1B197B1} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
 		{6D07AC20-25B3-423F-A88E-64DED435DA06} = {2D732554-9C3D-4509-8D0B-5595266A4D92}
+		{71F18E74-944B-49B9-9AA9-EA2B253CAF0C} = {350F72AB-142D-4AAD-9EF1-1A83DC991D87}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}
