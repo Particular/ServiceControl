@@ -3,6 +3,6 @@ POST /endpoints/update => Particular.ThroughputCollector.WebApi.ThroughputContro
 GET /report/available => Particular.ThroughputCollector.WebApi.ThroughputController:CanThroughputReportBeGenerated(CancellationToken cancellationToken)
 GET /report/file => Particular.ThroughputCollector.WebApi.ThroughputController:GetThroughputReportFile(String spVersion, CancellationToken cancellationToken)
 GET /settings/info => Particular.ThroughputCollector.WebApi.ThroughputController:GetThroughputSettingsInformation(CancellationToken cancellationToken)
-POST /settings/masks => Particular.ThroughputCollector.WebApi.ThroughputController:GetMasks(CancellationToken cancellationToken)
+GET /settings/masks => Particular.ThroughputCollector.WebApi.ThroughputController:GetMasks(CancellationToken cancellationToken)
 POST /settings/masks/update => Particular.ThroughputCollector.WebApi.ThroughputController:UpdateMasks(List<String> updateMasks, CancellationToken cancellationToken)
 GET /settings/test => Particular.ThroughputCollector.WebApi.ThroughputController:TestThroughputConnectionSettings(CancellationToken cancellationToken)
