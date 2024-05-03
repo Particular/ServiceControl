@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.UnitTests.CompositeViews
+﻿namespace ServiceControl.Persistence.Tests.RavenDB.CompositeViews
 {
     using System;
     using System.Collections.Generic;
@@ -14,7 +14,7 @@
     using ServiceControl.Persistence;
 
     [TestFixture]
-    class MessagesViewTests : PersistenceTestBase
+    class MessagesViewTests : RavenPersistenceTestBase
     {
         [Test]
         public void Filter_out_system_messages()
