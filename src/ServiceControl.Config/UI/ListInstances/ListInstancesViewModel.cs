@@ -13,6 +13,7 @@
     using InstanceDetails;
     using NuGet.Versioning;
     using PropertyChanging;
+    using ServiceControl.Config.Extensions;
     using ServiceControlInstaller.Engine.Instances;
 
     class ListInstancesViewModel : RxScreen, IHandle<RefreshInstances>, IHandle<ResetInstances>, IHandle<LicenseUpdated>
@@ -107,6 +108,8 @@
             {
                 Instances.Add(instanceDetailsFunc(item));
             }
+
+            Validations.RefreshInstances();
 
             NotifyOfPropertyChange(nameof(OrderedInstances));
         }
