@@ -3,11 +3,9 @@ namespace Particular.ServiceControl;
 using global::ServiceControl.Infrastructure;
 using global::ServiceControl.LicenseManagement;
 using global::ServiceControl.Transports;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ServiceBus.Management.Infrastructure.Settings;
 using ThroughputCollector;
-using ThroughputCollector.Persistence;
 using ThroughputCollector.Shared;
 
 class ThroughputComponent : ServiceControlComponent
@@ -27,8 +25,5 @@ class ThroughputComponent : ServiceControlComponent
     public override void Setup(Settings settings, IComponentInstallationContext context, IHostApplicationBuilder hostBuilder)
     {
         context.CreateQueue(PlatformEndpointHelper.ServiceControlThroughputDataQueue);
-
-        context.RegisterInstallationTask(serviceProvider =>
-            serviceProvider.GetRequiredService<IPersistenceInstaller>().Install());
     }
 }
