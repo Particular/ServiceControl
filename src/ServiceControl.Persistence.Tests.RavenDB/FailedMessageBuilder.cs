@@ -1,11 +1,10 @@
 ﻿namespace ServiceControl.Persistence.Tests.RavenDB
 {
     using System;
-    using System.Collections.Generic;
     using Contracts.Operations;
     using MessageFailures;
-    using Operations;
     using SagaAudit;
+    using ServiceControl.Operations;
 
     static class FailedMessageBuilder
     {

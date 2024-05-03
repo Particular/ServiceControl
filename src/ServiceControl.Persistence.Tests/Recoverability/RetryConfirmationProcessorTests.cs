@@ -1,8 +1,7 @@
-﻿namespace ServiceControl.UnitTests.Recoverability
+﻿namespace ServiceControl.Persistence.Tests.Recoverability
 {
     using System;
     using System.Collections.Generic;
-    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using MessageFailures;
@@ -11,7 +10,6 @@
     using NServiceBus.Testing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using PersistenceTests;
     using ServiceControl.Operations;
 
     class RetryConfirmationProcessorTests : PersistenceTestBase
