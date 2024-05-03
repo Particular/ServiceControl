@@ -214,7 +214,7 @@
             try
             {
                 using var stream = new ReadOnlyStream(context.Body);
-                SagaUpdatedMessage message = JsonSerializer.Deserialize<SagaUpdatedMessage>(stream);
+                SagaUpdatedMessage message = JsonSerializer.Deserialize(stream, SagaAuditMessagesSerializationContext.Default.SagaUpdatedMessage);
 
                 var sagaSnapshot = SagaSnapshotFactory.Create(message);
 
