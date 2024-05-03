@@ -1,4 +1,5 @@
-namespace Particular.ThroughputCollector.Persistence.RavenDb;
+#nullable enable
+namespace ServiceControl.Persistence.RavenDB.Throughput.Indexes;
 
 using System.Linq;
 using Raven.Client.Documents.Indexes;
