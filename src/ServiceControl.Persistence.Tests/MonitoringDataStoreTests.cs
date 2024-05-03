@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.PersistenceTests
+﻿namespace ServiceControl.Persistence.Tests
 {
     using System;
     using System.Linq;
