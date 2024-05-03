@@ -5,7 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Particular.ThroughputCollector.Persistence.RavenDb\Particular.ThroughputCollector.Persistence.RavenDb.csproj" />
     <ProjectReference Include="..\ServiceControl.AcceptanceTests.RavenDB\ServiceControl.AcceptanceTests.RavenDB.csproj" />
     <ProjectReference Include="..\ServiceControl.Audit.AcceptanceTests\ServiceControl.Audit.AcceptanceTests.csproj" />
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />

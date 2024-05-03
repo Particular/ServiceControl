@@ -1,17 +1,22 @@
-﻿namespace Particular.ThroughputCollector.Persistence.RavenDb;
+﻿#nullable enable
+namespace ServiceControl.Persistence.RavenDB.Throughput;
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
-using Contracts;
+using System.Threading.Tasks;
 using Models;
+using Particular.ThroughputCollector.Contracts;
+using Particular.ThroughputCollector.Persistence;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Linq;
 using Raven.Client.Documents.Queries;
 using Raven.Client.Documents.Session;
 
-public class ThroughputDataStore(
-    Lazy<IDocumentStore> store,
-    DatabaseConfiguration databaseConfiguration) : IThroughputDataStore
+class ThroughputDataStore(
+    IRavenDocumentStoreProvider storeProvider,
+    ThroughputDatabaseConfiguration databaseConfiguration) : IThroughputDataStore
 {
     internal const string ThroughputTimeSeriesName = "INC: throughput data";
     const string AuditServiceMetadataDocumentId = "AuditServiceMetadata";
@@ -24,7 +29,7 @@ public class ThroughputDataStore(
 
     public async Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken)
     {
-        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = storeProvider.GetDocumentStore().OpenAsyncSession(databaseConfiguration.Name);
 
         var baseQuery = session.Query<EndpointDocument>();
 
@@ -39,7 +44,7 @@ public class ThroughputDataStore(
 
     public async Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken)
     {
-        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = storeProvider.GetDocumentStore().OpenAsyncSession(databaseConfiguration.Name);
 
         var documentId = id.GenerateDocumentId();
 
@@ -65,7 +70,7 @@ public class ThroughputDataStore(
     {
         var endpoints = new List<(EndpointIdentifier, Endpoint?)>();
 
-        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = storeProvider.GetDocumentStore().OpenAsyncSession(databaseConfiguration.Name);
 
         var documentIdLookup = endpointIds.ToDictionary(
             endpointId => endpointId,
@@ -102,7 +107,7 @@ public class ThroughputDataStore(
     {
         var document = endpoint.ToEndpointDocument();
 
-        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = storeProvider.GetDocumentStore().OpenAsyncSession(databaseConfiguration.Name);
 
         await session.StoreAsync(document, document.GenerateDocumentId(), cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
@@ -112,7 +117,7 @@ public class ThroughputDataStore(
     {
         var results = queueNames.ToDictionary(queueName => queueName, queueNames => new List<ThroughputData>() as IEnumerable<ThroughputData>);
 
-        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = storeProvider.GetDocumentStore().OpenAsyncSession(databaseConfiguration.Name);
 
         var query = session.Query<EndpointDocument>()
             .Where(document => document.SanitizedName.In(queueNames))
@@ -149,7 +154,7 @@ public class ThroughputDataStore(
         }
 
         var id = new EndpointIdentifier(endpointName, throughputSource);
-        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = storeProvider.GetDocumentStore().OpenAsyncSession(databaseConfiguration.Name);
 
         var documentId = id.GenerateDocumentId();
         var document = await session.LoadAsync<EndpointDocument>(documentId, cancellationToken) ??
@@ -168,7 +173,7 @@ public class ThroughputDataStore(
     public async Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken)
     {
         var updates = userIndicatorUpdates.ToDictionary(u => u.Name, u => u.UserIndicator);
-        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = storeProvider.GetDocumentStore().OpenAsyncSession(databaseConfiguration.Name);
 
         var query = session.Query<EndpointDocument>()
             .Where(document => document.SanitizedName.In(updates.Keys));
@@ -187,7 +192,7 @@ public class ThroughputDataStore(
 
     public async Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken)
     {
-        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = storeProvider.GetDocumentStore().OpenAsyncSession(databaseConfiguration.Name);
 
         var result = await IsThereThroughputForLastXDaysInternal(session.Query<EndpointDocument>(), days, cancellationToken);
 
@@ -196,7 +201,7 @@ public class ThroughputDataStore(
 
     public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken)
     {
-        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = storeProvider.GetDocumentStore().OpenAsyncSession(databaseConfiguration.Name);
 
         var baseQuery = session.Query<EndpointDocument>()
             .Where(endpoint => endpoint.EndpointId.ThroughputSource == throughputSource);
@@ -220,14 +225,14 @@ public class ThroughputDataStore(
 
     public async Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken)
     {
-        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = storeProvider.GetDocumentStore().OpenAsyncSession(databaseConfiguration.Name);
 
         return await session.LoadAsync<BrokerMetadata>(BrokerMetadataDocumentId, cancellationToken) ?? DefaultBrokerMetadata;
     }
 
     public async Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken)
     {
-        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = storeProvider.GetDocumentStore().OpenAsyncSession(databaseConfiguration.Name);
 
         await session.StoreAsync(brokerMetadata, BrokerMetadataDocumentId, cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
@@ -235,14 +240,14 @@ public class ThroughputDataStore(
 
     public async Task<AuditServiceMetadata> GetAuditServiceMetadata(CancellationToken cancellationToken)
     {
-        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = storeProvider.GetDocumentStore().OpenAsyncSession(databaseConfiguration.Name);
 
         return await session.LoadAsync<AuditServiceMetadata>(AuditServiceMetadataDocumentId, cancellationToken) ?? DefaultAuditServiceMetadata;
     }
 
     public async Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken)
     {
-        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = storeProvider.GetDocumentStore().OpenAsyncSession(databaseConfiguration.Name);
 
         await session.StoreAsync(auditServiceMetadata, AuditServiceMetadataDocumentId, cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
@@ -250,7 +255,7 @@ public class ThroughputDataStore(
 
     public async Task<List<string>> GetReportMasks(CancellationToken cancellationToken)
     {
-        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = storeProvider.GetDocumentStore().OpenAsyncSession(databaseConfiguration.Name);
 
         var config = await session.LoadAsync<ReportConfigurationDocument>(ReportMasksDocumentId, cancellationToken) ?? DefaultReportConfiguration;
 
@@ -259,7 +264,7 @@ public class ThroughputDataStore(
 
     public async Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken)
     {
-        using IAsyncDocumentSession session = store.Value.OpenAsyncSession(databaseConfiguration.Name);
+        using IAsyncDocumentSession session = storeProvider.GetDocumentStore().OpenAsyncSession(databaseConfiguration.Name);
 
         await session.StoreAsync(new ReportConfigurationDocument { MaskedStrings = reportMasks }, ReportMasksDocumentId, cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
