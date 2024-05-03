@@ -5,6 +5,7 @@
     using System.Reflection;
     using Configuration;
     using CustomChecks;
+    using Particular.ThroughputCollector.Contracts;
 
     class RavenPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -46,7 +47,8 @@
                 MaintenanceMode = SettingsReader.Read(settingsRootNamespace, MaintenanceModeKey, false),
                 LogPath = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.LogsPathKey, DefaultLogLocation()),
                 LogsMode = logsMode,
-                EnableFullTextSearchOnBodies = SettingsReader.Read(settingsRootNamespace, "EnableFullTextSearchOnBodies", true)
+                EnableFullTextSearchOnBodies = SettingsReader.Read(settingsRootNamespace, "EnableFullTextSearchOnBodies", true),
+                ThroughputDatabaseName = SettingsReader.Read(ThroughputSettings.SettingsNamespace, ThroughputSettings.DatabaseNameKey, ThroughputSettings.DefaultDatabaseName)
             };
 
             CheckFreeDiskSpace.Validate(settings);

@@ -8,13 +8,13 @@ using Microsoft.Extensions.DependencyInjection;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 using Operations.BodyStorage;
 using Operations.BodyStorage.RavenAttachments;
-using Particular.ThroughputCollector.Persistence.RavenDb;
 using Persistence.MessageRedirects;
 using Persistence.Recoverability;
 using Raven.Client.Documents;
 using Recoverability;
 using ServiceControl.CustomChecks;
 using ServiceControl.Infrastructure.RavenDB.Subscriptions;
+using ServiceControl.Persistence.RavenDB.Throughput;
 using ServiceControl.Recoverability;
 using UnitOfWork;
 using IPersistence = IPersistence;
@@ -54,8 +54,6 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
 
         services.AddSingleton<OperationsManager>();
 
-        services.AddThroughputRavenPersistence();
-
         services.AddSingleton<IArchiveMessages, MessageArchiver>();
         services.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
         services.AddSingleton<IErrorMessageDataStore, ErrorMessagesDataStore>();
@@ -86,8 +84,6 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
     public void AddInstaller(IServiceCollection services)
     {
         ConfigureLifecycle(services);
-
-        services.AddThroughputRavenPersistence();
     }
 
     void ConfigureLifecycle(IServiceCollection services)
@@ -105,6 +101,8 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
 
         services.AddSingleton(provider =>
             new Lazy<IDocumentStore>(() => provider.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore()));
+
+        services.AddThroughputRavenPersistence(settings.ThroughputDatabaseName);
 
         if (settings.UseEmbeddedServer)
         {

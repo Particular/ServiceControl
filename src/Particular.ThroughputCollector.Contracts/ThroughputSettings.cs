@@ -6,6 +6,8 @@ public class ThroughputSettings(string serviceControlQueue, string errorQueue, s
 {
     public static readonly SettingsRootNamespace SettingsNamespace = new("ThroughputCollector");
 
+    public const string DatabaseNameKey = "RavenDB/ThroughputDatabaseName";
+    public const string DefaultDatabaseName = "throughput";
 
     public string ErrorQueue { get; } = errorQueue;
     public string ServiceControlQueue { get; } = serviceControlQueue;

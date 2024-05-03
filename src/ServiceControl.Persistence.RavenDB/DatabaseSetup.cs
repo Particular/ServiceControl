@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.RavenDB
+namespace ServiceControl.Persistence.RavenDB
 {
     using System.Threading;
     using System.Threading.Tasks;
@@ -14,6 +14,7 @@
         public async Task Execute(CancellationToken cancellationToken)
         {
             await CreateDatabase(settings.DatabaseName, cancellationToken);
+            await CreateDatabase(settings.ThroughputDatabaseName, cancellationToken);
 
             await IndexCreation.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, null, null, cancellationToken);
 
