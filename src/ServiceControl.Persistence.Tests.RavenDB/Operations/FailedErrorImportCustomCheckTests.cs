@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.UnitTests.Operations
+﻿namespace ServiceControl.Persistence.Tests.RavenDB.Operations
 {
     using System;
     using System.Threading.Tasks;
@@ -8,7 +8,7 @@
     using ServiceControl.Operations;
 
     [TestFixture]
-    class FailedErrorImportCustomCheckTests : PersistenceTestBase
+    class FailedErrorImportCustomCheckTests : RavenPersistenceTestBase
     {
         public FailedErrorImportCustomCheckTests() =>
             RegisterServices = services =>
