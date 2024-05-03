@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.UnitTests.CompositeViews
+﻿namespace ServiceControl.Persistence.Tests.RavenDB.CompositeViews
 {
     using System;
     using System.Linq;
@@ -10,7 +10,7 @@
     using Raven.Client.Documents.Session;
 
     [TestFixture]
-    class FailedMessagesTests : PersistenceTestBase
+    class FailedMessagesTests : RavenPersistenceTestBase
     {
         [Test]
         public void Should_allow_errors_with_no_metadata()
