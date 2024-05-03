@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.Tests;
+namespace ServiceControl.Persistence.Tests;
 
 using System;
 using System.Diagnostics;
@@ -32,7 +32,8 @@ public class PersistenceTestsContext : IPersistenceTestsContext
             ErrorRetentionPeriod = retentionPeriod,
             EventsRetentionPeriod = retentionPeriod,
             DatabaseName = databaseName,
-            ConnectionString = embeddedServer.ServerUrl
+            ConnectionString = embeddedServer.ServerUrl,
+            ThroughputDatabaseName = $"{databaseName}-throughput",
         };
 
         var persistence = new RavenPersistenceConfiguration().Create(PersistenceSettings);
