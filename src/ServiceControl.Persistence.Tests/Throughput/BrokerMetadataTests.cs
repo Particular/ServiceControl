@@ -1,4 +1,4 @@
-﻿namespace Particular.ThroughputCollector.Persistence.Tests;
+﻿namespace ServiceControl.Persistence.Tests.Throughput;
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -6,17 +6,17 @@ using NUnit.Framework;
 using Particular.ThroughputCollector.Contracts;
 
 [TestFixture]
-class BrokerMetadataTests : PersistenceTestFixture
+class BrokerMetadataTests : PersistenceTestBase
 {
     [Test]
     public async Task Should_retrieve_saved_broker_metadata()
     {
         //Arrange
         var expectedBrokerMetadata = new BrokerMetadata("Some scope", new Dictionary<string, string> { ["Some key"] = "Some value" });
-        await DataStore.SaveBrokerMetadata(expectedBrokerMetadata, default);
+        await ThroughputDataStore.SaveBrokerMetadata(expectedBrokerMetadata, default);
 
         //Act
-        var retrievedBrokerMetadata = await DataStore.GetBrokerMetadata(default);
+        var retrievedBrokerMetadata = await ThroughputDataStore.GetBrokerMetadata(default);
 
         //Assert
         Assert.That(retrievedBrokerMetadata, Is.Not.Null);
@@ -29,12 +29,12 @@ class BrokerMetadataTests : PersistenceTestFixture
     {
         // Arrange
         var oldBrokerMetadata = new BrokerMetadata("Some scope", new Dictionary<string, string> { ["Some key"] = "Some value" });
-        await DataStore.SaveBrokerMetadata(oldBrokerMetadata, default);
+        await ThroughputDataStore.SaveBrokerMetadata(oldBrokerMetadata, default);
 
         // Act
         var expectedBrokerMetadata = new BrokerMetadata("New scope", new Dictionary<string, string> { ["New key"] = "New value" });
-        await DataStore.SaveBrokerMetadata(expectedBrokerMetadata, default);
-        var retrievedBrokerMetadata = await DataStore.GetBrokerMetadata(default);
+        await ThroughputDataStore.SaveBrokerMetadata(expectedBrokerMetadata, default);
+        var retrievedBrokerMetadata = await ThroughputDataStore.GetBrokerMetadata(default);
 
         // Assert
         Assert.That(retrievedBrokerMetadata, Is.Not.Null);

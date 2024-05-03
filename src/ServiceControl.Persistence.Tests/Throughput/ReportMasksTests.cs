@@ -1,21 +1,21 @@
-﻿namespace Particular.ThroughputCollector.Persistence.Tests;
+﻿namespace ServiceControl.Persistence.Tests.Throughput;
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
 [TestFixture]
-class ReportMasksTests : PersistenceTestFixture
+class ReportMasksTests : PersistenceTestBase
 {
     [Test]
     public async Task Should_retrieve_saved_report_masks()
     {
         //Arrange
         var expectedReportMasks = new List<string> { "secret", "boo" };
-        await DataStore.SaveReportMasks(expectedReportMasks, default);
+        await ThroughputDataStore.SaveReportMasks(expectedReportMasks, default);
 
         //Act
-        var retrievedReportMasks = await DataStore.GetReportMasks(default);
+        var retrievedReportMasks = await ThroughputDataStore.GetReportMasks(default);
 
         //Assert
         Assert.That(retrievedReportMasks, Is.Not.Null);
@@ -27,12 +27,12 @@ class ReportMasksTests : PersistenceTestFixture
     {
         // Arrange
         var oldReportMasks = new List<string> { "secret", "boo" };
-        await DataStore.SaveReportMasks(oldReportMasks, default);
+        await ThroughputDataStore.SaveReportMasks(oldReportMasks, default);
 
         // Act
         var expectedReportMasks = new List<string> { "secret", "hello" };
-        await DataStore.SaveReportMasks(expectedReportMasks, default);
-        var retrievedReportMasks = await DataStore.GetReportMasks(default);
+        await ThroughputDataStore.SaveReportMasks(expectedReportMasks, default);
+        var retrievedReportMasks = await ThroughputDataStore.GetReportMasks(default);
 
         // Assert
         Assert.That(retrievedReportMasks, Is.Not.Null);

@@ -1,4 +1,4 @@
-﻿namespace Particular.ThroughputCollector.Persistence.Tests;
+﻿namespace ServiceControl.Persistence.Tests.Throughput;
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -6,7 +6,7 @@ using NUnit.Framework;
 using Particular.ThroughputCollector.Contracts;
 
 [TestFixture]
-class AuditServiceMetadataTests : PersistenceTestFixture
+class AuditServiceMetadataTests : PersistenceTestBase
 {
     [Test]
     public async Task Should_retrieve_saved_audit_service_metadata()
@@ -15,10 +15,10 @@ class AuditServiceMetadataTests : PersistenceTestFixture
         var expectedAuditServiceMetadata = new AuditServiceMetadata(
             new Dictionary<string, int> { ["Some version"] = 2 },
             new Dictionary<string, int> { ["Some transport"] = 3 });
-        await DataStore.SaveAuditServiceMetadata(expectedAuditServiceMetadata, default);
+        await ThroughputDataStore.SaveAuditServiceMetadata(expectedAuditServiceMetadata, default);
 
         //Act
-        var retrievedAuditServiceMetadata = await DataStore.GetAuditServiceMetadata();
+        var retrievedAuditServiceMetadata = await ThroughputDataStore.GetAuditServiceMetadata();
 
         //Assert
         Assert.That(retrievedAuditServiceMetadata, Is.Not.Null);
@@ -33,14 +33,14 @@ class AuditServiceMetadataTests : PersistenceTestFixture
         var oldAuditServiceMetadata = new AuditServiceMetadata(
             new Dictionary<string, int> { ["Some version"] = 2 },
             new Dictionary<string, int> { ["Some transport"] = 3 });
-        await DataStore.SaveAuditServiceMetadata(oldAuditServiceMetadata, default);
+        await ThroughputDataStore.SaveAuditServiceMetadata(oldAuditServiceMetadata, default);
 
         // Act
         var expectedAuditServiceMetadata = new AuditServiceMetadata(
             new Dictionary<string, int> { ["Some version"] = 2, ["New version"] = 1 },
             new Dictionary<string, int> { ["Some transport"] = 4 });
-        await DataStore.SaveAuditServiceMetadata(expectedAuditServiceMetadata, default);
-        var retrievedAuditServiceMetadata = await DataStore.GetAuditServiceMetadata();
+        await ThroughputDataStore.SaveAuditServiceMetadata(expectedAuditServiceMetadata, default);
+        var retrievedAuditServiceMetadata = await ThroughputDataStore.GetAuditServiceMetadata();
 
         // Assert
         Assert.That(retrievedAuditServiceMetadata, Is.Not.Null);
