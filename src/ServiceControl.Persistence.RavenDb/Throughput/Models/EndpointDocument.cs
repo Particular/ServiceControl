@@ -1,5 +1,7 @@
-﻿namespace Particular.ThroughputCollector.Persistence.RavenDb.Models;
+﻿#nullable enable
+namespace ServiceControl.Persistence.RavenDB.Throughput.Models;
 
+using System.Collections.Generic;
 using Particular.ThroughputCollector.Contracts;
 
 class EndpointDocument(EndpointIdentifier id)
