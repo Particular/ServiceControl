@@ -2,6 +2,7 @@ namespace ServiceBus.Management.Infrastructure
 {
     using System;
     using System.Text.Json;
+    using System.Text.Json.Serialization.Metadata;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using ServiceControl.ExternalIntegrations;
@@ -51,7 +52,9 @@ namespace ServiceBus.Management.Infrastructure
             {
                 TypeInfoResolverChain =
                 {
-                    SagaAuditMessagesSerializationContext.Default
+                    SagaAuditMessagesSerializationContext.Default,
+                    // This is required until we move all known message types over to source generated contexts
+                    new DefaultJsonTypeInfoResolver()
                 }
             });
 
