@@ -6,7 +6,7 @@
     {
         public static readonly string MessageTransport = "ServiceControl";
 
-        static string Queue = $"{SettingsHelper.SettingsNamespace}/{PlatformEndpointHelper.ServiceControlThroughputDataQueueSetting}";
+        static string Queue = $"{ThroughputSettings.SettingsNamespace.Root}/{PlatformEndpointHelper.ServiceControlThroughputDataQueueSetting}";
         static string QueueDescription = "Service Control throughput processing queue";
 
         public static List<ThroughputConnectionSetting> GetServiceControlConnectionSettings()
