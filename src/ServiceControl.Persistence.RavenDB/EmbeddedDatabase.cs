@@ -152,8 +152,8 @@ namespace ServiceControl.Persistence.RavenDB
 
             var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken);
 
-            var databaseSetup = new DatabaseSetup(configuration);
-            await databaseSetup.Execute(store, cancellationToken);
+            var databaseSetup = new DatabaseSetup(configuration, store);
+            await databaseSetup.Execute(cancellationToken);
 
             return store;
         }
