@@ -1,6 +1,8 @@
 namespace ServiceBus.Management.Infrastructure
 {
     using System;
+    using System.Text.Json;
+    using System.Text.Json.Serialization.Metadata;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using ServiceControl.ExternalIntegrations;
@@ -8,6 +10,7 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceControl.Infrastructure.Subscriptions;
     using ServiceControl.Notifications.Email;
     using ServiceControl.Operations;
+    using ServiceControl.SagaAudit;
     using ServiceControl.Transports;
 
     static class NServiceBusFactory
@@ -44,7 +47,16 @@ namespace ServiceBus.Management.Infrastructure
             recoverability.CustomPolicy(SendEmailNotificationHandler.RecoverabilityPolicy);
 
             configuration.UsePersistence<ServiceControlSubscriptionPersistence, StorageType.Subscriptions>();
-            configuration.UseSerialization<SystemJsonSerializer>();
+            var serializer = configuration.UseSerialization<SystemJsonSerializer>();
+            serializer.Options(new JsonSerializerOptions
+            {
+                TypeInfoResolverChain =
+                {
+                    SagaAuditMessagesSerializationContext.Default,
+                    // This is required until we move all known message types over to source generated contexts
+                    new DefaultJsonTypeInfoResolver()
+                }
+            });
 
             configuration.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
