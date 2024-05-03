@@ -57,15 +57,8 @@ namespace ServiceControl.SagaAudit
                 ThrowFormatException();
             }
 
-            // check for the most common path first which is quite likely going to succeed
-            var result = Utf8Parser.TryParse(source, out TimeSpan parsedTimeSpan, out int bytesConsumed, 'c');
-            if (!result)
-            {
-                // For backward compatibility with the v4 versions of the audit plugin
-                result = Utf8Parser.TryParse(source, out parsedTimeSpan, out bytesConsumed, 'g');
-            }
-
-            if (!result || source.Length != bytesConsumed)
+            // Ut8Parser.TryParse also handles short format "g" which has a minimum of 7 chars independent of the format identifier
+            if (!Utf8Parser.TryParse(source, out TimeSpan parsedTimeSpan, out int bytesConsumed, 'c') || source.Length != bytesConsumed)
             {
                 ThrowFormatException();
             }
