@@ -36,7 +36,7 @@ class ThroughputClient {
 
   public async downloadReport(spVersion: string) {
     const response = await useFetchFromServiceControl(`${this.basePath}/report/file?${spVersion}`);
-    if (response.status == 200) {
+    if (response.ok) {
       var fileName = "throughput-report.json";
       var contentType = "application/json";
       const contentDisposition = response.headers.get("Content-Disposition");
