@@ -11,18 +11,11 @@ namespace ServiceControl.SagaAudit
 
     public record SagaByIdContext(PagingInfo PagingInfo, Guid SagaId) : ScatterGatherContext(PagingInfo);
 
-    public class GetSagaByIdApi : ScatterGatherApi<ISagaAuditDataStore, SagaByIdContext, SagaHistory>
+    public class GetSagaByIdApi(ISagaAuditDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory)
+        : ScatterGatherApi<ISagaAuditDataStore, SagaByIdContext, SagaHistory>(dataStore, settings, httpClientFactory)
     {
-        public GetSagaByIdApi(ISagaAuditDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory) :
-            base(dataStore, settings, httpClientFactory)
-        {
-        }
-
-        protected override async Task<QueryResult<SagaHistory>> LocalQuery(SagaByIdContext input)
-        {
-            var result = await DataStore.GetSagaById(input.SagaId);
-            return result;
-        }
+        protected override Task<QueryResult<SagaHistory>> LocalQuery(SagaByIdContext input)
+            => Task.FromResult(QueryResult<SagaHistory>.Empty());
 
         protected override SagaHistory ProcessResults(SagaByIdContext input, QueryResult<SagaHistory>[] results)
         {
