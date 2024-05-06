@@ -9,7 +9,7 @@
             var builder = new CorsPolicyBuilder();
 
             builder.AllowAnyOrigin();
-            builder.WithExposedHeaders(["ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version"]);
+            builder.WithExposedHeaders(["ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version", "Content-Disposition"]);
             builder.WithHeaders(["Origin", "X-Requested-With", "Content-Type", "Accept"]);
             builder.WithMethods(["POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"]);
 
