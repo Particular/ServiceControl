@@ -38,15 +38,17 @@ class ThroughputClient {
     const response = await useFetchFromServiceControl(`${this.basePath}/report/file?${spVersion}`);
     if (response.status == 200) {
       var fileName = "throughput-report.json";
+      var contentType = "application/json";
       const contentDisposition = response.headers.get("Content-Disposition");
-      if (contentDisposition != null) {
-        try {
+      try {
+        if (contentDisposition != null) {
           fileName = contentDisposition.split("filename=")[1].split(";")[0].replaceAll('"', "");
-        } catch {
-          //do nothing
         }
+        contentType = response.headers.get("Content-Type")!;
+      } catch {
+        //do nothing
       }
-      await useDownloadFileFromResponse(response, "application/json", fileName);
+      await useDownloadFileFromResponse(response, contentType, fileName);
       return fileName;
     }
     return "";
@@ -59,7 +61,7 @@ class ThroughputClient {
   }
 
   public async updateMasks(data: string[]): Promise<void> {
-    const response = await usePostToServiceControl(`${this.basePath}/settings/masks/update`, data);
+    await usePostToServiceControl(`${this.basePath}/settings/masks/update`, data);
   }
 }
 
