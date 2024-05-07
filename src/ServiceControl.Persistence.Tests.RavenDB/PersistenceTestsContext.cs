@@ -41,14 +41,13 @@ public class PersistenceTestsContext : IPersistenceTestsContext
         persistence.AddInstaller(hostBuilder.Services);
     }
 
-    public Task PostSetup(IHost host)
+    public async Task PostSetup(IHost host)
     {
-        DocumentStore = host.Services.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore();
+        var provider = host.Services.GetRequiredService<IRavenDocumentStoreProvider>();
+        DocumentStore = await provider.GetDocumentStore();
         SessionProvider = host.Services.GetRequiredService<IRavenSessionProvider>();
 
         CompleteDatabaseOperation();
-
-        return Task.CompletedTask;
     }
 
     public async Task TearDown() => await embeddedServer.DeleteDatabase(databaseName);
