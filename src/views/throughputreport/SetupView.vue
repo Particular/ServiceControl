@@ -6,6 +6,7 @@ import { Transport } from "./Transport";
 import throughputClient from "@/views/throughputreport/throughputClient";
 import ConnectionView from "@/views/throughputreport/setup/ConnectionView.vue";
 import MasksView from "@/views/throughputreport/setup/MasksView.vue";
+import routeLinks from "@/router/routeLinks";
 
 const testResults = ref<ConnectionTestResults | null>(null);
 const settingsInfo = ref<ThroughputConnectionSettings | null>(null);
@@ -87,13 +88,13 @@ function showMasksClicked() {
           <h5>Connection Status</h5>
           <template v-if="testResults?.broker_connection_result?.connection_successful">
             <div>
-              <p>Succesfully connected to {{ transportNameForInstructions() }} for throughput collection.</p>
+              <p>Successfully connected to {{ transportNameForInstructions() }} for throughput collection.</p>
             </div>
           </template>
           <template v-else>
             <div>
-              <p>Some errors were encountered while attemping to connect to {{ transportNameForInstructions() }} for throughput collection.</p>
-              <p>Please look at the Connection Setup for more details.</p>
+              <p>Some errors were encountered while attempting to connect to {{ transportNameForInstructions() }} for throughput collection.</p>
+              <p>Please look at the <RouterLink :to="routeLinks.configuration.connections.link">Connection Setup</RouterLink> for more details.</p>
             </div>
           </template>
         </template>

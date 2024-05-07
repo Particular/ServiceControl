@@ -2,7 +2,6 @@
 import { computed } from "vue";
 import { RouterLink } from "vue-router";
 import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
-import { useIsThroughputSupported } from "@/views/throughputreport/IsThroughputSupported";
 import routeLinks from "@/router/routeLinks";
 import CustomChecksMenuItem from "@/components/customchecks/CustomChecksMenuItem.vue";
 import HeartbeatsMenuItem from "@/components/heartbeats/HeartbeatsMenuItem.vue";
@@ -23,7 +22,7 @@ const menuItems = computed(
   FailedMessagesMenuItem,
   CustomChecksMenuItem,
   EventsMenuItem,
-  ...(useIsThroughputSupported() ? [ThroughputMenuItem] : []),
+  ThroughputMenuItem,
   ConfigurationMenuItem,
   FeedbackButton,
 ]);
