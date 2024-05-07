@@ -64,8 +64,6 @@
             services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
 
             services.AddSingleton<ISagaAuditDataStore, NoOpSagaAuditDataStore>();
-            services.AddCustomCheck<SagaAuditDestinationCustomCheck>();
-            services.AddSingleton<SagaAuditDestinationCustomCheck.State>();
         }
 
         public void AddInstaller(IServiceCollection services) => ConfigureLifecycle(services);
