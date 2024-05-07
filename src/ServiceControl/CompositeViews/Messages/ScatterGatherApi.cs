@@ -21,32 +21,22 @@ namespace ServiceControl.CompositeViews.Messages
     {
     }
 
-    public record ScatterGatherContext(PagingInfo PagingInfo);
-
-    public abstract class ScatterGatherApi<TDataStore, TIn, TOut> : ScatterGatherApiBase, IApi
+    public abstract class ScatterGatherApi<TIn, TOut> : ScatterGatherApiBase, IApi
         where TIn : ScatterGatherContext
         where TOut : class
     {
-        protected ScatterGatherApi(TDataStore store, Settings settings, IHttpClientFactory httpClientFactory)
+        protected ScatterGatherApi(Settings settings, IHttpClientFactory httpClientFactory)
         {
-            DataStore = store;
             Settings = settings;
             HttpClientFactory = httpClientFactory;
             logger = LogManager.GetLogger(GetType());
         }
+        protected Settings Settings { get; }
+        protected IHttpClientFactory HttpClientFactory { get; }
 
-        protected TDataStore DataStore { get; }
-        Settings Settings { get; }
-        IHttpClientFactory HttpClientFactory { get; }
-
-        public async Task<QueryResult<TOut>> Execute(TIn input, string pathAndQuery)
+        protected void ExecuteRemotes(List<Task<QueryResult<TOut>>> tasks, string pathAndQuery)
         {
             var remotes = Settings.RemoteInstances;
-            var instanceId = Settings.InstanceId;
-            var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1)
-            {
-                LocalCall(input, instanceId)
-            };
             foreach (var remote in remotes)
             {
                 if (remote.TemporarilyUnavailable)
@@ -56,21 +46,15 @@ namespace ServiceControl.CompositeViews.Messages
 
                 tasks.Add(RemoteCall(HttpClientFactory.CreateClient(remote.InstanceId), pathAndQuery, remote));
             }
-
+        }
+        public virtual async Task<QueryResult<TOut>> Execute(TIn input, string pathAndQuery)
+        {
+            var tasks = new List<Task<QueryResult<TOut>>>(Settings.RemoteInstances.Length);
+            ExecuteRemotes(tasks, pathAndQuery);
             var results = await Task.WhenAll(tasks);
             var response = AggregateResults(input, results);
-
             return response;
         }
-
-        async Task<QueryResult<TOut>> LocalCall(TIn input, string instanceId)
-        {
-            var result = await LocalQuery(input);
-            result.InstanceId = instanceId;
-            return result;
-        }
-
-        protected abstract Task<QueryResult<TOut>> LocalQuery(TIn input);
 
         internal QueryResult<TOut> AggregateResults(TIn input, QueryResult<TOut>[] results)
         {
@@ -163,5 +147,43 @@ namespace ServiceControl.CompositeViews.Messages
         }
 
         readonly ILog logger;
+    }
+
+    public record ScatterGatherContext(PagingInfo PagingInfo);
+
+    public abstract class ScatterGatherApi<TDataStore, TIn, TOut> : ScatterGatherApi<TIn, TOut>, IApi
+        where TIn : ScatterGatherContext
+        where TOut : class
+    {
+        protected ScatterGatherApi(TDataStore store, Settings settings, IHttpClientFactory httpClientFactory)
+            : base(settings, httpClientFactory)
+        {
+            DataStore = store;
+        }
+
+        protected TDataStore DataStore { get; }
+
+        public override async Task<QueryResult<TOut>> Execute(TIn input, string pathAndQuery)
+        {
+            var tasks = new List<Task<QueryResult<TOut>>>(Settings.RemoteInstances.Length + 1)
+            {
+                LocalCall(input, Settings.InstanceId)
+            };
+            ExecuteRemotes(tasks, pathAndQuery);
+
+            var results = await Task.WhenAll(tasks);
+            var response = AggregateResults(input, results);
+
+            return response;
+        }
+
+        async Task<QueryResult<TOut>> LocalCall(TIn input, string instanceId)
+        {
+            var result = await LocalQuery(input);
+            result.InstanceId = instanceId;
+            return result;
+        }
+
+        protected abstract Task<QueryResult<TOut>> LocalQuery(TIn input);
     }
 }

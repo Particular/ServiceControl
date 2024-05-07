@@ -62,8 +62,6 @@
             services.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
             services.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
             services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
-
-            services.AddSingleton<ISagaAuditDataStore, NoOpSagaAuditDataStore>();
         }
 
         public void AddInstaller(IServiceCollection services) => ConfigureLifecycle(services);
