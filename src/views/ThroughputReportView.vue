@@ -30,7 +30,7 @@ async function generateReport() {
       <div class="container">
         <div class="row">
           <div class="col-sm-12">
-            <h1>System Throughput</h1>
+            <h1>Throughput</h1>
           </div>
         </div>
         <div class="row">

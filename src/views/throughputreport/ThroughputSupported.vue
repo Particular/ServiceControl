@@ -12,9 +12,9 @@ const isThroughputSupported = computed(() => useIsSupported(environment.sc_versi
   <ConditionalRender :supported="isThroughputSupported">
     <template #unsupported>
       <div class="text-center message">
-        <h1>System Throughput</h1>
+        <h1>Throughput</h1>
         <p>
-          The minimum version of ServiceControl required to enable the System Throughput feature is
+          The minimum version of ServiceControl required to enable the Throughput feature is
           <span> {{ minimumSCVersionForThroughput }} </span>.
         </p>
         <div>
