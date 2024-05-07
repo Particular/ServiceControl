@@ -29,7 +29,7 @@ class ThroughputDataStore(
 
     public async Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken)
     {
-        using var session = sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name });
+        using var session = await sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name }, cancellationToken);
 
         var baseQuery = session.Query<EndpointDocument>();
 
@@ -44,7 +44,7 @@ class ThroughputDataStore(
 
     public async Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken)
     {
-        using var session = sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name });
+        using var session = await sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name }, cancellationToken);
 
         var documentId = id.GenerateDocumentId();
 
@@ -70,7 +70,7 @@ class ThroughputDataStore(
     {
         var endpoints = new List<(EndpointIdentifier, Endpoint?)>();
 
-        using var session = sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name });
+        using var session = await sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name }, cancellationToken);
 
         var documentIdLookup = endpointIds.ToDictionary(
             endpointId => endpointId,
@@ -107,7 +107,7 @@ class ThroughputDataStore(
     {
         var document = endpoint.ToEndpointDocument();
 
-        using var session = sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name });
+        using var session = await sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name }, cancellationToken);
 
         await session.StoreAsync(document, document.GenerateDocumentId(), cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
@@ -117,7 +117,7 @@ class ThroughputDataStore(
     {
         var results = queueNames.ToDictionary(queueName => queueName, queueNames => new List<ThroughputData>() as IEnumerable<ThroughputData>);
 
-        using var session = sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name });
+        using var session = await sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name }, cancellationToken);
 
         var query = session.Query<EndpointDocument>()
             .Where(document => document.SanitizedName.In(queueNames))
@@ -154,7 +154,7 @@ class ThroughputDataStore(
         }
 
         var id = new EndpointIdentifier(endpointName, throughputSource);
-        using var session = sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name });
+        using var session = await sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name }, cancellationToken);
 
         var documentId = id.GenerateDocumentId();
         var document = await session.LoadAsync<EndpointDocument>(documentId, cancellationToken) ??
@@ -173,7 +173,7 @@ class ThroughputDataStore(
     public async Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken)
     {
         var updates = userIndicatorUpdates.ToDictionary(u => u.Name, u => u.UserIndicator);
-        using var session = sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name });
+        using var session = await sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name }, cancellationToken);
 
         var query = session.Query<EndpointDocument>()
             .Where(document => document.SanitizedName.In(updates.Keys));
@@ -192,7 +192,7 @@ class ThroughputDataStore(
 
     public async Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken)
     {
-        using var session = sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name });
+        using var session = await sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name }, cancellationToken);
 
         var result = await IsThereThroughputForLastXDaysInternal(session.Query<EndpointDocument>(), days, cancellationToken);
 
@@ -201,7 +201,7 @@ class ThroughputDataStore(
 
     public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken)
     {
-        using var session = sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name });
+        using var session = await sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name }, cancellationToken);
 
         var baseQuery = session.Query<EndpointDocument>()
             .Where(endpoint => endpoint.EndpointId.ThroughputSource == throughputSource);
@@ -225,14 +225,14 @@ class ThroughputDataStore(
 
     public async Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken)
     {
-        using var session = sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name });
+        using var session = await sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name }, cancellationToken);
 
         return await session.LoadAsync<BrokerMetadata>(BrokerMetadataDocumentId, cancellationToken) ?? DefaultBrokerMetadata;
     }
 
     public async Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken)
     {
-        using IAsyncDocumentSession session = sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name });
+        using var session = await sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name }, cancellationToken);
 
         await session.StoreAsync(brokerMetadata, BrokerMetadataDocumentId, cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
@@ -240,14 +240,14 @@ class ThroughputDataStore(
 
     public async Task<AuditServiceMetadata> GetAuditServiceMetadata(CancellationToken cancellationToken)
     {
-        using var session = sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name });
+        using var session = await sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name }, cancellationToken);
 
         return await session.LoadAsync<AuditServiceMetadata>(AuditServiceMetadataDocumentId, cancellationToken) ?? DefaultAuditServiceMetadata;
     }
 
     public async Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken)
     {
-        using var session = sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name });
+        using var session = await sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name }, cancellationToken);
 
         await session.StoreAsync(auditServiceMetadata, AuditServiceMetadataDocumentId, cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
@@ -255,7 +255,7 @@ class ThroughputDataStore(
 
     public async Task<List<string>> GetReportMasks(CancellationToken cancellationToken)
     {
-        using var session = sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name });
+        using var session = await sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name }, cancellationToken);
 
         var config = await session.LoadAsync<ReportConfigurationDocument>(ReportMasksDocumentId, cancellationToken) ?? DefaultReportConfiguration;
 
@@ -264,7 +264,7 @@ class ThroughputDataStore(
 
     public async Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken)
     {
-        using var session = sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name });
+        using var session = await sessionProvider.OpenSession(new SessionOptions { Database = databaseConfiguration.Name }, cancellationToken);
 
         await session.StoreAsync(new ReportConfigurationDocument { MaskedStrings = reportMasks }, ReportMasksDocumentId, cancellationToken);
         await session.SaveChangesAsync(cancellationToken);

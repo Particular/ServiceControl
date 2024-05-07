@@ -1,6 +1,5 @@
 namespace ServiceControl.Persistence.RavenDB;
 
-using System;
 using CustomChecks;
 using MessageFailures;
 using MessageRedirects;
@@ -10,7 +9,6 @@ using Operations.BodyStorage;
 using Operations.BodyStorage.RavenAttachments;
 using Persistence.MessageRedirects;
 using Persistence.Recoverability;
-using Raven.Client.Documents;
 using Recoverability;
 using SagaAudit;
 using ServiceControl.CustomChecks;
@@ -96,9 +94,6 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
 
         services.AddSingleton<IRavenSessionProvider, RavenSessionProvider>();
         services.AddHostedService<RavenPersistenceLifecycleHostedService>();
-
-        services.AddSingleton(provider =>
-            new Lazy<IDocumentStore>(() => provider.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore()));
 
         services.AddThroughputRavenPersistence(settings.ThroughputDatabaseName);
 
