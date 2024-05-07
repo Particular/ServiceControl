@@ -17,6 +17,7 @@
     "test:application": "npm run test:application:vitest"
   },
   "dependencies": {
+    "@tinyhttp/content-disposition": "^2.2.0",
     "@vue-flow/core": "^1.29.1",
     "bootstrap": "^5.2.0",
     "bootstrap-icons": "^1.10.3",

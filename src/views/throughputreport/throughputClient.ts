@@ -5,6 +5,7 @@ import ConnectionTestResults from "@/resources/ConnectionTestResults";
 import ThroughputConnectionSettings from "@/resources/ThroughputConnectionSettings";
 import { useDownloadFileFromResponse } from "@/composables/fileDownloadCreator";
 import ReportGenerationState from "@/resources/ReportGenerationState";
+import { parse } from "@tinyhttp/content-disposition"
 
 class ThroughputClient {
   constructor(readonly basePath: string) {}
@@ -34,17 +35,17 @@ class ThroughputClient {
     return data;
   }
 
-  public async downloadReport(spVersion: string) {
-    const response = await useFetchFromServiceControl(`${this.basePath}/report/file?${spVersion}`);
+  public async downloadReport() {
+    const response = await useFetchFromServiceControl(`${this.basePath}/report/file?spVersion=${encodeURIComponent(window.defaultConfig.version)}`);
     if (response.ok) {
-      var fileName = "throughput-report.json";
-      var contentType = "application/json";
+      let fileName = "throughput-report.json";
+      const contentType = response.headers.get("Content-Type") ?? "application/json";
       const contentDisposition = response.headers.get("Content-Disposition");
       try {
         if (contentDisposition != null) {
-          fileName = contentDisposition.split("filename=")[1].split(";")[0].replaceAll('"', "");
+          parse(contentDisposition);
+          fileName = parse(contentDisposition).parameters["filename"] as string;
         }
-        contentType = response.headers.get("Content-Type")!;
       } catch {
         //do nothing
       }
@@ -55,7 +56,6 @@ class ThroughputClient {
   }
 
   public async getMasks() {
-    //return await useFetchFromServiceControl(`${this.basePath}/settings/masks`);
     const [, data] = await useTypedFetchFromServiceControl<string[]>(`${this.basePath}/settings/masks`);
     return data;
   }

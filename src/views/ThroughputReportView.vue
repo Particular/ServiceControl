@@ -16,8 +16,7 @@ onMounted(async () => {
 });
 
 async function generateReport() {
-  const spVersion = `spVersion=${encodeURIComponent(window.defaultConfig.version)}`;
-  const fileName = await throughputClient.downloadReport(spVersion);
+  const fileName = await throughputClient.downloadReport();
 
   if (fileName !== "") {
     useShowToast(TYPE.INFO, "Report Generated", `Please email ${fileName} to sales@particular.net`);
