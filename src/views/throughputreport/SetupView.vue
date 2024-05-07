@@ -30,13 +30,11 @@ const transport = computed(() => {
 });
 
 async function getSettings() {
-  const settings = await throughputClient.setting();
-  settingsInfo.value = settings;
+  settingsInfo.value = await throughputClient.setting();
 }
 
 async function testConnection() {
-  const test = await throughputClient.test();
-  testResults.value = test;
+  testResults.value = await throughputClient.test();
 }
 
 function transportNameForInstructions() {
@@ -46,8 +44,7 @@ function transportNameForInstructions() {
       return "Azure";
     case Transport.LearningTransport:
       return "Learning Transport";
-    case Transport["RabbitMQ.ClassicConventionalRouting"]:
-    case Transport["RabbitMQ.ClassicDirectRouting"]:
+    case Transport.RabbitMQ:
       return "RabbitMQ";
     case Transport.SQLServer:
       return "Sql Server";
@@ -68,47 +65,44 @@ function showMasksClicked() {
 </script>
 
 <template>
-  <div class="sp-loader" v-if="testResults === null"></div>
-  <div v-if="testResults !== null">
-    <div class="box">
-      <div class="row">
+  <div class="box">
+    <div class="row">
+      <div class="intro">
+        <p><strong>Connection Setup</strong> - Settings required for collecting throughput data so that a throughput report can be generated</p>
+        <p><strong>Mask Report Data</strong> - Hide sensitive information in the throughput report</p>
+      </div>
+      <template v-if="transport === Transport.MSMQ || transport === Transport.AzureStorageQueue || transport === Transport.LearningTransport">
         <div class="intro">
-          <p><strong>Connection Setup</strong> - Settings required for collecting throughput data so that a throughput report can be generated</p>
-          <p><strong>Mask Report Data</strong> - Hide sensitive information in the throughput report</p>
+          <p>You are using a broker that does not support automatic throughput collection.</p>
+          <p>In order for ServicePulse to collect throughput data from your endpoints, you need to ensure that either auditing or metrics are enabled on all your endpoints.</p>
+          <p>For more information on auditing and setup instructions <a href="https://docs.particular.net/servicecontrol/audit-instances/">read the Audit documentation</a>.</p>
+          <p>For more information on metrics and setup instructions <a href="https://docs.particular.net/monitoring/metrics/">read the Metrics documentation</a>.</p>
         </div>
-        <template v-if="transport === Transport.MSMQ || transport === Transport.AzureStorageQueue || transport === Transport.LearningTransport">
-          <div class="intro">
-            <p>You are using a broker that does not support automatic throughput collection.</p>
-            <p>In order for ServicePulse to collect throughput data from your endpoints, you need to ensure that either auditing or metrics are enabled on all your endpoints.</p>
-            <p>For more information on auditing and setup instructions <a href="https://docs.particular.net/servicecontrol/audit-instances/">read the Audit documentation</a>.</p>
-            <p>For more information on metrics and setup instructions <a href="https://docs.particular.net/monitoring/metrics/">read the Metrics documentation</a>.</p>
+      </template>
+      <template v-else>
+        <h5>Connection Status</h5>
+        <template v-if="testResults?.broker_connection_result?.connection_successful">
+          <div>
+            <p>Successfully connected to {{ transportNameForInstructions() }} for throughput collection.</p>
           </div>
         </template>
         <template v-else>
-          <h5>Connection Status</h5>
-          <template v-if="testResults?.broker_connection_result?.connection_successful">
-            <div>
-              <p>Successfully connected to {{ transportNameForInstructions() }} for throughput collection.</p>
-            </div>
-          </template>
-          <template v-else>
-            <div>
-              <p>Some errors were encountered while attempting to connect to {{ transportNameForInstructions() }} for throughput collection.</p>
-              <p>Please look at the <RouterLink :to="routeLinks.configuration.connections.link">Connection Setup</RouterLink> for more details.</p>
-            </div>
-          </template>
+          <div>
+            <p>Some errors were encountered while attempting to connect to {{ transportNameForInstructions() }} for throughput collection.</p>
+            <p>Please look at the <RouterLink :to="routeLinks.configuration.connections.link">Connection Setup</RouterLink> for more details.</p>
+          </div>
         </template>
-      </div>
+      </template>
     </div>
     <div class="row">
       <div class="col-sm-12">
         <div class="nav tabs">
           <div>
             <h5 class="nav-item" :class="{ active: showConnection }">
-              <a class="btn btn-secondary actions" role="button" v-on:click="showConnectionClicked()">Connection Setup</a>
+              <a href="#" @click.prevent="showConnectionClicked()">Connection Setup</a>
             </h5>
             <h5 class="nav-item" :class="{ active: showMasks }">
-              <a class="btn btn-secondary actions" role="button" v-on:click="showMasksClicked()">Mask Report Data</a>
+              <a href="#" @click.prevent="showMasksClicked()">Mask Report Data</a>
             </h5>
           </div>
         </div>

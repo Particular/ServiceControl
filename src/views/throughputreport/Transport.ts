@@ -4,8 +4,7 @@ export enum Transport {
   AzureStorageQueue = "AzureStorageQueue",
   NetStandardAzureServiceBus = "NetStandardAzureServiceBus",
   LearningTransport = "LearningTransport",
-  "RabbitMQ.ClassicConventionalRouting" = "RabbitMQ.ClassicConventionalRouting",
-  "RabbitMQ.ClassicDirectRouting" = "RabbitMQ.ClassicDirectRouting",
-  "SQLServer" = "SQLServer",
-  "AmazonSQS" = "AmazonSQS",
+  RabbitMQ = "RabbitMQ",
+  SQLServer = "SQLServer",
+  AmazonSQS = "AmazonSQS",
 }

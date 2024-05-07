@@ -53,7 +53,6 @@ const throughputReportLinks = (root: string) => {
     root: root,
     endpoints: createLink(""),
     setup: createLink("setup"),
-    report: createLink("report"),
   };
 };
 
