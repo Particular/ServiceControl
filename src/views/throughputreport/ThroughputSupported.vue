@@ -11,7 +11,7 @@ const isThroughputSupported = computed(() => useIsSupported(environment.sc_versi
 <template>
   <ConditionalRender :supported="isThroughputSupported">
     <template #unsupported>
-      <div class="text-center monitoring-no-data">
+      <div class="text-center message">
         <h1>System Throughput</h1>
         <p>
           The minimum version of ServiceControl required to enable the System Throughput feature is
@@ -27,33 +27,30 @@ const isThroughputSupported = computed(() => useIsSupported(environment.sc_versi
 </template>
 
 <style scoped>
-.monitoring-no-data {
+.message {
   margin: 60px auto 120px;
   max-width: 520px;
   line-height: 26px;
 }
 
-.monitoring-no-data h1 {
+.message h1 {
   font-size: 30px;
 }
-.monitoring-no-data p {
+.message p {
   font-size: 16px;
   margin-bottom: 20px;
   margin-top: -18px;
 }
 
-.monitoring-no-data ul {
+.message ul {
   padding-left: 0;
   text-align: left;
   font-size: 16px;
   margin-bottom: 30px;
 }
 
-.monitoring-no-data .btn {
+.message .btn {
   font-size: 16px;
-}
-
-.monitoring-no-data a.btn.btn-default.btn-secondary {
   margin-left: 10px;
 }
 </style>
