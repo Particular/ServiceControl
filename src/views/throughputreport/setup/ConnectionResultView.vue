@@ -8,7 +8,7 @@ const props = defineProps<{
 </script>
 
 <template>
-  <h5>
+  <h5 class="title">
     <i v-if="result.connection_successful" style="color: green" class="fa fa-check"></i>
     <i v-else style="color: red" class="fa fa-times"></i>
     {{ props.title }}
@@ -16,4 +16,8 @@ const props = defineProps<{
   <pre>{{ props.result.diagnostics }}</pre>
 </template>
 
-<style scoped></style>
+<style scoped>
+.title {
+  margin-top: 10px;
+}
+</style>

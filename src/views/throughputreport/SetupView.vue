@@ -61,21 +61,21 @@ function transportNameForInstructions() {
         </div>
       </template>
       <template v-else>
-        <h6>Connection Status</h6>
         <template v-if="testResults?.broker_connection_result.connection_successful">
           <div>
-            <p><i style="color: green" class="fa fa-check"></i> Successfully connected to {{ transportNameForInstructions() }} for throughput collection.</p>
+            <h6><i style="color: green" class="fa fa-check"></i> Successfully connected to {{ transportNameForInstructions() }} for throughput collection.</h6>
           </div>
         </template>
         <template v-else>
           <div>
-            <p><i style="color: red" class="fa fa-times"></i> The connection to {{ transportNameForInstructions() }} was not successfully.</p>
-            <p>You may have not setup all the connection settings, have a look at <RouterLink :to="routeLinks.throughput.setup.setupConnection.link">Setup</RouterLink>.</p>
-            <p>If you have set the settings but are still having issues, look at the <RouterLink :to="routeLinks.throughput.setup.diagnostics.link">Diagnostics</RouterLink> for more information on how to fix the issue.</p>
+            <h6><i style="color: red" class="fa fa-times"></i> The connection to {{ transportNameForInstructions() }} was not successfully.</h6>
+            <p>You may have not setup all the connection settings, have a look at <RouterLink :to="routeLinks.throughput.setup.setupConnection.link">Connection Setup</RouterLink> tab.</p>
+            <p>If you have set the settings but are still having issues, look at the <RouterLink :to="routeLinks.throughput.setup.diagnostics.link">Diagnostics</RouterLink> tab for more information on how to fix the issue.</p>
           </div>
         </template>
       </template>
     </div>
+    <br />
     <div class="row">
       <div class="col-sm-12">
         <div class="nav tabs">

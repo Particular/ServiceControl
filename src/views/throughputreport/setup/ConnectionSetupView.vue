@@ -57,7 +57,10 @@ function transportNameForInstructions() {
       <div class="card-body">
         <template v-if="settingsInfo?.broker_settings.length ?? 0 > 0">
           <h5>Broker Settings</h5>
-          <p>Settings to ensure that throughput data is being collected from {{ transportNameForInstructions() }}.<br /></p>
+          <p>
+            Settings to ensure that throughput data is being collected from {{ transportNameForInstructions() }}.<br />
+            Some settings can be automatically configured based on the current transport configuration, so if you have a <i style="color: green" class="fa fa-check"></i> above it means that you don't need to do anything.
+          </p>
           <ul class="card-text settingsList">
             <li v-for="item in settingsInfo?.broker_settings" :key="item.name">
               <div>

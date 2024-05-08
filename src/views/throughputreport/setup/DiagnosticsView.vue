@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import ConnectionTestResults from "@/resources/ConnectionTestResults";
 import throughputClient from "@/views/throughputreport/throughputClient";
 import ConnectionResultView from "@/views/throughputreport/setup/ConnectionResultView.vue";
+import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
 
 const testResults = ref<ConnectionTestResults | null>(null);
 const loading = ref(true);
@@ -27,7 +28,7 @@ async function testConnection() {
     <template v-else>
       <ConnectionResultView title="Broker" :result="testResults?.broker_connection_result!" />
       <ConnectionResultView title="Audit" :result="testResults?.audit_connection_result!" />
-      <ConnectionResultView title="Monitoring" :result="testResults?.monitoring_connection_result!" />
+      <ConnectionResultView v-if="useIsMonitoringEnabled()" title="Monitoring" :result="testResults?.monitoring_connection_result!" />
     </template>
   </div>
   <div class="row">
