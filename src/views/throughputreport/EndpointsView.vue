@@ -249,7 +249,7 @@ async function save() {
       <tr>
         <th scope="col">Endpoint (Queue)</th>
         <th scope="col">Maximum daily throughput</th>
-        <th scope="col">Endpoint Type <i class="fa fa-info-circle info" title="Pick the most correct option" /></th>
+        <th scope="col">Endpoint Type <i class="fa fa-info-circle info" v-tooltip title="Pick the most correct option" /></th>
       </tr>
     </thead>
     <tbody>
