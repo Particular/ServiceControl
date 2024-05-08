@@ -17,10 +17,7 @@ function masksChanged(event: Event) {
 }
 
 async function updateMasks() {
-  const values = masks.value
-    .split(separator)
-    .filter((value) => value.length > 0)
-    .map((value) => `${encodeURIComponent(value)}`);
+  const values = masks.value.split(separator).filter((value) => value.length > 0);
 
   await throughputClient.updateMasks(values);
 

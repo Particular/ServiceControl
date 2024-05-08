@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import ConnectionTestResults from "@/resources/ConnectionTestResults";
 import throughputClient from "@/views/throughputreport/throughputClient";
+import ConnectionResultView from "@/views/throughputreport/setup/ConnectionResultView.vue";
 
 const testResults = ref<ConnectionTestResults | null>(null);
 const loading = ref(true);
@@ -24,12 +25,9 @@ async function testConnection() {
       <div class="sp-loader" />
     </template>
     <template v-else>
-      <h5>Broker</h5>
-      <pre>{{ testResults?.broker_connection_result.diagnostics }}</pre>
-      <h5>Audit</h5>
-      <pre>{{ testResults?.audit_connection_result.diagnostics }}</pre>
-      <h5>Monitoring</h5>
-      <pre>{{ testResults?.monitoring_connection_result.diagnostics }}</pre>
+      <ConnectionResultView title="Broker" :result="testResults?.broker_connection_result!" />
+      <ConnectionResultView title="Audit" :result="testResults?.audit_connection_result!" />
+      <ConnectionResultView title="Monitoring" :result="testResults?.monitoring_connection_result!" />
     </template>
   </div>
   <div class="row">
