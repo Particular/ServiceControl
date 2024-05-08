@@ -37,16 +37,16 @@ async function generateReport() {
           <div class="col-sm-12">
             <div class="nav tabs tabsWithButton">
               <div>
-                <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughputReport.root) }">
-                  <RouterLink :to="routeLinks.throughputReport.endpoints.link">Endpoints</RouterLink>
+                <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.root) }">
+                  <RouterLink :to="routeLinks.throughput.endpoints.link">Endpoints</RouterLink>
                 </h5>
-                <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughputReport.setup.link) }">
-                  <RouterLink :to="routeLinks.throughputReport.setup.link">Setup</RouterLink>
+                <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.setup.root) || isRouteSelected(routeLinks.throughput.setup.mask.link) || isRouteSelected(routeLinks.throughput.setup.diagnostics.link) }">
+                  <RouterLink :to="routeLinks.throughput.setup.root">Setup</RouterLink>
                 </h5>
               </div>
               <div class="filter-group">
                 <p v-if="!reportState?.report_can_be_generated">{{ reportState?.reason }}</p>
-                <button id="generate-report" type="button" class="btn btn-primary actions" @click="generateReport()" :disabled="!reportState?.report_can_be_generated"><i class="fa fa-download"></i> Generate Report</button>
+                <button type="button" class="btn btn-primary actions" @click="generateReport()" :disabled="!reportState?.report_can_be_generated"><i class="fa fa-download"></i> Generate Report</button>
               </div>
             </div>
           </div>

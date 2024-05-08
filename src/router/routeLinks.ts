@@ -44,7 +44,7 @@ const configurationLinks = (root: string) => {
   };
 };
 
-const throughputReportLinks = (root: string) => {
+const throughputLinks = (root: string) => {
   function createLink(template: string) {
     return { link: `${root}/${template}`, template: template };
   }
@@ -52,9 +52,22 @@ const throughputReportLinks = (root: string) => {
   return {
     root: root,
     endpoints: createLink(""),
-    setup: createLink("setup"),
+    setup: throughputSetupLinks(`${root}/setup`),
   };
 };
+
+const throughputSetupLinks = (root: string) => {
+  function createLink(template: string) {
+    return { link: `${root}/${template}`, template: template };
+  }
+
+  return {
+    root,
+    setupConnection: createLink(""),
+    mask: createLink("mask"),
+    diagnostics: createLink("diagnostics"),
+  }
+}
 
 const monitoringLinks = (root: string) => {
   return {
@@ -71,7 +84,7 @@ const routeLinks = {
   customChecks: "/custom-checks",
   events: "/events",
   configuration: configurationLinks("/configuration"),
-  throughputReport: throughputReportLinks("/throughput-report"),
+  throughput: throughputLinks("/throughput"),
 };
 
 export default routeLinks;

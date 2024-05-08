@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import throughputClient from "@/views/throughputreport/throughputClient";
-import { NewLineKind } from "typescript";
 import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 
 const masks = ref<string>("");
+const separator = "\n";
 
 onMounted(async () => {
   const maskArray = await throughputClient.getMasks();
-  masks.value = maskArray.toString().replaceAll(",", NewLineKind.LineFeed.toString());
+  masks.value = maskArray.join(separator);
 });
 
 function masksChanged(event: Event) {
@@ -18,7 +18,7 @@ function masksChanged(event: Event) {
 
 async function updateMasks() {
   const values = masks.value
-    .split("\n")
+    .split(separator)
     .filter((value) => value.length > 0)
     .map((value) => `${encodeURIComponent(value)}`);
 
@@ -29,20 +29,29 @@ async function updateMasks() {
 </script>
 
 <template>
-  <div class="box">
-    <div class="row">
-      <div class="col-6">
-        <label class="form-label">Hide sensitive data</label>
-        <textarea class="form-control" rows="3" :value="masks" @input="masksChanged"></textarea>
-        <div class="form-text">Hide sensitive information in the throughput report. One word per line.</div>
+  <div class="row">
+    <div class="col-6">
+      <div>
+        <p>
+          The report that is generated will contain the names of endpoints/queues.<br />
+          If the names themselves contain confidential or proprietary information, certain strings can be masked in the report file.
+        </p>
       </div>
     </div>
-    <button class="btn btn-primary" type="button" @click="updateMasks">Save</button>
+  </div>
+  <div class="row">
+    <div class="col-6">
+      <label class="form-label">List of words to mask</label>
+      <textarea class="form-control" rows="3" :value="masks" @input="masksChanged"></textarea>
+      <div class="form-text">One word per line.</div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-6">
+      <br />
+      <button class="btn btn-primary" type="button" @click="updateMasks">Save</button>
+    </div>
   </div>
 </template>
 
-<style scoped>
-.extra-info {
-  margin: 15px 0;
-}
-</style>
+<style scoped></style>

@@ -5,12 +5,24 @@ function meta(item: { title: string }) {
   return { title: `${item.title} • ServicePulse` };
 }
 
+function addChildren(parent: RouteRecordSingleViewWithChildren, item: RouteItem){
+  if(item.children){
+    item.children.forEach(child => {
+      const newItem: RouteRecordSingleViewWithChildren = ({
+        path: child.path,
+        name: `${item.path}/${child.path}`,
+        meta: meta(child),
+        component: child.component,
+        children: [],
+      });
+      parent.children.push(newItem);
 
-
+      addChildren(newItem, child);
+    })
+  }
+}
 
 export default function makeRouter() {
-
-
   const routes = config.map<RouteRecordRaw>((item) => {
     const result: RouteRecordRaw = {
       path: item.path,
@@ -24,6 +36,9 @@ export default function makeRouter() {
         component: child.component,
       })),
     };
+
+    addChildren(result, item);
+
     if (item.redirect) result.redirect = item.redirect;
     if (item.alias) result.alias = item.alias;
   

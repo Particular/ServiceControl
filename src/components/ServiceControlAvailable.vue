@@ -9,7 +9,7 @@ import { serviceControlUrl } from "@/composables/serviceServiceControlUrls";
   <div class="sp-loader" v-if="connectionState.connecting && !connectionState.unableToConnect" />
   <ConditionalRender v-else :supported="!connectionState.unableToConnect">
     <template #unsupported>
-      <div class="text-center monitoring-no-data">
+      <div class="text-center unsupported">
         <h1>Cannot connect to ServiceControl</h1>
         <p>
           ServicePulse is unable to connect to the ServiceControl instance at
@@ -41,33 +41,33 @@ import { serviceControlUrl } from "@/composables/serviceServiceControlUrls";
   background-position: center center;
   background-repeat: no-repeat;
 }
-.monitoring-no-data {
+.unsupported {
   margin: 60px auto 120px;
   max-width: 520px;
   line-height: 26px;
 }
 
-.monitoring-no-data h1 {
+.unsupported h1 {
   font-size: 30px;
 }
-.monitoring-no-data p {
+.unsupported p {
   font-size: 16px;
   margin-bottom: 20px;
   margin-top: -18px;
 }
 
-.monitoring-no-data ul {
+.unsupported ul {
   padding-left: 0;
   text-align: left;
   font-size: 16px;
   margin-bottom: 30px;
 }
 
-.monitoring-no-data .btn {
+.unsupported .btn {
   font-size: 16px;
 }
 
-.monitoring-no-data a.btn.btn-default.btn-secondary {
+.unsupported a.btn.btn-default.btn-secondary {
   margin-left: 10px;
 }
 </style>

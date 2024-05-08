@@ -1,24 +1,15 @@
 <script setup lang="ts">
+import isRouteSelected from "@/composables/isRouteSelected";
+import routeLinks from "@/router/routeLinks";
+import { Transport } from "@/views/throughputreport/Transport";
 import { computed, onMounted, ref } from "vue";
 import ConnectionTestResults from "@/resources/ConnectionTestResults";
-import ThroughputConnectionSettings from "@/resources/ThroughputConnectionSettings";
-import { Transport } from "./Transport";
 import throughputClient from "@/views/throughputreport/throughputClient";
-import ConnectionView from "@/views/throughputreport/setup/ConnectionView.vue";
-import MasksView from "@/views/throughputreport/setup/MasksView.vue";
-import routeLinks from "@/router/routeLinks";
 
 const testResults = ref<ConnectionTestResults | null>(null);
-const settingsInfo = ref<ThroughputConnectionSettings | null>(null);
-const showConnection = ref<boolean>(false);
-const showMasks = ref<boolean>(false);
 
 onMounted(async () => {
-  await Promise.all([testConnection(), getSettings()]);
-
-  if (!testResults.value?.broker_connection_result.connection_successful || !testResults.value?.audit_connection_result.connection_successful || !testResults.value?.monitoring_connection_result.connection_successful) {
-    showConnectionClicked();
-  }
+  testResults.value = await throughputClient.test();
 });
 
 const transport = computed(() => {
@@ -29,13 +20,17 @@ const transport = computed(() => {
   return testResults.value.transport as Transport;
 });
 
-async function getSettings() {
-  settingsInfo.value = await throughputClient.setting();
-}
-
-async function testConnection() {
-  testResults.value = await throughputClient.test();
-}
+const transportSupported = computed(() => {
+  switch (transport.value) {
+    case Transport.None:
+    case Transport.MSMQ:
+    case Transport.AzureStorageQueue:
+    case Transport.LearningTransport:
+      return false;
+    default:
+      return true;
+  }
+});
 
 function transportNameForInstructions() {
   switch (transport.value) {
@@ -52,44 +47,31 @@ function transportNameForInstructions() {
       return "AWS";
   }
 }
-
-function showConnectionClicked() {
-  showConnection.value = true;
-  showMasks.value = false;
-}
-
-function showMasksClicked() {
-  showConnection.value = false;
-  showMasks.value = true;
-}
 </script>
 
 <template>
   <div class="box">
     <div class="row">
-      <div class="intro">
-        <p><strong>Connection Setup</strong> - Settings required for collecting throughput data so that a throughput report can be generated</p>
-        <p><strong>Mask Report Data</strong> - Hide sensitive information in the throughput report</p>
-      </div>
-      <template v-if="transport === Transport.MSMQ || transport === Transport.AzureStorageQueue || transport === Transport.LearningTransport">
+      <template v-if="!transportSupported">
         <div class="intro">
-          <p>You are using a broker that does not support automatic throughput collection.</p>
+          <p>You are using a transport that does not support automatic throughput collection.</p>
           <p>In order for ServicePulse to collect throughput data from your endpoints, you need to ensure that either auditing or metrics are enabled on all your endpoints.</p>
           <p>For more information on auditing and setup instructions <a href="https://docs.particular.net/servicecontrol/audit-instances/">read the Audit documentation</a>.</p>
           <p>For more information on metrics and setup instructions <a href="https://docs.particular.net/monitoring/metrics/">read the Metrics documentation</a>.</p>
         </div>
       </template>
       <template v-else>
-        <h5>Connection Status</h5>
-        <template v-if="testResults?.broker_connection_result?.connection_successful">
+        <h6>Connection Status</h6>
+        <template v-if="testResults?.broker_connection_result.connection_successful">
           <div>
-            <p>Successfully connected to {{ transportNameForInstructions() }} for throughput collection.</p>
+            <p><i style="color: green" class="fa fa-check"></i> Successfully connected to {{ transportNameForInstructions() }} for throughput collection.</p>
           </div>
         </template>
         <template v-else>
           <div>
-            <p>Some errors were encountered while attempting to connect to {{ transportNameForInstructions() }} for throughput collection.</p>
-            <p>Please look at the <RouterLink :to="routeLinks.configuration.connections.link">Connection Setup</RouterLink> for more details.</p>
+            <p><i style="color: red" class="fa fa-times"></i> The connection to {{ transportNameForInstructions() }} was not successfully.</p>
+            <p>You may have not setup all the connection settings, have a look at <RouterLink :to="routeLinks.throughput.setup.setupConnection.link">Setup</RouterLink>.</p>
+            <p>If you have set the settings but are still having issues, look at the <RouterLink :to="routeLinks.throughput.setup.diagnostics.link">Diagnostics</RouterLink> for more information on how to fix the issue.</p>
           </div>
         </template>
       </template>
@@ -97,34 +79,26 @@ function showMasksClicked() {
     <div class="row">
       <div class="col-sm-12">
         <div class="nav tabs">
-          <div>
-            <h5 class="nav-item" :class="{ active: showConnection }">
-              <a href="#" @click.prevent="showConnectionClicked()">Connection Setup</a>
-            </h5>
-            <h5 class="nav-item" :class="{ active: showMasks }">
-              <a href="#" @click.prevent="showMasksClicked()">Mask Report Data</a>
-            </h5>
-          </div>
+          <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.setup.setupConnection.link) }">
+            <RouterLink :to="routeLinks.throughput.setup.setupConnection.link">Connection Setup</RouterLink>
+          </h5>
+          <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.setup.mask.link) }">
+            <RouterLink :to="routeLinks.throughput.setup.mask.link">Mask Report Data</RouterLink>
+          </h5>
+          <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.setup.diagnostics.link) }">
+            <RouterLink :to="routeLinks.throughput.setup.diagnostics.link">Diagnostics</RouterLink>
+          </h5>
         </div>
       </div>
     </div>
-    <ConnectionView v-if="showConnection" @test="testConnection" :testResults="testResults" :settingsInfo="settingsInfo" :transportDisplayName="transportNameForInstructions()" />
-    <MasksView v-if="showMasks" />
+    <div class="intro">
+      <RouterView />
+    </div>
   </div>
 </template>
 
 <style scoped>
 .intro {
   margin: 10px 0;
-}
-
-.sp-loader {
-  width: 100%;
-  height: 90vh;
-  margin-top: -100px;
-  background-image: url("@/assets/sp-loader.gif");
-  background-size: 150px 150px;
-  background-position: center center;
-  background-repeat: no-repeat;
 }
 </style>

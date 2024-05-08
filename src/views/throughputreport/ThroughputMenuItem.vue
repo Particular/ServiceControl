@@ -4,7 +4,7 @@ import routeLinks from "@/router/routeLinks";
 </script>
 
 <template>
-  <RouterLink :to="routeLinks.throughputReport.root">
+  <RouterLink :to="routeLinks.throughput.root">
     <i class="fa fa-file-text-o icon-white" title="Throughput"></i>
     <span class="navbar-label">Throughput</span>
   </RouterLink>

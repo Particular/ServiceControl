@@ -116,19 +116,37 @@ const config: RouteItem[] = [
     title: "Events",
   },
   {
-    path: routeLinks.throughputReport.root,
+    path: routeLinks.throughput.root,
     component: ThroughputReportView,
     title: "Throughput",
     children: [
       {
         title: "Endpoints",
-        path: routeLinks.throughputReport.endpoints.template,
+        path: routeLinks.throughput.endpoints.template,
         component: () => import("@/views/throughputreport/EndpointsView.vue"),
       },
       {
         title: "Setup",
-        path: routeLinks.throughputReport.setup.template,
+        path: routeLinks.throughput.setup.root,
+        redirect: routeLinks.throughput.setup.setupConnection.link,
         component: () => import("@/views/throughputreport/SetupView.vue"),
+        children: [
+          {
+            title: "Connection Setup",
+            path: routeLinks.throughput.setup.setupConnection.template,
+            component: () => import("@/views/throughputreport/setup/ConnectionSetupView.vue"),
+          },
+          {
+            title: "Mask Report Data",
+            path: routeLinks.throughput.setup.mask.template,
+            component: () => import("@/views/throughputreport/setup/MasksView.vue"),
+          },
+          {
+            title: "Diagnostics",
+            path: routeLinks.throughput.setup.diagnostics.template,
+            component: () => import("@/views/throughputreport/setup/DiagnosticsView.vue"),
+          }
+        ]
       },
     ],
   },
