@@ -8,6 +8,7 @@ using Contracts;
 using Infrastructure;
 using NUnit.Framework;
 using Particular.Approvals;
+using Particular.ThroughputCollector.Shared;
 
 [TestFixture]
 class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixture
@@ -261,9 +262,10 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
 
         // Act
         var report = await ThroughputCollector.GenerateThroughputReport("2.3.1", new DateTime(2024, 4, 25), default);
+        var reportString = System.Text.Json.JsonSerializer.Serialize(report, SerializationOptions.IndentedWithNoEscaping);
 
         // Assert
-        Approver.Verify(report,
+        Approver.Verify(reportString,
             scrubber: input => input.Replace(report.Signature, "SIGNATURE"));
     }
 }
