@@ -19,14 +19,11 @@ public record Report
 
     public string ReportMethod { get; init; }
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public string? ToolType { get; init; }
     public string ToolVersion { get; init; }
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public string? Prefix { get; init; }
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public string ScopeType { get; init; }
 
     public DateTimeOffset StartTime { get; set; }
@@ -41,14 +38,14 @@ public record Report
 
     public QueueThroughput[] Queues { get; init; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)] // Must be serialized even if 0 to maintain compatibility with old report signatures
     public long TotalThroughput { get; init; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)] // Must be serialized even if 0 to maintain compatibility with old report signatures
     public int TotalQueues { get; init; }
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public string[] IgnoredQueues { get; init; }
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public EnvironmentInformation EnvironmentInformation { get; set; }
 }
 
@@ -56,34 +53,24 @@ public record QueueThroughput
 {
     public string QueueName { get; set; }
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public long? Throughput { get; set; }
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool NoDataOrSendOnly { get; init; }
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public string[] EndpointIndicators { get; init; }
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public string? UserIndicator { get; init; }
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public string Scope { get; init; }
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public DailyThroughput[] DailyThroughputFromBroker { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public DailyThroughput[] DailyThroughputFromAudit { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public DailyThroughput[] DailyThroughputFromMonitoring { get; init; }
 }
 
 public record EnvironmentInformation
 {
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public AuditServicesData AuditServicesData { get; set; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, string> EnvironmentData { get; set; }
 }
 

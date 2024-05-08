@@ -9,14 +9,14 @@ public static class SerializationOptions
     public static readonly JsonSerializerOptions IndentedWithNoEscaping = new()
     {
         WriteIndented = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
     public static readonly JsonSerializerOptions NotIndentedWithNoEscaping = new()
     {
         WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 }
