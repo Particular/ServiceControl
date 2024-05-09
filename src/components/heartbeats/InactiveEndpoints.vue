@@ -38,7 +38,7 @@ const { inactiveEndpoints, filteredInactiveEndpoints, selectedDisplay } = storeT
   </section>
 </template>
 
-<style>
+<style scoped>
 @import "../list.css";
 
 p:not(.lead) {
