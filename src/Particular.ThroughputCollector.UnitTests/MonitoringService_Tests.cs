@@ -103,7 +103,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         Assert.That(connectionSettingsResult.ConnectionSuccessful, Is.True, "Connection status should be successful");
         Assert.That(connectionSettingsResult.ConnectionErrorMessages.Count, Is.EqualTo(0), "Unexpected ConnectionErrorMessages");
         Assert.That(connectionSettingsResult.Diagnostics, Is.Not.Null, "Expected diagnostic");
-        Assert.That(connectionSettingsResult.Diagnostics.Contains("Throughput from Monitoring recorded in the last 30 days"), Is.True, "Expected diagnostics not found");
+        Assert.That(connectionSettingsResult.Diagnostics.Contains("Throughput from Monitoring recorded", StringComparison.OrdinalIgnoreCase), Is.True, "Expected diagnostics not found");
 
         Approver.Verify(connectionSettingsResult);
     }
@@ -125,7 +125,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         Assert.That(connectionSettingsResult.ConnectionSuccessful, Is.False, "Connection status should be unsuccessful");
         Assert.That(connectionSettingsResult.ConnectionErrorMessages.Count, Is.EqualTo(0), "Unexpected ConnectionErrorMessages");
         Assert.That(connectionSettingsResult.Diagnostics, Is.Not.Null, "Expected diagnostic");
-        Assert.That(connectionSettingsResult.Diagnostics.Contains("No throughput from Monitoring recorded in the last 30 days"), Is.True, "Expected diagnostics not found");
+        Assert.That(connectionSettingsResult.Diagnostics.Contains("No throughput from Monitoring recorded", StringComparison.OrdinalIgnoreCase), Is.True, "Expected diagnostics not found");
 
         Approver.Verify(connectionSettingsResult);
     }
