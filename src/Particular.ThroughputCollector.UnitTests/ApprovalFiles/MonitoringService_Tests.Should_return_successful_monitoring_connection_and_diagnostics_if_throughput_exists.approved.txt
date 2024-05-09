@@ -1,0 +1,5 @@
+{
+  "ConnectionSuccessful": true,
+  "ConnectionErrorMessages": [],
+  "Diagnostics": "Throughput from Monitoring recorded in the last 30 days\r\nListening on queue ServiceControl.ThroughputData\r\n"
+}
