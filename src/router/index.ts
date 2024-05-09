@@ -17,6 +17,9 @@ function addChildren(parent: RouteRecordSingleViewWithChildren, item: RouteItem)
       });
       parent.children.push(newItem);
 
+      if (child.redirect) newItem.redirect = child.redirect;
+      if (child.alias) newItem.alias = child.alias;
+
       addChildren(newItem, child);
     })
   }

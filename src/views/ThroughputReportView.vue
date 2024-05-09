@@ -19,7 +19,7 @@ async function generateReport() {
   const fileName = await throughputClient.downloadReport();
 
   if (fileName !== "") {
-    useShowToast(TYPE.INFO, "Report Generated", `Please email ${fileName} to sales@particular.net`);
+    useShowToast(TYPE.INFO, "Report Generated", `Please email ${fileName} to sales@particular.net`, true);
   }
 }
 </script>
@@ -37,8 +37,11 @@ async function generateReport() {
           <div class="col-sm-12">
             <div class="nav tabs tabsWithButton">
               <div>
-                <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.root) }">
-                  <RouterLink :to="routeLinks.throughput.endpoints.link">Endpoints</RouterLink>
+                <h5
+                  class="nav-item"
+                  :class="{ active: isRouteSelected(routeLinks.throughput.endpoints.root) || isRouteSelected(routeLinks.throughput.endpoints.detectedEndpoints.link) || isRouteSelected(routeLinks.throughput.endpoints.detectedBrokerQueues.link) }"
+                >
+                  <RouterLink :to="routeLinks.throughput.endpoints.root">Endpoints</RouterLink>
                 </h5>
                 <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.setup.root) || isRouteSelected(routeLinks.throughput.setup.mask.link) || isRouteSelected(routeLinks.throughput.setup.diagnostics.link) }">
                   <RouterLink :to="routeLinks.throughput.setup.root">Setup</RouterLink>

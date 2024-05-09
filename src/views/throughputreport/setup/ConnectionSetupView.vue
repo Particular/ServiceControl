@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import ThroughputConnectionSettings from "@/resources/ThroughputConnectionSettings";
-import { Transport } from "@/views/throughputreport/Transport";
+import { Transport } from "@/views/throughputreport/transport";
 import throughputClient from "@/views/throughputreport/throughputClient";
 import ConnectionTestResults from "@/resources/ConnectionTestResults";
 

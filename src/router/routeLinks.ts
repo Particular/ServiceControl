@@ -51,7 +51,7 @@ const throughputLinks = (root: string) => {
 
   return {
     root: root,
-    endpoints: createLink(""),
+    endpoints: throughputEndpointLinks(`${root}/endpoints`),
     setup: throughputSetupLinks(`${root}/setup`),
   };
 };
@@ -63,9 +63,21 @@ const throughputSetupLinks = (root: string) => {
 
   return {
     root,
-    setupConnection: createLink(""),
+    connectionSetup: createLink("connection-setup"),
     mask: createLink("mask"),
     diagnostics: createLink("diagnostics"),
+  }
+}
+
+const throughputEndpointLinks = (root: string) => {
+  function createLink(template: string) {
+    return { link: `${root}/${template}`, template: template };
+  }
+
+  return {
+    root,
+    detectedEndpoints: createLink("known"),
+    detectedBrokerQueues: createLink("broker"),
   }
 }
 

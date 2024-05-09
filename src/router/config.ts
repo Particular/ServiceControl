@@ -119,21 +119,35 @@ const config: RouteItem[] = [
     path: routeLinks.throughput.root,
     component: ThroughputReportView,
     title: "Throughput",
+    redirect: routeLinks.throughput.endpoints.root,
     children: [
       {
         title: "Endpoints",
-        path: routeLinks.throughput.endpoints.template,
+        path: routeLinks.throughput.endpoints.root,
+        redirect: routeLinks.throughput.endpoints.detectedEndpoints.link,
         component: () => import("@/views/throughputreport/EndpointsView.vue"),
+        children: [
+          {
+            title: "Detected Endpoints",
+            path: routeLinks.throughput.endpoints.detectedEndpoints.template,
+            component: () => import("@/views/throughputreport/endpoints/DetectedEndpointsView.vue"),
+          },
+          {
+            title: "Detected Broker Queues",
+            path: routeLinks.throughput.endpoints.detectedBrokerQueues.template,
+            component: () => import("@/views/throughputreport/endpoints/DetectedBrokerQueuesView.vue"),
+          }
+        ]
       },
       {
         title: "Setup",
         path: routeLinks.throughput.setup.root,
-        redirect: routeLinks.throughput.setup.setupConnection.link,
+        redirect: routeLinks.throughput.setup.connectionSetup.link,
         component: () => import("@/views/throughputreport/SetupView.vue"),
         children: [
           {
             title: "Connection Setup",
-            path: routeLinks.throughput.setup.setupConnection.template,
+            path: routeLinks.throughput.setup.connectionSetup.template,
             component: () => import("@/views/throughputreport/setup/ConnectionSetupView.vue"),
           },
           {

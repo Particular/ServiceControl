@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import isRouteSelected from "@/composables/isRouteSelected";
 import routeLinks from "@/router/routeLinks";
-import { Transport } from "@/views/throughputreport/Transport";
+import { Transport } from "@/views/throughputreport/transport";
 import { computed, onMounted, ref } from "vue";
 import ConnectionTestResults from "@/resources/ConnectionTestResults";
 import throughputClient from "@/views/throughputreport/throughputClient";
@@ -69,7 +69,7 @@ function transportNameForInstructions() {
         <template v-else>
           <div>
             <h6><i style="color: red" class="fa fa-times"></i> The connection to {{ transportNameForInstructions() }} was not successfully.</h6>
-            <p>You may have not setup all the connection settings, have a look at <RouterLink :to="routeLinks.throughput.setup.setupConnection.link">Connection Setup</RouterLink> tab.</p>
+            <p>You may have not setup all the connection settings, have a look at <RouterLink :to="routeLinks.throughput.setup.connectionSetup.link">Connection Setup</RouterLink> tab.</p>
             <p>If you have set the settings but are still having issues, look at the <RouterLink :to="routeLinks.throughput.setup.diagnostics.link">Diagnostics</RouterLink> tab for more information on how to fix the issue.</p>
           </div>
         </template>
@@ -79,8 +79,8 @@ function transportNameForInstructions() {
     <div class="row">
       <div class="col-sm-12">
         <div class="nav tabs">
-          <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.setup.setupConnection.link) }">
-            <RouterLink :to="routeLinks.throughput.setup.setupConnection.link">Connection Setup</RouterLink>
+          <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.setup.connectionSetup.link) }">
+            <RouterLink :to="routeLinks.throughput.setup.connectionSetup.link">Connection Setup</RouterLink>
           </h5>
           <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.setup.mask.link) }">
             <RouterLink :to="routeLinks.throughput.setup.mask.link">Mask Report Data</RouterLink>
