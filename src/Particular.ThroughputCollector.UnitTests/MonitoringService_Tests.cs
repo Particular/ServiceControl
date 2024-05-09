@@ -85,18 +85,13 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
     }
 
 
-    [TestCase(true)]
-    [TestCase(false)]
-    public async Task Should_always_return_successful_monitoring_connection_and_diagnostics(bool hasMonitoringThroughput)
+    [Test]
+    public async Task Should_return_successful_monitoring_connection_and_diagnostics_if_throughput_exists()
     {
         // Arrange
         var builder = DataStore.CreateBuilder()
-           .AddEndpoint(sources: [ThroughputSource.Monitoring]);
-
-        if (hasMonitoringThroughput)
-        {
-            builder.WithThroughput(days: 2);
-        }
+           .AddEndpoint(sources: [ThroughputSource.Monitoring])
+           .WithThroughput(days: 2);
 
         await builder.Build();
 
@@ -107,8 +102,32 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         Assert.That(connectionSettingsResult, Is.Not.Null, "connectionSettingsResult should be returned");
         Assert.That(connectionSettingsResult.ConnectionSuccessful, Is.True, "Connection status should be successful");
         Assert.That(connectionSettingsResult.ConnectionErrorMessages.Count, Is.EqualTo(0), "Unexpected ConnectionErrorMessages");
+        Assert.That(connectionSettingsResult.Diagnostics, Is.Not.Null, "Expected diagnostic");
+        Assert.That(connectionSettingsResult.Diagnostics.Contains("Throughput from Monitoring recorded in the last 30 days"), Is.True, "Expected diagnostics not found");
 
-        Approver.Verify(connectionSettingsResult.Diagnostics, scenario: $"hasMonitoringThroughput_{hasMonitoringThroughput}");
+        Approver.Verify(connectionSettingsResult);
+    }
+
+    [Test]
+    public async Task Should_return_error_monitoring_connection_and_diagnostics_if_no_throughput_in_last_30_days()
+    {
+        // Arrange
+        var builder = DataStore.CreateBuilder()
+           .AddEndpoint(sources: [ThroughputSource.Monitoring]);
+
+        await builder.Build();
+
+        // Act
+        var connectionSettingsResult = await configuration.MonitoringService.TestMonitoringConnection(default);
+
+        // Assert
+        Assert.That(connectionSettingsResult, Is.Not.Null, "connectionSettingsResult should be returned");
+        Assert.That(connectionSettingsResult.ConnectionSuccessful, Is.False, "Connection status should be unsuccessful");
+        Assert.That(connectionSettingsResult.ConnectionErrorMessages.Count, Is.EqualTo(0), "Unexpected ConnectionErrorMessages");
+        Assert.That(connectionSettingsResult.Diagnostics, Is.Not.Null, "Expected diagnostic");
+        Assert.That(connectionSettingsResult.Diagnostics.Contains("No throughput from Monitoring recorded in the last 30 days"), Is.True, "Expected diagnostics not found");
+
+        Approver.Verify(connectionSettingsResult);
     }
 
     class BrokerThroughputQuery_WithSanitization : IBrokerThroughputQuery
