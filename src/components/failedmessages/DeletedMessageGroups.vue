@@ -423,6 +423,7 @@ onMounted(async () => {
 
 <style scoped>
 @import "../list.css";
+@import "./failedmessages.css";
 
 .fake-link i {
   padding-right: 0.2em;

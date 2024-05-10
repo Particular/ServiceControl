@@ -230,6 +230,8 @@ function typeIcon(type: MessageType) {
 </style>
 
 <style scoped>
+@import "../list.css";
+
 #tree-container {
   width: 90vw;
   height: 60vh;

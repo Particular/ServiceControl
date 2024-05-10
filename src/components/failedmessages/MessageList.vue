@@ -331,4 +331,11 @@ p.metadata button {
   height: 14px;
   width: 14px;
 }
+
+.btn.btn-sm {
+  color: #00a3c4;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 0 36px 10px 0;
+}
 </style>

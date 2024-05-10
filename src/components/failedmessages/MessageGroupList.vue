@@ -627,6 +627,15 @@ defineExpose<IMessageGroupList>({
 
 <style scoped>
 @import "../list.css";
+@import "./failedmessages.css";
+
+div.col-xs-3.col-sm-3.retry-op-queued {
+  color: #b0b5b5 !important;
+}
+
+div.progress-bar.progress-bar-striped.active {
+  color: #fff !important;
+}
 
 .fake-link i {
   padding-right: 0.2em;

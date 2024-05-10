@@ -57,9 +57,3 @@ onMounted(async () => {
     <RouterView />
   </div>
 </template>
-
-<style>
-section[name="connections"] .box {
-  padding-bottom: 50px;
-}
-</style>
