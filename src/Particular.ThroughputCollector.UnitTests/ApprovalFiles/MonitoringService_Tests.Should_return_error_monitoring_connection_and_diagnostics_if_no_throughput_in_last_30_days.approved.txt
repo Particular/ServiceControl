@@ -1,5 +1,2 @@
-{
-  "ConnectionSuccessful": false,
-  "ConnectionErrorMessages": [],
-  "Diagnostics": "No throughput from Monitoring recorded in the last 30 days\r\nListening on queue ServiceControl.ThroughputData\r\n"
-}
+No throughput from Monitoring recorded in the last 30 days
+Listening on queue ServiceControl.ThroughputData
