@@ -105,7 +105,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         Assert.That(connectionSettingsResult.Diagnostics, Is.Not.Null, "Expected diagnostic");
         Assert.That(connectionSettingsResult.Diagnostics.Contains("Throughput from Monitoring recorded", StringComparison.OrdinalIgnoreCase), Is.True, "Expected diagnostics not found");
 
-        Approver.Verify(connectionSettingsResult);
+        Approver.Verify(connectionSettingsResult.Diagnostics);
     }
 
     [Test]
@@ -127,7 +127,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         Assert.That(connectionSettingsResult.Diagnostics, Is.Not.Null, "Expected diagnostic");
         Assert.That(connectionSettingsResult.Diagnostics.Contains("No throughput from Monitoring recorded", StringComparison.OrdinalIgnoreCase), Is.True, "Expected diagnostics not found");
 
-        Approver.Verify(connectionSettingsResult);
+        Approver.Verify(connectionSettingsResult.Diagnostics);
     }
 
     class BrokerThroughputQuery_WithSanitization : IBrokerThroughputQuery
