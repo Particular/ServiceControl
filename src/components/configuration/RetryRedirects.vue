@@ -204,8 +204,23 @@ onMounted(() => {
   </template>
 </template>
 
-<style>
-p.control-label {
-  margin-bottom: 2px;
+<style scoped>
+.pa-redirect-source {
+  background-image: url("@/assets/redirect-source.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.pa-redirect-small {
+  position: relative;
+  top: 1px;
+  height: 14px;
+  width: 14px;
+}
+
+.pa-redirect-destination {
+  background-image: url("@/assets/redirect-destination.svg");
+  background-position: center;
+  background-repeat: no-repeat;
 }
 </style>

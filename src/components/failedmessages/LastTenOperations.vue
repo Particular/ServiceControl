@@ -70,7 +70,7 @@ onMounted(() => {
   </div>
 </template>
 
-<style>
+<style scoped>
 .fake-link i {
   padding-right: 0.2em;
 }

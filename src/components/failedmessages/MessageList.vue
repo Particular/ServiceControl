@@ -146,7 +146,7 @@ defineExpose<IMessageList>({
   </div>
 </template>
 
-<style>
+<style scoped>
 @import "../list.css";
 
 .stacktrace-preview {
@@ -317,5 +317,18 @@ p.metadata button {
 .failed-message-group:hover .lead.break,
 .deleted-message-group:hover .lead.break {
   text-decoration: underline;
+}
+
+.pa-redirect-source {
+  background-image: url("@/assets/redirect-source.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.pa-redirect-small {
+  position: relative;
+  top: 1px;
+  height: 14px;
+  width: 14px;
 }
 </style>

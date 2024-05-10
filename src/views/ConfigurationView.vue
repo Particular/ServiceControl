@@ -59,60 +59,6 @@ onMounted(async () => {
 </template>
 
 <style>
-.tabs-config-snippets .tabs {
-  margin: 30px 0 15px;
-}
-
-.tabs-config-snippets highlight {
-  margin-bottom: 20px;
-  display: block;
-}
-
-.tabs-config-snippets p {
-  font-size: 16px;
-  color: #181919;
-}
-
-.tabs-config-snippets .alert {
-  margin-bottom: 15px;
-}
-
-.tabs-config-snippets .alert li {
-  margin-bottom: 0;
-}
-
-div.btn-toolbar,
-div.form-inline {
-  margin-bottom: 12px;
-}
-
-.btn-toolbar button:last-child {
-  margin-top: 0 !important;
-}
-
-.pa-redirect-source {
-  background-image: url("@/assets/redirect-source.svg");
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.pa-redirect-small {
-  position: relative;
-  top: 1px;
-  height: 14px;
-  width: 14px;
-}
-
-.pa-redirect-large {
-  height: 24px;
-}
-
-.pa-redirect-destination {
-  background-image: url("@/assets/redirect-destination.svg");
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
 section[name="connections"] .box {
   padding-bottom: 50px;
 }

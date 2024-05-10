@@ -121,7 +121,11 @@ function saveConnections() {
   </template>
 </template>
 
-<style>
+<style scoped>
+section[name="connections"] .box {
+  padding-bottom: 50px;
+}
+
 form .connection h3 {
   margin-bottom: 16px;
   margin-top: 25px;

@@ -108,7 +108,7 @@ onMounted(() => {
   </div>
 </template>
 
-<style>
+<style scoped>
 @import "@/assets/dropdown.css";
 
 .dropdown-menu .bi {
@@ -136,10 +136,7 @@ onMounted(() => {
   float: right;
 }
 
-.btn.sp-btn-menu:active,
-.btn-default.sp-btn-menu:active,
-.btn-default.sp-btn-menu.active,
-.open > .dropdown-toggle.btn-default.sp-btn-menu {
+.btn.sp-btn-menu:active {
   background: none;
   border: none;
   color: #00a3c4;

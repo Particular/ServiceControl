@@ -136,8 +136,8 @@ function switchJsonTab() {
   </template>
 </template>
 
-<style>
-.configuration pre {
+<style scoped>
+.configuration :deep(pre) {
   border: none;
   background-color: #282c34;
 }
@@ -156,7 +156,29 @@ section[name="platformconnection"] li {
   margin-bottom: 15px;
 }
 
-.code {
+:deep(.code) {
   padding-bottom: 20px;
+}
+
+.tabs-config-snippets .tabs {
+  margin: 30px 0 15px;
+}
+
+.tabs-config-snippets highlight {
+  margin-bottom: 20px;
+  display: block;
+}
+
+.tabs-config-snippets p {
+  font-size: 16px;
+  color: #181919;
+}
+
+.tabs-config-snippets .alert {
+  margin-bottom: 15px;
+}
+
+.tabs-config-snippets .alert li {
+  margin-bottom: 0;
 }
 </style>

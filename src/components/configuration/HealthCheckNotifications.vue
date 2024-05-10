@@ -172,7 +172,7 @@ onMounted(async () => {
   </template>
 </template>
 
-<style>
+<style scoped>
 @import "../list.css";
 
 .screen-intro {

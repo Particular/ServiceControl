@@ -163,4 +163,8 @@ function close() {
   flex: 1;
   min-height: 0;
 }
+
+p.control-label {
+  margin-bottom: 2px;
+}
 </style>

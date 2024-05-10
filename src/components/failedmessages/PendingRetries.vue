@@ -366,7 +366,7 @@ onMounted(() => {
   </template>
 </template>
 
-<style>
+<style scoped>
 @import "../list.css";
 
 .input-group-text {
@@ -400,5 +400,11 @@ onMounted(() => {
 
 .action-btns > .btn {
   margin-right: 5px;
+}
+
+.dropdown-toggle.btn-default:hover {
+  background: none;
+  border: none;
+  color: #00a3c4;
 }
 </style>

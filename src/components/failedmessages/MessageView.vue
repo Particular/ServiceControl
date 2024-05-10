@@ -513,7 +513,7 @@ onUnmounted(() => {
   </div>
 </template>
 
-<style>
+<style scoped>
 @import "../list.css";
 
 h1.message-type-title {
@@ -537,5 +537,18 @@ button img {
 
 .msg-tabs {
   margin-bottom: 20px;
+}
+
+.pa-redirect-source {
+  background-image: url("@/assets/redirect-source.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.pa-redirect-small {
+  position: relative;
+  top: 1px;
+  height: 14px;
+  width: 14px;
 }
 </style>

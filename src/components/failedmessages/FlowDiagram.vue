@@ -227,7 +227,9 @@ function typeIcon(type: MessageType) {
 <style>
 @import "@vue-flow/core/dist/style.css";
 @import "@vue-flow/core/dist/theme-default.css";
+</style>
 
+<style scoped>
 #tree-container {
   width: 90vw;
   height: 60vh;

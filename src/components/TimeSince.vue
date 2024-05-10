@@ -36,5 +36,3 @@ onUnmounted(() => window.clearInterval(interval));
 <template>
   <span :title="title">{{ text }}</span>
 </template>
-
-<style></style>

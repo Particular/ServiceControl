@@ -110,7 +110,7 @@ const loading = computed(() => {
   </section>
 </template>
 
-<style>
+<style scoped>
 .license-info {
   font-size: 16px;
   padding: 2em;

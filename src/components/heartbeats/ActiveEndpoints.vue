@@ -35,7 +35,7 @@ const { activeEndpoints, filteredActiveEndpoints } = storeToRefs(store);
   </section>
 </template>
 
-<style>
+<style scoped>
 @import "../list.css";
 
 p:not(.lead) {

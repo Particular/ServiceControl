@@ -151,4 +151,14 @@ function iconSubClasses(eventItem: EventLogItem) {
 .box-event-item .fa-stack {
   height: 1em;
 }
+
+.pa-redirect-source {
+  background-image: url("@/assets/redirect-source.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.pa-redirect-large {
+  height: 24px;
+}
 </style>
