@@ -4,6 +4,7 @@ import ThroughputConnectionSettings from "@/resources/ThroughputConnectionSettin
 import { Transport } from "@/views/throughputreport/transport";
 import throughputClient from "@/views/throughputreport/throughputClient";
 import ConnectionTestResults from "@/resources/ConnectionTestResults";
+import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
 
 const testResults = ref<ConnectionTestResults | null>(null);
 const settingsInfo = ref<ThroughputConnectionSettings | null>(null);
@@ -70,19 +71,22 @@ function transportNameForInstructions() {
             </li>
           </ul>
         </template>
-        <h5 class="card-title">ServiceControl Settings</h5>
-        <p>
-          Settings to ensure that throughput data is being collected from Monitoring.<br />
-          For more information read <a href="TODO">this documentation</a>.
-        </p>
-        <ul class="card-text settingsList">
-          <li v-for="item in settingsInfo?.service_control_settings" :key="item.name">
-            <div>
-              <strong>{{ item.name }}</strong>
-            </div>
-            <p>{{ item.description }}</p>
-          </li>
-        </ul>
+        <template v-if="useIsMonitoringEnabled()">
+          <h5 class="card-title">ServiceControl Settings</h5>
+          <p>
+            Settings to ensure that throughput data is being collected from Monitoring.<br />
+            Add line about MSMQ and different computer plus shared infrastructure to SC settings. Include the incentive to customer of "to get more accurate throughput data".<br />
+            For more information read <a href="TODO">this documentation</a>.
+          </p>
+          <ul class="card-text settingsList">
+            <li v-for="item in settingsInfo?.service_control_settings" :key="item.name">
+              <div>
+                <strong>{{ item.name }}</strong>
+              </div>
+              <p>{{ item.description }}</p>
+            </li>
+          </ul>
+        </template>
       </div>
     </div>
   </div>
