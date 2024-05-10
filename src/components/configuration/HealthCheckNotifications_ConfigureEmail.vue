@@ -62,12 +62,12 @@ function close() {
 <template>
   <div class="modal-mask">
     <div class="modal-wrapper">
-      <div class="modal-container">
+      <div class="modal-container modal-content">
         <div class="modal-header">
           <h3 class="modal-title">Email configuration</h3>
         </div>
 
-        <form name="notificationsForm" novalidate @submit.prevent="save">
+        <form name="notificationsForm" class="notificationsForm" novalidate @submit.prevent="save">
           <div class="modal-body">
             <div class="row">
               <div class="form-group" :class="{ 'has-error': !smtpServerIsValid }">
@@ -116,31 +116,19 @@ function close() {
   </div>
 </template>
 
-<style>
-.modal-mask {
-  position: fixed;
-  z-index: 9998;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: table;
-  transition: opacity 0.3s ease;
-}
-
-.modal-wrapper {
-  display: table-cell;
-  vertical-align: middle;
-}
+<style scoped>
+@import "@/components/modal.css";
 
 .modal-container {
   width: 800px;
-  margin: 0 auto;
-  padding: 20px 30px;
-  background-color: #fff;
-  border-radius: 2px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
-  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.notificationsForm {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 </style>

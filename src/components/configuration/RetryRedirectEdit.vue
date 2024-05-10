@@ -82,13 +82,13 @@ function close() {
 <template>
   <div class="modal-mask">
     <div class="modal-wrapper">
-      <div class="modal-container">
+      <div class="modal-container modal-content">
         <div class="modal-header">
           <h3 class="modal-title" v-if="model.message_redirect_id">Modify redirect</h3>
           <h3 class="modal-title" v-if="!model.message_redirect_id">Create redirect</h3>
         </div>
 
-        <form name="redirectForm" novalidate>
+        <form name="redirectForm" class="redirectForm" novalidate>
           <div class="modal-body">
             <div class="row">
               <div class="form-group">
@@ -154,31 +154,13 @@ function close() {
   </div>
 </template>
 
-<style>
-.modal-mask {
-  position: fixed;
-  z-index: 9998;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: table;
-  transition: opacity 0.3s ease;
-}
+<style scoped>
+@import "@/components/modal.css";
 
-.modal-wrapper {
-  display: table-cell;
-  vertical-align: middle;
-}
-
-.modal-container {
-  width: 600px;
-  margin: 0 auto;
-  padding: 20px 30px;
-  background-color: #fff;
-  border-radius: 2px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
-  transition: all 0.3s ease;
+.redirectForm {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 </style>

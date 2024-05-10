@@ -226,7 +226,9 @@ onMounted(() => {
   </section>
 </template>
 
-<style>
+<style scoped>
+@import "@/components/modal.css";
+
 .cancel-confirmation,
 .edit-retry-confirmation {
   background: #181919;
@@ -243,5 +245,80 @@ onMounted(() => {
   position: relative;
   top: 1px;
   margin-right: 20px;
+}
+
+.modal-msg-editor .reset-body {
+  color: #00a3c4;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 15px;
+  display: inline-block;
+}
+
+.modal-msg-editor .reset-body a:hover {
+  cursor: pointer;
+}
+
+.modal-msg-editor .reset-body i.fa.fa-undo {
+  color: #00a3c4;
+}
+
+.modal-msg-editor .empty-error {
+  float: right;
+  margin-top: 15px;
+  color: #ce4844;
+  font-weight: bold;
+}
+
+.modal-msg-editor .empty-error i.fa.fa-exclamation-triangle {
+  color: #ce4844;
+}
+
+.modal-msg-editor .row.alert.alert-danger i.fa.fa-exclamation-triangle {
+  color: #ce4844;
+}
+
+.modal-msg-editor .row.alert.alert-warning i.fa.fa-exclamation-circle {
+  color: #8a6d3b;
+}
+
+.modal-msg-editor .modal-dialog {
+  width: 70%;
+}
+
+.modal-msg-editor .modal-body {
+  overflow-y: auto;
+  height: 80vh;
+}
+
+.modal-msg-editor .msg-tabs {
+  margin-top: 20px;
+}
+
+.modal-msg-editor .row.msg-editor-tabs {
+  height: 52px;
+  position: relative;
+  box-shadow: -10px 20px 20px #fff;
+  z-index: 10;
+}
+
+.modal-msg-editor .row.msg-editor-content table {
+  margin-top: 20px;
+}
+
+.modal-msg-editor .row,
+.modal-msg-editor .col-sm-12 {
+  height: 100%;
+}
+
+.modal-msg-editor .row.msg-editor-content {
+  height: calc(100% - 37px);
+  overflow-y: auto;
+  padding-right: 15px;
+}
+
+.modal-msg-editor :deep(textarea) {
+  height: 100%;
+  margin-top: 20px;
 }
 </style>

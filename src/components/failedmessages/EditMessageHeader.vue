@@ -67,7 +67,7 @@ onMounted(() => {
   </td>
 </template>
 
-<style>
+<style scoped>
 span.header-removed {
   text-decoration: line-through 2px solid #ce4844;
 }
@@ -75,5 +75,56 @@ span.header-removed {
 input.header-removed {
   opacity: 0.3;
   pointer-events: none;
+}
+
+td[nowrap="nowrap"] {
+  font-weight: bold;
+}
+
+td:first-child {
+  padding-top: 15px;
+  padding-left: 0;
+  width: 30%;
+}
+
+td:first-child i.fa {
+  font-size: 18px;
+  padding-left: 6px;
+  position: relative;
+  top: 1px;
+}
+
+td:first-child i.fa.fa-exclamation-triangle {
+  color: #ff9000;
+}
+
+td:first-child i.fa.fa-pencil {
+  color: #8543e9 !important;
+}
+
+td:nth-child(3) {
+  width: 60px;
+  padding: 12px 0 0 10px;
+}
+
+td:nth-child(3) a {
+  font-size: 18px;
+}
+
+td:nth-child(3) a:hover {
+  cursor: pointer;
+}
+
+td:nth-child(3) i.fa.fa-trash {
+  color: #555;
+  margin-right: 10px;
+}
+
+td:nth-child(3) i.fa.fa-undo {
+  color: #00a3c4;
+}
+
+td:nth-child(3) i.fa:hover {
+  opacity: 0.8;
 }
 </style>
