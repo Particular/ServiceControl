@@ -184,7 +184,6 @@ onMounted(() => {
 .monitoring-head i.fa.fa-envelope {
   font-size: 26px;
   position: relative;
-  top: -4px;
   left: 1px;
 }
 
@@ -194,7 +193,7 @@ onMounted(() => {
   right: -10px;
   left: unset;
   top: unset;
-  bottom: 5px;
+  bottom: -2px;
 }
 
 .monitoring-head .endpoint-status .pa-endpoint-lost.endpoint-details,

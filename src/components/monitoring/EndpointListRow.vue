@@ -192,4 +192,8 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
 .endpoint-count {
   font-weight: bold;
 }
+
+.pa-warning {
+  padding-top: 25px;
+}
 </style>

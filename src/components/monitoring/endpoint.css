@@ -108,7 +108,7 @@ h1 .endpoint-status i.fa-envelope {
   width: 20px;
   height: 20px;
   margin-left: 4px;
-  padding-top: 24px;
+  padding-top: 31px;
 }
 
 .message-type-status .pa-warning {
@@ -442,6 +442,7 @@ i.fa.pa-endpoint-lost.endpoint-details,
 i.fa.pa-monitoring-lost.endpoint-details {
   position: relative;
   margin-right: 4px;
+  top: 4px;
 }
 
 i.fa.pa-endpoint-lost.endpoints-overview {

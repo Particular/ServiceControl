@@ -214,4 +214,8 @@ const paginatedMessageTypes = computed(() => {
   box-shadow: 0 3px 20px rgba(0, 0, 0, 0.15);
   transition-duration: 0.5s;
 }
+
+.pa-warning {
+  padding-top: 25px;
+}
 </style>

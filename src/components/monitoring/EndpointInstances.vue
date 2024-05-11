@@ -221,4 +221,8 @@ a.remove-endpoint i {
 a.remove-endpoint:hover i {
   color: #00729c;
 }
+
+.pa-warning {
+  padding-top: 25px;
+}
 </style>
