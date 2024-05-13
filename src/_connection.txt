@@ -1,3 +1,0 @@
-RabbitMQ
-ConfigureEndpointRabbitMQConventionalRoutingTransport
-host=localhost
