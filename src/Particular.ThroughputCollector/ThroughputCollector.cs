@@ -17,6 +17,7 @@ public class ThroughputCollector(IThroughputDataStore dataStore, ThroughputSetti
         var throughputConnectionSettings = new ThroughputConnectionSettings
         {
             ServiceControlSettings = ServiceControlSettings.GetServiceControlConnectionSettings(),
+            MonitoringSettings = ServiceControlSettings.GetMonitoringConnectionSettings(),
             BrokerSettings = throughputQuery?.Settings.Select(pair => new ThroughputConnectionSetting($"{ThroughputSettings.SettingsNamespace.Root}/{pair.Key}", pair.Description)).ToList() ?? []
         };
         return await Task.FromResult(throughputConnectionSettings);
