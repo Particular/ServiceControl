@@ -3,6 +3,5 @@ Invalid region endpoint provided
 
 Connection attempted with the following settings:
 Profile not set
-AccessKey not set
-SecretKey not set
-Attempting to use existing environment variables (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY) or IAM role credentials
+AccessKey set to "valid"
+SecretKey set

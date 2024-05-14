@@ -1,8 +1,8 @@
-Connection test to AmazonSQS was successful
+Connection test to AmazonSQS failed:
+The security token included in the request is invalid.
 
-Connection settings used:
+Connection attempted with the following settings:
 Profile not set
-AccessKey not set
-SecretKey not set
-Attempting to use existing environment variables (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY) or IAM role credentials
-Region not set, using "us-east-1" set by the environment setting (AWS_REGION)
+AccessKey set to "valid"
+SecretKey set
+Region set to "us-east-1", this setting overrides the profile setting

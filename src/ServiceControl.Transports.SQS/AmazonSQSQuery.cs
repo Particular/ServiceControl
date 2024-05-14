@@ -18,7 +18,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.Logging;
 
-public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timeProvider)
+public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings)
     : BrokerThroughputQuery(logger, "AmazonSQS")
 {
     AmazonCloudWatchClient? cloudWatch;
@@ -27,6 +27,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
 
     protected override void InitialiseCore(FrozenDictionary<string, string> settings)
     {
+        var sqsConnectionString = new SQSTransportConnectionString(transportSettings.ConnectionString);
         AWSCredentials credentials = FallbackCredentialsFactory.GetCredentials();
         RegionEndpoint? regionEndpoint = null;
         if (settings.TryGetValue(AmazonSQSSettings.Profile, out string? profile))
@@ -58,18 +59,10 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
             {
                 Diagnostics.AppendLine($"AccessKey set to \"{accessKey}\"");
             }
-            else
-            {
-                Diagnostics.AppendLine("AccessKey not set");
-            }
 
             if (settings.TryGetValue(AmazonSQSSettings.SecretKey, out string? secretKey))
             {
                 Diagnostics.AppendLine("SecretKey set");
-            }
-            else
-            {
-                Diagnostics.AppendLine("SecretKey not set");
             }
 
             if (accessKey != null && secretKey != null)
@@ -79,9 +72,22 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
             }
             else
             {
-                Diagnostics.AppendLine(
-                    "Attempting to use existing environment variables (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY) or IAM role credentials");
-                logger.LogInformation("Attempting to use existing environment variables or IAM role credentials");
+                if (sqsConnectionString is { AccessKey: not null, SecretKey: not null })
+                {
+                    credentials = new BasicAWSCredentials(sqsConnectionString.AccessKey, sqsConnectionString.SecretKey);
+                    Diagnostics.AppendLine(
+                        $"AccessKey not set, defaulted to using \"{sqsConnectionString.AccessKey}\" from the ConnectionString used by instance");
+                    Diagnostics.AppendLine("SecretKey not set, defaulted to using SecretKey from the ConnectionString used by instance");
+                    logger.LogInformation("Using AccessKey and SecretKey used by the instance ConnectionString");
+                }
+                else
+                {
+                    Diagnostics.AppendLine(
+                        "AccessKey not set, attempting to use existing environment variable (AWS_ACCESS_KEY_ID) or IAM role credentials");
+                    Diagnostics.AppendLine(
+                        "SecretKey not set, attempting to use existing environment variable (AWS_SECRET_ACCESS_KEY) or IAM role credentials");
+                    logger.LogInformation("Attempting to use existing environment variables or IAM role credentials");
+                }
             }
         }
 
@@ -100,17 +106,27 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         }
         else if (regionEndpoint == null)
         {
-            logger.LogInformation("Attempting to use AWS environment variable for region");
-            try
+            if (sqsConnectionString.Region != null)
             {
-                regionEndpoint = new EnvironmentVariableAWSRegion().Region;
+                regionEndpoint = RegionEndpoint.GetBySystemName(sqsConnectionString.Region);
                 Diagnostics.AppendLine(
-                    $"Region not set, using \"{regionEndpoint.SystemName}\" set by the environment setting (AWS_REGION)");
+                    $"Region not set, defaulted to using \"{regionEndpoint.SystemName}\" from the ConnectionString used by instance");
+                logger.LogInformation("Using Region used by the instance ConnectionString");
             }
-            catch (InvalidOperationException)
+            else
             {
-                Diagnostics.AppendLine("Region not set,");
-                throw;
+                logger.LogInformation("Attempting to use AWS environment variable for region");
+                try
+                {
+                    regionEndpoint = new EnvironmentVariableAWSRegion().Region;
+                    Diagnostics.AppendLine(
+                        $"Region not set, using \"{regionEndpoint.SystemName}\" set by the environment setting (AWS_REGION)");
+                }
+                catch (InvalidOperationException)
+                {
+                    Diagnostics.AppendLine("Region not set,");
+                    throw;
+                }
             }
         }
 
