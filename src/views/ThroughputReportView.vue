@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import routeLinks from "@/router/routeLinks";
-import isRouteSelected from "@/composables/isRouteSelected";
 import ReportGenerationState from "@/resources/ReportGenerationState";
 import throughputClient from "@/views/throughputreport/throughputClient";
 import { useShowToast } from "@/composables/toast";
@@ -19,7 +17,7 @@ async function generateReport() {
   const fileName = await throughputClient.downloadReport();
 
   if (fileName !== "") {
-    useShowToast(TYPE.INFO, "Report Generated", `Please email ${fileName} to sales@particular.net`, true);
+    useShowToast(TYPE.INFO, "Report Generated", `Please email ${fileName} to your account manager`, true);
   }
 }
 </script>
@@ -29,44 +27,27 @@ async function generateReport() {
     <ThroughputSupported>
       <div class="container">
         <div class="row">
-          <div class="col-sm-12">
+          <div class="col-sm-6">
             <h1>Throughput</h1>
+          </div>
+          <div class="col-sm-6 text-end">
+            <span class="reason" v-if="!reportState?.report_can_be_generated">{{ reportState?.reason }}</span>
+            <button type="button" class="btn btn-primary actions" @click="generateReport()" :disabled="!reportState?.report_can_be_generated"><i class="fa fa-download"></i> Generate Report</button>
           </div>
         </div>
         <div class="row">
           <div class="col-sm-12">
-            <div class="nav tabs tabsWithButton">
-              <div>
-                <h5
-                  class="nav-item"
-                  :class="{ active: isRouteSelected(routeLinks.throughput.endpoints.root) || isRouteSelected(routeLinks.throughput.endpoints.detectedEndpoints.link) || isRouteSelected(routeLinks.throughput.endpoints.detectedBrokerQueues.link) }"
-                >
-                  <RouterLink :to="routeLinks.throughput.endpoints.root">Endpoints</RouterLink>
-                </h5>
-                <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.setup.root) || isRouteSelected(routeLinks.throughput.setup.mask.link) || isRouteSelected(routeLinks.throughput.setup.diagnostics.link) }">
-                  <RouterLink :to="routeLinks.throughput.setup.root">Setup</RouterLink>
-                </h5>
-              </div>
-              <div class="filter-group">
-                <p v-if="!reportState?.report_can_be_generated">{{ reportState?.reason }}</p>
-                <button type="button" class="btn btn-primary actions" @click="generateReport()" :disabled="!reportState?.report_can_be_generated"><i class="fa fa-download"></i> Generate Report</button>
-              </div>
-            </div>
+            <RouterView />
           </div>
         </div>
-        <RouterView />
       </div>
     </ThroughputSupported>
   </ServiceControlAvailable>
 </template>
 
 <style scoped>
-.tabsWithButton {
-  justify-content: space-between;
-}
-.filter-group {
-  display: flex;
-  align-items: baseline;
-  gap: 1em;
+.reason {
+  margin-left: 5px;
+  margin-right: 5px;
 }
 </style>

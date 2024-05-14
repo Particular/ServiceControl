@@ -4,13 +4,14 @@ import isRouteSelected from "@/composables/isRouteSelected";
 import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator";
 import { userIndicatorMapper } from "@/views/throughputreport/endpoints/userIndicatorMapper";
 import { ref } from "vue";
+import { isBrokerTransport } from "@/views/throughputreport/transport";
 
-const showLegend = ref(false);
+const showLegend = ref(true);
 const legendOptions = new Map<UserIndicator, string>([
   [UserIndicator.NServiceBusEndpoint, "Known NServiceBus Endpoint"],
   [UserIndicator.NServiceBusEndpointNoLongerInUse, "NServiceBus Endpoint that is no longer in use, usually this would have zero throughput"],
   [UserIndicator.SendOnlyOrTransactionSessionEndpoint, "If the endpoint has no throughput or the endpoint has Transactional Session feature enabled"],
-  [UserIndicator.PlannedToDecommission, "If the endpoint is planned to no longer be used in the future."],
+  [UserIndicator.PlannedToDecommission, "If the endpoint is planned to no longer be used in the next 30 days"],
   [UserIndicator.NotNServiceBusEndpoint, "Not a NServiceBus Endpoint"],
 ]);
 
@@ -38,7 +39,7 @@ function showHideOptionsLegend() {
           <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.endpoints.detectedEndpoints.link) }">
             <RouterLink :to="routeLinks.throughput.endpoints.detectedEndpoints.link">Detected Endpoints</RouterLink>
           </h5>
-          <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.endpoints.detectedBrokerQueues.link) }">
+          <h5 v-if="isBrokerTransport" class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.endpoints.detectedBrokerQueues.link) }">
             <RouterLink :to="routeLinks.throughput.endpoints.detectedBrokerQueues.link">Detected Broker Queues</RouterLink>
           </h5>
         </div>

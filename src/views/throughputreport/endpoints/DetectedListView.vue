@@ -206,6 +206,9 @@ async function save() {
       </tr>
     </thead>
     <tbody>
+      <tr v-if="data.length === 0">
+        <td colspan="2" class="text-center"><slot name="nodata"></slot></td>
+      </tr>
       <tr v-for="row in filteredData" :key="row.name">
         <td class="col">
           {{ row.name }}

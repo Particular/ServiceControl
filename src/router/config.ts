@@ -138,30 +138,7 @@ const config: RouteItem[] = [
             component: () => import("@/views/throughputreport/endpoints/DetectedBrokerQueuesView.vue"),
           }
         ]
-      },
-      {
-        title: "Setup",
-        path: routeLinks.throughput.setup.root,
-        redirect: routeLinks.throughput.setup.connectionSetup.link,
-        component: () => import("@/views/throughputreport/SetupView.vue"),
-        children: [
-          {
-            title: "Connection Setup",
-            path: routeLinks.throughput.setup.connectionSetup.template,
-            component: () => import("@/views/throughputreport/setup/ConnectionSetupView.vue"),
-          },
-          {
-            title: "Mask Report Data",
-            path: routeLinks.throughput.setup.mask.template,
-            component: () => import("@/views/throughputreport/setup/MasksView.vue"),
-          },
-          {
-            title: "Diagnostics",
-            path: routeLinks.throughput.setup.diagnostics.template,
-            component: () => import("@/views/throughputreport/setup/DiagnosticsView.vue"),
-          }
-        ]
-      },
+      }
     ],
   },
   {
@@ -194,6 +171,29 @@ const config: RouteItem[] = [
         title: "Endpoint Connection",
         path: routeLinks.configuration.endpointConnection.template,
         component: () => import("@/components/configuration/EndpointConnection.vue"),
+      },
+      {
+        title: "Throughput Setup",
+        path: routeLinks.throughput.setup.root,
+        redirect: routeLinks.throughput.setup.connectionSetup.link,
+        component: () => import("@/views/throughputreport/SetupView.vue"),
+        children: [
+          {
+            title: "Connection Setup",
+            path: routeLinks.throughput.setup.connectionSetup.template,
+            component: () => import("@/views/throughputreport/setup/ConnectionSetupView.vue"),
+          },
+          {
+            title: "Mask Report Data",
+            path: routeLinks.throughput.setup.mask.template,
+            component: () => import("@/views/throughputreport/setup/MasksView.vue"),
+          },
+          {
+            title: "Diagnostics",
+            path: routeLinks.throughput.setup.diagnostics.template,
+            component: () => import("@/views/throughputreport/setup/DiagnosticsView.vue"),
+          }
+        ]
       },
     ],
   },

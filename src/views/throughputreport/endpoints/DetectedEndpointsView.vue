@@ -9,7 +9,9 @@ import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator"
     :indicator-options="[UserIndicator.NServiceBusEndpoint, UserIndicator.SendOnlyOrTransactionSessionEndpoint, UserIndicator.NServiceBusEndpointNoLongerInUse, UserIndicator.PlannedToDecommission]"
     :source="DataSource.wellKnownEndpoint"
     column-title="Endpoint Name"
-  />
+  >
+    <template #nodata> No throughput data available yet </template>
+  </DetectedListView>
 </template>
 
 <style scoped></style>
