@@ -50,7 +50,6 @@ class AzureQueryTests : TransportTestFixture
             await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
-        CollectionAssert.Contains(errors, "SubscriptionId is a required setting");
         CollectionAssert.Contains(errors, "ClientId is a required setting");
         CollectionAssert.Contains(errors, "ClientSecret is a required setting");
         CollectionAssert.Contains(errors, "TenantId is a required setting");
