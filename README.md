@@ -18,22 +18,8 @@ A video demo showing how to set it up is available on the Particular YouTube cha
 
 ### Infrastructure setup
 
-If the instance is executed for the first time, it must set up the required infrastructure. To do so, once the instance is configured to use the selected transport and persister, run/debug it in setup mode by adding a `launchSettings.json` file to the project of the instance to set up. The file content for the `ServiceControl.Audit` instance looks like the following:
-
-```json
-{
- "profiles": {
-  "ServiceControl.Audit": {
-   "commandName": "Project",
-   "commandLineArgs": "/setup"
-  }
- }
-}
-```
-
-Replace `ServiceControl.Audit` with the project name of the instance to set up.
-
-The instance will start as usual, execute the setup process, and exit. Remove the `launchSettings.json` file and run/debug the instance normally.
+If the instance is executed for the first time, it must set up the required infrastructure. To do so, once the instance is configured to use the selected transport and persister, run it in setup mode. This can be done by using the `Setup {instance name}` launch profile that is defined in 
+the `launchSettings.json` file of each instance. When started in setup mode, the instance will start as usual, execute the setup process, and exit. At this point the instance can be run normally by using the non-setup launch profile. 
 
 ### Run Instances on Learning transport
 
@@ -61,29 +47,6 @@ Running all tests all the times takes a lot of resources. Tests are filtered bas
 - `SQS`
 
 NOTE: If no variable is defined all tests will be executed.
-
-### Use the x64 test agent
-
-The tests need to be run in x64 otherwise an exception about RavenDB (Voron) not being supported in 32bit mode will be thrown.
-The `ServiceControl.runsettings` file in each test project should automatically ensure that tests are run in 64 bit mode.  For reference, there is also a setting in Visual Studio that can be used to ensure test execution is using x64 only: 
-
-![image](https://user-images.githubusercontent.com/4316196/177248330-c7357e85-b7a1-4cec-992f-535b1e9a0cb4.png)
-
-### Integration Tests
-
-ًBy default integration tests use `MSMQ` transport to run. This can be overridden by renaming the `_connection.txt` file in the root of the solution to `connection.txt` and updating the transport type and connection string.
-Only the first 3 lines of this file are read with the following information:
-- First line is the Transport name
-- Second line is the ServiceControl Transport type information (implementation of `ITransportIntegration` interface)
-- Third line is the connection string
-
-To change the tests to use LearningTransport, rename the file and change the content to this:
-
-```
-LearningTransport
-ConfigureEndpointLearningTransport
-c:\Temp\ServiceControlTemp
-```
 
 ## How to developer test the PowerShell Module
 
@@ -115,58 +78,3 @@ Steps:
      -ErrorRetentionPeriod 10:00:00:00 `
      -Acknowledgements RabbitMQBrokerVersion310
   ```
-
-## How to build and run Docker images
-
-NOTE: The following instructions are provided to ease development stages only. To run container images in production, refer to the ones available on Docker Hub.
-
-Docker images are built by the `ServiceControl.DockerImages` project. In order to keep the overall build time under control, the project is not automatically built when building the solution. To explicitly build Docker images, build that project using the IDE or MSBuild from the command line.
-
-NOTE: The project will build Docker images for all supported transports. To build images for a subset of the transports, edit the `.csproj` file and comment out, or delete the unneeded transport definitions in the `SupportedTransport` `ItemGroup`.
-
-Once the images are built, the instances can be started by first running the init container to provision the required queues and databases (using RabbitMQ Conventional topology as an example):
-
-```cmd
-docker run --name servicecontrol.init -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -v C:/ServiceControl/:c:/data/ particular/servicecontrolrabbitdirect.init
-docker run --name servicecontrol.monitoring.init -e "Monitoring/ConnectionString=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' particular/servicecontrolrabbitconventional.monitoring.init
-docker run --name servicecontrol.audit.init -e "ServiceControl.Audit/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -v C:/ServiceControl.Audit/:c:/data/ particular/servicecontrolrabbitdirect.audit.init
-```
-
-That will create the required queues and the database for ServiceControl and ServiceControl.Audit. To run the containers now that everything is provisioned, first run the audit container:
-
-```cmd
-docker run --name servicecontrol.audit -p 44444:44444 -e "ServiceControl.Audit/ConnectionString=host=[connectionstring]" -e 'ServiceControl.Audit/LicenseText=[licensecontents]' -e 'ServiceControl.Audit/ServiceControlQueueAddress=Particular.ServiceControl' -v C:/ServiceControl.Audit/:c:/data/ -d particular/servicecontrolrabbitdirect.audit
-```
-
-Then grab its IP address using `docker inspect`, and specify it using the `ServiceControl/RemoteInstances` environment variable when starting the servicecontrol container. 
-
-```cmd
-docker run --name servicecontrol -p 33333:33333 -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -e 'ServiceControl.Audit/ServiceControlQueueAddress=Particular.ServiceControl' -e "ServiceControl/RemoteInstances=[{'api_uri':'http://172.28.XXX.XXX:44444/api'}]" -v C:/ServiceControl:c:/data/ -d particular/servicecontrolrabbitdirect
-```
-
-ServiceControl will now run in a docker container.
-
-To run a ServiceControl Monitoring instance:
-
-```cmd
-docker run --name servicecontrol.monitoring -p 33633:33633 -e "Monitoring/ConnectionString=host=[connectionstring]" -e 'Monitoring/LicenseText=[licensecontents]' -d particular/servicecontrolrabbitdirect.monitoring
-```
-
-### Notes
-
-- RabbitMQ can either be installed on the host or run in another Docker container.  In either case, the ServiceControl connection strings will need to refer to the host IP address.
-- The special DNS name `host.docker.internal` does [not](https://github.com/docker/for-win/issues/12673) [work](https://github.com/docker/for-win/issues/1976) on Docker Desktop for Windows, and it also doesn't support host networks.  To get the IP address of the host for the connection string environment variables, use `ipconfig` and find the IP address of the vEthernet adapter Docker is using, e.g.
-
-```txt
-Ethernet adapter vEthernet (nat):
-
-   Connection-specific DNS Suffix  . :
-   Link-local IPv6 Address . . . . . : fe80::c12a:27cf:ad50:8b7b%41
-   IPv4 Address. . . . . . . . . . . : 172.29.144.1
-   Subnet Mask . . . . . . . . . . . : 255.255.240.0
-   Default Gateway . . . . . . . . . :
-```
-
-- RabbitMQ's default `guest` account cannot be used, since authentication will fail when ServiceControl is running in a docker container.  
-- The ServiceControl docker images are currently Windows based images while the RabbitMQ docker image is Linux based.  As such, these cannot be managed by docker-compose on a single Windows host.
-- Refer to [here](https://docs.particular.net/servicecontrol/containerization/) for more in depth documentation on running ServiceControl docker images (including on how to mount the license file rather than pass it in as an environment variable)
