@@ -59,18 +59,10 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
             {
                 Diagnostics.AppendLine($"AccessKey set to \"{accessKey}\"");
             }
-            else
-            {
-                Diagnostics.AppendLine("AccessKey not set");
-            }
 
             if (settings.TryGetValue(AmazonSQSSettings.SecretKey, out string? secretKey))
             {
                 Diagnostics.AppendLine("SecretKey set");
-            }
-            else
-            {
-                Diagnostics.AppendLine("SecretKey not set");
             }
 
             if (accessKey != null && secretKey != null)
@@ -91,7 +83,9 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
                 else
                 {
                     Diagnostics.AppendLine(
-                        "Attempting to use existing environment variables (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY) or IAM role credentials");
+                        "AccessKey not set, attempting to use existing environment variable (AWS_ACCESS_KEY_ID) or IAM role credentials");
+                    Diagnostics.AppendLine(
+                        "SecretKey not set, attempting to use existing environment variable (AWS_SECRET_ACCESS_KEY) or IAM role credentials");
                     logger.LogInformation("Attempting to use existing environment variables or IAM role credentials");
                 }
             }
