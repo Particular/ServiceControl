@@ -33,7 +33,7 @@ class AmazonSQSQueryTests : TransportTestFixture
             MaxConcurrency = 1,
             EndpointName = Guid.NewGuid().ToString("N")
         };
-        query = new AmazonSQSQuery(NullLogger<AmazonSQSQuery>.Instance, provider);
+        query = new AmazonSQSQuery(NullLogger<AmazonSQSQuery>.Instance, provider, transportSettings);
     }
 
     [Test]
