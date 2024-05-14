@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Core;
 using Azure.Core.Pipeline;
 using Azure.Identity;
 using Azure.Monitor.Query;
@@ -28,6 +29,9 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
     protected override void InitialiseCore(FrozenDictionary<string, string> settings)
     {
+        ConnectionSettings? connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
+        bool usingManagedIdentity =
+            connectionSettings.AuthenticationMethod is TokenCredentialAuthentication;
         if (settings.TryGetValue(AzureServiceBusSettings.ManagementUrl, out string? managementUrl))
         {
             if (!Uri.TryCreate(managementUrl, UriKind.Absolute, out _))
@@ -55,15 +59,14 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
         if (!settings.TryGetValue(AzureServiceBusSettings.SubscriptionId, out string? subscriptionId))
         {
-            InitialiseErrors.Add("SubscriptionId is a required setting");
-            Diagnostics.AppendLine("SubscriptionId not set");
+            Diagnostics.AppendLine("SubscriptionId not set, using the first found subscription");
         }
         else
         {
             Diagnostics.AppendLine($"SubscriptionId set to \"{subscriptionId}\"");
         }
 
-        if (!settings.TryGetValue(AzureServiceBusSettings.TenantId, out string? tenantId))
+        if (!settings.TryGetValue(AzureServiceBusSettings.TenantId, out string? tenantId) && !usingManagedIdentity)
         {
             InitialiseErrors.Add("TenantId is a required setting");
             Diagnostics.AppendLine("TenantId not set");
@@ -73,7 +76,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             Diagnostics.AppendLine($"TenantId set to \"{tenantId}\"");
         }
 
-        if (!settings.TryGetValue(AzureServiceBusSettings.ClientId, out string? clientId))
+        if (!settings.TryGetValue(AzureServiceBusSettings.ClientId, out string? clientId) && !usingManagedIdentity)
         {
             InitialiseErrors.Add("ClientId is a required setting");
             Diagnostics.AppendLine("ClientId not set");
@@ -83,7 +86,8 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             Diagnostics.AppendLine($"ClientId set to \"{clientId}\"");
         }
 
-        if (!settings.TryGetValue(AzureServiceBusSettings.ClientSecret, out string? clientSecret))
+        if (!settings.TryGetValue(AzureServiceBusSettings.ClientSecret, out string? clientSecret) &&
+            !usingManagedIdentity)
         {
             InitialiseErrors.Add("ClientSecret is a required setting");
             Diagnostics.AppendLine("Client secret not set");
@@ -109,7 +113,16 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             return;
         }
 
-        var clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
+        TokenCredential clientCredentials;
+        if (connectionSettings.AuthenticationMethod is TokenCredentialAuthentication tokenCredentialAuthentication)
+        {
+            Diagnostics.AppendLine("Attempting to use managed identity");
+            clientCredentials = tokenCredentialAuthentication.Credential;
+        }
+        else
+        {
+            clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
+        }
 
         client = new MetricsQueryClient(environment.Endpoint, clientCredentials,
             new MetricsQueryClientOptions
