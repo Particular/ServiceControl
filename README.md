@@ -18,7 +18,8 @@ A video demo showing how to set it up is available on the Particular YouTube cha
 
 ### Infrastructure setup
 
-If the instance is executed for the first time, it must set up the required infrastructure. To do so, once the instance is configured to use the selected transport and persister, run/debug it in setup mode. Each instance `launchSettings.json` file defines two launch profiles. One launch profile starts the instance normally, the other one starts the instance in setup mode. When started in setup mode, the instance will start as usual, execute the setup process, and exit. At this point the instance can be run/debugged normally by using the non-setup launch profile.
+If the instance is executed for the first time, it must set up the required infrastructure. To do so, once the instance is configured to use the selected transport and persister, run it in setup mode. This can be done by using the `Setup {instance name}` launch profile that is defined in 
+the `launchSettings.json` file of each instance. When started in setup mode, the instance will start as usual, execute the setup process, and exit. At this point the instance can be run normally by using the non-setup launch profile. 
 
 ### Run Instances on Learning transport
 
