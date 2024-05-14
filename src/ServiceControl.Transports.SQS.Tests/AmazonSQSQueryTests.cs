@@ -63,7 +63,9 @@ class AmazonSQSQueryTests : TransportTestFixture
 
         var dictionary = new Dictionary<string, string>
         {
-            { AmazonSQSQuery.AmazonSQSSettings.Region, "not_valid" }
+            { AmazonSQSQuery.AmazonSQSSettings.Region, "not_valid" },
+            { AmazonSQSQuery.AmazonSQSSettings.AccessKey, "valid" },
+            { AmazonSQSQuery.AmazonSQSSettings.SecretKey, "valid" }
         };
         query.Initialise(dictionary.ToFrozenDictionary());
         (bool success, List<string> errors, string diagnostics) =
@@ -79,12 +81,17 @@ class AmazonSQSQueryTests : TransportTestFixture
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(332240));
 
-        var dictionary = new Dictionary<string, string>();
+        var dictionary = new Dictionary<string, string>
+        {
+            { AmazonSQSQuery.AmazonSQSSettings.Region, "us-east-1" },
+            { AmazonSQSQuery.AmazonSQSSettings.AccessKey, "valid" },
+            { AmazonSQSQuery.AmazonSQSSettings.SecretKey, "valid" }
+        };
         query.Initialise(dictionary.ToFrozenDictionary());
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
         Approver.Verify(diagnostics);
-        Assert.IsTrue(success);
+        Assert.IsFalse(success);
     }
 
     [Test]

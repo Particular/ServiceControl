@@ -3,5 +3,5 @@ Invalid region endpoint provided
 
 Connection attempted with the following settings:
 Profile not set
-AccessKey not set, defaulted to using "foo" from the ConnectionString used by instance
-SecretKey not set, defaulted to using SecretKey from the ConnectionString used by instance
+AccessKey set to "valid"
+SecretKey set
