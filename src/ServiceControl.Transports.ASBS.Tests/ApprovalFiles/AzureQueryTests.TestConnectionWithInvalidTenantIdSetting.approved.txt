@@ -3,8 +3,8 @@ Invalid tenant id provided. You can locate your tenant id by following the instr
 
 Connection attempted with the following settings:
 ServiceBus name not set, defaulted to "testmenow"
-SubscriptionId set to "not valid"
-TenantId set to "not valid"
-ClientId set to "not valid"
+SubscriptionId set
+TenantId set
+ClientId set
 Client secret set
 Management Url not set, defaulted to "https://management.azure.com/"

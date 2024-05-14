@@ -57,7 +57,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
 
             if (settings.TryGetValue(AmazonSQSSettings.AccessKey, out string? accessKey))
             {
-                Diagnostics.AppendLine($"AccessKey set to \"{accessKey}\"");
+                Diagnostics.AppendLine("AccessKey set");
             }
 
             if (settings.TryGetValue(AmazonSQSSettings.SecretKey, out string? secretKey))
@@ -75,9 +75,8 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
                 if (sqsConnectionString is { AccessKey: not null, SecretKey: not null })
                 {
                     credentials = new BasicAWSCredentials(sqsConnectionString.AccessKey, sqsConnectionString.SecretKey);
-                    Diagnostics.AppendLine(
-                        $"AccessKey not set, defaulted to using \"{sqsConnectionString.AccessKey}\" from the ConnectionString used by instance");
-                    Diagnostics.AppendLine("SecretKey not set, defaulted to using SecretKey from the ConnectionString used by instance");
+                    Diagnostics.AppendLine("AccessKey not set, defaulted to using the value from the ConnectionString used by instance");
+                    Diagnostics.AppendLine("SecretKey not set, defaulted to using the value from the ConnectionString used by instance");
                     logger.LogInformation("Using AccessKey and SecretKey used by the instance ConnectionString");
                 }
                 else
@@ -124,7 +123,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
                 }
                 catch (InvalidOperationException)
                 {
-                    Diagnostics.AppendLine("Region not set,");
+                    Diagnostics.AppendLine("Region not set");
                     throw;
                 }
             }

@@ -3,8 +3,8 @@ ClientSecretCredential authentication failed: AADSTS700016: Application with ide
 
 Connection attempted with the following settings:
 ServiceBus name not set, defaulted to "testmenow"
-SubscriptionId set to "xxxxx"
-TenantId set to "xxxxx"
-ClientId set to "not valid"
+SubscriptionId set
+TenantId set
+ClientId set
 Client secret set
 Management Url set to "https://management.azure.com/"
