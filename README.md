@@ -18,24 +18,7 @@ A video demo showing how to set it up is available on the Particular YouTube cha
 
 ### Infrastructure setup
 
-If the instance is executed for the first time, it must set up the required infrastructure. To do so, once the instance is configured to use the selected transport and persister, run/debug it in setup mode by adding a `commandLineArgs` setting with the value of `/setup` to the `launchSettings.json` file of the instance. For example, the file content for the `ServiceControl.Audit` instance looks like the following:
-
-```json
-{
-  "profiles": {
-    "ServiceControl": {
-      "commandName": "Project",
-      "commandLineArgs": "/setup",
-      "launchBrowser": false,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    }
-  }
-}
-```
-
-The instance will start as usual, execute the setup process, and exit. Remove the `commandLineArgs` setting and run/debug the instance normally.
+If the instance is executed for the first time, it must set up the required infrastructure. To do so, once the instance is configured to use the selected transport and persister, run/debug it in setup mode. Each instance `launchSettings.json` file defines two launch profiles. One launch profile starts the instance normally, the other one starts the instance in setup mode. When started in setup mode, the instance will start as usual, execute the setup process, and exit. At this point the instance can be run/debugged normally by using the non-setup launch profile.
 
 ### Run Instances on Learning transport
 
