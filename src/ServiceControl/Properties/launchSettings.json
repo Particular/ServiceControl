@@ -7,5 +7,13 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }
+  },
+  "Setup ServiceControl": {
+    "commandName": "Project",
+    "launchBrowser": false,
+    "environmentVariables": {
+      "ASPNETCORE_ENVIRONMENT": "Development"
+    },
+    "commandLineArgs": "--setup"
   }
 }
