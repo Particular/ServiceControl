@@ -1,11 +1,11 @@
-import content from "../mocks/service-control-main-instance.json";
+import { serviceControlMainInstance } from "../mocks/service-control-instance-template";
 import { SetupFactoryOptions } from "../driver";
 
 export const hasServiceControlMainInstance = ({ driver }: SetupFactoryOptions) => {
   const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
   driver.mockEndpoint(serviceControlInstanceUrl, {
-    body: content,
+    body: serviceControlMainInstance,
     headers: { "X-Particular-Version": "5.0.4" },
   });
-  return content;
+  return serviceControlMainInstance;
 };

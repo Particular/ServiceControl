@@ -1,4 +1,4 @@
-import heartbeatEndpointTemplate from "../mocks/heartbeat-endpoint-template";
+import { heartbeatEndpointTemplate } from "../mocks/heartbeat-endpoint-template";
 import { SetupFactoryOptions } from "../driver";
 
 export const heartbeatsEndpointsNamed =
@@ -15,4 +15,4 @@ export const heartbeatsEndpointsNamed =
     return response;
   };
 
-  export const hasNoHeartbeatsEndpoints = heartbeatsEndpointsNamed([]);
+export const hasNoHeartbeatsEndpoints = heartbeatsEndpointsNamed([]);

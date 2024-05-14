@@ -9,7 +9,7 @@ import { findSortImageInColumn } from "./questions/sortDirection";
 import { smallGraphAverageValuesByColumn } from "./questions/smallGraphAverageValuesByColumn";
 import { ungroupedEndpointNames } from "./questions/ungroupedEndpointNames";
 import * as precondition from "../../preconditions";
-import monitoredEndpointTemplate from "../../mocks/monitored-endpoint-template";
+import { monitoredEndpointTemplate } from "../../mocks/monitored-endpoint-template";
 import { Endpoint } from "@/resources/MonitoringEndpoint";
 
 enum columnName {

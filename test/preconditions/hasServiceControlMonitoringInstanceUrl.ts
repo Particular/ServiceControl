@@ -1,10 +1,10 @@
-import monitoredInstanceTemplate from "../mocks/service-control-monitoring-instance-template";
+import { monitoredInstanceTemplate } from "../mocks/service-control-instance-template";
 import { SetupFactoryOptions } from "../driver";
 
 export const hasServiceControlMonitoringInstanceUrl =
   (url: string) =>
   ({ driver }: SetupFactoryOptions) => {
-    const content = { ...monitoredInstanceTemplate };
+    const content = monitoredInstanceTemplate;
     window.defaultConfig.monitoring_urls[0] = url;
     driver.mockEndpoint(url, {
       body: content,

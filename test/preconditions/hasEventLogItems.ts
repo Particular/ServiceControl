@@ -1,10 +1,10 @@
-import content from "../mocks/event-log-items.json";
+import { eventLogItems } from "../mocks/event-log-items-template";
 import { SetupFactoryOptions } from "../driver";
 
 export const hasEventLogItems = ({ driver }: SetupFactoryOptions) => {
   const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
   driver.mockEndpoint(`${serviceControlInstanceUrl}eventlogitems`, {
-    body: content,
+    body: eventLogItems,
   });
-  return content;
+  return eventLogItems;
 };

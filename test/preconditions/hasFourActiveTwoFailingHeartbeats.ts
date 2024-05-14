@@ -1,10 +1,10 @@
 import { SetupFactoryOptions } from "../driver";
-import content from "../mocks/heartbeats-four-active-two-failing.json";
+import { heartbeatsFourActiveTwoFailing } from "../mocks/heartbeat-endpoint-template";
 
 export const hasFourActiveTwoFailingHeartbeats = ({ driver }: SetupFactoryOptions) => {
   const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
   driver.mockEndpoint(`${serviceControlInstanceUrl}heartbeats/stats`, {
-    body: content,
+    body: heartbeatsFourActiveTwoFailing,
   });
-  return content;
+  return heartbeatsFourActiveTwoFailing;
 };
