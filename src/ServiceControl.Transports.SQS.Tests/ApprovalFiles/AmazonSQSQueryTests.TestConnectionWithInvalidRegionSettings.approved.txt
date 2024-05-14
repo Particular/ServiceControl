@@ -3,5 +3,5 @@ Invalid region endpoint provided
 
 Connection attempted with the following settings:
 Profile not set
-AccessKey set to "valid"
+AccessKey set
 SecretKey set
