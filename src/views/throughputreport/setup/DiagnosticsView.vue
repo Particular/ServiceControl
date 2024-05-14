@@ -4,6 +4,7 @@ import ConnectionTestResults from "@/resources/ConnectionTestResults";
 import throughputClient from "@/views/throughputreport/throughputClient";
 import ConnectionResultView from "@/views/throughputreport/setup/ConnectionResultView.vue";
 import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
+import { isBrokerTransport } from "@/views/throughputreport/transport";
 
 const testResults = ref<ConnectionTestResults | null>(null);
 const loading = ref(true);
@@ -26,7 +27,7 @@ async function testConnection() {
       <div class="sp-loader" />
     </template>
     <template v-else>
-      <ConnectionResultView title="Broker" :result="testResults?.broker_connection_result!" />
+      <ConnectionResultView v-if="isBrokerTransport" title="Broker" :result="testResults?.broker_connection_result!" />
       <ConnectionResultView title="Audit" :result="testResults?.audit_connection_result!" />
       <ConnectionResultView v-if="useIsMonitoringEnabled()" title="Monitoring" :result="testResults?.monitoring_connection_result!" />
     </template>

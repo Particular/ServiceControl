@@ -24,7 +24,8 @@ function showHideOptionsLegend() {
   <div class="box">
     <div class="row">
       <p>
-        Set an endpoint type for all detected endpoints and detected broker queues with the most appropriate option.<br />
+        Set an Endpoint Type for all detected endpoints and detected broker queues with the most appropriate option.<br />
+        Use the filters to bulk set the Endpoint Types on similar named endpoints/queues.<br />
         <a href="#" @click.prevent="showHideOptionsLegend()">{{ showLegend ? "Hide" : "Show" }} options meaning.</a>
       </p>
       <div v-show="showLegend" class="alert alert-info">

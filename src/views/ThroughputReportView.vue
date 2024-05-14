@@ -14,10 +14,21 @@ onMounted(async () => {
 });
 
 async function generateReport() {
+  const results = await throughputClient.endpoints();
+  const found = results.find((value) => !value.user_indicator);
+
+  if (found) {
+    const answer = window.confirm("Not all endpoints/queues have an Endpoint Type set. Are you sure you want to continue?");
+    // cancel the navigation and stay on the same page
+    if (!answer) {
+      return false;
+    }
+  }
+
   const fileName = await throughputClient.downloadReport();
 
   if (fileName !== "") {
-    useShowToast(TYPE.INFO, "Report Generated", `Please email ${fileName} to your account manager`, true);
+    useShowToast(TYPE.INFO, "Report Generated", `Please email '${fileName}' to your account manager`, true);
   }
 }
 </script>

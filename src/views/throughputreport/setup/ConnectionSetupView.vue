@@ -48,9 +48,9 @@ function transportNameForInstructions() {
 <template>
   <div class="row">
     <p>
-      In order for ServicePulse to collect throughput data directly from {{ transportNameForInstructions() }} you need to configure the following settings in ServiceControl.<br />
-      There are two options to set the settings, you can either set environment variables or alternative is to set it directly in the <code>ServiceControl.exe.config</code> file.<br />
-      For more information read <a href="https://docs.particular.net/servicecontrol/creating-config-file">this documentation</a>.
+      In order for ServicePulse to collect throughput data directly from {{ transportNameForInstructions() }} you need to configure the following settings.<br />
+      There are two options to set the settings, you can either set environment variables or alternative is to set it directly in the
+      <a href="https://docs.particular.net/servicecontrol/creating-config-file"><code>ServiceControl.exe.config</code></a> file.
     </p>
   </div>
   <div class="row">

@@ -176,7 +176,7 @@ async function save() {
       </div>
       <div class="col">
         <div class="dropdown">
-          <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Mark results as</button>
+          <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Set displayed Endpoint Types to</button>
           <ul class="dropdown-menu">
             <li v-for="indicator in props.indicatorOptions" :key="indicator">
               <a href="#" @click.prevent="updateIndicators(indicator)">{{ userIndicatorMapper.get(indicator) }}</a>
@@ -192,8 +192,6 @@ async function save() {
       <div class="col format-showing-results">
         <div>Showing {{ filteredData.length }} of {{ data.length }} result(s)</div>
       </div>
-      <div class="col"></div>
-      <div class="col-1"></div>
     </div>
   </div>
 
@@ -213,8 +211,8 @@ async function save() {
         <td class="col">
           {{ row.name }}
         </td>
-        <td class="col">{{ row.max_daily_throughput }}</td>
-        <td class="col">
+        <td class="col" style="width: 250px">{{ row.max_daily_throughput }}</td>
+        <td class="col" style="width: 350px">
           <select class="form-select endpointType format-text" @change="(event) => updateIndicator(event, row.name)">
             <option value="">Pick the most appropriate option</option>
             <option v-for="item in props.indicatorOptions" :key="item" :value="item" :selected="(dataChanges.get(row.name)?.indicator ?? getDefaultEndpointType(row)) === item">{{ userIndicatorMapper.get(item) }}</option>
