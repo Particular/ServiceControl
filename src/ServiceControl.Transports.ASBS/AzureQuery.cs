@@ -63,7 +63,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         }
         else
         {
-            Diagnostics.AppendLine($"SubscriptionId set to \"{subscriptionId}\"");
+            Diagnostics.AppendLine("SubscriptionId set");
         }
 
         if (!settings.TryGetValue(AzureServiceBusSettings.TenantId, out string? tenantId) && !usingManagedIdentity)
@@ -73,7 +73,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         }
         else
         {
-            Diagnostics.AppendLine($"TenantId set to \"{tenantId}\"");
+            Diagnostics.AppendLine("TenantId set");
         }
 
         if (!settings.TryGetValue(AzureServiceBusSettings.ClientId, out string? clientId) && !usingManagedIdentity)
@@ -83,7 +83,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         }
         else
         {
-            Diagnostics.AppendLine($"ClientId set to \"{clientId}\"");
+            Diagnostics.AppendLine("ClientId set");
         }
 
         if (!settings.TryGetValue(AzureServiceBusSettings.ClientSecret, out string? clientSecret) &&

@@ -3,6 +3,6 @@ The security token included in the request is invalid.
 
 Connection attempted with the following settings:
 Profile not set
-AccessKey set to "not_valid"
+AccessKey set
 SecretKey set
 Region set to "us-east-1", this setting overrides the profile setting
