@@ -2,7 +2,6 @@ Connection test to AmazonSQS was successful
 
 Connection settings used:
 Profile not set
-AccessKey not set
-SecretKey not set
-Attempting to use existing environment variables (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY) or IAM role credentials
-Region not set, using "us-east-1" set by the environment setting (AWS_REGION)
+AccessKey not set, defaulted to using "foo" from the ConnectionString used by instance
+SecretKey not set, defaulted to using SecretKey from the ConnectionString used by instance
+Region not set, defaulted to using "us-east-1" from the ConnectionString used by instance
