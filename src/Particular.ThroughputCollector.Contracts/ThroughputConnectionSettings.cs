@@ -3,6 +3,7 @@
 public class ThroughputConnectionSettings
 {
     public List<ThroughputConnectionSetting> ServiceControlSettings { get; set; } = [];
+    public List<ThroughputConnectionSetting> MonitoringSettings { get; set; } = [];
     public List<ThroughputConnectionSetting> BrokerSettings { get; set; } = [];
 }
 
