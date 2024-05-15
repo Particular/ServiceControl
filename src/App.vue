@@ -6,6 +6,7 @@ import "bootstrap";
 import { useLicense } from "@/composables/serviceLicense";
 import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { useServiceControl } from "@/composables/serviceServiceControl";
+import "highlight.js/styles/github-dark.css";
 
 // eslint-disable-next-line github/no-then
 useServiceControlUrls().then(async () => await Promise.all([useLicense(), useServiceControl()]));

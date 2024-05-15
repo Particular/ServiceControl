@@ -5,7 +5,7 @@ export interface Item {
 }
 
 const props = defineProps<{
-  label: string;
+  label?: string;
   selectItem?: Item;
   items: Item[];
   callback: (item: Item) => void;
@@ -14,7 +14,7 @@ const props = defineProps<{
 
 <template>
   <div class="dropdown">
-    <label class="control-label">{{ props.label }}:</label>
+    <label v-if="label" class="control-label">{{ props.label }}:</label>
     <button type="button" class="btn btn-dropdown dropdown-toggle sp-btn-menu" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ props.selectItem?.text ?? props.items[0].text }}</button>
     <ul class="dropdown-menu">
       <li v-for="item in props.items" :key="item.value">

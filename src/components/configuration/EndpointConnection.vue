@@ -5,8 +5,7 @@ import ServiceControlNotAvailable from "../ServiceControlNotAvailable.vue";
 import { licenseStatus } from "@/composables/serviceLicense";
 import { connectionState, useServiceControlConnections } from "@/composables/serviceServiceControl";
 import BusyIndicator from "../BusyIndicator.vue";
-import { HighCode } from "vue-highlight-code";
-import "vue-highlight-code/dist/style.css";
+import VCodeBlock from "@wdns/vue-code-block";
 
 const isExpired = licenseStatus.isExpired;
 
@@ -110,7 +109,7 @@ function switchJsonTab() {
               <section v-if="showCodeOnlyTab && !loading">
                 <div class="row">
                   <div class="col-12 h-100">
-                    <HighCode :codeValue="inlineSnippet" lang="csharp" :fontSize="'12px'" :width="'100%'" :height="'100%'" :borderRadius="'0px'" :nameShow="false" :copy="true"></HighCode>
+                    <VCodeBlock :code="inlineSnippet" lang="csharp"></VCodeBlock>
                   </div>
                 </div>
               </section>
@@ -120,11 +119,11 @@ function switchJsonTab() {
                   <div class="col-12 h-100">
                     <p>Note that when using JSON for configuration, you also need to change the endpoint configuration as shown below.</p>
                     <p><strong>Endpoint configuration:</strong></p>
-                    <HighCode :codeValue="jsonSnippet" lang="csharp" :fontSize="'12px'" :width="'100%'" :height="'100%'" :nameShow="false" :borderRadius="'0px'" :copy="true"></HighCode>
+                    <VCodeBlock :code="jsonSnippet" lang="csharp"></VCodeBlock>
                     <p style="margin-top: 15px">
                       <strong>JSON configuration file:</strong>
                     </p>
-                    <HighCode :codeValue="jsonConfig" lang="json" :fontSize="'12px'" :width="'100%'" :height="'100%'" :nameShow="false" :borderRadius="'0px'" :copy="true"></HighCode>
+                    <VCodeBlock :code="jsonConfig" lang="json"></VCodeBlock>
                   </div>
                 </div>
               </section>
