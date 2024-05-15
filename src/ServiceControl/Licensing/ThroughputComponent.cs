@@ -24,6 +24,6 @@ class ThroughputComponent : ServiceControlComponent
 
     public override void Setup(Settings settings, IComponentInstallationContext context, IHostApplicationBuilder hostBuilder)
     {
-        context.CreateQueue(PlatformEndpointHelper.ServiceControlThroughputDataQueue);
+        context.CreateQueue(ServiceControlSettings.ServiceControlThroughputDataQueue);
     }
 }
