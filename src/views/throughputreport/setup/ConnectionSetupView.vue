@@ -57,7 +57,7 @@ function transportNameForInstructions() {
     <div class="card">
       <div class="card-body">
         <template v-if="settingsInfo?.broker_settings.length ?? 0 > 0">
-          <h5>Broker Settings</h5>
+          <h4>Broker Settings</h4>
           <p>
             Settings to ensure that throughput data is being collected from {{ transportNameForInstructions() }}.<br />
             Some settings can be automatically configured based on the current transport configuration, so if you have a <i style="color: green" class="fa fa-check"></i> above it means that you don't need to do anything.
@@ -72,13 +72,13 @@ function transportNameForInstructions() {
           </ul>
         </template>
         <template v-if="useIsMonitoringEnabled()">
-          <h5 class="card-title">ServiceControl Settings</h5>
+          <h4 class="card-title">ServiceControl Settings</h4>
           <p>
             Settings to ensure that throughput data is being collected from the Monitoring instance.<br />
             These settings do not need to be modified unless MSMQ transport is used with the Monitoring instance installed on a different machine to the ServiceControl Error instance.<br />
             For more information read the <a href="TODO">Monitoring</a> and <a href="TODO">ServiceControl</a> settings documentation.
           </p>
-          <h7 class="card-title">ServiceControl</h7>
+          <h5 class="card-title">ServiceControl</h5>
           <ul class="card-text settingsList">
             <li v-for="item in settingsInfo?.service_control_settings" :key="item.name">
               <div><strong>Setting Name:</strong> {{ item.name }}</div>
@@ -87,7 +87,7 @@ function transportNameForInstructions() {
               </p>
             </li>
           </ul>
-          <h7 class="card-title">Monitoring</h7>
+          <h5 class="card-title">Monitoring</h5>
           <ul class="card-text settingsList">
             <li v-for="item in settingsInfo?.monitoring_settings" :key="item.name">
               <div><strong>Setting Name:</strong> {{ item.name }}</div>

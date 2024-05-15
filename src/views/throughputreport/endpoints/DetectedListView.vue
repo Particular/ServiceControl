@@ -84,7 +84,6 @@ watch(
     dataChanges.value = new Map(value.map((item) => [item.name, { indicator: item.user_indicator }]));
     // We need to do a deep copy, see https://stackoverflow.com/a/56853666
     copyOfOriginalDataChanges = new Map(JSON.parse(JSON.stringify(Array.from(dataChanges.value))));
-    console.log("data changed");
   },
   { deep: true }
 );
