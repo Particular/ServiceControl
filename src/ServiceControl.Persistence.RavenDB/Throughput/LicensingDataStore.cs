@@ -3,6 +3,7 @@ namespace ServiceControl.Persistence.RavenDB.Throughput;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,40 +71,42 @@ class LicensingDataStore(
 
     public async Task<IEnumerable<(EndpointIdentifier, Endpoint?)>> GetEndpoints(IList<EndpointIdentifier> endpointIds, CancellationToken cancellationToken)
     {
-        var endpoints = new List<(EndpointIdentifier, Endpoint?)>();
+        var documentIds = endpointIds.Select(id => id.GenerateDocumentId());
 
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        var documentIdLookup = endpointIds.ToDictionary(
-            endpointId => endpointId,
-            endpointId => endpointId.GenerateDocumentId());
-
-        var endpointDocuments = await session.LoadAsync<EndpointDocument>(
-            documentIdLookup.Values.Distinct(),
-            builder => builder.IncludeTimeSeries(ThroughputTimeSeriesName),
-            cancellationToken);
-
-        foreach (var (documentId, endpointDocument) in endpointDocuments)
-        {
-            var id = endpointDocument == null
-             ? endpointIds.First(id => id.GenerateDocumentId().Equals(documentId))
-             : endpointDocument.EndpointId;
-
-            var endpoint = endpointDocument?.ToEndpoint();
-            if (endpoint != null)
+        var query = session.Query<EndpointDocument>()
+            .Where(document => document.Id.In(documentIds))
+            .Select(endpoint => new
             {
-                var timeSeries = await session
-                    .IncrementalTimeSeriesFor(documentId, ThroughputTimeSeriesName)
-                    .GetAsync(token: cancellationToken);
+                EndpointDocument = endpoint,
+                LastCollectedDate = RavenQuery.TimeSeries(endpoint, ThroughputTimeSeriesName)
+                    .FromLast(timePeriod => timePeriod.Days(1))
+                    .ToList()
+                    .Results.Last().Timestamp
+            });
 
-                endpoint.LastCollectedDate = DateOnly.FromDateTime(timeSeries.LastOrDefault()?.Timestamp ?? DateTime.MinValue);
-            }
+        var queryResults = await query.ToListAsync(cancellationToken);
 
-            endpoints.Add((id, endpoint));
-        }
+        Debug.Assert(session.Advanced.NumberOfRequests == 1, "Query is doing multiple round trips to RavenDB");
 
-        return endpoints;
+        return endpointIds.GroupJoin(queryResults,
+            id => id,
+            result => result.EndpointDocument.EndpointId,
+            (id, resultsForId) =>
+            {
+                Endpoint? endpoint = null;
+
+                var result = resultsForId.SingleOrDefault();
+                if (result != null)
+                {
+                    endpoint = result.EndpointDocument.ToEndpoint();
+                    endpoint.LastCollectedDate = DateOnly.FromDateTime(result.LastCollectedDate);
+                }
+
+                return (id, endpoint);
+            });
     }
 
     public async Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken)
