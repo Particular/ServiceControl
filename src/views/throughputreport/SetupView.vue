@@ -17,7 +17,7 @@ onMounted(async () => {
   <div class="box">
     <div class="row">
       <template v-if="!isBrokerTransport">
-        <div class="intro">          
+        <div class="intro">
           <template v-if="testResults?.audit_connection_result.connection_successful">
             <div>
               <h6><i style="color: green" class="fa fa-check"></i> Successfully connected to Audit instances for throughput collection.</h6>
@@ -37,9 +37,9 @@ onMounted(async () => {
             <div>
               <h6><i style="color: red" class="fa fa-times"></i> The connection to Monitoring was not successful.</h6>
             </div>
-          </template>          
+          </template>
           <p>
-            <p>You are using a transport that does not support automatic throughput collection.</p>
+            You are using a transport that does not support automatic throughput collection.<br />
             In order for ServicePulse to collect throughput data from your endpoints, you need to ensure that either Audit or Monitoring (metrics) are enabled on all your endpoints.<br />
             Read the <a href="https://docs.particular.net/servicecontrol/audit-instances/">Audit documentation</a> and the <a href="https://docs.particular.net/monitoring/metrics/">Monitoring documentation</a> for setup instructions .
           </p>
