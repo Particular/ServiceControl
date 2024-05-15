@@ -14,7 +14,7 @@ export enum Transport {
 }
 
 const testResults = ref<ConnectionTestResults | null>(null);
-testResults.value = await throughputClient.test();
+throughputClient.test().then(value => testResults.value = value);
 
 export const transport = computed(() => {
   if (testResults.value == null) {
