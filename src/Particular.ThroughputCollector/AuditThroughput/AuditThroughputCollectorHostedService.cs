@@ -18,6 +18,7 @@ public class AuditThroughputCollectorHostedService(
     IBrokerThroughputQuery? brokerThroughputQuery = null) : BackgroundService
 {
     public TimeSpan DelayStart { get; set; } = TimeSpan.FromSeconds(40);
+    public static List<string> AuditQueues { get; set; } = [];
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
@@ -132,7 +133,7 @@ public class AuditThroughputCollectorHostedService(
 
     async Task SaveAuditInstanceData(List<RemoteInstanceInformation>? auditRemotes, CancellationToken cancellationToken)
     {
-        PlatformEndpointHelper.AuditQueues = auditRemotes?.SelectMany(s => s.Queues)?.ToList() ?? [];
+        AuditQueues = auditRemotes?.SelectMany(s => s.Queues)?.ToList() ?? [];
 
         if (auditRemotes != null)
         {

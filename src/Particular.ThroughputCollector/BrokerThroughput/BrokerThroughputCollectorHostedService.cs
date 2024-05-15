@@ -51,7 +51,7 @@ public class BrokerThroughputCollectorHostedService(
         }
     }
 
-    private async Task GatherThroughput(CancellationToken stoppingToken)
+    async Task GatherThroughput(CancellationToken stoppingToken)
     {
         logger.LogInformation("Gathering throughput from broker");
 
@@ -104,7 +104,7 @@ public class BrokerThroughputCollectorHostedService(
 
     class PostfixGenerator
     {
-        private readonly Dictionary<string, int> names = new(StringComparer.OrdinalIgnoreCase);
+        readonly Dictionary<string, int> names = new(StringComparer.OrdinalIgnoreCase);
 
         public string GetPostfix(string sanitizedName)
         {
