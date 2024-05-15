@@ -6,6 +6,8 @@ using Particular.ThroughputCollector.Contracts;
 
 class EndpointDocument(EndpointIdentifier id)
 {
+    public string Id { get; set; } = id.GenerateDocumentId();
+
     public EndpointIdentifier EndpointId { get; set; } = id;
 
     public string SanitizedName { get; set; } = string.Empty;
