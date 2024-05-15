@@ -20,10 +20,10 @@ class MonitoringThroughputFeature : Feature
     protected override void Setup(FeatureConfigurationContext context)
     {
         //https://docs.particular.net/nservicebus/satellites/
-        var serviceControlThroughputDataQueue = PlatformEndpointHelper.ServiceControlThroughputDataQueue;
+        var serviceControlThroughputDataQueue = ServiceControlSettings.ServiceControlThroughputDataQueue;
 
         context.AddSatelliteReceiver(
-            name: PlatformEndpointHelper.ServiceControlThroughputDataQueueSetting,
+            name: ServiceControlSettings.ServiceControlThroughputDataQueueSetting,
             transportAddress: new QueueAddress(serviceControlThroughputDataQueue),
             runtimeSettings: PushRuntimeSettings.Default,
             recoverabilityPolicy: (config, errorContext) =>

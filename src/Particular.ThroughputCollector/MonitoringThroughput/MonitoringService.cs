@@ -61,7 +61,7 @@ public class MonitoringService(IThroughputDataStore dataStore, IBrokerThroughput
             diagnostics.AppendLine("No throughput from Monitoring recorded in the last 30 days");
             connectionTestResult.ConnectionSuccessful = false;
         }
-        diagnostics.AppendLine($"Listening on queue {PlatformEndpointHelper.ServiceControlThroughputDataQueue}");
+        diagnostics.AppendLine($"Listening on queue {ServiceControlSettings.ServiceControlThroughputDataQueue}");
 
         connectionTestResult.Diagnostics = diagnostics.ToString();
 
