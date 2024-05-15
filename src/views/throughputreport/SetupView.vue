@@ -20,8 +20,8 @@ onMounted(async () => {
         <div class="intro">
           <p>You are using a transport that does not support automatic throughput collection.</p>
           <p>
-            In order for ServicePulse to collect throughput data from your endpoints, you need to ensure that either auditing or metrics are enabled on all your endpoints.<br />
-            <a href="https://docs.particular.net/servicecontrol/audit-instances/">Read the Audit documentation</a> and <a href="https://docs.particular.net/monitoring/metrics/">the Metrics documentation</a> for setup instructions .
+            In order for ServicePulse to collect throughput data from your endpoints, you need to ensure that either Audit or Monitoring (metrics) are enabled on all your endpoints.<br />
+            Read the <a href="https://docs.particular.net/servicecontrol/audit-instances/">Audit documentation</a> and the <a href="https://docs.particular.net/monitoring/metrics/">Monitoring documentation</a> for setup instructions .
           </p>
         </div>
       </template>
@@ -35,11 +35,15 @@ onMounted(async () => {
           <div>
             <h6><i style="color: red" class="fa fa-times"></i> The connection to {{ transportNameForInstructions() }} was not successfully.</h6>
             <p>
-              You may have not setup all the connection settings, have a look at <RouterLink :to="routeLinks.throughput.setup.connectionSetup.link">Connection Setup</RouterLink> tab.<br />
+              You may have not setup all the connection settings, have a look at the <RouterLink :to="routeLinks.throughput.setup.connectionSetup.link">Connection Setup</RouterLink> tab.<br />
               If you have set the settings but are still having issues, look at the <RouterLink :to="routeLinks.throughput.setup.diagnostics.link">Diagnostics</RouterLink> tab for more information on how to fix the issue.
             </p>
           </div>
         </template>
+        <div class="alert alert-info">
+          Note: enabling <a href="https://docs.particular.net/servicecontrol/audit-instances/">Audit</a> or <a href="https://docs.particular.net/monitoring/metrics/">Monitoring</a> is not mandatory when throughput is being collected from the broker,
+          but doing so highly improves the accuracy of the throughput data and Endpoint identification.
+        </div>
       </template>
     </div>
     <br v-if="isBrokerTransport" />

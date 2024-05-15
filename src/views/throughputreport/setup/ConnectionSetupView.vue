@@ -48,9 +48,9 @@ function transportNameForInstructions() {
 <template>
   <div class="row">
     <p>
-      In order for ServicePulse to collect throughput data directly from {{ transportNameForInstructions() }} you need to configure the following settings.<br />
-      There are two options to set the settings, you can either set environment variables or alternative is to set it directly in the
-      <a href="https://docs.particular.net/servicecontrol/creating-config-file"><code>ServiceControl.exe.config</code></a> file.
+      In order for ServicePulse to collect throughput data directly from {{ transportNameForInstructions() }} you need to configure the below settings.<br />
+      There are two configuration options: as environment variables or directly in the
+      <a href="https://docs.particular.net/servicecontrol/creating-config-file"><code>ServiceControl.exe.config</code></a> file. Use `Setting Name` as the environment variable or setting name<br />
     </p>
   </div>
   <div class="row">
@@ -64,26 +64,36 @@ function transportNameForInstructions() {
           </p>
           <ul class="card-text settingsList">
             <li v-for="item in settingsInfo?.broker_settings" :key="item.name">
-              <div>
-                <strong>{{ item.name }}</strong>
-              </div>
-              <p>{{ item.description }}</p>
+              <div><strong>Setting Name:</strong> {{ item.name }}</div>
+              <p>
+                <em>{{ item.description }}</em>
+              </p>
             </li>
           </ul>
         </template>
         <template v-if="useIsMonitoringEnabled()">
           <h5 class="card-title">ServiceControl Settings</h5>
           <p>
-            Settings to ensure that throughput data is being collected from Monitoring.<br />
-            Add line about MSMQ and different computer plus shared infrastructure to SC settings. Include the incentive to customer of "to get more accurate throughput data".<br />
-            For more information read <a href="TODO">this documentation</a>.
+            Settings to ensure that throughput data is being collected from the Monitoring instance.<br />
+            These settings do not need to be modified unless MSMQ transport is used with the Monitoring instance installed on a different machine to the ServiceControl Error instance.<br />
+            For more information read the <a href="TODO">Monitoring</a> and <a href="TODO">ServiceControl</a> settings documentation.
           </p>
+          <h7 class="card-title">ServiceControl</h7>
           <ul class="card-text settingsList">
             <li v-for="item in settingsInfo?.service_control_settings" :key="item.name">
-              <div>
-                <strong>{{ item.name }}</strong>
-              </div>
-              <p>{{ item.description }}</p>
+              <div><strong>Setting Name:</strong> {{ item.name }}</div>
+              <p>
+                <em>{{ item.description }}</em>
+              </p>
+            </li>
+          </ul>
+          <h7 class="card-title">Monitoring</h7>
+          <ul class="card-text settingsList">
+            <li v-for="item in settingsInfo?.monitoring_settings" :key="item.name">
+              <div><strong>Setting Name:</strong> {{ item.name }}</div>
+              <p>
+                <em>{{ item.description }}</em>
+              </p>
             </li>
           </ul>
         </template>
