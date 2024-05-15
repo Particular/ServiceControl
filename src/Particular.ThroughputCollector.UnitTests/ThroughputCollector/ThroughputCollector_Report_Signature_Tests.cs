@@ -81,7 +81,7 @@ public class ThroughputCollector_Report_Signature_Tests
         Assert.That(data.Queues, Has.Length.EqualTo(7));
         Assert.That(data.Queues.All(q => q.Throughput == 0));
         Assert.That(data.Queues.All(q => !string.IsNullOrEmpty(q.QueueName)));
-        Assert.That(data.Queues.All(q => q.NoDataOrSendOnly == false));
+        Assert.That(data.Queues.All(q => !q.NoDataOrSendOnly));
         Assert.That(data.Queues.All(q => q.EndpointIndicators is null));
 
         Assert.That(data.TotalThroughput, Is.EqualTo(0));
@@ -116,7 +116,7 @@ public class ThroughputCollector_Report_Signature_Tests
 
         Assert.That(data.Queues, Has.Length.EqualTo(5));
         Assert.That(data.Queues.All(q => !string.IsNullOrEmpty(q.QueueName)));
-        Assert.That(data.Queues.All(q => q.NoDataOrSendOnly == false));
+        Assert.That(data.Queues.All(q => !q.NoDataOrSendOnly));
         Assert.That(data.Queues.Any(q => q.QueueName == "Endpoint2" && q.DailyThroughputFromBroker.Any(t => t.MessageCount == 60 && t.DateUTC.ToString("yyyy-MM-dd") == "2024-04-24")));
         Assert.That(data.Queues.Any(q => q.EndpointIndicators?.Contains(EndpointIndicator.KnownEndpoint.ToString()) ?? false), Is.True);
 
