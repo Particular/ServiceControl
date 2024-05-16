@@ -1,5 +1,7 @@
 namespace ServiceControl.Persistence.Infrastructure
 {
+    using System.Threading.Tasks;
+
     public class QueryResult<TOut>(TOut results, QueryStatsInfo queryStatsInfo)
         where TOut : class
     {
@@ -10,5 +12,7 @@ namespace ServiceControl.Persistence.Infrastructure
         public QueryStatsInfo QueryStats { get; } = queryStatsInfo;
 
         public static QueryResult<TOut> Empty() => new(null, QueryStatsInfo.Zero);
+
+        public static implicit operator Task<QueryResult<TOut>>(QueryResult<TOut> instance) => Task.FromResult(instance);
     }
 }
