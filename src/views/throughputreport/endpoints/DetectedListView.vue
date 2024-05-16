@@ -26,6 +26,7 @@ interface SortData {
 const sortData: SortData[] = [
   { text: "By name", comparer: (a: EndpointThroughputSummary, b: EndpointThroughputSummary) => a.name.localeCompare(b.name) },
   { text: "By throughput", comparer: (a: EndpointThroughputSummary, b: EndpointThroughputSummary) => a.max_daily_throughput - b.max_daily_throughput },
+  { text: "By endpoint type", comparer: (a: EndpointThroughputSummary, b: EndpointThroughputSummary) => a.user_indicator.localeCompare(b.user_indicator) },
 ].flatMap((item) => {
   return [
     { text: item.text, value: item.text, comparer: item.comparer },

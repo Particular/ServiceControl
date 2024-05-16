@@ -6,8 +6,10 @@ import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import ServiceControlAvailable from "@/components/ServiceControlAvailable.vue";
 import ThroughputSupported from "@/views/throughputreport/ThroughputSupported.vue";
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
 
 const reportState = ref<ReportGenerationState | null>(null);
+const showWarning = ref<boolean>(false);
 
 onMounted(async () => {
   reportState.value = await throughputClient.reportAvailable();
@@ -18,13 +20,14 @@ async function generateReport() {
   const found = results.find((value) => !value.user_indicator);
 
   if (found) {
-    const answer = window.confirm("Not all endpoints/queues have an Endpoint Type set. Are you sure you want to continue?");
-    // cancel the navigation and stay on the same page
-    if (!answer) {
-      return false;
-    }
+    showWarning.value = true;
+  } else {
+    await downloadReport();
   }
+}
 
+async function downloadReport() {
+  showWarning.value = false;
   const fileName = await throughputClient.downloadReport();
 
   if (fileName !== "") {
@@ -44,6 +47,9 @@ async function generateReport() {
           <div class="col-sm-6 text-end">
             <span class="reason" v-if="!reportState?.report_can_be_generated">{{ reportState?.reason }}</span>
             <button type="button" class="btn btn-primary actions" @click="generateReport()" :disabled="!reportState?.report_can_be_generated"><i class="fa fa-download"></i> Generate Report</button>
+            <Teleport to="#modalDisplay">
+              <ConfirmDialog v-if="showWarning" heading="Not all endpoints/queues have an Endpoint Type set" body="Are you sure you want to continue?" @cancel="showWarning = false" @confirm="downloadReport" />
+            </Teleport>
           </div>
         </div>
         <div class="row">

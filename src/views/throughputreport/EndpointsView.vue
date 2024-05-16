@@ -26,7 +26,8 @@ function showHideOptionsLegend() {
       <p>
         Set an Endpoint Type for all detected endpoints and detected broker queues with the most appropriate option.<br />
         Use the filters to bulk set the Endpoint Types on similar named endpoints/queues.<br />
-        <a href="#" @click.prevent="showHideOptionsLegend()">{{ showLegend ? "Hide" : "Show" }} options meaning.</a>
+        If the names of the endpoints/queues contain confidential or proprietary information, make sure you set the <RouterLink :to="routeLinks.throughput.setup.mask.link">masking in Configuration</RouterLink>.<br />
+        <a href="#" @click.prevent="showHideOptionsLegend()">{{ showLegend ? "Hide" : "Show" }} Endpoint Types meaning.</a>
       </p>
       <div v-show="showLegend" class="alert alert-info">
         <div v-for="[key, value] in legendOptions" :key="key">

@@ -8,16 +8,20 @@ const props = defineProps<{
 </script>
 
 <template>
-  <h5 class="title">
+  <div class="title">
     <i v-if="result.connection_successful" style="color: green" class="fa fa-check"></i>
     <i v-else style="color: red" class="fa fa-times"></i>
-    {{ props.title }}
-  </h5>
+    <strong> {{ props.title }} </strong>
+  </div>
+  <div class="instructions"><slot name="instructions"></slot></div>
   <pre>{{ props.result.diagnostics }}</pre>
 </template>
 
 <style scoped>
 .title {
   margin-top: 10px;
+}
+.instructions {
+  margin-bottom: 10px;
 }
 </style>

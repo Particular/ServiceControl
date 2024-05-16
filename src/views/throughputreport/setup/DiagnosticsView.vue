@@ -28,8 +28,16 @@ async function testConnection() {
     </template>
     <template v-else>
       <ConnectionResultView v-if="isBrokerTransport" title="Broker" :result="testResults?.broker_connection_result!" />
-      <ConnectionResultView title="Audit" :result="testResults?.audit_connection_result!" />
-      <ConnectionResultView v-if="useIsMonitoringEnabled()" title="Monitoring" :result="testResults?.monitoring_connection_result!" />
+      <ConnectionResultView title="Audit" :result="testResults?.audit_connection_result!">
+        <template #instructions>
+          <a href="https://docs.particular.net/servicecontrol/servicecontrol-instances/remotes#configuration" target="_blank">Learn how to configure audit instances</a>
+        </template>
+      </ConnectionResultView>
+      <ConnectionResultView v-if="useIsMonitoringEnabled()" title="Monitoring" :result="testResults?.monitoring_connection_result!">
+        <template #instructions>
+          <a href="https://docs.particular.net/servicecontrol/monitoring-instances/installation/creating-config-file" target="_blank">Learn how to configure monitor instances</a>
+        </template>
+      </ConnectionResultView>
     </template>
   </div>
   <div class="row">
