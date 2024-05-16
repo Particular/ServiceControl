@@ -9,30 +9,25 @@
     using NServiceBus.Logging;
     using ServiceControl.Connection;
     using ServiceControl.Infrastructure;
-    using ServiceControl.Persistence;
 
-    class SagaUpdatedHandler(ISagaAuditDataStore sagaAuditStore, IPlatformConnectionBuilder connectionBuilder)
+    class SagaUpdatedHandler(IPlatformConnectionBuilder connectionBuilder)
         : IHandleMessages<SagaUpdatedMessage>
     {
         public async Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
         {
-            var sagaSnapshot = SagaSnapshotFactory.Create(message);
-            var supportedByDataStore = await sagaAuditStore.StoreSnapshot(sagaSnapshot);
-
-            if (!supportedByDataStore)
+            if (auditQueueName is null || nextAuditQueueNameRefresh < DateTime.UtcNow)
             {
-                if (auditQueueName is null || nextAuditQueueNameRefresh < DateTime.UtcNow)
-                {
-                    await RefreshAuditQueue();
-                }
-
-                if (auditQueueName is null)
-                {
-                    throw new UnrecoverableException("Could not determine audit queue name to forward saga update message. This message can be replayed after the ServiceControl Audit remote instance is running and accessible.");
-                }
-
-                await context.ForwardCurrentMessageTo(auditQueueName);
+                await RefreshAuditQueue();
             }
+
+            if (auditQueueName is null)
+            {
+                throw new UnrecoverableException("Could not determine audit queue name to forward saga update message. This message can be replayed after the ServiceControl Audit remote instance is running and accessible.");
+            }
+
+            // TODO Forward saga audit messages and warn in ServiceControl 5, remove in 6
+            log.WarnFormat("Configure the Saga Audit plugin to send messages to an audit instance. ServiceControl 6 will stop ingesting and forwarding Saga Audit to audit instances.");
+            await context.ForwardCurrentMessageTo(auditQueueName);
         }
 
         async Task RefreshAuditQueue()
@@ -74,7 +69,7 @@
 
         static string auditQueueName;
         static DateTime nextAuditQueueNameRefresh;
-        static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
+        static readonly SemaphoreSlim semaphore = new(1);
         static readonly ILog log = LogManager.GetLogger<SagaUpdatedHandler>();
     }
 }

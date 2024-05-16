@@ -62,11 +62,6 @@
             services.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
             services.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
             services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
-
-            // Forward saga audit messages and warn in ServiceControl 5, remove in 6
-            services.AddSingleton<ISagaAuditDataStore, SagaAuditDeprecationDataStore>();
-            services.AddCustomCheck<SagaAuditDestinationCustomCheck>();
-            services.AddSingleton<SagaAuditDestinationCustomCheck.State>();
         }
 
         public void AddInstaller(IServiceCollection services) => ConfigureLifecycle(services);
