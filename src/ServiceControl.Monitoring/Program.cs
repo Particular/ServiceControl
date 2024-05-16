@@ -4,6 +4,11 @@ using NServiceBus.Logging;
 using ServiceControl.Configuration;
 using ServiceControl.Monitoring;
 
+foreach (System.Collections.DictionaryEntry e in Environment.GetEnvironmentVariables())
+{
+    Console.WriteLine($"{e.Key}={e.Value}");
+}
+
 AppDomain.CurrentDomain.UnhandledException += (s, e) => LogManager.GetLogger(typeof(Program)).Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
 
 ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
