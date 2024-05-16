@@ -4,7 +4,13 @@ import { ThroughputConnectionSetting } from "@/resources/ThroughputConnectionSet
 import { computed, ref } from "vue";
 import DropDown, { Item } from "@/components/DropDown.vue";
 
-const props = defineProps<{ settings: ThroughputConnectionSetting[] }>();
+const props = withDefaults(
+  defineProps<{
+    settings: ThroughputConnectionSetting[];
+    configFileName?: string;
+  }>(),
+  { configFileName: "ServiceControl.exe.config" }
+);
 
 const config = computed(() => {
   const list: string[] = [];
@@ -19,7 +25,7 @@ const bash = computed(() => {
   const list: string[] = [];
   for (const item of props.settings) {
     list.push(`# ${item.description}`);
-    list.push(`export ${item.name}="enter value here"`);
+    list.push(`export ${item.name.replaceAll("/", "_").toUpperCase()}="enter value here"`);
   }
   return list.join("\n");
 });
@@ -47,7 +53,7 @@ const codeSelected = computed(() => {
 
 const languages: Item[] = [
   {
-    text: "ServiceControl.exe.config",
+    text: props.configFileName,
     value: "config",
   },
   {
@@ -65,18 +71,24 @@ function languageChanged(item: Item) {
 }
 </script>
 <template>
-  <div class="text-end">
+  <div>
     <drop-down :select-item="languages.find((v) => v.value === languageSelected)" :callback="languageChanged" :items="languages" />
   </div>
   <div class="configuration">
     <VCodeBlock :code="codeSelected.code" :lang="codeSelected.lang" />
-    <slot name="configInstructions" v-if="languageSelected === 'config'"></slot>
-    <slot name="environmentVariableInstructions" v-else></slot>
+    <div class="instructions">
+      <slot name="configInstructions" v-if="languageSelected === 'config'"></slot>
+      <slot name="environmentVariableInstructions" v-else></slot>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .configuration {
   height: 100%;
+}
+.instructions {
+  font-size: 13px;
+  color: #8c8c8c;
 }
 </style>

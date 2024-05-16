@@ -50,29 +50,19 @@ function transportNameForInstructions() {
   <div class="row">
     <p>
       In order for ServicePulse to collect throughput data directly from {{ transportNameForInstructions() }} you need to configure the below settings.<br />
-      There are two configuration options: as environment variables or directly in the
-      <a href="https://docs.particular.net/servicecontrol/creating-config-file"><code>ServiceControl.exe.config</code></a> file. Use `Setting Name` as the environment variable or setting key.
+      There are two configuration options, as environment variables or directly in the
+      <a href="https://docs.particular.net/servicecontrol/creating-config-file"><code>ServiceControl.exe.config</code></a> file.
     </p>
   </div>
-  <div class="row">
-    <template v-if="settingsInfo?.broker_settings.length ?? 0 > 0">
-      <div class="col-6">
+  <template v-if="settingsInfo?.broker_settings.length ?? 0 > 0">
+    <div class="row configuration">
+      <div class="col-12">
         <h4>Broker Settings</h4>
-        <p>
+        <p class="nogap">
           Settings to ensure that throughput data is being collected from {{ transportNameForInstructions() }}.<br />
           Some settings can be automatically configured based on the current transport configuration, so if you have a <i style="color: green" class="fa fa-check"></i> above it means that ServiceControl has successfully connected to
           {{ transportNameForInstructions() }}.
         </p>
-        <ul class="settingsList">
-          <li v-for="item in settingsInfo?.broker_settings" :key="item.name">
-            <div><strong>Setting Name:</strong> {{ item.name }}</div>
-            <p>
-              <em>{{ item.description }}</em>
-            </p>
-          </li>
-        </ul>
-      </div>
-      <div class="col-6 configuration">
         <ConfigurationCode :settings="settingsInfo?.broker_settings ?? []">
           <template #configInstructions>
             <div>Paste the settings above in the <code>ServiceControl.exe.config</code> file of the ServiceControl Error instance.</div>
@@ -82,27 +72,16 @@ function transportNameForInstructions() {
           </template>
         </ConfigurationCode>
       </div>
-    </template>
-  </div>
+    </div>
+  </template>
   <template v-if="useIsMonitoringEnabled()">
-    <div class="row">
-      <div class="col-6">
+    <div class="row configuration">
+      <div class="col-12">
         <h4>ServiceControl Settings</h4>
-        <p>
+        <p class="nogap">
           Settings to ensure that throughput data is being collected from the Monitoring instance.<br />
-          These settings do not need to be modified unless MSMQ transport is used with the Monitoring instance installed on a different machine to the ServiceControl Error instance.<br />
-          For more information read the <a href="TODO">Monitoring</a> and <a href="TODO">ServiceControl</a> settings documentation.
+          For more information read the <a href="https://docs.particular.net/servicecontrol/creating-config-file">ServiceControl</a> settings documentation.
         </p>
-        <ul class="settingsList">
-          <li v-for="item in settingsInfo?.service_control_settings" :key="item.name">
-            <div><strong>Setting Name:</strong> {{ item.name }}</div>
-            <p>
-              <em>{{ item.description }}</em>
-            </p>
-          </li>
-        </ul>
-      </div>
-      <div class="col-6 configuration">
         <ConfigurationCode :settings="settingsInfo?.service_control_settings ?? []">
           <template #configInstructions>
             <div>Paste the settings above in the <code>ServiceControl.exe.config</code> file of the ServiceControl Error instance.</div>
@@ -113,27 +92,17 @@ function transportNameForInstructions() {
         </ConfigurationCode>
       </div>
     </div>
-    <div class="row">
-      <div class="col-6">
+    <div class="row configuration">
+      <div class="col-12">
         <h4>Monitoring Settings</h4>
-        <p>
+        <p class="nogap">
           Settings to ensure that throughput data is being collected from the Monitoring instance.<br />
           These settings do not need to be modified unless MSMQ transport is used with the Monitoring instance installed on a different machine to the ServiceControl Error instance.<br />
-          For more information read the <a href="TODO">Monitoring</a> and <a href="TODO">ServiceControl</a> settings documentation.
+          For more information read the <a href="https://docs.particular.net/servicecontrol/monitoring-instances/installation/creating-config-file">Monitoring</a> settings documentation.
         </p>
-        <ul class="settingsList">
-          <li v-for="item in settingsInfo?.monitoring_settings" :key="item.name">
-            <div><strong>Setting Name:</strong> {{ item.name }}</div>
-            <p>
-              <em>{{ item.description }}</em>
-            </p>
-          </li>
-        </ul>
-      </div>
-      <div class="col-6 configuration">
-        <ConfigurationCode :settings="settingsInfo?.monitoring_settings ?? []">
+        <ConfigurationCode :settings="settingsInfo?.monitoring_settings ?? []" configFileName="ServiceControl.Monitoring.exe.config">
           <template #configInstructions>
-            <div>Paste the settings above in the <code>ServiceControl.exe.config</code> file of the ServiceControl Monitoring instance.</div>
+            <div>Paste the settings above in the <code>ServiceControl.Monitoring.exe.config</code> file of the ServiceControl Monitoring instance.</div>
           </template>
           <template #environmentVariableInstructions>
             <div>Execute the above instructions in a terminal to set the environment variables, these variables need to be set for the user that in running the ServiceControl Monitoring instance.</div>
@@ -146,6 +115,9 @@ function transportNameForInstructions() {
 
 <style scoped>
 .configuration {
-  background-color: #e6e3e3;
+  margin-bottom: 15px;
+}
+.nogap {
+  margin-bottom: 0;
 }
 </style>
