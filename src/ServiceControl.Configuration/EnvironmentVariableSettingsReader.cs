@@ -27,6 +27,13 @@ static class EnvironmentVariableSettingsReader
             return true;
         }
 
+        // POSIX comliant https://stackoverflow.com/a/2821183
+        if (TryReadVariable(out value,
+                $"{settingsNamespace}_{name}".Replace('.', '_').Replace('/', '_').ToUpperInvariant()))
+        {
+            return true;
+        }
+
         value = default;
         return false;
     }
