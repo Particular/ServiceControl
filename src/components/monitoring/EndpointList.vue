@@ -46,7 +46,7 @@ const { sortBy: activeColumn } = storeToRefs(monitoringStore);
       </div>
     </div>
     <div>
-      <div v-if="monitoringStore.endpointListIsGrouped" role="row" aria-label="grouped-endpoints">
+      <div v-if="monitoringStore.endpointListIsGrouped" role="treeitem" aria-label="grouped-endpoints">
         <div role="rowgroup" :aria-labelledby="endpointGroup.group" class="row" v-for="endpointGroup in monitoringStore.grouping.groupedEndpoints" :key="endpointGroup.group">
           <div role="rowheader" class="endpoint-group-title" :id="endpointGroup.group">
             {{ endpointGroup.group }}

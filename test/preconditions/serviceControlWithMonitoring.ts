@@ -39,4 +39,7 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
 
   //http://localhost:33333/api/endpoints
   await driver.setUp(precondition.hasNoHeartbeatsEndpoints);
+
+  //http://localhost:33633/monitored-endpoints
+  await driver.setUp(precondition.hasNoMonitoredEndpoints);
 };
