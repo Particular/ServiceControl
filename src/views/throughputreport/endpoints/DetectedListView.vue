@@ -10,6 +10,8 @@ import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import { DataSource } from "@/views/throughputreport/endpoints/dataSource";
 import { userIndicatorMapper } from "./userIndicatorMapper";
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
+import NavigateAway from "@/views/throughputreport/endpoints/navigateAway";
 
 enum NameFilterType {
   beginsWith = "Begins with",
@@ -43,7 +45,7 @@ const props = defineProps<{
 let copyOfOriginalDataChanges = new Map<string, { indicator: string }>();
 const data = ref<EndpointThroughputSummary[]>([]);
 const dataChanges = ref(new Map<string, { indicator: string }>());
-const filterData = reactive({ name: "", nameFilterType: NameFilterType.beginsWith, sort: "" });
+const filterData = reactive({ name: "", nameFilterType: NameFilterType.beginsWith, sort: "By name" });
 const filterNameOptions = [
   { text: NameFilterType.beginsWith, filter: (a: EndpointThroughputSummary) => a.name.toLowerCase().startsWith(filterData.name.toLowerCase()) },
   { text: NameFilterType.contains, filter: (a: EndpointThroughputSummary) => a.name.toLowerCase().includes(filterData.name.toLowerCase()) },
@@ -79,6 +81,7 @@ const hasChanges = computed(() => {
 onMounted(async () => {
   await loadData();
 });
+
 watch(
   data,
   (value) => {
@@ -89,15 +92,25 @@ watch(
   { deep: true }
 );
 
+const showLoseChangesWarning = ref<boolean>(false);
+const navigateAway = new NavigateAway();
+
 onBeforeRouteLeave(() => {
   if (hasChanges.value) {
-    const answer = window.confirm("You have unsaved changes. Do you want to proceed and lose changes?");
-    // cancel the navigation and stay on the same page
-    if (!answer) {
-      return false;
-    }
+    showLoseChangesWarning.value = true;
+    return navigateAway.navigateGuard();
   }
 });
+
+function hideLoseChangesWarning() {
+  navigateAway.cancel();
+  showLoseChangesWarning.value = false;
+}
+
+function proceedWithLoseChangesWarning() {
+  navigateAway.proceed();
+  showLoseChangesWarning.value = false;
+}
 
 async function loadData() {
   const results = await throughputClient.endpoints();
@@ -194,7 +207,9 @@ async function save() {
       </div>
     </div>
   </div>
-
+  <Teleport to="#modalDisplay">
+    <ConfirmDialog v-if="showLoseChangesWarning" heading="You have unsaved changes" body="Do you want to proceed and lose changes??" @cancel="hideLoseChangesWarning" @confirm="proceedWithLoseChangesWarning" />
+  </Teleport>
   <table class="table">
     <thead>
       <tr>
