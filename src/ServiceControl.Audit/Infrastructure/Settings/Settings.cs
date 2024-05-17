@@ -40,7 +40,18 @@
 
             ForwardAuditMessages = GetForwardAuditMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
-            Port = SettingsReader.Read(SettingsRootNamespace, "Port", 44444);
+
+            if (AppEnvironment.RunningInContainer)
+            {
+                Hostname = "localhost";
+                Port = 44444;
+            }
+            else
+            {
+                Hostname = SettingsReader.Read(SettingsRootNamespace, "Hostname", "localhost");
+                Port = SettingsReader.Read(SettingsRootNamespace, "Port", 44444);
+            }
+
             MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", 32);
             ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
@@ -107,7 +118,7 @@
         public int Port { get; set; }
 
         public bool PrintMetrics => SettingsReader.Read<bool>(SettingsRootNamespace, "PrintMetrics");
-        public string Hostname => SettingsReader.Read(SettingsRootNamespace, "Hostname", "localhost");
+        public string Hostname { get; private set; }
         public string VirtualDirectory => SettingsReader.Read(SettingsRootNamespace, "VirtualDirectory", string.Empty);
 
         public string TransportType { get; private set; }
