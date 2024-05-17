@@ -29,7 +29,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TimeSpan? errorRetentionPeriod = default
             )
         {
-            LoggingSettings = loggingSettings ?? new();
+            LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
             ServiceName = serviceName;
 

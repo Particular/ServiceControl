@@ -7,9 +7,9 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
-    using Infrastructure.Settings;
     using NServiceBus.Transport;
     using ServiceControl.Audit.Persistence;
+    using ServiceControl.Infrastructure;
 
     class AuditIngestionFaultPolicy
     {

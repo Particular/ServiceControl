@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using NServiceBus.Logging;
 using ServiceControl.Configuration;
+using ServiceControl.Infrastructure;
 using ServiceControl.Monitoring;
 
 foreach (System.Collections.DictionaryEntry e in Environment.GetEnvironmentVariables())
@@ -15,7 +16,7 @@ ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
 var arguments = new HostArguments(args);
 
-var loggingSettings = new LoggingSettings();
+var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
 LoggingConfigurator.ConfigureLogging(loggingSettings);
 
 var settings = new Settings(loggingSettings);

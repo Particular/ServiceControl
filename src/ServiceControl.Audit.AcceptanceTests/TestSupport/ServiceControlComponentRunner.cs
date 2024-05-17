@@ -20,6 +20,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
+    using ServiceControl.Infrastructure;
 
     public class ServiceControlComponentRunner(
         ITransportIntegration transportToUse,
@@ -42,7 +43,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(logPath);
 
-            var loggingSettings = new LoggingSettings(defaultLevel: NLog.LogLevel.Debug, logPath: logPath);
+            var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace, defaultLevel: NLog.LogLevel.Debug, logPath: logPath);
 
             settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType, loggingSettings)
             {

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Reflection;
 using NServiceBus.Logging;
-using ServiceControl.Audit.Infrastructure;
 using ServiceControl.Audit.Infrastructure.Hosting;
 using ServiceControl.Audit.Infrastructure.Hosting.Commands;
 using ServiceControl.Audit.Infrastructure.Settings;
 using ServiceControl.Configuration;
+using ServiceControl.Infrastructure;
 
 AppDomain.CurrentDomain.UnhandledException += (s, e) => LogManager.GetLogger(typeof(Program)).Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
 
@@ -19,7 +19,7 @@ if (arguments.Help)
     return;
 }
 
-var loggingSettings = new LoggingSettings();
+var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
 LoggingConfigurator.ConfigureLogging(loggingSettings);
 
 var settings = new Settings(arguments.ServiceName, loggingSettings: loggingSettings);

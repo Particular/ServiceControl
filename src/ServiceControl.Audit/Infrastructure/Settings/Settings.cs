@@ -16,7 +16,7 @@
     {
         public Settings(string serviceName = null, string transportType = null, string persisterType = null, LoggingSettings loggingSettings = null)
         {
-            LoggingSettings = loggingSettings ?? new();
+            LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
             ServiceName = serviceName;
 

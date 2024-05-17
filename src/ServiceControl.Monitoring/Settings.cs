@@ -15,7 +15,7 @@ namespace ServiceControl.Monitoring
     {
         public Settings(LoggingSettings loggingSettings = null)
         {
-            LoggingSettings = loggingSettings ?? new();
+            LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
             TryLoadLicenseFromConfig();
 
