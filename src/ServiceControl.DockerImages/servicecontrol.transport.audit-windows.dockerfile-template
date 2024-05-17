@@ -15,8 +15,7 @@ ENV "ServiceControl.Audit/TransportType"="${TRANSPORT_CUSTOMIZATION_TYPE}" \
     "ServiceControl.Audit/LogPath"="C:\\Data\\Logs\\" \
     "ServiceControl.Audit/ForwardAuditMessages"="False" \
     "ServiceControl.Audit/AuditRetentionPeriod"="365" \
-    "ServiceControl.Audit/DatabaseMaintenancePort"="44445" \
-    "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
+    "ServiceControl.Audit/DatabaseMaintenancePort"="44445"
 
 VOLUME [ "C:/Data" ]
 

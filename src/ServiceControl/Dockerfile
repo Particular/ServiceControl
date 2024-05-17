@@ -23,8 +23,7 @@ ENV "ServiceControl/PersistenceType"="RavenDB" \
     "ServiceControl/DBPath"="C:\\Data\\DB\\" \
     "ServiceControl/LogPath"="/logs" \
     "ServiceControl/ForwardErrorMessages"="False" \
-    "ServiceControl/ErrorRetentionPeriod"="15" \
-    "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
+    "ServiceControl/ErrorRetentionPeriod"="15"
 
 USER $APP_UID
 ENTRYPOINT ["./app/ServiceControl"]

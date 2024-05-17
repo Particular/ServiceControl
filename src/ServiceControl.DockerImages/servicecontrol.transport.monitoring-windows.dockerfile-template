@@ -11,8 +11,7 @@ ARG TRANSPORT_CUSTOMIZATION_TYPE
 ENV "Monitoring/TransportType"="${TRANSPORT_CUSTOMIZATION_TYPE}" \
     "Monitoring/HttpHostName"="*" \
     "Monitoring/HttpPort"="33633" \
-    "Monitoring/LogPath"="C:\\Data\\Logs\\" \
-    "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
+    "Monitoring/LogPath"="C:\\Data\\Logs\\"
 
 VOLUME [ "C:/Data" ]
 

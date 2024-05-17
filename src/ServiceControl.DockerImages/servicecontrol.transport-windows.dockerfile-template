@@ -14,8 +14,7 @@ ENV "ServiceControl/TransportType"="${TRANSPORT_CUSTOMIZATION_TYPE}" \
     "ServiceControl/DBPath"="C:\\Data\\DB\\" \
     "ServiceControl/LogPath"="C:\\Data\\Logs\\" \
     "ServiceControl/ForwardErrorMessages"="False" \
-    "ServiceControl/ErrorRetentionPeriod"="15" \
-    "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
+    "ServiceControl/ErrorRetentionPeriod"="15"
 
 VOLUME [ "C:/Data" ]
 
