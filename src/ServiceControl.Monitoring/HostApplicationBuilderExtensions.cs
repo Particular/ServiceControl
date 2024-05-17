@@ -18,6 +18,7 @@ using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Features;
 using NServiceBus.Transport;
 using QueueLength;
+using ServiceControl.Configuration;
 using ServiceControl.Monitoring.Infrastructure.BackgroundTasks;
 using Timings;
 using Transports;
@@ -111,6 +112,12 @@ public static class HostApplicationBuilderExtensions
         config.AddDeserializer<TaggedLongValueWriterOccurrenceSerializerDefinition>();
         config.Pipeline.Register(typeof(MessagePoolReleasingBehavior), "Releases pooled message.");
         config.EnableFeature<QueueLength.QueueLength>();
+
+        if (AppEnvironment.RunningInContainer)
+        {
+            // Do not write diagnostics file
+            config.CustomDiagnosticsWriter((_, _) => Task.CompletedTask);
+        }
     }
 
     static Func<QueueLengthStore, IProvideQueueLength> QueueLengthProviderBuilder(string connectionString,
