@@ -11,6 +11,7 @@
                 || endpointName.Equals(throughputSettings.ServiceControlQueue, StringComparison.OrdinalIgnoreCase)
                 || endpointName.EndsWith(".Timeouts", StringComparison.OrdinalIgnoreCase)
                 || endpointName.EndsWith(".TimeoutsDispatcher", StringComparison.OrdinalIgnoreCase)
+                || endpointName.StartsWith($"{throughputSettings.ServiceControlQueue}.", StringComparison.OrdinalIgnoreCase)
                 || endpointName.Equals(ServiceControlSettings.ServiceControlThroughputDataQueue, StringComparison.OrdinalIgnoreCase)
                 || AuditThroughputCollectorHostedService.AuditQueues.Any(a => endpointName.Equals(a, StringComparison.OrdinalIgnoreCase));
         }
