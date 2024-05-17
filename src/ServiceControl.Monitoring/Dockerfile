@@ -18,11 +18,11 @@ EXPOSE 33633
 WORKDIR /
 COPY --from=build /deploy/Particular.ServiceControl.Monitoring ./app
 
-ENV MONITORING_TRANSPORTTYPE= \
-    Monitoring_HttpHostName=* \
-    Monitoring_HttpPort=33633 \
-    Monitoring_LogPath=/logs \
-    SERVICECONTROL_RUNNING_IN_DOCKER=true
+ENV SERVICECONTROL_RUNNING_IN_DOCKER=true
+
+# Probably not needed but don't want to remove yet
+RUN mkdir -p /var/servicecontrol && chown -R $APP_UID /var/servicecontrol
+VOLUME /var/servicecontrol
 
 USER $APP_UID
 ENTRYPOINT ["./app/ServiceControl.Monitoring"]
