@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/vue";
+import { screen } from "@testing-library/vue";
 
 export function currentFilterValueToBe(filterString: RegExp | string) {
   var htmlElement = screen.queryByDisplayValue(filterString);

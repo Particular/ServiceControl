@@ -1,4 +1,4 @@
-import { screen, within, waitFor } from "@testing-library/vue";
+import { screen, within } from "@testing-library/vue";
 
 export async function endpointsNames() {
   const group = await screen.findByRole("treegrid", {name:"endpoint-list"});

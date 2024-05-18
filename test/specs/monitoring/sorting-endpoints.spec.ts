@@ -1,6 +1,5 @@
 import { expect } from "vitest";
 import { it, describe } from "../../drivers/vitest/driver";
-import { waitFor, screen } from "@testing-library/vue";
 import { groupEndpointsBy } from "./actions/groupEndpointsBy";
 import { endpointGroupNames } from "./questions/endpointGroupNames";
 import { endpointGroup } from "./questions/endpointGroup";
@@ -11,6 +10,7 @@ import { ungroupedEndpointNames } from "./questions/ungroupedEndpointNames";
 import * as precondition from "../../preconditions";
 import { monitoredEndpointTemplate } from "../../mocks/monitored-endpoint-template";
 import { Endpoint } from "@/resources/MonitoringEndpoint";
+import { endpointsNames } from "./questions/endpointsNames";
 
 enum columnName {
   ENDPOINTNAME = "name",
@@ -77,7 +77,7 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.ENDPOINTNAME });
 
       //Assert
-      await waitFor(() => expect(endpointGroupNames()).toEqual(["Universe.Solarsystem.Venus", "Universe.Solarsystem.Mercury", "Universe.Solarsystem.Earth"]));
+      expect(endpointGroupNames()).toEqual(["Universe.Solarsystem.Venus", "Universe.Solarsystem.Mercury", "Universe.Solarsystem.Earth"]);
       expect(endpointGroup("Universe.Solarsystem.Venus").Endpoints).toEqual(["Endpoint4", "Endpoint3"]);
       expect(endpointGroup("Universe.Solarsystem.Mercury").Endpoints).toEqual(["Endpoint2", "Endpoint1"]);
       expect(endpointGroup("Universe.Solarsystem.Earth").Endpoints).toEqual(["Endpoint6", "Endpoint5"]);
@@ -104,7 +104,7 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.ENDPOINTNAME }); //Click the column title again for ascending
 
       //Assert
-      await waitFor(() => expect(endpointGroupNames()).toEqual(["Universe.Solarsystem.Earth", "Universe.Solarsystem.Mercury", "Universe.Solarsystem.Venus"]));
+      expect(endpointGroupNames()).toEqual(["Universe.Solarsystem.Earth", "Universe.Solarsystem.Mercury", "Universe.Solarsystem.Venus"]);
       expect(endpointGroup("Universe.Solarsystem.Earth").Endpoints).toEqual(["Endpoint5", "Endpoint6"]);
       expect(endpointGroup("Universe.Solarsystem.Mercury").Endpoints).toEqual(["Endpoint1", "Endpoint2"]);
       expect(endpointGroup("Universe.Solarsystem.Venus").Endpoints).toEqual(["Endpoint3", "Endpoint4"]);
@@ -119,11 +119,13 @@ describe("FEATURE: Endpoint sorting", () => {
 
       //Act
       await driver.goTo("monitoring");
-
+      
+      //retrieve the endpoint names as a way to ensure the monitoring page finished rendering the endpoint list
+      await endpointsNames();
       //Assert
-      await assertSortImageState(columnName.ENDPOINTNAME, "up");
+      assertSortImageState(columnName.ENDPOINTNAME, "up");
       for (const otherColumn of Object.values(columnName).filter((col) => col !== columnName.ENDPOINTNAME)) {
-        await assertSortImageState(otherColumn, null); // Assert that all other columns don't have sorting images
+        assertSortImageState(otherColumn, null); // Assert that all other columns don't have sorting images
       }
     });
 
@@ -135,25 +137,28 @@ describe("FEATURE: Endpoint sorting", () => {
       //Act
       await driver.goTo("monitoring");
 
+      //retrieve the endpoint names as a way to ensure the monitoring page finished rendering the endpoint list
+      await endpointsNames();
+
       //Assert sorting of Endpoint name first since it sorts in ascending order by default, while all the the other columns sort in descending order by default
-      await assertSortImageState(columnName.ENDPOINTNAME, "up");
+      assertSortImageState(columnName.ENDPOINTNAME, "up");
       await sortEndpointsBy({ column: columnName.ENDPOINTNAME }); // Act: Click the column title once for descending
-      await assertSortImageState(columnName.ENDPOINTNAME, "down");
+      assertSortImageState(columnName.ENDPOINTNAME, "down");
 
       //Assert for the rest of the columns
       for (const column of Object.values(columnName).filter((col) => col !== columnName.ENDPOINTNAME)) {
         await sortEndpointsBy({ column }); // Click the column title once for descending
-        await assertSortImageState(column, "down");
+        assertSortImageState(column, "down");
 
         for (const otherColumn of Object.values(columnName).filter((col) => col !== column)) {
-          await assertSortImageState(otherColumn, null); // Assert that all other columns don't have sorting images
+          assertSortImageState(otherColumn, null); // Assert that all other columns don't have sorting images
         }
 
         await sortEndpointsBy({ column }); // Click the column title once for ascending
-        await assertSortImageState(column, "up");
+        assertSortImageState(column, "up");
 
         for (const otherColumn of Object.values(columnName).filter((col) => col !== column)) {
-          await assertSortImageState(otherColumn, null); // Assert that all other columns don't have sorting images
+          assertSortImageState(otherColumn, null); // Assert that all other columns don't have sorting images
         }
       }
     });
@@ -169,11 +174,11 @@ describe("FEATURE: Endpoint sorting", () => {
       await driver.goTo("monitoring");
 
       await sortEndpointsBy({ column: columnName.ENDPOINTNAME }); // Act: Click the column title once for descending
-      await assertSortImageState(columnName.ENDPOINTNAME, "down");
+      assertSortImageState(columnName.ENDPOINTNAME, "down");
 
       //Assert
       for (const otherColumn of Object.values(columnName).filter((col) => col !== columnName.ENDPOINTNAME)) {
-        await assertSortImageState(otherColumn, null); // Assert that all other columns don't have sorting images
+        assertSortImageState(otherColumn, null); // Assert that all other columns don't have sorting images
       }
     });
     it("Example: Endpoints are sorted in ascending order by clicking name on the Endpoint name column title twice", async ({ driver }) => {
@@ -185,11 +190,11 @@ describe("FEATURE: Endpoint sorting", () => {
       await driver.goTo("monitoring");
       await sortEndpointsBy({ column: columnName.ENDPOINTNAME }); // Act: Click the column title once for descending
       await sortEndpointsBy({ column: columnName.ENDPOINTNAME }); // Act: Click the column title once for ascending
-      await assertSortImageState(columnName.ENDPOINTNAME, "up");
+      assertSortImageState(columnName.ENDPOINTNAME, "up");
 
       //Assert
       for (const otherColumn of Object.values(columnName).filter((col) => col !== columnName.ENDPOINTNAME)) {
-        await assertSortImageState(otherColumn, null); // Assert that all other columns don't have sorting images
+        assertSortImageState(otherColumn, null); // Assert that all other columns don't have sorting images
       }
     });
   });
@@ -218,9 +223,9 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.QUEUELENGTH }); // Act: Click the column title once for descending
 
       //Assert
-      await waitFor(() => expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]));
-      const avgValues = await waitFor(() => smallGraphAverageValuesByColumn({ column: columnName.QUEUELENGTH }));
-      await waitFor(() => expect(avgValues).toEqual(["4.1", "2.1", "1.1"]));
+      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]);
+      const avgValues = await smallGraphAverageValuesByColumn({ column: columnName.QUEUELENGTH });
+      expect(avgValues).toEqual(["4.1", "2.1", "1.1"]);
     });
     it("Example: Endpoints are sorted in ascending order by clicking the queue length column title twice", async ({ driver }) => {
       //Arrange
@@ -246,9 +251,9 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.QUEUELENGTH }); // Act: Click the column title once for ascending
 
       //Assert
-      await waitFor(() => expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]));
-      const ascendingAvgValues = await waitFor(() => smallGraphAverageValuesByColumn({ column: columnName.QUEUELENGTH }));
-      await waitFor(() => expect(ascendingAvgValues).toEqual(["1.1", "2.1", "4.1"]));
+      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]);
+      const ascendingAvgValues = await smallGraphAverageValuesByColumn({ column: columnName.QUEUELENGTH });
+      expect(ascendingAvgValues).toEqual(["1.1", "2.1", "4.1"]);
     });
   });
 
@@ -276,9 +281,9 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.THROUGHPUT }); // Act: Click the column title once for descending
 
       //Assert
-      await waitFor(() => expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]));
-      const avgValues = await waitFor(() => smallGraphAverageValuesByColumn({ column: columnName.THROUGHPUT }));
-      await waitFor(() => expect(avgValues).toEqual(["4.1", "2.1", "1.1"]));
+      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]);
+      const avgValues = await smallGraphAverageValuesByColumn({ column: columnName.THROUGHPUT });
+      expect(avgValues).toEqual(["4.1", "2.1", "1.1"]);
     });
     it("Example: Endpoints are sorted in ascending order by clicking the throughput column title twice", async ({ driver }) => {
       //Arrange
@@ -304,9 +309,9 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.THROUGHPUT }); // Act: Click the column title once for ascending
 
       //Assert
-      await waitFor(() => expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]));
-      const ascendingAvgValues = await waitFor(() => smallGraphAverageValuesByColumn({ column: columnName.THROUGHPUT }));
-      await waitFor(() => expect(ascendingAvgValues).toEqual(["1.1", "2.1", "4.1"]));
+      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]);
+      const ascendingAvgValues = await smallGraphAverageValuesByColumn({ column: columnName.THROUGHPUT });
+      expect(ascendingAvgValues).toEqual(["1.1", "2.1", "4.1"]);
     });
   });
 
@@ -334,9 +339,9 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.SCHEDULEDRETRIES }); // Act: Click the column title once for descending
 
       //Assert
-      await waitFor(() => expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]));
-      const avgValues = await waitFor(() => smallGraphAverageValuesByColumn({ column: columnName.SCHEDULEDRETRIES }));
-      await waitFor(() => expect(avgValues).toEqual(["4.1", "2.1", "1.1"]));
+      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]);
+      const avgValues = await smallGraphAverageValuesByColumn({ column: columnName.SCHEDULEDRETRIES });
+      expect(avgValues).toEqual(["4.1", "2.1", "1.1"]);
     });
     it("Example: Endpoints are sorted in ascending order by clicking the scheduled retries column title twice", async ({ driver }) => {
       //Arrange
@@ -362,9 +367,9 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.SCHEDULEDRETRIES }); // Act: Click the column title once for ascending
 
       //Assert
-      await waitFor(() => expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]));
-      const ascendingAvgValues = await waitFor(() => smallGraphAverageValuesByColumn({ column: columnName.SCHEDULEDRETRIES }));
-      await waitFor(() => expect(ascendingAvgValues).toEqual(["1.1", "2.1", "4.1"]));
+      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]);
+      const ascendingAvgValues = await smallGraphAverageValuesByColumn({ column: columnName.SCHEDULEDRETRIES });
+      expect(ascendingAvgValues).toEqual(["1.1", "2.1", "4.1"]);
     });
   });
 
@@ -392,9 +397,9 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.PROCESSINGTIME }); // Act: Click the column title once for descending
 
       //Assert
-      await waitFor(() => expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]));
-      const avgValues = await waitFor(() => smallGraphAverageValuesByColumn({ column: columnName.PROCESSINGTIME }));
-      await waitFor(() => expect(avgValues).toEqual(["800", "350", "225"]));
+      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]);
+      const avgValues = await smallGraphAverageValuesByColumn({ column: columnName.PROCESSINGTIME });
+      expect(avgValues).toEqual(["800", "350", "225"]);
     });
     it("Example: Endpoints are sorted in ascending order by clicking the scheduled retries column title twice", async ({ driver }) => {
       //Arrange
@@ -420,9 +425,9 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.PROCESSINGTIME }); // Act: Click the column title once for ascending
 
       //Assert
-      await waitFor(() => expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]));
-      const ascendingAvgValues = await waitFor(() => smallGraphAverageValuesByColumn({ column: columnName.PROCESSINGTIME }));
-      await waitFor(() => expect(ascendingAvgValues).toEqual(["225", "350", "800"]));
+      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]);
+      const ascendingAvgValues = await smallGraphAverageValuesByColumn({ column: columnName.PROCESSINGTIME });
+      expect(ascendingAvgValues).toEqual(["225", "350", "800"]);
     });
   });
 
@@ -450,9 +455,9 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.CRITICALTIME }); // Act: Click the column title once for descending
 
       //Assert
-      await waitFor(() => expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]));
-      const avgValues = await waitFor(() => smallGraphAverageValuesByColumn({ column: columnName.CRITICALTIME }));
-      await waitFor(() => expect(avgValues).toEqual(["800", "350", "225"]));
+      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]);
+      const avgValues = await smallGraphAverageValuesByColumn({ column: columnName.CRITICALTIME });
+      expect(avgValues).toEqual(["800", "350", "225"]);
     });
     it("Example: Endpoints are sorted in ascending order by clicking the scheduled retries column title twice", async ({ driver }) => {
       //Arrange
@@ -477,22 +482,22 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.CRITICALTIME }); // Act: Click the column title once for ascending
 
       //Assert
-      await waitFor(() => expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]));
-      const ascendingAvgValues = await waitFor(() => smallGraphAverageValuesByColumn({ column: columnName.CRITICALTIME }));
-      await waitFor(() => expect(ascendingAvgValues).toEqual(["225", "350", "800"]));
+      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]);
+      const ascendingAvgValues = await smallGraphAverageValuesByColumn({ column: columnName.CRITICALTIME });
+      expect(ascendingAvgValues).toEqual(["225", "350", "800"]);
     });
   });
 });
 
-async function assertSortImageState(column: string, direction: "up" | "down" | null) {
+function assertSortImageState(column: string, direction: "up" | "down" | null) {
   if (direction === null) {
-    await waitFor(() => expect(findSortImageInColumn(column, "up")).toBeNull());
-    await waitFor(() => expect(findSortImageInColumn(column, "down")).toBeNull());
+    expect(findSortImageInColumn(column, "up")).toBeNull();
+    expect(findSortImageInColumn(column, "down")).toBeNull();
   } else if (direction === "up") {
-    await waitFor(() => expect(findSortImageInColumn(column, "up")).toBeInTheDocument());
-    await waitFor(() => expect(findSortImageInColumn(column, "down")).toBeNull());
+    expect(findSortImageInColumn(column, "up")).toBeInTheDocument();
+    expect(findSortImageInColumn(column, "down")).toBeNull();
   } else {
-    await waitFor(() => expect(findSortImageInColumn(column, "up")).toBeNull());
-    await waitFor(() => expect(findSortImageInColumn(column, "down")).toBeInTheDocument());
+    expect(findSortImageInColumn(column, "up")).toBeNull();
+    expect(findSortImageInColumn(column, "down")).toBeInTheDocument();
   }
 }

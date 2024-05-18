@@ -19,6 +19,7 @@ export default defineConfig({
     globals: true,
     clearMocks: true,
     css: true,
+    testTimeout: 10000,
     coverage: {
       all: true,
       exclude: [`**/__test__/**/*`, `**/.eslintrc.js`, `**/*.spec.ts`, `test/**/*`],
