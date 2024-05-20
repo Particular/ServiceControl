@@ -55,7 +55,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
             if (AppEnvironment.RunningInContainer)
             {
-                Hostname = "localhost";
+                Hostname = "*";
                 Port = 33333;
             }
             else

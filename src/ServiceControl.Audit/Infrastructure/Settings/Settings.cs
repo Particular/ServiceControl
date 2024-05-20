@@ -43,7 +43,7 @@
 
             if (AppEnvironment.RunningInContainer)
             {
-                Hostname = "localhost";
+                Hostname = "*";
                 Port = 44444;
             }
             else
