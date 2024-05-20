@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using Particular.ThroughputCollector.Contracts;
+using Particular.LicensingComponent.Contracts;
 
 [TestFixture]
 class AuditServiceMetadataTests : PersistenceTestBase
@@ -15,10 +15,10 @@ class AuditServiceMetadataTests : PersistenceTestBase
         var expectedAuditServiceMetadata = new AuditServiceMetadata(
             new Dictionary<string, int> { ["Some version"] = 2 },
             new Dictionary<string, int> { ["Some transport"] = 3 });
-        await ThroughputDataStore.SaveAuditServiceMetadata(expectedAuditServiceMetadata, default);
+        await LicensingDataStore.SaveAuditServiceMetadata(expectedAuditServiceMetadata, default);
 
         //Act
-        var retrievedAuditServiceMetadata = await ThroughputDataStore.GetAuditServiceMetadata();
+        var retrievedAuditServiceMetadata = await LicensingDataStore.GetAuditServiceMetadata();
 
         //Assert
         Assert.That(retrievedAuditServiceMetadata, Is.Not.Null);
@@ -33,14 +33,14 @@ class AuditServiceMetadataTests : PersistenceTestBase
         var oldAuditServiceMetadata = new AuditServiceMetadata(
             new Dictionary<string, int> { ["Some version"] = 2 },
             new Dictionary<string, int> { ["Some transport"] = 3 });
-        await ThroughputDataStore.SaveAuditServiceMetadata(oldAuditServiceMetadata, default);
+        await LicensingDataStore.SaveAuditServiceMetadata(oldAuditServiceMetadata, default);
 
         // Act
         var expectedAuditServiceMetadata = new AuditServiceMetadata(
             new Dictionary<string, int> { ["Some version"] = 2, ["New version"] = 1 },
             new Dictionary<string, int> { ["Some transport"] = 4 });
-        await ThroughputDataStore.SaveAuditServiceMetadata(expectedAuditServiceMetadata, default);
-        var retrievedAuditServiceMetadata = await ThroughputDataStore.GetAuditServiceMetadata();
+        await LicensingDataStore.SaveAuditServiceMetadata(expectedAuditServiceMetadata, default);
+        var retrievedAuditServiceMetadata = await LicensingDataStore.GetAuditServiceMetadata();
 
         // Assert
         Assert.That(retrievedAuditServiceMetadata, Is.Not.Null);

@@ -155,27 +155,27 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.Msmq.Tests", "ServiceControl.Transports.Msmq.Tests\ServiceControl.Transports.Msmq.Tests.csproj", "{5F8E6C64-B505-4FF7-81CC-9161FBC198A8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.Persistence", "Particular.ThroughputCollector.Persistence\Particular.ThroughputCollector.Persistence.csproj", "{0EBBFE57-5760-43FC-A646-FE4C49F4BF59}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.LicensingComponent.Persistence", "Particular.LicensingComponent.Persistence\Particular.LicensingComponent.Persistence.csproj", "{0EBBFE57-5760-43FC-A646-FE4C49F4BF59}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.RavenDB", "ServiceControl.RavenDB\ServiceControl.RavenDB.csproj", "{D8610AB6-EB24-4617-8089-F11732D3E033}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Particular.ThroughputCollector", "Particular.ThroughputCollector", "{2D732554-9C3D-4509-8D0B-5595266A4D92}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Particular.LicensingComponent", "Particular.LicensingComponent", "{2D732554-9C3D-4509-8D0B-5595266A4D92}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistence", "Persistence", "{C22BFC89-851E-4D42-A878-C13B3F206908}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{94BDFE10-0672-4299-A7D8-2283789F4549}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector", "Particular.ThroughputCollector\Particular.ThroughputCollector.csproj", "{62AB95DB-2621-4A91-8D84-72D12D9F2D87}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.LicensingComponent", "Particular.LicensingComponent\Particular.LicensingComponent.csproj", "{62AB95DB-2621-4A91-8D84-72D12D9F2D87}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Api", "ServiceControl.Api\ServiceControl.Api.csproj", "{9682F7C5-C631-4924-A698-4C355BB14540}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.UnitTests", "Particular.ThroughputCollector.UnitTests\Particular.ThroughputCollector.UnitTests.csproj", "{E64B0BEF-B729-411D-9FE9-7AB52FE7E6C6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.LicensingComponent.UnitTests", "Particular.LicensingComponent.UnitTests\Particular.LicensingComponent.UnitTests.csproj", "{E64B0BEF-B729-411D-9FE9-7AB52FE7E6C6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.Persistence.InMemory", "Particular.ThroughputCollector.Persistence.InMemory\Particular.ThroughputCollector.Persistence.InMemory.csproj", "{9D134CF7-F1A3-4935-BCBD-458406F8AA97}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.LicensingComponent.Persistence.InMemory", "Particular.LicensingComponent.Persistence.InMemory\Particular.LicensingComponent.Persistence.InMemory.csproj", "{9D134CF7-F1A3-4935-BCBD-458406F8AA97}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Api", "ServiceControl.Api\ServiceControl.Api.csproj", "{D101BDEE-85BB-46C5-85E0-6BD8A1B197B1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.Contracts", "Particular.ThroughputCollector.Contracts\Particular.ThroughputCollector.Contracts.csproj", "{6D07AC20-25B3-423F-A88E-64DED435DA06}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.LicensingComponent.Contracts", "Particular.LicensingComponent.Contracts\Particular.LicensingComponent.Contracts.csproj", "{6D07AC20-25B3-423F-A88E-64DED435DA06}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Persistence.Tests.InMemory", "ServiceControl.Persistence.Tests.InMemory\ServiceControl.Persistence.Tests.InMemory.csproj", "{71F18E74-944B-49B9-9AA9-EA2B253CAF0C}"
 EndProject

@@ -12,10 +12,10 @@ class ReportMasksTests : PersistenceTestBase
     {
         //Arrange
         var expectedReportMasks = new List<string> { "secret", "boo" };
-        await ThroughputDataStore.SaveReportMasks(expectedReportMasks, default);
+        await LicensingDataStore.SaveReportMasks(expectedReportMasks, default);
 
         //Act
-        var retrievedReportMasks = await ThroughputDataStore.GetReportMasks(default);
+        var retrievedReportMasks = await LicensingDataStore.GetReportMasks(default);
 
         //Assert
         Assert.That(retrievedReportMasks, Is.Not.Null);
@@ -27,12 +27,12 @@ class ReportMasksTests : PersistenceTestBase
     {
         // Arrange
         var oldReportMasks = new List<string> { "secret", "boo" };
-        await ThroughputDataStore.SaveReportMasks(oldReportMasks, default);
+        await LicensingDataStore.SaveReportMasks(oldReportMasks, default);
 
         // Act
         var expectedReportMasks = new List<string> { "secret", "hello" };
-        await ThroughputDataStore.SaveReportMasks(expectedReportMasks, default);
-        var retrievedReportMasks = await ThroughputDataStore.GetReportMasks(default);
+        await LicensingDataStore.SaveReportMasks(expectedReportMasks, default);
+        var retrievedReportMasks = await LicensingDataStore.GetReportMasks(default);
 
         // Assert
         Assert.That(retrievedReportMasks, Is.Not.Null);
