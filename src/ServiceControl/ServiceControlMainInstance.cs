@@ -15,7 +15,7 @@ namespace Particular.ServiceControl
             new RecoverabilityComponent(),
             new HeartbeatMonitoringComponent(),
             new CustomChecksComponent(),
-            new ThroughputComponent()
+            new LicensingComponent()
         ];
     }
 }

@@ -3,7 +3,7 @@ namespace ServiceControl.Persistence.RavenDB.Throughput.Indexes;
 
 using System.Linq;
 using Raven.Client.Documents.Indexes;
-using Particular.ThroughputCollector.Contracts;
+using Particular.LicensingComponent.Contracts;
 
 class EndpointIndex : AbstractIndexCreationTask<Endpoint>
 {
