@@ -8,16 +8,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Models;
-using Particular.ThroughputCollector.Contracts;
-using Particular.ThroughputCollector.Persistence;
+using Particular.LicensingComponent.Contracts;
+using Particular.LicensingComponent.Persistence;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Linq;
 using Raven.Client.Documents.Queries;
 using Raven.Client.Documents.Session;
 
-class ThroughputDataStore(
+class LicensingDataStore(
     IRavenSessionProvider sessionProvider,
-    ThroughputDatabaseConfiguration databaseConfiguration) : IThroughputDataStore
+    ThroughputDatabaseConfiguration databaseConfiguration) : ILicensingDataStore
 {
     internal const string ThroughputTimeSeriesName = "INC: throughput data";
     const string AuditServiceMetadataDocumentId = "AuditServiceMetadata";

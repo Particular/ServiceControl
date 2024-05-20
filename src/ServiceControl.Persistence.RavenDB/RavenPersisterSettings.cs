@@ -1,5 +1,5 @@
 ﻿using System;
-using Particular.ThroughputCollector.Contracts;
+using Particular.LicensingComponent.Contracts;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.RavenDB.CustomChecks;
 
