@@ -5,5 +5,5 @@ export const userIndicatorMapper = new Map<UserIndicator, string>([
   [UserIndicator.NServiceBusEndpointNoLongerInUse, "No longer in use"],
   [UserIndicator.SendOnlyOrTransactionSessionEndpoint, "SendOnly or Transactional Session Endpoint"],
   [UserIndicator.PlannedToDecommission, "Planned to be decommissioned"],
-  [UserIndicator.NotNServiceBusEndpoint, "Not a NServiceBus Endpoint"],
+  [UserIndicator.NotNServiceBusEndpoint, "Not an NServiceBus Endpoint"],
 ]);

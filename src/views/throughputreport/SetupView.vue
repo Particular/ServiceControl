@@ -20,7 +20,7 @@ onMounted(async () => {
         <div class="intro">
           <template v-if="testResults?.audit_connection_result.connection_successful">
             <div>
-              <h6><i style="color: green" class="fa fa-check"></i> Successfully connected to Audit instances for throughput collection.</h6>
+              <h6><i style="color: green" class="fa fa-check"></i> Successfully connected to Audit instances for usage collection.</h6>
             </div>
           </template>
           <template v-else>
@@ -30,7 +30,7 @@ onMounted(async () => {
           </template>
           <template v-if="testResults?.monitoring_connection_result.connection_successful">
             <div>
-              <h6><i style="color: green" class="fa fa-check"></i> Successfully connected to Monitoring for throughput collection.</h6>
+              <h6><i style="color: green" class="fa fa-check"></i> Successfully connected to Monitoring for usage collection.</h6>
             </div>
           </template>
           <template v-else>
@@ -39,8 +39,8 @@ onMounted(async () => {
             </div>
           </template>
           <p>
-            You are using a transport that does not support automatic throughput collection.<br />
-            In order for ServicePulse to collect throughput data from your endpoints, you need to ensure that either Audit or Monitoring (metrics) are enabled on all your endpoints.<br />
+            You are using a transport that does not support automatic usage collection.<br />
+            In order for ServicePulse to collect usage data from your endpoints, you need to ensure that either Audit or Monitoring (metrics) are enabled on all your endpoints.<br />
             Read the <a href="https://docs.particular.net/servicecontrol/audit-instances/">Audit documentation</a> and the <a href="https://docs.particular.net/monitoring/metrics/">Monitoring documentation</a> for setup instructions .
           </p>
           <template v-if="!testResults?.audit_connection_result.connection_successful || !testResults?.monitoring_connection_result.connection_successful">
@@ -54,7 +54,7 @@ onMounted(async () => {
       <template v-else>
         <template v-if="testResults?.broker_connection_result.connection_successful">
           <div>
-            <h6><i style="color: green" class="fa fa-check"></i> Successfully connected to {{ transportNameForInstructions() }} for throughput collection.</h6>
+            <h6><i style="color: green" class="fa fa-check"></i> Successfully connected to {{ transportNameForInstructions() }} for usage collection.</h6>
           </div>
         </template>
         <template v-else>
@@ -67,8 +67,8 @@ onMounted(async () => {
           </div>
         </template>
         <div class="alert alert-info">
-          Note: enabling <a href="https://docs.particular.net/servicecontrol/audit-instances/">Audit</a> or <a href="https://docs.particular.net/monitoring/metrics/">Monitoring</a> is not mandatory when throughput is being collected from the broker,
-          but doing so highly improves the accuracy of the throughput data and Endpoint identification.
+          Note: enabling <a href="https://docs.particular.net/servicecontrol/audit-instances/">Audit</a> or <a href="https://docs.particular.net/monitoring/metrics/">Monitoring</a> is not mandatory when usage is being collected from the broker, but
+          doing so highly improves the accuracy of the usage data and Endpoint identification.
         </div>
       </template>
     </div>

@@ -10,7 +10,7 @@ import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator"
     :source="DataSource.wellKnownEndpoint"
     column-title="Endpoint Name"
   >
-    <template #nodata> No throughput data available yet </template>
+    <template #nodata> No usage data available yet </template>
   </DetectedListView>
 </template>
 

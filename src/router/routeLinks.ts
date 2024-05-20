@@ -96,7 +96,7 @@ const routeLinks = {
   customChecks: "/custom-checks",
   events: "/events",
   configuration: configurationLinks("/configuration"),
-  throughput: throughputLinks("/throughput"),
+  throughput: throughputLinks("/usage"),
 };
 
 export default routeLinks;

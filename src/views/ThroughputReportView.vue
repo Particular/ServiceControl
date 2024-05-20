@@ -42,7 +42,7 @@ async function downloadReport() {
       <div class="container">
         <div class="row">
           <div class="col-sm-6">
-            <h1>Throughput</h1>
+            <h1>Usage</h1>
           </div>
           <div class="col-sm-6 text-end">
             <span class="reason" v-if="!reportState?.report_can_be_generated">{{ reportState?.reason }}</span>

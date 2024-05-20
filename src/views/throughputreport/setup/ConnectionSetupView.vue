@@ -49,7 +49,7 @@ function transportNameForInstructions() {
 <template>
   <div class="row">
     <p>
-      In order for ServicePulse to collect throughput data directly from {{ transportNameForInstructions() }} you need to configure the below settings.<br />
+      In order for ServicePulse to collect usage data directly from {{ transportNameForInstructions() }} you need to configure the below settings.<br />
       There are two configuration options, as environment variables or directly in the
       <a href="https://docs.particular.net/servicecontrol/creating-config-file"><code>ServiceControl.exe.config</code></a> file.
     </p>
@@ -59,7 +59,7 @@ function transportNameForInstructions() {
       <div class="col-12">
         <h4>Broker Settings</h4>
         <p class="nogap">
-          Settings to ensure that throughput data is being collected from {{ transportNameForInstructions() }}.<br />
+          Settings to ensure that usage data is being collected from {{ transportNameForInstructions() }}.<br />
           Some settings can be automatically configured based on the current transport configuration, so if you have a <i style="color: green" class="fa fa-check"></i> above it means that ServiceControl has successfully connected to
           {{ transportNameForInstructions() }}.
         </p>
@@ -79,7 +79,7 @@ function transportNameForInstructions() {
       <div class="col-12">
         <h4>ServiceControl Settings</h4>
         <p class="nogap">
-          Settings to ensure that throughput data is being collected from the Monitoring instance.<br />
+          Settings to ensure that usage data is being collected from the Monitoring instance.<br />
           For more information read the <a href="https://docs.particular.net/servicecontrol/creating-config-file">ServiceControl</a> settings documentation.
         </p>
         <ConfigurationCode :settings="settingsInfo?.service_control_settings ?? []">
@@ -96,7 +96,7 @@ function transportNameForInstructions() {
       <div class="col-12">
         <h4>Monitoring Settings</h4>
         <p class="nogap">
-          Settings to ensure that throughput data is being collected from the Monitoring instance.<br />
+          Settings to ensure that usage data is being collected from the Monitoring instance.<br />
           These settings do not need to be modified unless MSMQ transport is used with the Monitoring instance installed on a different machine to the ServiceControl Error instance.<br />
           For more information read the <a href="https://docs.particular.net/servicecontrol/monitoring-instances/installation/creating-config-file">Monitoring</a> settings documentation.
         </p>

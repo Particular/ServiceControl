@@ -12,7 +12,7 @@ const legendOptions = new Map<UserIndicator, string>([
   [UserIndicator.NServiceBusEndpointNoLongerInUse, "NServiceBus Endpoint that is no longer in use, usually this would have zero throughput"],
   [UserIndicator.SendOnlyOrTransactionSessionEndpoint, "If the endpoint has no throughput or the endpoint has Transactional Session feature enabled"],
   [UserIndicator.PlannedToDecommission, "If the endpoint is planned to no longer be used in the next 30 days"],
-  [UserIndicator.NotNServiceBusEndpoint, "Not a NServiceBus Endpoint"],
+  [UserIndicator.NotNServiceBusEndpoint, "Not an NServiceBus Endpoint"],
 ]);
 
 function showHideOptionsLegend() {

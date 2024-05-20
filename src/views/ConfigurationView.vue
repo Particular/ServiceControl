@@ -60,7 +60,7 @@ function preventIfDisabled(e: Event) {
             @click.capture="preventIfDisabled"
             class="nav-item"
           >
-            <RouterLink :to="routeLinks.throughput.setup.root">Throughput Setup</RouterLink>
+            <RouterLink :to="routeLinks.throughput.setup.root">Usage Setup</RouterLink>
           </h5>
           <template v-if="!licenseStatus.isExpired">
             <h5 :class="{ active: isRouteSelected(routeLinks.configuration.healthCheckNotifications.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item">

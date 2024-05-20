@@ -35,7 +35,7 @@ onMounted(async () => {
     :source="DataSource.broker"
     column-title="Queue Name"
   >
-    <template #nodata> No throughput data available yet </template>
+    <template #nodata> No usage data available yet </template>
   </DetectedListView>
 </template>
 

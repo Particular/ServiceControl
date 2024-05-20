@@ -5,8 +5,8 @@ import routeLinks from "@/router/routeLinks";
 
 <template>
   <RouterLink :to="routeLinks.throughput.root">
-    <i class="fa fa-file-text-o icon-white" title="Throughput"></i>
-    <span class="navbar-label">Throughput</span>
+    <i class="fa fa-file-text-o icon-white" title="Usage"></i>
+    <span class="navbar-label">Usage</span>
   </RouterLink>
 </template>
 
