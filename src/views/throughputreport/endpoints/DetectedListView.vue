@@ -4,14 +4,12 @@ import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator"
 import DropDown, { type Item } from "@/components/DropDown.vue";
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import throughputClient from "@/views/throughputreport/throughputClient";
-import { onBeforeRouteLeave } from "vue-router";
 import UpdateUserIndicator from "@/resources/UpdateUserIndicator";
-import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import { DataSource } from "@/views/throughputreport/endpoints/dataSource";
 import { userIndicatorMapper } from "./userIndicatorMapper";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
-import NavigateAway from "@/views/throughputreport/endpoints/navigateAway";
+import { useShowToast } from "@/composables/toast";
 
 enum NameFilterType {
   beginsWith = "Begins with",
@@ -42,7 +40,6 @@ const props = defineProps<{
   source: DataSource;
 }>();
 
-let copyOfOriginalDataChanges = new Map<string, { indicator: string }>();
 const data = ref<EndpointThroughputSummary[]>([]);
 const dataChanges = ref(new Map<string, { indicator: string }>());
 const filterData = reactive({ name: "", nameFilterType: NameFilterType.beginsWith, sort: "By name" });
@@ -56,27 +53,6 @@ const filteredData = computed(() => {
 
   return data.value.filter((row) => !row.name || filterNameOptions.find((v) => v.text === filterData.nameFilterType)?.filter(row)).sort(sortItem?.comparer);
 });
-const hasChanges = computed(() => {
-  if (dataChanges.value.size === 0) {
-    return false;
-  }
-  if (copyOfOriginalDataChanges.size !== dataChanges.value.size) {
-    return true;
-  }
-  for (const [key, { indicator }] of copyOfOriginalDataChanges) {
-    const a = dataChanges.value.get(key);
-
-    if (a === undefined) {
-      return true;
-    }
-
-    if (a.indicator !== indicator) {
-      return true;
-    }
-  }
-
-  return false;
-});
 
 onMounted(async () => {
   await loadData();
@@ -86,30 +62,19 @@ watch(
   data,
   (value) => {
     dataChanges.value = new Map(value.map((item) => [item.name, { indicator: item.user_indicator }]));
-    // We need to do a deep copy, see https://stackoverflow.com/a/56853666
-    copyOfOriginalDataChanges = new Map(JSON.parse(JSON.stringify(Array.from(dataChanges.value))));
   },
   { deep: true }
 );
 
-const showLoseChangesWarning = ref<boolean>(false);
-const navigateAway = new NavigateAway();
+const showBulkUpdateWarning = ref<boolean>(false);
 
-onBeforeRouteLeave(() => {
-  if (hasChanges.value) {
-    showLoseChangesWarning.value = true;
-    return navigateAway.navigateGuard();
-  }
-});
-
-function hideLoseChangesWarning() {
-  navigateAway.cancel();
-  showLoseChangesWarning.value = false;
+function cancelChangesWarning() {
+  showBulkUpdateWarning.value = false;
 }
 
-function proceedWithLoseChangesWarning() {
-  navigateAway.proceed();
-  showLoseChangesWarning.value = false;
+function proceedWithChangesWarning() {
+  showBulkUpdateWarning.value = false;
+  updateIndicators();
 }
 
 async function loadData() {
@@ -132,12 +97,19 @@ function searchTypeChanged(event: Event) {
 function updateIndicator(event: Event, name: string) {
   const value = (event.target as HTMLSelectElement).value;
   updateDataChanged(name, (item) => (item.indicator = value));
+  save();
 }
 
-function updateIndicators(indicator: UserIndicator) {
+function showBulkUpdateIndicatorWarning(indicator: UserIndicator) {
+  bulkOperation.value = indicator;
+  showBulkUpdateWarning.value = true;
+}
+
+function updateIndicators() {
   filteredData.value.forEach((item) => {
-    updateDataChanged(item.name, (item) => (item.indicator = indicator));
+    updateDataChanged(item.name, (item) => (item.indicator = bulkOperation.value));
   });
+  save();
 }
 
 function updateDataChanged(name: string, action: (item: { indicator: string }) => void) {
@@ -146,6 +118,8 @@ function updateDataChanged(name: string, action: (item: { indicator: string }) =
     action(item);
   }
 }
+
+const bulkOperation = ref<UserIndicator>(UserIndicator.NServiceBusEndpoint);
 
 function getDefaultEndpointType(row: EndpointThroughputSummary) {
   if (row.is_known_endpoint) {
@@ -163,7 +137,7 @@ async function save() {
 
   await throughputClient.updateIndicators(updateData);
 
-  useShowToast(TYPE.INFO, "Saved", "");
+  useShowToast(TYPE.SUCCESS, "Saved", "", false, { timeout: 1000 });
 
   await loadData();
 }
@@ -184,31 +158,40 @@ async function save() {
           </div>
         </div>
       </div>
-      <div class="col">
+      <div class="col text-end">
         <drop-down label="Sort" :select-item="sortData.find((v) => v.value === filterData.sort)" :callback="sortChanged" :items="sortData" />
-      </div>
-      <div class="col">
-        <div class="dropdown">
-          <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Set displayed Endpoint Types to</button>
-          <ul class="dropdown-menu">
-            <li v-for="indicator in props.indicatorOptions" :key="indicator">
-              <a href="#" @click.prevent="updateIndicators(indicator)">{{ userIndicatorMapper.get(indicator) }}</a>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div class="col-1 text-end">
-        <button class="btn btn-primary" type="button" @click="save" :disabled="!hasChanges">Save</button>
-      </div>
-    </div>
-    <div class="row results">
-      <div class="col format-showing-results">
-        <div>Showing {{ filteredData.length }} of {{ data.length }} result(s)</div>
       </div>
     </div>
   </div>
+  <table class="table">
+    <tbody>
+      <tr>
+        <td class="col" colspan="2">
+          <div class="col format-showing-results">
+            <div>Showing {{ filteredData.length }} of {{ data.length }} result(s)</div>
+          </div>
+        </td>
+        <td class="col" style="width: 350px; padding-left: 0">
+          <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" :disabled="filteredData.length === 0" type="button" data-bs-toggle="dropdown" aria-expanded="false">Set displayed Endpoint Types to</button>
+            <ul class="dropdown-menu">
+              <li v-for="indicator in props.indicatorOptions" :key="indicator">
+                <a href="#" @click.prevent="showBulkUpdateIndicatorWarning(indicator)">{{ userIndicatorMapper.get(indicator) }}</a>
+              </li>
+            </ul>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
   <Teleport to="#modalDisplay">
-    <ConfirmDialog v-if="showLoseChangesWarning" heading="You have unsaved changes" body="Do you want to proceed and lose changes??" @cancel="hideLoseChangesWarning" @confirm="proceedWithLoseChangesWarning" />
+    <ConfirmDialog
+      v-if="showBulkUpdateWarning"
+      heading="Proceed with bulk operation"
+      :body="`Are you sure you want to set ${filteredData.length} endpoints to '${userIndicatorMapper.get(bulkOperation)}'?`"
+      @cancel="cancelChangesWarning"
+      @confirm="proceedWithChangesWarning"
+    />
   </Teleport>
   <table class="table">
     <thead>
@@ -220,7 +203,7 @@ async function save() {
     </thead>
     <tbody>
       <tr v-if="data.length === 0">
-        <td colspan="2" class="text-center"><slot name="nodata"></slot></td>
+        <td colspan="3" class="text-center"><slot name="nodata"></slot></td>
       </tr>
       <tr v-for="row in filteredData" :key="row.name">
         <td class="col">
@@ -242,9 +225,6 @@ async function save() {
 .format-showing-results {
   display: flex;
   align-items: flex-end;
-}
-.results {
-  margin-top: 5px;
 }
 .format-text {
   font-weight: unset;
