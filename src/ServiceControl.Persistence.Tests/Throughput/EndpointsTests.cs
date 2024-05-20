@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using Particular.ThroughputCollector.Contracts;
+using Particular.LicensingComponent.Contracts;
 
 [TestFixture]
 class EndpointsTests : PersistenceTestBase
@@ -16,10 +16,10 @@ class EndpointsTests : PersistenceTestBase
         var endpoint = new Endpoint("Endpoint", ThroughputSource.Audit);
 
         // Act
-        await ThroughputDataStore.SaveEndpoint(endpoint, default);
+        await LicensingDataStore.SaveEndpoint(endpoint, default);
 
         // Assert
-        var endpoints = await ThroughputDataStore.GetAllEndpoints(true, default);
+        var endpoints = await LicensingDataStore.GetAllEndpoints(true, default);
         var foundEndpoint = endpoints.Single();
 
         Assert.That(foundEndpoint.Id.Name, Is.EqualTo(endpoint.Id.Name));
@@ -34,11 +34,11 @@ class EndpointsTests : PersistenceTestBase
         var endpoint2 = new Endpoint("Endpoint1", ThroughputSource.Broker);
 
         // Act
-        await ThroughputDataStore.SaveEndpoint(endpoint1, default);
-        await ThroughputDataStore.SaveEndpoint(endpoint2, default);
+        await LicensingDataStore.SaveEndpoint(endpoint1, default);
+        await LicensingDataStore.SaveEndpoint(endpoint2, default);
 
         // Assert
-        var endpoints = await ThroughputDataStore.GetAllEndpoints(true, default);
+        var endpoints = await LicensingDataStore.GetAllEndpoints(true, default);
 
         Assert.That(endpoints.Count(), Is.EqualTo(2));
     }
@@ -48,15 +48,15 @@ class EndpointsTests : PersistenceTestBase
     {
         // Arrange
         var endpoint1 = new Endpoint("Endpoint1", ThroughputSource.Audit) { SanitizedName = "Endpoint1" };
-        await ThroughputDataStore.SaveEndpoint(endpoint1, default);
-        await ThroughputDataStore.RecordEndpointThroughput(endpoint1.Id.Name, ThroughputSource.Audit, DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), 50, default);
+        await LicensingDataStore.SaveEndpoint(endpoint1, default);
+        await LicensingDataStore.RecordEndpointThroughput(endpoint1.Id.Name, ThroughputSource.Audit, DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1), 50, default);
 
         // Act
-        await ThroughputDataStore.RecordEndpointThroughput(endpoint1.Id.Name, ThroughputSource.Audit, DateOnly.FromDateTime(DateTime.UtcNow), 100, default);
+        await LicensingDataStore.RecordEndpointThroughput(endpoint1.Id.Name, ThroughputSource.Audit, DateOnly.FromDateTime(DateTime.UtcNow), 100, default);
 
         // Assert
-        var endpoints = await ThroughputDataStore.GetAllEndpoints(true, default);
-        var throughput = await ThroughputDataStore.GetEndpointThroughputByQueueName([endpoint1.SanitizedName], default);
+        var endpoints = await LicensingDataStore.GetAllEndpoints(true, default);
+        var throughput = await LicensingDataStore.GetEndpointThroughputByQueueName([endpoint1.SanitizedName], default);
 
         var foundEndpoint = endpoints.Single();
         Assert.That(foundEndpoint.Id.Name, Is.EqualTo(endpoint1.Id.Name));
@@ -71,10 +71,10 @@ class EndpointsTests : PersistenceTestBase
     {
         // Arrange
         var endpoint = new Endpoint("Endpoint", ThroughputSource.Audit);
-        await ThroughputDataStore.SaveEndpoint(endpoint, default);
+        await LicensingDataStore.SaveEndpoint(endpoint, default);
 
         // Act
-        var foundEndpoint = await ThroughputDataStore.GetEndpoint("Endpoint", ThroughputSource.Audit, default);
+        var foundEndpoint = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Audit, default);
 
         // Assert
         Assert.That(foundEndpoint, Is.Not.Null);
@@ -85,10 +85,10 @@ class EndpointsTests : PersistenceTestBase
     {
         // Arrange
         var endpoint = new Endpoint("Endpoint", ThroughputSource.Audit);
-        await ThroughputDataStore.SaveEndpoint(endpoint, default);
+        await LicensingDataStore.SaveEndpoint(endpoint, default);
 
         // Act
-        var foundEndpoint = await ThroughputDataStore.GetEndpoint("Endpoint", ThroughputSource.Broker, default);
+        var foundEndpoint = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Broker, default);
 
         // Assert
         Assert.That(foundEndpoint, Is.Null);
@@ -104,13 +104,13 @@ class EndpointsTests : PersistenceTestBase
         {
             SanitizedName = "Endpoint"
         };
-        await ThroughputDataStore.SaveEndpoint(endpoint, default);
+        await LicensingDataStore.SaveEndpoint(endpoint, default);
 
         // Act
-        await ThroughputDataStore.UpdateUserIndicatorOnEndpoints([new UpdateUserIndicator { Name = "Endpoint", UserIndicator = userIndicator }], default);
+        await LicensingDataStore.UpdateUserIndicatorOnEndpoints([new UpdateUserIndicator { Name = "Endpoint", UserIndicator = userIndicator }], default);
 
         // Assert
-        var foundEndpoint = await ThroughputDataStore.GetEndpoint("Endpoint", ThroughputSource.Audit, default);
+        var foundEndpoint = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Audit, default);
 
         Assert.That(foundEndpoint, Is.Not.Null);
         Assert.That(foundEndpoint.UserIndicator, Is.EqualTo(userIndicator));
@@ -127,10 +127,10 @@ class EndpointsTests : PersistenceTestBase
         };
 
         // Act
-        await ThroughputDataStore.UpdateUserIndicatorOnEndpoints([userIndicatorUpate], default);
+        await LicensingDataStore.UpdateUserIndicatorOnEndpoints([userIndicatorUpate], default);
 
         // Assert
-        var allEndpoints = await ThroughputDataStore.GetAllEndpoints(true, default);
+        var allEndpoints = await LicensingDataStore.GetAllEndpoints(true, default);
 
         Assert.That(allEndpoints.Count, Is.EqualTo(0));
     }
@@ -144,15 +144,15 @@ class EndpointsTests : PersistenceTestBase
         var endpointAudit = new Endpoint("Endpoint", ThroughputSource.Audit) { SanitizedName = "Endpoint" };
         var endpointMonitoring = new Endpoint("Endpoint", ThroughputSource.Monitoring) { SanitizedName = "Endpoint" };
 
-        await ThroughputDataStore.SaveEndpoint(endpointAudit, default);
-        await ThroughputDataStore.SaveEndpoint(endpointMonitoring, default);
+        await LicensingDataStore.SaveEndpoint(endpointAudit, default);
+        await LicensingDataStore.SaveEndpoint(endpointMonitoring, default);
 
         // Act
-        await ThroughputDataStore.UpdateUserIndicatorOnEndpoints([new UpdateUserIndicator { Name = "Endpoint", UserIndicator = userIndicator }], default);
+        await LicensingDataStore.UpdateUserIndicatorOnEndpoints([new UpdateUserIndicator { Name = "Endpoint", UserIndicator = userIndicator }], default);
 
         // Assert
-        var foundEndpointAudit = await ThroughputDataStore.GetEndpoint("Endpoint", ThroughputSource.Audit, default);
-        var foundEndpointMonitoring = await ThroughputDataStore.GetEndpoint("Endpoint", ThroughputSource.Monitoring, default);
+        var foundEndpointAudit = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Audit, default);
+        var foundEndpointMonitoring = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Monitoring, default);
 
         Assert.That(foundEndpointAudit, Is.Not.Null);
         Assert.That(foundEndpointAudit.UserIndicator, Is.EqualTo(userIndicator));
@@ -167,16 +167,16 @@ class EndpointsTests : PersistenceTestBase
     {
         // Arrange
         var endpointAudit = new Endpoint("Endpoint", ThroughputSource.Audit);
-        await ThroughputDataStore.SaveEndpoint(endpointAudit, default);
+        await LicensingDataStore.SaveEndpoint(endpointAudit, default);
 
-        await ThroughputDataStore.RecordEndpointThroughput(
+        await LicensingDataStore.RecordEndpointThroughput(
             endpointAudit.Id.Name,
             ThroughputSource.Audit,
             DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-daysSinceLastThroughputEntry),
             50,
             default);
 
-        Assert.That(await ThroughputDataStore.IsThereThroughputForLastXDays(timeFrameToCheck, default), expectedValue ? Is.True : Is.False);
+        Assert.That(await LicensingDataStore.IsThereThroughputForLastXDays(timeFrameToCheck, default), expectedValue ? Is.True : Is.False);
     }
 
     [TestCase(10, 5, ThroughputSource.Monitoring, ThroughputSource.Monitoring, false)]
@@ -186,15 +186,15 @@ class EndpointsTests : PersistenceTestBase
     {
         // Arrange
         var endpointAudit = new Endpoint("Endpoint", throughputSourceToRecord);
-        await ThroughputDataStore.SaveEndpoint(endpointAudit, default);
+        await LicensingDataStore.SaveEndpoint(endpointAudit, default);
 
-        await ThroughputDataStore.RecordEndpointThroughput(
+        await LicensingDataStore.RecordEndpointThroughput(
             endpointAudit.Id.Name,
             throughputSourceToRecord,
             DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-daysSinceLastThroughputEntry),
             50,
             default);
 
-        Assert.That(await ThroughputDataStore.IsThereThroughputForLastXDaysForSource(timeFrameToCheck, throughputSourceToCheck, default), expectedValue ? Is.True : Is.False);
+        Assert.That(await LicensingDataStore.IsThereThroughputForLastXDaysForSource(timeFrameToCheck, throughputSourceToCheck, default), expectedValue ? Is.True : Is.False);
     }
 }

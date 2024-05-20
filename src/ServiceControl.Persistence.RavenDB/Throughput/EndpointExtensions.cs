@@ -1,7 +1,7 @@
 ﻿#nullable enable
 namespace ServiceControl.Persistence.RavenDB.Throughput;
 
-using Particular.ThroughputCollector.Contracts;
+using Particular.LicensingComponent.Contracts;
 using ServiceControl.Persistence.RavenDB.Throughput.Models;
 
 static class EndpointExtensions

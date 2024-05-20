@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using Particular.ThroughputCollector.Contracts;
+using Particular.LicensingComponent.Contracts;
 
 [TestFixture]
 class BrokerMetadataTests : PersistenceTestBase
@@ -13,10 +13,10 @@ class BrokerMetadataTests : PersistenceTestBase
     {
         //Arrange
         var expectedBrokerMetadata = new BrokerMetadata("Some scope", new Dictionary<string, string> { ["Some key"] = "Some value" });
-        await ThroughputDataStore.SaveBrokerMetadata(expectedBrokerMetadata, default);
+        await LicensingDataStore.SaveBrokerMetadata(expectedBrokerMetadata, default);
 
         //Act
-        var retrievedBrokerMetadata = await ThroughputDataStore.GetBrokerMetadata(default);
+        var retrievedBrokerMetadata = await LicensingDataStore.GetBrokerMetadata(default);
 
         //Assert
         Assert.That(retrievedBrokerMetadata, Is.Not.Null);
@@ -29,12 +29,12 @@ class BrokerMetadataTests : PersistenceTestBase
     {
         // Arrange
         var oldBrokerMetadata = new BrokerMetadata("Some scope", new Dictionary<string, string> { ["Some key"] = "Some value" });
-        await ThroughputDataStore.SaveBrokerMetadata(oldBrokerMetadata, default);
+        await LicensingDataStore.SaveBrokerMetadata(oldBrokerMetadata, default);
 
         // Act
         var expectedBrokerMetadata = new BrokerMetadata("New scope", new Dictionary<string, string> { ["New key"] = "New value" });
-        await ThroughputDataStore.SaveBrokerMetadata(expectedBrokerMetadata, default);
-        var retrievedBrokerMetadata = await ThroughputDataStore.GetBrokerMetadata(default);
+        await LicensingDataStore.SaveBrokerMetadata(expectedBrokerMetadata, default);
+        var retrievedBrokerMetadata = await LicensingDataStore.GetBrokerMetadata(default);
 
         // Assert
         Assert.That(retrievedBrokerMetadata, Is.Not.Null);
