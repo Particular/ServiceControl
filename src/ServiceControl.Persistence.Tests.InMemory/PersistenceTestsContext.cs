@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
-using Particular.ThroughputCollector.Persistence.InMemory;
+using Particular.LicensingComponent.Persistence.InMemory;
 using ServiceControl.Persistence.Tests.InMemory;
 
 public class PersistenceTestsContext : IPersistenceTestsContext
@@ -11,7 +11,7 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 
     public Task Setup(IHostApplicationBuilder hostBuilder)
     {
-        hostBuilder.Services.AddThroughputInMemoryPersistence();
+        hostBuilder.Services.AddLicensingInMemoryPersistence();
 
         PersistenceSettings = new InMemoryPersistenceSettings();
 

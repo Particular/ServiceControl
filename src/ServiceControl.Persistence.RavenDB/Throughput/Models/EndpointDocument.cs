@@ -2,7 +2,7 @@
 namespace ServiceControl.Persistence.RavenDB.Throughput.Models;
 
 using System.Collections.Generic;
-using Particular.ThroughputCollector.Contracts;
+using Particular.LicensingComponent.Contracts;
 
 class EndpointDocument(EndpointIdentifier id)
 {
