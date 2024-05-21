@@ -20,7 +20,6 @@ Every project that uses the artifacts then has to have a build ordering `Project
 
 - The `ServiceControlInstaller.Engine` project to create the above-mentioned required zip files
 - The `Particular.PlatformSample.ServiceControl` project to create the Platform sample required NuGet package
-- The `ServiceControl.DockerImages` project to build the Docker container images
 
 ## Assembly version mismatches
 

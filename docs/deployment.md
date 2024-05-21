@@ -19,12 +19,6 @@ The binaries are shipped to the [PlatformSample](https://github.com/Particular/P
 
 NOTE: The platform sample runs all instance in the same process the same transport and persister has to be used.
 
-## Docker
+## Docker images
 
-NOTE: Docker isn't currently officially supported but we do have [a sample showing how to use it](https://docs.particular.net/samples/platformtools-docker-compose/).
-
-Multiple docker images, windows only, are generated using the following matrix [{InstanceType}, {TransportType}, {Init|NoInit}] where `Init` means that the instance is started in setup mode and then shutdown to support creating queues, database artifacts etc. All images are pushed to [DockerHub](https://hub.docker.com/) during deployment.
-
-All required configuration values are defaulted in the `dockerfile` but can be overridden via environment variables. To simulate an instance running in docker the `{instance}.exe` passing in the `--portable` option.
-
-NOTE: Persister is hardcoded to `RavenDB 3.5`.
+TODO: Add details for Linux containers

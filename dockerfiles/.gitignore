@@ -1,4 +1,0 @@
-# Dockerfiles dynamically created here by templates
-# Can't be in RepoStandards gitignore because other repos may need source-controlled static dockerfiles
-*.dockerfile
-
