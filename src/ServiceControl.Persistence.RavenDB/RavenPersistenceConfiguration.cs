@@ -5,7 +5,7 @@
     using System.Reflection;
     using Configuration;
     using CustomChecks;
-    using Particular.ThroughputCollector.Contracts;
+    using Particular.LicensingComponent.Contracts;
 
     class RavenPersistenceConfiguration : IPersistenceConfiguration
     {

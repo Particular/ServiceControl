@@ -7,7 +7,7 @@ using Microsoft.Extensions.Hosting;
 using NServiceBus;
 using NServiceBus.Settings;
 using NUnit.Framework;
-using Particular.ThroughputCollector.Persistence;
+using Particular.LicensingComponent.Persistence;
 using ServiceControl.Infrastructure.DomainEvents;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence;
@@ -99,5 +99,5 @@ public abstract class PersistenceTestBase
     protected IIngestionUnitOfWorkFactory IngestionUnitOfWorkFactory => ServiceProvider.GetRequiredService<IIngestionUnitOfWorkFactory>();
     protected IEventLogDataStore EventLogDataStore => ServiceProvider.GetRequiredService<IEventLogDataStore>();
     protected IRetryDocumentDataStore RetryDocumentDataStore => ServiceProvider.GetRequiredService<IRetryDocumentDataStore>();
-    protected IThroughputDataStore ThroughputDataStore => ServiceProvider.GetRequiredService<IThroughputDataStore>();
+    protected ILicensingDataStore LicensingDataStore => ServiceProvider.GetRequiredService<ILicensingDataStore>();
 }
