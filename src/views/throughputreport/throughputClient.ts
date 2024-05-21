@@ -5,7 +5,7 @@ import ConnectionTestResults from "@/resources/ConnectionTestResults";
 import ThroughputConnectionSettings from "@/resources/ThroughputConnectionSettings";
 import { useDownloadFileFromResponse } from "@/composables/fileDownloadCreator";
 import ReportGenerationState from "@/resources/ReportGenerationState";
-import { parse } from "@tinyhttp/content-disposition"
+import { parse } from "@tinyhttp/content-disposition";
 
 class ThroughputClient {
   constructor(readonly basePath: string) {}
@@ -65,4 +65,4 @@ class ThroughputClient {
   }
 }
 
-export default new ThroughputClient("throughput");
+export default new ThroughputClient("licensing");
