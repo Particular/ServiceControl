@@ -134,4 +134,3 @@ jobs:
         uses: Particular/push-octopus-package-action@main
         with:
           octopus-deploy-api-key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
-          additional-metadata-paths: ServiceControlMetadata.json
