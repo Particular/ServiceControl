@@ -3,8 +3,10 @@ namespace ServiceBus.Management.Infrastructure
     using System;
     using System.Text.Json;
     using System.Text.Json.Serialization.Metadata;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
+    using ServiceControl.Configuration;
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Subscriptions;
@@ -63,6 +65,12 @@ namespace ServiceBus.Management.Infrastructure
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
             configuration.DefineCriticalErrorAction((criticalErrorContext, _) => CriticalErrorCustomCheck.OnCriticalError(criticalErrorContext));
+
+            if (AppEnvironment.RunningInContainer)
+            {
+                // Do not write diagnostics file
+                configuration.CustomDiagnosticsWriter((_, _) => Task.CompletedTask);
+            }
         }
 
         static bool IsExternalContract(Type t) =>

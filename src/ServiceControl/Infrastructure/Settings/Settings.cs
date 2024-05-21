@@ -29,7 +29,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TimeSpan? errorRetentionPeriod = default
             )
         {
-            LoggingSettings = loggingSettings ?? new();
+            LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
             ServiceName = serviceName;
 
@@ -52,7 +52,18 @@ namespace ServiceBus.Management.Infrastructure.Settings
             ForwardErrorMessages = forwardErrorMessages ?? GetForwardErrorMessages();
             ErrorRetentionPeriod = errorRetentionPeriod ?? GetErrorRetentionPeriod();
             EventsRetentionPeriod = GetEventRetentionPeriod();
-            Port = SettingsReader.Read(SettingsRootNamespace, "Port", 33333);
+
+            if (AppEnvironment.RunningInContainer)
+            {
+                Hostname = "*";
+                Port = 33333;
+            }
+            else
+            {
+                Port = SettingsReader.Read(SettingsRootNamespace, "Port", 33333);
+                Hostname = SettingsReader.Read(SettingsRootNamespace, "Hostname", "localhost");
+            }
+
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
             MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", 10);
             RetryHistoryDepth = SettingsReader.Read(SettingsRootNamespace, "RetryHistoryDepth", 10);
@@ -125,14 +136,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public string StagingQueue => $"{ServiceName}.staging";
 
-        public int Port { get; set; }
+        public int Port { get; private set; }
 
         public string LicenseFileText { get; set; }
 
         public PersistenceSettings PersisterSpecificSettings { get; set; }
 
         public bool PrintMetrics => SettingsReader.Read<bool>(SettingsRootNamespace, "PrintMetrics");
-        public string Hostname => SettingsReader.Read(SettingsRootNamespace, "Hostname", "localhost");
+        public string Hostname { get; private set; }
         public string VirtualDirectory => SettingsReader.Read(SettingsRootNamespace, "VirtualDirectory", string.Empty);
 
         public TimeSpan HeartbeatGracePeriod

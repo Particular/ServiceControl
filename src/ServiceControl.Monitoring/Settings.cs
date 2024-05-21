@@ -15,7 +15,7 @@ namespace ServiceControl.Monitoring
     {
         public Settings(LoggingSettings loggingSettings = null)
         {
-            LoggingSettings = loggingSettings ?? new();
+            LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
             TryLoadLicenseFromConfig();
 
@@ -23,8 +23,18 @@ namespace ServiceControl.Monitoring
 
             ConnectionString = GetConnectionString();
             ErrorQueue = SettingsReader.Read(SettingsRootNamespace, "ErrorQueue", "error");
-            HttpHostName = SettingsReader.Read<string>(SettingsRootNamespace, "HttpHostname");
-            HttpPort = SettingsReader.Read<string>(SettingsRootNamespace, "HttpPort");
+
+            if (AppEnvironment.RunningInContainer)
+            {
+                HttpHostName = "*";
+                HttpPort = "33633";
+
+            }
+            else
+            {
+                HttpHostName = SettingsReader.Read<string>(SettingsRootNamespace, "HttpHostname");
+                HttpPort = SettingsReader.Read<string>(SettingsRootNamespace, "HttpPort");
+            }
             EndpointName = SettingsReader.Read<string>(SettingsRootNamespace, "EndpointName");
             EndpointUptimeGracePeriod = TimeSpan.Parse(SettingsReader.Read(SettingsRootNamespace, "EndpointUptimeGracePeriod", "00:00:40"));
             MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", 32);

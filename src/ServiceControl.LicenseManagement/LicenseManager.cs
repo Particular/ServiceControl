@@ -107,7 +107,7 @@
             return LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData);
         }
 
-        static bool IsRunningInDocker => bool.TryParse(Environment.GetEnvironmentVariable("SERVICECONTROL_RUNNING_IN_DOCKER"), out bool isDocker) && isDocker;
+        static bool IsRunningInDocker => bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), out bool isDocker) && isDocker;
 
         static bool TryDeserializeLicense(string licenseText, out License license)
         {

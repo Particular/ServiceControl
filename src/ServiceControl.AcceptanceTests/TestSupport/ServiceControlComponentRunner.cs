@@ -23,6 +23,7 @@
     using Particular.ServiceControl.Hosting;
     using RavenDB.Shared;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
 
     public class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -48,7 +49,7 @@
         {
             var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(logPath);
-            var loggingSettings = new LoggingSettings(defaultLevel: LogLevel.Debug, logPath: logPath);
+            var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace, defaultLevel: LogLevel.Debug, logPath: logPath);
 
             var settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType, loggingSettings, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
             {

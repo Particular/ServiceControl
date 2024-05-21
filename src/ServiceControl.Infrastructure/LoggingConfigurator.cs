@@ -1,4 +1,4 @@
-namespace Particular.ServiceControl
+namespace ServiceControl.Infrastructure
 {
     using System;
     using System.IO;
@@ -8,11 +8,11 @@ namespace Particular.ServiceControl
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus.Extensions.Logging;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Configuration;
     using LogLevel = NLog.LogLevel;
     using LogManager = NServiceBus.Logging.LogManager;
 
-    static class LoggingConfigurator
+    public static class LoggingConfigurator
     {
         public static void ConfigureLogging(LoggingSettings loggingSettings)
         {
@@ -46,12 +46,15 @@ namespace Particular.ServiceControl
             };
 
             // Always want to see license logging regardless of default logging level
-            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget));
-
             // Defaults
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel < LogLevel.Info ? loggingSettings.LogLevel : LogLevel.Info, consoleTarget));
+
+            if (!AppEnvironment.RunningInContainer)
+            {
+                nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
+                nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, fileTarget));
+            }
 
             NLog.LogManager.Configuration = nlogConfig;
 
@@ -59,7 +62,8 @@ namespace Particular.ServiceControl
 
             var logger = LogManager.GetLogger("LoggingConfiguration");
             var logEventInfo = new LogEventInfo { TimeStamp = DateTime.UtcNow };
-            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", fileTarget.FileName.Render(logEventInfo), loggingSettings.LogLevel.Name);
+            var loggingTo = AppEnvironment.RunningInContainer ? "console" : fileTarget.FileName.Render(logEventInfo);
+            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", loggingTo, loggingSettings.LogLevel.Name);
         }
 
         const long megaByte = 1024 * 1024;

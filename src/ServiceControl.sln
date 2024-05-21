@@ -107,8 +107,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persis
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence.SagaAudit", "ServiceControl.Audit.Persistence.SagaAudit\ServiceControl.Audit.Persistence.SagaAudit.csproj", "{CD8495ED-3C98-41FC-8643-61B35B50C413}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.DockerImages", "ServiceControl.DockerImages\ServiceControl.DockerImages.csproj", "{1C648E04-F9E3-433F-86D9-E99344275613}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Management.PowerShell", "ServiceControl.Management.PowerShell\ServiceControl.Management.PowerShell.csproj", "{31CF8050-9A87-4569-A750-3171B2A892C0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.Tests", "ServiceControl.Transports.Tests\ServiceControl.Transports.Tests.csproj", "{03074EEB-1851-4C55-BDB9-E5F527DF2FF6}"
@@ -575,16 +573,6 @@ Global
 		{CD8495ED-3C98-41FC-8643-61B35B50C413}.Release|x64.Build.0 = Release|Any CPU
 		{CD8495ED-3C98-41FC-8643-61B35B50C413}.Release|x86.ActiveCfg = Release|Any CPU
 		{CD8495ED-3C98-41FC-8643-61B35B50C413}.Release|x86.Build.0 = Release|Any CPU
-		{1C648E04-F9E3-433F-86D9-E99344275613}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1C648E04-F9E3-433F-86D9-E99344275613}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{1C648E04-F9E3-433F-86D9-E99344275613}.Debug|x64.Build.0 = Debug|Any CPU
-		{1C648E04-F9E3-433F-86D9-E99344275613}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{1C648E04-F9E3-433F-86D9-E99344275613}.Debug|x86.Build.0 = Debug|Any CPU
-		{1C648E04-F9E3-433F-86D9-E99344275613}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1C648E04-F9E3-433F-86D9-E99344275613}.Release|x64.ActiveCfg = Release|Any CPU
-		{1C648E04-F9E3-433F-86D9-E99344275613}.Release|x64.Build.0 = Release|Any CPU
-		{1C648E04-F9E3-433F-86D9-E99344275613}.Release|x86.ActiveCfg = Release|Any CPU
-		{1C648E04-F9E3-433F-86D9-E99344275613}.Release|x86.Build.0 = Release|Any CPU
 		{31CF8050-9A87-4569-A750-3171B2A892C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{31CF8050-9A87-4569-A750-3171B2A892C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{31CF8050-9A87-4569-A750-3171B2A892C0}.Debug|x64.ActiveCfg = Debug|Any CPU

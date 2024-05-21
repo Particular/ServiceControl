@@ -9,7 +9,7 @@
     using System.Threading.Tasks;
     using NServiceBus.Transport;
     using ServiceBus.Management.Infrastructure.Installers;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Persistence;
 
     class ErrorIngestionFaultPolicy

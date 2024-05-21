@@ -69,13 +69,6 @@ jobs:
         run: |
           New-Item assets\PowerShellModules -ItemType Directory
           Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
-      # - name: Build Docker images
-      #   if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
-      #   run: dotnet build src/ServiceControl.DockerImages --configuration Release
-      # - name: List Docker images
-      #   if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
-      #   shell: pwsh
-      #   run: docker images
       - name: Publish assets
         uses: actions/upload-artifact@v4.3.3
         with:
@@ -135,41 +128,9 @@ jobs:
               Write-Host Zips: Expected $expectedZipCount but found $zipCount
               exit -1
           }
-      - name: Prepare ServiceControl metadata
-        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
-        shell: pwsh
-        run: |
-          #List of Docker image names used to control re-tagging during push to production
-          $dockerImageNames = Get-ChildItem -Path dockerfiles -Filter *.dockerfile |
-              Select-Object -Property @{label = 'Name'; expression = {[System.IO.Path]::GetFileNameWithoutExtension($_.FullName)} } |
-              Select-object -ExpandProperty Name
-
-          $serviceControlMetadata = @{
-              DockerImageNames = $dockerImageNames
-          }
-
-          $serviceControlMetadata | ConvertTo-Json | Out-File -Path ServiceControlMetadata.json
       - name: Deploy
         if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         # Does not follow standard practice of targeting explicit versions because configuration is tightly coupled to Octopus Deploy configuration
         uses: Particular/push-octopus-package-action@main
         with:
           octopus-deploy-api-key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
-          additional-metadata-paths: ServiceControlMetadata.json
-      # - name: Login to Docker Hub
-      #   if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
-      #   uses: docker/login-action@v3.0.0
-      #   with:
-      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
-      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
-      # - name: Push Docker images
-      #   if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
-      #   shell: pwsh
-      #   run: |
-      #     Get-ChildItem -Path dockerfiles -Filter *.dockerfile | ForEach-Object {
-      #         $dockerImageName = $_.Name.SubString(0, $_.Name.Length - ".dockerfile".Length);
-      #
-      #         $dockerpushcmd = "docker push particular/" + $dockerImageName +":${{ env.MinVerVersion }}"
-      #         echo "Docker Push Command: $dockerpushcmd"
-      #         Invoke-Expression $dockerpushcmd.ToLower()
-      #     }
