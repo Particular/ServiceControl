@@ -4,7 +4,7 @@
 
 public record Endpoint(EndpointIdentifier Id)
 {
-    public Endpoint(string name, ThroughputSource source = ThroughputSource.None)
+    public Endpoint(string name, ThroughputSource source)
         : this(new EndpointIdentifier(name, source))
     {
     }
