@@ -10,7 +10,6 @@ using Operations.BodyStorage.RavenAttachments;
 using Persistence.MessageRedirects;
 using Persistence.Recoverability;
 using Recoverability;
-using SagaAudit;
 using ServiceControl.CustomChecks;
 using ServiceControl.Infrastructure.RavenDB.Subscriptions;
 using ServiceControl.Persistence.RavenDB.Throughput;
@@ -68,19 +67,19 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
         services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
 
-            services.AddSingleton<IArchiveMessages, MessageArchiver>();
-            services.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
-            services.AddSingleton<IErrorMessageDataStore, ErrorMessagesDataStore>();
-            services.AddSingleton<IEventLogDataStore, EventLogDataStore>();
-            services.AddSingleton<IFailedErrorImportDataStore, FailedErrorImportDataStore>();
-            services.AddSingleton<IGroupsDataStore, GroupsDataStore>();
-            services.AddSingleton<IMessageRedirectsDataStore, MessageRedirectsDataStore>();
-            services.AddSingleton<IMonitoringDataStore, RavenMonitoringDataStore>();
-            services.AddSingleton<IQueueAddressStore, QueueAddressStore>();
-            services.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
-            services.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
-            services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
-        }
+        services.AddSingleton<IArchiveMessages, MessageArchiver>();
+        services.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
+        services.AddSingleton<IErrorMessageDataStore, ErrorMessagesDataStore>();
+        services.AddSingleton<IEventLogDataStore, EventLogDataStore>();
+        services.AddSingleton<IFailedErrorImportDataStore, FailedErrorImportDataStore>();
+        services.AddSingleton<IGroupsDataStore, GroupsDataStore>();
+        services.AddSingleton<IMessageRedirectsDataStore, MessageRedirectsDataStore>();
+        services.AddSingleton<IMonitoringDataStore, RavenMonitoringDataStore>();
+        services.AddSingleton<IQueueAddressStore, QueueAddressStore>();
+        services.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
+        services.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
+        services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
+    }
 
     public void AddInstaller(IServiceCollection services)
     {
