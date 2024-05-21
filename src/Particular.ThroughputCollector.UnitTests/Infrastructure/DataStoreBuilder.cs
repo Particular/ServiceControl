@@ -18,7 +18,8 @@ class DataStoreBuilder(IThroughputDataStore store)
     {
         var index = endpoints.Count;
 
-        sources ??= [ThroughputSource.None];
+        name ??= Guid.NewGuid().ToString("N");
+        sources ??= [ThroughputSource.Broker];
         foreach (var source in sources)
         {
             endpoints.Add(CreateEndpoint(index, name, source));
@@ -96,7 +97,7 @@ class DataStoreBuilder(IThroughputDataStore store)
         }
     }
 
-    static Endpoint CreateEndpoint(int index, string name = null, ThroughputSource source = ThroughputSource.None)
+    static Endpoint CreateEndpoint(int index, string name, ThroughputSource source)
     {
         string endpointName = name ?? $"Endpoint{index + 1}";
 
