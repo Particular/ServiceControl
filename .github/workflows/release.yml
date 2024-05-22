@@ -12,7 +12,7 @@ on:
 env:
   DOTNET_NOLOGO: true
 jobs:
-  release:
+  windows:
     if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: windows-2022
     steps:
@@ -166,19 +166,18 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install MinVer CLI
-        run: dotnet tool install --global minver-cli --version 5.0.0
+        run: dotnet tool install --global minver-cli
       - name: Determine versions
-        run: |
-          MinVerVersion=$(minver)
-          echo "MinVerVersion=$MinVerVersion" >> $GITHUB_ENV
+        run: echo "MinVerVersion=$(minver)" >> $GITHUB_ENV
       - name: Build image
-        run: docker build --tag ${{ matrix.name }} --file src/${{ matrix.project }}/Dockerfile .
+        run: docker build --tag ${{ matrix.name }} --file src/${{ matrix.project }}/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} .
       - name: Log in to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Push image
+        env:
+          TAG_NAME: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
         run: |
           IMAGE_NAME=${{ matrix.name }}
-          VERSION=${{ env.MinVerVersion }}
           IMAGE_ID=ghcr.io/particular/$IMAGE_NAME
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+          docker tag $IMAGE_NAME $IMAGE_ID:$TAG_NAME
           docker push $IMAGE_ID:$VERSION
