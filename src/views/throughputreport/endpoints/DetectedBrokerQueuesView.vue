@@ -30,7 +30,6 @@ onMounted(async () => {
     </div>
   </template>
   <DetectedListView
-    v-else-if="reportAvailable?.report_can_be_generated"
     :indicator-options="[UserIndicator.NServiceBusEndpoint, UserIndicator.NotNServiceBusEndpoint, UserIndicator.SendOnlyOrTransactionSessionEndpoint, UserIndicator.NServiceBusEndpointNoLongerInUse, UserIndicator.PlannedToDecommission]"
     :source="DataSource.broker"
     column-title="Queue Name"
