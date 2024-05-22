@@ -30,9 +30,5 @@ EXPOSE 33633
 WORKDIR /
 COPY --from=build /deploy/Particular.ServiceControl.Monitoring ./app
 
-# Probably not needed but don't want to remove yet
-RUN mkdir -p /var/servicecontrol && chown -R $APP_UID /var/servicecontrol
-VOLUME /var/servicecontrol
-
 USER $APP_UID
 ENTRYPOINT ["./app/ServiceControl.Monitoring"]
