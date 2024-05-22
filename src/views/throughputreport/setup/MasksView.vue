@@ -21,7 +21,7 @@ async function updateMasks() {
 
   await throughputClient.updateMasks(values);
 
-  useShowToast(TYPE.INFO, "Masks Saved", "");
+  useShowToast(TYPE.SUCCESS, "Masks Saved", "");
 }
 </script>
 
