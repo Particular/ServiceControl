@@ -137,6 +137,7 @@ jobs:
   containers:
     if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-22.04
+    name: container-${{ matrix.name }}
     defaults:
       run:
         shell: bash
@@ -149,6 +150,7 @@ jobs:
             project: ServiceControl.Audit
           - name: servicecontrol-monitoring
             project: ServiceControl.Monitoring
+      fail-fast: false
     steps:
       - name: Check for secrets
         env:
@@ -177,6 +179,6 @@ jobs:
         run: |
           IMAGE_NAME=${{ matrix.name }}
           VERSION=${{ env.MinVerVersion }}
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+          IMAGE_ID=ghcr.io/particular/$IMAGE_NAME
           docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
