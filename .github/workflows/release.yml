@@ -171,6 +171,8 @@ jobs:
         run: echo "MinVerVersion=$(minver)" >> $GITHUB_ENV
       - name: Build image
         run: docker build --tag ${{ matrix.name }} --file src/${{ matrix.project }}/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} .
+      - name: List images
+        run: docker images
       - name: Log in to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Push image
@@ -179,5 +181,9 @@ jobs:
         run: |
           IMAGE_NAME=${{ matrix.name }}
           IMAGE_ID=ghcr.io/particular/$IMAGE_NAME
+
+          echo "Tagging image $IMAGE_NAME as $IMAGE_ID:$TAG_NAME"
           docker tag $IMAGE_NAME $IMAGE_ID:$TAG_NAME
-          docker push $IMAGE_ID:$VERSION
+
+          echo "Pushing $IMAGE_ID:$TAG_NAME"
+          docker push $IMAGE_ID:$TAG_NAME
