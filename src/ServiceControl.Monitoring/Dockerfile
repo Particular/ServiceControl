@@ -15,6 +15,7 @@ RUN dotnet build src/ServiceControl.Monitoring/ServiceControl.Monitoring.csproj 
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
+ARG VERSION
 
 LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceControl
 LABEL org.opencontainers.image.authors="Particular Software"
