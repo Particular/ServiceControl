@@ -197,7 +197,7 @@ async function save() {
     <thead>
       <tr>
         <th scope="col">{{ props.columnTitle }}</th>
-        <th scope="col">Maximum daily throughput</th>
+        <th scope="col" class="text-end formatThroughputColumn">Maximum daily throughput</th>
         <th scope="col">Endpoint Type <i class="fa fa-info-circle info" v-tooltip title="Pick the most correct option" /></th>
       </tr>
     </thead>
@@ -209,7 +209,7 @@ async function save() {
         <td class="col">
           {{ row.name }}
         </td>
-        <td class="col" style="width: 250px">{{ row.max_daily_throughput }}</td>
+        <td class="col text-end formatThroughputColumn" style="width: 250px">{{ row.max_daily_throughput.toLocaleString() }}</td>
         <td class="col" style="width: 350px">
           <select class="form-select endpointType format-text" @change="(event) => updateIndicator(event, row.name)">
             <option value="">Pick the most appropriate option</option>
@@ -222,6 +222,9 @@ async function save() {
 </template>
 
 <style scoped>
+.formatThroughputColumn {
+  padding-right: 20px;
+}
 .format-showing-results {
   display: flex;
   align-items: flex-end;
