@@ -1,21 +1,17 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import ConnectionTestResults from "@/resources/ConnectionTestResults";
-import throughputClient from "@/views/throughputreport/throughputClient";
 import ConnectionResultView from "@/views/throughputreport/setup/ConnectionResultView.vue";
 import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
-import { isBrokerTransport } from "@/views/throughputreport/transport";
+import { useThroughputStore } from "@/stores/ThroughputStore";
+import { storeToRefs } from "pinia";
+import { ref } from "vue";
 
-const testResults = ref<ConnectionTestResults | null>(null);
-const loading = ref(true);
-
-onMounted(async () => {
-  await testConnection();
-});
+const store = useThroughputStore();
+const { testResults } = storeToRefs(store);
+const loading = ref(false);
 
 async function testConnection() {
   loading.value = true;
-  testResults.value = await throughputClient.test();
+  await store.refresh();
   loading.value = false;
 }
 </script>
@@ -27,7 +23,7 @@ async function testConnection() {
       <div class="sp-loader" />
     </template>
     <template v-else>
-      <ConnectionResultView v-if="isBrokerTransport" title="Broker" :result="testResults?.broker_connection_result!" />
+      <ConnectionResultView v-if="store.isBrokerTransport" title="Broker" :result="testResults?.broker_connection_result!" />
       <ConnectionResultView title="Audit" :result="testResults?.audit_connection_result!">
         <template #instructions>
           <a href="https://docs.particular.net/servicecontrol/servicecontrol-instances/remotes#configuration" target="_blank">Learn how to configure audit instances</a>

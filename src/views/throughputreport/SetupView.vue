@@ -1,22 +1,18 @@
 <script setup lang="ts">
 import isRouteSelected from "@/composables/isRouteSelected";
 import routeLinks from "@/router/routeLinks";
-import { isBrokerTransport, transportNameForInstructions } from "@/views/throughputreport/transport";
-import { onMounted, ref } from "vue";
-import ConnectionTestResults from "@/resources/ConnectionTestResults";
-import throughputClient from "@/views/throughputreport/throughputClient";
+import { useThroughputStore } from "@/stores/ThroughputStore";
+import { storeToRefs } from "pinia";
+import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
 
-const testResults = ref<ConnectionTestResults | null>(null);
-
-onMounted(async () => {
-  testResults.value = await throughputClient.test();
-});
+const store = useThroughputStore();
+const { testResults } = storeToRefs(store);
 </script>
 
 <template>
   <div class="box">
     <div class="row">
-      <template v-if="!isBrokerTransport">
+      <template v-if="!store.isBrokerTransport">
         <div class="intro">
           <template v-if="testResults?.audit_connection_result.connection_successful">
             <div>
@@ -28,15 +24,17 @@ onMounted(async () => {
               <h6><i style="color: red" class="fa fa-times"></i> The connection to Audit instances was not successful.</h6>
             </div>
           </template>
-          <template v-if="testResults?.monitoring_connection_result.connection_successful">
-            <div>
-              <h6><i style="color: green" class="fa fa-check"></i> Successfully connected to Monitoring for usage collection.</h6>
-            </div>
-          </template>
-          <template v-else>
-            <div>
-              <h6><i style="color: red" class="fa fa-times"></i> The connection to Monitoring was not successful.</h6>
-            </div>
+          <template v-if="useIsMonitoringEnabled()">
+            <template v-if="testResults?.monitoring_connection_result.connection_successful">
+              <div>
+                <h6><i style="color: green" class="fa fa-check"></i> Successfully connected to Monitoring for usage collection.</h6>
+              </div>
+            </template>
+            <template v-else>
+              <div>
+                <h6><i style="color: red" class="fa fa-times"></i> The connection to Monitoring was not successful.</h6>
+              </div>
+            </template>
           </template>
           <p>
             You are using a transport that does not support automatic usage collection.<br />
@@ -54,12 +52,12 @@ onMounted(async () => {
       <template v-else>
         <template v-if="testResults?.broker_connection_result.connection_successful">
           <div>
-            <h6><i style="color: green" class="fa fa-check"></i> Successfully connected to {{ transportNameForInstructions() }} for usage collection.</h6>
+            <h6><i style="color: green" class="fa fa-check"></i> Successfully connected to {{ store.transportNameForInstructions() }} for usage collection.</h6>
           </div>
         </template>
         <template v-else>
           <div>
-            <h6><i style="color: red" class="fa fa-times"></i> The connection to {{ transportNameForInstructions() }} was not successfully.</h6>
+            <h6><i style="color: red" class="fa fa-times"></i> The connection to {{ store.transportNameForInstructions() }} was not successfully.</h6>
             <p>
               You may have not setup all the connection settings, have a look at the <RouterLink :to="routeLinks.throughput.setup.connectionSetup.link">Connection Setup</RouterLink> tab.<br />
               If you have set the settings but are still having issues, look at the <RouterLink :to="routeLinks.throughput.setup.diagnostics.link">Diagnostics</RouterLink> tab for more information on how to fix the issue.
@@ -72,7 +70,7 @@ onMounted(async () => {
         </div>
       </template>
     </div>
-    <br v-if="isBrokerTransport" />
+    <br v-if="store.isBrokerTransport" />
     <div class="row">
       <div class="col-sm-12">
         <div class="nav tabs">

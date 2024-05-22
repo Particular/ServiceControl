@@ -17,7 +17,7 @@ class ThroughputClient {
   }
 
   public async updateIndicators(data: UpdateUserIndicator[]): Promise<void> {
-    const response = await usePostToServiceControl(`${this.basePath}/endpoints/update`, data);
+    await usePostToServiceControl(`${this.basePath}/endpoints/update`, data);
   }
 
   public async test() {

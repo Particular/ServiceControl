@@ -3,11 +3,13 @@ import { computed, onMounted, ref } from "vue";
 import ThroughputConnectionSettings from "@/resources/ThroughputConnectionSettings";
 import { Transport } from "@/views/throughputreport/transport";
 import throughputClient from "@/views/throughputreport/throughputClient";
-import ConnectionTestResults from "@/resources/ConnectionTestResults";
 import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
 import ConfigurationCode from "@/views/throughputreport/setup/ConfigurationCode.vue";
+import { useThroughputStore } from "@/stores/ThroughputStore";
+import { storeToRefs } from "pinia";
 
-const testResults = ref<ConnectionTestResults | null>(null);
+const store = useThroughputStore();
+const { testResults } = storeToRefs(store);
 const settingsInfo = ref<ThroughputConnectionSettings | null>(null);
 const transport = computed(() => {
   if (testResults.value == null) {
@@ -18,16 +20,8 @@ const transport = computed(() => {
 });
 
 onMounted(async () => {
-  await Promise.all([testConnection(), getSettings()]);
-});
-
-async function getSettings() {
   settingsInfo.value = await throughputClient.setting();
-}
-
-async function testConnection() {
-  testResults.value = await throughputClient.test();
-}
+});
 
 function transportNameForInstructions() {
   switch (transport.value) {
@@ -48,11 +42,12 @@ function transportNameForInstructions() {
 
 <template>
   <div class="row">
-    <p>
+    <p v-if="store.isBrokerTransport || useIsMonitoringEnabled()">
       In order for ServicePulse to collect usage data directly from {{ transportNameForInstructions() }} you need to configure the below settings.<br />
       There are two configuration options, as environment variables or directly in the
       <a href="https://docs.particular.net/servicecontrol/creating-config-file"><code>ServiceControl.exe.config</code></a> file.
     </p>
+    <p v-else>No further configuration required.</p>
   </div>
   <template v-if="settingsInfo?.broker_settings.length ?? 0 > 0">
     <div class="row configuration">

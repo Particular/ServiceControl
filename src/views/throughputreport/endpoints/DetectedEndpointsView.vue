@@ -2,9 +2,24 @@
 import DetectedListView from "@/views/throughputreport/endpoints/DetectedListView.vue";
 import { DataSource } from "@/views/throughputreport/endpoints/dataSource";
 import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator";
+import routeLinks from "@/router/routeLinks";
+import { useThroughputStore } from "@/stores/ThroughputStore";
+
+const store = useThroughputStore();
 </script>
 
 <template>
+  <template v-if="!store.isBrokerTransport">
+    <template v-if="store.hasErrors">
+      <div class="errorContainer text-center">
+        <h6><i style="color: red" class="fa fa-times"></i> There are some error collecting usage data.</h6>
+        <p>
+          You may have not setup all the connection settings, have a look at <RouterLink :to="routeLinks.throughput.setup.connectionSetup.link">Connection Setup in Configuration</RouterLink>.<br />
+          If you have set the settings but are still having issues, look at the <RouterLink :to="routeLinks.throughput.setup.diagnostics.link">Diagnostics in Configuration</RouterLink> for more information on how to fix the issue.
+        </p>
+      </div>
+    </template>
+  </template>
   <DetectedListView
     :indicator-options="[UserIndicator.NServiceBusEndpoint, UserIndicator.SendOnlyOrTransactionSessionEndpoint, UserIndicator.NServiceBusEndpointNoLongerInUse, UserIndicator.PlannedToDecommission]"
     :source="DataSource.wellKnownEndpoint"
@@ -14,4 +29,8 @@ import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator"
   </DetectedListView>
 </template>
 
-<style scoped></style>
+<style scoped>
+.errorContainer {
+  margin: 20px;
+}
+</style>

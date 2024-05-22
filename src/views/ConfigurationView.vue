@@ -11,9 +11,10 @@ import isRouteSelected from "@/composables/isRouteSelected";
 import { WarningLevel } from "@/components/WarningLevel";
 import { displayConnectionsWarning } from "@/components/configuration/displayConnectionsWarning";
 import { useLink, useRouter } from "vue-router";
+import { useThroughputStore } from "@/stores/ThroughputStore";
 
 const redirectCount = ref(0);
-
+const store = useThroughputStore();
 watch(redirectCountUpdated, () => (redirectCount.value = redirectCountUpdated.count));
 
 onMounted(async () => {
@@ -61,6 +62,7 @@ function preventIfDisabled(e: Event) {
             class="nav-item"
           >
             <RouterLink :to="routeLinks.throughput.setup.root">Usage Setup</RouterLink>
+            <exclamation-mark :type="WarningLevel.Danger" v-if="store.hasErrors" />
           </h5>
           <template v-if="!licenseStatus.isExpired">
             <h5 :class="{ active: isRouteSelected(routeLinks.configuration.healthCheckNotifications.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item">
