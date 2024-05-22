@@ -170,7 +170,7 @@ jobs:
       - name: Determine versions
         run: echo "MinVerVersion=$(minver)" >> $GITHUB_ENV
       - name: Build image
-        run: docker build --tag ${{ matrix.name }} --file src/${{ matrix.project }}/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} .
+        run: docker buildx build --tag ${{ matrix.name }} --file src/${{ matrix.project }}/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --platform linux/arm64,linux/arm,linux/amd64 .
       - name: List images
         run: docker images
       - name: Log in to GitHub container registry
