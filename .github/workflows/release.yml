@@ -179,4 +179,4 @@ jobs:
       - name: Build image
         env:
           TAG_NAME: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
-        run: docker buildx build --push --tag ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }} --file src/${{ matrix.project }}/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --platform linux/arm64,linux/arm,linux/amd64 --annotation  org.opencontainers.image.description="${{ matrix.description }}".
+        run: docker buildx build --push --tag ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }} --file src/${{ matrix.project }}/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --platform linux/arm64,linux/arm,linux/amd64 --annotation org.opencontainers.image.description="${{ matrix.description }}" .
