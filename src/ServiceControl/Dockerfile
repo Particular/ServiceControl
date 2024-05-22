@@ -17,14 +17,13 @@ RUN dotnet build src/ServiceControl/ServiceControl.csproj --configuration Releas
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 ARG VERSION
 
-LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceControl
-LABEL org.opencontainers.image.authors="Particular Software"
-LABEL org.opencontainers.image.url=https://docs.particular.net/servicecontrol/
-LABEL org.opencontainers.image.documentation=https://docs.particular.net/servicecontrol/
-LABEL org.opencontainers.image.licenses=RPL-1.5
-LABEL org.opencontainers.image.version=$VERSION
-LABEL org.opencontainers.image.title=ServiceControl
-LABEL org.opencontainers.image.description="ServiceControl primary instance"
+LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceControl \
+      org.opencontainers.image.authors="Particular Software" \
+      org.opencontainers.image.url=https://docs.particular.net/servicecontrol/ \
+      org.opencontainers.image.documentation=https://docs.particular.net/servicecontrol/ \
+      org.opencontainers.image.version=$VERSION \
+      org.opencontainers.image.title=ServiceControl \
+      org.opencontainers.image.description="ServiceControl primary instance"
 
 EXPOSE 33333
 WORKDIR /
