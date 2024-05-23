@@ -1,7 +1,14 @@
 import { screen, within } from "@testing-library/vue";
-import { columnName } from "@/components/monitoring/EndpointListRow.vue";
 import { fireEvent } from "@testing-library/vue";
 
+export enum columnName {
+  ENDPOINTNAME = "name",
+  QUEUELENGTH = "queueLength",
+  THROUGHPUT = "throughput",
+  SCHEDULEDRETRIES = "retries",
+  PROCESSINGTIME = "processingTime",
+  CRITICALTIME = "criticalTime",
+}
 export async function smallGraphAverageValuesByColumn({ column }: { column: columnName | string }) {
   const ungroupedEndpoints = screen.getByRole("treeitem", { name: "ungrouped-endpoints" });
   const endpointRows = within(ungroupedEndpoints).getAllByRole("row");

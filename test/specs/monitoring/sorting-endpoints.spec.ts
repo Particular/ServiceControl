@@ -5,21 +5,12 @@ import { endpointGroupNames } from "./questions/endpointGroupNames";
 import { endpointGroup } from "./questions/endpointGroup";
 import { sortEndpointsBy } from "./actions/sortEndpointsBy";
 import { findSortImageInColumn } from "./questions/sortDirection";
-import { smallGraphAverageValuesByColumn } from "./questions/smallGraphAverageValuesByColumn";
+import { smallGraphAverageValuesByColumn, columnName } from "./questions/smallGraphAverageValuesByColumn";
 import { ungroupedEndpointNames } from "./questions/ungroupedEndpointNames";
 import * as precondition from "../../preconditions";
 import { monitoredEndpointTemplate } from "../../mocks/monitored-endpoint-template";
 import { Endpoint } from "@/resources/MonitoringEndpoint";
 import { endpointsNames } from "./questions/endpointsNames";
-
-enum columnName {
-  ENDPOINTNAME = "name",
-  QUEUELENGTH = "queueLength",
-  THROUGHPUT = "throughput",
-  SCHEDULEDRETRIES = "retries",
-  PROCESSINGTIME = "processingTime",
-  CRITICALTIME = "criticalTime",
-}
 
 describe("FEATURE: Endpoint sorting", () => {
   describe("Rule: Grouped endpoints should be able to be sorted in ascending and descending order by group name and by endpoint name inside the group", () => {
