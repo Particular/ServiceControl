@@ -12,8 +12,6 @@
 
     public interface ITransportCustomization
     {
-        void CustomizeEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
-
         void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
 
         void CustomizeAuditEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
@@ -36,13 +34,6 @@
         protected abstract void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, TTransport transportDefinition, TransportSettings transportSettings);
 
         protected abstract void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TTransport transportDefinition, TransportSettings transportSettings);
-
-        public void CustomizeEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
-            TTransport transport = CreateTransport(transportSettings);
-            endpointConfiguration.UseTransport(transport);
-        }
 
         public void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
