@@ -3,7 +3,6 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Reflection;
     using Commands;
     using Configuration;
@@ -15,10 +14,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
         {
             if (SettingsReader.Read<bool>(Settings.SettingsRootNamespace, "MaintenanceMode"))
             {
-                args = args.Concat(new[]
-                {
-                    "-m"
-                }).ToArray();
+                args = [.. args, "-m"];
             }
 
             var executionMode = ExecutionMode.Run;
