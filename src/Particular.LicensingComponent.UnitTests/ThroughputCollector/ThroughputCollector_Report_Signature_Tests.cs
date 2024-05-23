@@ -242,10 +242,10 @@ public class ThroughputCollector_Report_Signature_Tests
         }
 
 #if DEBUG
-        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RSA_PRIVATE_KEY")))
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("THROUGHPUT_REPORT_PRIVATEKEY_PEM")))
         {
             // We don't distribute the private key to do local testing, this only happens during CI
-            Assert.Ignore("Ignoring report validation as this is a DEBUG build and the RSA_PRIVATE_KEY environment variable is missing.");
+            Assert.Ignore("Ignoring report validation as this is a DEBUG build and the THROUGHPUT_REPORT_PRIVATEKEY_PEM environment variable is missing.");
             return true;
         }
 #endif
@@ -257,7 +257,7 @@ public class ThroughputCollector_Report_Signature_Tests
         {
             using (var rsa = RSA.Create())
             {
-                var privateKeyText = Environment.GetEnvironmentVariable("RSA_PRIVATE_KEY");
+                var privateKeyText = Environment.GetEnvironmentVariable("THROUGHPUT_REPORT_PRIVATEKEY_PEM");
 
                 ImportPrivateKey(rsa, privateKeyText);
 
