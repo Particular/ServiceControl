@@ -113,4 +113,4 @@ jobs:
           ServiceControl_Audit_LicenseText: ${{ secrets.LICENSETEXT }}
           Monitoring_LicenseText: ${{ secrets.LICENSETEXT }}
           AZURE_ACI_CREDENTIALS: ${{ secrets.AZURE_ACI_CREDENTIALS }}
-          RSA_PRIVATE_KEY: ${{ secrets.RSA_PRIVATE_KEY }}
+          THROUGHPUT_REPORT_PRIVATEKEY_PEM: ${{ secrets.THROUGHPUT_REPORT_PRIVATEKEY_PEM }}
