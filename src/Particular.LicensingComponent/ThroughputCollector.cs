@@ -163,7 +163,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
             ScopeType = brokerMetaData.ScopeType ?? "",
             Prefix = null,
             MessageTransport = transport,
-            ToolType = "Throughput Collector",
+            ToolType = "Platform Licensing Component",
             ToolVersion = throughputSettings.ServiceControlVersion,
             IgnoredQueues = [.. ignoredQueueNames],
             Queues = [.. queueThroughputs],
