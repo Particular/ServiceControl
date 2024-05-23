@@ -146,13 +146,10 @@ jobs:
         include:
           - name: servicecontrol
             project: ServiceControl
-            description: ServiceControl primary instance
           - name: servicecontrol-audit
             project: ServiceControl.Audit
-            description: ServiceControl audit instance
           - name: servicecontrol-monitoring
             project: ServiceControl.Monitoring
-            description: ServiceControl monitoring instance
       fail-fast: false
     steps:
       - name: Check for secrets
@@ -160,10 +157,6 @@ jobs:
           SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
         shell: pwsh
         run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJSON(github) }}
-        run: echo "$GITHUB_CONTEXT"
       - name: Checkout
         uses: actions/checkout@v4.1.6
         with:
@@ -179,4 +172,6 @@ jobs:
       - name: Build image
         env:
           TAG_NAME: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
-        run: docker buildx build --push --tag ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }} --file src/${{ matrix.project }}/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --platform linux/arm64,linux/arm,linux/amd64 --annotation "index,manifest,manifest-descriptor:org.opencontainers.image.description=${{ matrix.description }}" --annotation "index,manifest,manifest-descriptor:foo=bar" .
+        run: docker buildx build --push --tag ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }} --file src/${{ matrix.project }}/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --platform linux/arm64,linux/arm,linux/amd64 .
+      - name: Inspect image
+        run: docker buildx imagetools inspect ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }}
