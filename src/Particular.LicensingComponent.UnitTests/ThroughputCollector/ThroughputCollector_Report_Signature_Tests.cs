@@ -108,7 +108,7 @@ public class ThroughputCollector_Report_Signature_Tests
         Assert.That(data.CustomerName, Is.EqualTo("TestCustomer"));
         Assert.That(data.MessageTransport, Is.EqualTo("AzureServiceBus"));
         Assert.That(data.ReportMethod, Is.EqualTo("Broker"));
-        Assert.That(data.ToolType, Is.EqualTo("Throughput Collector"));
+        Assert.That(data.ToolType, Is.EqualTo("Platform Licensing Component"));
         Assert.That(data.ToolVersion, Is.EqualTo("5.0.1"));
         Assert.That(data.StartTime.ToString("O"), Is.EqualTo("2024-04-24T00:00:00.0000000+00:00"));
         Assert.That(data.EndTime.ToString("O"), Is.EqualTo("2024-04-25T00:00:00.0000000+00:00"));
@@ -133,7 +133,7 @@ public class ThroughputCollector_Report_Signature_Tests
         Assert.That(data.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.MonitoringEnabled.ToString()), Is.True);
         Assert.That(data.EnvironmentInformation.EnvironmentData[EnvironmentDataType.MonitoringEnabled.ToString()], Is.EqualTo("True"));
 
-        Assert.That(report.Signature, Is.EqualTo("CG+Cd1FOcM1B4slEdH4yiZj37/ntd2D+l2UMu6PA/aV5j8jWHmcfvXHswQlkej8Jk0Vh3kEeTlhH9FoxIMXLGOAphBy3r0gr1Jd9P/sHJzdlDiY7DgJAGJd30bRwioV/6iyXJ12UHaUMImxGPynWS9F0YkfmrdHIDjvRZJ1hTqpth05bqVhVbQ9OGW0KA6+3DKBOGUIPc0DOCYfffoOEzKZdCPVw+CMwVy/KdpIHKYqsLdNqZkVaqbmOQULbh29qXU2Ai2HkdXs2s8cYt/n0TDDg4Nq3K6rmf0a5tT2HO9WZOydXyKZ2ZRl1hOeFnJG9ev9qBFvmbk9JonLRxOLWXA=="));
+        Assert.That(report.Signature, Is.EqualTo("IEbO4i0Jn54iHUzlwotHf9aw/fZIHY+dztY9cMRkWjVVo6AiYtihWR0mip793gRrWHOxHVobCpa4l5svRk16mBR+YAOrs3KNRVTzrl4+wL21e1u9zFuPNrHLtFeul+taJxV8ciA7zEgD7LMle9CcR/Vfm8BZ9mmD5W/DjsCYLCdVXfN4iRMlz+eW50mOHty21yJ0pOiYBooaN2EJexVY4Q+5FMyAkm0wucEPFyaQB6+SfcS37fEm807B7sXhtUPiW+einqDOX6uYF+MuXxUn1u9LxlEWKV9kPqXJnulxmoReHXHigP45pj/8m9jUzrQdagINl1uIOBkq5SMDccRfTA=="));
 
         Assert.That(ValidateReport(report));
     }
