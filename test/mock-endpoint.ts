@@ -18,5 +18,5 @@ export const makeMockEndpoint =
       headers?: { [key: string]: string };
     }
   ) => {
-    mockServer.use(http[method](endpoint, () => HttpResponse.json(body, { status: status })));
+    mockServer.use(http[method](endpoint, () => HttpResponse.json(body, { status: status, headers: headers })));
   };
