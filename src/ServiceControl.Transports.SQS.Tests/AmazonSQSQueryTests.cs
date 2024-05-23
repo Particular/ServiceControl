@@ -8,8 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
-using NServiceBus;
-using NServiceBus.AcceptanceTesting;
 using NUnit.Framework;
 using Particular.Approvals;
 using Transports;
@@ -100,23 +98,10 @@ class AmazonSQSQueryTests : TransportTestFixture
         // We need to wait a bit of time, to ensure AWS metrics are retrievable
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(6));
         CancellationToken token = cancellationTokenSource.Token;
-        const int messagesSent = 15;
-        await Scenario.Define<MyContext>()
-            .WithEndpoint(new Receiver(transportSettings.EndpointName), b =>
-            b
-                .CustomConfig(ec =>
-                {
-                    configuration.TransportCustomization.CustomizeEndpoint(ec, transportSettings);
-                })
-                .When(async bus =>
-                {
-                    for (int i = 0; i < messagesSent; i++)
-                    {
-                        await bus.SendLocal(new MyMessage());
-                    }
-                }))
-            .Done(context => context.Counter == messagesSent)
-            .Run();
+        const int numMessagesToIngest = 15;
+
+        await CreateTestQueue(transportSettings.EndpointName);
+        await SendAndReceiveMessages(transportSettings.EndpointName, numMessagesToIngest);
 
         var connectionString =
             new SQSTransportConnectionString(transportSettings.ConnectionString);
@@ -136,7 +121,7 @@ class AmazonSQSQueryTests : TransportTestFixture
 
         query.Initialise(dictionary.ToFrozenDictionary());
 
-        await Task.Delay(TimeSpan.FromMinutes(2));
+        await Task.Delay(TimeSpan.FromMinutes(2), token);
 
         var queueNames = new List<IBrokerQueue>();
         await foreach (IBrokerQueue queueName in query.GetQueueNames(token))
@@ -156,31 +141,6 @@ class AmazonSQSQueryTests : TransportTestFixture
             total += queueThroughput.TotalThroughput;
         }
 
-        Assert.AreEqual(messagesSent, total);
-    }
-
-    class Receiver : EndpointConfigurationBuilder
-    {
-        public Receiver(string endpointName) => EndpointSetup<BasicEndpointSetup>(c =>
-        {
-            c.EnableInstallers();
-            c.UsePersistence<NonDurablePersistence>();
-        }).CustomEndpointName(endpointName);
-
-        public class MyMessageHandler(MyContext testContext) : IHandleMessages<MyMessage>
-        {
-            public Task Handle(MyMessage message, IMessageHandlerContext context)
-            {
-                testContext.Counter++;
-                return Task.CompletedTask;
-            }
-        }
-    }
-
-    class MyMessage : ICommand;
-
-    class MyContext : ScenarioContext
-    {
-        public int Counter { get; set; }
+        Assert.AreEqual(numMessagesToIngest, total);
     }
 }

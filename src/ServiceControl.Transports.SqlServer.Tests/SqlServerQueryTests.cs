@@ -9,9 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
-using NServiceBus;
-using NServiceBus.AcceptanceTesting;
-using NServiceBus.AcceptanceTesting.Support;
 using NUnit.Framework;
 using Particular.Approvals;
 using Transports;
@@ -98,21 +95,12 @@ class SqlServerQueryTests : TransportTestFixture
         // We need to wait a bit of time, because the scenario running takes on average 1 sec per run.
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(50));
         CancellationToken token = cancellationTokenSource.Token;
-        IScenarioWithEndpointBehavior<MyContext> scenario = Scenario.Define<MyContext>()
-            .WithEndpoint(new Receiver(transportSettings.EndpointName), b =>
-            b
-                .CustomConfig(ec =>
-                {
-                    configuration.TransportCustomization.CustomizeEndpoint(ec, transportSettings);
-                })
-                .When(bus => bus.SendLocal(new MyMessage())))
-            .Done(context => context.ResetEvent.IsSet);
         var dictionary = new Dictionary<string, string>
         {
             { SqlServerQuery.SqlServerSettings.ConnectionString, configuration.ConnectionString }
         };
 
-        await configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
+        await CreateTestQueue(transportSettings.EndpointName);
 
         query.Initialise(dictionary.ToFrozenDictionary());
 
@@ -132,7 +120,7 @@ class SqlServerQueryTests : TransportTestFixture
         {
             while (!reset.IsSet)
             {
-                _ = await scenario.Run();
+                await SendAndReceiveMessages(transportSettings.EndpointName, 1);
                 provider.Advance(TimeSpan.FromHours(1));
             }
         }, token);
@@ -147,30 +135,5 @@ class SqlServerQueryTests : TransportTestFixture
 
         // Asserting that we have one message per hour during 24 hours, the first snapshot is not counted hence the 23 assertion. 
         Assert.AreEqual(23, total);
-    }
-
-    class Receiver : EndpointConfigurationBuilder
-    {
-        public Receiver(string endpointName) => EndpointSetup<BasicEndpointSetup>(c =>
-        {
-            c.EnableInstallers();
-            c.UsePersistence<NonDurablePersistence>();
-        }).CustomEndpointName(endpointName);
-
-        public class MyMessageHandler(MyContext testContext) : IHandleMessages<MyMessage>
-        {
-            public Task Handle(MyMessage message, IMessageHandlerContext context)
-            {
-                testContext.ResetEvent.Set();
-                return Task.CompletedTask;
-            }
-        }
-    }
-
-    class MyMessage : ICommand;
-
-    class MyContext : ScenarioContext
-    {
-        public ManualResetEventSlim ResetEvent { get; } = new(false);
     }
 }

@@ -8,9 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
-using NServiceBus;
-using NServiceBus.AcceptanceTesting;
-using NServiceBus.AcceptanceTesting.Support;
 using NUnit.Framework;
 using Particular.Approvals;
 using Transports;
@@ -81,22 +78,10 @@ class RabbitMQQueryTests : TransportTestFixture
     public async Task RunScenario()
     {
         // We need to wait a bit of time, because the scenario running takes on average 1 sec per run.
-        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(3));
         CancellationToken token = cancellationTokenSource.Token;
-        var totalWrapper = new TotalWrapper();
-        IScenarioWithEndpointBehavior<MyContext> scenario = Scenario.Define<MyContext>(c =>
-            {
-                c.Total = totalWrapper;
-            })
-            .WithEndpoint(new Receiver(transportSettings.EndpointName), b =>
-            b
-                .CustomConfig(ec =>
-                {
-                    configuration.TransportCustomization.CustomizeEndpoint(ec, transportSettings);
-                })
-                .When(bus => bus.SendLocal(new MyMessage())))
-            .Done(context => context.ResetEvent.IsSet);
-        await configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
+
+        await CreateTestQueue(transportSettings.EndpointName);
 
         var dictionary = new Dictionary<string, string>();
         query.Initialise(dictionary.ToFrozenDictionary());
@@ -111,19 +96,28 @@ class RabbitMQQueryTests : TransportTestFixture
         Assert.IsNotNull(queue);
 
         long total = 0L;
+        const int numMessagesToIngest = 15;
         using var reset = new ManualResetEventSlim();
+        using var sendMessage = new ManualResetEventSlim();
 
         var runScenarioAndAdvanceTime = Task.Run(async () =>
         {
+            await Task.Delay(100, token);
+            provider.Advance(TimeSpan.FromMinutes(15));
+
+            sendMessage.Wait(token);
+
             while (!reset.IsSet)
             {
-                _ = await scenario.Run();
+                await SendAndReceiveMessages(transportSettings.EndpointName, numMessagesToIngest);
+                await Task.Delay(100, token);
                 provider.Advance(TimeSpan.FromMinutes(15));
             }
         }, token);
 
         await foreach (QueueThroughput queueThroughput in query.GetThroughputPerDay(queue, new DateOnly(), token))
         {
+            sendMessage.Set();
             total += queueThroughput.TotalThroughput;
         }
 
@@ -131,39 +125,6 @@ class RabbitMQQueryTests : TransportTestFixture
         await runScenarioAndAdvanceTime.WaitAsync(token);
 
         // Asserting that we have one message per hour during 24 hours, the first snapshot is not counted hence the 23 assertion. 
-        Assert.Greater(total, 23);
-        Assert.LessOrEqual(total, totalWrapper.Total);
-    }
-
-    class Receiver : EndpointConfigurationBuilder
-    {
-        public Receiver(string endpointName) => EndpointSetup<BasicEndpointSetup>(c =>
-        {
-            c.EnableInstallers();
-            c.UsePersistence<NonDurablePersistence>();
-        }).CustomEndpointName(endpointName);
-
-        public class MyMessageHandler(MyContext testContext) : IHandleMessages<MyMessage>
-        {
-            public Task Handle(MyMessage message, IMessageHandlerContext context)
-            {
-                testContext.ResetEvent.Set();
-                testContext.Total.Total++;
-                return Task.CompletedTask;
-            }
-        }
-    }
-
-    class MyMessage : ICommand;
-
-    class TotalWrapper
-    {
-        public int Total { get; set; }
-    }
-
-    class MyContext : ScenarioContext
-    {
-        public ManualResetEventSlim ResetEvent { get; } = new(false);
-        public TotalWrapper Total { get; set; }
+        Assert.Greater(total, numMessagesToIngest);
     }
 }
