@@ -16,7 +16,7 @@
 
             var onQueueLengthEntryReceived = CreateTaskCompletionSource<QueueLengthEntry>();
 
-            await StartQueueLengthProvider(queueName, (qle) =>
+            await using var scope = await StartQueueLengthProvider(queueName, (qle) =>
             {
                 if (qle.Value > 0)
                 {

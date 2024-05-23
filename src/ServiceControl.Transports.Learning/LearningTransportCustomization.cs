@@ -4,6 +4,7 @@
     using System.IO;
     using System.Linq;
     using LearningTransport;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
 
     public class LearningTransportCustomization : TransportCustomization<LearningTransport>
@@ -17,8 +18,6 @@
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, LearningTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
-
         protected override LearningTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
             var transport = new LearningTransport
@@ -30,6 +29,12 @@
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 
             return transport;
+        }
+
+        protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
+        {
+            services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
+            services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
 
         internal static string FindStoragePath(string connectionString)
