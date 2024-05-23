@@ -191,6 +191,12 @@ public class RabbitMQQuery(
             {
                 foreach (var rabbitMQQueueDetails in queues)
                 {
+                    if (rabbitMQQueueDetails.QueueName.StartsWith("nsb.delay-level-") ||
+                        rabbitMQQueueDetails.QueueName.StartsWith("nsb.v2.delay-level-") ||
+                        rabbitMQQueueDetails.QueueName.StartsWith("nsb.v2.verify-"))
+                    {
+                        continue;
+                    }
                     vHosts.Add(rabbitMQQueueDetails.VHost);
                     await AddAdditionalQueueDetails(rabbitMQQueueDetails, cancellationToken);
                     yield return rabbitMQQueueDetails;
