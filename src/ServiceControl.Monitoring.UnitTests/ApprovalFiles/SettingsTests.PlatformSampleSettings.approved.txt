@@ -7,7 +7,6 @@
     },
     "LogPath": "C:\\Logs"
   },
-  "Portable": false,
   "ServiceName": "Particular.Monitoring",
   "TransportType": "NServiceBus.ServiceControlLearningTransport, ServiceControl.Transports.LearningTransport",
   "ConnectionString": null,

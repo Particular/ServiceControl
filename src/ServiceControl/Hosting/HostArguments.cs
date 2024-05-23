@@ -45,11 +45,6 @@ namespace Particular.ServiceControl.Hosting
                         ];
                         executionMode = ExecutionMode.Maintenance;
                     }
-                },
-                {
-                    "p|portable",
-                    @"Runs as a console app, even non-interactively",
-                    s => { Portable = true; }
                 }
             };
 
@@ -75,20 +70,6 @@ namespace Particular.ServiceControl.Hosting
                     "skip-queue-creation",
                     @"Skip queue creation during install/update",
                     s => { SkipQueueCreation = true; }
-                },
-                {
-                    "p|portable",
-                    @"Runs as a console app, even non-interactively",
-                    s => { Portable = true; }
-                }
-            };
-
-            var externalUnitTestRunnerOptions = new OptionSet
-            {
-                {
-                    "p|portable",
-                    @"Runs as a console app, even non-interactively",
-                    s => { Portable = true; }
                 }
             };
 
@@ -126,7 +107,6 @@ namespace Particular.ServiceControl.Hosting
                 }
 
                 defaultOptions.Parse(args);
-                externalUnitTestRunnerOptions.Parse(args);
             }
             catch (Exception e)
             {
@@ -138,9 +118,11 @@ namespace Particular.ServiceControl.Hosting
         public List<Type> Commands { get; private set; }
 
         public bool Help { get; set; }
+
         public string ServiceName { get; set; }
+
         public string Username { get; set; }
-        public bool Portable { get; set; }
+
         public bool SkipQueueCreation { get; set; }
 
         public void PrintUsage()

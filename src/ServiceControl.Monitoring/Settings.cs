@@ -53,8 +53,6 @@ namespace ServiceControl.Monitoring
 
         public LoggingSettings LoggingSettings { get; }
 
-        public bool Portable { get; set; } = false;
-
         public string ServiceName { get; set; } = DEFAULT_ENDPOINT_NAME;
 
         public string TransportType { get; set; }
