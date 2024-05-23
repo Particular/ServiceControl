@@ -10,8 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
-using NServiceBus;
-using NServiceBus.AcceptanceTesting;
 using NUnit.Framework;
 using Particular.Approvals;
 using Transports;
@@ -169,23 +167,10 @@ class AzureQueryTests : TransportTestFixture
         // We need to wait a bit of time, because Azure metrics take a while to be available
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(10));
         CancellationToken token = cancellationTokenSource.Token;
-        const int messagesSent = 15;
-        await Scenario.Define<MyContext>()
-            .WithEndpoint(new Receiver(transportSettings.EndpointName), b =>
-            b
-                .CustomConfig(ec =>
-                {
-                    configuration.TransportCustomization.CustomizeEndpoint(ec, transportSettings);
-                })
-                .When(async bus =>
-                {
-                    for (int i = 0; i < messagesSent; i++)
-                    {
-                        await bus.SendLocal(new MyMessage());
-                    }
-                }))
-            .Done(context => context.Counter == messagesSent)
-            .Run();
+        const int numMessagesToIngest = 15;
+
+        await CreateTestQueue(transportSettings.EndpointName);
+        await SendAndReceiveMessages(transportSettings.EndpointName, numMessagesToIngest);
 
         Dictionary<string, string> dictionary = GetSettings();
 
@@ -202,7 +187,7 @@ class AzureQueryTests : TransportTestFixture
 
         long total = 0L;
 
-        await Task.Delay(TimeSpan.FromMinutes(4));
+        await Task.Delay(TimeSpan.FromMinutes(4), token);
 
         DateTime startDate = provider.GetUtcNow().DateTime;
         provider.Advance(TimeSpan.FromDays(1));
@@ -211,7 +196,7 @@ class AzureQueryTests : TransportTestFixture
             total += queueThroughput.TotalThroughput;
         }
 
-        Assert.AreEqual(messagesSent, total);
+        Assert.AreEqual(numMessagesToIngest, total);
     }
 
     static Dictionary<string, string> GetSettings()
@@ -231,30 +216,5 @@ class AzureQueryTests : TransportTestFixture
             }
         };
         return dictionary;
-    }
-
-    class Receiver : EndpointConfigurationBuilder
-    {
-        public Receiver(string endpointName) => EndpointSetup<BasicEndpointSetup>(c =>
-        {
-            c.EnableInstallers();
-            c.UsePersistence<NonDurablePersistence>();
-        }).CustomEndpointName(endpointName);
-
-        public class MyMessageHandler(MyContext testContext) : IHandleMessages<MyMessage>
-        {
-            public Task Handle(MyMessage message, IMessageHandlerContext context)
-            {
-                testContext.Counter++;
-                return Task.CompletedTask;
-            }
-        }
-    }
-
-    class MyMessage : ICommand;
-
-    class MyContext : ScenarioContext
-    {
-        public int Counter { get; set; }
     }
 }
