@@ -27,6 +27,7 @@
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="Particular.Approvals" />
+    <PackageReference Include="Particular.LicensingComponent.Report" />
   </ItemGroup>
 
 </Project>

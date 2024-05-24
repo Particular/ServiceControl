@@ -8,7 +8,7 @@ using Contracts;
 using Infrastructure;
 using NUnit.Framework;
 using Particular.Approvals;
-using Particular.LicensingComponent.Shared;
+using Particular.LicensingComponent.Report;
 
 [TestFixture]
 class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixture
