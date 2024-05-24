@@ -7,12 +7,15 @@ import { LicenseWarningLevel } from "@/composables/LicenseStatus";
 import { WarningLevel } from "@/components/WarningLevel";
 import routeLinks from "@/router/routeLinks";
 import { displayConnectionsWarning } from "@/components/configuration/displayConnectionsWarning";
+import { useThroughputStore } from "@/stores/ThroughputStore";
+
+const throughputStore = useThroughputStore();
 
 const displayWarn = computed(() => {
   return licenseStatus.warningLevel === LicenseWarningLevel.Warning;
 });
 const displayDanger = computed(() => {
-  return displayConnectionsWarning || licenseStatus.warningLevel === LicenseWarningLevel.Danger;
+  return throughputStore.hasErrors || displayConnectionsWarning.value || licenseStatus.warningLevel === LicenseWarningLevel.Danger;
 });
 </script>
 
