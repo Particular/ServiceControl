@@ -174,7 +174,7 @@ async function save() {
       <div class="col" style="align-content: center">
         <div>
           <input type="checkbox" class="check-label" id="showUnsetOnly" @input="showUnsetChanged" />
-          <label for="showUnsetOnly">Show only unset endpoint types</label>
+          <label for="showUnsetOnly">Show only not set endpoint types</label>
         </div>
       </div>
       <div class="col text-end">
