@@ -1,21 +1,17 @@
-# Learn about building .NET container images:
-# https://github.com/dotnet/dotnet-docker/blob/main/samples/README.md
+# Build image
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG TARGETARCH
-ARG VERSION
 WORKDIR /
+ENV CI=true
 
-# Not copying csproj and restore as distinct layers for now, why do we need/want that?
 COPY . .
-RUN dotnet restore src --arch $TARGETARCH
-
-# copy and publish app and libraries.
-RUN dotnet build src/ServiceControl/ServiceControl.csproj --configuration Release -graph --no-restore --arch $TARGETARCH
+RUN dotnet build src/ServiceControl/ServiceControl.csproj --configuration Release -graph --arch $TARGETARCH
 
 
-# final stage/image
+# Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 ARG VERSION
+WORKDIR /
 
 LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceControl \
       org.opencontainers.image.authors="Particular Software" \
@@ -26,7 +22,6 @@ LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceContr
       org.opencontainers.image.description="ServiceControl primary instance"
 
 EXPOSE 33333
-WORKDIR /
 COPY --from=build /deploy/Particular.ServiceControl ./app
 
 RUN mkdir -p /var/servicecontrol && chown -R $APP_UID /var/servicecontrol
