@@ -4,7 +4,7 @@
     using System.Threading;
     using Contracts;
     using Microsoft.AspNetCore.Mvc;
-    using Particular.LicensingComponent.Shared;
+    using Particular.LicensingComponent.Report;
 
     [ApiController]
     [Route("api/licensing")]
