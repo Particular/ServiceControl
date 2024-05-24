@@ -36,13 +36,14 @@ const sortData: SortData[] = [
 
 const props = defineProps<{
   columnTitle: string;
+  showEndpointTypePlaceholder: boolean;
   indicatorOptions: UserIndicator[];
   source: DataSource;
 }>();
 
 const data = ref<EndpointThroughputSummary[]>([]);
 const dataChanges = ref(new Map<string, { indicator: string }>());
-const filterData = reactive({ name: "", nameFilterType: NameFilterType.beginsWith, sort: "By name" });
+const filterData = reactive({ name: "", nameFilterType: NameFilterType.beginsWith, sort: "By name", showUnsetOnly: false });
 const filterNameOptions = [
   { text: NameFilterType.beginsWith, filter: (a: EndpointThroughputSummary) => a.name.toLowerCase().startsWith(filterData.name.toLowerCase()) },
   { text: NameFilterType.contains, filter: (a: EndpointThroughputSummary) => a.name.toLowerCase().includes(filterData.name.toLowerCase()) },
@@ -51,7 +52,15 @@ const filterNameOptions = [
 const filteredData = computed(() => {
   const sortItem = sortData.find((value) => value.value === filterData.sort);
 
-  return data.value.filter((row) => !row.name || filterNameOptions.find((v) => v.text === filterData.nameFilterType)?.filter(row)).sort(sortItem?.comparer);
+  return data.value
+    .filter((row) => !row.name || filterNameOptions.find((v) => v.text === filterData.nameFilterType)?.filter(row))
+    .filter((row) => {
+      if (filterData.showUnsetOnly) {
+        return dataChanges.value.get(row.name)?.indicator === "";
+      }
+      return true;
+    })
+    .sort(sortItem?.comparer);
 });
 
 onMounted(async () => {
@@ -119,6 +128,10 @@ function updateDataChanged(name: string, action: (item: { indicator: string }) =
   }
 }
 
+function showUnsetChanged(event: Event) {
+  filterData.showUnsetOnly = (event.target as HTMLInputElement).checked;
+}
+
 const bulkOperation = ref<UserIndicator>(UserIndicator.NServiceBusEndpoint);
 
 function getDefaultEndpointType(row: EndpointThroughputSummary) {
@@ -156,6 +169,12 @@ async function save() {
           <div>
             <input type="search" class="form-control format-text" :value="filterData.name" @input="nameFilterChanged" placeholder="Filter by name..." />
           </div>
+        </div>
+      </div>
+      <div class="col" style="align-content: center">
+        <div>
+          <input type="checkbox" class="check-label" id="showUnsetOnly" @input="showUnsetChanged" />
+          <label for="showUnsetOnly">Show only unset endpoint types</label>
         </div>
       </div>
       <div class="col text-end">
@@ -212,7 +231,7 @@ async function save() {
         <td class="col text-end formatThroughputColumn" style="width: 250px">{{ row.max_daily_throughput.toLocaleString() }}</td>
         <td class="col" style="width: 350px">
           <select class="form-select endpointType format-text" @change="(event) => updateIndicator(event, row.name)">
-            <option value="">Pick the most appropriate option</option>
+            <option v-if="props.showEndpointTypePlaceholder" value="">Pick the most appropriate option</option>
             <option v-for="item in props.indicatorOptions" :key="item" :value="item" :selected="(dataChanges.get(row.name)?.indicator ?? getDefaultEndpointType(row)) === item">{{ userIndicatorMapper.get(item) }}</option>
           </select>
         </td>

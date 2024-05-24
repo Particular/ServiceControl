@@ -33,6 +33,7 @@ onMounted(async () => {
     :indicator-options="[UserIndicator.NServiceBusEndpoint, UserIndicator.NotNServiceBusEndpoint, UserIndicator.SendOnlyOrTransactionSessionEndpoint, UserIndicator.NServiceBusEndpointNoLongerInUse, UserIndicator.PlannedToDecommission]"
     :source="DataSource.broker"
     column-title="Queue Name"
+    :show-endpoint-type-placeholder="true"
   >
     <template #nodata> No usage data available yet </template>
   </DetectedListView>

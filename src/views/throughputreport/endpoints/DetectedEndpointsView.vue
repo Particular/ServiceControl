@@ -24,6 +24,7 @@ const store = useThroughputStore();
     :indicator-options="[UserIndicator.NServiceBusEndpoint, UserIndicator.SendOnlyOrTransactionSessionEndpoint, UserIndicator.NServiceBusEndpointNoLongerInUse, UserIndicator.PlannedToDecommission]"
     :source="DataSource.wellKnownEndpoint"
     column-title="Endpoint Name"
+    :show-endpoint-type-placeholder="false"
   >
     <template #nodata> No usage data available yet </template>
   </DetectedListView>
