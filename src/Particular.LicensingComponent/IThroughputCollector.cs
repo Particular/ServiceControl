@@ -1,6 +1,7 @@
 ﻿namespace Particular.LicensingComponent
 {
     using Contracts;
+    using Particular.LicensingComponent.Report;
 
     public interface IThroughputCollector
     {

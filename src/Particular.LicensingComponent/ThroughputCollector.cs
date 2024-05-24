@@ -4,10 +4,11 @@ using System.Threading;
 using AuditThroughput;
 using Contracts;
 using MonitoringThroughput;
+using Particular.LicensingComponent.Report;
 using Persistence;
 using ServiceControl.Transports;
 using Shared;
-using QueueThroughput = Contracts.QueueThroughput;
+using QueueThroughput = Report.QueueThroughput;
 
 public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettings throughputSettings, IAuditQuery auditQuery, MonitoringService monitoringService, IBrokerThroughputQuery? throughputQuery = null)
     : IThroughputCollector
@@ -155,7 +156,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         {
             reportEndDate = DateTime.UtcNow.Date.AddDays(-1);
         }
-        var report = new Report
+        var report = new Report.Report
         {
             EndTime = new DateTimeOffset((DateTime)reportEndDate, TimeSpan.Zero),
             CustomerName = throughputSettings.CustomerName, //who the license is registeredTo
