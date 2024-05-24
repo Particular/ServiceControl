@@ -9,9 +9,6 @@
   <ItemGroup>
     <None Remove="public-key.pem" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Shared\public-key.pem" />
-  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="Particular.LicensingComponent.Report" />
