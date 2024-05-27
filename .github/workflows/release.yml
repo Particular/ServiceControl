@@ -12,7 +12,7 @@ on:
 env:
   DOTNET_NOLOGO: true
 jobs:
-  release:
+  windows:
     if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: windows-2022
     steps:
@@ -134,3 +134,44 @@ jobs:
         uses: Particular/push-octopus-package-action@main
         with:
           octopus-deploy-api-key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
+  containers:
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    runs-on: ubuntu-22.04
+    name: container-${{ matrix.name }}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      matrix:
+        include:
+          - name: servicecontrol
+            project: ServiceControl
+          - name: servicecontrol-audit
+            project: ServiceControl.Audit
+          - name: servicecontrol-monitoring
+            project: ServiceControl.Monitoring
+      fail-fast: false
+    steps:
+      - name: Check for secrets
+        env:
+          SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
+        shell: pwsh
+        run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
+      - name: Checkout
+        uses: actions/checkout@v4.1.6
+        with:
+          fetch-depth: 0
+      - name: Install MinVer CLI
+        run: dotnet tool install --global minver-cli
+      - name: Determine versions
+        run: echo "MinVerVersion=$(minver)" >> $GITHUB_ENV
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.3.0
+      - name: Log in to GitHub container registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Build & inspect image
+        env:
+          TAG_NAME: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
+        run: |
+          docker buildx build --push --tag ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }} --file src/${{ matrix.project }}/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --platform linux/arm64,linux/arm,linux/amd64 .
+          docker buildx imagetools inspect ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }}
