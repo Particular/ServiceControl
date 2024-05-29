@@ -18,8 +18,7 @@ namespace ServiceControl.SagaAudit
     /// <remarks>Using this code outside this specific use case here is probably a very bad idea. Be warned.</remarks>
     sealed class CustomTimeSpanConverter : JsonConverter<TimeSpan>
     {
-        // we allow the short format "g" too which has a minimum of 7 chars. .NET Requires min 8 chars
-        const int MinimumTimeSpanFormatLength = 7; // hh:mm:ss or h:mm:ss
+        const int MinimumTimeSpanFormatLength = 1; // d
         const int MaximumTimeSpanFormatLength = 26; // -dddddddd.hh:mm:ss.fffffff
         const int MaxExpansionFactorWhileEscaping = 6;
 
@@ -57,8 +56,10 @@ namespace ServiceControl.SagaAudit
                 ThrowFormatException();
             }
 
-            // Ut8Parser.TryParse also handles short format "g" which has a minimum of 7 chars independent of the format identifier
-            if (!Utf8Parser.TryParse(source, out TimeSpan parsedTimeSpan, out int bytesConsumed, 'c') || source.Length != bytesConsumed)
+            // Ut8Parser.TryParse also handles some short format "g" cases which has a minimum of 1 chars independent of the format identifier
+            if ((!Utf8Parser.TryParse(source, out TimeSpan parsedTimeSpan, out int bytesConsumed, 'c') || source.Length != bytesConsumed) &&
+                // Otherwise we fall back to read with the short format "g" directly since that is what the SagaAudit plugin used to stay backward compatible
+                (!Utf8Parser.TryParse(source, out parsedTimeSpan, out bytesConsumed, 'g') || source.Length != bytesConsumed))
             {
                 ThrowFormatException();
             }
