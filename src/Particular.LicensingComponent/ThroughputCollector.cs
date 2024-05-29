@@ -160,7 +160,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         {
             EndTime = new DateTimeOffset((DateTime)reportEndDate, TimeSpan.Zero),
             CustomerName = throughputSettings.CustomerName, //who the license is registeredTo
-            ReportMethod = "Broker",
+            ReportMethod = throughputQuery == null ? "ServiceControl" : "Broker",
             ScopeType = brokerMetaData.ScopeType ?? "",
             Prefix = null,
             MessageTransport = transport,
