@@ -45,16 +45,26 @@ class DependencyResolver
     {
         ArgumentNullException.ThrowIfNull(assemblyName);
 
-        var library = dependencyContext.RuntimeLibraries.SingleOrDefault(r => r.Name.Equals(assemblyName.Name, StringComparison.Ordinal));
+        var name = assemblyName.Name;
+
+        if (name?.EndsWith("resources", StringComparison.Ordinal) ?? false)
+        {
+            name = name[..^10];
+        }
+
+        var library = dependencyContext.RuntimeLibraries.SingleOrDefault(r => r.Name.Equals(name, StringComparison.Ordinal));
 
         if (library is null)
         {
             return null;
         }
 
-        // If we had dependencies that had satellite resource assemblies, we'd need to use assemblyName.CultureName and library.ResourceAssemblies instead
+        if (assemblyName.CultureName?.Equals(string.Empty, StringComparison.Ordinal) ?? false)
+        {
+            return SearchRuntimeAssets(library.RuntimeAssemblyGroups);
+        }
 
-        return SearchRuntimeAssets(library.RuntimeAssemblyGroups);
+        return SearchResourceAssemblies(library.ResourceAssemblies, assemblyName.CultureName);
     }
 
     public string? ResolveUnmanagedDllToPath(string unmanagedDllName)
@@ -98,6 +108,37 @@ class DependencyResolver
 
                     return assetPath;
                 }
+            }
+        }
+
+        return null;
+    }
+
+    string? SearchResourceAssemblies(IReadOnlyList<ResourceAssembly> resourceAssemblies, string? cultureName)
+    {
+        if (resourceAssemblies is null)
+        {
+            return null;
+        }
+
+        if (cultureName is null)
+        {
+            return null;
+        }
+
+        foreach (var resourceAssembly in resourceAssemblies)
+        {
+            if (resourceAssembly.Locale.Equals(cultureName, StringComparison.Ordinal))
+            {
+                var assemblyFileName = Path.GetFileName(resourceAssembly.Path);
+                var assemblyPath = Path.GetFullPath(Path.Combine(assemblyDirectory, cultureName, assemblyFileName));
+
+                if (!File.Exists(assemblyPath))
+                {
+                    assemblyPath = null;
+                }
+
+                return assemblyPath;
             }
         }
 
