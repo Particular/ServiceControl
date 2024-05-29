@@ -27,10 +27,10 @@ COPY --from=build /deploy/Particular.ServiceControl.Audit ./app
 RUN mkdir -p /var/servicecontrol && chown -R $APP_UID /var/servicecontrol
 VOLUME /var/servicecontrol
 
-ENV "ServiceControl.Audit/PersistenceType"="RavenDB" \
-    "ServiceControl.Audit/LogPath"="/var/servicecontrol/logs" \
-    "ServiceControl.Audit/ForwardAuditMessages"="False" \
-    "ServiceControl.Audit/AuditRetentionPeriod"="14"
+ENV PERSISTENCETYPE=RavenDB \
+    LOGPATH=/var/servicecontrol/logs \
+    FORWARDAUDITMESSAGES=False \
+    AUDITRETENTIONPERIOD=14
 
 USER $APP_UID
 ENTRYPOINT ["./app/ServiceControl.Audit"]
