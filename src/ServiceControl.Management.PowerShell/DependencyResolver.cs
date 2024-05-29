@@ -73,39 +73,34 @@ class DependencyResolver
             return null;
         }
 
-        string? assetPath = null;
-
         foreach (var runtime in runtimes)
         {
             foreach (var asset in runtimeAssets)
             {
                 if (asset.Runtime?.Equals(runtime, StringComparison.Ordinal) ?? false)
                 {
-                    assetPath = asset.AssetPaths[0];
-                    break;
+                    var assetPath = asset.AssetPaths[0];
+
+                    // If we're in the default runtime section of the deps.json file, we just need the file name and not the full path
+                    if (asset.Runtime?.Equals(string.Empty, StringComparison.Ordinal) ?? false)
+                    {
+                        assetPath = Path.GetFileName(assetPath);
+                    }
+
+                    // This assumes that we're running with all assemblies copied locally, and doesn't attempt to cover the scenario of needing to resolve
+                    // from the NuGet package cache folder.
+                    assetPath = Path.GetFullPath(Path.Combine(assemblyDirectory, assetPath));
+
+                    if (!File.Exists(assetPath))
+                    {
+                        assetPath = null;
+                    }
+
+                    return assetPath;
                 }
-            }
-
-            if (assetPath is not null)
-            {
-                // This assumes that we're running with all assemblies copied locally, and doesn't attempt to cover the scenario of needing to resolve
-                // from the NuGet package cache folder.
-                if (assetPath.StartsWith("lib", StringComparison.Ordinal))
-                {
-                    assetPath = Path.GetFileName(assetPath);
-                }
-
-                assetPath = Path.GetFullPath(Path.Combine(assemblyDirectory, assetPath));
-
-                if (!File.Exists(assetPath))
-                {
-                    assetPath = null;
-                }
-
-                break;
             }
         }
 
-        return assetPath;
+        return null;
     }
 }
