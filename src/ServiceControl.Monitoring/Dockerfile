@@ -5,7 +5,7 @@ WORKDIR /
 ENV CI=true
 
 COPY . .
-RUN dotnet build src/ServiceControl.Monitoring/ServiceControl.Monitoring.csproj --configuration Release -graph --arch $TARGETARCH
+RUN dotnet build src/ServiceControl.Monitoring/ServiceControl.Monitoring.csproj --configuration Release -graph --property:TargetArch=$TARGETARCH
 
 
 # Runtime image

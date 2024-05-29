@@ -29,8 +29,11 @@
     <InstanceName Include="Particular.ServiceControl.Monitoring" />
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(WindowsSelfContained)' == 'true'">
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  <PropertyGroup>
+    <RuntimeIdentifier Condition="'$(WindowsSelfContained)' == 'true'">win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(TargetArch)' == 'amd64'">linux-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(TargetArch)' == 'arm'">linux-arm</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(TargetArch)' == 'arm64'">linux-arm64</RuntimeIdentifier>
   </PropertyGroup>
 
   <!-- workaround for https://github.com/microsoft/MSBuildSdks/issues/477 -->
