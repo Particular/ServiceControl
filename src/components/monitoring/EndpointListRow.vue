@@ -43,7 +43,7 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
   <div role="gridcell" :aria-label="columnName.ENDPOINTNAME" class="table-first-col endpoint-name name-overview">
     <div class="box-header with-status">
       <div :aria-label="shortName" class="no-side-padding lead righ-side-ellipsis endpoint-details-link">
-        <RouterLink :to="routeLinks.monitoring.endpointDetails.link(endpoint.name, historyPeriod.pVal)" class="cursorpointer" v-tooltip :title="endpoint.name">
+        <RouterLink role="details-link" :to="routeLinks.monitoring.endpointDetails.link(endpoint.name, historyPeriod.pVal)" class="cursorpointer" v-tooltip :title="endpoint.name">
           {{ shortName }}
         </RouterLink>
       </div>

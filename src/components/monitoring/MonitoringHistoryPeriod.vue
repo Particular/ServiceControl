@@ -21,15 +21,16 @@ watch(
 </script>
 
 <template>
-  <ul class="nav nav-pills period-selector">
+  <ul aria-label="history-period-list" class="nav nav-pills period-selector">
     <li
-      role="presentation"
       data-bs-placement="top"
       v-for="period in allPeriods"
       :key="period.pVal"
+      :aria-label="period.pVal.toString()"
       v-tooltip
       :title="period.refreshIntervalText"
       :class="{ active: period.pVal === selectedPeriod.pVal, notselected: period.pVal !== selectedPeriod.pVal }"
+      :aria-selected="period.pVal === selectedPeriod.pVal"
     >
       <a :href="`#`" @click.prevent="selectHistoryPeriod(period)">{{ period.text }}</a>
     </li>
