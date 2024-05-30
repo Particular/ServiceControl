@@ -89,7 +89,7 @@ jobs:
           connection-string-name: ServiceControl_TransportTests_ASBS_ConnectionString
           tag: ServiceControl
       - name: Setup Azure Storage Queues
-        uses: Particular/setup-azurestorage-action@v1.2.0
+        uses: Particular/setup-azurestorage-action@v1.2.1
         if: matrix.test-category == 'AzureStorageQueues'
         with:
           connection-string-name: ServiceControl_TransportTests_ASQ_ConnectionString
