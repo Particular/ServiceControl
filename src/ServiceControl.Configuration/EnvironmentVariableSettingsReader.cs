@@ -32,22 +32,18 @@ static partial class EnvironmentVariableSettingsReader
         if (isWindows)
         {
             yield return $"{settingsNamespace}/{name}";
-
-            var azureContainerKey = $"{settingsNamespace}_{name}".Replace('.', '_');
-            yield return azureContainerKey;
-
-            var containerImagesAndEnvFiles = azureContainerKey.Replace('/', '_');
-            yield return containerImagesAndEnvFiles;
-
-            var upperPosixMode = containerImagesAndEnvFiles.ToUpperInvariant();
-            yield return upperPosixMode;
         }
         else
         {
             var regex = SeparatorsRegex();
-            yield return regex.Replace($"{settingsNamespace}_{name}", "_").ToUpperInvariant();
 
-            yield return regex.Replace(name, "_").ToUpperInvariant();
+            var namespacedMixedCase = regex.Replace($"{settingsNamespace}_{name}", "_");
+            yield return namespacedMixedCase.ToUpperInvariant();
+            yield return namespacedMixedCase;
+
+            var mixedCase = regex.Replace(name, "_");
+            yield return mixedCase.ToUpperInvariant();
+            yield return mixedCase;
         }
     }
 
