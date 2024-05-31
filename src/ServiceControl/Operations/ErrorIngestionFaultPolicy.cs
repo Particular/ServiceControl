@@ -95,7 +95,6 @@
 #if DEBUG
             EventSourceCreator.Create();
 #endif
-
             EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
         }
 

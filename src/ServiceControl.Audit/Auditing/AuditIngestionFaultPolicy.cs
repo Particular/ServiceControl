@@ -4,6 +4,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Runtime.InteropServices;
+    using System.Runtime.Versioning;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
@@ -83,22 +84,19 @@
                 var filePath = Path.Combine(logPath, failure.Id + ".txt");
                 await File.WriteAllTextAsync(filePath, failure.ExceptionInfo, cancellationToken);
 
-                // Write to Event Log
-                WriteEvent("A message import has failed. A log file has been written to " + filePath);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    WriteToEventLog("A message import has failed. A log file has been written to " + filePath);
+                }
             }
         }
 
-        void WriteEvent(string message)
+        [SupportedOSPlatform("windows")]
+        void WriteToEventLog(string message)
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return;
-            }
-
 #if DEBUG
             EventSourceCreator.Create();
 #endif
-
             EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
         }
 
