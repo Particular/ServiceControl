@@ -7,8 +7,10 @@
     using System.Runtime.Versioning;
     using System.Threading;
     using System.Threading.Tasks;
+    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using ServiceBus.Management.Infrastructure.Installers;
+    using ServiceControl.Configuration;
     using ServiceControl.Infrastructure;
     using ServiceControl.Persistence;
 
@@ -22,11 +24,13 @@
         public ErrorIngestionFaultPolicy(IErrorMessageDataStore store, LoggingSettings loggingSettings, Func<string, Exception, Task> onCriticalError)
         {
             this.store = store;
-            logPath = Path.Combine(loggingSettings.LogPath, "FailedImports", "Error");
-
             failureCircuitBreaker = new ImportFailureCircuitBreaker(onCriticalError);
 
-            Directory.CreateDirectory(logPath);
+            if (!AppEnvironment.RunningInContainer)
+            {
+                logPath = Path.Combine(loggingSettings.LogPath, "FailedImports", "Error");
+                Directory.CreateDirectory(logPath);
+            }
         }
 
         public async Task<ErrorHandleResult> OnError(ErrorContext errorContext, CancellationToken cancellationToken = default)
@@ -41,7 +45,7 @@
             return ErrorHandleResult.Handled;
         }
 
-        Task Handle(ErrorContext errorContext, CancellationToken cancellationToken)
+        async Task Handle(ErrorContext errorContext, CancellationToken cancellationToken)
         {
             var failure = new FailedErrorImport
             {
@@ -51,36 +55,37 @@
                     Headers = errorContext.Message.Headers,
                     Body = errorContext.Message.Body.ToArray()
                 },
+                ExceptionInfo = errorContext.Exception.ToFriendlyString(),
                 Id = FailedErrorImport.MakeDocumentId(Guid.NewGuid())
             };
 
-            return Handle(errorContext.Exception, failure, cancellationToken);
-        }
-
-        async Task Handle(Exception exception, FailedErrorImport failure, CancellationToken cancellationToken)
-        {
             try
             {
-                await DoLogging(exception, failure, cancellationToken);
+                await DoLogging(errorContext.Exception, failure, cancellationToken);
             }
             finally
             {
-                failureCircuitBreaker.Increment(exception);
+                failureCircuitBreaker.Increment(errorContext.Exception);
             }
         }
 
         async Task DoLogging(Exception exception, FailedErrorImport failure, CancellationToken cancellationToken)
         {
+            log.Error("Failed importing error message", exception);
+
             // Write to data store
             await store.StoreFailedErrorImport(failure);
 
-            // Write to Log Path
-            var filePath = Path.Combine(logPath, $"{failure.Id}.txt");
-            await File.WriteAllTextAsync(filePath, exception.ToFriendlyString(), cancellationToken);
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (!AppEnvironment.RunningInContainer)
             {
-                WriteToEventLog("A message import has failed. A log file has been written to " + filePath);
+                // Write to Log Path
+                var filePath = Path.Combine(logPath, $"{failure.Id}.txt");
+                await File.WriteAllTextAsync(filePath, failure.ExceptionInfo, cancellationToken);
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    WriteToEventLog("A message import has failed. A log file has been written to " + filePath);
+                }
             }
         }
 
@@ -93,5 +98,7 @@
 
             EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
         }
+
+        static readonly ILog log = LogManager.GetLogger<ErrorIngestionFaultPolicy>();
     }
 }

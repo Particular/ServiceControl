@@ -28,7 +28,6 @@ RUN mkdir -p /var/servicecontrol && chown -R $APP_UID /var/servicecontrol
 VOLUME /var/servicecontrol
 
 ENV PersistenceType=RavenDB \
-    LogPath=/var/servicecontrol/logs \
     AuditRetentionPeriod=7
 
 USER $APP_UID
