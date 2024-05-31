@@ -33,7 +33,7 @@ export const useMonitoringStore = defineStore("MonitoringStore", () => {
   const endpointListIsGrouped = computed<boolean>(() => grouping.value.selectedGrouping !== 0);
   const getEndpointList = computed<Endpoint[]>(() => (filterString.value !== "" ? MonitoringEndpoints.useFilterAllMonitoredEndpointsByName(endpointList.value, filterString.value) : endpointList.value));
 
-  watch(sortBy, () => updateEndpointList(), { deep: true });
+  watch(sortBy, async () => await updateEndpointList(), { deep: true });
   watch(filterString, async (newValue) => {
     await updateFilterString(newValue);
   });

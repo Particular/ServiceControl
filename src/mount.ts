@@ -16,7 +16,7 @@ const toastOptions: PluginOptions = {
   closeButtonClassName: "toast-close-button",
 };
 
-export function mount({ router }: { router: Router }): void {
+export function mount({ router }: { router: Router }) {
   router.beforeEach((to, _from, next) => {
     document.title = to.meta.title || "ServicePulse";
     next();
@@ -43,4 +43,6 @@ export function mount({ router }: { router: Router }): void {
   app.config.errorHandler = (err, instance, info) => {
     console.error(instance, err);
   };
+
+  return app;
 }

@@ -15,7 +15,9 @@ async function selectHistoryPeriod(period: MonitoringHistoryPeriod) {
 const route = useRoute();
 watch(
   () => route.query.historyPeriod,
-  () => monitoringHistoryPeriodStore.setHistoryPeriod(route?.query?.historyPeriod?.toString()),
+  async () => {
+    await monitoringHistoryPeriodStore.setHistoryPeriod(route?.query?.historyPeriod?.toString());
+  },
   { immediate: true }
 );
 </script>

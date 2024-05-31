@@ -1,5 +1,5 @@
 type GoTo = (path: string) => Promise<void>;
-
+type DisposeApp = () => void;
 export type MockEndpointOptions = {
   body: Record<string, any> | string | number | boolean | null | undefined;
   method?: "get" | "post" | "patch" | "put" | "delete";
@@ -21,4 +21,5 @@ export type Driver = {
   goTo: GoTo;
   mockEndpoint: MockEndpoint;
   setUp: SetUp;
+  disposeApp: DisposeApp;
 };
