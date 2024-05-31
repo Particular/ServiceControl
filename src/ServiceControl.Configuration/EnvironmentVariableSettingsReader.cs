@@ -1,9 +1,12 @@
 namespace ServiceControl.Configuration;
 
 using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using static ValueConverter;
 
-static class EnvironmentVariableSettingsReader
+static partial class EnvironmentVariableSettingsReader
 {
     public static T Read<T>(SettingsRootNamespace settingsNamespace, string name, T defaultValue = default) =>
         TryRead<T>(settingsNamespace, name, out var value)
@@ -12,33 +15,40 @@ static class EnvironmentVariableSettingsReader
 
     public static bool TryRead<T>(SettingsRootNamespace settingsNamespace, string name, out T value)
     {
-        if (TryReadVariable(out value, $"{settingsNamespace}/{name}"))
+        foreach (var fullKey in GetFullKeyOptions(settingsNamespace, name))
         {
-            return true;
-        }
-        // Azure container instance compatibility:
-        if (TryReadVariable(out value, $"{settingsNamespace}_{name}".Replace('.', '_')))
-        {
-            return true;
-        }
-        // container images and env files compatibility:
-        if (TryReadVariable(out value, $"{settingsNamespace}_{name}".Replace('.', '_').Replace('/', '_')))
-        {
-            return true;
-        }
-
-        // POSIX compliant https://stackoverflow.com/a/2821183
-        if (TryReadVariable(out value,
-                $"{settingsNamespace}_{name}".Replace('.', '_').Replace('/', '_').ToUpperInvariant()))
-        {
-            return true;
+            if (TryReadVariable(fullKey, out value))
+            {
+                return true;
+            }
         }
 
         value = default;
         return false;
     }
 
-    static bool TryReadVariable<T>(out T value, string fullKey)
+    static IEnumerable<string> GetFullKeyOptions(SettingsRootNamespace settingsNamespace, string name)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            yield return $"{settingsNamespace}/{name}";
+        }
+
+        var regex = SeparatorsRegex();
+
+        var namespacedKey = regex.Replace($"{settingsNamespace}_{name}", "_");
+        yield return namespacedKey.ToUpperInvariant();
+        yield return namespacedKey;
+
+        var nameOnly = regex.Replace(name, "_");
+        yield return nameOnly.ToUpperInvariant();
+        yield return nameOnly;
+    }
+
+    [GeneratedRegex(@"[\./]")]
+    private static partial Regex SeparatorsRegex();
+
+    static bool TryReadVariable<T>(string fullKey, out T value)
     {
         var environmentValue = Environment.GetEnvironmentVariable(fullKey);
 

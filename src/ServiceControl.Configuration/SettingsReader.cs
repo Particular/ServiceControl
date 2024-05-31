@@ -16,10 +16,13 @@ public static class SettingsReader
             return true;
         }
 
-        if (ConfigFileSettingsReader.TryRead<T>(settingsNamespace, name, out var configValue))
+        if (!AppEnvironment.RunningInContainer)
         {
-            value = configValue;
-            return true;
+            if (ConfigFileSettingsReader.TryRead<T>(settingsNamespace, name, out var configValue))
+            {
+                value = configValue;
+                return true;
+            }
         }
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RegistrySettingsReader.TryRead<T>(settingsNamespace, name, out var regValue))
