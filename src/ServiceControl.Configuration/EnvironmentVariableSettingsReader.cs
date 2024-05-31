@@ -15,7 +15,7 @@ static partial class EnvironmentVariableSettingsReader
 
     public static bool TryRead<T>(SettingsRootNamespace settingsNamespace, string name, out T value)
     {
-        foreach (var fullKey in GetFullKeyOptions(settingsNamespace, name, RuntimeInformation.IsOSPlatform(OSPlatform.Windows)))
+        foreach (var fullKey in GetFullKeyOptions(settingsNamespace, name))
         {
             if (TryReadVariable(fullKey, out value))
             {
@@ -27,24 +27,22 @@ static partial class EnvironmentVariableSettingsReader
         return false;
     }
 
-    static IEnumerable<string> GetFullKeyOptions(SettingsRootNamespace settingsNamespace, string name, bool isWindows)
+    static IEnumerable<string> GetFullKeyOptions(SettingsRootNamespace settingsNamespace, string name)
     {
-        if (isWindows)
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             yield return $"{settingsNamespace}/{name}";
         }
-        else
-        {
-            var regex = SeparatorsRegex();
 
-            var namespacedMixedCase = regex.Replace($"{settingsNamespace}_{name}", "_");
-            yield return namespacedMixedCase.ToUpperInvariant();
-            yield return namespacedMixedCase;
+        var regex = SeparatorsRegex();
 
-            var mixedCase = regex.Replace(name, "_");
-            yield return mixedCase.ToUpperInvariant();
-            yield return mixedCase;
-        }
+        var namespacedKey = regex.Replace($"{settingsNamespace}_{name}", "_");
+        yield return namespacedKey.ToUpperInvariant();
+        yield return namespacedKey;
+
+        var nameOnly = regex.Replace(name, "_");
+        yield return nameOnly.ToUpperInvariant();
+        yield return nameOnly;
     }
 
     [GeneratedRegex(@"[\./]")]
