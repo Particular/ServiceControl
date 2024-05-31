@@ -29,7 +29,7 @@ VOLUME /var/servicecontrol
 
 ENV PERSISTENCETYPE=RavenDB \
     LOGPATH=/var/servicecontrol/logs \
-    FORWARDERRORMESSAGES"=False \
+    FORWARDERRORMESSAGES=False \
     ERRORRETENTIONPERIOD=15
 
 USER $APP_UID
