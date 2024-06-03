@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Reflection;
+using System.Runtime;
 using NServiceBus.Logging;
 using ServiceControl.Audit.Infrastructure.Hosting;
 using ServiceControl.Audit.Infrastructure.Hosting.Commands;
 using ServiceControl.Audit.Infrastructure.Settings;
 using ServiceControl.Configuration;
 using ServiceControl.Infrastructure;
+
+GCSettings.LatencyMode = GCSettings.IsServerGC ? GCLatencyMode.SustainedLowLatency : GCLatencyMode.LowLatency;
+
+Console.WriteLine($"IsServerGC: {GCSettings.IsServerGC}");
+Console.WriteLine($"LatencyMode: {GCSettings.LatencyMode}");
 
 AppDomain.CurrentDomain.UnhandledException += (s, e) => LogManager.GetLogger(typeof(Program)).Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
 
