@@ -7,11 +7,12 @@
 
   <ItemGroup>
     <!-- Private=false & ExcludeAssets=runtime prevent repeatedly including binary dependencies of ServiceControl.Transports in each transport directory -->
+    <ProjectReference Include="..\..\..\NServiceBus.RabbitMQ\src\NServiceBus.Transport.RabbitMQ\NServiceBus.Transport.RabbitMQ.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" Private="false" ExcludeAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.RabbitMQ" />
+<!--    <PackageReference Include="NServiceBus.RabbitMQ" />-->
   </ItemGroup>
 
   <ItemGroup>

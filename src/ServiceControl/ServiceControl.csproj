@@ -5,6 +5,7 @@
     <OutputType>Exe</OutputType>
     <ApplicationIcon>Operations.ico</ApplicationIcon>
     <WriteMinVerProperties>true</WriteMinVerProperties>
+    <ServerGarbageCollection>False</ServerGarbageCollection>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(WindowsSelfContained)' == 'true'">

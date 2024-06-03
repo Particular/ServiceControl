@@ -132,11 +132,7 @@
 
         static IntPtr GetIdentitySid(string identity)
         {
-            var sid = new NTAccount(identity).Translate(typeof(SecurityIdentifier)) as SecurityIdentifier;
-            if (sid == null)
-            {
-                throw new ArgumentException($"Account {identity} not found.");
-            }
+            var sid = new NTAccount(identity).Translate(typeof(SecurityIdentifier)) as SecurityIdentifier ?? throw new ArgumentException($"Account {identity} not found.");
 
             var sidBytes = new byte[sid.BinaryLength];
             sid.GetBinaryForm(sidBytes, 0);

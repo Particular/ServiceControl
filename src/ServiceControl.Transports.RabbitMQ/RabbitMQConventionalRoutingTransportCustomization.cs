@@ -27,6 +27,7 @@
 
             var transport = new RabbitMQTransport(RoutingTopology.Conventional(queueType), transportSettings.ConnectionString);
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
+            //transport.NetworkRecoveryInterval = TimeSpan.FromMilliseconds(100);
 
             return transport;
         }

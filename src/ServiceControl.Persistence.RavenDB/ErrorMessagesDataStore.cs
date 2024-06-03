@@ -627,12 +627,7 @@
         public async Task<byte[]> FetchFromFailedMessage(string uniqueMessageId)
         {
             byte[] body = null;
-            var result = await bodyStorage.TryFetch(uniqueMessageId);
-
-            if (result == null)
-            {
-                throw new InvalidOperationException("IBodyStorage.TryFetch result cannot be null");
-            }
+            var result = await bodyStorage.TryFetch(uniqueMessageId) ?? throw new InvalidOperationException("IBodyStorage.TryFetch result cannot be null");
 
             if (result.HasResult)
             {

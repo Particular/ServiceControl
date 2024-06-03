@@ -25,12 +25,7 @@
                 throw new Exception("Empty zip file resource name");
             }
 
-            var resourceInfo = Assembly.GetExecutingAssembly().GetManifestResourceInfo(ResourceName);
-
-            if (resourceInfo is null)
-            {
-                throw new Exception($"Missing zip file resource '{ResourceName}'");
-            }
+            _ = Assembly.GetExecutingAssembly().GetManifestResourceInfo(ResourceName) ?? throw new Exception($"Missing zip file resource '{ResourceName}'");
         }
     }
 }
