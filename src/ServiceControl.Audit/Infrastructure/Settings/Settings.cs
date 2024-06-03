@@ -243,7 +243,7 @@
             var valueRead = SettingsReader.Read<string>(SettingsRootNamespace, "AuditRetentionPeriod");
             if (valueRead == null)
             {
-                //same default as SCMU
+                // SCMU actually defaults to 7 days, as does Dockerfile, but a change to same-up everything should be done in a major
                 return TimeSpan.FromDays(30);
             }
 

@@ -24,13 +24,8 @@ LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceContr
 EXPOSE 44444
 COPY --from=build /deploy/Particular.ServiceControl.Audit ./app
 
-RUN mkdir -p /var/servicecontrol && chown -R $APP_UID /var/servicecontrol
-VOLUME /var/servicecontrol
-
-ENV PERSISTENCETYPE=RavenDB \
-    LOGPATH=/var/servicecontrol/logs \
-    FORWARDAUDITMESSAGES=False \
-    AUDITRETENTIONPERIOD=14
+ENV PersistenceType=RavenDB \
+    AuditRetentionPeriod=7
 
 USER $APP_UID
 ENTRYPOINT ["./app/ServiceControl.Audit"]

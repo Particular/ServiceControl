@@ -4,11 +4,14 @@
     using System.Diagnostics;
     using System.IO;
     using System.Runtime.InteropServices;
+    using System.Runtime.Versioning;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
+    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using ServiceControl.Audit.Persistence;
+    using ServiceControl.Configuration;
     using ServiceControl.Infrastructure;
 
     class AuditIngestionFaultPolicy
@@ -19,12 +22,14 @@
 
         public AuditIngestionFaultPolicy(IFailedAuditStorage failedAuditStorage, LoggingSettings settings, Func<string, Exception, Task> onCriticalError)
         {
-            logPath = Path.Combine(settings.LogPath, @"FailedImports\Audit");
+            failureCircuitBreaker = new ImportFailureCircuitBreaker(onCriticalError);
             this.failedAuditStorage = failedAuditStorage;
 
-            failureCircuitBreaker = new ImportFailureCircuitBreaker(onCriticalError);
-
-            Directory.CreateDirectory(logPath);
+            if (!AppEnvironment.RunningInContainer)
+            {
+                logPath = Path.Combine(settings.LogPath, @"FailedImports\Audit");
+                Directory.CreateDirectory(logPath);
+            }
         }
 
         public async Task<ErrorHandleResult> OnError(ErrorContext errorContext, CancellationToken cancellationToken = default)
@@ -39,7 +44,7 @@
             return ErrorHandleResult.Handled;
         }
 
-        Task StoreFailedMessageDocument(ErrorContext errorContext, CancellationToken cancellationToken)
+        async Task StoreFailedMessageDocument(ErrorContext errorContext, CancellationToken cancellationToken)
         {
             var failure = new FailedAuditImport
             {
@@ -52,59 +57,49 @@
                     // buffers being returned to the pool and potentially being overwritten. Once we know how RavenDB
                     // handles byte[] to ReadOnlyMemory<byte> conversion we might be able to remove this.
                     Body = errorContext.Message.Body.ToArray()
-                }
+                },
+                ExceptionInfo = errorContext.Exception.ToFriendlyString()
             };
 
-            return Handle(errorContext.Exception, failure, cancellationToken);
-        }
-
-        async Task Handle(Exception exception, FailedAuditImport failure, CancellationToken cancellationToken)
-        {
             try
             {
-                await DoLogging(exception, failure, cancellationToken);
+                await DoLogging(errorContext.Exception, failure, cancellationToken);
             }
             finally
             {
-                failureCircuitBreaker.Increment(exception);
+                failureCircuitBreaker.Increment(errorContext.Exception);
             }
         }
 
         async Task DoLogging(Exception exception, FailedAuditImport failure, CancellationToken cancellationToken)
         {
+            log.Error("Failed importing error message", exception);
+
             // Write to storage
             await failedAuditStorage.SaveFailedAuditImport(failure);
 
-            // Write to Log Path
-            var filePath = Path.Combine(logPath, failure.Id + ".txt");
-            await File.WriteAllTextAsync(filePath, exception.ToFriendlyString(), cancellationToken);
+            if (!AppEnvironment.RunningInContainer)
+            {
+                // Write to Log Path
+                var filePath = Path.Combine(logPath, failure.Id + ".txt");
+                await File.WriteAllTextAsync(filePath, failure.ExceptionInfo, cancellationToken);
 
-            // Write to Event Log
-            WriteEvent("A message import has failed. A log file has been written to " + filePath);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    WriteToEventLog("A message import has failed. A log file has been written to " + filePath);
+                }
+            }
         }
 
+        [SupportedOSPlatform("windows")]
+        void WriteToEventLog(string message)
+        {
 #if DEBUG
-        void WriteEvent(string message)
-        {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return;
-            }
-
             EventSourceCreator.Create();
-
-            EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
-        }
-#else
-        void WriteEvent(string message)
-        {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return;
-            }
-
-            EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
-        }
 #endif
+            EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
+        }
+
+        static readonly ILog log = LogManager.GetLogger<AuditIngestionFaultPolicy>();
     }
 }
