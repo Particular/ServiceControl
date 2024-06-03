@@ -131,7 +131,7 @@
             {
                 if (Logger.IsWarnEnabled)
                 {
-                    Logger.WarnFormat("Processing of message '{0}' failed.\n{1}", context.NativeMessageId, e);
+                    Logger.Warn($"Processing of message '{context.NativeMessageId}' failed", e);
                 }
 
                 // releasing the failed message context early so that they can be retried outside the current batch

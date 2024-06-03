@@ -22,7 +22,7 @@
             }
             catch (Exception ex)
             {
-                Logger.WarnFormat("Failed to emit MessageFailuresUpdated - {0}", ex);
+                Logger.Warn("Failed to emit MessageFailuresUpdated", ex);
             }
         }
 

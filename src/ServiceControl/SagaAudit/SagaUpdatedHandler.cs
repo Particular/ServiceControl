@@ -58,7 +58,7 @@
             }
             catch (Exception x)
             {
-                log.WarnFormat("Unable to refresh audit queue name from ServiceControl Audit instance. Will continue to check at most every 15 seconds. Exception message: {0}", x.Message);
+                log.Warn("Unable to refresh audit queue name from ServiceControl Audit instance. Will continue to check at most every 15 seconds", x);
                 nextAuditQueueNameRefresh = DateTime.UtcNow.AddSeconds(15);
             }
             finally
