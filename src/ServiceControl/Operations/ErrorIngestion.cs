@@ -121,6 +121,8 @@
 
         async Task EnsureStarted(CancellationToken cancellationToken = default)
         {
+            TransportInfrastructure newInstance = null;
+
             try
             {
                 await startStopSemaphore.WaitAsync(cancellationToken);
@@ -142,7 +144,13 @@
                     return; //Already started
                 }
 
-                transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
+                if (transportInfrastructure != null)
+                {
+                    Logger.Fatal("Already created!");
+                    await transportInfrastructure.Shutdown(CancellationToken.None);
+                }
+
+                newInstance = await transportCustomization.CreateTransportInfrastructure(
                     errorQueue,
                     transportSettings,
                     OnMessage,
@@ -150,7 +158,7 @@
                     OnCriticalError,
                     TransportTransactionMode.ReceiveOnly);
 
-                messageReceiver = transportInfrastructure.Receivers[errorQueue];
+                messageReceiver = newInstance.Receivers[errorQueue];
 
                 if (settings.ForwardErrorMessages)
                 {
@@ -159,10 +167,16 @@
 
                 await messageReceiver.StartReceive(cancellationToken);
 
+                transportInfrastructure = newInstance;
                 Logger.Info("Ensure started. Infrastructure started");
             }
             catch
             {
+                if (newInstance != null)
+                {
+                    await newInstance.Shutdown(cancellationToken);
+                }
+
                 if (messageReceiver != null)
                 {
                     await messageReceiver.StopReceive(cancellationToken);

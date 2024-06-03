@@ -81,6 +81,8 @@
 
         async Task EnsureStarted(CancellationToken cancellationToken = default)
         {
+            TransportInfrastructure newInstance = null;
+
             try
             {
                 logger.Debug("Ensure started. Start/stop semaphore acquiring");
@@ -108,7 +110,14 @@
 
                 logger.Info("Ensure started. Infrastructure starting");
 
-                transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
+                if (transportInfrastructure != null)
+                {
+                    logger.Fatal("Already created!");
+                    await transportInfrastructure.Shutdown(CancellationToken.None);
+                }
+
+                // First initialize, only when initialization is succesfull assign and use
+                newInstance = await transportCustomization.CreateTransportInfrastructure(
                     inputEndpoint,
                     transportSettings,
                     OnMessage,
@@ -116,16 +125,22 @@
                     OnCriticalError,
                     TransportTransactionMode.ReceiveOnly);
 
-                queueIngestor = transportInfrastructure.Receivers[inputEndpoint];
+                queueIngestor = newInstance.Receivers[inputEndpoint];
 
                 await auditIngestor.VerifyCanReachForwardingAddress();
 
                 await queueIngestor.StartReceive(cancellationToken);
 
+                transportInfrastructure = newInstance;
                 logger.Info("Ensure started. Infrastructure started");
             }
             catch
             {
+                if (newInstance != null)
+                {
+                    await newInstance.Shutdown(cancellationToken);
+                }
+
                 if (queueIngestor != null)
                 {
                     try
