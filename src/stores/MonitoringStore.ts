@@ -27,7 +27,6 @@ export const useMonitoringStore = defineStore("MonitoringStore", () => {
   const endpointList = ref<Endpoint[]>([]);
   const disconnectedEndpointCount = ref(0);
   const filterString = ref("");
-  const isInitialized = ref(false);
   const endpointListCount = computed<number>(() => endpointList.value.length);
   const endpointListIsEmpty = computed<boolean>(() => endpointListCount.value === 0);
   const endpointListIsGrouped = computed<boolean>(() => grouping.value.selectedGrouping !== 0);
@@ -39,12 +38,6 @@ export const useMonitoringStore = defineStore("MonitoringStore", () => {
   });
 
   //STORE ACTIONS
-  async function initializeStore() {
-    await updateFilterString();
-    await updateEndpointList();
-    isInitialized.value = true;
-  }
-
   async function updateFilterString(filter: string | null = null) {
     filterString.value = filter ?? route.query.filter?.toString() ?? "";
 
@@ -54,7 +47,6 @@ export const useMonitoringStore = defineStore("MonitoringStore", () => {
     } else {
       await router.replace({ query: { ...route.query, filter: filterString.value } }); // Update or add filter query parameter to url
     }
-    await updateEndpointList();
     updateGroupedEndpoints();
   }
 
@@ -133,7 +125,6 @@ export const useMonitoringStore = defineStore("MonitoringStore", () => {
     disconnectedEndpointCount,
     filterString,
     sortBy,
-    isInitialized,
 
     //getters
     endpointListCount,
@@ -142,7 +133,6 @@ export const useMonitoringStore = defineStore("MonitoringStore", () => {
     getEndpointList,
 
     //actions
-    initializeStore,
     updateSelectedGrouping,
     updateEndpointList,
     updateFilterString,

@@ -160,10 +160,9 @@ async function useServiceControlStats() {
 }
 
 async function useServiceControlMonitoringStats() {
-  const monitoredEndpointsResult = getMonitoredEndpoints();
   const disconnectedEndpointsCountResult = getDisconnectedEndpointsCount();
 
-  const [, disconnectedEndpoints] = await Promise.all([monitoredEndpointsResult, disconnectedEndpointsCountResult]);
+  const [disconnectedEndpoints] = await Promise.all([disconnectedEndpointsCountResult]);
   //Do something here with the argument to the callback in the future if we are using them
   stats.number_of_disconnected_endpoints = disconnectedEndpoints;
 }
@@ -183,11 +182,14 @@ export async function useServiceControlConnections() {
   return connections;
 }
 
-watch(() => environment.is_compatible_with_sc, (newValue) => {  
-  if (newValue == false) {
-    useShowToast(TYPE.ERROR, "Error", `You are using Service Control version ${environment.sc_version}. Please, upgrade to version ${environment.minimum_supported_sc_version} or higher to unlock new functionality in ServicePulse.`);
-  }  
-});
+watch(
+  () => environment.is_compatible_with_sc,
+  (newValue) => {
+    if (newValue == false) {
+      useShowToast(TYPE.ERROR, "Error", `You are using Service Control version ${environment.sc_version}. Please, upgrade to version ${environment.minimum_supported_sc_version} or higher to unlock new functionality in ServicePulse.`);
+    }
+  }
+);
 
 async function getServiceControlVersion() {
   const productsResult = useServiceProductUrls();

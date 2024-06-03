@@ -40,7 +40,7 @@ onUnmounted(() => {
 });
 
 onMounted(async () => {
-  await monitoringStore.initializeStore();
+  await monitoringStore.updateFilterString();
   await changeRefreshInterval(monitoringHistoryPeriodStore.historyPeriod.refreshIntervalVal);
 });
 </script>
@@ -50,7 +50,7 @@ onMounted(async () => {
   <template v-if="!licenseStatus.isExpired">
     <div class="container monitoring-view">
       <ServiceControlNotAvailable />
-      <template v-if="connectionState.connected && monitoringStore.isInitialized">
+      <template v-if="connectionState.connected">
         <MonitoringNoData v-if="noData"></MonitoringNoData>
         <template v-if="!noData">
           <MonitoringHead />
