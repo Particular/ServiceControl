@@ -28,6 +28,10 @@ namespace ServiceControl.Monitoring.HeartbeatMonitoring
 
         sealed class Converter<TValue>(JsonSerializerOptions options) : JsonConverter<TValue>
         {
+            // Currently we want to rely on deserializing the actually value by using the standard json serializer
+            // To make sure we are not recursively invoking the converter we need to remove it from the options
+            // Removing from the options is currently only possible when the converter is added to the options directly
+            // and not supported when the converter is added to the type
             readonly JsonSerializerOptions optionsWithoutCustomConverter = options.FromWithout<HeartbeatTypesArrayToInstanceConverter>();
 
             public override TValue? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
