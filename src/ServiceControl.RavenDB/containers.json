@@ -1,0 +1,14 @@
+[
+    {
+        "arch": "amd64",
+        "tag": "x64"
+    },
+    {
+        "arch": "arm64/v8",
+        "tag": "arm64v8"
+    },
+    {
+        "arch": "arm/v7",
+        "tag": "arm32v7"
+    }
+]

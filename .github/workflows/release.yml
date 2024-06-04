@@ -178,20 +178,10 @@ jobs:
   db-containers:
     if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-22.04
-    name: db-container-${{ matrix.tag }}
+    name: db-containers
     defaults:
       run:
         shell: bash
-    strategy:
-      matrix:
-        include:
-          - arch: amd64
-            tag: x64
-          - arch: arm64/v8
-            tag: arm64v8
-          - arch: arm/v7
-            tag: arm32v7
-      fail-fast: false
     steps:
       - name: Check for secrets
         env:
@@ -208,10 +198,17 @@ jobs:
         run: echo "MinVerVersion=$(minver)" >> $GITHUB_ENV
       - name: Log in to GitHub container registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: Build & inspect image
+      - name: Build images
         env:
           TAG_NAME: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
+        shell: pwsh
         run: |
-          BASETAG=5.4.118-ubuntu.22.04-${{ matrix.tag }}
-          docker build -t servicecontrol-ravendb:${{ env.MinVerVersion }}-${{ matrix.tag}} --file src/ServiceControl.RavenDB/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --build-arg BASETAG=$BASETAG --platform linux/${{ matrix.arch }} .
-          docker images
+          $containers = cat src/ServiceControl.RavenDB/containers.json | ConvertFrom-Json
+          $containers | ForEach-Object -Process {
+            $FULLTAG="${{ env.MinVerVersion }}-$($_.tag)"
+            $BASETAG="5.4.118-ubuntu.22.04-$($_.tag)"
+            echo "Building ${{ env.MinVerVersion }}-$($_.tag) for architecture $($_.arch) from $BASETAG"
+            docker build -t servicecontrol-ravendb:$FULLTAG --file src/ServiceControl.RavenDB/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --build-arg BASETAG=$BASETAG --platform linux/$($_.arch) .
+          }
+      - name: List local images
+        run: docker images
