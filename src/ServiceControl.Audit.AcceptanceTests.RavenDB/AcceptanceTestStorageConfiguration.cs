@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using ServiceControl.Audit.Persistence.RavenDB;
     using ServiceControl.Audit.Persistence.Tests;
+    using ServiceControl.RavenDB;
 
     public class AcceptanceTestStorageConfiguration
     {

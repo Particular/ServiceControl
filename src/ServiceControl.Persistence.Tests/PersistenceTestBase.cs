@@ -17,6 +17,7 @@ using ServiceControl.Persistence.Recoverability;
 using ServiceControl.Persistence.Tests;
 using ServiceControl.Persistence.UnitOfWork;
 using ServiceControl.PersistenceTests;
+using ServiceControl.RavenDB;
 
 //[Parallelizable(ParallelScope.All)]
 [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]

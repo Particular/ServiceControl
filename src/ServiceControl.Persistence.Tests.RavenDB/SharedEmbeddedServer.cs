@@ -9,6 +9,7 @@
     using NUnit.Framework;
     using Raven.Client.ServerWide.Operations;
     using ServiceControl.Persistence.RavenDB;
+    using ServiceControl.RavenDB;
     using TestHelper;
 
     static class SharedEmbeddedServer
@@ -36,10 +37,16 @@
                     DatabaseMaintenancePort = PortUtility.FindAvailablePort(RavenPersisterSettings.DatabaseMaintenancePortDefault)
                 };
 
-                embeddedDatabase = EmbeddedDatabase.Start(settings, new ApplicationLifetime(new NullLogger<ApplicationLifetime>()));
+                // TODO: See if more refactoring can be done between this and the RavenPersisterSettings above
+                var embeddedConfig = new EmbeddedDatabaseConfiguration(settings.ServerUrl, RavenPersisterSettings.DatabaseNameDefault, dbPath, logPath, logsMode);
+
+                embeddedDatabase = EmbeddedDatabase.Start(embeddedConfig, new ApplicationLifetime(new NullLogger<ApplicationLifetime>()));
 
                 //make sure that the database is up
                 using var documentStore = await embeddedDatabase.Connect(cancellationToken);
+
+                var databaseSetup = new DatabaseSetup(settings);
+                await databaseSetup.Execute(documentStore, cancellationToken);
 
                 var cleanupDatabases = new DirectoryInfo(dbPath)
                     .GetDirectories()

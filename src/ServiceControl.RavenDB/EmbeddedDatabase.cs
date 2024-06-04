@@ -1,6 +1,5 @@
 ﻿#nullable enable
-
-namespace ServiceControl.Persistence.RavenDB
+namespace ServiceControl.RavenDB
 {
     using System;
     using System.Diagnostics;
@@ -19,7 +18,7 @@ namespace ServiceControl.Persistence.RavenDB
 
     public sealed class EmbeddedDatabase : IDisposable
     {
-        EmbeddedDatabase(RavenPersisterSettings configuration, IHostApplicationLifetime lifetime)
+        EmbeddedDatabase(EmbeddedDatabaseConfiguration configuration, IHostApplicationLifetime lifetime)
         {
             this.configuration = configuration;
             ServerUrl = configuration.ServerUrl;
@@ -47,11 +46,11 @@ namespace ServiceControl.Persistence.RavenDB
             throw new Exception($"RavenDB license not found. Make sure the RavenDB license file '{licenseFileName}' is stored in the same directory as {assemblyName}.");
         }
 
-        internal static EmbeddedDatabase Start(RavenPersisterSettings settings, IHostApplicationLifetime lifetime)
+        public static EmbeddedDatabase Start(EmbeddedDatabaseConfiguration databaseConfiguration, IHostApplicationLifetime lifetime)
         {
             var licenseFileNameAndServerDirectory = GetRavenLicenseFileNameAndServerDirectory();
 
-            var nugetPackagesPath = Path.Combine(settings.DatabasePath, "Packages", "NuGet");
+            var nugetPackagesPath = Path.Combine(databaseConfiguration.DbPath, "Packages", "NuGet");
 
             Logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
             var serverOptions = new ServerOptions
@@ -59,15 +58,15 @@ namespace ServiceControl.Persistence.RavenDB
                 CommandLineArgs =
                 [
                     $"--License.Path=\"{licenseFileNameAndServerDirectory.LicenseFileName}\"",
-                    $"--Logs.Mode={settings.LogsMode}",
+                    $"--Logs.Mode={databaseConfiguration.LogsMode}",
                     // HINT: If this is not set, then Raven will pick a default location relative to the server binaries
                     // See https://github.com/ravendb/ravendb/issues/15694
                     $"--Indexing.NuGetPackagesPath=\"{nugetPackagesPath}\""
                 ],
                 AcceptEula = true,
-                DataDirectory = settings.DatabasePath,
-                ServerUrl = settings.ServerUrl,
-                LogsPath = settings.LogPath
+                DataDirectory = databaseConfiguration.DbPath,
+                ServerUrl = databaseConfiguration.ServerUrl,
+                LogsPath = databaseConfiguration.LogPath
             };
 
             if (!string.IsNullOrWhiteSpace(licenseFileNameAndServerDirectory.ServerDirectory))
@@ -75,10 +74,10 @@ namespace ServiceControl.Persistence.RavenDB
                 serverOptions.ServerDirectory = licenseFileNameAndServerDirectory.ServerDirectory;
             }
 
-            var embeddedDatabase = new EmbeddedDatabase(settings, lifetime);
+            var embeddedDatabase = new EmbeddedDatabase(databaseConfiguration, lifetime);
             embeddedDatabase.Start(serverOptions);
 
-            RecordStartup(settings);
+            RecordStartup(databaseConfiguration);
 
             return embeddedDatabase;
         }
@@ -140,9 +139,9 @@ namespace ServiceControl.Persistence.RavenDB
             }
         }
 
-        public async Task<IDocumentStore> Connect(CancellationToken cancellationToken = default)
+        public async Task<IDocumentStore> Connect(CancellationToken cancellationToken)
         {
-            var dbOptions = new DatabaseOptions(configuration.DatabaseName)
+            var dbOptions = new DatabaseOptions(configuration.Name)
             {
                 Conventions = new DocumentConventions
                 {
@@ -150,11 +149,12 @@ namespace ServiceControl.Persistence.RavenDB
                 }
             };
 
+            if (configuration.FindClrType != null)
+            {
+                dbOptions.Conventions.FindClrType += configuration.FindClrType;
+            }
+
             var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken);
-
-            var databaseSetup = new DatabaseSetup(configuration);
-            await databaseSetup.Execute(store, cancellationToken);
-
             return store;
         }
 
@@ -181,25 +181,25 @@ namespace ServiceControl.Persistence.RavenDB
             disposed = true;
         }
 
-        static void RecordStartup(RavenPersisterSettings settings)
+        static void RecordStartup(EmbeddedDatabaseConfiguration configuration)
         {
-            var dataSize = DataSize(settings);
-            var folderSize = FolderSize(settings);
+            var dataSize = DataSize(configuration);
+            var folderSize = FolderSize(configuration.DbPath);
 
             var startupMessage = $@"
 -------------------------------------------------------------
-Database Path:                      {settings.DatabasePath}
+Database Path:                      {configuration.DbPath}
 Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)}
 Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
-RavenDB Logging Level:              {settings.LogsMode}
+RavenDB Logging Level:              {configuration.LogsMode}
 -------------------------------------------------------------";
 
             Logger.Info(startupMessage);
         }
 
-        static long DataSize(RavenPersisterSettings settings)
+        static long DataSize(EmbeddedDatabaseConfiguration configuration)
         {
-            var datafilePath = Path.Combine(settings.DatabasePath, "Databases", settings.DatabaseName, "Raven.voron");
+            var datafilePath = Path.Combine(configuration.DbPath, "Databases", configuration.Name, "Raven.voron");
 
             try
             {
@@ -216,11 +216,11 @@ RavenDB Logging Level:              {settings.LogsMode}
             }
         }
 
-        static long FolderSize(RavenPersisterSettings settings)
+        static long FolderSize(string path)
         {
             try
             {
-                var dir = new DirectoryInfo(settings.DatabasePath);
+                var dir = new DirectoryInfo(path);
                 var dirSize = DirSize(dir);
                 return dirSize;
             }
@@ -254,7 +254,7 @@ RavenDB Logging Level:              {settings.LogsMode}
         bool disposed;
         bool restartRequired;
         readonly CancellationTokenSource shutdownTokenSource = new();
-        readonly RavenPersisterSettings configuration;
+        readonly EmbeddedDatabaseConfiguration configuration;
         readonly CancellationToken shutdownCancellationToken;
         readonly CancellationTokenRegistration applicationStoppingRegistration;
 

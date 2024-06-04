@@ -14,7 +14,6 @@
     using ServiceControl.Persistence.MessageRedirects;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Recoverability;
-    using ServiceControl.SagaAudit;
 
     class RavenPersistence(RavenPersisterSettings settings) : IPersistence
     {

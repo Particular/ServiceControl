@@ -18,7 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ByteSize" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="System.Reactive.Linq" />
   </ItemGroup>

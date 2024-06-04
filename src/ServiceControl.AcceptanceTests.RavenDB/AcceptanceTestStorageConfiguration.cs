@@ -2,9 +2,9 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Persistence.RavenDB;
     using Persistence.Tests;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.RavenDB;
 
     public class AcceptanceTestStorageConfiguration
     {

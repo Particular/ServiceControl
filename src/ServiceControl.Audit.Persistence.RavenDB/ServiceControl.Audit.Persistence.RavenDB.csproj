@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ByteSize" />
     <PackageReference Include="NServiceBus.CustomChecks" />
   </ItemGroup>
 
