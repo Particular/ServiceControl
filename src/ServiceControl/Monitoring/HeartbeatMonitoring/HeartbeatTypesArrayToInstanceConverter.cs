@@ -3,7 +3,6 @@
 namespace ServiceControl.Monitoring.HeartbeatMonitoring
 {
     using System;
-    using System.Reflection;
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using Plugin.Heartbeat.Messages;
@@ -19,13 +18,13 @@ namespace ServiceControl.Monitoring.HeartbeatMonitoring
                                                                typeof(RegisterPotentiallyMissingHeartbeats);
 
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options) =>
-            (JsonConverter)Activator.CreateInstance(
-                typeof(Converter<>).MakeGenericType(
-                    [typeToConvert]),
-                BindingFlags.Instance | BindingFlags.Public,
-                binder: null,
-                args: [options],
-                culture: null)!;
+            typeToConvert switch
+            {
+                _ when typeToConvert == typeof(RegisterEndpointStartup) => new Converter<RegisterEndpointStartup>(options),
+                _ when typeToConvert == typeof(EndpointHeartbeat) => new Converter<EndpointHeartbeat>(options),
+                _ when typeToConvert == typeof(RegisterPotentiallyMissingHeartbeats) => new Converter<RegisterPotentiallyMissingHeartbeats>(options),
+                _ => throw new NotSupportedException()
+            };
 
         sealed class Converter<TValue>(JsonSerializerOptions options) : JsonConverter<TValue>
         {
