@@ -7,8 +7,8 @@
     {
         public static readonly string MessageTransport = "ServiceControl";
 
-        public static string ServiceControlThroughputDataQueue = SettingsReader.Read(ThroughputSettings.SettingsNamespace, ServiceControlThroughputDataQueueSetting, "ServiceControl.ThroughputData");
         public static string ServiceControlThroughputDataQueueSetting = "ServiceControlThroughputDataQueue";
+        public static string ServiceControlThroughputDataQueue = SettingsReader.Read(ThroughputSettings.SettingsNamespace, ServiceControlThroughputDataQueueSetting, "ServiceControl.ThroughputData");        
 
         static string SCQueue = $"{ThroughputSettings.SettingsNamespace.Root}/{ServiceControlThroughputDataQueueSetting}";
         static string SCQueueDescription = $"Service Control throughput processing queue. This setting must match the equivalent `Monitoring/{ServiceControlThroughputDataQueueSetting}` setting for the Monitoring instance.";
