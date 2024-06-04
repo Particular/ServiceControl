@@ -208,7 +208,9 @@ jobs:
             $FULLTAG="${{ env.MinVerVersion }}-$($_.tag)"
             $BASETAG="5.4.118-ubuntu.22.04-$($_.tag)"
             echo "Building ${{ env.MinVerVersion }}-$($_.tag) for architecture $($_.arch) from $BASETAG"
-            docker build -t servicecontrol-ravendb:$FULLTAG --file src/ServiceControl.RavenDB/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --build-arg BASETAG=$BASETAG --platform linux/$($_.arch) .
+            docker build -t ghcr.io/particular/servicecontrol-ravendb:$FULLTAG --file src/ServiceControl.RavenDB/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --build-arg BASETAG=$BASETAG --platform linux/$($_.arch) .
           }
       - name: List local images
         run: docker images
+      - name: Push images to GitHub Container registry
+        run: docker image push --all-tags ghcr.io/particular/servicecontrol-ravendb
