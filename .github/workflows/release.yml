@@ -205,9 +205,9 @@ jobs:
         run: |
           $containers = cat src/ServiceControl.RavenDB/containers.json | ConvertFrom-Json
           $containers | ForEach-Object -Process {
-            $FULLTAG="${{ env.MinVerVersion }}-$($_.tag)"
+            $FULLTAG="${{ env.TAG_NAME }}-$($_.tag)"
             $BASETAG="5.4.118-ubuntu.22.04-$($_.tag)"
-            echo "Building ${{ env.MinVerVersion }}-$($_.tag) for architecture $($_.arch) from $BASETAG"
+            echo "Building $FULLTAG for architecture $($_.arch) from $BASETAG"
             docker build -t ghcr.io/particular/servicecontrol-ravendb:$FULLTAG --file src/ServiceControl.RavenDB/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --build-arg BASETAG=$BASETAG --platform linux/$($_.arch) .
           }
       - name: List local images
