@@ -10,4 +10,8 @@
     <PackageReference Include="RavenDB.Embedded" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="RavenLicense.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

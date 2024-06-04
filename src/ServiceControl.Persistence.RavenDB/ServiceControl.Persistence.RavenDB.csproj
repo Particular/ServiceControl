@@ -25,7 +25,6 @@
 
   <ItemGroup>
     <None Update="persistence.manifest" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="RavenLicense.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
