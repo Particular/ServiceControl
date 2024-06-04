@@ -175,3 +175,43 @@ jobs:
         run: |
           docker buildx build --push --tag ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }} --file src/${{ matrix.project }}/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --platform linux/arm64,linux/arm,linux/amd64 .
           docker buildx imagetools inspect ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }}
+  db-containers:
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    runs-on: ubuntu-22.04
+    name: db-container-${{ matrix.tag }}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            tag: x64
+          - arch: arm64/v8
+            tag: arm64v8
+          - arch: arm/v7
+            tag: arm32v7
+      fail-fast: false
+    steps:
+      - name: Check for secrets
+        env:
+          SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
+        shell: pwsh
+        run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
+      - name: Checkout
+        uses: actions/checkout@v4.1.6
+        with:
+          fetch-depth: 0
+      - name: Install MinVer CLI
+        run: dotnet tool install --global minver-cli
+      - name: Determine versions
+        run: echo "MinVerVersion=$(minver)" >> $GITHUB_ENV
+      - name: Log in to GitHub container registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Build & inspect image
+        env:
+          TAG_NAME: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
+        run: |
+          BASETAG=5.4.118-ubuntu.22.04-${{ matrix.tag }}
+          docker build -t servicecontrol-ravendb:${{ env.MinVerVersion }}-${{ matrix.tag}} --file src/ServiceControl.RavenDB/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --build-arg BASETAG=$BASETAG --platform linux/${{ matrix.arch }} .
+          docker images
