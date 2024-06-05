@@ -73,7 +73,7 @@ namespace ServiceControl.Monitoring.HeartbeatMonitoring
 
             // we only ever use it to read
             public override void Write(Utf8JsonWriter writer, TValue value, JsonSerializerOptions options) =>
-                throw new NotImplementedException();
+                throw new NotSupportedException();
         }
     }
 
