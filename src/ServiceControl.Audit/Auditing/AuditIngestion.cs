@@ -134,7 +134,7 @@
                 transportInfrastructure = newInstance;
                 logger.Info("Ensure started. Infrastructure started");
             }
-            catch
+            catch (Exception ex)
             {
                 if (newInstance != null)
                 {
@@ -155,6 +155,7 @@
 
                 queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 185
 
+                logger.Warn("Ensure started failed", ex);
                 throw;
             }
             finally
