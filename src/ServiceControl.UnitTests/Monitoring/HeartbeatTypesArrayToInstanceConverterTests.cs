@@ -30,15 +30,17 @@ namespace ServiceControl.UnitTests.Monitoring
         [Test]
         public void Should_deserialize_heartbeat_arrays()
         {
-            var heartbeat = JsonSerializer.Deserialize<EndpointHeartbeat>(@"[
-  {
-    ""$type"": ""ServiceControl.Plugin.Heartbeat.Messages.EndpointHeartbeat, ServiceControl"",
-    ""ExecutedAt"": ""2024-06-02T12:03:41.780"",
-    ""EndpointName"": ""Test"",
-    ""HostId"": ""1865830e-71b0-dc6c-e146-62cdd0034e6e"",
-    ""Host"": ""Machine""
-  }
-]", options);
+            var heartbeat = JsonSerializer.Deserialize<EndpointHeartbeat>("""
+                [
+                    {
+                      "$type": "ServiceControl.Plugin.Heartbeat.Messages.EndpointHeartbeat, ServiceControl",
+                      "ExecutedAt": "2024-06-02T12:03:41.780",
+                      "EndpointName": "Test",
+                      "HostId": "1865830e-71b0-dc6c-e146-62cdd0034e6e",
+                      "Host": "Machine"
+                    }
+                ]
+                """, options);
 
             Assert.IsNotNull(heartbeat);
             Assert.AreEqual("Test", heartbeat.EndpointName);
@@ -50,13 +52,15 @@ namespace ServiceControl.UnitTests.Monitoring
         [Test]
         public void Should_deserialize_single_heartbeat()
         {
-            var heartbeat = JsonSerializer.Deserialize<EndpointHeartbeat>(@"{
-    ""$type"": ""ServiceControl.Plugin.Heartbeat.Messages.EndpointHeartbeat, ServiceControl"",
-    ""ExecutedAt"": ""2024-06-02T12:03:41.780"",
-    ""EndpointName"": ""Test"",
-    ""HostId"": ""1865830e-71b0-dc6c-e146-62cdd0034e6e"",
-    ""Host"": ""Machine""
-  }", options);
+            var heartbeat = JsonSerializer.Deserialize<EndpointHeartbeat>("""
+                {
+                  "$type": "ServiceControl.Plugin.Heartbeat.Messages.EndpointHeartbeat, ServiceControl",
+                  "ExecutedAt": "2024-06-02T12:03:41.780",
+                  "EndpointName": "Test",
+                  "HostId": "1865830e-71b0-dc6c-e146-62cdd0034e6e",
+                  "Host": "Machine"
+                }
+                """, options);
 
             Assert.IsNotNull(heartbeat);
             Assert.AreEqual("Test", heartbeat.EndpointName);
@@ -69,19 +73,21 @@ namespace ServiceControl.UnitTests.Monitoring
         public void Should_deserialize_register_endpoint_startup_arrays()
         {
             // sample json for RegisterEndpointStartup
-            var endpointStartup = JsonSerializer.Deserialize<RegisterEndpointStartup>(@"[
-    {
-        ""HostId"": ""3fa85f64-5717-4562-b3fc-2c963f66afa6"",
-        ""Endpoint"": ""SampleEndpoint"",
-        ""StartedAt"": ""2022-12-01T12:00:00Z"",
-        ""HostProperties"": {
-            ""Property1"": ""Value1"",
-            ""Property2"": ""Value2""
-        },
-        ""HostDisplayName"": ""SampleHostDisplayName"",
-        ""Host"": ""SampleHost""
-    }
-]", options);
+            var endpointStartup = JsonSerializer.Deserialize<RegisterEndpointStartup>("""
+                [
+                    {
+                        "HostId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "Endpoint": "SampleEndpoint",
+                        "StartedAt": "2022-12-01T12:00:00Z",
+                        "HostProperties": {
+                            "Property1": "Value1",
+                            "Property2": "Value2"
+                        },
+                        "HostDisplayName": "SampleHostDisplayName",
+                        "Host": "SampleHost"
+                    }
+                ]
+                """, options);
 
             Assert.IsNotNull(endpointStartup);
             Assert.AreEqual(new Guid("3fa85f64-5717-4562-b3fc-2c963f66afa6"), endpointStartup.HostId);
@@ -100,17 +106,19 @@ namespace ServiceControl.UnitTests.Monitoring
         public void Should_deserialize_single_register_endpoint_startup()
         {
             // sample json for RegisterEndpointStartup
-            var endpointStartup = JsonSerializer.Deserialize<RegisterEndpointStartup>(@"{
-        ""HostId"": ""3fa85f64-5717-4562-b3fc-2c963f66afa6"",
-        ""Endpoint"": ""SampleEndpoint"",
-        ""StartedAt"": ""2022-12-01T12:00:00Z"",
-        ""HostProperties"": {
-            ""Property1"": ""Value1"",
-            ""Property2"": ""Value2""
-        },
-        ""HostDisplayName"": ""SampleHostDisplayName"",
-        ""Host"": ""SampleHost""
-    }", options);
+            var endpointStartup = JsonSerializer.Deserialize<RegisterEndpointStartup>("""
+                {
+                        "HostId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "Endpoint": "SampleEndpoint",
+                        "StartedAt": "2022-12-01T12:00:00Z",
+                        "HostProperties": {
+                            "Property1": "Value1",
+                            "Property2": "Value2"
+                        },
+                        "HostDisplayName": "SampleHostDisplayName",
+                        "Host": "SampleHost"
+                    }
+                """, options);
 
             Assert.IsNotNull(endpointStartup);
             Assert.AreEqual(new Guid("3fa85f64-5717-4562-b3fc-2c963f66afa6"), endpointStartup.HostId);
@@ -128,13 +136,15 @@ namespace ServiceControl.UnitTests.Monitoring
         [Test]
         public void Should_deserialize_register_potentially_missing_heartbeat_arrays()
         {
-            var potentiallyMissingHeartbeats = JsonSerializer.Deserialize<RegisterPotentiallyMissingHeartbeats>(@"[
-  {
-    ""DetectedAt"": ""2024-06-02T12:03:41.780"",
-    ""LastHeartbeatAt"": ""2024-06-02T12:03:38.780"",
-    ""EndpointInstanceId"": ""1865830e-71b0-dc6c-e146-62cdd0034e6e""
-  }
-]", options);
+            var potentiallyMissingHeartbeats = JsonSerializer.Deserialize<RegisterPotentiallyMissingHeartbeats>("""
+                [
+                  {
+                    "DetectedAt": "2024-06-02T12:03:41.780",
+                    "LastHeartbeatAt": "2024-06-02T12:03:38.780",
+                    "EndpointInstanceId": "1865830e-71b0-dc6c-e146-62cdd0034e6e"
+                  }
+                ]
+                """, options);
 
             Assert.IsNotNull(potentiallyMissingHeartbeats);
             Assert.AreEqual(new DateTime(2024, 6, 2, 12, 3, 41, 780, System.DateTimeKind.Utc), potentiallyMissingHeartbeats.DetectedAt);
@@ -145,11 +155,13 @@ namespace ServiceControl.UnitTests.Monitoring
         [Test]
         public void Should_deserialize_single_register_potentially_missing_heartbeat()
         {
-            var potentiallyMissingHeartbeats = JsonSerializer.Deserialize<RegisterPotentiallyMissingHeartbeats>(@"{
-    ""DetectedAt"": ""2024-06-02T12:03:41.780"",
-    ""LastHeartbeatAt"": ""2024-06-02T12:03:38.780"",
-    ""EndpointInstanceId"": ""1865830e-71b0-dc6c-e146-62cdd0034e6e""
-  }", options);
+            var potentiallyMissingHeartbeats = JsonSerializer.Deserialize<RegisterPotentiallyMissingHeartbeats>("""
+                {
+                    "DetectedAt": "2024-06-02T12:03:41.780",
+                    "LastHeartbeatAt": "2024-06-02T12:03:38.780",
+                    "EndpointInstanceId": "1865830e-71b0-dc6c-e146-62cdd0034e6e"
+                  }
+                """, options);
 
             Assert.IsNotNull(potentiallyMissingHeartbeats);
             Assert.AreEqual(new DateTime(2024, 6, 2, 12, 3, 41, 780, System.DateTimeKind.Utc), potentiallyMissingHeartbeats.DetectedAt);
