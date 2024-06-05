@@ -43,7 +43,7 @@ namespace ServiceControl.Monitoring.HeartbeatMonitoring
 
                     if (reader.TokenType != JsonTokenType.StartObject)
                     {
-                        throw new JsonException($"Unsupported structure for {type}");
+                        throw new JsonException($"Unsupported structure for {typeToConvert}");
                     }
                 }
 
@@ -56,14 +56,14 @@ namespace ServiceControl.Monitoring.HeartbeatMonitoring
 
                 if (reader.TokenType != JsonTokenType.EndObject)
                 {
-                    throw new JsonException($"Unsupported structure for {type}");
+                    throw new JsonException($"Unsupported structure for {typeToConvert}");
                 }
 
                 _ = reader.Read();
 
                 if (reader.TokenType != JsonTokenType.EndArray)
                 {
-                    throw new JsonException($"Unsupported structure for {type}");
+                    throw new JsonException($"Unsupported structure for {typeToConvert}");
                 }
 
                 _ = reader.Read();
