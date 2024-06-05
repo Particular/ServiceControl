@@ -14,8 +14,7 @@ namespace ServiceControl.Monitoring.HeartbeatMonitoring
     {
         public override bool CanConvert(Type typeToConvert) => typeToConvert == typeof(RegisterEndpointStartup) ||
                                                                typeToConvert == typeof(EndpointHeartbeat) ||
-                                                               typeToConvert ==
-                                                               typeof(RegisterPotentiallyMissingHeartbeats);
+                                                               typeToConvert == typeof(RegisterPotentiallyMissingHeartbeats);
 
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options) =>
             typeToConvert switch
