@@ -1,10 +1,10 @@
-namespace ServiceControl
+namespace ServiceControl.Infrastructure
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
 
-    static class TypeExtensions
+    public static class TypeExtensions
     {
         public static IEnumerable<Type> Implementing<T>(this IEnumerable<Type> types)
         {

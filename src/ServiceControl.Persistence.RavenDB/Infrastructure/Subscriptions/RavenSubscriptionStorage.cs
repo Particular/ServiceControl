@@ -16,8 +16,8 @@
     using Persistence.RavenDB;
     using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Session;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Persistence;
-    using ServiceControl.Persistence.RavenDB.Infrastructure;
 
     class RavenSubscriptionStorage : IServiceControlSubscriptionStorage
     {
