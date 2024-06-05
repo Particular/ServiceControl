@@ -95,7 +95,7 @@ dotnet_diagnostic.IDE0082.severity = error
 
 dotnet_diagnostic.IDE0029.severity = error
 dotnet_diagnostic.IDE0030.severity = error
-dotnet_style_coalesce_expression = true:error
+dotnet_style_coalesce_expression = true
 # IDE0270: Use coalesce expression when throwing exceptions
 dotnet_diagnostic.IDE0270.severity = suggestion
 
