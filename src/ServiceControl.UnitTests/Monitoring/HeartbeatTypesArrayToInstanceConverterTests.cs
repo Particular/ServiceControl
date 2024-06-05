@@ -33,11 +33,11 @@ namespace ServiceControl.UnitTests.Monitoring
             var heartbeat = JsonSerializer.Deserialize<EndpointHeartbeat>("""
                 [
                     {
-                      "$type": "ServiceControl.Plugin.Heartbeat.Messages.EndpointHeartbeat, ServiceControl",
-                      "ExecutedAt": "2024-06-02T12:03:41.780",
-                      "EndpointName": "Test",
-                      "HostId": "1865830e-71b0-dc6c-e146-62cdd0034e6e",
-                      "Host": "Machine"
+                        "$type": "ServiceControl.Plugin.Heartbeat.Messages.EndpointHeartbeat, ServiceControl",
+                        "ExecutedAt": "2024-06-02T12:03:41.780",
+                        "EndpointName": "Test",
+                        "HostId": "1865830e-71b0-dc6c-e146-62cdd0034e6e",
+                        "Host": "Machine"
                     }
                 ]
                 """, options);
@@ -54,11 +54,11 @@ namespace ServiceControl.UnitTests.Monitoring
         {
             var heartbeat = JsonSerializer.Deserialize<EndpointHeartbeat>("""
                 {
-                  "$type": "ServiceControl.Plugin.Heartbeat.Messages.EndpointHeartbeat, ServiceControl",
-                  "ExecutedAt": "2024-06-02T12:03:41.780",
-                  "EndpointName": "Test",
-                  "HostId": "1865830e-71b0-dc6c-e146-62cdd0034e6e",
-                  "Host": "Machine"
+                    "$type": "ServiceControl.Plugin.Heartbeat.Messages.EndpointHeartbeat, ServiceControl",
+                    "ExecutedAt": "2024-06-02T12:03:41.780",
+                    "EndpointName": "Test",
+                    "HostId": "1865830e-71b0-dc6c-e146-62cdd0034e6e",
+                    "Host": "Machine"
                 }
                 """, options);
 
@@ -108,16 +108,16 @@ namespace ServiceControl.UnitTests.Monitoring
             // sample json for RegisterEndpointStartup
             var endpointStartup = JsonSerializer.Deserialize<RegisterEndpointStartup>("""
                 {
-                        "HostId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                        "Endpoint": "SampleEndpoint",
-                        "StartedAt": "2022-12-01T12:00:00Z",
-                        "HostProperties": {
-                            "Property1": "Value1",
-                            "Property2": "Value2"
-                        },
-                        "HostDisplayName": "SampleHostDisplayName",
-                        "Host": "SampleHost"
-                    }
+                    "HostId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "Endpoint": "SampleEndpoint",
+                    "StartedAt": "2022-12-01T12:00:00Z",
+                    "HostProperties": {
+                        "Property1": "Value1",
+                        "Property2": "Value2"
+                    },
+                    "HostDisplayName": "SampleHostDisplayName",
+                    "Host": "SampleHost"
+                }
                 """, options);
 
             Assert.IsNotNull(endpointStartup);
@@ -138,11 +138,11 @@ namespace ServiceControl.UnitTests.Monitoring
         {
             var potentiallyMissingHeartbeats = JsonSerializer.Deserialize<RegisterPotentiallyMissingHeartbeats>("""
                 [
-                  {
-                    "DetectedAt": "2024-06-02T12:03:41.780",
-                    "LastHeartbeatAt": "2024-06-02T12:03:38.780",
-                    "EndpointInstanceId": "1865830e-71b0-dc6c-e146-62cdd0034e6e"
-                  }
+                    {
+                        "DetectedAt": "2024-06-02T12:03:41.780",
+                        "LastHeartbeatAt": "2024-06-02T12:03:38.780",
+                        "EndpointInstanceId": "1865830e-71b0-dc6c-e146-62cdd0034e6e"
+                    }
                 ]
                 """, options);
 
@@ -160,7 +160,7 @@ namespace ServiceControl.UnitTests.Monitoring
                     "DetectedAt": "2024-06-02T12:03:41.780",
                     "LastHeartbeatAt": "2024-06-02T12:03:38.780",
                     "EndpointInstanceId": "1865830e-71b0-dc6c-e146-62cdd0034e6e"
-                  }
+                }
                 """, options);
 
             Assert.IsNotNull(potentiallyMissingHeartbeats);
