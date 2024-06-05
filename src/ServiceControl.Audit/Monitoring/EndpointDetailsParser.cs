@@ -2,8 +2,8 @@ namespace ServiceControl.Audit.Monitoring
 {
     using System;
     using System.Collections.Generic;
-    using Infrastructure;
     using NServiceBus;
+    using ServiceControl.Infrastructure;
 
     class EndpointDetailsParser
     {
