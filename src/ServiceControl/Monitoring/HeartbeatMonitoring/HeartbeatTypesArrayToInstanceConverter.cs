@@ -66,7 +66,7 @@ namespace ServiceControl.Monitoring.HeartbeatMonitoring
                     throw new JsonException($"Unsupported structure for {typeToConvert}");
                 }
 
-                _ = reader.Read();
+                _ = reader.Read(); // Converter need to consume all data
 
                 return value;
             }
