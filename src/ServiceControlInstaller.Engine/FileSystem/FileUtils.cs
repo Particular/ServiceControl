@@ -49,7 +49,6 @@ namespace ServiceControlInstaller.Engine.FileSystem
                 di.MoveTo(originalPath);
                 return;
             }
-
         }
 
         static void DeleteDirectoryInternal(string path, bool recursive, bool contentsOnly, params string[] excludes)
