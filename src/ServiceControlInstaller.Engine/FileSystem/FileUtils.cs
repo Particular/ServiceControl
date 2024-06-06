@@ -24,14 +24,33 @@ namespace ServiceControlInstaller.Engine.FileSystem
             }
 
             var originalPath = path;
-            var originalAttributes = di.Attributes;
 
             // Move folder to ensure no files are in use so that it is less likely that we corrupt the folder
             // when still in use
 
-            var pathToDelete = path + "$";
+            var pathToDelete= path + "$";
             di.MoveTo(pathToDelete);
             path = pathToDelete;
+
+            DeleteDirectoryInternal(path, recursive, contentsOnly, excludes);
+
+            if (contentsOnly)
+            {
+                di.MoveTo(originalPath);
+                return;
+            }
+
+            // Intentionally not moving back in a finally as folder is likely corrupted
+        }
+
+        static void DeleteDirectoryInternal(string path, bool recursive, bool contentsOnly, params string[] excludes)
+        {
+            var di = new DirectoryInfo(path);
+
+            if (!di.Exists)
+            {
+                return;
+            }
 
             if (recursive)
             {
@@ -43,7 +62,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
                         continue;
                     }
 
-                    DeleteDirectory(s, true, false, excludes);
+                    DeleteDirectoryInternal(s, true, false, excludes);
                 }
             }
 
@@ -63,8 +82,6 @@ namespace ServiceControlInstaller.Engine.FileSystem
 
             if (contentsOnly)
             {
-                di.MoveTo(originalPath);
-                di.Attributes = originalAttributes;
                 return;
             }
 
