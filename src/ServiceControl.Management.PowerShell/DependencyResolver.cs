@@ -45,16 +45,26 @@ class DependencyResolver
     {
         ArgumentNullException.ThrowIfNull(assemblyName);
 
-        var library = dependencyContext.RuntimeLibraries.SingleOrDefault(r => r.Name.Equals(assemblyName.Name, StringComparison.Ordinal));
+        var name = assemblyName.Name;
+
+        if (name?.EndsWith("resources", StringComparison.Ordinal) ?? false)
+        {
+            name = name[..^10];
+        }
+
+        var library = dependencyContext.RuntimeLibraries.SingleOrDefault(r => r.Name.Equals(name, StringComparison.Ordinal));
 
         if (library is null)
         {
             return null;
         }
 
-        // If we had dependencies that had satellite resource assemblies, we'd need to use assemblyName.CultureName and library.ResourceAssemblies instead
+        if (assemblyName.CultureName?.Equals(string.Empty, StringComparison.Ordinal) ?? false)
+        {
+            return SearchRuntimeAssets(library.RuntimeAssemblyGroups);
+        }
 
-        return SearchRuntimeAssets(library.RuntimeAssemblyGroups);
+        return SearchResourceAssemblies(library.ResourceAssemblies, assemblyName.CultureName);
     }
 
     public string? ResolveUnmanagedDllToPath(string unmanagedDllName)
@@ -73,39 +83,65 @@ class DependencyResolver
             return null;
         }
 
-        string? assetPath = null;
-
         foreach (var runtime in runtimes)
         {
             foreach (var asset in runtimeAssets)
             {
                 if (asset.Runtime?.Equals(runtime, StringComparison.Ordinal) ?? false)
                 {
-                    assetPath = asset.AssetPaths[0];
-                    break;
+                    var assetPath = asset.AssetPaths[0];
+
+                    // If we're in the default runtime section of the deps.json file, we just need the file name and not the full path
+                    if (asset.Runtime?.Equals(string.Empty, StringComparison.Ordinal) ?? false)
+                    {
+                        assetPath = Path.GetFileName(assetPath);
+                    }
+
+                    // This assumes that we're running with all assemblies copied locally, and doesn't attempt to cover the scenario of needing to resolve
+                    // from the NuGet package cache folder.
+                    assetPath = Path.GetFullPath(Path.Combine(assemblyDirectory, assetPath));
+
+                    if (!File.Exists(assetPath))
+                    {
+                        assetPath = null;
+                    }
+
+                    return assetPath;
                 }
-            }
-
-            if (assetPath is not null)
-            {
-                // This assumes that we're running with all assemblies copied locally, and doesn't attempt to cover the scenario of needing to resolve
-                // from the NuGet package cache folder.
-                if (assetPath.StartsWith("lib", StringComparison.Ordinal))
-                {
-                    assetPath = Path.GetFileName(assetPath);
-                }
-
-                assetPath = Path.GetFullPath(Path.Combine(assemblyDirectory, assetPath));
-
-                if (!File.Exists(assetPath))
-                {
-                    assetPath = null;
-                }
-
-                break;
             }
         }
 
-        return assetPath;
+        return null;
+    }
+
+    string? SearchResourceAssemblies(IReadOnlyList<ResourceAssembly> resourceAssemblies, string? cultureName)
+    {
+        if (resourceAssemblies is null)
+        {
+            return null;
+        }
+
+        if (cultureName is null)
+        {
+            return null;
+        }
+
+        foreach (var resourceAssembly in resourceAssemblies)
+        {
+            if (resourceAssembly.Locale.Equals(cultureName, StringComparison.Ordinal))
+            {
+                var assemblyFileName = Path.GetFileName(resourceAssembly.Path);
+                var assemblyPath = Path.GetFullPath(Path.Combine(assemblyDirectory, cultureName, assemblyFileName));
+
+                if (!File.Exists(assemblyPath))
+                {
+                    assemblyPath = null;
+                }
+
+                return assemblyPath;
+            }
+        }
+
+        return null;
     }
 }
