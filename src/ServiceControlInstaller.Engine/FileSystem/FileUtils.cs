@@ -16,14 +16,26 @@ namespace ServiceControlInstaller.Engine.FileSystem
 
         public static void DeleteDirectory(string path, bool recursive, bool contentsOnly, params string[] excludes)
         {
-            if (!Directory.Exists(path))
+            var di = new DirectoryInfo(path);
+
+            if (!di.Exists)
             {
                 return;
             }
 
+            var originalPath = path;
+            var originalAttributes = di.Attributes;
+
+            // Move folder to ensure no files are in use so that it is less likely that we corrupt the folder
+            // when still in use
+
+            var pathToDelete = path + "$";
+            di.MoveTo(pathToDelete);
+            path = pathToDelete;
+
             if (recursive)
             {
-                var subfolders = Directory.GetDirectories(path);
+                var subfolders = Directory.EnumerateDirectories(path);
                 foreach (var s in subfolders)
                 {
                     if (excludes.Any(p => string.Equals(p, Path.GetDirectoryName(s), StringComparison.OrdinalIgnoreCase)))
@@ -35,7 +47,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
                 }
             }
 
-            var files = Directory.GetFiles(path);
+            var files = Directory.EnumerateFiles(path);
             foreach (var f in files)
             {
                 if (excludes.Any(p => string.Equals(p, Path.GetFileName(f), StringComparison.OrdinalIgnoreCase)))
@@ -51,16 +63,14 @@ namespace ServiceControlInstaller.Engine.FileSystem
 
             if (contentsOnly)
             {
+                di.MoveTo(originalPath);
+                di.Attributes = originalAttributes;
                 return;
             }
 
-            var di = new DirectoryInfo(path);
-            if (di.Exists)
-            {
-                di.Attributes &= ~FileAttributes.ReadOnly;
-                di.Attributes &= ~FileAttributes.System;
-                di.Delete();
-            }
+            di.Attributes &= ~FileAttributes.ReadOnly;
+            di.Attributes &= ~FileAttributes.System;
+            di.Delete();
         }
 
         public static void CreateDirectoryAndSetAcl(string path, FileSystemAccessRule accessRule)
