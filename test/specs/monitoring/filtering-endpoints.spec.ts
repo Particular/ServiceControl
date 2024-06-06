@@ -26,7 +26,7 @@ describe("FEATURE: Endpoint filtering", () => {
         filterString: "WrongName",
         expectedEndpoints: [],
       },
-    ].forEach(example => {
+    ].forEach((example) => {
       it(`Example: ${example.description}`, async ({ driver }) => {
         // Arrange
         await driver.setUp(precondition.serviceControlWithMonitoring);
@@ -39,7 +39,7 @@ describe("FEATURE: Endpoint filtering", () => {
 
         // Assert
         expect(await endpointsNames()).toEqual(example.expectedEndpoints);
-      }); 
+      });
     });
 
     it("Example: Enter filter string that matches 1 endpoint and clearing the filter string should display all endpoints", async ({ driver }) => {
@@ -77,26 +77,25 @@ describe("FEATURE: Endpoint filtering", () => {
 
   describe("Rule: Filtering by endpoint name should be case insensitive", () => {
     [
-      {description: "All lower case letters are used for a filter string that matches only 1 endpoint", filterString: "endpoint1"},
-      {description: "All upper case letters are used for a filter string that matches only 1 endpoint", filterString: "ENDPOINT1"},
-      {description: "A mix of upper and lower case letters are used for a filter string that matches only 1 endpoint", filterString: "EnDpOiNt1"}
-
+      { description: "All lower case letters are used for a filter string that matches only 1 endpoint", filterString: "endpoint1" },
+      { description: "All upper case letters are used for a filter string that matches only 1 endpoint", filterString: "ENDPOINT1" },
+      { description: "A mix of upper and lower case letters are used for a filter string that matches only 1 endpoint", filterString: "EnDpOiNt1" },
     ].forEach((example) => {
       it(`Example: ${example.description}`, async ({ driver }) => {
         // Arrange
         await driver.setUp(precondition.serviceControlWithMonitoring);
         await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));
-  
+
         // Act
         await driver.goTo("monitoring");
         expect(await endpointsNames()).toEqual(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]);
         await enterFilterString(example.filterString);
-  
+
         // Assert
         // Confirm only endpoint1 shows in the list after filtering
         expect(await endpointsNames()).toEqual(["Universe.Solarsystem.Earth.Endpoint1"]);
       });
-    });    
+    });
   });
 
   describe("Rule: Filtering by endpoint name should be possible when endpoints are grouped", () => {
@@ -153,14 +152,7 @@ describe("FEATURE: Endpoint filtering", () => {
 
       // Assert
       expect(endpointGroupNames()).toEqual(["Universe.Solarsystem.Earth", "Universe.Solarsystem.Mercury", "Universe.Solarsystem.Venus"]);
-      expect(await endpointsNames()).toEqual([
-        "Endpoint5",
-        "Endpoint6",
-        "Endpoint1",
-        "Endpoint2",
-        "Endpoint3",
-        "Endpoint4",
-      ]);
+      expect(await endpointsNames()).toEqual(["Endpoint5", "Endpoint6", "Endpoint1", "Endpoint2", "Endpoint3", "Endpoint4"]);
     });
 
     it("Example: Filter string doesn't match any endpoints in any groups", async ({ driver }) => {
@@ -218,7 +210,7 @@ describe("FEATURE: Endpoint filtering", () => {
       await driver.goTo("monitoring");
       await enterFilterString("Endpoint1");
 
-      //Assert      
+      //Assert
       expect(window.location.href).toEqual("http://localhost:3000/#/monitoring?historyPeriod=1&filter=Endpoint1");
     });
 
@@ -236,7 +228,7 @@ describe("FEATURE: Endpoint filtering", () => {
       expect(currentFilterValueToBe("Endpoint1")).toBeTruthy();
       await enterFilterString("");
 
-      //Assert      
+      //Assert
       expect(window.location.href).toEqual("http://localhost:3000/#/monitoring");
     });
   });

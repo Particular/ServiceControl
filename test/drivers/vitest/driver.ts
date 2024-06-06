@@ -4,7 +4,6 @@ import { mount } from "../../../src/mount";
 import makeRouter from "../../../src/router";
 import { mockEndpoint } from "../../utils";
 import { mockServer } from "../../mock-server";
-import { Router } from "vue-router";
 import { App } from "vue";
 
 function makeDriver() {
@@ -32,7 +31,7 @@ function makeDriver() {
     },
     disposeApp() {
       app.unmount();
-    }
+    },
   };
   return driver;
 }

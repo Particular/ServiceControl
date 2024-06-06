@@ -1,3 +1,4 @@
+import { monitoredEndpointList } from "@/../test/mocks/monitored-endpoint-template";
 import * as precondition from ".";
 import { SetupFactoryOptions } from "../driver";
 
