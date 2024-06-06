@@ -8,6 +8,7 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Subscriptions;
+    using ServiceControl.Monitoring.HeartbeatMonitoring;
     using ServiceControl.Notifications.Email;
     using ServiceControl.Operations;
     using ServiceControl.SagaAudit;
@@ -50,9 +51,14 @@ namespace ServiceBus.Management.Infrastructure
             var serializer = configuration.UseSerialization<SystemJsonSerializer>();
             serializer.Options(new JsonSerializerOptions
             {
+                Converters =
+                {
+                    new HeartbeatTypesArrayToInstanceConverter()
+                },
                 TypeInfoResolverChain =
                 {
                     SagaAuditMessagesSerializationContext.Default,
+                    HeartbeatSerializationContext.Default,
                     // This is required until we move all known message types over to source generated contexts
                     new DefaultJsonTypeInfoResolver()
                 }
