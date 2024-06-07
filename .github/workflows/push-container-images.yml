@@ -79,6 +79,8 @@ jobs:
         uses: azure/login@v2.1.1
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+      - name: Azure Container Registry login
+        run: az acr login --name pswtestregistry
       - name: Try pushing tag between repos
         run: |
-          docker buildx imagetools create --tag pswtestregistry.azurecr.io/servicecontrol:5.2.1-alpha.0.26 ghcr.io/particular/servicecontrol:5.2.1-alpha.0.26
+          docker buildx imagetools create --tag pswtestregistry/servicecontrol:5.2.1-alpha.0.26 ghcr.io/particular/servicecontrol:5.2.1-alpha.0.26
