@@ -24,32 +24,26 @@ namespace ServiceControlInstaller.Engine.FileSystem
             }
 
             var originalPath = path;
-
-            // Move folder to ensure no files are in use so that it is less likely that we corrupt the folder
-            // when still in use
-
             var pathToDelete = path + "$";
 
-            RunWithRetries(() => di.MoveTo(pathToDelete));
-
-            path = pathToDelete;
             try
             {
+                // Move folder to ensure no files are in use so that it is less likely that we corrupt the folder
+                // when still in use
+                RunWithRetries(() => di.MoveTo(pathToDelete));
+                path = pathToDelete;
                 DeleteDirectoryInternal(path, recursive, contentsOnly, excludes);
+
+                if (contentsOnly)
+                {
+                    di.MoveTo(originalPath);
+                }
             }
             catch (Exception ex)
             {
                 throw new($"Failure during folder {(contentsOnly ? "cleanup" : "removal")}. Remaining folder content is available at: {path}", ex);
             }
-            finally
-            {
-                // Intentionally not moving back in a finally as folder is likely corrupted
-            }
-
-            if (contentsOnly)
-            {
-                di.MoveTo(originalPath);
-            }
+            // Intentionally not moving back in a finally as folder is likely corrupted
         }
 
         static void DeleteDirectoryInternal(string path, bool recursive, bool contentsOnly, params string[] excludes)
