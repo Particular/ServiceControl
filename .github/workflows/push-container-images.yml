@@ -21,8 +21,8 @@ jobs:
         run: |
           $version = "${{ inputs.version }}"
 
-          # TEMPORARY
-          $version = $version ?? "5.2.1-alpha.0.26"
+          # TEMPORARY - for pull_request event trigger
+          if (-not $version) { $version = '5.2.1-alpha.0.26' }
           
           Write-Output "Received version: $version"
           $isMatch = $version -match '^(?<Major>\d+)\.(?<Minor>\d+)\.(?<Patch>\d+)(-(?<PrereleaseLabel>[\w\-\.]+))?$'
