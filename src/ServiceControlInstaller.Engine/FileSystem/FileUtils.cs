@@ -29,7 +29,9 @@ namespace ServiceControlInstaller.Engine.FileSystem
             // when still in use
 
             var pathToDelete = path + "$";
-            di.MoveTo(pathToDelete);
+
+            RunWithRetries(() => di.MoveTo(pathToDelete));
+
             path = pathToDelete;
             try
             {
@@ -47,7 +49,6 @@ namespace ServiceControlInstaller.Engine.FileSystem
             if (contentsOnly)
             {
                 di.MoveTo(originalPath);
-                return;
             }
         }
 
@@ -83,9 +84,13 @@ namespace ServiceControlInstaller.Engine.FileSystem
                 }
 
                 var fi = new FileInfo(f);
-                fi.Attributes &= ~FileAttributes.ReadOnly;
-                fi.Attributes &= ~FileAttributes.System;
-                fi.Delete();
+
+                RunWithRetries(() =>
+                {
+                    fi.Attributes &= ~FileAttributes.ReadOnly;
+                    fi.Attributes &= ~FileAttributes.System;
+                    fi.Delete();
+                });
             }
 
             if (contentsOnly)
@@ -93,8 +98,12 @@ namespace ServiceControlInstaller.Engine.FileSystem
                 return;
             }
 
-            di.Attributes &= ~FileAttributes.ReadOnly;
-            di.Attributes &= ~FileAttributes.System;
+            RunWithRetries(() =>
+            {
+                di.Attributes &= ~FileAttributes.ReadOnly;
+                di.Attributes &= ~FileAttributes.System;
+                di.Delete();
+            });
             di.Delete();
         }
 
@@ -124,6 +133,26 @@ namespace ServiceControlInstaller.Engine.FileSystem
         {
             using var zip = ZipFile.Read(zipStream);
             zip.ExtractAll(targetPath, ExtractExistingFileAction.OverwriteSilently);
+        }
+
+        static void RunWithRetries(Action action)
+        {
+            // Try
+            var attempts = 10;
+            while (true)
+            {
+                try
+                {
+                    action();
+                    break;
+                }
+                catch (IOException) when (--attempts > 0)
+                {
+                    // Yes, Task.Delay would be better but would require all calls to be async
+                    // and in 99.9% this sleep will not hit 
+                    System.Threading.Thread.Sleep(100);
+                }
+            }
         }
     }
 }
