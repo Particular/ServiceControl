@@ -126,11 +126,11 @@
             }
             catch
             {
-                if (queueIngestor != null)
+                if (transportInfrastructure != null)
                 {
                     try
                     {
-                        await queueIngestor.StopReceive(cancellationToken);
+                        await transportInfrastructure.Shutdown(cancellationToken);
                     }
                     catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
                     {

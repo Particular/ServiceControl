@@ -87,7 +87,7 @@
 
         static string GetAssemblyDirectory()
         {
-            var assemblyLocation = typeof(TransportManifestLibrary).Assembly.Location;
+            string assemblyLocation = AppContext.BaseDirectory;
             return Path.GetDirectoryName(assemblyLocation);
         }
 
