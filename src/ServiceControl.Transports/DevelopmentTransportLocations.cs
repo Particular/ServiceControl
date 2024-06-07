@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Transports
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
 
@@ -9,7 +10,7 @@
 
         static DevelopmentTransportLocations()
         {
-            var assembly = typeof(DevelopmentTransportLocations).Assembly.Location;
+            string assembly = AppContext.BaseDirectory;
             var assemblyDirectory = Path.GetDirectoryName(assembly);
 
             // Becomes null if it navigates past the root of a drive

@@ -2,3 +2,4 @@
 
 # Justification: ServiceControl app has no synchronization context
 dotnet_diagnostic.CA2007.severity = none
+dotnet_diagnostic.IL3000.severity = none
