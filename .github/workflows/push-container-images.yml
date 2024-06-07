@@ -6,6 +6,8 @@ on:
         description: Full version of container image to push
         required: true
         type: string
+  # TEMPORARY
+  pull_request:
 jobs:
   push:
     runs-on: ubuntu-latest
@@ -14,38 +16,65 @@ jobs:
       run:
         shell: pwsh
     steps:
-      - name: Validate version
+      - name: Validate versions
         id: validate
         run: |
-          $success = '${{ inputs.version }}' -match '^(?<Major>\d+)\.(?<Minor>\d+)\.(?<Patch>\d+)(-(?<PrereleaseLabel>[\w\-\.]+))?$'
-          if ( -not $success)
+          $version = "${{ inputs.version }}"
+
+          # TEMPORARY
+          $version = $version ?? "5.2.1-alpha.0.26"
+          
+          Write-Output "Received version: $version"
+          $isMatch = $version -match '^(?<Major>\d+)\.(?<Minor>\d+)\.(?<Patch>\d+)(-(?<PrereleaseLabel>[\w\-\.]+))?$'
+          if ( -not $isMatch)
           {
             throw "Invalid version ${{ inputs.version }}"
             exit 1
           }
 
-          Write-Output "major=$Matches.Major" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append
-          Write-Output "minor=$Matches.Minor" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append
-          Write-Output "patch=$Matches.Patch" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append
-          Write-Output "prerelease=$Matches.Prerelease" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append
+          Write-Output "Version ${{ inputs.version }} is valid."
+
+          $major = $Matches.Major
+          $minor = $Matches.Minor
+          $patch = $Matches.Patch
+          $prereleaseLabel = $Matches.PrereleaseLabel
+          $isPrerelease = -not -not $prereleaseLabel
+
+          # Get highest-versioned release
+          $releases = Invoke-WebRequest -Uri https://api.github.com/repos/particular/ServiceControl/releases -UseBasicParsing |
+              ConvertFrom-Json -ErrorAction Stop
+          $releasedVersions = $releases | ? Draft -eq $false | ? Prerelease -eq $false | Select-Object -ExpandProperty tag_name
+          $latestVersion = $releasedVersions | Sort-Object { [System.Version]$_ } -Descending | Select -First 1
+          Write-Output "Latest released version on GitHub = $latestVersion"
+
+          $isLatest = $false
+          if ( -not $isPrerelease ) {
+            $vNew = [System.Version]$version
+            $vPrev = [System.Version]$latestVersion
+
+            if ($vNew -ge $vPrev) {
+              $isLatest = $true
+            }
+          }
           
-      - name: Get latest released version
-        id: get-latest
-        shell: pwsh
-        run: |
-          $response = Invoke-WebRequest -Uri https://api.github.com/repos/particular/ServiceControl/releases -UseBasicParsing
-          $obj = ConvertFrom-Json $response -ErrorAction Stop
-          $obj = $obj | ? Draft -eq $false | ? Prerelease -eq $false | Select-Object -ExpandProperty tag_name
-          $sortedObj = $obj | Sort { [System.Version]$_ } -Descending
-          $latestVersion = [System.Version]($sortedObj | Select -First 1)
-          Write-Output "Latest released version = $latestVersion"
-          Write-Output "version=$latestVersion" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append
-      - name: Summary
-        run: |
-          Write-Output "Latest version = ${{ steps.get-latest.version }}"
-          Write-Output "Current version = ${{ steps.validate.version }}"
-          Write-Output "  - Major = ${{ steps.validate.major }}"
-          Write-Output "  - Minor = ${{ steps.validate.minor }}"
-          Write-Output "  - Patch = ${{ steps.validate.patch }}"
-          Write-Output "  - Prerelease = ${{ steps.validate.prerelease }}"
+          Write-Output "Major = $major, Minor = $minor, Patch = $patch, PrereleaseLabel = $prereleaseLabel, IsPrerelease = $isPrerelease, IsLatest = $isLatest"
+
+          Write-Output "Determining tags..."
+          $tags = @($version)
+
+          if ( -not $isPrerelease ) {
+            $tags += "$major"
+            $tags += "$major.$minor"
+            if ($isLatest) {
+              $tags += 'latest'
+            }
+          }
+
+          Write-Output "Tags to apply:"
+          $tags | ForEach-Object { Write-Output " * '$_'" }
           
+      - name: Log in to GitHub container registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Try pushing new tag
+        run: |
+          docker buildx imagetools create --tag ghcr.io/particular/servicecontrol:test-move ghcr.io/particular/servicecontrol:5.2.1-alpha.0.26
