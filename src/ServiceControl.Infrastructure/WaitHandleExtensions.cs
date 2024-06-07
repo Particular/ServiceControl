@@ -1,10 +1,10 @@
-namespace ServiceBus.Management.Infrastructure.Extensions
+namespace ServiceControl.Infrastructure
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
 
-    static class WaitHandleExtensions
+    public static class WaitHandleExtensions
     {
         public static async Task<bool> WaitOneAsync(this WaitHandle handle, int millisecondsTimeout, CancellationToken cancellationToken = default)
         {
@@ -22,12 +22,12 @@ namespace ServiceBus.Management.Infrastructure.Extensions
                 tokenRegistration = cancellationToken.Register(
                     state => ((TaskCompletionSource<bool>)state).TrySetCanceled(),
                     tcs);
-                return await tcs.Task;
+                return await tcs.Task.ConfigureAwait(false);
             }
             finally
             {
                 registeredHandle?.Unregister(null);
-                tokenRegistration.Dispose();
+                await tokenRegistration.DisposeAsync().ConfigureAwait(false);
             }
         }
 

@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <!-- Needed for build ordering -->
-  <Import Project="..\ProjectReferences.Persisters.Audit.props"  />
+  <Import Project="..\ProjectReferences.Persisters.Audit.props" />
   <Import Project="..\ProjectReferences.Transports.props" />
 
   <ItemGroup>
