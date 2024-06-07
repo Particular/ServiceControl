@@ -81,8 +81,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
 
                 RunWithRetries(() =>
                 {
-                    fi.Attributes &= ~FileAttributes.ReadOnly;
-                    fi.Attributes &= ~FileAttributes.System;
+                    fi.Attributes &= ~(FileAttributes.ReadOnly | FileAttributes.System);
                     fi.Delete();
                 });
             }
@@ -94,8 +93,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
 
             RunWithRetries(() =>
             {
-                di.Attributes &= ~FileAttributes.ReadOnly;
-                di.Attributes &= ~FileAttributes.System;
+                di.Attributes &= ~(FileAttributes.ReadOnly | FileAttributes.System);
                 di.Delete();
             });
             di.Delete();
