@@ -129,7 +129,6 @@ namespace ServiceControlInstaller.Engine.FileSystem
 
         static void RunWithRetries(Action action)
         {
-            // Try
             var attempts = 10;
             while (true)
             {
