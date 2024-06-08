@@ -20,7 +20,6 @@ export interface RouteItem {
 const config: RouteItem[] = [
   {
     path: routeLinks.dashboard,
-    alias: "/",
     component: DashboardView,
     title: "Dashboard",
   },

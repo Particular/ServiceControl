@@ -11,6 +11,8 @@ const defaultConfig = {
   showPendingRetry: false,
 };
 
+vi.stubGlobal("defaultConfig", defaultConfig);
+
 beforeEach(() => {
   vi.stubGlobal("defaultConfig", defaultConfig);
 });
