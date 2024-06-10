@@ -31,7 +31,7 @@ async function downloadReport() {
   const fileName = await throughputClient.downloadReport();
 
   if (fileName !== "") {
-    useShowToast(TYPE.INFO, "Report Generated", `Please email '${fileName}' to your account manager`, true);
+    useShowToast(TYPE.INFO, "Report Downloaded", `Please email '${fileName}' to your account manager.`, true);
   }
 }
 </script>
@@ -46,7 +46,7 @@ async function downloadReport() {
           </div>
           <div class="col-sm-6 text-end">
             <span class="reason" v-if="!reportState?.report_can_be_generated">{{ reportState?.reason }}</span>
-            <button type="button" class="btn btn-primary actions" @click="generateReport()" :disabled="!reportState?.report_can_be_generated"><i class="fa fa-download"></i> Generate Report</button>
+            <button type="button" class="btn btn-primary actions" @click="generateReport()" :disabled="!reportState?.report_can_be_generated"><i class="fa fa-download"></i> Download Report</button>
             <Teleport to="#modalDisplay">
               <ConfirmDialog v-if="showWarning" heading="Not all endpoints/queues have an Endpoint Type set" body="Are you sure you want to continue?" @cancel="showWarning = false" @confirm="downloadReport" />
             </Teleport>

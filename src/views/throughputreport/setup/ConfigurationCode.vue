@@ -72,7 +72,7 @@ function languageChanged(item: Item) {
 </script>
 <template>
   <div>
-    <drop-down :select-item="languages.find((v) => v.value === languageSelected)" :callback="languageChanged" :items="languages" />
+    <drop-down label="Configuration type" :select-item="languages.find((v) => v.value === languageSelected)" :callback="languageChanged" :items="languages" />
   </div>
   <div class="configuration">
     <VCodeBlock :code="codeSelected.code" :lang="codeSelected.lang" />

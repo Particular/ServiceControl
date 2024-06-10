@@ -24,9 +24,9 @@ interface SortData {
 }
 
 const sortData: SortData[] = [
-  { text: "By name", comparer: (a: EndpointThroughputSummary, b: EndpointThroughputSummary) => a.name.localeCompare(b.name) },
-  { text: "By throughput", comparer: (a: EndpointThroughputSummary, b: EndpointThroughputSummary) => a.max_daily_throughput - b.max_daily_throughput },
-  { text: "By endpoint type", comparer: (a: EndpointThroughputSummary, b: EndpointThroughputSummary) => a.user_indicator.localeCompare(b.user_indicator) },
+  { text: "name", comparer: (a: EndpointThroughputSummary, b: EndpointThroughputSummary) => a.name.localeCompare(b.name) },
+  { text: "throughput", comparer: (a: EndpointThroughputSummary, b: EndpointThroughputSummary) => a.max_daily_throughput - b.max_daily_throughput },
+  { text: "endpoint type", comparer: (a: EndpointThroughputSummary, b: EndpointThroughputSummary) => a.user_indicator.localeCompare(b.user_indicator) },
 ].flatMap((item) => {
   return [
     { text: item.text, value: item.text, comparer: item.comparer },
@@ -178,7 +178,7 @@ async function save() {
         </div>
       </div>
       <div class="col text-end">
-        <drop-down label="Sort" :select-item="sortData.find((v) => v.value === filterData.sort)" :callback="sortChanged" :items="sortData" />
+        <drop-down label="Sort by" :select-item="sortData.find((v) => v.value === filterData.sort)" :callback="sortChanged" :items="sortData" />
       </div>
     </div>
   </div>
@@ -192,7 +192,7 @@ async function save() {
         </td>
         <td class="col" style="width: 350px; padding-left: 0">
           <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle" :disabled="filteredData.length === 0" type="button" data-bs-toggle="dropdown" aria-expanded="false">Set displayed Endpoint Types to</button>
+            <button class="btn btn-secondary dropdown-toggle" :disabled="filteredData.length === 0" type="button" data-bs-toggle="dropdown" aria-expanded="false">Set Endpoint Type for all items below</button>
             <ul class="dropdown-menu">
               <li v-for="indicator in props.indicatorOptions" :key="indicator">
                 <a href="#" @click.prevent="showBulkUpdateIndicatorWarning(indicator)">{{ userIndicatorMapper.get(indicator) }}</a>
