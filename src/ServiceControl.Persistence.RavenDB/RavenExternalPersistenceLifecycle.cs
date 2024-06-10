@@ -48,7 +48,6 @@ namespace ServiceControl.Persistence.RavenDB
                 documentStore = store.Initialize();
 
                 await StartupChecks.EnsureServerVersion(store, cancellationToken);
-                await StartupChecks.EnsureServiceControlLicense(store, cancellationToken);
 
                 var databaseSetup = new DatabaseSetup(settings);
                 await databaseSetup.Execute(store, cancellationToken).ConfigureAwait(false);

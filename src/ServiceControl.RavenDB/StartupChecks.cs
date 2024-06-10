@@ -20,15 +20,6 @@
             }
         }
 
-        public static async Task EnsureServiceControlLicense(IDocumentStore store, CancellationToken cancellationToken = default)
-        {
-            var licenseResponse = await store.Maintenance.Server.SendAsync(new GetLicenseOperation(), cancellationToken);
-            if (licenseResponse.LicensedTo != "ParticularNservicebus (Israel)")
-            {
-                throw new Exception("Wrong license");
-            }
-        }
-
         // Must go after the database setup, as database must exist
         public static void EnsureSingleNodeTopology(IDocumentStore store)
         {
