@@ -13,6 +13,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0
 ARG VERSION
 WORKDIR /
 
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
+
 LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceControl \
       org.opencontainers.image.authors="Particular Software" \
       org.opencontainers.image.url=https://docs.particular.net/servicecontrol/ \
@@ -28,7 +30,7 @@ ENV PersistenceType=RavenDB \
     ForwardErrorMessages=false \
     ErrorRetentionPeriod=15
 
-HEALTHCHECK --start-period=60s CMD curl --fail http://localhost:33333/api/configuration || exit 1
+HEALTHCHECK --start-period=60s CMD wget --tries=1 --no-verbose -O/dev/null http://localhost:33333/api/configuration || exit 1
 
 USER $APP_UID
 ENTRYPOINT ["./app/ServiceControl"]

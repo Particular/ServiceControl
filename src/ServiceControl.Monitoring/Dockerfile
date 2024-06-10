@@ -13,6 +13,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0
 ARG VERSION
 WORKDIR /
 
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
+
 LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceControl \
       org.opencontainers.image.authors="Particular Software" \
       org.opencontainers.image.url=https://docs.particular.net/servicecontrol/ \
@@ -25,7 +27,8 @@ EXPOSE 33633
 
 COPY --from=build /deploy/Particular.ServiceControl.Monitoring ./app
 
-HEALTHCHECK --start-period=30s CMD curl --fail http://localhost:33633/connection || exit 1
+HEALTHCHECK --start-period=60s CMD wget --tries=1 --no-verbose -O/dev/null http://localhost:33633/connection || exit 1
+
 
 USER $APP_UID
 ENTRYPOINT ["./app/ServiceControl.Monitoring"]
