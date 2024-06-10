@@ -27,5 +27,7 @@ COPY --from=build /deploy/Particular.ServiceControl.Audit ./app
 ENV PersistenceType=RavenDB \
     AuditRetentionPeriod=7
 
+HEALTHCHECK --start-period=60s CMD curl --fail http://localhost:44444/api/configuration || exit 1
+
 USER $APP_UID
 ENTRYPOINT ["./app/ServiceControl.Audit"]

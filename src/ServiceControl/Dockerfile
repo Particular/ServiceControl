@@ -28,5 +28,7 @@ ENV PersistenceType=RavenDB \
     ForwardErrorMessages=false \
     ErrorRetentionPeriod=15
 
+HEALTHCHECK --start-period=60s CMD curl --fail http://localhost:33333/api/configuration || exit 1
+
 USER $APP_UID
 ENTRYPOINT ["./app/ServiceControl"]

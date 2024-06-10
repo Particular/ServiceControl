@@ -25,5 +25,7 @@ EXPOSE 33633
 
 COPY --from=build /deploy/Particular.ServiceControl.Monitoring ./app
 
+HEALTHCHECK --start-period=30s CMD curl --fail http://localhost:33633/connection || exit 1
+
 USER $APP_UID
 ENTRYPOINT ["./app/ServiceControl.Monitoring"]
