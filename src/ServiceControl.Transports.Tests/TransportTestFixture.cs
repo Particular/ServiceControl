@@ -7,6 +7,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using NUnit.Framework.Internal;
@@ -18,6 +19,7 @@
         [SetUp]
         public virtual async Task Setup()
         {
+            LogManager.UseFactory(new TestContextAppenderFactory());
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
             registrations = [];
