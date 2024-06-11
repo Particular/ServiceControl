@@ -184,12 +184,64 @@
             FileUtils.DeleteDirectory(newPath, true, false);
             Prepare(zipFilePat, newPath);
 
-            //Swap
-            Directory.Move(InstallPath, oldPath);
-            Directory.Move(newPath, InstallPath);
+            // Swap
+            MoveCurrentToOld(newPath, oldPath);
+            MoveNewToCurrent(newPath, oldPath);
+            PurgeOld(oldPath);
+        }
 
-            // Clean
-            FileUtils.DeleteDirectory(oldPath, true, false);
+        void MoveCurrentToOld(string newPath, string oldPath)
+        {
+            try
+            {
+                Directory.Move(InstallPath, oldPath);
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    FileUtils.DeleteDirectory(newPath, true, false);
+                }
+                catch (Exception ex2)
+                {
+                    throw new("Error while moving previous version. Is the instance still running? Cleanup of preparation folder failed.", ex2);
+                }
+                throw new("Error while moving previous version. Is the instance still running?", ex);
+            }
+        }
+
+        void MoveNewToCurrent(string newPath, string oldPath)
+        {
+            try
+            {
+                Directory.Move(newPath, InstallPath);
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    // Try restoring previous version
+                    Directory.Move(oldPath, InstallPath);
+                    throw new("Error while making new version active but successfully restored previous version.", ex);
+                }
+                catch (Exception ex2)
+                {
+                    throw new($"Error while making new version active but unsuccessful in restoring previous version.\n\nManually restore '{oldPath}' to '{InstallPath}' to repair instance.", ex2);
+                }
+            }
+        }
+
+
+        static void PurgeOld(string oldPath)
+        {
+            try
+            {
+                FileUtils.DeleteDirectory(oldPath, true, false);
+            }
+            catch (Exception)
+            {
+                // Ignore, did our best. Unfortunately no context to report a warning
+            }
         }
 
         protected abstract void Prepare(string zipFilePath, string destDir);
