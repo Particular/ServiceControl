@@ -5,7 +5,7 @@
     using NUnit.Framework;
     using ServiceControl.Transports;
 
-    class SendOnlyEndpointTests : TransportTestFixture
+    class SendOnlyEndpointTests : FullEndpointTestFixture
     {
         [Test]
         public async Task Should_be_able_to_create_send_only_endpoint()

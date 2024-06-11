@@ -1,31 +1,35 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
     using System.Threading.Tasks;
+    using Azure.Messaging.ServiceBus;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using Transports;
+    using ServiceControl.Transports;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    class ServiceControlMonitoringEndpointTests : FullEndpointTestFixture
+    class DefaultCredentialTests : FullEndpointTestFixture
     {
         [Test]
-        public async Task Should_configure_monitoring_endpoint()
+        public async Task Should_authenticate_using_default_credentials_when_FQNS_is_used()
         {
-            string endpointName = Conventions.EndpointNamingConvention(typeof(ServiceControlEndpoint));
+            var endpointName = Conventions.EndpointNamingConvention(typeof(DefaultCredentialEndpoint));
+
+            var connectionStringProperties = ServiceBusConnectionStringProperties.Parse(configuration.ConnectionString);
+
+            var fullyQualifiedNamespace = connectionStringProperties.FullyQualifiedNamespace;
+
             var transportSettings = new TransportSettings
             {
-                ConnectionString = configuration.ConnectionString,
+                ConnectionString = fullyQualifiedNamespace,
                 MaxConcurrency = 1,
                 EndpointName = endpointName
             };
 
-            await configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
-
             var ctx = await Scenario.Define<Context>()
-                .WithEndpoint<ServiceControlEndpoint>(c => c.CustomConfig(ec =>
+                .WithEndpoint<DefaultCredentialEndpoint>(c => c.CustomConfig(ec =>
                 {
-                    configuration.TransportCustomization.CustomizeMonitoringEndpoint(ec, transportSettings);
+                    configuration.TransportCustomization.CustomizePrimaryEndpoint(ec, transportSettings);
                 }))
                 .Done(c => c.EndpointsStarted)
                 .Run();
@@ -37,15 +41,13 @@
         {
         }
 
-        public class ServiceControlEndpoint : EndpointConfigurationBuilder
+        public class DefaultCredentialEndpoint : EndpointConfigurationBuilder
         {
-            public ServiceControlEndpoint()
-            {
+            public DefaultCredentialEndpoint() =>
                 EndpointSetup<BasicEndpointSetup>(c =>
                 {
                     c.UsePersistence<NonDurablePersistence>();
                 });
-            }
         }
     }
 }
