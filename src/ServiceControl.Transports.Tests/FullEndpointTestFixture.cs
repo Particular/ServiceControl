@@ -4,7 +4,6 @@
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
-    using NUnit.Framework.Internal;
 
     [TestFixture]
     class FullEndpointTestFixture

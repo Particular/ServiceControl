@@ -1,17 +1,12 @@
-﻿namespace ServiceControl.Transport.Tests;
-
-using System;
-using NServiceBus.Logging;
-
-class TestContextAppenderFactory : ILoggerFactory
+﻿namespace ServiceControl.Transport.Tests
 {
-    public ILog GetLogger(Type type)
-    {
-        return GetLogger(type.FullName);
-    }
+    using System;
+    using NServiceBus.Logging;
 
-    public ILog GetLogger(string name)
+    class TestContextAppenderFactory : ILoggerFactory
     {
-        return new TestContextAppender();
+        public ILog GetLogger(Type type) => GetLogger(type.FullName);
+
+        public ILog GetLogger(string name) => new TestContextAppender();
     }
 }

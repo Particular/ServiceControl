@@ -9,7 +9,6 @@
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using NUnit.Framework.Internal;
     using ServiceControl.Transports;
 
     [TestFixture]
@@ -22,7 +21,7 @@
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
             registrations = [];
-            QueueSuffix = $"-{System.IO.Path.GetRandomFileName().Replace(".", string.Empty)}";
+            queueSuffix = $"-{System.IO.Path.GetRandomFileName().Replace(".", string.Empty)}";
 
             await configuration.Configure();
 
@@ -59,9 +58,7 @@
 
         protected IMessageDispatcher Dispatcher => dispatcherTransportInfrastructure.Dispatcher;
 
-        protected string QueueSuffix { get; private set; }
-
-        protected string GetTestQueueName(string name) => $"{name}-{QueueSuffix}";
+        protected string GetTestQueueName(string name) => $"{name}-{queueSuffix}";
 
         protected TaskCompletionSource<TResult> CreateTaskCompletionSource<TResult>()
         {
@@ -76,8 +73,6 @@
 
             return source;
         }
-
-        protected TransportTestsConfiguration configuration;
 
         protected Task StartQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
         {
@@ -143,8 +138,6 @@
             return configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
         }
 
-        protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(60);
-
         async Task<TransportInfrastructure> CreateDispatcherTransportInfrastructure()
         {
             var transportSettings = new TransportSettings
@@ -157,11 +150,15 @@
             return await configuration.TransportCustomization.CreateTransportInfrastructure("TransportTestDispatcher", transportSettings);
         }
 
+        string queueSuffix;
+        TransportTestsConfiguration configuration;
         CancellationTokenSource testCancellationTokenSource;
         List<CancellationTokenRegistration> registrations;
         IProvideQueueLength queueLengthProvider;
         IMessageReceiver queueIngestor;
         TransportInfrastructure transportInfrastructure;
         TransportInfrastructure dispatcherTransportInfrastructure;
+
+        static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(60);
     }
 }

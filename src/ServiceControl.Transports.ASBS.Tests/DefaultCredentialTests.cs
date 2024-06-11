@@ -6,13 +6,14 @@
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.Transports;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class DefaultCredentialTests : FullEndpointTestFixture
     {
         [Test]
         public async Task Should_authenticate_using_default_credentials_when_FQNS_is_used()
         {
-            var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(DefaultCredentialEndpoint));
+            var endpointName = Conventions.EndpointNamingConvention(typeof(DefaultCredentialEndpoint));
 
             var connectionStringProperties = ServiceBusConnectionStringProperties.Parse(configuration.ConnectionString);
 
