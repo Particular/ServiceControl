@@ -102,27 +102,12 @@ namespace ServiceControlInstaller.Engine.Instances
             QueueCreation.RunQueueCreation(this);
         }
 
-        public override void UpgradeFiles(string zipResourceName)
+        protected override void Prepare(string zipResourceName, string destDir)
         {
-            var newPath = InstallPath + ".new";
-            var oldPath = InstallPath + ".old";
-
-            // Cleanup previous prep folder
-            FileUtils.DeleteDirectory(newPath, true, false);
-
-            // Prepare new version
-            FileUtils.CloneDirectory(InstallPath, newPath, "license", $"{Constants.ServiceControlAuditExe}.config");
-            FileUtils.UnzipToSubdirectory(zipResourceName, newPath);
-            FileUtils.UnzipToSubdirectory("InstanceShared.zip", newPath);
-            FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(newPath, "Persisters", "RavenDB", "RavenDBServer"));
-
-            // Swap versions
-            Directory.Move(InstallPath, oldPath);
-            Directory.Move(newPath, InstallPath);
-
-            // Delete old version
-            FileUtils.DeleteDirectory(oldPath, true, false);
-            
+            FileUtils.CloneDirectory(InstallPath, destDir, "license", $"{Constants.ServiceControlAuditExe}.config");
+            FileUtils.UnzipToSubdirectory(zipResourceName, destDir);
+            FileUtils.UnzipToSubdirectory("InstanceShared.zip", destDir);
+            FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(destDir, "Persisters", "RavenDB", "RavenDBServer"));
         }
 
         protected override IEnumerable<string> GetPersistencePathsToCleanUp()

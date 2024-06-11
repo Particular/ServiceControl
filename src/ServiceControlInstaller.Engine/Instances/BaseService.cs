@@ -4,6 +4,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Runtime;
     using System.ServiceProcess;
     using System.Threading;
     using Engine;
@@ -172,5 +173,25 @@
         }
 
         public abstract void Reload();
+
+
+        public void UpgradeFiles(string zipFilePat)
+        {
+            var newPath = InstallPath + ".new";
+            var oldPath = InstallPath + ".old";
+
+            // Prepare
+            FileUtils.DeleteDirectory(newPath, true, false);
+            Prepare(zipFilePat, newPath);
+
+            //Swap
+            Directory.Move(InstallPath, oldPath);
+            Directory.Move(newPath, InstallPath);
+
+            // Clean
+            FileUtils.DeleteDirectory(oldPath, true, false);
+        }
+
+        protected abstract void Prepare(string zipFilePath, string destDir);
     }
 }

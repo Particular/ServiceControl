@@ -244,25 +244,11 @@
             }
         }
 
-        public void UpgradeFiles(string zipFilePath)
+        protected override void Prepare(string zipFilePath, string destDir)
         {
-            var newPath = InstallPath + ".new";
-            var oldPath = InstallPath + ".old";
-
-            // Cleanup previous prep folder
-            FileUtils.DeleteDirectory(newPath, true, false);
-
-            // Prepare new version
-            FileUtils.CloneDirectory(InstallPath, newPath, "license", $"{Constants.MonitoringExe}.config");
-            FileUtils.UnzipToSubdirectory(zipFilePath, newPath);
-            FileUtils.UnzipToSubdirectory("InstanceShared.zip", newPath);
-
-            // Swap versions
-            Directory.Move(InstallPath, oldPath);
-            Directory.Move(newPath, InstallPath);
-
-            // Delete old version
-            FileUtils.DeleteDirectory(oldPath, true, false);
+            FileUtils.CloneDirectory(InstallPath, destDir, "license", $"{Constants.MonitoringExe}.config");
+            FileUtils.UnzipToSubdirectory(zipFilePath, destDir);
+            FileUtils.UnzipToSubdirectory("InstanceShared.zip", destDir);
         }
 
         public void RestoreAppConfig(string sourcePath)
