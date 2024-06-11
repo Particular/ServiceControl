@@ -7,7 +7,7 @@
     using NUnit.Framework;
     using ServiceControl.Transports;
 
-    class DefaultCredentialTests : TransportTestFixture
+    class DefaultCredentialTests : FullEndpointTestFixture
     {
         [Test]
         public async Task Should_authenticate_using_default_credentials_when_FQNS_is_used()
@@ -24,8 +24,6 @@
                 MaxConcurrency = 1,
                 EndpointName = endpointName
             };
-
-            await configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
 
             var ctx = await Scenario.Define<Context>()
                 .WithEndpoint<DefaultCredentialEndpoint>(c => c.CustomConfig(ec =>

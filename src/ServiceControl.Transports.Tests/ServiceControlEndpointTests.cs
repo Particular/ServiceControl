@@ -6,7 +6,7 @@
     using NUnit.Framework;
     using ServiceControl.Transports;
 
-    class ServiceControlEndpointTests : TransportTestFixture
+    class ServiceControlEndpointTests : FullEndpointTestFixture
     {
         [Test]
         public async Task Should_configure_endpoint()

@@ -7,7 +7,7 @@
     using Transports;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    class ServiceControlMonitoringEndpointTests : TransportTestFixture
+    class ServiceControlMonitoringEndpointTests : FullEndpointTestFixture
     {
         [Test]
         public async Task Should_configure_monitoring_endpoint()

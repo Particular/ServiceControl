@@ -6,7 +6,6 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using NUnit.Framework;
@@ -24,15 +23,6 @@
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
             registrations = [];
             QueueSuffix = $"-{System.IO.Path.GetRandomFileName().Replace(".", string.Empty)}";
-
-            Conventions.EndpointNamingConvention = t =>
-            {
-                var classAndEndpoint = t.FullName.Split('.').Last();
-
-                var endpointBuilder = classAndEndpoint.Split('+').Last();
-
-                return endpointBuilder + QueueSuffix;
-            };
 
             await configuration.Configure();
 
@@ -68,6 +58,7 @@
         }
 
         protected IMessageDispatcher Dispatcher => dispatcherTransportInfrastructure.Dispatcher;
+
         protected string QueueSuffix { get; private set; }
 
         protected string GetTestQueueName(string name) => $"{name}-{QueueSuffix}";

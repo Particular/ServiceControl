@@ -6,8 +6,8 @@ using NUnit.Framework;
 
 class TestContextAppender : ILog
 {
-    public bool IsDebugEnabled => true;
-    public bool IsInfoEnabled => true;
+    public bool IsDebugEnabled => false;
+    public bool IsInfoEnabled => false;
     public bool IsWarnEnabled => true;
     public bool IsErrorEnabled => true;
     public bool IsFatalEnabled => true;
