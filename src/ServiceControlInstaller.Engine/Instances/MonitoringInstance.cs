@@ -246,9 +246,23 @@
 
         public void UpgradeFiles(string zipFilePath)
         {
-            FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.MonitoringExe}.config");
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath);
-            FileUtils.UnzipToSubdirectory("InstanceShared.zip", InstallPath);
+            var newPath = InstallPath + ".new";
+            var oldPath = InstallPath + ".old";
+
+            // Cleanup previous prep folder
+            FileUtils.DeleteDirectory(newPath, true, false);
+
+            // Prepare new version
+            FileUtils.CloneDirectory(InstallPath, newPath, "license", $"{Constants.MonitoringExe}.config");
+            FileUtils.UnzipToSubdirectory(zipFilePath, newPath);
+            FileUtils.UnzipToSubdirectory("InstanceShared.zip", newPath);
+
+            // Swap versions
+            Directory.Move(InstallPath, oldPath);
+            Directory.Move(newPath, InstallPath);
+
+            // Delete old version
+            FileUtils.DeleteDirectory(oldPath, true, false);
         }
 
         public void RestoreAppConfig(string sourcePath)
