@@ -96,7 +96,6 @@ namespace ServiceControlInstaller.Engine.FileSystem
                 di.Attributes &= ~(FileAttributes.ReadOnly | FileAttributes.System);
                 di.Delete();
             });
-            di.Delete();
         }
 
         public static void CreateDirectoryAndSetAcl(string path, FileSystemAccessRule accessRule)
