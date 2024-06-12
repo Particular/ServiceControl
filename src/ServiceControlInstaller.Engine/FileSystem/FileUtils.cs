@@ -99,7 +99,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
             });
         }
 
-        public static void CloneDirectory(string srcDir, string destDir, params string[] excludes)
+        public static void CloneDirectory(string srcDir, string destDir, params string[] includes)
         {
             Directory.CreateDirectory(destDir);
             var files = Directory.EnumerateFiles(srcDir, "*", SearchOption.AllDirectories);
@@ -107,7 +107,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
             foreach (var srcFile in files)
             {
                 var filename = Path.GetFileName(srcFile);
-                var isMatch = excludes.Any(p => string.Equals(p, filename, StringComparison.OrdinalIgnoreCase));
+                var isMatch = includes.Any(p => string.Equals(p, filename, StringComparison.OrdinalIgnoreCase));
 
                 if (isMatch)
                 {
