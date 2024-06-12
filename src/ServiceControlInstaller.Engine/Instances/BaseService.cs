@@ -175,7 +175,7 @@
         public abstract void Reload();
 
 
-        public void UpgradeFiles(string zipFilePat)
+        public void UpgradeFiles(string zipFilePath)
         {
             // Do NOT use a TEMP folder as that could be on another drive and moving that will require first copying files.
             var newPath = InstallPath + ".new";
