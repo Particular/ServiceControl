@@ -159,8 +159,9 @@ namespace ServiceControlInstaller.Engine.FileSystem
                     action();
                     break;
                 }
-                catch (IOException) when (--attempts > 0)
+                catch (IOException ex) when (--attempts > 0)
                 {
+                    Trace.WriteLine($"ServiceControlInstaller.Engine.FileSystem.FileUtils::RunWithRetries Action failed, {attempts} attempts remaining. Reason: {ex.Message} ({ex.GetType().FullName})");
                     // Yes, Task.Delay would be better but would require all calls to be async
                     // and in 99.9% this sleep will not hit 
                     System.Threading.Thread.Sleep(100);
