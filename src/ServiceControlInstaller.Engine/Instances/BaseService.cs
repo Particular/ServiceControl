@@ -183,7 +183,7 @@
 
             // Prepare
             FileUtils.DeleteDirectory(newPath, true, false);
-            Prepare(zipFilePat, newPath);
+            Prepare(zipFilePath, newPath);
 
             // Swap
             MoveCurrentToOld(newPath, oldPath);
