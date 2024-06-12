@@ -227,7 +227,7 @@
                 }
                 catch (Exception ex2)
                 {
-                    throw new($"Error while making new version active but unsuccessful in restoring previous version.\n\nManually restore '{oldPath}' to '{InstallPath}' to repair instance.", ex2);
+                    throw new($"Error while making new version active and unsuccessful in restoring previous version.\n\nManually restore '{oldPath}' to '{InstallPath}' to repair instance.", ex2);
                 }
             }
         }
