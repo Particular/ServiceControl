@@ -183,8 +183,6 @@
             }
         }
 
-        protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(60);
-
         async Task<TransportInfrastructure> CreateDispatcherTransportInfrastructure()
         {
             var transportSettings = new TransportSettings
@@ -198,7 +196,7 @@
         }
 
         string queueSuffix;
-        TransportTestsConfiguration configuration;
+        public TransportTestsConfiguration configuration;
         CancellationTokenSource testCancellationTokenSource;
         List<CancellationTokenRegistration> registrations;
         IProvideQueueLength queueLengthProvider;
