@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace ServiceControlInstaller.Engine.FileSystem
 {
     using System;
@@ -8,6 +6,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
     using System.Reflection;
     using System.Security.AccessControl;
     using Ionic.Zip;
+    using System.Diagnostics;
 
     static class FileUtils
     {
@@ -99,22 +98,20 @@ namespace ServiceControlInstaller.Engine.FileSystem
                 di.Delete();
             });
         }
-        
+
         public static void CloneDirectory(string srcDir, string destDir, params string[] excludes)
         {
             Directory.CreateDirectory(destDir);
-            
             var files = Directory.EnumerateFiles(srcDir, "*", SearchOption.AllDirectories);
-            
+
             foreach (var srcFile in files)
             {
                 var filename = Path.GetFileName(srcFile);
-               
-                var isMatch = excludes.Any(p => string.Equals(p, filename, StringComparison.OrdinalIgnoreCase)); 
+                var isMatch = excludes.Any(p => string.Equals(p, filename, StringComparison.OrdinalIgnoreCase));
 
                 if (isMatch)
                 {
-                    var relativePath = srcFile.Substring(srcDir.Length+1);
+                    var relativePath = srcFile.Substring(srcDir.Length + 1);
                     var destFile = Path.Combine(destDir, relativePath);
                     var destFileDir = Path.GetDirectoryName(destFile);
                     Trace.WriteLine($"Cloning {srcFile} to {destFile}");
@@ -122,7 +119,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
                     File.Copy(srcFile, destFile);
                 }
             }
-        }        
+        }
 
         public static void CreateDirectoryAndSetAcl(string path, FileSystemAccessRule accessRule)
         {
