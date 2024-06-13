@@ -31,36 +31,4 @@
                 }
             }
         }
-
-        class GetLicenseOperation : IServerOperation<LicenseResult>
-        {
-            public RavenCommand<LicenseResult> GetCommand(DocumentConventions conventions, JsonOperationContext context) => new GetLicenseCommand();
-        }
-
-        class GetLicenseCommand : RavenCommand<LicenseResult>
-        {
-            public override bool IsReadRequest => true;
-
-            public override HttpRequestMessage CreateRequest(JsonOperationContext ctx, ServerNode node, out string url)
-            {
-                url = $"{node.Url}/license/status";
-                return new HttpRequestMessage { Method = HttpMethod.Get };
-            }
-
-            public override void SetResponse(JsonOperationContext context, BlittableJsonReaderObject response, bool fromCache)
-            {
-                if (response == null)
-                {
-                    return;
-                }
-
-                if (response.TryGet<string>("Id", out var id) && response.TryGet<string>("LicensedTo", out var licensedTo))
-                {
-                    Result = new LicenseResult(id, licensedTo);
-                }
-            }
-        }
-
-        record class LicenseResult(string Id, string LicensedTo);
-    }
 }
