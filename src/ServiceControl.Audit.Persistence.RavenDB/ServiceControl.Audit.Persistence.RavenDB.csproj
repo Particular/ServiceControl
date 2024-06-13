@@ -11,17 +11,16 @@
     <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" Private="false" ExcludeAssets="runtime" />
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.SagaAudit\ServiceControl.Audit.Persistence.SagaAudit.csproj" Private="false" ExcludeAssets="runtime" />
     <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" Private="false" ExcludeAssets="runtime" />
+    <!-- Not private or ExcludeAssets because only the two RavenDB persistence packages include this-->
+    <ProjectReference Include="..\ServiceControl.RavenDB\ServiceControl.RavenDB.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ByteSize" />
     <PackageReference Include="NServiceBus.CustomChecks" />
-    <PackageReference Include="RavenDB.Embedded" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="persistence.manifest" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="RavenLicense.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

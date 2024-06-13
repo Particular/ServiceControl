@@ -9,6 +9,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
     using NServiceBus.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Exceptions.Database;
+    using ServiceControl.RavenDB;
 
     sealed class RavenEmbeddedPersistenceLifecycle(DatabaseConfiguration databaseConfiguration, IHostApplicationLifetime lifetime) : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
     {
@@ -36,7 +37,14 @@ namespace ServiceControl.Audit.Persistence.RavenDB
             {
                 await initializeSemaphore.WaitAsync(cancellationToken);
 
-                database = EmbeddedDatabase.Start(databaseConfiguration, lifetime);
+                var serverConfig = databaseConfiguration.ServerConfiguration;
+
+                var embeddedConfig = new EmbeddedDatabaseConfiguration(serverConfig.ServerUrl, databaseConfiguration.Name, serverConfig.DbPath, serverConfig.LogPath, serverConfig.LogsMode)
+                {
+                    FindClrType = databaseConfiguration.FindClrType
+                };
+
+                database = EmbeddedDatabase.Start(embeddedConfig, lifetime);
 
                 while (true)
                 {
@@ -45,6 +53,10 @@ namespace ServiceControl.Audit.Persistence.RavenDB
                     try
                     {
                         documentStore = await database.Connect(cancellationToken);
+
+                        var databaseSetup = new DatabaseSetup(databaseConfiguration);
+                        await databaseSetup.Execute(documentStore, cancellationToken);
+
                         return;
                     }
                     catch (DatabaseLoadTimeoutException e)

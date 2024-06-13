@@ -7,6 +7,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
+    using ServiceControl.RavenDB;
 
     sealed class RavenExternalPersistenceLifecycle(DatabaseConfiguration configuration) : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
     {
@@ -51,8 +52,13 @@ namespace ServiceControl.Audit.Persistence.RavenDB
 
                 documentStore = store.Initialize();
 
+                await StartupChecks.EnsureServerVersion(store, cancellationToken);
+
                 var databaseSetup = new DatabaseSetup(configuration);
                 await databaseSetup.Execute(store, cancellationToken);
+
+                // Must go after the database setup, as database must exist
+                StartupChecks.EnsureSingleNodeTopology(store);
             }
             finally
             {
