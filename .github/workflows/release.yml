@@ -175,3 +175,50 @@ jobs:
         run: |
           docker buildx build --push --tag ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }} --file src/${{ matrix.project }}/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --platform linux/arm64,linux/arm,linux/amd64 .
           docker buildx imagetools inspect ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }}
+  db-containers:
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    runs-on: ubuntu-22.04
+    name: db-containers
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check for secrets
+        env:
+          SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
+        shell: pwsh
+        run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
+      - name: Checkout
+        uses: actions/checkout@v4.1.6
+        with:
+          fetch-depth: 0
+      - name: Install MinVer CLI
+        run: dotnet tool install --global minver-cli
+      - name: Determine versions
+        run: echo "MinVerVersion=$(minver)" >> $GITHUB_ENV
+      - name: Log in to GitHub container registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Build images
+        env:
+          TAG_NAME: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
+        shell: pwsh
+        run: |
+          Write-Output "Determining RavenDB version from Directory.Packages.props file"
+          [xml]$packagesFile = Get-Content src/Directory.Packages.props
+          $RavenVersion = $packagesFile.selectNodes("//Project/ItemGroup/PackageVersion[@Include='RavenDB.Embedded']").Version
+
+          if (-not $RavenVersion) { throw "Unable to determine RavenDB server version from Directory.Packages.props" }
+
+          Write-Output "Determining container variants to build"
+          $containers = cat src/ServiceControl.RavenDB/containers.json | ConvertFrom-Json
+          $containers | ForEach-Object -Process {
+            $FULLTAG="${{ env.TAG_NAME }}-$($_.tag)"
+            $BASETAG="$($RavenVersion)-ubuntu.22.04-$($_.tag)"
+            Write-Output "::group::Building $FULLTAG for architecture $($_.arch) from $BASETAG"
+            docker build -t ghcr.io/particular/servicecontrol-ravendb:$FULLTAG --file src/ServiceControl.RavenDB/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --build-arg BASETAG=$BASETAG --platform linux/$($_.arch) .
+            Write-Output "::endgroup::"
+          }
+      - name: List local images
+        run: docker images
+      - name: Push images to GitHub Container registry
+        run: docker image push --all-tags ghcr.io/particular/servicecontrol-ravendb
