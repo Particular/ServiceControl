@@ -114,7 +114,6 @@ namespace ServiceControlInstaller.Engine.FileSystem
                     var relativePath = srcFile.Substring(srcDir.Length + 1);
                     var destFile = Path.Combine(destDir, relativePath);
                     var destFileDir = Path.GetDirectoryName(destFile);
-                    Trace.WriteLine($"Cloning {srcFile} to {destFile}");
                     Directory.CreateDirectory(destFileDir);
                     File.Copy(srcFile, destFile);
                 }
