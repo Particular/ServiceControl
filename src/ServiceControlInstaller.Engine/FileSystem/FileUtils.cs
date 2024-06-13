@@ -25,7 +25,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
             }
 
             var originalPath = path;
-            var pathToDelete = path + "$";
+            var pathToDelete = path + "." + DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
             try
             {
