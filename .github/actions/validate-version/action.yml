@@ -1,0 +1,104 @@
+name: Validate version
+description: Validate that provided version can be released
+inputs:
+  version:
+    description: Full version
+    required: true
+outputs:
+  major:
+    description: Major version
+    value: ${{ steps.validate.outputs.major }}
+  minor:
+    description: Minor version
+    value: ${{ steps.validate.outputs.minor }}
+  patch:
+    description: Patch version
+    value: ${{ steps.validate.outputs.patch }}
+  prerelease:
+    description: Prerelease label
+    value: ${{ steps.validate.outputs.prerelease }}
+  container-tags:
+    description: Tags to be added for container releases (comma-separated)
+    value: ${{ steps.validate.outputs.container-tags }}
+runs:
+  using: composite
+  steps:
+    - name: Validate versions
+      id: validate
+      shell: pwsh
+      run: |
+        $version = "${{ inputs.version }}"
+
+        Write-Output "Received version: $version"
+        $isMatch = $version -match '^(?<Major>\d+)\.(?<Minor>\d+)\.(?<Patch>\d+)(-(?<PrereleaseLabel>[\w\-\.]+))?$'
+        if ( -not $isMatch)
+        {
+          throw "Invalid version ${{ inputs.version }}"
+          exit 1
+        }
+
+        Write-Output "Version ${{ inputs.version }} is valid."
+
+        $major = [int]$Matches.Major
+        $minor = [int]$Matches.Minor
+        $patch = [int]$Matches.Patch
+        $prereleaseLabel = $Matches.PrereleaseLabel
+        $isPrerelease = -not -not $prereleaseLabel
+
+        echo "major=$major" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append
+        echo "minor=$minor" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append
+        echo "patch=$patch" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append
+        echo "prerelease=$prereleaseLabel" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append
+
+        # Get highest-versioned releases
+        $releases = Invoke-WebRequest -Uri https://api.github.com/repos/particular/ServiceControl/releases -UseBasicParsing |
+            ConvertFrom-Json -ErrorAction Stop
+        $releasedVersions = $releases |
+            where Draft -eq $false |
+            where Prerelease -eq $false |
+            select -ExpandProperty tag_name
+
+        $latestVersion = $releasedVersions |
+            Sort-Object { [System.Version]$_ } -Descending |
+            select -First 1
+        Write-Output "Latest released version on GitHub = $latestVersion"
+
+        $latestForMajor = $releasedVersions |
+            where { ([System.Version]$_).Major -eq $major } |
+            Sort-Object { [System.Version]$_ } -Descending |
+            select -First 1
+        Write-Output "Latest released v$major version on GitHub = $latestForMajor"
+
+        $isLatest = $false
+        $isLatestForMajor = $false
+        if ( -not $isPrerelease ) {
+          $vNew = [System.Version]$version
+          $vPrev = [System.Version]$latestVersion
+          $vPrevForMajor = [System.Version]$latestForMajor
+
+          if ($vNew -ge $vPrev) {
+            $isLatest = $true
+          }
+
+          if ($vNew -lt $vPrevForMajor) {
+            throw "Releasing a version $version that is not the latest version for the major would break container tagging and is not supported. (Latest v$major version is $latestForMjajor)"
+          }
+        }
+
+        Write-Output "Major = $major, Minor = $minor, Patch = $patch, PrereleaseLabel = $prereleaseLabel, IsPrerelease = $isPrerelease, IsLatest = $isLatest"
+
+        Write-Output "Determining container tags..."
+        $tags = @($version)
+
+        if ( -not $isPrerelease ) {
+          $tags += "$major"
+          if ($isLatest) {
+            $tags += 'latest'
+          }
+        }
+
+        Write-Output "Tags to apply:"
+        $tags | ForEach-Object { Write-Output " * '$_'" }
+
+        $tagsDelimited = $tags -Join ','
+        echo "container-tags=$tagsDelimited" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append

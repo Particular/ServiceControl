@@ -34,6 +34,11 @@ jobs:
         run: ./tools/download-ravendb-server.ps1
       - name: Build
         run: dotnet build src --configuration Release -graph --property:WindowsSelfContained=true
+      - name: Validate build version
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+        uses: ./.github/actions/validate-version
+        with:
+          version: ${{ env.MinVerVersion }}
       - name: Build ServiceControl Management
         run: dotnet publish src\ServiceControl.Config\ServiceControl.Config.csproj --no-build --output assets --property:WindowsSelfContained=true
       - name: Create PowerShell module catalog
