@@ -125,6 +125,14 @@ namespace ServiceControl.Config.Framework.Modules
                 progress.Report(currentStep++, totalSteps, "Upgrading Files...");
                 instance.UpgradeFiles(ZipInfo.ResourceName);
             }
+            catch (Exception e)
+            {
+                return new ReportCard
+                {
+                    Errors = { e.Message },
+                    Status = Status.Failed
+                };
+            }
             finally
             {
                 progress.Report(currentStep++, totalSteps, "Restoring app.config...");
@@ -317,6 +325,14 @@ namespace ServiceControl.Config.Framework.Modules
             {
                 progress.Report(2, 5, "Upgrading Files...");
                 instance.UpgradeFiles(ZipInfo.ResourceName);
+            }
+            catch (Exception e)
+            {
+                return new ReportCard
+                {
+                    Errors = { e.Message },
+                    Status = Status.Failed
+                };
             }
             finally
             {
