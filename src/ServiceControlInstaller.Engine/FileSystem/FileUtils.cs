@@ -26,6 +26,8 @@ namespace ServiceControlInstaller.Engine.FileSystem
             }
 
             var originalPath = path;
+
+            // ADD randomness to path, not replacing folder name so that it can still be identified
             string pathToDelete = path + Path.GetRandomFileName();
 
             try
