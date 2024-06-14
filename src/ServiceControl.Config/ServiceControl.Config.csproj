@@ -7,7 +7,7 @@
     <ApplicationIcon>App.ico</ApplicationIcon>
     <UseWpf>true</UseWpf>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <PublishSingleFile>true</PublishSingleFile>
+    <PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile><!-- Rider cannot debug PublishSingleFile builds -->
     <SelfContained>true</SelfContained>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
