@@ -34,11 +34,8 @@
         {
             get
             {
-                var account = (string)ReadValue("ObjectName");
-                if (account == null)
-                {
-                    throw new NullReferenceException("ServiceAccount entry not found in the registry");
-                }
+                var account = (string)ReadValue("ObjectName")
+                    ?? throw new NullReferenceException("ServiceAccount entry not found in the registry");
 
                 return account;
             }
@@ -98,11 +95,8 @@
                 inParams["StartName"] = ConvertAccountNameToServiceAccount(userAccount.QualifiedName);
                 inParams["StartPassword"] = servicePassword;
 
-                var outParams = win32Service.InvokeMethod("Change", inParams, null);
-                if (outParams == null)
-                {
-                    throw new ManagementException($"Failed to set account credentials service {ServiceName}");
-                }
+                var outParams = win32Service.InvokeMethod("Change", inParams, null)
+                    ?? throw new ManagementException($"Failed to set account credentials service {ServiceName}");
 
                 var wmiReturnCode = Convert.ToInt32(outParams["ReturnValue"]);
                 if (wmiReturnCode != 0)
@@ -139,11 +133,8 @@
                 inParams["LoadOrderGroupDependencies"] = null;
                 inParams["ServiceDependencies"] = serviceDependencies;
 
-                var outParams = win32Service.InvokeMethod("create", inParams, null);
-                if (outParams == null)
-                {
-                    throw new ManagementException($"Failed to create service {serviceInfo.Name}");
-                }
+                var outParams = win32Service.InvokeMethod("create", inParams, null)
+                    ?? throw new ManagementException($"Failed to create service {serviceInfo.Name}");
 
                 var wmiReturnCode = Convert.ToInt32(outParams["ReturnValue"]);
                 if (wmiReturnCode != 0)
