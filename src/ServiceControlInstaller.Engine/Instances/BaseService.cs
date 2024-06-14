@@ -4,6 +4,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Runtime;
     using System.ServiceProcess;
     using System.Threading;
     using Engine;
@@ -172,5 +173,79 @@
         }
 
         public abstract void Reload();
+
+
+        public void UpgradeFiles(string zipFilePath)
+        {
+            // Do NOT use a TEMP folder as that could be on another drive and moving that will require first copying files.
+            var newPath = InstallPath + ".new";
+            var oldPath = InstallPath + ".old";
+
+            // Prepare
+            FileUtils.DeleteDirectory(newPath, true, false);
+            Prepare(zipFilePath, newPath);
+
+            // Swap
+            MoveCurrentToOld(newPath, oldPath);
+            MoveNewToCurrent(newPath, oldPath);
+            PurgeOld(oldPath);
+        }
+
+        void MoveCurrentToOld(string newPath, string oldPath)
+        {
+            try
+            {
+                Directory.Move(InstallPath, oldPath);
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    FileUtils.DeleteDirectory(newPath, true, false);
+                }
+                catch (Exception ex2)
+                {
+                    throw new("Error while moving previous version. Is the instance still running? Cleanup of preparation folder failed.", ex2);
+                }
+                throw new("Error while moving previous version. Is the instance still running?", ex);
+            }
+        }
+
+        void MoveNewToCurrent(string newPath, string oldPath)
+        {
+            try
+            {
+                Directory.Move(newPath, InstallPath);
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    // Try restoring previous version
+                    Directory.Move(oldPath, InstallPath);
+                    throw new("Error while making new version active but successfully restored previous version.", ex);
+                }
+                catch (Exception ex2)
+                {
+                    throw new($"Error while making new version active and unsuccessful in restoring previous version.\n\nManually restore '{oldPath}' to '{InstallPath}' to repair instance.", ex2);
+                }
+            }
+        }
+
+
+        static void PurgeOld(string oldPath)
+        {
+            try
+            {
+                FileUtils.DeleteDirectory(oldPath, true, false);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"ServiceControlInstaller.Engine.Instances.BaseService::PurgeOld Unable to cleanup {oldPath}. Reason: {ex.Message} ({ex.GetType().FullName})");
+                // Ignore, did our best. Unfortunately no context to report a warning
+            }
+        }
+
+        protected abstract void Prepare(string zipFilePath, string destDir);
     }
 }

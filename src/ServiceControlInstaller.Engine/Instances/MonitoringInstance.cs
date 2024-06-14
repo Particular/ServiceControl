@@ -244,11 +244,11 @@
             }
         }
 
-        public void UpgradeFiles(string zipFilePath)
+        protected override void Prepare(string zipFilePath, string destDir)
         {
-            FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.MonitoringExe}.config");
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath);
-            FileUtils.UnzipToSubdirectory("InstanceShared.zip", InstallPath);
+            FileUtils.CloneDirectory(InstallPath, destDir, "license", $"{Constants.MonitoringExe}.config");
+            FileUtils.UnzipToSubdirectory(zipFilePath, destDir);
+            FileUtils.UnzipToSubdirectory("InstanceShared.zip", destDir);
         }
 
         public void RestoreAppConfig(string sourcePath)
