@@ -16,11 +16,8 @@
 
         static void CheckServiceIsInstalledAndRunning()
         {
-            var msmqService = ServiceController.GetServices().FirstOrDefault(p => p.ServiceName.Equals("MSMQ", StringComparison.OrdinalIgnoreCase));
-            if (msmqService == null)
-            {
-                throw new EngineValidationException("MSMQ Service is not installed");
-            }
+            var msmqService = ServiceController.GetServices().FirstOrDefault(p => p.ServiceName.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
+                ?? throw new EngineValidationException("MSMQ Service is not installed");
 
             if (msmqService.Status != ServiceControllerStatus.Running)
             {
