@@ -241,7 +241,7 @@
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"ServiceControlInstaller.Engine.Instances.BaseService::PurgeOld Unable to cleanup {oldPath}. Reason: {ex.Message} ({ex.GetType().FullName})");
+                Debug.WriteLine($"ServiceControlInstaller.Engine.Instances.BaseService::PurgeOld Unable to cleanup {oldPath}. Reason: {ex.Message} ({ex.GetType().FullName})");
                 // Ignore, did our best. Unfortunately no context to report a warning
             }
         }
