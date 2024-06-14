@@ -1,12 +1,13 @@
 namespace ServiceControlInstaller.Engine.FileSystem
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Security.AccessControl;
+    using System.Threading;
     using Ionic.Zip;
-    using System.Diagnostics;
 
     static class FileUtils
     {
@@ -25,7 +26,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
             }
 
             var originalPath = path;
-            var pathToDelete = path + "." + DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            string pathToDelete = path + Path.GetRandomFileName();
 
             try
             {
@@ -163,7 +164,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
                     Trace.WriteLine($"ServiceControlInstaller.Engine.FileSystem.FileUtils::RunWithRetries Action failed, {attempts} attempts remaining. Reason: {ex.Message} ({ex.GetType().FullName})");
                     // Yes, Task.Delay would be better but would require all calls to be async
                     // and in 99.9% this sleep will not hit 
-                    System.Threading.Thread.Sleep(100);
+                    Thread.Sleep(100);
                 }
             }
         }
