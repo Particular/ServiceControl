@@ -8,7 +8,6 @@
     using Microsoft.Extensions.Logging.Abstractions;
     using NUnit.Framework;
     using Raven.Client.ServerWide.Operations;
-    using ServiceControl.Persistence.RavenDB;
     using ServiceControl.RavenDB;
     using TestHelper;
 
@@ -48,7 +47,7 @@
                 var databaseSetup = new DatabaseSetup(settings, documentStore);
                 await databaseSetup.Execute(cancellationToken);
 
-                var cleanupDatabases = new DirectoryInfo(dbPath)
+                string[] cleanupDatabases = new DirectoryInfo(dbPath)
                     .GetDirectories()
                     .Select(di => di.Name)
                     .Where(name => name.Length == 32)

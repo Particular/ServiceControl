@@ -1,22 +1,35 @@
 ﻿namespace ServiceControl.RavenDB
 {
     using System.Reflection;
-    using System.Threading;
+    using NuGet.Versioning;
     using Raven.Client.Documents;
-    using Raven.Client.Documents.Conventions;
-    using Raven.Client.Http;
     using Raven.Client.ServerWide.Operations;
-    using Sparrow.Json;
+    using Raven.Embedded;
 
     public static class StartupChecks
     {
         public static async Task EnsureServerVersion(IDocumentStore store, CancellationToken cancellationToken = default)
         {
             var build = await store.Maintenance.Server.SendAsync(new GetBuildNumberOperation(), cancellationToken);
-            var embeddedVersion = typeof(Raven.Embedded.EmbeddedServer).Assembly.GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
-            if (embeddedVersion != build.FullVersion)
+            var embeddedVersion = SemanticVersion.Parse(typeof(EmbeddedServer).Assembly
+                .GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion);
+            var serverVersion = SemanticVersion.Parse(build.FullVersion);
+            var exception = new Exception(
+                $"ServiceControl expects a RavenDB Server with a version {embeddedVersion.Major}.{embeddedVersion.Minor} or higher. The current server version is {build}.");
+
+            if (serverVersion.Major == embeddedVersion.Major)
             {
-                throw new Exception($"ServiceControl expects RavenDB Server version {embeddedVersion} but the server is using {build.FullVersion}.");
+                if (serverVersion.Minor >= embeddedVersion.Minor)
+                {
+                    return;
+                }
+
+                throw exception;
+            }
+
+            if (serverVersion.Major < embeddedVersion.Major)
+            {
+                throw exception;
             }
         }
 
