@@ -34,7 +34,7 @@ const windows = computed(() => {
   const list: string[] = [];
   for (const item of props.settings) {
     list.push(`rem ${item.description}`);
-    list.push(`set ${item.name}="enter value here"`);
+    list.push(`set ${item.name.replaceAll("/", "_").toUpperCase()}="enter value here"`);
   }
   return list.join("\n");
 });
