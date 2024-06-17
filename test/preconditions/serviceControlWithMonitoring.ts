@@ -1,8 +1,8 @@
-import { monitoredEndpointList } from "@/../test/mocks/monitored-endpoint-template";
 import * as precondition from ".";
 import { SetupFactoryOptions } from "../driver";
 import EndpointThroughputSummary from "@/resources/EndpointThroughputSummary";
 import ReportGenerationState from "@/resources/ReportGenerationState";
+import ConnectionTestResults, { ConnectionSettingsTestResult } from "@/resources/ConnectionTestResults";
 
 export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptions) => {
   //Service control requests minimum setup. Todo: encapsulate for reuse.
