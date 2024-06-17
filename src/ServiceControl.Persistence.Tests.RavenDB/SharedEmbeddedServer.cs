@@ -44,7 +44,7 @@
                 //make sure that the database is up
                 using var documentStore = await embeddedDatabase.Connect(cancellationToken);
 
-                var databaseSetup = new DatabaseSetup(settings, documentStore);
+                var databaseSetup = new ServiceControl.Persistence.RavenDB.DatabaseSetup(settings, documentStore);
                 await databaseSetup.Execute(cancellationToken);
 
                 string[] cleanupDatabases = new DirectoryInfo(dbPath)
