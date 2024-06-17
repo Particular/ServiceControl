@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
+using Persistence.RavenDB;
 using Raven.Client.Documents;
-using ServiceControl.Persistence;
-using ServiceControl.Persistence.RavenDB;
+using ServiceControl.RavenDB;
 
 public class PersistenceTestsContext : IPersistenceTestsContext
 {

@@ -14,9 +14,7 @@ using ServiceControl.Persistence;
 using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.Recoverability;
 using ServiceControl.Persistence.UnitOfWork;
-using ServiceControl.RavenDB;
 
-//[Parallelizable(ParallelScope.All)]
 [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
 public abstract class PersistenceTestBase
 {
