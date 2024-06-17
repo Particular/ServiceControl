@@ -2,7 +2,7 @@ ARG BASETAG
 ARG VERSION
 FROM ravendb/ravendb:$BASETAG AS ravendb
 
-COPY src/ServiceControl.Persistence.RavenDB/RavenLicense.json /opt/RavenDB/servicecontrol-license.json
+COPY src/ServiceControl.RavenDB/RavenLicense.json /opt/RavenDB/servicecontrol-license.json
 
 ENV RAVEN_ARGS='--License.Eula.Accepted=true --License.Path=/opt/RavenDB/servicecontrol-license.json'
 

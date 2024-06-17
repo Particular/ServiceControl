@@ -1,0 +1,44 @@
+name: Push container images
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Full version of container image to push
+        required: true
+        type: string
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    name: Push
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Validate build version
+        id: validate
+        uses: ./.github/actions/validate-version
+        with:
+          version: ${{ inputs.version }}
+      - name: Log in to GitHub container registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Azure Container Registry login
+        run: |
+          az acr login --name pswtestregistry --username pswtestregistry --password "${{ secrets.TEMP_ACR_PASSWORD }}"
+      - name: Try pushing tag between repos
+        run: |
+          $containers = @('servicecontrol', 'servicecontrol-audit', 'servicecontrol-monitoring')
+          $tags = "${{ steps.validate.outputs.container-tags }}" -Split ','
+          $sourceTag = "${{ inputs.version }}"
+          $dbArchTags = @('x64', 'arm64v8', 'arm32v7')
+
+          foreach ($tag in $tags)
+          {
+            foreach($name in $containers)
+            {
+              Write-Output "docker buildx imagetools create --tag pswtestregistry.azurecr.io/$($name):$($tag) ghcr.io/particular/$($name):$($sourceTag)"
+            }
+            foreach ($dbArch in $dbArchTags)
+            {
+              docker buildx imagetools create --tag pswtestregistry.azurecr.io/servicecontrol-ravendb:$($tag)-$($dbArch) ghcr.io/particular/servicecontrol-ravendb:$($sourceTag)-$($dbArch)
+            }
+          }
