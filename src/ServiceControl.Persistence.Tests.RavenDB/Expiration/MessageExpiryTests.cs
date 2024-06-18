@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.UnitTests.Expiration
+﻿namespace ServiceControl.Persistence.Tests.RavenDB.Expiration
 {
     using System;
     using System.Collections.Generic;
@@ -16,7 +16,7 @@
     using ServiceControl.Persistence.Tests.RavenDB;
 
     [TestFixture]
-    public class MessageExpiryTests : PersistenceTestBase
+    public class MessageExpiryTests : RavenPersistenceTestBase
     {
         [SetUp]
         public async Task Setup()

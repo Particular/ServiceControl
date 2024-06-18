@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.UnitTests.BodyStorage
+﻿namespace ServiceControl.Persistence.Tests.BodyStorage
 {
     using System;
     using System.Collections.Generic;
@@ -13,7 +13,7 @@
     using ServiceControl.Persistence.UnitOfWork;
 
     [TestFixture]
-    sealed class RavenAttachmentsBodyStorageTests : PersistenceTestBase
+    sealed class AttachmentsBodyStorageTests : PersistenceTestBase
     {
         [Test]
         public async Task QueryByUniqueId()

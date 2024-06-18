@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.UnitTests.Archiving
+﻿namespace ServiceControl.Persistence.Tests.RavenDB.Unarchiving
 {
     using System;
     using System.Threading.Tasks;
@@ -8,7 +8,7 @@
     using ServiceControl.Recoverability;
 
     [TestFixture]
-    class ArchiveGroupTests : PersistenceTestBase
+    class ArchiveGroupTests : RavenPersistenceTestBase
     {
         public ArchiveGroupTests() =>
             RegisterServices = services =>
@@ -101,11 +101,7 @@
 
             // Act
             // Assert
-            Assert.DoesNotThrowAsync(async () =>
-            {
-                // Act
-                await handler.Handle(message, context);
-            });
+            Assert.DoesNotThrowAsync(async () => await handler.Handle(message, context));
         }
     }
 }
