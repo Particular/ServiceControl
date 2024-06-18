@@ -20,7 +20,7 @@ jobs:
           org-name: particular
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
-          dry-run: true
+          dry-run: false
       - name: Audit PRs
         uses: snok/container-retention-policy@v2.2.1
         with:
@@ -33,7 +33,7 @@ jobs:
           org-name: particular
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
-          dry-run: true
+          dry-run: false
       - name: Monitoring PRs
         uses: snok/container-retention-policy@v2.2.1
         with:
@@ -46,6 +46,6 @@ jobs:
           org-name: particular
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
-          dry-run: true
+          dry-run: false
           
     
