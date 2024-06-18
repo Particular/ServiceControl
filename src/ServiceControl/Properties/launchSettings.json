@@ -1,15 +1,8 @@
 {
   "profiles": {
-    "Run ServiceControl": {
+    "ServiceControl": {
       "commandName": "Project",
-      "commandLineArgs": "",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
-    "Setup ServiceControl without queues": {
-      "commandName": "Project",
-      "commandLineArgs": "--setup --serviceName=ServiceControl.Dev --skip-queue-creation",
+      "launchBrowser": false,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

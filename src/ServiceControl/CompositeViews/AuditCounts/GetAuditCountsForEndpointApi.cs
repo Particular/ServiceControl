@@ -9,7 +9,6 @@
     using Persistence;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Api.Contracts;
 
     // The endpoint is included for consistency reasons but is actually not required here because the query
     // is forwarded to the remote instance. But this at least enforces us to declare the controller action
