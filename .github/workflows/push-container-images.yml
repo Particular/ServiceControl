@@ -37,10 +37,18 @@ jobs:
           {
             foreach($name in $containers)
             {
-              Write-Output "docker buildx imagetools create --tag pswtestregistry.azurecr.io/$($name):$($tag) ghcr.io/particular/$($name):$($sourceTag)"
+              Write-Output "::group::Pushing $($name):$($tag)"
+              $cmd = "docker buildx imagetools create --tag pswtestregistry.azurecr.io/$($name):$($tag) ghcr.io/particular/$($name):$($sourceTag)"
+              Write-Output "Command: $cmd"
+              Invoke-Expression $cmd
+              Write-Output "::endgroup::"
             }
             foreach ($dbArch in $dbArchTags)
             {
-              docker buildx imagetools create --tag pswtestregistry.azurecr.io/servicecontrol-ravendb:$($tag)-$($dbArch) ghcr.io/particular/servicecontrol-ravendb:$($sourceTag)-$($dbArch)
+              Write-Output "::group::Pushing servicecontrol-ravendb:$($tag)-$($dbArch)"
+              $cmd = "docker buildx imagetools create --tag pswtestregistry.azurecr.io/servicecontrol-ravendb:$($tag)-$($dbArch) ghcr.io/particular/servicecontrol-ravendb:$($sourceTag)-$($dbArch)"
+              Write-Output "Command: $cmd"
+              Invoke-Expression $cmd
+              Write-Output "::endgroup::"
             }
           }
