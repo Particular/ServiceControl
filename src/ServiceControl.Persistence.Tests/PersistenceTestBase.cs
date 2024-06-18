@@ -7,14 +7,12 @@ using Microsoft.Extensions.Hosting;
 using NServiceBus;
 using NServiceBus.Settings;
 using NUnit.Framework;
-using Particular.ThroughputCollector.Persistence;
 using ServiceControl.Infrastructure.DomainEvents;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.Recoverability;
 using ServiceControl.Persistence.UnitOfWork;
-using ServiceControl.RavenDB;
 
 //[Parallelizable(ParallelScope.All)]
 [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
@@ -100,5 +98,4 @@ public abstract class PersistenceTestBase
     protected IIngestionUnitOfWorkFactory IngestionUnitOfWorkFactory => ServiceProvider.GetRequiredService<IIngestionUnitOfWorkFactory>();
     protected IEventLogDataStore EventLogDataStore => ServiceProvider.GetRequiredService<IEventLogDataStore>();
     protected IRetryDocumentDataStore RetryDocumentDataStore => ServiceProvider.GetRequiredService<IRetryDocumentDataStore>();
-    protected IThroughputDataStore ThroughputDataStore => ServiceProvider.GetRequiredService<IThroughputDataStore>();
 }

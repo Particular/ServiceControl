@@ -10,6 +10,7 @@ using NUnit.Framework;
 using Raven.Client.Documents;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.RavenDB;
+using ServiceControl.RavenDB;
 
 public class PersistenceTestsContext : IPersistenceTestsContext
 {
@@ -31,8 +32,7 @@ public class PersistenceTestsContext : IPersistenceTestsContext
             ErrorRetentionPeriod = retentionPeriod,
             EventsRetentionPeriod = retentionPeriod,
             DatabaseName = databaseName,
-            ConnectionString = embeddedServer.ServerUrl,
-            ThroughputDatabaseName = $"throughput-persistence-tests-{DateTime.Now:yyMMdd-HHmmss}",
+            ConnectionString = embeddedServer.ServerUrl
         };
 
         var persistence = new RavenPersistenceConfiguration().Create(PersistenceSettings);
@@ -41,14 +41,12 @@ public class PersistenceTestsContext : IPersistenceTestsContext
         persistence.AddInstaller(hostBuilder.Services);
     }
 
-    public Task PostSetup(IHost host)
+    public async Task PostSetup(IHost host)
     {
-        DocumentStore = host.Services.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore();
+        DocumentStore = await host.Services.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore();
         SessionProvider = host.Services.GetRequiredService<IRavenSessionProvider>();
 
         CompleteDatabaseOperation();
-
-        return Task.CompletedTask;
     }
 
     public async Task TearDown() => await embeddedServer.DeleteDatabase(databaseName);
