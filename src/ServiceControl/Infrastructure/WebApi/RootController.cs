@@ -13,12 +13,12 @@
     {
         [Route("")]
         [HttpGet]
-        public RootUrls Urls() => configurationApi.GetUrls(Request.GetDisplayUrl() + "/", default).Result;
+        public Task<RootUrls> Urls() => configurationApi.GetUrls(Request.GetDisplayUrl() + "/", default);
 
         [Route("instance-info")]
         [Route("configuration")]
         [HttpGet]
-        public object Config() => configurationApi.GetConfig(default).Result;
+        public Task<object> Config() => configurationApi.GetConfig(default);
 
         [Route("configuration/remotes")]
         [HttpGet]
