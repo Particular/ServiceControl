@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Api.Contracts;
     using Messages;
     using Persistence;
     using Persistence.Infrastructure;

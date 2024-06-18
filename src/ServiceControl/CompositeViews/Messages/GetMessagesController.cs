@@ -4,6 +4,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Api.Contracts;
     using Infrastructure.WebApi;
     using MessageCounting;
     using Microsoft.AspNetCore.Http;
