@@ -86,11 +86,6 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
 
     void ConfigureLifecycle(IServiceCollection services)
     {
-        ConfigureLifecycle(services);
-    }
-
-    void ConfigureLifecycle(IServiceCollection services)
-    {
         services.AddSingleton<PersistenceSettings>(settings);
         services.AddSingleton(settings);
 
