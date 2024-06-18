@@ -178,7 +178,7 @@ jobs:
         env:
           TAG_NAME: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
         run: |
-          docker buildx build --push --tag ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }} --file src/${{ matrix.project }}/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --platform linux/arm64,linux/arm,linux/amd64 .
+          docker buildx build --push --tag ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }} --file src/${{ matrix.project }}/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --platform linux/arm64,linux/arm,linux/amd64 --annotation="org.opencontainers.image.source=https://github.com/Particular/ServiceControl" .
           docker buildx imagetools inspect ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }}
   db-containers:
     if: ${{ github.actor != 'dependabot[bot]' }}
