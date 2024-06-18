@@ -19,6 +19,7 @@ static class WebApplicationBuilderExtensions
 
         // This facilitates receiving the test server anywhere where DI is available
         hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());
+
         // For acceptance testing purposes we are adding more controllers to the host
         var addControllers = hostBuilder.Services.AddControllers();
         addControllers.AddApplicationPart(typeof(AcceptanceTest).Assembly);
