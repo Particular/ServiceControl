@@ -1,0 +1,30 @@
+name: Cleanup GitHub Container Registry
+on:
+  #schedule:
+  #  - cron: "0 0 * * *" # Midnight UTC daily
+  pull_request:
+jobs:
+  clean:
+    name: Delete unused containers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete PR containers
+        id: prs
+        uses: snok/container-retention-policy@v2.2.1
+        with:
+          image-names: servicecontrol
+          filter-tags: pr-*
+          filter-include-untagged: true
+          cut-off: A week ago UTC
+          timestamp-to-use: updated_at
+          account-type: org
+          org-name: particular
+          token: ${{ secrets.GITHUB_TOKEN }}
+          token-type: github-token
+          dry-run: true
+      - name: Outputs
+        run: |
+          echo "Deleted: ${{ steps.prs.outputs.deleted }}"
+          echo "Failed: ${{ steps.prs.outputs.failed }}"
+          
+    
