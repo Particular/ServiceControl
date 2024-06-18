@@ -42,11 +42,6 @@
 
             await host.StartAsync();
 
-            foreach (var installationTask in componentSetupContext.InstallationTasks)
-            {
-                await installationTask(host.Services);
-            }
-
             if (settings.SkipQueueCreation)
             {
                 Logger.Info("Skipping queue creation");
