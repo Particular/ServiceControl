@@ -45,8 +45,8 @@
                 //make sure that the database is up
                 using var documentStore = await embeddedDatabase.Connect(cancellationToken);
 
-                var databaseSetup = new DatabaseSetup(settings);
-                await databaseSetup.Execute(documentStore, cancellationToken);
+                var databaseSetup = new DatabaseSetup(settings, documentStore);
+                await databaseSetup.Execute(cancellationToken);
 
                 var cleanupDatabases = new DirectoryInfo(dbPath)
                     .GetDirectories()

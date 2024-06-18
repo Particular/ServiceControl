@@ -51,8 +51,8 @@ namespace ServiceControl.Persistence.RavenDB
                     {
                         documentStore = await database.Connect(cancellationToken);
 
-                        var databaseSetup = new DatabaseSetup(databaseConfiguration);
-                        await databaseSetup.Execute(documentStore, cancellationToken);
+                        var databaseSetup = new DatabaseSetup(databaseConfiguration, documentStore);
+                        await databaseSetup.Execute(cancellationToken);
 
                         return;
                     }
