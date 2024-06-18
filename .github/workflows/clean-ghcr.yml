@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: ServiceControl images
-        id: primary
         uses: snok/container-retention-policy@v2.2.1
         with:
           image-names: servicecontrol
@@ -22,8 +21,19 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
           dry-run: false
+      - name: Test untagged
+        uses: snok/container-retention-policy@v2.2.1
+        with:
+          image-names: servicecontrol
+          untagged-only: true
+          cut-off: 3 days ago UTC
+          timestamp-to-use: updated_at
+          account-type: org
+          org-name: particular
+          token: ${{ secrets.GITHUB_TOKEN }}
+          token-type: github-token
+          dry-run: false
       - name: Audit images
-        id: audit
         uses: snok/container-retention-policy@v2.2.1
         with:
           image-names: servicecontrol-audit
@@ -37,7 +47,6 @@ jobs:
           token-type: github-token
           dry-run: false
       - name: Monitoring images
-        id: monitoring
         uses: snok/container-retention-policy@v2.2.1
         with:
           image-names: servicecontrol-monitoring
@@ -51,7 +60,6 @@ jobs:
           token-type: github-token
           dry-run: false
       - name: RavenDB images
-        id: raven
         uses: snok/container-retention-policy@v2.2.1
         with:
           image-names: servicecontrol-ravendb
@@ -64,18 +72,3 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
           dry-run: false
-      - name: Results
-        run: |
-          echo "Removed images:"
-          echo "  - servicecontrol: ${{ steps.primary.outputs.deleted }}"
-          echo "  - servicecontrol-audit: ${{ steps.audit.outputs.deleted }}"
-          echo "  - servicecontrol-monitoring: ${{ steps.monitoring.outputs.deleted }}"
-          echo "  - servicecontrol-ravendb: ${{ steps.raven.outputs.deleted }}"
-          echo ""
-          echo "Failures:"
-          echo "  - servicecontrol: ${{ steps.primary.outputs.failed }}"
-          echo "  - servicecontrol-audit: ${{ steps.audit.outputs.failed }}"
-          echo "  - servicecontrol-monitoring: ${{ steps.monitoring.outputs.failed }}"
-          echo "  - servicecontrol-ravendb: ${{ steps.raven.outputs.failed }}"
-          
-    
