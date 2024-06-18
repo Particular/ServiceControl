@@ -26,9 +26,26 @@
         public string[] Aliases { get; set; } = [];
 
         internal bool IsMatch(string persistenceType) =>
-            string.Equals(TypeName, persistenceType, StringComparison.Ordinal) // Type names are case-sensitive
-            || string.Equals(Name, persistenceType, StringComparison.OrdinalIgnoreCase)
-            || Aliases.Contains(persistenceType, StringComparer.Ordinal);
+            string.Equals(Name, persistenceType, StringComparison.OrdinalIgnoreCase)
+            || Aliases.Contains(persistenceType, StringComparer.Ordinal)
+            || IsTypeMatch(persistenceType);
+
+        bool IsTypeMatch(string persistenceType)
+        {
+            if (string.Equals(TypeName, persistenceType, StringComparison.Ordinal)) // Type names are case-sensitive
+            {
+                return true;
+            }
+
+            var type = Type.GetType(persistenceType);
+            if (type == null)
+            {
+                return false;
+            }
+
+            string partiallyQualifiedName = $"{type.FullName}, {type.Assembly.GetName().Name}";
+            return string.Equals(TypeName, partiallyQualifiedName, StringComparison.Ordinal);
+        }
     }
 
     public static class PersistenceManifestLibrary
