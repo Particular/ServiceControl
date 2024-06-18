@@ -8,8 +8,8 @@
     using System.Threading;
     using System.Threading.Tasks;
     using HdrHistogram;
-    using Http.Diagrams;
     using Infrastructure;
+    using Infrastructure.Api;
     using Messaging;
     using NUnit.Framework;
     using QueueLength;
@@ -42,11 +42,11 @@
                 queueLengthStore
             };
 
-            var controller = new DiagramApiController(breakdownProviders, endpointRegistry, activityTracker,
+            var endpointMetricsApi = new EndpointMetricsApi(breakdownProviders, endpointRegistry, activityTracker,
                 messageTypeRegistry);
 
-            GetMonitoredEndpoints = () => controller.GetAllEndpointsMetrics();
-            GetMonitoredSingleEndpoint = endpointName => controller.GetSingleEndpointMetrics(endpointName);
+            GetMonitoredEndpoints = () => endpointMetricsApi.GetAllEndpointsMetrics();
+            GetMonitoredSingleEndpoint = endpointName => endpointMetricsApi.GetSingleEndpointMetrics(endpointName);
         }
 
         EndpointInputQueue ToEndpointInputQueue(EndpointToQueueMapping dto)
