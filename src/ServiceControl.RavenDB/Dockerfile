@@ -4,7 +4,9 @@ FROM ravendb/ravendb:$BASETAG AS ravendb
 
 COPY src/ServiceControl.RavenDB/RavenLicense.json /opt/RavenDB/servicecontrol-license.json
 
-ENV RAVEN_ARGS='--License.Eula.Accepted=true --License.Path=/opt/RavenDB/servicecontrol-license.json'
+ENV RAVEN_License_Eula_Accepted=true \
+    RAVEN_License_Path=/opt/RavenDB/servicecontrol-license.json \
+    RAVEN_Setup_Mode=None
 
 LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceControl \
       org.opencontainers.image.authors="Particular Software" \
