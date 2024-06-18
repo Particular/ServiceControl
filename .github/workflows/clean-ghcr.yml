@@ -1,8 +1,8 @@
 name: Cleanup GitHub Container Registry
 on:
-  #schedule:
-  #  - cron: "0 0 * * *" # Midnight UTC daily
-  pull_request:
+  schedule:
+    - cron: "0 0 * * *" # Midnight UTC daily
+  workflow_dispatch:
 jobs:
   clean:
     name: Delete unused containers
