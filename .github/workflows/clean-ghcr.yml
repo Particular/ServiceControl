@@ -8,11 +8,10 @@ jobs:
     name: Delete unused containers
     runs-on: ubuntu-latest
     steps:
-      - name: Delete PR containers
-        id: prs
+      - name: ServiceControl PRs
         uses: snok/container-retention-policy@v2.2.1
         with:
-          image-names: servicecontrol
+          image-names: servicecontrol*
           filter-tags: pr-*
           filter-include-untagged: true
           cut-off: A week ago UTC
@@ -22,9 +21,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
           dry-run: true
-      - name: Outputs
-        run: |
-          echo "Deleted: ${{ steps.prs.outputs.deleted }}"
-          echo "Failed: ${{ steps.prs.outputs.failed }}"
           
     
