@@ -2,11 +2,12 @@
 {
     using System.Linq;
     using System.Reflection;
+    using CompositeViews.Messages;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
-    using ServiceControl.CompositeViews.Messages;
+    using Particular.ServiceControl;
 
     static class HostApplicationBuilderExtensions
     {
@@ -15,6 +16,8 @@
             // This registers concrete classes that implement IApi. Currently it is hard to find out to what
             // component those APIs should belong to so we leave it here for now.
             builder.Services.RegisterApiTypes(Assembly.GetExecutingAssembly());
+
+            builder.AddServiceControlApis();
 
             builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
 

@@ -5,6 +5,8 @@
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using System.Threading.Tasks;
+    using Api.Contracts;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Controllers;
@@ -15,29 +17,31 @@
     using Particular.Approvals;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.Api;
     using ServiceControl.Infrastructure.WebApi;
 
     [TestFixture]
     class APIApprovals
     {
         [Test]
-        public void RootPathValue()
+        public async Task RootPathValue()
         {
             var httpContext = new DefaultHttpContext { Request = { Scheme = "http", Host = new HostString("localhost") } };
             var actionContext = new ActionContext { HttpContext = httpContext, RouteData = new RouteData(), ActionDescriptor = new ControllerActionDescriptor() };
             var controllerContext = new ControllerContext(actionContext);
 
-            var controller = new RootController(
-                new ActiveLicense { IsValid = true },
-                new Settings(),
-                httpClientFactory: null
+            var controller = new RootController(new ConfigurationApi(
+                    new ActiveLicense { IsValid = true },
+                    new Settings(),
+                    null
                 )
+            )
             {
                 ControllerContext = controllerContext,
                 Url = new UrlHelper(actionContext)
             };
 
-            var result = controller.Urls();
+            RootUrls result = await controller.Urls();
 
             Approver.Verify(result);
         }
