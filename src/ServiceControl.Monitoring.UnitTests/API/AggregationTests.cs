@@ -2,12 +2,12 @@ namespace ServiceControl.Monitoring.UnitTests.API
 {
     using System;
     using System.Linq;
+    using Http.Diagrams;
     using Messaging;
     using Monitoring.Infrastructure;
     using Monitoring.Infrastructure.Api;
     using NUnit.Framework;
     using QueueLength;
-    using ServiceControl.Monitoring.Infrastructure.Api;
     using Timings;
 
     [TestFixture]
