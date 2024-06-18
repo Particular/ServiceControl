@@ -11,7 +11,33 @@ jobs:
       - name: ServiceControl PRs
         uses: snok/container-retention-policy@v2.2.1
         with:
-          image-names: servicecontrol*
+          image-names: servicecontrol
+          filter-tags: pr-*
+          filter-include-untagged: true
+          cut-off: A week ago UTC
+          timestamp-to-use: updated_at
+          account-type: org
+          org-name: particular
+          token: ${{ secrets.GITHUB_TOKEN }}
+          token-type: github-token
+          dry-run: true
+      - name: Audit PRs
+        uses: snok/container-retention-policy@v2.2.1
+        with:
+          image-names: servicecontrol-audit
+          filter-tags: pr-*
+          filter-include-untagged: true
+          cut-off: A week ago UTC
+          timestamp-to-use: updated_at
+          account-type: org
+          org-name: particular
+          token: ${{ secrets.GITHUB_TOKEN }}
+          token-type: github-token
+          dry-run: true
+      - name: Monitoring PRs
+        uses: snok/container-retention-policy@v2.2.1
+        with:
+          image-names: servicecontrol-monitoring
           filter-tags: pr-*
           filter-include-untagged: true
           cut-off: A week ago UTC
