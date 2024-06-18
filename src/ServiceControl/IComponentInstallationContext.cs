@@ -6,6 +6,6 @@ namespace Particular.ServiceControl
     interface IComponentInstallationContext
     {
         void CreateQueue(string queueName);
-        void RegisterInstallationTask(Func<Task> setupTask);
+        void RegisterInstallationTask(Func<IServiceProvider, Task> setupTask);
     }
 }

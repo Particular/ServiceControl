@@ -23,21 +23,28 @@
                 return;
             }
 
+            var hostBuilder = Host.CreateApplicationBuilder();
+            hostBuilder.AddServiceControlInstallers(settings);
+
             var componentSetupContext = new ComponentInstallationContext();
 
             foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
             {
-                component.Setup(settings, componentSetupContext);
+                component.Setup(settings, componentSetupContext, hostBuilder);
             }
 
-            foreach (var installationTask in componentSetupContext.InstallationTasks)
-            {
-                await installationTask();
-            }
+            using IHost host = hostBuilder.Build();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 EventSourceCreator.Create();
+            }
+
+            await host.StartAsync();
+
+            foreach (var installationTask in componentSetupContext.InstallationTasks)
+            {
+                await installationTask(host.Services);
             }
 
             if (settings.SkipQueueCreation)
@@ -53,15 +60,10 @@
                     componentSetupContext.Queues);
             }
 
-            var hostBuilder = Host.CreateApplicationBuilder();
-            hostBuilder.AddServiceControlInstallers(settings);
-
-            using var host = hostBuilder.Build();
-            await host.StartAsync();
             await host.StopAsync();
         }
 
-        bool ValidateLicense(Settings settings)
+        static bool ValidateLicense(Settings settings)
         {
             if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
             {
