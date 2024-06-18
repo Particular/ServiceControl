@@ -8,11 +8,11 @@ jobs:
     name: Delete unused containers
     runs-on: ubuntu-latest
     steps:
-      - name: ServiceControl PRs
+      - name: ServiceControl images
         uses: snok/container-retention-policy@v2.2.1
         with:
           image-names: servicecontrol
-          filter-tags: pr-*
+          filter-tags: pr-*, *-alpha.*
           filter-include-untagged: true
           cut-off: A week ago UTC
           timestamp-to-use: updated_at
@@ -21,11 +21,11 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
           dry-run: false
-      - name: Audit PRs
+      - name: Audit images
         uses: snok/container-retention-policy@v2.2.1
         with:
           image-names: servicecontrol-audit
-          filter-tags: pr-*
+          filter-tags: pr-*, *-alpha.*
           filter-include-untagged: true
           cut-off: A week ago UTC
           timestamp-to-use: updated_at
@@ -34,11 +34,24 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
           dry-run: false
-      - name: Monitoring PRs
+      - name: Monitoring images
         uses: snok/container-retention-policy@v2.2.1
         with:
           image-names: servicecontrol-monitoring
-          filter-tags: pr-*
+          filter-tags: pr-*, *-alpha.*
+          filter-include-untagged: true
+          cut-off: A week ago UTC
+          timestamp-to-use: updated_at
+          account-type: org
+          org-name: particular
+          token: ${{ secrets.GITHUB_TOKEN }}
+          token-type: github-token
+          dry-run: false
+      - name: RavenDB images
+        uses: snok/container-retention-policy@v2.2.1
+        with:
+          image-names: servicecontrol-monitoring
+          filter-tags: pr-*, *-alpha.*
           filter-include-untagged: true
           cut-off: A week ago UTC
           timestamp-to-use: updated_at
