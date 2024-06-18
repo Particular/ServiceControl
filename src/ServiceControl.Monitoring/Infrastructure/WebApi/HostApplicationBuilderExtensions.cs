@@ -4,7 +4,6 @@ using System.Reflection;
 using Api;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ServiceControl.Monitoring.Infrastructure.Api;
 
 public static class HostApplicationBuilderExtensions
 {
