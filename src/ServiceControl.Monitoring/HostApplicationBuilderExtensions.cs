@@ -99,8 +99,7 @@ public static class HostApplicationBuilderExtensions
             var routing = new RoutingSettings(config.GetSettings());
             routing.RouteToEndpoint(typeof(RecordEndpointThroughputData), serviceControlThroughputDataQueue);
 
-            services.AddSingleton<ReportThroughputFeatureStartup>();
-            config.EnableFeature<ReportThroughputFeature>();
+            services.AddHostedService<ReportThroughputHostedService>();
         }
 
 
