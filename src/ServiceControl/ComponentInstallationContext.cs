@@ -2,9 +2,9 @@ namespace Particular.ServiceControl
 {
     using System.Collections.Generic;
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+    class ComponentInstallationContext : IComponentInstallationContext
+    {
+        public List<string> Queues { get; } = [];
 
         public void CreateQueue(string queueName) => Queues.Add(queueName);
     }

@@ -1,9 +1,4 @@
-namespace Particular.ServiceControl;
-
-using System;
-using System.Threading.Tasks;
-
-interface IComponentInstallationContext
+namespace Particular.ServiceControl
 {
     interface IComponentInstallationContext
     {

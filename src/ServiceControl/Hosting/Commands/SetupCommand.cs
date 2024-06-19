@@ -37,7 +37,7 @@ namespace ServiceControl.Hosting.Commands
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                await installationTask(host.Services);
+                EventSourceCreator.Create();
             }
 
             await host.StartAsync();
