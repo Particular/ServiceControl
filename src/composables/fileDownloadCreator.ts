@@ -1,15 +1,25 @@
-﻿export function useDownloadFile(text: string, fileType: string, fileName: string) {
-  const blob = new Blob([text], { type: fileType });
+﻿export function useDownloadFileFromString(text: string, fileType: string, fileName: string) {
+  const fileBlob = new Blob([text], { type: fileType });
+  const url = URL.createObjectURL(fileBlob);
+  downloadFile(url, fileType, fileName);
+}
 
-  const a = document.createElement("a");
-  a.download = fileName;
-  a.href = URL.createObjectURL(blob);
-  a.dataset.downloadurl = [fileType, a.download, a.href].join(":");
-  a.style.display = "none";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+export async function useDownloadFileFromResponse(response: Response, fileType: string, fileName: string) {
+  const fileBlob = await response.blob();
+  const url = window.URL.createObjectURL(new Blob([fileBlob], { type: fileType }));
+  downloadFile(url, fileType, fileName);
+}
+
+function downloadFile(url: string, fileType: string, fileName: string) {
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", fileName);
+  link.dataset.downloadurl = [fileType, link.download, link.href].join(":");
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
   setTimeout(() => {
-    URL.revokeObjectURL(a.href);
+    URL.revokeObjectURL(link.href);
   }, 1500);
 }
