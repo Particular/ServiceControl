@@ -10,45 +10,35 @@
     using NServiceBus.Logging;
     using ServiceControl.Transports.Learning;
 
-    class QueueLengthProvider : IProvideQueueLength
+    class QueueLengthProvider : AbstractQueueLengthProvider
     {
-        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
-        {
-            rootFolder = LearningTransportCustomization.FindStoragePath(connectionString);
-            this.store = store;
-        }
+        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
+            : base(settings, store) =>
+            rootFolder = LearningTransportCustomization.FindStoragePath(ConnectionString);
 
-        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
-        {
-            endpointsHash.AddOrUpdate(queueToTrack, queueToTrack, (_, __) => queueToTrack);
-        }
+        public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
+            => endpointsHash.AddOrUpdate(queueToTrack, queueToTrack, (_, __) => queueToTrack);
 
-        public Task Start()
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            cancel = new CancellationTokenSource();
-            task = Task.Run(async () =>
+            while (!stoppingToken.IsCancellationRequested)
             {
-                while (!cancel.IsCancellationRequested)
+                try
                 {
-                    try
-                    {
-                        var queueLengths = GetQueueLengths();
-                        UpdateStore(queueLengths);
+                    var queueLengths = GetQueueLengths();
+                    UpdateStore(queueLengths);
 
-                        await Task.Delay(QueryDelayInterval, cancel.Token);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        // It's OK. We're shutting down
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Warn("Problem getting learning transport queue length", ex);
-                    }
+                    await Task.Delay(QueryDelayInterval, stoppingToken);
                 }
-            });
-
-            return Task.CompletedTask;
+                catch (OperationCanceledException)
+                {
+                    // It's OK. We're shutting down
+                }
+                catch (Exception ex)
+                {
+                    Log.Warn("Problem getting learning transport queue length", ex);
+                }
+            }
         }
 
         void UpdateStore(ILookup<string, long?> queueLengths)
@@ -60,14 +50,13 @@
                 var queueLength = queueLengths[instance.InputQueue].FirstOrDefault();
                 if (queueLength.HasValue)
                 {
-                    store(new[]
-                    {
+                    Store([
                         new QueueLengthEntry
                         {
                             DateTicks = now,
                             Value = queueLength.Value
                         }
-                    }, instance);
+                    ], instance);
                 }
                 else
                 {
@@ -94,19 +83,11 @@
             return result.ToLookup(x => x.Key, x => (long?)x.Value);
         }
 
-        public Task Stop()
-        {
-            cancel?.Cancel(false);
-            return task;
-        }
+        readonly string rootFolder;
+        readonly ConcurrentDictionary<EndpointToQueueMapping, EndpointToQueueMapping> endpointsHash = new ConcurrentDictionary<EndpointToQueueMapping, EndpointToQueueMapping>();
 
-        string rootFolder;
-        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
-        ConcurrentDictionary<EndpointToQueueMapping, EndpointToQueueMapping> endpointsHash = new ConcurrentDictionary<EndpointToQueueMapping, EndpointToQueueMapping>();
-        CancellationTokenSource cancel;
-        Task task;
+        static readonly TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
+        static readonly ILog Log = LogManager.GetLogger<QueueLengthProvider>();
 
-        static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
-        static ILog Log = LogManager.GetLogger<QueueLengthProvider>();
     }
 }

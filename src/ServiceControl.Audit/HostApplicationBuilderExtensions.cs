@@ -38,18 +38,16 @@ static class HostApplicationBuilderExtensions
             configuration.License(settings.LicenseFileText);
         }
 
-        var transportSettings = MapSettings(settings);
-        var transportCustomization = settings.LoadTransportCustomization();
-
         builder.Logging.ClearProviders();
         builder.Logging.AddNLog();
         builder.Logging.SetMinimumLevel(settings.LoggingSettings.ToHostLogLevel());
 
         var services = builder.Services;
+        var transportSettings = settings.ToTransportSettings();
+        var transportCustomization = TransportFactory.Create(transportSettings);
+        transportCustomization.AddTransportForAudit(services, transportSettings);
 
         services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
-        services.AddSingleton(transportSettings);
-        services.AddSingleton(transportCustomization);
 
         services.AddSingleton(settings);
         services.AddSingleton<EndpointInstanceMonitoring>();
@@ -89,17 +87,6 @@ static class HostApplicationBuilderExtensions
         var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings);
         var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
         builder.Services.AddInstaller(persistenceSettings, persistenceConfiguration);
-    }
-
-    static TransportSettings MapSettings(Settings settings)
-    {
-        var transportSettings = new TransportSettings
-        {
-            EndpointName = settings.ServiceName,
-            ConnectionString = settings.TransportConnectionString,
-            MaxConcurrency = settings.MaximumConcurrencyLevel
-        };
-        return transportSettings;
     }
 
     static void RecordStartup(Settings settings, EndpointConfiguration endpointConfiguration, IPersistenceConfiguration persistenceConfiguration)

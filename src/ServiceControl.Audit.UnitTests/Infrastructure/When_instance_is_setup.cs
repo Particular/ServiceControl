@@ -8,6 +8,7 @@
     using Audit.Infrastructure.Hosting;
     using Audit.Infrastructure.Hosting.Commands;
     using Audit.Infrastructure.Settings;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Transport;
     using NUnit.Framework;
@@ -59,13 +60,17 @@
         public void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration,
             TransportSettings transportSettings) => throw new NotImplementedException();
 
+        public void AddTransportForPrimary(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
+
         public void CustomizeAuditEndpoint(EndpointConfiguration endpointConfiguration,
             TransportSettings transportSettings) => throw new NotImplementedException();
+
+        public void AddTransportForAudit(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
 
         public void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration,
             TransportSettings transportSettings) => throw new NotImplementedException();
 
-        public IProvideQueueLength CreateQueueLengthProvider() => throw new NotImplementedException();
+        public void AddTransportForMonitoring(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
 
         public Task ProvisionQueues(TransportSettings transportSettings,
             IEnumerable<string> additionalQueues)
