@@ -112,3 +112,4 @@ jobs:
           ServiceControl_LicenseText: ${{ secrets.LICENSETEXT }}
           ServiceControl_Audit_LicenseText: ${{ secrets.LICENSETEXT }}
           Monitoring_LicenseText: ${{ secrets.LICENSETEXT }}
+          AZURE_ACI_CREDENTIALS: ${{ secrets.AZURE_ACI_CREDENTIALS }}

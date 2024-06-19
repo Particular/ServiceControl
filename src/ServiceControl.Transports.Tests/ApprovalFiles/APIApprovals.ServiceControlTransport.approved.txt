@@ -33,11 +33,23 @@ namespace ServiceControl.Transports
         void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         System.Threading.Tasks.Task ProvisionQueues(ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues);
     }
+    public readonly struct KeyDescriptionPair
+    {
+        public KeyDescriptionPair(string key, string description) { }
+        public string Description { get; }
+        public string Key { get; }
+    }
     public class QueueLengthEntry
     {
         public QueueLengthEntry() { }
         public long DateTicks { get; set; }
         public long Value { get; set; }
+    }
+    public class QueueThroughput
+    {
+        public QueueThroughput() { }
+        public System.DateOnly DateUTC { get; set; }
+        public long TotalThroughput { get; set; }
     }
     public abstract class TransportCustomization<TTransport> : ServiceControl.Transports.ITransportCustomization
         where TTransport : NServiceBus.Transport.TransportDefinition

@@ -27,6 +27,7 @@
         protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
         {
             services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
+            services.AddSingleton<IBrokerThroughputQuery, SqlServerQuery>();
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
 

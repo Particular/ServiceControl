@@ -107,7 +107,8 @@
             var nsbVersion = FileVersionInfo.GetVersionInfo(typeof(Endpoint).Assembly.Location);
             var nsbFileVersion = $"{nsbVersion.FileMajorPart}.{nsbVersion.FileMinorPart}.{nsbVersion.FileBuildPart}";
 
-            var rabbitMQVersion = FileVersionInfo.GetVersionInfo(typeof(ConnectionConfiguration).Assembly.Location);
+            var rabbitMQVersion =
+                FileVersionInfo.GetVersionInfo(typeof(ConnectionConfiguration).Assembly.Location);
             var rabbitMQFileVersion = $"{rabbitMQVersion.FileMajorPart}.{rabbitMQVersion.FileMinorPart}.{rabbitMQVersion.FileBuildPart}";
 
             var applicationNameAndPath = Environment.GetCommandLineArgs()[0];

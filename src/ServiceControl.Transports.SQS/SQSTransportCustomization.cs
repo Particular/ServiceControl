@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Transports.SQS
 {
     using System;
-    using System.Data.Common;
     using System.Linq;
     using Amazon;
     using Amazon.Runtime;
@@ -29,26 +28,27 @@
         protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
         {
             services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
+            services.AddSingleton<IBrokerThroughputQuery, AmazonSQSQuery>();
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
 
         protected override SqsTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
-            var builder = new DbConnectionStringBuilder { ConnectionString = transportSettings.ConnectionString };
+            var builder = new SQSTransportConnectionString(transportSettings.ConnectionString);
 
             IAmazonSQS sqsClient;
             IAmazonSimpleNotificationService snsClient;
 
             bool alwaysLoadFromEnvironmentVariable = false;
-            if (builder.ContainsKey("AccessKeyId") || builder.ContainsKey("SecretAccessKey"))
+            if (builder.AccessKey != null || builder.SecretKey != null)
             {
-                PromoteEnvironmentVariableFromConnectionString(builder, "AccessKeyId", "AWS_ACCESS_KEY_ID");
-                PromoteEnvironmentVariableFromConnectionString(builder, "SecretAccessKey", "AWS_SECRET_ACCESS_KEY");
+                PromoteEnvironmentVariableFromConnectionString(builder.AccessKey, "AWS_ACCESS_KEY_ID");
+                PromoteEnvironmentVariableFromConnectionString(builder.SecretKey, "AWS_SECRET_ACCESS_KEY");
 
-                var region = PromoteEnvironmentVariableFromConnectionString(builder, "Region", "AWS_REGION");
+                PromoteEnvironmentVariableFromConnectionString(builder.Region, "AWS_REGION");
                 _ = RegionEndpoint.EnumerableAllRegions
-                        .SingleOrDefault(x => x.SystemName == region) ??
-                    throw new ArgumentException($"Unknown region: \"{region}\"");
+                        .SingleOrDefault(x => x.SystemName == builder.Region) ??
+                    throw new ArgumentException($"Unknown region: \"{builder.Region}\"");
 
                 // if the user provided the access key and secret access key they should always be loaded from environment credentials
                 alwaysLoadFromEnvironmentVariable = true;
@@ -66,72 +66,49 @@
 
             var transport = new SqsTransport(sqsClient, snsClient);
 
-            if (builder.TryGetValue("QueueNamePrefix", out object queueNamePrefix))
+            if (!string.IsNullOrEmpty(builder.QueueNamePrefix))
             {
-                string queueNamePrefixAsString = (string)queueNamePrefix;
-                if (!string.IsNullOrEmpty(queueNamePrefixAsString))
+                transport.QueueNamePrefix = builder.QueueNamePrefix;
+            }
+
+            if (!string.IsNullOrEmpty(builder.TopicNamePrefix))
+            {
+                transport.TopicNamePrefix = builder.TopicNamePrefix;
+            }
+
+            if (!string.IsNullOrEmpty(builder.S3BucketForLargeMessages))
+            {
+                string keyPrefixAsString = string.Empty;
+                if (builder.S3KeyPrefix != null)
                 {
-                    transport.QueueNamePrefix = queueNamePrefixAsString;
+                    keyPrefixAsString = builder.S3KeyPrefix;
                 }
-            }
 
-            if (builder.TryGetValue("TopicNamePrefix", out object topicNamePrefix))
-            {
-                string topicNamePrefixAsString = (string)topicNamePrefix;
-                if (!string.IsNullOrEmpty(topicNamePrefixAsString))
+                IAmazonS3 s3Client;
+                if (alwaysLoadFromEnvironmentVariable)
                 {
-                    transport.TopicNamePrefix = topicNamePrefixAsString;
+                    s3Client = new AmazonS3Client(new EnvironmentVariablesAWSCredentials());
                 }
-            }
-
-            if (builder.TryGetValue("S3BucketForLargeMessages", out object bucketForLargeMessages))
-            {
-                string bucketForLargeMessagesAsString = (string)bucketForLargeMessages;
-                if (!string.IsNullOrEmpty(bucketForLargeMessagesAsString))
+                else
                 {
-                    string keyPrefixAsString = string.Empty;
-                    if (builder.TryGetValue("S3KeyPrefix", out object keyPrefix))
-                    {
-                        keyPrefixAsString = (string)keyPrefix;
-                    }
-
-                    IAmazonS3 s3Client;
-                    if (alwaysLoadFromEnvironmentVariable)
-                    {
-                        s3Client = new AmazonS3Client(new EnvironmentVariablesAWSCredentials());
-                    }
-                    else
-                    {
-                        log.Info("BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials for S3 Client.");
-                        s3Client = new AmazonS3Client();
-                    }
-
-                    transport.S3 = new S3Settings(bucketForLargeMessagesAsString, keyPrefixAsString, s3Client);
+                    log.Info(
+                        "BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials for S3 Client.");
+                    s3Client = new AmazonS3Client();
                 }
+
+                transport.S3 = new S3Settings(builder.S3BucketForLargeMessages, keyPrefixAsString, s3Client);
             }
 
-            if (builder.TryGetValue("DoNotWrapOutgoingMessages", out object doNotWrapOutgoingMessages) &&
-                bool.TryParse(doNotWrapOutgoingMessages.ToString(), out bool doNotWrapOutgoingMessagesAsBool))
-            {
-                transport.DoNotWrapOutgoingMessages = doNotWrapOutgoingMessagesAsBool;
-            }
+            transport.DoNotWrapOutgoingMessages = builder.DoNotWrapOutgoingMessages;
 
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 
             return transport;
         }
 
-        static string PromoteEnvironmentVariableFromConnectionString(DbConnectionStringBuilder builder, string connectionStringKey, string environmentVariableName)
-        {
-            if (builder.TryGetValue(connectionStringKey, out var value))
-            {
-                var valueAsString = (string)value;
-                Environment.SetEnvironmentVariable(environmentVariableName, valueAsString, EnvironmentVariableTarget.Process);
-                return valueAsString;
-            }
-
-            throw new ArgumentException($"Missing value for '{connectionStringKey}'", connectionStringKey);
-        }
+        static void
+            PromoteEnvironmentVariableFromConnectionString(string value, string environmentVariableName) =>
+            Environment.SetEnvironmentVariable(environmentVariableName, value, EnvironmentVariableTarget.Process);
 
         static readonly ILog log = LogManager.GetLogger<SQSTransportCustomization>();
     }
