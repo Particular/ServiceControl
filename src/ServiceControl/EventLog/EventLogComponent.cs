@@ -5,7 +5,6 @@ namespace ServiceControl.EventLog
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure.DomainEvents;
     using Transports;
 
     class EventLogComponent : ServiceControlComponent

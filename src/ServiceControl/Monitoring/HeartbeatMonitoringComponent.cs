@@ -11,7 +11,6 @@ namespace ServiceControl.Monitoring
     using Persistence;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Persistence;
     using Transports;
 
     class HeartbeatMonitoringComponent : ServiceControlComponent
