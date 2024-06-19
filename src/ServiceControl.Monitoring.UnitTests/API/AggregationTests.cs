@@ -1,4 +1,4 @@
-namespace ServiceControl.Monitoring.UnitTests.API
+﻿namespace ServiceControl.Monitoring.UnitTests.API
 {
     using System;
     using System.Linq;

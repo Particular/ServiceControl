@@ -1,4 +1,4 @@
-namespace ServiceControl.Monitoring.Http.Diagrams
+﻿namespace ServiceControl.Monitoring.Http.Diagrams
 {
     using Infrastructure.Api;
     using Microsoft.AspNetCore.Mvc;
