@@ -2,7 +2,7 @@
 namespace ServiceControl.Transports.SqlServer;
 
 using System.Collections.Generic;
-
+using ServiceControl.Transports.BrokerThroughput;
 public class BrokerQueueTable(DatabaseDetails databaseDetails, string tableSchema, string tableName)
     : IBrokerQueue
 {

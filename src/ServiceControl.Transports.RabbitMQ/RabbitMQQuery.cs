@@ -16,6 +16,7 @@ using System.Web;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
+using ServiceControl.Transports.BrokerThroughput;
 
 public class RabbitMQQuery(
     ILogger<RabbitMQQuery> logger,

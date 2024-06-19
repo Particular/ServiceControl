@@ -13,6 +13,7 @@ using NUnit.Framework;
 using Particular.Approvals;
 using Transports;
 using Transports.SqlServer;
+using ServiceControl.Transports.BrokerThroughput;
 
 [TestFixture]
 class SqlServerQueryTests : TransportTestFixture

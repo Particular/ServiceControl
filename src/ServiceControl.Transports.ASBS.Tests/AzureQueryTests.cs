@@ -14,6 +14,7 @@ using NUnit.Framework;
 using Particular.Approvals;
 using Transports;
 using Transports.ASBS;
+using ServiceControl.Transports.BrokerThroughput;
 
 [TestFixture]
 class AzureQueryTests : TransportTestFixture

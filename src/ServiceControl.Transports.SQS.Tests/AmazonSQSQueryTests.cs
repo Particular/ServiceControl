@@ -12,6 +12,7 @@ using NUnit.Framework;
 using Particular.Approvals;
 using Transports;
 using Transports.SQS;
+using ServiceControl.Transports.BrokerThroughput;
 
 [TestFixture]
 class AmazonSQSQueryTests : TransportTestFixture
