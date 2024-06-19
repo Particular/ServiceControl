@@ -154,9 +154,8 @@ describe("FEATURE: Endpoint history periods", () => {
 
         // Simulate the time passing for the last millisecond to make the selected history period time now be elapsed
         await vi.advanceTimersByTimeAsync(1);
-        expect(await endpointSparklineValues("Endpoint1")).toEqual(["12", "9.56", "13.24", "81", "220"]);
-        expect(await endpointSparklineValues("Endpoint1")).toEqual(["12", "9.56", "13.24", "81", "220"]);       
-        
+        expect(await endpointSparklineValues("Endpoint1")).toEqual(["12", "9.56", "13.24", "81", "220"]);        
+                
         vi.useRealTimers();
       });
     });
