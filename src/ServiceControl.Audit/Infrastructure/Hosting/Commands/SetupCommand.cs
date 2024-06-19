@@ -21,9 +21,6 @@
                 return;
             }
 
-            var transportSettings = MapSettings(settings);
-            var transportCustomization = settings.LoadTransportCustomization();
-
             if (settings.IngestAuditMessages)
             {
                 if (settings.SkipQueueCreation)
@@ -38,6 +35,10 @@
                     {
                         additionalQueues.Add(settings.AuditLogQueue);
                     }
+
+                    var transportSettings = settings.ToTransportSettings();
+                    transportSettings.RunCustomChecks = false;
+                    var transportCustomization = TransportFactory.Create(transportSettings);
 
                     await transportCustomization.ProvisionQueues(transportSettings, additionalQueues);
                 }
@@ -83,17 +84,6 @@
             }
 
             return true;
-        }
-
-        static TransportSettings MapSettings(Settings settings)
-        {
-            var transportSettings = new TransportSettings
-            {
-                EndpointName = settings.ServiceName,
-                ConnectionString = settings.TransportConnectionString,
-                MaxConcurrency = settings.MaximumConcurrencyLevel
-            };
-            return transportSettings;
         }
 
         static readonly ILog Logger = LogManager.GetLogger<SetupCommand>();

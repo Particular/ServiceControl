@@ -9,19 +9,16 @@
     using Microsoft.Data.SqlClient;
     using NServiceBus.Logging;
 
-    class QueueLengthProvider : IProvideQueueLength
+    class QueueLengthProvider : AbstractQueueLengthProvider
     {
-        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
+        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store) : base(settings, store)
         {
-            this.connectionString = connectionString
+            connectionString = ConnectionString
                 .RemoveCustomConnectionStringParts(out var customSchema, out _);
 
             defaultSchema = customSchema ?? "dbo";
-
-            this.store = store;
         }
-
-        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
+        public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
             var sqlTable = SqlTable.Parse(queueToTrack.InputQueue, defaultSchema);
 
@@ -38,36 +35,27 @@
             tableSizes.TryAdd(sqlTable, 0);
         }
 
-        public Task Start()
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            stop = new CancellationTokenSource();
-
-            poller = Task.Run(async () =>
+            while (!stoppingToken.IsCancellationRequested)
             {
-                var token = stop.Token;
-
-                while (!token.IsCancellationRequested)
+                try
                 {
-                    try
-                    {
-                        await Task.Delay(QueryDelayInterval, token);
+                    await Task.Delay(QueryDelayInterval, stoppingToken);
 
-                        await QueryTableSizes(token);
+                    await QueryTableSizes(stoppingToken);
 
-                        UpdateQueueLengthStore();
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        // no-op
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Error("Error querying sql queue sizes.", e);
-                    }
+                    UpdateQueueLengthStore();
                 }
-            });
-
-            return Task.CompletedTask;
+                catch (OperationCanceledException)
+                {
+                    // no-op
+                }
+                catch (Exception e)
+                {
+                    Logger.Error("Error querying sql queue sizes.", e);
+                }
+            }
         }
 
         void UpdateQueueLengthStore()
@@ -76,24 +64,16 @@
 
             foreach (var tableNamePair in tableNames)
             {
-                store(
-                    new[]
-                    {
+                Store(
+                    [
                         new QueueLengthEntry
                         {
                             DateTicks = nowTicks,
-                            Value = tableSizes.TryGetValue(tableNamePair.Value, out var size) ? size : 0
+                            Value = tableSizes.GetValueOrDefault(tableNamePair.Value, 0)
                         }
-                    },
+                    ],
                     tableNamePair.Key);
             }
-        }
-
-        public Task Stop()
-        {
-            stop.Cancel();
-
-            return poller;
         }
 
         async Task QueryTableSizes(CancellationToken cancellationToken)
@@ -108,14 +88,12 @@
                 .Select(grp => grp.Select(g => g.i).ToArray())
                 .ToList();
 
-            using (var connection = new SqlConnection(connectionString))
-            {
-                await connection.OpenAsync(cancellationToken);
+            await using var connection = new SqlConnection(connectionString);
+            await connection.OpenAsync(cancellationToken);
 
-                foreach (var chunk in chunks)
-                {
-                    await UpdateChunk(connection, chunk, cancellationToken);
-                }
+            foreach (var chunk in chunks)
+            {
+                await UpdateChunk(connection, chunk, cancellationToken);
             }
         }
 
@@ -123,28 +101,24 @@
         {
             var query = string.Join(Environment.NewLine, chunk.Select(c => BuildQueueLengthQuery(c.Key)).ToArray());
 
-            using (var command = new SqlCommand(query, connection))
+            await using var command = new SqlCommand(query, connection);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            foreach (var chunkPair in chunk)
             {
-                using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+                await reader.ReadAsync(cancellationToken);
+
+                var queueLength = reader.GetInt32(0);
+
+                if (queueLength == -1)
                 {
-                    foreach (var chunkPair in chunk)
-                    {
-                        await reader.ReadAsync(cancellationToken);
-
-                        var queueLength = reader.GetInt32(0);
-
-                        if (queueLength == -1)
-                        {
-                            Logger.Warn($"Table {chunkPair.Key} does not exist.");
-                        }
-                        else
-                        {
-                            tableSizes.TryUpdate(chunkPair.Key, queueLength, chunkPair.Value);
-                        }
-
-                        await reader.NextResultAsync(cancellationToken);
-                    }
+                    Logger.Warn($"Table {chunkPair.Key} does not exist.");
                 }
+                else
+                {
+                    tableSizes.TryUpdate(chunkPair.Key, queueLength, chunkPair.Value);
+                }
+
+                await reader.NextResultAsync(cancellationToken);
             }
         }
 
@@ -170,20 +144,15 @@
                         SELECT -1;";
         }
 
-        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
+        readonly ConcurrentDictionary<EndpointToQueueMapping, SqlTable> tableNames = new ConcurrentDictionary<EndpointToQueueMapping, SqlTable>();
+        readonly ConcurrentDictionary<SqlTable, int> tableSizes = new ConcurrentDictionary<SqlTable, int>();
 
-        ConcurrentDictionary<EndpointToQueueMapping, SqlTable> tableNames = new ConcurrentDictionary<EndpointToQueueMapping, SqlTable>();
-        ConcurrentDictionary<SqlTable, int> tableSizes = new ConcurrentDictionary<SqlTable, int>();
+        readonly string connectionString;
+        readonly string defaultSchema;
 
-        string connectionString;
-        string defaultSchema;
+        static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
 
-        CancellationTokenSource stop = new CancellationTokenSource();
-        Task poller;
-
-        static ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
-
-        static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
+        static readonly TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
 
         const int QueryChunkSize = 10;
     }

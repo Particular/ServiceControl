@@ -9,15 +9,13 @@
     using Azure.Storage.Queues;
     using Azure.Storage.Queues.Models;
 
-    class QueueLengthProvider : IProvideQueueLength
+    class QueueLengthProvider : AbstractQueueLengthProvider
     {
-        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> storeDto)
-        {
-            this.connectionString = connectionString.RemoveCustomConnectionStringParts(out _);
-            store = storeDto;
-        }
+        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
+            : base(settings, store)
+            => connectionString = ConnectionString.RemoveCustomConnectionStringParts(out _);
 
-        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
+        public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
             var queueName = BackwardsCompatibleQueueNameSanitizer.Sanitize(queueToTrack.InputQueue);
             var queueClient = new QueueClient(connectionString, queueName);
@@ -32,42 +30,27 @@
             queueLengths.AddOrUpdate(queueToTrack, _ => emptyQueueLength, (_, existingQueueLength) => existingQueueLength);
         }
 
-        public Task Start()
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            stop = new CancellationTokenSource();
-
-            poller = Task.Run(async () =>
+            while (!stoppingToken.IsCancellationRequested)
             {
-                var token = stop.Token;
-                while (!token.IsCancellationRequested)
+                try
                 {
-                    try
-                    {
-                        await FetchQueueSizes(token);
+                    await FetchQueueSizes(stoppingToken);
 
-                        UpdateQueueLengthStore();
+                    UpdateQueueLengthStore();
 
-                        await Task.Delay(QueryDelayInterval, token);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        // no-op
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Error("Error querying sql queue sizes.", e);
-                    }
+                    await Task.Delay(QueryDelayInterval, stoppingToken);
                 }
-            });
-
-            return Task.CompletedTask;
-        }
-
-        public Task Stop()
-        {
-            stop.Cancel();
-
-            return poller;
+                catch (OperationCanceledException)
+                {
+                    // no-op
+                }
+                catch (Exception e)
+                {
+                    Logger.Error("Error querying sql queue sizes.", e);
+                }
+            }
         }
 
         Task FetchQueueSizes(CancellationToken cancellationToken) => Task.WhenAll(queueLengths.Select(kvp => FetchLength(kvp.Value, cancellationToken)));
@@ -110,21 +93,17 @@
                     Value = endpointQueueLengthPair.Value.Length
                 };
 
-                store(new[] { queueLengthEntry }, endpointQueueLengthPair.Key);
+                Store(new[] { queueLengthEntry }, endpointQueueLengthPair.Key);
             }
         }
 
-        string connectionString;
-        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
+        readonly string connectionString;
 
-        CancellationTokenSource stop = new CancellationTokenSource();
-        Task poller;
+        readonly ConcurrentDictionary<EndpointToQueueMapping, QueueLengthValue> queueLengths = new ConcurrentDictionary<EndpointToQueueMapping, QueueLengthValue>();
+        readonly ConcurrentDictionary<string, string> problematicQueuesNames = new ConcurrentDictionary<string, string>();
 
-        ConcurrentDictionary<EndpointToQueueMapping, QueueLengthValue> queueLengths = new ConcurrentDictionary<EndpointToQueueMapping, QueueLengthValue>();
-        ConcurrentDictionary<string, string> problematicQueuesNames = new ConcurrentDictionary<string, string>();
-
-        static ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
-        static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
+        static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
+        static readonly TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
 
         class QueueLengthValue
         {

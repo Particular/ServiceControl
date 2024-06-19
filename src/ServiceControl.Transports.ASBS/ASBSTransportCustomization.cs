@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
     using System.Linq;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
 
     public class ASBSTransportCustomization : TransportCustomization<AzureServiceBusTransport>
@@ -13,8 +14,6 @@
 
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
-
-        public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
         protected override AzureServiceBusTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
@@ -34,6 +33,12 @@
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 
             return transport;
+        }
+
+        protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
+        {
+            services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
+            services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
     }
 }

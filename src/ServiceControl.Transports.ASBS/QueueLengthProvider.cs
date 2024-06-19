@@ -8,70 +8,50 @@ namespace ServiceControl.Transports.ASBS
     using Azure.Messaging.ServiceBus.Administration;
     using NServiceBus.Logging;
 
-    class QueueLengthProvider : IProvideQueueLength
+    class QueueLengthProvider : AbstractQueueLengthProvider
     {
-        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
+        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store) : base(settings, store)
         {
-            this.store = store;
+            var connectionSettings = ConnectionStringParser.Parse(ConnectionString);
 
-            var connectionSettings = ConnectionStringParser.Parse(connectionString);
-
-            if (connectionSettings.QueryDelayInterval.HasValue)
-            {
-                queryDelayInterval = connectionSettings.QueryDelayInterval.Value;
-            }
-            else
-            {
-                queryDelayInterval = TimeSpan.FromMilliseconds(500);
-            }
+            queryDelayInterval = connectionSettings.QueryDelayInterval ?? TimeSpan.FromMilliseconds(500);
 
             managementClient = connectionSettings.AuthenticationMethod.BuildManagementClient();
         }
 
-        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
-        {
+        public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack) =>
             endpointQueueMappings.AddOrUpdate(
                 queueToTrack.InputQueue,
                 id => queueToTrack.EndpointName,
                 (id, old) => queueToTrack.EndpointName
             );
-        }
 
-        public Task Start()
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            stop = new CancellationTokenSource();
-
-            poller = Task.Run(async () =>
+            while (!stoppingToken.IsCancellationRequested)
             {
-                var token = stop.Token;
-
-                while (!token.IsCancellationRequested)
+                try
                 {
-                    try
-                    {
-                        Logger.Debug("Waiting for next interval");
-                        await Task.Delay(queryDelayInterval, token);
+                    Logger.Debug("Waiting for next interval");
+                    await Task.Delay(queryDelayInterval, stoppingToken);
 
-                        Logger.DebugFormat("Querying management client.");
+                    Logger.DebugFormat("Querying management client.");
 
-                        var queueRuntimeInfos = await GetQueueList(token);
+                    var queueRuntimeInfos = await GetQueueList(stoppingToken);
 
-                        Logger.DebugFormat("Retrieved details of {0} queues", queueRuntimeInfos.Count);
+                    Logger.DebugFormat("Retrieved details of {0} queues", queueRuntimeInfos.Count);
 
-                        UpdateAllQueueLengths(queueRuntimeInfos);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        // no-op
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Error("Error querying Azure Service Bus queue sizes.", e);
-                    }
+                    UpdateAllQueueLengths(queueRuntimeInfos);
                 }
-            });
-
-            return Task.CompletedTask;
+                catch (OperationCanceledException)
+                {
+                    // no-op
+                }
+                catch (Exception e)
+                {
+                    Logger.Error("Error querying Azure Service Bus queue sizes.", e);
+                }
+            }
         }
 
         async Task<IReadOnlyDictionary<string, QueueRuntimeProperties>> GetQueueList(CancellationToken cancellationToken)
@@ -123,22 +103,13 @@ namespace ServiceControl.Transports.ASBS
                 }
             };
 
-            store(entries, new EndpointToQueueMapping(endpointName, queueName));
+            Store(entries, new EndpointToQueueMapping(endpointName, queueName));
         }
 
-        public async Task Stop()
-        {
-            stop.Cancel();
-            await poller;
-        }
+        readonly ConcurrentDictionary<string, string> endpointQueueMappings = new ConcurrentDictionary<string, string>();
+        readonly ServiceBusAdministrationClient managementClient;
+        readonly TimeSpan queryDelayInterval;
 
-        ConcurrentDictionary<string, string> endpointQueueMappings = new ConcurrentDictionary<string, string>();
-        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
-        ServiceBusAdministrationClient managementClient;
-        CancellationTokenSource stop = new CancellationTokenSource();
-        Task poller;
-        TimeSpan queryDelayInterval;
-
-        static ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
+        static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
     }
 }

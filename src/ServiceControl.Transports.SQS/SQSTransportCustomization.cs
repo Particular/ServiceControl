@@ -8,6 +8,7 @@
     using Amazon.S3;
     using Amazon.SimpleNotificationService;
     using Amazon.SQS;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
@@ -25,7 +26,11 @@
 
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition, TransportSettings transportSettings) { }
 
-        public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
+        protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
+        {
+            services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
+            services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
+        }
 
         protected override SqsTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Transports.Msmq
 {
     using System.Linq;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
 
     public class MsmqTransportCustomization : TransportCustomization<MsmqTransport>
@@ -14,7 +15,11 @@
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
+        protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
+        {
+            services.AddSingleton<IProvideQueueLength, NoOpQueueLengthProvider>();
+            services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
+        }
 
         protected override MsmqTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {

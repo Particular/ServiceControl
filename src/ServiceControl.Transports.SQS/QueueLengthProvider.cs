@@ -5,16 +5,17 @@
     using System.Threading.Tasks;
     using System.Data.Common;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Threading;
     using Amazon.Runtime;
     using Amazon.SQS;
     using NServiceBus.Logging;
 
-    class QueueLengthProvider : IProvideQueueLength
+    class QueueLengthProvider : AbstractQueueLengthProvider
     {
-        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> storeDto)
+        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store) : base(settings, store)
         {
-            var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+            var builder = new DbConnectionStringBuilder { ConnectionString = ConnectionString };
             if (builder.ContainsKey("AccessKeyId") || builder.ContainsKey("SecretAccessKey"))
             {
                 // if the user provided the access key and secret access key they should always be loaded from environment credentials
@@ -29,12 +30,10 @@
             if (builder.TryGetValue("QueueNamePrefix", out var prefix))
             {
                 queueNamePrefix = (string)prefix;
-
             }
-            store = storeDto;
         }
 
-        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
+        public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
             var queue = QueueNameHelper.GetSqsQueueName(queueToTrack.InputQueue, queueNamePrefix);
 
@@ -51,47 +50,30 @@
             sizes.TryAdd(queue, 0);
         }
 
-        public Task Start()
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            stop = new CancellationTokenSource();
+            using var client = clientFactory();
+            var cache = new QueueAttributesRequestCache(client);
 
-            poller = Task.Run(async () =>
+            while (!stoppingToken.IsCancellationRequested)
             {
-                using (var client = clientFactory())
+                try
                 {
-                    var cache = new QueueAttributesRequestCache(client);
-                    var token = stop.Token;
+                    await FetchQueueSizes(cache, client, stoppingToken);
 
-                    while (!token.IsCancellationRequested)
-                    {
-                        try
-                        {
-                            await FetchQueueSizes(cache, client, token);
+                    UpdateQueueLengthStore();
 
-                            UpdateQueueLengthStore();
-
-                            await Task.Delay(QueryDelayInterval, token);
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            // no-op
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.Error("Error querying SQS queue sizes.", e);
-                        }
-                    }
+                    await Task.Delay(QueryDelayInterval, stoppingToken);
                 }
-            });
-
-            return Task.CompletedTask;
-        }
-
-        public Task Stop()
-        {
-            stop.Cancel();
-
-            return poller;
+                catch (OperationCanceledException)
+                {
+                    // no-op
+                }
+                catch (Exception e)
+                {
+                    Logger.Error("Error querying SQS queue sizes.", e);
+                }
+            }
         }
 
         void UpdateQueueLengthStore()
@@ -100,15 +82,14 @@
 
             foreach (var tableNamePair in queues)
             {
-                store(
-                    new[]
-                    {
+                Store(
+                    [
                         new QueueLengthEntry
                         {
                             DateTicks = nowTicks,
-                            Value = sizes.TryGetValue(tableNamePair.Value, out var size) ? size : 0
+                            Value = sizes.GetValueOrDefault(tableNamePair.Value, 0)
                         }
-                    },
+                    ],
                     tableNamePair.Key);
             }
         }
@@ -133,19 +114,15 @@
             }
         }
 
-        static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
+        static readonly TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
 
-        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
-        CancellationTokenSource stop = new CancellationTokenSource();
-        Task poller;
+        readonly ConcurrentDictionary<EndpointToQueueMapping, string> queues = new ConcurrentDictionary<EndpointToQueueMapping, string>();
+        readonly ConcurrentDictionary<string, int> sizes = new ConcurrentDictionary<string, int>();
 
-        ConcurrentDictionary<EndpointToQueueMapping, string> queues = new ConcurrentDictionary<EndpointToQueueMapping, string>();
-        ConcurrentDictionary<string, int> sizes = new ConcurrentDictionary<string, int>();
+        readonly string queueNamePrefix;
 
-        string queueNamePrefix;
+        readonly Func<IAmazonSQS> clientFactory = () => new AmazonSQSClient();
 
-        Func<IAmazonSQS> clientFactory = () => new AmazonSQSClient();
-
-        static ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
+        static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
     }
 }

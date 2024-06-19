@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Transports.SqlServer
 {
     using System.Linq;
-    using System.Reflection;
     using System.Runtime.CompilerServices;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
@@ -24,7 +24,11 @@
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
+        protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
+        {
+            services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
+            services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
+        }
 
         protected override SqlServerTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {

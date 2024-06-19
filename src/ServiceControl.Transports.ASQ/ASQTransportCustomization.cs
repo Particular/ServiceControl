@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
 
@@ -18,7 +19,11 @@
 
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings) { }
 
-        public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
+        protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
+        {
+            services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
+            services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
+        }
 
         protected override AzureStorageQueueTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
