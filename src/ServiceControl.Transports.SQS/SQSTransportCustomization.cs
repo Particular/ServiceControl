@@ -7,6 +7,7 @@
     using Amazon.S3;
     using Amazon.SimpleNotificationService;
     using Amazon.SQS;
+    using BrokerThroughput;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;

@@ -2,6 +2,7 @@
 {
     using System.Linq;
     using System.Runtime.CompilerServices;
+    using BrokerThroughput;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;

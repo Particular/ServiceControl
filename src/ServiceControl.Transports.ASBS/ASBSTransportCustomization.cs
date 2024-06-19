@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
     using System.Linq;
+    using BrokerThroughput;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
 
