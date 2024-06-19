@@ -36,6 +36,13 @@
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
 
+        protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
+        {
+            services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
+            services.AddSingleton<IBrokerThroughputQuery, AmazonSQSQuery>();
+            services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
+        }
+
         protected override SqsTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
             var builder = new SQSTransportConnectionString(transportSettings.ConnectionString);
@@ -109,7 +116,8 @@
             return transport;
         }
 
-        static void PromoteEnvironmentVariableFromConnectionString(string value, string environmentVariableName) => Environment.SetEnvironmentVariable(environmentVariableName, value, EnvironmentVariableTarget.Process);
+        static void PromoteEnvironmentVariableFromConnectionString(string value, string environmentVariableName) => 
+            Environment.SetEnvironmentVariable(environmentVariableName, value, EnvironmentVariableTarget.Process);
 
         static readonly ILog log = LogManager.GetLogger<SQSTransportCustomization>();
     }

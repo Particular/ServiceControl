@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Transports.ASQ
+namespace ServiceControl.Transports.ASQ
 {
     using System;
     using System.Linq;
