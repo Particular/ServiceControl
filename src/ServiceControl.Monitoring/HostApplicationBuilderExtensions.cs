@@ -16,6 +16,7 @@ using NLog.Extensions.Logging;
 using NServiceBus;
 using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Features;
+using NServiceBus.Metrics;
 using NServiceBus.Transport;
 using QueueLength;
 using ServiceControl.Configuration;
@@ -81,6 +82,22 @@ public static class HostApplicationBuilderExtensions
         }
 
         transportCustomization.CustomizeMonitoringEndpoint(config, transportSettings);
+
+        var serviceControlThroughputDataQueue = settings.ServiceControlThroughputDataQueue;
+        if (!string.IsNullOrWhiteSpace(serviceControlThroughputDataQueue))
+        {
+            if (serviceControlThroughputDataQueue.IndexOf("@") >= 0)
+            {
+                serviceControlThroughputDataQueue = serviceControlThroughputDataQueue.Substring(0, serviceControlThroughputDataQueue.IndexOf("@"));
+            }
+
+            var routing = new RoutingSettings(config.GetSettings());
+            routing.RouteToEndpoint(typeof(RecordEndpointThroughputData), serviceControlThroughputDataQueue);
+
+            services.AddSingleton<ReportThroughputFeatureStartup>();
+            config.EnableFeature<ReportThroughputFeature>();
+        }
+
 
         if (settings.EnableInstallers)
         {
