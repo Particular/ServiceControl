@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Hosting.Commands
+namespace ServiceControl.Hosting.Commands
 {
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;

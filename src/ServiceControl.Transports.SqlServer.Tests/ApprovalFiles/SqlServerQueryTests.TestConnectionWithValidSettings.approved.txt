@@ -1,0 +1,5 @@
+Connection test to SqlTransport was successful
+
+Connection settings used:
+ConnectionString set
+Additional catalogs not set

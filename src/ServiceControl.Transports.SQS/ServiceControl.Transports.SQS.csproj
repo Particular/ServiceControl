@@ -11,6 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.CloudWatch"/>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions"/>
     <PackageReference Include="NServiceBus.AmazonSQS" />
   </ItemGroup>
 

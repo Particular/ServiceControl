@@ -1,0 +1,5 @@
+Connection settings to SqlTransport have some errors:
+SQL Connection String could not be parsed.
+
+Connection attempted with the following settings:
+ConnectionString set

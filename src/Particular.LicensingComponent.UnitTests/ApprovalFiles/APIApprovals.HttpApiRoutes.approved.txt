@@ -1,0 +1,8 @@
+GET /endpoints => Particular.LicensingComponent.WebApi.LicensingController:GetEndpointThroughput(CancellationToken cancellationToken)
+POST /endpoints/update => Particular.LicensingComponent.WebApi.LicensingController:UpdateUserSelectionOnEndpointThroughput(List<UpdateUserIndicator> updateUserIndicators, CancellationToken cancellationToken)
+GET /report/available => Particular.LicensingComponent.WebApi.LicensingController:CanThroughputReportBeGenerated(CancellationToken cancellationToken)
+GET /report/file => Particular.LicensingComponent.WebApi.LicensingController:GetThroughputReportFile(String spVersion, CancellationToken cancellationToken)
+GET /settings/info => Particular.LicensingComponent.WebApi.LicensingController:GetThroughputSettingsInformation(CancellationToken cancellationToken)
+GET /settings/masks => Particular.LicensingComponent.WebApi.LicensingController:GetMasks(CancellationToken cancellationToken)
+POST /settings/masks/update => Particular.LicensingComponent.WebApi.LicensingController:UpdateMasks(List<String> updateMasks, CancellationToken cancellationToken)
+GET /settings/test => Particular.LicensingComponent.WebApi.LicensingController:TestThroughputConnectionSettings(CancellationToken cancellationToken)

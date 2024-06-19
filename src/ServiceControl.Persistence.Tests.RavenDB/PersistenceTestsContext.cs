@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.Tests;
+namespace ServiceControl.Persistence.Tests;
 
 using System;
 using System.Diagnostics;
@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
+using Persistence.RavenDB;
 using Raven.Client.Documents;
-using ServiceControl.Persistence;
-using ServiceControl.Persistence.RavenDB;
 using ServiceControl.RavenDB;
 
 public class PersistenceTestsContext : IPersistenceTestsContext
@@ -32,7 +31,8 @@ public class PersistenceTestsContext : IPersistenceTestsContext
             ErrorRetentionPeriod = retentionPeriod,
             EventsRetentionPeriod = retentionPeriod,
             DatabaseName = databaseName,
-            ConnectionString = embeddedServer.ServerUrl
+            ConnectionString = embeddedServer.ServerUrl,
+            ThroughputDatabaseName = $"{databaseName}-throughput",
         };
 
         var persistence = new RavenPersistenceConfiguration().Create(PersistenceSettings);

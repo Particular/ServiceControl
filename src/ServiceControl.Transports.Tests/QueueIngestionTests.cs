@@ -1,9 +1,15 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
+    using System;
     using System.Threading.Tasks;
+    using NServiceBus.Transport;
     using NUnit.Framework;
 
+    // We have to ensure this test runs first because this test initializes the dispatcher, and the dispatchers initialize the logging framework as static fields :(
+    // The logging cannot be reinitialized, so subsequent test that utilize the Scenario.Define.Run will use a different log factory that depends on more statics :(
+    // The end result is a null reference exception :(
     [TestFixture]
+    [Order(1)]
     class QueueIngestionTests : TransportTestFixture
     {
         [Test]
@@ -31,7 +37,7 @@
 
                      return Task.CompletedTask;
                  },
-                 (_, __) => { Assert.Fail("There should be no errors"); return Task.FromResult(NServiceBus.Transport.ErrorHandleResult.Handled); });
+                 (_, __) => { Assert.Fail("There should be no errors"); return Task.FromResult(ErrorHandleResult.Handled); });
 
             for (int i = 0; i < numMessagesToIngest; i++)
             {
@@ -54,11 +60,11 @@
 
             await StartQueueIngestor(
                 queueName,
-                (_, __) => throw new System.Exception("Some failure"),
+                (_, __) => throw new Exception("Some failure"),
                 (_, __) =>
                 {
                     onErrorCalled.SetResult(true);
-                    return Task.FromResult(NServiceBus.Transport.ErrorHandleResult.Handled);
+                    return Task.FromResult(ErrorHandleResult.Handled);
                 });
 
             await Dispatcher.SendTestMessage(queueName, $"some failing message");

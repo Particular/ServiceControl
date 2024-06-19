@@ -63,6 +63,8 @@ namespace Particular.ServiceControl
             services.AddSingleton<MessageStreamerHub>();
             services.AddSingleton(settings);
 
+            services.AddSingleton(TimeProvider.System);
+
             services.AddHttpLogging(options =>
             {
                 options.LoggingFields = HttpLoggingFields.RequestPath | HttpLoggingFields.RequestMethod | HttpLoggingFields.ResponseStatusCode | HttpLoggingFields.Duration;
@@ -108,8 +110,7 @@ namespace Particular.ServiceControl
 
         public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder, Settings settings)
         {
-            var persistence = PersistenceFactory.Create(settings);
-            persistence.AddInstaller(hostApplicationBuilder.Services);
+            hostApplicationBuilder.Services.AddPersistenceInstallers(settings);
         }
 
         static TransportSettings MapSettings(Settings settings)

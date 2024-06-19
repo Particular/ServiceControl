@@ -140,7 +140,8 @@
 
             public void Initialize()
             {
-                var connectionConfiguration = ConnectionConfiguration.Create(connectionString, "ServiceControl.Monitoring");
+                var connectionConfiguration =
+                    ConnectionConfiguration.Create(connectionString, "ServiceControl.Monitoring");
 
                 var dbConnectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 
@@ -160,7 +161,7 @@
                     connection ??= connectionFactory.CreateConnection("queue length monitor");
 
                     //Connection implements reconnection logic
-                    while (connection.IsOpen == false)
+                    while (!connection.IsOpen)
                     {
                         await Task.Delay(ReconnectionDelay, cancellationToken);
                     }

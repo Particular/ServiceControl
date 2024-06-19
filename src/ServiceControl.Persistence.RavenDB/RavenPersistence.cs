@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.RavenDB;
+namespace ServiceControl.Persistence.RavenDB;
 
 using CustomChecks;
 using MessageFailures;
@@ -12,6 +12,7 @@ using Persistence.Recoverability;
 using Recoverability;
 using ServiceControl.CustomChecks;
 using ServiceControl.Infrastructure.RavenDB.Subscriptions;
+using ServiceControl.Persistence.RavenDB.Throughput;
 using ServiceControl.Recoverability;
 using UnitOfWork;
 using IPersistence = IPersistence;
@@ -90,6 +91,8 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
 
         services.AddSingleton<IRavenSessionProvider, RavenSessionProvider>();
         services.AddHostedService<RavenPersistenceLifecycleHostedService>();
+
+        services.AddThroughputRavenPersistence(settings.ThroughputDatabaseName);
 
         if (settings.UseEmbeddedServer)
         {

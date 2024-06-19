@@ -1,3 +1,4 @@
+Particular.LicensingComponent.Contracts.Endpoint, Particular.LicensingComponent.Contracts, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Contracts.CustomChecks.CustomCheck, ServiceControl.Persistence, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.MessageFailures.FailedMessage, ServiceControl.Persistence, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.MessageFailures.GroupComment, ServiceControl.Persistence, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null

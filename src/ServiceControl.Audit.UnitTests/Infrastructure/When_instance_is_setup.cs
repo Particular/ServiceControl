@@ -56,6 +56,8 @@
     {
         public static IList<string> QueuesCreated;
 
+        public void CustomizeEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
+
         public void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration,
             TransportSettings transportSettings) => throw new NotImplementedException();
 
@@ -66,6 +68,7 @@
             TransportSettings transportSettings) => throw new NotImplementedException();
 
         public IProvideQueueLength CreateQueueLengthProvider() => throw new NotImplementedException();
+        public Type ThroughputQueryProvider => throw new NotImplementedException();
 
         public Task ProvisionQueues(TransportSettings transportSettings,
             IEnumerable<string> additionalQueues)

@@ -1,0 +1,5 @@
+Connection test to Audit Instance failed:
+http://localhost:44444/api/ - version of ServiceControl Audit instance could not be determined, hence audit throughput data will not be available.
+
+Connection attempted to the following Audit instances:
+http://localhost:44444/api/

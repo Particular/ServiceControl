@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\ThroughputCollector\Persisters\InMemory" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Particular.LicensingComponent.Persistence\Particular.LicensingComponent.Persistence.csproj" />
+  </ItemGroup>
+  
+</Project>

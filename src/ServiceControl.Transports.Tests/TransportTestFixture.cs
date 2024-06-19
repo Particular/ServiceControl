@@ -138,6 +138,51 @@
             return configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
         }
 
+        protected async Task SendAndReceiveMessages(string queueName, int numMessagesToIngest)
+        {
+            TaskCompletionSource<bool> onMessagesProcessed = CreateTaskCompletionSource<bool>();
+            int numMessagesIngested = 0;
+
+            await StartQueueIngestor(
+                queueName,
+                (_, __) =>
+                {
+                    numMessagesIngested++;
+
+                    if (numMessagesIngested == numMessagesToIngest)
+                    {
+                        onMessagesProcessed.SetResult(true);
+                    }
+
+                    return Task.CompletedTask;
+                },
+                (_, __) =>
+                {
+                    Assert.Fail("There should be no errors");
+                    return Task.FromResult(ErrorHandleResult.Handled);
+                });
+
+            for (int i = 0; i < numMessagesToIngest; i++)
+            {
+                await Dispatcher.SendTestMessage(queueName, $"message{i}");
+            }
+
+            bool allMessagesProcessed = await onMessagesProcessed.Task;
+            Assert.True(allMessagesProcessed);
+
+            if (queueIngestor != null)
+            {
+                await queueIngestor.StopReceive();
+                queueIngestor = null;
+            }
+
+            if (transportInfrastructure != null)
+            {
+                await transportInfrastructure.Shutdown();
+                transportInfrastructure = null;
+            }
+        }
+
         async Task<TransportInfrastructure> CreateDispatcherTransportInfrastructure()
         {
             var transportSettings = new TransportSettings
@@ -151,7 +196,7 @@
         }
 
         string queueSuffix;
-        TransportTestsConfiguration configuration;
+        public TransportTestsConfiguration configuration;
         CancellationTokenSource testCancellationTokenSource;
         List<CancellationTokenRegistration> registrations;
         IProvideQueueLength queueLengthProvider;

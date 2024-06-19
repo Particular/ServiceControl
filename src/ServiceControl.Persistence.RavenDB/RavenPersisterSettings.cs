@@ -1,4 +1,5 @@
 ﻿using System;
+using Particular.LicensingComponent.Contracts;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.RavenDB.CustomChecks;
 
@@ -26,6 +27,7 @@ class RavenPersisterSettings : PersistenceSettings
     public string LogPath { get; set; }
     public string LogsMode { get; set; } = LogsModeDefault;
     public string DatabaseName { get; set; } = DatabaseNameDefault;
+    public string ThroughputDatabaseName { get; set; } = ThroughputSettings.DefaultDatabaseName;
 
     public const string DatabaseNameDefault = "primary";
     public const int DatabaseMaintenancePortDefault = 33334;

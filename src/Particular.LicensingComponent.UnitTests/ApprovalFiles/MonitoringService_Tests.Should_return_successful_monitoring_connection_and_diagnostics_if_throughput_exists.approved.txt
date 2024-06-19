@@ -1,0 +1,2 @@
+Throughput from Monitoring recorded in the last 30 days
+Listening on queue ServiceControl.ThroughputData

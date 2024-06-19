@@ -1,0 +1,7 @@
+Connection settings to AmazonSQS have some errors:
+Invalid region endpoint provided
+
+Connection attempted with the following settings:
+Profile not set
+AccessKey set
+SecretKey set

@@ -1,0 +1,10 @@
+Connection test to AzureServiceBus failed:
+ClientSecretCredential authentication failed: AADSTS700016: Application with identifier 'not valid' was not found in the directory
+
+Connection attempted with the following settings:
+ServiceBus name not set, defaulted to "testmenow"
+SubscriptionId set
+TenantId set
+ClientId set
+Client secret set
+Management Url set to "https://management.azure.com/"

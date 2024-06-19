@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.Tests;
+namespace ServiceControl.Persistence.Tests;
 
 using System;
 using System.Threading.Tasks;
@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using NServiceBus;
 using NServiceBus.Settings;
 using NUnit.Framework;
+using Particular.LicensingComponent.Persistence;
 using ServiceControl.Infrastructure.DomainEvents;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence;
@@ -14,7 +15,6 @@ using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.Recoverability;
 using ServiceControl.Persistence.UnitOfWork;
 
-//[Parallelizable(ParallelScope.All)]
 [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
 public abstract class PersistenceTestBase
 {
@@ -98,4 +98,5 @@ public abstract class PersistenceTestBase
     protected IIngestionUnitOfWorkFactory IngestionUnitOfWorkFactory => ServiceProvider.GetRequiredService<IIngestionUnitOfWorkFactory>();
     protected IEventLogDataStore EventLogDataStore => ServiceProvider.GetRequiredService<IEventLogDataStore>();
     protected IRetryDocumentDataStore RetryDocumentDataStore => ServiceProvider.GetRequiredService<IRetryDocumentDataStore>();
+    protected ILicensingDataStore LicensingDataStore => ServiceProvider.GetRequiredService<ILicensingDataStore>();
 }

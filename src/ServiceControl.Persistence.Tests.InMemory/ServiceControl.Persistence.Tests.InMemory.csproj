@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NServiceBus.Testing" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.Persistence.Tests\IPersistenceTestsContext.cs" LinkBase="Shared" />
+    <Compile Include="..\ServiceControl.Persistence.Tests\PersistenceTestBase.cs" LinkBase="Shared" />
+    <Compile Include="..\ServiceControl.Persistence.Tests\FakeDomainEvents.cs" LinkBase="Shared" />
+    <Compile Include="..\ServiceControl.Persistence.Tests\Throughput\**\*.cs" LinkBase="Shared\Throughput" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Particular.LicensingComponent.Persistence.InMemory\Particular.LicensingComponent.Persistence.InMemory.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" />
+    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.CustomChecks
+namespace ServiceControl.CustomChecks
 {
     using Connection;
     using ExternalIntegrations;
