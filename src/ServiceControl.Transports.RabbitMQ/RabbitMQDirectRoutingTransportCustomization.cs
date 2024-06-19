@@ -2,6 +2,8 @@
 {
     using System;
     using System.Linq;
+    using BrokerThroughput;
+
     using NServiceBus;
 
     public abstract class RabbitMQDirectRoutingTransportCustomization : TransportCustomization<RabbitMQTransport>
