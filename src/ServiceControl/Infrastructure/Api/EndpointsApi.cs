@@ -1,4 +1,4 @@
-namespace ServiceControl.Infrastructure.Api
+﻿namespace ServiceControl.Infrastructure.Api
 {
     using ServiceControl.Api;
     using ServiceControl.Api.Contracts;
