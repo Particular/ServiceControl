@@ -19,10 +19,11 @@
     using Persistence;
     using Retrying;
     using ServiceBus.Management.Infrastructure.Settings;
+    using Transports;
 
     class RecoverabilityComponent : ServiceControlComponent
     {
-        public override void Configure(Settings settings, IHostApplicationBuilder hostBuilder)
+        public override void Configure(Settings settings, ITransportCustomization transportCustomization, IHostApplicationBuilder hostBuilder)
         {
             var services = hostBuilder.Services;
             services.AddPlatformConnectionProvider<RecoverabilityPlatformConnectionDetailsProvider>();
@@ -103,7 +104,7 @@
             services.AddEventLogMapping<MessagesSubmittedForRetryFailedDefinition>();
         }
 
-        public override void Setup(Settings settings, IComponentInstallationContext context)
+        public override void Setup(Settings settings, IComponentInstallationContext context, IHostApplicationBuilder hostBuilder)
         {
             context.CreateQueue(settings.StagingQueue);
 
