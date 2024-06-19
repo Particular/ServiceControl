@@ -39,11 +39,13 @@ namespace ServiceControl.Audit.Persistence.RavenDB
                 await initializeSemaphore.WaitAsync(cancellationToken);
 
                 // Look for raven-client-certificate.pfx in same directory as application code
-                var potentialCertPath = Path.GetFullPath(Path.Combine(Assembly.GetEntryAssembly()!.Location, "..", "raven-client-certificate.pfx"));
+                var applicationDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty;
+                var certificatePath = Path.Combine(applicationDirectory, "raven-client-certificate.pfx");
                 X509Certificate2? certificate = null;
-                if (File.Exists(potentialCertPath))
+
+                if (File.Exists(certificatePath))
                 {
-                    certificate = new X509Certificate2(potentialCertPath);
+                    certificate = new X509Certificate2(certificatePath);
                 }
 
                 var store = new DocumentStore
