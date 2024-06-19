@@ -84,23 +84,11 @@ namespace ServiceControl.Transports
         void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         System.Threading.Tasks.Task ProvisionQueues(ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues);
     }
-    public readonly struct KeyDescriptionPair
-    {
-        public KeyDescriptionPair(string key, string description) { }
-        public string Description { get; }
-        public string Key { get; }
-    }
     public class QueueLengthEntry
     {
         public QueueLengthEntry() { }
         public long DateTicks { get; set; }
         public long Value { get; set; }
-    }
-    public class QueueThroughput
-    {
-        public QueueThroughput() { }
-        public System.DateOnly DateUTC { get; set; }
-        public long TotalThroughput { get; set; }
     }
     public abstract class TransportCustomization<TTransport> : ServiceControl.Transports.ITransportCustomization
         where TTransport : NServiceBus.Transport.TransportDefinition
@@ -149,5 +137,77 @@ namespace ServiceControl.Transports
         public string ErrorQueue { get; set; }
         public int MaxConcurrency { get; set; }
         public bool RunCustomChecks { get; set; }
+    }
+}
+namespace ServiceControl.Transports.BrokerThroughput
+{
+    public abstract class BrokerThroughputQuery : ServiceControl.Transports.BrokerThroughput.IBrokerThroughputQuery
+    {
+        protected readonly System.Text.StringBuilder Diagnostics;
+        protected readonly System.Collections.Generic.List<string> InitialiseErrors;
+        protected BrokerThroughputQuery(Microsoft.Extensions.Logging.ILogger logger, string transport) { }
+        public System.Collections.Generic.Dictionary<string, string> Data { get; set; }
+        public string MessageTransport { get; }
+        public string? ScopeType { get; set; }
+        public abstract ServiceControl.Transports.BrokerThroughput.KeyDescriptionPair[] Settings { get; }
+        public abstract System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.IBrokerQueue> GetQueueNames(System.Threading.CancellationToken cancellationToken);
+        public abstract System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.QueueThroughput> GetThroughputPerDay(ServiceControl.Transports.BrokerThroughput.IBrokerQueue brokerQueue, System.DateOnly startDate, System.Threading.CancellationToken cancellationToken);
+        public bool HasInitialisationErrors(out string errorMessage) { }
+        public void Initialise(System.Collections.Frozen.FrozenDictionary<string, string> settings) { }
+        protected abstract void InitialiseCore(System.Collections.Frozen.FrozenDictionary<string, string> settings);
+        public virtual string SanitizeEndpointName(string endpointName) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Success",
+                "Errors",
+                "Diagnostics"})]
+        public System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>, string>> TestConnection(System.Threading.CancellationToken cancellationToken) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Success",
+                "Errors"})]
+        protected abstract System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>>> TestConnectionCore(System.Threading.CancellationToken cancellationToken);
+    }
+    public class DefaultBrokerQueue : ServiceControl.Transports.BrokerThroughput.IBrokerQueue
+    {
+        public DefaultBrokerQueue(string queueName) { }
+        public System.Collections.Generic.List<string> EndpointIndicators { get; }
+        public string QueueName { get; }
+        public string SanitizedName { get; set; }
+        public string? Scope { get; }
+    }
+    public interface IBrokerQueue
+    {
+        System.Collections.Generic.List<string> EndpointIndicators { get; }
+        string QueueName { get; }
+        string SanitizedName { get; }
+        string? Scope { get; }
+    }
+    public interface IBrokerThroughputQuery
+    {
+        System.Collections.Generic.Dictionary<string, string> Data { get; }
+        string MessageTransport { get; }
+        string? ScopeType { get; }
+        ServiceControl.Transports.BrokerThroughput.KeyDescriptionPair[] Settings { get; }
+        System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.IBrokerQueue> GetQueueNames(System.Threading.CancellationToken cancellationToken);
+        System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.QueueThroughput> GetThroughputPerDay(ServiceControl.Transports.BrokerThroughput.IBrokerQueue brokerQueue, System.DateOnly startDate, System.Threading.CancellationToken cancellationToken);
+        bool HasInitialisationErrors(out string errorMessage);
+        void Initialise(System.Collections.Frozen.FrozenDictionary<string, string> settings);
+        string SanitizeEndpointName(string endpointName);
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Success",
+                "Errors",
+                "Diagnostics"})]
+        System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>, string>> TestConnection(System.Threading.CancellationToken cancellationToken);
+    }
+    public readonly struct KeyDescriptionPair
+    {
+        public KeyDescriptionPair(string key, string description) { }
+        public string Description { get; }
+        public string Key { get; }
+    }
+    public class QueueThroughput
+    {
+        public QueueThroughput() { }
+        public System.DateOnly DateUTC { get; set; }
+        public long TotalThroughput { get; set; }
     }
 }
