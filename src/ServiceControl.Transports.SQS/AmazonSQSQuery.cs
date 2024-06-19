@@ -17,6 +17,7 @@ using Amazon.Runtime.CredentialManagement;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.Logging;
+using ServiceControl.Transports.BrokerThroughput;
 
 public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings)
     : BrokerThroughputQuery(logger, "AmazonSQS")
