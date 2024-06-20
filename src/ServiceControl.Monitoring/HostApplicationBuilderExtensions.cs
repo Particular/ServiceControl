@@ -16,6 +16,7 @@ using NLog.Extensions.Logging;
 using NServiceBus;
 using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Features;
+using NServiceBus.Metrics;
 using NServiceBus.Transport;
 using QueueLength;
 using ServiceControl.Configuration;
@@ -67,13 +68,13 @@ public static class HostApplicationBuilderExtensions
 
         services.AddLicenseCheck();
 
-        ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, transportSettings, settings);
+        ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, transportSettings, settings, services);
         hostBuilder.UseNServiceBus(endpointConfiguration);
 
         hostBuilder.AddAsyncTimer();
     }
 
-    static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings)
+    static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings, IServiceCollection services)
     {
         if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
         {
@@ -81,6 +82,21 @@ public static class HostApplicationBuilderExtensions
         }
 
         transportCustomization.CustomizeMonitoringEndpoint(config, transportSettings);
+
+        var serviceControlThroughputDataQueue = settings.ServiceControlThroughputDataQueue;
+        if (!string.IsNullOrWhiteSpace(serviceControlThroughputDataQueue))
+        {
+            if (serviceControlThroughputDataQueue.IndexOf("@") >= 0)
+            {
+                serviceControlThroughputDataQueue = serviceControlThroughputDataQueue.Substring(0, serviceControlThroughputDataQueue.IndexOf("@"));
+            }
+
+            var routing = new RoutingSettings(config.GetSettings());
+            routing.RouteToEndpoint(typeof(RecordEndpointThroughputData), serviceControlThroughputDataQueue);
+
+            services.AddSingleton<ReportThroughputHostedService>();
+        }
+
 
         if (settings.EnableInstallers)
         {
