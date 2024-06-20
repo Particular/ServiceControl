@@ -151,10 +151,13 @@ jobs:
         include:
           - name: servicecontrol
             project: ServiceControl
+            description: ServiceControl error instance
           - name: servicecontrol-audit
             project: ServiceControl.Audit
+            description: ServiceControl audit instance
           - name: servicecontrol-monitoring
             project: ServiceControl.Monitoring
+            description: ServiceControl monitoring instance
       fail-fast: false
     steps:
       - name: Check for secrets
@@ -178,7 +181,21 @@ jobs:
         env:
           TAG_NAME: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
         run: |
-          docker buildx build --push --tag ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }} --file src/${{ matrix.project }}/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --platform linux/arm64,linux/arm,linux/amd64 .
+          docker buildx build --push --tag ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }} \
+              --file src/${{ matrix.project }}/Dockerfile \
+              --build-arg VERSION=${{ env.MinVerVersion }} \
+              --annotation "index:org.opencontainers.image.title=${{ matrix.name }}" \
+              --annotation "index:org.opencontainers.image.description=${{ matrix.description }}" \
+              --annotation "index:org.opencontainers.image.created=$(date '+%FT%TZ')" \
+              --annotation "index:org.opencontainers.image.revision=${{ github.sha }}" \
+              --annotation "index:org.opencontainers.image.authors=Particular Software" \
+              --annotation "index:org.opencontainers.image.vendor=Particular Software" \
+              --annotation "index:org.opencontainers.image.version=${{ env.MinVerVersion }}" \
+              --annotation "index:org.opencontainers.image.source=https://github.com/${{ github.repository }}/tree/${{ github.sha }}" \
+              --annotation "index:org.opencontainers.image.url=https://hub.docker.com/r/particular/${{ matrix.name }}" \
+              --annotation "index:org.opencontainers.image.documentation=https://docs.particular.net/servicecontrol/" \
+              --annotation "index:org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:8.0" \
+              --platform linux/arm64,linux/arm,linux/amd64 .
           docker buildx imagetools inspect ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }}
   db-containers:
     if: ${{ github.actor != 'dependabot[bot]' }}
