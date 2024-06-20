@@ -3,14 +3,15 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.Logging;
     using Microsoft.Extensions.DependencyInjection;
+    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceControl.Transports;
+    using Transports;
 
     [TestFixture]
     class TransportTestFixture
@@ -22,7 +23,7 @@
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
             registrations = [];
-            queueSuffix = $"-{System.IO.Path.GetRandomFileName().Replace(".", string.Empty)}";
+            queueSuffix = $"-{Path.GetRandomFileName().Replace(".", string.Empty)}";
 
             await configuration.Configure();
 
@@ -166,6 +167,51 @@
         }
 
         protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(60);
+
+        protected async Task SendAndReceiveMessages(string queueName, int numMessagesToIngest)
+        {
+            TaskCompletionSource<bool> onMessagesProcessed = CreateTaskCompletionSource<bool>();
+            int numMessagesIngested = 0;
+
+            await StartQueueIngestor(
+                queueName,
+                (_, __) =>
+                {
+                    numMessagesIngested++;
+
+                    if (numMessagesIngested == numMessagesToIngest)
+                    {
+                        onMessagesProcessed.SetResult(true);
+                    }
+
+                    return Task.CompletedTask;
+                },
+                (_, __) =>
+                {
+                    Assert.Fail("There should be no errors");
+                    return Task.FromResult(ErrorHandleResult.Handled);
+                });
+
+            for (int i = 0; i < numMessagesToIngest; i++)
+            {
+                await Dispatcher.SendTestMessage(queueName, $"message{i}");
+            }
+
+            bool allMessagesProcessed = await onMessagesProcessed.Task;
+            Assert.True(allMessagesProcessed);
+
+            if (queueIngestor != null)
+            {
+                await queueIngestor.StopReceive();
+                queueIngestor = null;
+            }
+
+            if (transportInfrastructure != null)
+            {
+                await transportInfrastructure.Shutdown();
+                transportInfrastructure = null;
+            }
+        }
 
         async Task<TransportInfrastructure> CreateDispatcherTransportInfrastructure()
         {

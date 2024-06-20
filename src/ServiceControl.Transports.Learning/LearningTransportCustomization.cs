@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Transports.Learning
+namespace ServiceControl.Transports.Learning
 {
     using System;
     using System.IO;

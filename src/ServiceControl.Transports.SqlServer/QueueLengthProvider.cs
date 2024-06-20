@@ -24,7 +24,7 @@
 
             tableNames.AddOrUpdate(queueToTrack, _ => sqlTable, (_, currentSqlTable) =>
             {
-                if (currentSqlTable.Equals(sqlTable) == false)
+                if (!currentSqlTable.Equals(sqlTable))
                 {
                     tableSizes.TryRemove(currentSqlTable, out var _);
                 }

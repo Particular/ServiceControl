@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Transports
+namespace ServiceControl.Transports
 {
     using System;
     using System.Collections.Generic;
