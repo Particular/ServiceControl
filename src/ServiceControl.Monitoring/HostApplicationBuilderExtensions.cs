@@ -68,13 +68,13 @@ public static class HostApplicationBuilderExtensions
 
         services.AddLicenseCheck();
 
-        ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, transportSettings, settings);
+        ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, transportSettings, settings, services);
         hostBuilder.UseNServiceBus(endpointConfiguration);
 
         hostBuilder.AddAsyncTimer();
     }
 
-    static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings)
+    static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings, IServiceCollection services)
     {
         if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
         {
