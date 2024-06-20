@@ -9,9 +9,9 @@ const { sortBy: activeColumn } = storeToRefs(monitoringStore);
 </script>
 
 <template>
-  <section role="treegrid" aria-label="endpoint-list">
+  <section role="table" aria-label="endpoint-list">
     <!--Table headings-->
-    <div role="treeitem" aria-label="column-headers" class="table-head-row">
+    <div role="row" aria-label="column-headers" class="table-head-row">
       <div role="columnheader" :aria-label="columnName.ENDPOINTNAME" class="table-first-col">
         <SortableColumn :sort-by="columnName.ENDPOINTNAME" v-model="activeColumn" :default-ascending="true">Endpoint name</SortableColumn>
       </div>
@@ -46,19 +46,19 @@ const { sortBy: activeColumn } = storeToRefs(monitoringStore);
       </div>
     </div>
     <div>
-      <div v-if="monitoringStore.endpointListIsGrouped" role="treeitem" aria-label="grouped-endpoints">
-        <div role="rowgroup" :aria-labelledby="endpointGroup.group" class="row" v-for="endpointGroup in monitoringStore.grouping.groupedEndpoints" :key="endpointGroup.group">
+      <div v-if="monitoringStore.endpointListIsGrouped" role="rowgroup" aria-label="grouped-endpoints">
+        <div role="row" :aria-labelledby="endpointGroup.group" class="row" v-for="endpointGroup in monitoringStore.grouping.groupedEndpoints" :key="endpointGroup.group">
           <div role="rowheader" class="endpoint-group-title" :id="endpointGroup.group">
             {{ endpointGroup.group }}
           </div>
           <div role="group" :aria-labelledby="endpointGroup.group">
-            <div class="row box endpoint-row" v-for="groupedEndpoint in endpointGroup.endpoints" :key="groupedEndpoint.endpoint.name" role="row" :aria-label="groupedEndpoint.shortName">
+            <div role="row" :aria-label="groupedEndpoint.shortName" aria-description="endpoint-row" class="row box endpoint-row" v-for="groupedEndpoint in endpointGroup.endpoints" :key="groupedEndpoint.endpoint.name">
               <EndpointListRow :endpoint="groupedEndpoint" />
             </div>
           </div>
         </div>
       </div>
-      <div v-else role="treeitem" aria-label="ungrouped-endpoints">
+      <div v-else role="rowgroup" aria-label="ungrouped-endpoints">
         <div role="row" :aria-label="endpoint.name" class="endpoint-row" v-for="endpoint in monitoringStore.getEndpointList" :key="endpoint.name">
           <EndpointListRow :endpoint="endpoint" />
         </div>

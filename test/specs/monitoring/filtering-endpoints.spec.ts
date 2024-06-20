@@ -124,6 +124,7 @@ describe("FEATURE: Endpoint filtering", () => {
 
       // Assert
       expect(endpointGroupNames()).toEqual(["Universe.Solarsystem.Mercury"]);
+      expect(endpointGroup("Universe.Solarsystem.Mercury").Endpoints).toEqual(["Endpoint1"]);
       expect(await endpointsNames()).toEqual(["Endpoint1"]);
     });
 
@@ -152,6 +153,9 @@ describe("FEATURE: Endpoint filtering", () => {
 
       // Assert
       expect(endpointGroupNames()).toEqual(["Universe.Solarsystem.Earth", "Universe.Solarsystem.Mercury", "Universe.Solarsystem.Venus"]);
+      expect(endpointGroup("Universe.Solarsystem.Earth").Endpoints).toEqual(["Endpoint5", "Endpoint6"]);
+      expect(endpointGroup("Universe.Solarsystem.Mercury").Endpoints).toEqual(["Endpoint1", "Endpoint2"]);
+      expect(endpointGroup("Universe.Solarsystem.Venus").Endpoints).toEqual(["Endpoint3", "Endpoint4"]);
       expect(await endpointsNames()).toEqual(["Endpoint5", "Endpoint6", "Endpoint1", "Endpoint2", "Endpoint3", "Endpoint4"]);
     });
 

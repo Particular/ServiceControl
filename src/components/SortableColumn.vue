@@ -26,7 +26,7 @@ function toggleSort() {
         <slot></slot>
         <span class="table-header-unit"><slot name="unit"></slot></span>
         <span>
-          <i role="image" v-if="isActive" :class="sortIcon" :aria-label="sortIcon"></i>
+          <i role="img" v-if="isActive" :class="sortIcon" :aria-label="sortIcon"></i>
         </span>
       </span>
     </button>

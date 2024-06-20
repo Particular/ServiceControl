@@ -43,7 +43,7 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
   <div role="gridcell" :aria-label="columnName.ENDPOINTNAME" class="table-first-col endpoint-name name-overview">
     <div class="box-header with-status">
       <div :aria-label="shortName" class="no-side-padding lead righ-side-ellipsis endpoint-details-link">
-        <RouterLink role="details-link" :to="routeLinks.monitoring.endpointDetails.link(endpoint.name, historyPeriod.pVal)" class="cursorpointer" v-tooltip :title="endpoint.name">
+        <RouterLink aria-label="details-link" :to="routeLinks.monitoring.endpointDetails.link(endpoint.name, historyPeriod.pVal)" class="cursorpointer" v-tooltip :title="endpoint.name">
           {{ shortName }}
         </RouterLink>
       </div>
@@ -76,7 +76,7 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
     <div class="box-header">
       <div class="no-side-padding">
         <SmallGraph
-          role="image"
+          role="img"
           :aria-label="columnName.QUEUELENGTH"
           :type="'queue-length'"
           :isdurationgraph="false"
@@ -98,7 +98,7 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
     <div class="box-header">
       <div class="no-side-padding">
         <SmallGraph
-          role="image"
+          role="img"
           :aria-label="columnName.THROUGHPUT"
           :type="'throughput'"
           :isdurationgraph="false"
@@ -120,7 +120,7 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
     <div class="box-header">
       <div class="no-side-padding">
         <SmallGraph
-          role="image"
+          role="img"
           :aria-label="columnName.SCHEDULEDRETRIES"
           :type="'retries'"
           :isdurationgraph="false"
@@ -141,15 +141,7 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
   <div role="gridcell" :aria-label="columnName.PROCESSINGTIME" class="table-col">
     <div class="box-header">
       <div class="no-side-padding">
-        <SmallGraph
-          role="image"
-          :aria-label="columnName.PROCESSINGTIME"
-          :type="'processing-time'"
-          :isdurationgraph="true"
-          :plotdata="endpoint.metrics.processingTime"
-          :minimumyaxis="smallGraphsMinimumYAxis.processingTime"
-          :avglabelcolor="'#258135'"
-        />
+        <SmallGraph role="img" :aria-label="columnName.PROCESSINGTIME" :type="'processing-time'" :isdurationgraph="true" :plotdata="endpoint.metrics.processingTime" :minimumyaxis="smallGraphsMinimumYAxis.processingTime" :avglabelcolor="'#258135'" />
       </div>
       <div role="text" aria-label="sparkline" class="no-side-padding sparkline-value">
         {{ endpoint.isStale == true || endpoint.isScMonitoringDisconnected == true ? "" : processingTimeGraphDuration.value }}
@@ -163,7 +155,7 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
   <div role="gridcell" :aria-label="columnName.CRITICALTIME" class="table-col">
     <div class="box-header">
       <div class="no-side-padding">
-        <SmallGraph role="image" :aria-label="columnName.CRITICALTIME" :type="'critical-time'" :isdurationgraph="true" :plotdata="endpoint.metrics.criticalTime" :minimumyaxis="smallGraphsMinimumYAxis.criticalTime" :avglabelcolor="'#2700CB'" />
+        <SmallGraph role="img" :aria-label="columnName.CRITICALTIME" :type="'critical-time'" :isdurationgraph="true" :plotdata="endpoint.metrics.criticalTime" :minimumyaxis="smallGraphsMinimumYAxis.criticalTime" :avglabelcolor="'#2700CB'" />
       </div>
       <div role="text" aria-label="sparkline" class="no-side-padding sparkline-value" :class="{ negative: parseFloat(criticalTimeGraphDuration.value) < 0 }">
         {{ endpoint.isStale == true || endpoint.isScMonitoringDisconnected == true ? "" : criticalTimeGraphDuration.value }}
