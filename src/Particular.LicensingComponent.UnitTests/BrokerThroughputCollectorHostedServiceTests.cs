@@ -132,7 +132,7 @@ class BrokerThroughputCollectorHostedServiceTests
         public Dictionary<string, string> Data { get; }
         public string MessageTransport { get; }
         public string ScopeType { get; }
-        public KeyDescriptionPair[] Settings { get; }
+        public KeyDescriptionPair[] Settings { get; } = [];
 
         public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
             CancellationToken cancellationToken) => throw new NotImplementedException();
@@ -174,7 +174,7 @@ class BrokerThroughputCollectorHostedServiceTests
         public Dictionary<string, string> Data { get; }
         public string MessageTransport { get; }
         public string ScopeType { get; }
-        public KeyDescriptionPair[] Settings { get; }
+        public KeyDescriptionPair[] Settings { get; } = [];
 
         public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
             CancellationToken cancellationToken) => throw new NotImplementedException();
