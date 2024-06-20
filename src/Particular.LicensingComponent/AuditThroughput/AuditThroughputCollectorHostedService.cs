@@ -42,14 +42,14 @@ public class AuditThroughputCollectorHostedService(
         }
         catch (OperationCanceledException)
         {
-            logger.LogInformation($"Stopping {nameof(AuditThroughputCollectorHostedService)} timer");
+            logger.LogInformation($"Stopping {nameof(AuditThroughputCollectorHostedService)}");
         }
     }
 
     private async Task GatherThroughput(CancellationToken cancellationToken)
     {
         var utcYesterday = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
-        logger.LogInformation($"Gathering throughput from audit for {utcYesterday.ToShortDateString}");
+        logger.LogInformation($"Gathering throughput from audit for {utcYesterday.ToShortDateString()}");
 
         await VerifyAuditInstances(cancellationToken);
 
