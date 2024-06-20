@@ -26,10 +26,10 @@ class BrokerThroughputCollectorHostedServiceTests
 
         var dataStore = new InMemoryLicensingDataStore();
         using var brokerThroughputCollectorHostedService = new BrokerThroughputCollectorHostedService(
-            NullLogger<BrokerThroughputCollectorHostedService>.Instance,
-            new MockedBrokerThroughputQuery(),
-            new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
-            dataStore, TimeProvider.System)
+                NullLogger<BrokerThroughputCollectorHostedService>.Instance,
+                new MockedBrokerThroughputQuery(),
+                new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
+                dataStore, TimeProvider.System)
         { DelayStart = TimeSpan.Zero };
         await brokerThroughputCollectorHostedService.StartAsync(token);
         await (brokerThroughputCollectorHostedService.ExecuteTask! ?? Task.CompletedTask);
@@ -52,10 +52,10 @@ class BrokerThroughputCollectorHostedServiceTests
         var fakeTimeProvider = new FakeTimeProvider();
         var mockedBrokerThroughputQueryThatThrowsExceptions = new MockedBrokerThroughputQueryThatThrowsExceptions();
         using var brokerThroughputCollectorHostedService = new BrokerThroughputCollectorHostedService(
-            NullLogger<BrokerThroughputCollectorHostedService>.Instance,
-            mockedBrokerThroughputQueryThatThrowsExceptions,
-            new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
-            dataStore, fakeTimeProvider)
+                NullLogger<BrokerThroughputCollectorHostedService>.Instance,
+                mockedBrokerThroughputQueryThatThrowsExceptions,
+                new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
+                dataStore, fakeTimeProvider)
         { DelayStart = TimeSpan.Zero };
         await brokerThroughputCollectorHostedService.StartAsync(token);
 
@@ -80,10 +80,10 @@ class BrokerThroughputCollectorHostedServiceTests
 
         var dataStore = new InMemoryLicensingDataStore();
         using var brokerThroughputCollectorHostedService = new BrokerThroughputCollectorHostedService(
-            NullLogger<BrokerThroughputCollectorHostedService>.Instance,
-            new MockedBrokerThroughputQuery(),
-            new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
-            dataStore, TimeProvider.System)
+                NullLogger<BrokerThroughputCollectorHostedService>.Instance,
+                new MockedBrokerThroughputQuery(),
+                new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
+                dataStore, TimeProvider.System)
         { DelayStart = TimeSpan.Zero };
         await brokerThroughputCollectorHostedService.StartAsync(token);
         await Task.Delay(TimeSpan.FromSeconds(2), token);
@@ -104,8 +104,7 @@ class BrokerThroughputCollectorHostedServiceTests
         {
         }
 
-        public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             GetGetThroughputPerDay++;
 
@@ -114,8 +113,7 @@ class BrokerThroughputCollectorHostedServiceTests
             throw new Exception("bang");
         }
 
-        public async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<IBrokerQueue> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken)
         {
             if (GetQueueNamesCalls++ % 2 == 0)
             {
@@ -160,8 +158,7 @@ class BrokerThroughputCollectorHostedServiceTests
             yield break;
         }
 
-        public async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<IBrokerQueue> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken)
         {
             yield return new DefaultBrokerQueue("sales@one") { SanitizedName = "sales" };
             yield return new DefaultBrokerQueue("sales@two") { SanitizedName = "sales" };

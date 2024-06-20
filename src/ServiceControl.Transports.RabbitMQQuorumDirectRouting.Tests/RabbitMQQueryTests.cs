@@ -12,7 +12,6 @@ using NUnit.Framework;
 using Particular.Approvals;
 using Transports;
 using Transports.RabbitMQ;
-using ServiceControl.Transports.BrokerThroughput;
 
 [TestFixture]
 class RabbitMQQueryTests : TransportTestFixture

@@ -16,11 +16,11 @@ class DataStoreBuilder(ILicensingDataStore store)
 
     public DataStoreBuilder AddEndpoint(string name = null, IEnumerable<ThroughputSource> sources = null)
     {
-        int index = endpoints.Count;
+        var index = endpoints.Count;
 
         name ??= Guid.NewGuid().ToString("N");
         sources ??= [ThroughputSource.Broker];
-        foreach (ThroughputSource source in sources)
+        foreach (var source in sources)
         {
             endpoints.Add(CreateEndpoint(index, name, source));
         }
@@ -28,40 +28,31 @@ class DataStoreBuilder(ILicensingDataStore store)
         return this;
     }
 
-    public DataStoreBuilder ConfigureEndpoint(Action<Endpoint> configureEndpoint) =>
-        ConfigureEndpoint(null, configureEndpoint);
+    public DataStoreBuilder ConfigureEndpoint(Action<Endpoint> configureEndpoint) => ConfigureEndpoint(null, configureEndpoint);
 
-    public DataStoreBuilder ConfigureEndpoint(ThroughputSource? source = null,
-        Action<Endpoint> configureEndpoint = null)
+    public DataStoreBuilder ConfigureEndpoint(ThroughputSource? source = null, Action<Endpoint> configureEndpoint = null)
     {
         Func<Endpoint, bool> predicate = source is null
             ? endpoint => true
             : endpoint => endpoint.Id.ThroughputSource == source.Value;
 
-        Endpoint endpoint = endpoints.LastOrDefault(predicate) ??
-                            throw new InvalidOperationException(
-                                $"Need to add an endpoint before calling {nameof(ConfigureEndpoint)}");
+        var endpoint = endpoints.LastOrDefault(predicate) ?? throw new InvalidOperationException($"Need to add an endpoint before calling {nameof(ConfigureEndpoint)}");
 
         configureEndpoint?.Invoke(endpoint);
 
         return this;
     }
 
-    public DataStoreBuilder WithThroughput(ThroughputSource? source = null, DateOnly? startDate = null,
-        int? days = null, IList<long> data = null)
+    public DataStoreBuilder WithThroughput(ThroughputSource? source = null, DateOnly? startDate = null, int? days = null, IList<long> data = null)
     {
-        Endpoint endpoint = endpoints.LastOrDefault() ??
-                            throw new InvalidOperationException(
-                                $"Need to add an endpoint before calling {nameof(WithThroughput)}");
+        var endpoint = endpoints.LastOrDefault() ?? throw new InvalidOperationException($"Need to add an endpoint before calling {nameof(WithThroughput)}");
 
         if (source is not null)
         {
-            Endpoint endpointForSource =
-                endpoints.SingleOrDefault(e => e.Id.Name == endpoint.Id.Name && e.Id.ThroughputSource == source);
+            var endpointForSource = endpoints.SingleOrDefault(e => e.Id.Name == endpoint.Id.Name && e.Id.ThroughputSource == source);
             if (endpointForSource is null)
             {
-                endpointForSource =
-                    new Endpoint(endpoint.Id.Name, source.Value) { SanitizedName = endpoint.SanitizedName };
+                endpointForSource = new Endpoint(endpoint.Id.Name, source.Value) { SanitizedName = endpoint.SanitizedName };
                 endpoints.Add(endpointForSource);
             }
 
@@ -71,15 +62,14 @@ class DataStoreBuilder(ILicensingDataStore store)
         source ??= endpoint.Id.ThroughputSource;
         if (endpoints.SingleOrDefault(e => e.Id.Name == endpoint.Id.Name && e.Id.ThroughputSource == source) == null)
         {
-            throw new InvalidOperationException(
-                $"Need to add endpoint {endpoint.Id.Name}:{source} before calling {nameof(WithThroughput)}");
+            throw new InvalidOperationException($"Need to add endpoint {endpoint.Id.Name}:{source} before calling {nameof(WithThroughput)}");
         }
 
         var idForThroughput = new EndpointIdentifier(endpoint.Id.Name, source.Value);
 
-        ThroughputData throughput = CreateThroughput(source.Value, startDate, days, data);
+        var throughput = CreateThroughput(source.Value, startDate, days, data);
 
-        if (endpointThroughput.TryGetValue(idForThroughput, out List<ThroughputData> throughputList))
+        if (endpointThroughput.TryGetValue(idForThroughput, out var throughputList))
         {
             throughputList.Add(throughput);
         }
@@ -93,19 +83,16 @@ class DataStoreBuilder(ILicensingDataStore store)
 
     public async Task Build()
     {
-        foreach (Endpoint endpoint in endpoints)
+        foreach (var endpoint in endpoints)
         {
             await store.SaveEndpoint(endpoint, default);
-        }
+        };
 
-        ;
-
-        foreach ((EndpointIdentifier endpointId, List<ThroughputData> throughputList) in endpointThroughput)
+        foreach (var (endpointId, throughputList) in endpointThroughput)
         {
-            foreach (ThroughputData throughput in throughputList)
+            foreach (var throughput in throughputList)
             {
-                await store.RecordEndpointThroughput(endpointId.Name, throughput.ThroughputSource,
-                    throughput.Select(entry => new EndpointDailyThroughput(entry.Key, entry.Value)).ToList(), default);
+                await store.RecordEndpointThroughput(endpointId.Name, throughput.ThroughputSource, throughput.Select(entry => new EndpointDailyThroughput(entry.Key, entry.Value)).ToList(), default);
             }
         }
     }
@@ -117,10 +104,9 @@ class DataStoreBuilder(ILicensingDataStore store)
         return new Endpoint(endpointName, source) { SanitizedName = endpointName };
     }
 
-    protected static ThroughputData CreateThroughput(ThroughputSource source, DateOnly? startDate = null,
-        int? days = null, IList<long> data = null)
+    protected static ThroughputData CreateThroughput(ThroughputSource source, DateOnly? startDate = null, int? days = null, IList<long> data = null)
     {
-        int numberOfThroughputEntries = days is not null && data is not null
+        var numberOfThroughputEntries = days is not null && data is not null
             ? Math.Max(days.Value, data.Count)
             : days ?? data?.Count ?? 1;
 
@@ -129,10 +115,10 @@ class DataStoreBuilder(ILicensingDataStore store)
             startDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-numberOfThroughputEntries);
         }
 
-        IEnumerable<EndpointDailyThroughput> throughput = Enumerable.Range(0, numberOfThroughputEntries)
+        var throughput = Enumerable.Range(0, numberOfThroughputEntries)
             .Select(i =>
             {
-                long messageCount = data is not null && i < data.Count
+                var messageCount = data is not null && i < data.Count
                     ? data[i]
                     : rng.Next(100);
 

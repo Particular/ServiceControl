@@ -3,7 +3,6 @@ namespace ServiceControl.Transports.RabbitMQ;
 
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
-using ServiceControl.Transports.BrokerThroughput;
 
 public class RabbitMQBrokerQueueDetails(JsonNode token) : IBrokerQueue
 {

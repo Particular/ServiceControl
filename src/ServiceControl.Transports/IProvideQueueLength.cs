@@ -1,9 +1,16 @@
 ﻿namespace ServiceControl.Transports
 {
-    using Microsoft.Extensions.Hosting;
+    using System;
+    using System.Threading.Tasks;
 
-    public interface IProvideQueueLength : IHostedService
+    public interface IProvideQueueLength
     {
+        void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store);
+
         void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack);
+
+        Task Start();
+
+        Task Stop();
     }
 }

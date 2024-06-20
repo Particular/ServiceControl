@@ -18,7 +18,6 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.ServiceBus;
 using Microsoft.Extensions.Logging;
-using ServiceControl.Transports.BrokerThroughput;
 
 public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings)
     : BrokerThroughputQuery(logger, "AzureServiceBus")

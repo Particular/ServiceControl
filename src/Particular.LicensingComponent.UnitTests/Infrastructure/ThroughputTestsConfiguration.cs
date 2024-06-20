@@ -19,8 +19,7 @@ class ThroughputTestsConfiguration
     public IAuditQuery AuditQuery { get; protected set; }
     public MonitoringService MonitoringService { get; protected set; }
 
-    public Task Configure(Action<ThroughputSettings> setThroughputSettings,
-        Action<ServiceCollection> setExtraDependencies)
+    public Task Configure(Action<ThroughputSettings> setThroughputSettings, Action<ServiceCollection> setExtraDependencies)
     {
         var throughputSettings = new ThroughputSettings("Particular.ServiceControl", "error", "Learning",
             "TestCustomer", "5.0.1");
@@ -43,7 +42,7 @@ class ThroughputTestsConfiguration
         serviceCollection.AddSingleton<IAuditQuery, AuditQuery>();
         serviceCollection.AddSingleton<MonitoringService>();
 
-        ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
+        var serviceProvider = serviceCollection.BuildServiceProvider();
 
         LicensingDataStore = serviceProvider.GetRequiredService<ILicensingDataStore>();
         ThroughputCollector = serviceProvider.GetRequiredService<IThroughputCollector>();

@@ -45,6 +45,9 @@ namespace Particular.ServiceControl
                 EventSourceCreator.Create();
             }
 
+            var transportCustomization = settings.LoadTransportCustomization();
+            var transportSettings = MapSettings(settings);
+
             var logging = hostBuilder.Logging;
             logging.ClearProviders();
             //HINT: configuration used by NLog comes from LoggingConfigurator.cs
@@ -52,15 +55,15 @@ namespace Particular.ServiceControl
             logging.SetMinimumLevel(settings.LoggingSettings.ToHostLogLevel());
 
             var services = hostBuilder.Services;
-            var transportSettings = settings.ToTransportSettings();
-            var transportCustomization = TransportFactory.Create(transportSettings);
-            transportCustomization.AddTransportForPrimary(services, transportSettings);
-
             services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
             services.AddSingleton<IDomainEvents, DomainEvents>();
+            services.AddSingleton(transportSettings);
+            services.AddSingleton(transportCustomization);
 
             services.AddSingleton<MessageStreamerHub>();
             services.AddSingleton(settings);
+
+            services.AddSingleton(TimeProvider.System);
 
             services.AddHttpLogging(options =>
             {
@@ -107,8 +110,20 @@ namespace Particular.ServiceControl
 
         public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder, Settings settings)
         {
-            var persistence = PersistenceFactory.Create(settings);
-            persistence.AddInstaller(hostApplicationBuilder.Services);
+            hostApplicationBuilder.Services.AddPersistenceInstallers(settings);
+        }
+
+        static TransportSettings MapSettings(Settings settings)
+        {
+            var transportSettings = new TransportSettings
+            {
+                EndpointName = settings.ServiceName,
+                ConnectionString = settings.TransportConnectionString,
+                MaxConcurrency = settings.MaximumConcurrencyLevel,
+                RunCustomChecks = true
+            };
+
+            return transportSettings;
         }
 
         static void RecordStartup(Settings settings, EndpointConfiguration endpointConfiguration)

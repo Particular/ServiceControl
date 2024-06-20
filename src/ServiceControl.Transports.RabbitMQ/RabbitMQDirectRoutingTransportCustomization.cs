@@ -2,8 +2,6 @@
 {
     using System;
     using System.Linq;
-    using BrokerThroughput;
-    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
 
     public abstract class RabbitMQDirectRoutingTransportCustomization : TransportCustomization<RabbitMQTransport>
@@ -17,6 +15,11 @@
         protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition, TransportSettings transportSettings) { }
 
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition, TransportSettings transportSettings) { }
+
+        public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
+
+        public override Type ThroughputQueryProvider => typeof(RabbitMQQuery);
+
         protected override RabbitMQTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
             if (transportSettings.ConnectionString == null)

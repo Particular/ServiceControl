@@ -1,8 +1,7 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
+    using System;
     using System.Linq;
-    using BrokerThroughput;
-    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
 
     public class ASBSTransportCustomization : TransportCustomization<AzureServiceBusTransport>
@@ -15,6 +14,9 @@
 
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+
+        public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
+        public override Type ThroughputQueryProvider => typeof(AzureQuery);
 
         protected override AzureServiceBusTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {

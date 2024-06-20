@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
-using ServiceControl.Transports.BrokerThroughput;
+
 public class SqlServerQuery(
     ILogger<SqlServerQuery> logger,
     TimeProvider timeProvider,
