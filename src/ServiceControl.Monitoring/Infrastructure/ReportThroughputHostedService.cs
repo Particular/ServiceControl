@@ -17,9 +17,7 @@
 
             try
             {
-                //await Task.Delay(DelayStart, cancellationToken);
-
-                using PeriodicTimer timer = new(TimeSpan.FromMinutes(throughputMinutes), timeProvider);
+                using PeriodicTimer timer = new(TimeSpan.FromMinutes(ReportSendingIntervalInMinutes), timeProvider);
 
                 do
                 {
@@ -29,7 +27,7 @@
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {
-                        logger.LogError(ex, $"Error obtaining throughput from Monitoring for {throughputMinutes} minutes interval.");
+                        logger.LogError(ex, $"Error obtaining throughput from Monitoring for {ReportSendingIntervalInMinutes} minutes interval.");
                     }
                 } while (await timer.WaitForNextTickAsync(cancellationToken));
             }
@@ -41,27 +39,27 @@
 
         async Task ReportOnThroughput(CancellationToken cancellationToken)
         {
-            var endpointData = endpointMetricsApi.GetAllEndpointsMetrics(throughputMinutes);
+            var endpointData = endpointMetricsApi.GetAllEndpointsMetrics(ReportSendingIntervalInMinutes);
 
             if (endpointData.Length > 0)
             {
                 var throughputData = new RecordEndpointThroughputData
                 {
                     EndDateTime = DateTime.UtcNow,
-                    StartDateTime = DateTime.UtcNow.AddMinutes(throughputMinutes),
+                    StartDateTime = DateTime.UtcNow.AddMinutes(ReportSendingIntervalInMinutes),
                     EndpointThroughputData = new EndpointThroughputData[endpointData.Length]
                 };
 
                 for (int i = 0; i < endpointData.Length; i++)
                 {
                     var average = endpointData[i].Metrics["Throughput"]?.Average ?? 0;
-                    throughputData.EndpointThroughputData[i] = new EndpointThroughputData { Name = endpointData[i].Name, Throughput = Convert.ToInt64(average * throughputMinutes * 60) };
+                    throughputData.EndpointThroughputData[i] = new EndpointThroughputData { Name = endpointData[i].Name, Throughput = Convert.ToInt64(average * ReportSendingIntervalInMinutes * 60) };
                 }
 
                 await session.Send(throughputData, cancellationToken);
             }
         }
 
-        static int throughputMinutes = 5;
+        static int ReportSendingIntervalInMinutes = 5;
     }
 }
