@@ -151,7 +151,7 @@ jobs:
         include:
           - name: servicecontrol
             project: ServiceControl
-            description: ServiceControl primary instance
+            description: ServiceControl error instance
           - name: servicecontrol-audit
             project: ServiceControl.Audit
             description: ServiceControl audit instance
