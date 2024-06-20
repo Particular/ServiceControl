@@ -1,0 +1,4 @@
+Connection test to Audit Instance was successful
+
+Connected to the following Audit instances:
+http://localhost:44444/api/
