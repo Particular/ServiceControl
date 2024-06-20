@@ -1,9 +1,8 @@
-﻿namespace ServiceControl.Hosting.Commands
+namespace ServiceControl.Hosting.Commands
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure.WebApi;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
@@ -11,6 +10,7 @@
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.WebApi;
 
     class ImportFailedErrorsCommand : AbstractCommand
     {

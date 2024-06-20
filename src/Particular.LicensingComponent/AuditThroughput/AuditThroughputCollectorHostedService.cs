@@ -1,10 +1,12 @@
 namespace Particular.LicensingComponent.AuditThroughput;
 
+using System;
+using System.Threading;
 using Contracts;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Persistence;
-using ServiceControl.Transports.BrokerThroughput;
+using ServiceControl.Transports;
 using Shared;
 
 public class AuditThroughputCollectorHostedService(
@@ -42,14 +44,14 @@ public class AuditThroughputCollectorHostedService(
         }
         catch (OperationCanceledException)
         {
-            logger.LogInformation($"Stopping {nameof(AuditThroughputCollectorHostedService)}");
+            logger.LogInformation($"Stopping {nameof(AuditThroughputCollectorHostedService)} timer");
         }
     }
 
-    private async Task GatherThroughput(CancellationToken cancellationToken)
+    async Task GatherThroughput(CancellationToken cancellationToken)
     {
         var utcYesterday = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
-        logger.LogInformation($"Gathering throughput from audit for {utcYesterday.ToShortDateString()}");
+        logger.LogInformation($"Gathering throughput from audit for {utcYesterday.ToShortDateString}");
 
         await VerifyAuditInstances(cancellationToken);
 
@@ -62,7 +64,7 @@ public class AuditThroughputCollectorHostedService(
             logger.LogWarning("No known endpoints could be found.");
         }
 
-        foreach (var tuple in await dataStore.GetEndpoints([.. knownEndpointsLookup.Keys], cancellationToken))
+        foreach (var tuple in await dataStore.GetEndpoints(knownEndpointsLookup.Keys, cancellationToken))
         {
             var endpointId = tuple.Id;
             var endpoint = tuple.Endpoint;
@@ -83,14 +85,13 @@ public class AuditThroughputCollectorHostedService(
             var missingAuditThroughput = auditCounts
                 .Where(auditCount => auditCount.UtcDate > endpoint.LastCollectedDate &&
                                      auditCount.UtcDate < DateOnly.FromDateTime(DateTime.UtcNow))
-                .Select(auditCount => new EndpointDailyThroughput(auditCount.UtcDate, auditCount.Count))
-                .ToList();
+                .Select(auditCount => new EndpointDailyThroughput(auditCount.UtcDate, auditCount.Count));
 
             await dataStore.RecordEndpointThroughput(endpoint.Id.Name, endpoint.Id.ThroughputSource, missingAuditThroughput, cancellationToken);
         }
     }
 
-    private Endpoint ConvertToEndpoint(ServiceControlEndpoint scEndpoint)
+    Endpoint ConvertToEndpoint(ServiceControlEndpoint scEndpoint)
     {
         var endpoint = new Endpoint(scEndpoint.Name, ThroughputSource.Audit)
         {
@@ -106,7 +107,7 @@ public class AuditThroughputCollectorHostedService(
         return endpoint;
     }
 
-    private async Task VerifyAuditInstances(CancellationToken cancellationToken)
+    async Task VerifyAuditInstances(CancellationToken cancellationToken)
     {
         var remotesInfo = await auditQuery.GetAuditRemotes(cancellationToken);
         await SaveAuditInstanceData(remotesInfo, cancellationToken);
@@ -130,7 +131,7 @@ public class AuditThroughputCollectorHostedService(
         }
     }
 
-    private async Task SaveAuditInstanceData(List<RemoteInstanceInformation>? auditRemotes, CancellationToken cancellationToken)
+    async Task SaveAuditInstanceData(List<RemoteInstanceInformation>? auditRemotes, CancellationToken cancellationToken)
     {
         AuditQueues = auditRemotes?.SelectMany(s => s.Queues)?.ToList() ?? [];
 

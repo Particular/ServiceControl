@@ -3,15 +3,15 @@ namespace ServiceControl.Persistence.RavenDB.Throughput.Indexes;
 
 using System.Linq;
 using Raven.Client.Documents.Indexes;
-using ServiceControl.Persistence.RavenDB.Throughput.Models;
+using Particular.LicensingComponent.Contracts;
 
-class EndpointIndex : AbstractIndexCreationTask<EndpointDocument>
+class EndpointIndex : AbstractIndexCreationTask<Endpoint>
 {
     public EndpointIndex() => Map = messages =>
         from message in messages
         select new
         {
-            message.EndpointId.ThroughputSource,
-            message.EndpointId.Name,
+            message.Id.ThroughputSource,
+            message.Id.Name,
         };
 }

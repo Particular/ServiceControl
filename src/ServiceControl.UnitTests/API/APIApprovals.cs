@@ -5,8 +5,6 @@
     using System.Linq;
     using System.Reflection;
     using System.Text;
-    using System.Threading.Tasks;
-    using Api.Contracts;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Controllers;
@@ -24,24 +22,24 @@
     class APIApprovals
     {
         [Test]
-        public async Task RootPathValue()
+        public void RootPathValue()
         {
             var httpContext = new DefaultHttpContext { Request = { Scheme = "http", Host = new HostString("localhost") } };
             var actionContext = new ActionContext { HttpContext = httpContext, RouteData = new RouteData(), ActionDescriptor = new ControllerActionDescriptor() };
             var controllerContext = new ControllerContext(actionContext);
 
             var controller = new RootController(new ConfigurationApi(
-                    new ActiveLicense { IsValid = true },
-                    new Settings(),
-                    null
+                new ActiveLicense { IsValid = true },
+                new Settings(),
+                httpClientFactory: null
                 )
-            )
+                )
             {
                 ControllerContext = controllerContext,
                 Url = new UrlHelper(actionContext)
             };
 
-            RootUrls result = await controller.Urls();
+            var result = controller.Urls();
 
             Approver.Verify(result);
         }

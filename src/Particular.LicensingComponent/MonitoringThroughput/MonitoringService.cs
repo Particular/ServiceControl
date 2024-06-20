@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Contracts;
 using Persistence;
-using ServiceControl.Transports.BrokerThroughput;
+using ServiceControl.Transports;
 using Shared;
 
 public class MonitoringService(ILicensingDataStore dataStore, IBrokerThroughputQuery? brokerThroughputQuery = null)
@@ -30,7 +30,7 @@ public class MonitoringService(ILicensingDataStore dataStore, IBrokerThroughputQ
                     endpoint = new Endpoint(e.Name, ThroughputSource.Monitoring)
                     {
                         SanitizedName = brokerThroughputQuery != null ? brokerThroughputQuery.SanitizeEndpointName(e.Name) : e.Name,
-                        EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()]
+                        EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()],
                     };
                     await dataStore.SaveEndpoint(endpoint, cancellationToken);
                 }

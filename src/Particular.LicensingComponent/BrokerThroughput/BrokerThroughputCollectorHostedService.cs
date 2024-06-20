@@ -1,12 +1,10 @@
 namespace Particular.LicensingComponent.BrokerThroughput;
 
-using System.Collections.Frozen;
 using Contracts;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Persistence;
-using ServiceControl.Configuration;
-using ServiceControl.Transports.BrokerThroughput;
+using ServiceControl.Transports;
 using Shared;
 
 public class BrokerThroughputCollectorHostedService(
@@ -21,14 +19,6 @@ public class BrokerThroughputCollectorHostedService(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        static FrozenDictionary<string, string> LoadBrokerSettingValues(IEnumerable<KeyDescriptionPair> brokerKeys)
-        {
-            return brokerKeys.Select(pair => KeyValuePair.Create(pair.Key, SettingsReader.Read<string>(ThroughputSettings.SettingsNamespace, pair.Key)))
-                .Where(pair => !string.IsNullOrEmpty(pair.Value)).ToFrozenDictionary(key => key.Key, key => key.Value);
-        }
-
-        brokerThroughputQuery.Initialise(LoadBrokerSettingValues(brokerThroughputQuery.Settings));
-
         if (brokerThroughputQuery.HasInitialisationErrors(out var errorMessage))
         {
             logger.LogError($"Could not start {nameof(BrokerThroughputCollectorHostedService)}, due to initialisation errors:\n{errorMessage}");
@@ -57,11 +47,11 @@ public class BrokerThroughputCollectorHostedService(
         }
         catch (OperationCanceledException)
         {
-            logger.LogInformation($"Stopping {nameof(BrokerThroughputCollectorHostedService)}");
+            logger.LogInformation($"Stopping {nameof(BrokerThroughputCollectorHostedService)} timer");
         }
     }
 
-    private async Task GatherThroughput(CancellationToken stoppingToken)
+    async Task GatherThroughput(CancellationToken stoppingToken)
     {
         logger.LogInformation("Gathering throughput from broker");
 
@@ -80,7 +70,7 @@ public class BrokerThroughputCollectorHostedService(
         }
 
         await Task.WhenAll(waitingTasks);
-        await dataStore.SaveBrokerMetadata(new BrokerMetadata(brokerThroughputQuery.ScopeType, brokerThroughputQuery.Data), stoppingToken);
+        await dataStore.SaveBrokerMetadata(new(brokerThroughputQuery.ScopeType, brokerThroughputQuery.Data), stoppingToken);
         return;
 
         async Task Exec(IBrokerQueue queueName, string postfix)
@@ -112,9 +102,9 @@ public class BrokerThroughputCollectorHostedService(
         }
     }
 
-    private class PostfixGenerator
+    class PostfixGenerator
     {
-        private readonly Dictionary<string, int> names = new(StringComparer.OrdinalIgnoreCase);
+        readonly Dictionary<string, int> names = new(StringComparer.OrdinalIgnoreCase);
 
         public string GetPostfix(string sanitizedName)
         {

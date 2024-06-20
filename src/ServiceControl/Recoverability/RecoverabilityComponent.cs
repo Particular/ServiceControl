@@ -23,7 +23,8 @@
 
     class RecoverabilityComponent : ServiceControlComponent
     {
-        public override void Configure(Settings settings, ITransportCustomization transportCustomization, IHostApplicationBuilder hostBuilder)
+        public override void Configure(Settings settings, ITransportCustomization transportCustomization,
+            IHostApplicationBuilder hostBuilder)
         {
             var services = hostBuilder.Services;
             services.AddPlatformConnectionProvider<RecoverabilityPlatformConnectionDetailsProvider>();

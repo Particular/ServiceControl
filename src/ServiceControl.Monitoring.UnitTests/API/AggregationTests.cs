@@ -2,12 +2,11 @@
 {
     using System;
     using System.Linq;
-    using Http.Diagrams;
     using Messaging;
     using Monitoring.Infrastructure;
-    using Monitoring.Infrastructure.Api;
     using NUnit.Framework;
     using QueueLength;
+    using ServiceControl.Monitoring.Infrastructure.Api;
     using Timings;
 
     [TestFixture]
@@ -57,9 +56,9 @@
             processingTimeStore.Store([dataA], instanceAId, EndpointMessageType.Unknown(instanceAId.EndpointName));
             processingTimeStore.Store([dataB], instanceBId, EndpointMessageType.Unknown(instanceBId.EndpointName));
 
-            MonitoredEndpointDetails result = endpointMetricsApi.GetSingleEndpointMetrics(instanceAId.EndpointName);
+            var result = endpointMetricsApi.GetSingleEndpointMetrics(instanceAId.EndpointName);
 
-            MonitoredEndpointDetails model = result;
+            var model = result;
 
             Assert.AreEqual(5, model.Instances[0].Metrics["ProcessingTime"].Average);
         }
@@ -90,7 +89,7 @@
             Array.ForEach(connected, instance => activityTracker.Record(instance, now));
             Array.ForEach(connected, instance => processingTimeStore.Store(samples, instance, EndpointMessageType.Unknown(instance.EndpointName)));
 
-            MonitoredEndpoint[] model = endpointMetricsApi.GetAllEndpointsMetrics();
+            var model = endpointMetricsApi.GetAllEndpointsMetrics();
             var item = model[0];
 
             Assert.AreEqual(3, item.EndpointInstanceIds.Length, nameof(item.EndpointInstanceIds));

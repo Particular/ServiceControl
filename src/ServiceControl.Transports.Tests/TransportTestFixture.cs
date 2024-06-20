@@ -3,15 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using Transports;
+    using ServiceControl.Transports;
 
     [TestFixture]
     class TransportTestFixture
@@ -23,7 +21,7 @@
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
             registrations = [];
-            queueSuffix = $"-{Path.GetRandomFileName().Replace(".", string.Empty)}";
+            queueSuffix = $"-{System.IO.Path.GetRandomFileName().Replace(".", string.Empty)}";
 
             await configuration.Configure();
 
@@ -35,7 +33,7 @@
         {
             if (queueLengthProvider != null)
             {
-                await queueLengthProvider.StopAsync(CancellationToken.None);
+                await queueLengthProvider.Stop();
             }
 
             if (queueIngestor != null)
@@ -76,41 +74,15 @@
             return source;
         }
 
-        protected TransportTestsConfiguration configuration;
-
-        protected async Task<IAsyncDisposable> StartQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
+        protected Task StartQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
         {
-            // The transport test fixture abuses the transport seam as if it was stateless can but it isn't really
-            // currently working around by creating a service collection per start call and then disposing the provider
-            // as part of the method scope. This could lead to potential problems later once we add disposable resources
-            // but this code probably requires a major overhaul anyway.
-            var serviceCollection = new ServiceCollection();
-            var transportSettings = new TransportSettings
-            {
-                ConnectionString = configuration.ConnectionString,
-                EndpointName = queueName,
-                MaxConcurrency = 1
-            };
-            configuration.TransportCustomization.AddTransportForMonitoring(serviceCollection, transportSettings);
-            serviceCollection.AddSingleton<Action<QueueLengthEntry[], EndpointToQueueMapping>>((qlt, _) =>
-                onQueueLengthReported(qlt.First()));
-            var serviceProvider = serviceCollection.BuildServiceProvider();
-            queueLengthProvider = serviceProvider.GetRequiredService<IProvideQueueLength>();
+            queueLengthProvider = configuration.TransportCustomization.CreateQueueLengthProvider();
 
-            await queueLengthProvider.StartAsync(CancellationToken.None);
+            queueLengthProvider.Initialize(configuration.ConnectionString, (qlt, _) => onQueueLengthReported(qlt.First()));
 
             queueLengthProvider.TrackEndpointInputQueue(new EndpointToQueueMapping(queueName, queueName));
 
-            return new QueueLengthProviderScope(serviceProvider);
-        }
-
-        sealed class QueueLengthProviderScope(ServiceProvider serviceProvider) : IAsyncDisposable
-        {
-            public async ValueTask DisposeAsync()
-            {
-                await serviceProvider.GetRequiredService<IProvideQueueLength>().StopAsync(CancellationToken.None);
-                await serviceProvider.DisposeAsync();
-            }
+            return queueLengthProvider.Start();
         }
 
         protected async Task StartQueueIngestor(
@@ -165,8 +137,6 @@
 
             return configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
         }
-
-        protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(60);
 
         protected async Task SendAndReceiveMessages(string queueName, int numMessagesToIngest)
         {
@@ -226,11 +196,14 @@
         }
 
         string queueSuffix;
+        public TransportTestsConfiguration configuration;
         CancellationTokenSource testCancellationTokenSource;
         List<CancellationTokenRegistration> registrations;
         IProvideQueueLength queueLengthProvider;
         IMessageReceiver queueIngestor;
         TransportInfrastructure transportInfrastructure;
         TransportInfrastructure dispatcherTransportInfrastructure;
+
+        static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(60);
     }
 }

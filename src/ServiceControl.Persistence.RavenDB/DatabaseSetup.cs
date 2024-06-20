@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.RavenDB
+﻿namespace ServiceControl.Persistence.RavenDB
 {
     using System.Threading;
     using System.Threading.Tasks;
@@ -29,16 +29,13 @@ namespace ServiceControl.Persistence.RavenDB
 
         async Task CreateDatabase(string databaseName, CancellationToken cancellationToken)
         {
-            DatabaseRecordWithEtag dbRecord =
-                await documentStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName),
-                    cancellationToken);
+            DatabaseRecordWithEtag dbRecord = await documentStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), cancellationToken);
 
             if (dbRecord == null)
             {
                 try
                 {
-                    await documentStore.Maintenance.Server.SendAsync(
-                        new CreateDatabaseOperation(new DatabaseRecord(databaseName)), cancellationToken);
+                    await documentStore.Maintenance.Server.SendAsync(new CreateDatabaseOperation(new DatabaseRecord(databaseName)), cancellationToken);
                 }
                 catch (ConcurrencyException)
                 {

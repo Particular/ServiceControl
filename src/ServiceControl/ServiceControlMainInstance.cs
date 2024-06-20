@@ -8,7 +8,7 @@ namespace Particular.ServiceControl
 
     static class ServiceControlMainInstance
     {
-        public static readonly ServiceControlComponent[] Components = {
+        public static readonly ServiceControlComponent[] Components = [
             new HostingComponent(),
             new EventLogComponent(),
             new ExternalIntegrationsComponent(),
@@ -16,6 +16,6 @@ namespace Particular.ServiceControl
             new HeartbeatMonitoringComponent(),
             new CustomChecksComponent(),
             new LicensingComponent()
-        };
+        ];
     }
 }

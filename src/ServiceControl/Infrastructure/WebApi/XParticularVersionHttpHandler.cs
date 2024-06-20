@@ -4,7 +4,10 @@
 
     class XParticularVersionHttpHandler : IResultFilter
     {
-        static XParticularVersionHttpHandler() => FileVersion = ServiceControlVersion.GetFileVersion();
+        static XParticularVersionHttpHandler()
+        {
+            FileVersion = ServiceControlVersion.GetFileVersion();
+        }
 
         static readonly string FileVersion;
         public void OnResultExecuting(ResultExecutingContext context)

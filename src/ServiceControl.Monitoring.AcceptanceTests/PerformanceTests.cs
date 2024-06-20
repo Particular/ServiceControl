@@ -3,15 +3,16 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Dynamic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using HdrHistogram;
     using Infrastructure;
-    using Infrastructure.Api;
     using Messaging;
     using NUnit.Framework;
     using QueueLength;
+    using ServiceControl.Monitoring.Infrastructure.Api;
     using Timings;
     using Transports;
 
@@ -24,7 +25,9 @@
             criticalTimeStore = new CriticalTimeStore();
             processingTimeStore = new ProcessingTimeStore();
             retriesStore = new RetriesStore();
+            queueLengthProvider = new FakeQueueLengthProvider();
             queueLengthStore = new QueueLengthStore();
+            queueLengthProvider.Initialize(string.Empty, (entryDtos, dto) => queueLengthStore.Store(entryDtos.Select(e => ToEntry(e)).ToArray(), ToEndpointInputQueue(dto)));
 
             var settings = new Settings { EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5) };
             activityTracker = new EndpointInstanceActivityTracker(settings);
@@ -46,6 +49,19 @@
             GetMonitoredSingleEndpoint = endpointName => endpointMetricsApi.GetSingleEndpointMetrics(endpointName);
         }
 
+        EndpointInputQueue ToEndpointInputQueue(EndpointToQueueMapping dto)
+        {
+            return new EndpointInputQueue(dto.EndpointName, dto.InputQueue);
+        }
+
+        RawMessage.Entry ToEntry(QueueLengthEntry entryDto)
+        {
+            return new RawMessage.Entry
+            {
+                DateTicks = entryDto.DateTicks,
+                Value = entryDto.Value
+            };
+        }
 
 #if DEBUG
         [Ignore("This test is long running and only runs in release mode")]
@@ -78,10 +94,10 @@
                 var elapsed = Stopwatch.GetTimestamp() - start;
                 histogram.RecordValue(elapsed);
 
-                await Task.Delay(queryEveryInMilliseconds, source.Token);
+                await Task.Delay(queryEveryInMilliseconds);
             }
 
-            await source.CancelAsync();
+            source.Cancel();
             await Task.WhenAll(reporters);
 
             var reportFinalHistogram = MergeHistograms(reporters);
@@ -137,10 +153,10 @@
                 var elapsed = Stopwatch.GetTimestamp() - start;
                 histogram.RecordValue(elapsed);
 
-                await Task.Delay(queryEveryInMilliseconds, source.Token);
+                await Task.Delay(queryEveryInMilliseconds);
             }
 
-            await source.CancelAsync();
+            source.Cancel();
             await Task.WhenAll(reporters);
 
             var reportFinalHistogram = MergeHistograms(reporters);
@@ -236,19 +252,40 @@
         ProcessingTimeStore processingTimeStore;
         RetriesStore retriesStore;
         QueueLengthStore queueLengthStore;
+        IProvideQueueLength queueLengthProvider;
         Action GetMonitoredEndpoints;
         Action<string> GetMonitoredSingleEndpoint;
         EndpointInstanceActivityTracker activityTracker;
     }
 
+    public static class DynamicExtensions
+    {
+        public static dynamic ToDynamic<T>(this T obj)
+        {
+            IDictionary<string, object> expando = new ExpandoObject();
+
+            foreach (var propertyInfo in typeof(T).GetProperties())
+            {
+                var currentValue = propertyInfo.GetValue(obj);
+                expando.Add(propertyInfo.Name, currentValue);
+            }
+
+            return (ExpandoObject)expando;
+        }
+    }
+
     class FakeQueueLengthProvider : IProvideQueueLength
     {
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
+        {
+        }
+
         public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
         }
 
-        public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task Start() => Task.CompletedTask;
 
-        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task Stop() => Task.CompletedTask;
     }
 }

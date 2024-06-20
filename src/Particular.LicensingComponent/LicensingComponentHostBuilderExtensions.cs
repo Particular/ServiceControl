@@ -1,16 +1,18 @@
 namespace Particular.LicensingComponent;
 
+using System.Collections.Frozen;
 using AuditThroughput;
 using BrokerThroughput;
 using Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MonitoringThroughput;
-using ServiceControl.Transports.BrokerThroughput;
+using ServiceControl.Configuration;
+using ServiceControl.Transports;
 
 public static class LicensingComponentHostBuilderExtensions
 {
-    public static IHostApplicationBuilder AddLicensingComponent(this IHostApplicationBuilder hostBuilder, string transportType, string errorQueue, string serviceControlQueue, string customerName, string serviceControlVersion)
+    public static IHostApplicationBuilder AddLicensingComponent(this IHostApplicationBuilder hostBuilder, string transportType, string errorQueue, string serviceControlQueue, string customerName, string serviceControlVersion, Type? throughputQueryProvider)
     {
         var services = hostBuilder.Services;
 
@@ -21,11 +23,23 @@ public static class LicensingComponentHostBuilderExtensions
         services.AddSingleton<IAuditQuery, AuditQuery>();
         services.AddSingleton<MonitoringService>();
 
-        if (services.Any(descriptor => descriptor.ServiceType == typeof(IBrokerThroughputQuery)))
+        if (throughputQueryProvider != null)
         {
             services.AddHostedService<BrokerThroughputCollectorHostedService>();
+            services.AddSingleton(throughputQueryProvider);
+            services.AddSingleton(provider =>
+            {
+                var queryProvider = (IBrokerThroughputQuery)provider.GetRequiredService(throughputQueryProvider);
+                queryProvider.Initialise(LoadBrokerSettingValues(queryProvider.Settings));
+
+                return queryProvider;
+            });
         }
 
         return hostBuilder;
+
+        static FrozenDictionary<string, string> LoadBrokerSettingValues(IEnumerable<KeyDescriptionPair> brokerKeys) =>
+            brokerKeys.Select(pair => KeyValuePair.Create(pair.Key, SettingsReader.Read<string>(ThroughputSettings.SettingsNamespace, pair.Key)))
+                .Where(pair => !string.IsNullOrEmpty(pair.Value)).ToFrozenDictionary(key => key.Key, key => key.Value);
     }
 }

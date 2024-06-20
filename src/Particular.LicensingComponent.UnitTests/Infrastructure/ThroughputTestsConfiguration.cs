@@ -1,58 +1,58 @@
-﻿namespace Particular.LicensingComponent.UnitTests.Infrastructure;
-
-using System;
-using System.Threading.Tasks;
-using AuditThroughput;
-using Contracts;
-using Microsoft.Extensions.DependencyInjection;
-using MonitoringThroughput;
-using Persistence;
-using Persistence.InMemory;
-using ServiceControl.Api;
-using ServiceControl.Transports.BrokerThroughput;
-
-class ThroughputTestsConfiguration
+﻿namespace Particular.LicensingComponent.UnitTests.Infrastructure
 {
-    public ILicensingDataStore LicensingDataStore { get; protected set; }
-    public IThroughputCollector ThroughputCollector { get; protected set; }
-    public ThroughputSettings ThroughputSettings { get; protected set; }
-    public IAuditQuery AuditQuery { get; protected set; }
-    public MonitoringService MonitoringService { get; protected set; }
+    using System;
+    using System.Threading.Tasks;
+    using AuditThroughput;
+    using Contracts;
+    using Microsoft.Extensions.DependencyInjection;
+    using MonitoringThroughput;
+    using Persistence;
+    using Persistence.InMemory;
+    using ServiceControl.Api;
+    using ServiceControl.Transports;
 
-    public Task Configure(Action<ThroughputSettings> setThroughputSettings,
-        Action<ServiceCollection> setExtraDependencies)
+    partial class ThroughputTestsConfiguration
     {
-        var throughputSettings = new ThroughputSettings("Particular.ServiceControl", "error", "Learning",
-            "TestCustomer", "5.0.1");
-        setThroughputSettings(throughputSettings);
+        public ILicensingDataStore LicensingDataStore { get; protected set; }
+        public IThroughputCollector ThroughputCollector { get; protected set; }
+        public ThroughputSettings ThroughputSettings { get; protected set; }
+        public IAuditQuery AuditQuery { get; protected set; }
+        public MonitoringService MonitoringService { get; protected set; }
 
-        var serviceCollection = new ServiceCollection();
-        serviceCollection.AddSingleton(throughputSettings);
+        public Task Configure(Action<ThroughputSettings> setThroughputSettings, Action<ServiceCollection> setExtraDependencies)
+        {
+            var throughputSettings = new ThroughputSettings("Particular.ServiceControl", "error", "Learning",
+                "TestCustomer", "5.0.1");
+            setThroughputSettings(throughputSettings);
 
-        serviceCollection.AddLogging();
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(throughputSettings);
 
-        serviceCollection.AddLicensingInMemoryPersistence();
+            serviceCollection.AddLogging();
 
-        setExtraDependencies(serviceCollection);
+            serviceCollection.AddLicensingInMemoryPersistence();
 
-        serviceCollection.AddSingleton<IEndpointsApi, FakeEndpointApi>();
-        serviceCollection.AddSingleton<IAuditCountApi, FakeAuditCountApi>();
-        serviceCollection.AddSingleton<IConfigurationApi, FakeConfigurationApi>();
-        serviceCollection.AddSingleton<IThroughputCollector, ThroughputCollector>();
-        serviceCollection.AddSingleton<IBrokerThroughputQuery, FakeBrokerThroughputQuery>();
-        serviceCollection.AddSingleton<IAuditQuery, AuditQuery>();
-        serviceCollection.AddSingleton<MonitoringService>();
+            setExtraDependencies(serviceCollection);
 
-        ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
+            serviceCollection.AddSingleton<IEndpointsApi, FakeEndpointApi>();
+            serviceCollection.AddSingleton<IAuditCountApi, FakeAuditCountApi>();
+            serviceCollection.AddSingleton<IConfigurationApi, FakeConfigurationApi>();
+            serviceCollection.AddSingleton<IThroughputCollector, ThroughputCollector>();
+            serviceCollection.AddSingleton<IBrokerThroughputQuery, FakeBrokerThroughputQuery>();
+            serviceCollection.AddSingleton<IAuditQuery, AuditQuery>();
+            serviceCollection.AddSingleton<MonitoringService>();
 
-        LicensingDataStore = serviceProvider.GetRequiredService<ILicensingDataStore>();
-        ThroughputCollector = serviceProvider.GetRequiredService<IThroughputCollector>();
-        ThroughputSettings = serviceProvider.GetRequiredService<ThroughputSettings>();
-        AuditQuery = serviceProvider.GetRequiredService<IAuditQuery>();
-        MonitoringService = serviceProvider.GetRequiredService<MonitoringService>();
+            var serviceProvider = serviceCollection.BuildServiceProvider();
 
-        return Task.CompletedTask;
+            LicensingDataStore = serviceProvider.GetRequiredService<ILicensingDataStore>();
+            ThroughputCollector = serviceProvider.GetRequiredService<IThroughputCollector>();
+            ThroughputSettings = serviceProvider.GetRequiredService<ThroughputSettings>();
+            AuditQuery = serviceProvider.GetRequiredService<IAuditQuery>();
+            MonitoringService = serviceProvider.GetRequiredService<MonitoringService>();
+
+            return Task.CompletedTask;
+        }
+
+        public Task Cleanup() => Task.CompletedTask;
     }
-
-    public Task Cleanup() => Task.CompletedTask;
 }

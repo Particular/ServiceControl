@@ -1,12 +1,8 @@
 ﻿namespace ServiceControl.RavenDB
 {
     using System.Reflection;
-    using System.Threading;
     using Raven.Client.Documents;
-    using Raven.Client.Documents.Conventions;
-    using Raven.Client.Http;
     using Raven.Client.ServerWide.Operations;
-    using Sparrow.Json;
 
     public static class StartupChecks
     {

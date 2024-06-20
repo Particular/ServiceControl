@@ -7,7 +7,8 @@ namespace ServiceControl.ExternalIntegrations
 
     class ExternalIntegrationsComponent : ServiceControlComponent
     {
-        public override void Configure(Settings settings, ITransportCustomization transportCustomization, IHostApplicationBuilder hostBuilder)
+        public override void Configure(Settings settings, ITransportCustomization transportCustomization,
+            IHostApplicationBuilder hostBuilder)
         {
             var services = hostBuilder.Services;
             services.AddEventLogMapping<ExternalIntegrationEventFailedToBePublishedDefinition>();

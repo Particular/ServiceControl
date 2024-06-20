@@ -8,15 +8,17 @@
     using global::RabbitMQ.Client;
     using NServiceBus.Logging;
 
-    class QueueLengthProvider : AbstractQueueLengthProvider
+    class QueueLengthProvider : IProvideQueueLength
     {
-        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store) : base(settings, store)
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
-            queryExecutor = new QueryExecutor(ConnectionString);
-            queryExecutor.Initialize();
+            queryExecutor = new QueryExecutor(connectionString);
+
+            this.store = store;
         }
 
-        public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack) =>
+        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
+        {
             endpointQueues.AddOrUpdate(queueToTrack.EndpointName, _ => queueToTrack.InputQueue, (_, currentValue) =>
             {
                 if (currentValue != queueToTrack.InputQueue)
@@ -26,28 +28,37 @@
 
                 return queueToTrack.InputQueue;
             });
+        }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        public Task Start()
         {
-            while (!stoppingToken.IsCancellationRequested)
+            queryExecutor.Initialize();
+
+            poller = Task.Run(async () =>
             {
-                try
+                var token = stoppedTokenSource.Token;
+                while (!token.IsCancellationRequested)
                 {
-                    await FetchQueueLengths(stoppingToken);
+                    try
+                    {
+                        await FetchQueueLengths(token);
 
-                    UpdateQueueLengths();
+                        UpdateQueueLengths();
 
-                    await Task.Delay(QueryDelayInterval, stoppingToken);
+                        await Task.Delay(QueryDelayInterval, token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // no-op
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Error("Queue length query loop failure.", e);
+                    }
                 }
-                catch (OperationCanceledException)
-                {
-                    // no-op
-                }
-                catch (Exception e)
-                {
-                    Logger.Error("Queue length query loop failure.", e);
-                }
-            }
+            });
+
+            return Task.CompletedTask;
         }
 
         void UpdateQueueLengths()
@@ -58,14 +69,15 @@
             {
                 if (sizes.TryGetValue(endpointQueuePair.Value, out var size))
                 {
-                    Store(
-                        [
+                    store(
+                        new[]
+                        {
                             new QueueLengthEntry
                             {
                                 DateTicks = nowTicks,
                                 Value = size
                             }
-                        ],
+                        },
                         new EndpointToQueueMapping(endpointQueuePair.Key, endpointQueuePair.Value));
                 }
             }
@@ -93,16 +105,38 @@
             }
         }
 
-        readonly QueryExecutor queryExecutor;
-        static readonly TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
-
-        readonly ConcurrentDictionary<string, string> endpointQueues = new ConcurrentDictionary<string, string>();
-        readonly ConcurrentDictionary<string, int> sizes = new ConcurrentDictionary<string, int>();
-
-        static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
-
-        class QueryExecutor(string connectionString) : IDisposable
+        public async Task Stop()
         {
+            stoppedTokenSource.Cancel();
+
+            await poller;
+
+            queryExecutor.Dispose();
+        }
+
+        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
+        QueryExecutor queryExecutor;
+        static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
+
+        ConcurrentDictionary<string, string> endpointQueues = new ConcurrentDictionary<string, string>();
+        ConcurrentDictionary<string, int> sizes = new ConcurrentDictionary<string, int>();
+
+        CancellationTokenSource stoppedTokenSource = new CancellationTokenSource();
+        Task poller;
+
+        static ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
+
+        class QueryExecutor : IDisposable
+        {
+            string connectionString;
+            IConnection connection;
+            IModel model;
+            ConnectionFactory connectionFactory;
+
+            public QueryExecutor(string connectionString)
+            {
+                this.connectionString = connectionString;
+            }
 
             public void Initialize()
             {
@@ -151,13 +185,12 @@
                 }
             }
 
-            public void Dispose() => connection?.Dispose();
+            TimeSpan ReconnectionDelay = TimeSpan.FromSeconds(5);
 
-            IConnection connection;
-            IModel model;
-            ConnectionFactory connectionFactory;
-
-            static readonly TimeSpan ReconnectionDelay = TimeSpan.FromSeconds(5);
+            public void Dispose()
+            {
+                connection?.Dispose();
+            }
         }
     }
 }

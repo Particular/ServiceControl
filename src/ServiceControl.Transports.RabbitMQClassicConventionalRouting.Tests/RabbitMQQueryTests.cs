@@ -11,7 +11,6 @@ using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 using Transports;
 using Transports.RabbitMQ;
-using ServiceControl.Transports.BrokerThroughput;
 
 [TestFixture]
 class RabbitMQQueryTests : TransportTestFixture

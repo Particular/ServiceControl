@@ -1,11 +1,10 @@
-namespace ServiceControl.Transports
+﻿namespace ServiceControl.Transports
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
@@ -14,13 +13,14 @@ namespace ServiceControl.Transports
     public interface ITransportCustomization
     {
         void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
-        void AddTransportForPrimary(IServiceCollection services, TransportSettings transportSettings);
 
         void CustomizeAuditEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
-        void AddTransportForAudit(IServiceCollection services, TransportSettings transportSettings);
 
         void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
-        void AddTransportForMonitoring(IServiceCollection services, TransportSettings transportSettings);
+
+        IProvideQueueLength CreateQueueLengthProvider();
+
+        Type ThroughputQueryProvider { get; }
 
         Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues);
 
@@ -34,42 +34,6 @@ namespace ServiceControl.Transports
         protected abstract void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, TTransport transportDefinition, TransportSettings transportSettings);
 
         protected abstract void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TTransport transportDefinition, TransportSettings transportSettings);
-
-        public void AddTransportForPrimary(IServiceCollection services, TransportSettings transportSettings)
-        {
-            services.AddSingleton<ITransportCustomization>(this);
-            services.AddSingleton(transportSettings);
-
-            AddTransportForPrimaryCore(services, transportSettings);
-        }
-
-        protected virtual void AddTransportForPrimaryCore(IServiceCollection services, TransportSettings transportSettings)
-        {
-        }
-
-        public void AddTransportForAudit(IServiceCollection services, TransportSettings transportSettings)
-        {
-            services.AddSingleton<ITransportCustomization>(this);
-            services.AddSingleton(transportSettings);
-
-            AddTransportForAuditCore(services, transportSettings);
-        }
-
-        protected virtual void AddTransportForAuditCore(IServiceCollection services, TransportSettings transportSettings)
-        {
-        }
-
-        public void AddTransportForMonitoring(IServiceCollection services, TransportSettings transportSettings)
-        {
-            services.AddSingleton<ITransportCustomization>(this);
-            services.AddSingleton(transportSettings);
-
-            AddTransportForMonitoringCore(services, transportSettings);
-        }
-
-        protected virtual void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
-        {
-        }
 
         public void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
@@ -108,6 +72,9 @@ namespace ServiceControl.Transports
             endpointConfiguration.DisableFeature<Sagas>();
             endpointConfiguration.SendFailedMessagesTo(transportSettings.ErrorQueue);
         }
+
+        public abstract IProvideQueueLength CreateQueueLengthProvider();
+        public abstract Type ThroughputQueryProvider { get; }
 
         public virtual async Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues)
         {
@@ -153,11 +120,11 @@ namespace ServiceControl.Transports
 
             if (createReceiver)
             {
-                receivers = [new ReceiveSettings(name, new QueueAddress(name), false, false, transportSettings.ErrorQueue)];
+                receivers = new[] { new ReceiveSettings(name, new QueueAddress(name), false, false, transportSettings.ErrorQueue) };
             }
             else
             {
-                receivers = [];
+                receivers = Array.Empty<ReceiveSettings>();
             }
 
             var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { transportSettings.ErrorQueue });

@@ -1,3 +1,4 @@
+
 namespace Particular.ServiceControl
 {
     using global::ServiceControl.Transports;

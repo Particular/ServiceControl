@@ -2,6 +2,8 @@
 {
     using NServiceBus;
 
-    public class RabbitMQClassicDirectRoutingTransportCustomization()
-        : RabbitMQDirectRoutingTransportCustomization(QueueType.Classic);
+    public class RabbitMQClassicDirectRoutingTransportCustomization : RabbitMQDirectRoutingTransportCustomization
+    {
+        public RabbitMQClassicDirectRoutingTransportCustomization() : base(QueueType.Classic) { }
+    }
 }

@@ -7,11 +7,11 @@
     <PackageVersion Include="Autofac" Version="8.0.0" />
     <PackageVersion Include="AWSSDK.CloudWatch" Version="3.7.303" />
     <PackageVersion Include="AWSSDK.SQS" Version="3.7.300.55" />
-    <PackageVersion Include="Azure.Core" Version="1.40.0" />
-    <PackageVersion Include="Azure.Identity" Version="1.12.0" />
-    <PackageVersion Include="Azure.Monitor.Query" Version="1.4.0" />
-    <PackageVersion Include="Azure.ResourceManager" Version="1.12.0" />
-    <PackageVersion Include="Azure.ResourceManager.ServiceBus" Version="1.0.1" />
+    <PackageVersion Include="Azure.Core" Version="1.38.0" />
+    <PackageVersion Include="Azure.Identity" Version="1.11.4" />
+    <PackageVersion Include="Azure.Monitor.Query" Version="1.2.0" />
+    <PackageVersion Include="Azure.ResourceManager" Version="1.10.2" />
+    <PackageVersion Include="Azure.ResourceManager.ServiceBus" Version="1.0.0" />
     <PackageVersion Include="ByteSize" Version="2.1.2" />
     <PackageVersion Include="Caliburn.Micro" Version="4.0.212" />
     <PackageVersion Include="DotNetZip" Version="1.16.0" />
@@ -56,14 +56,14 @@
     <PackageVersion Include="NUnit3TestAdapter" Version="4.5.0" />
     <PackageVersion Include="Particular.Approvals" Version="1.0.0" />
     <PackageVersion Include="Particular.Licensing.Sources" Version="5.1.0" />
-    <PackageVersion Include="Particular.LicensingComponent.Report" Version="1.0.0"/>
-    <PackageVersion Include="Polly.Core" Version="8.4.0" />
+    <PackageVersion Include="Particular.LicensingComponent.Report" Version="1.0.0-alpha.2" />
+    <PackageVersion Include="Polly.Core" Version="8.3.1" />
     <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
     <PackageVersion Include="PropertyChanging.Fody" Version="1.30.3" />
     <PackageVersion Include="PublicApiGenerator" Version="11.1.0" />
     <PackageVersion Include="RavenDB.Client" Version="5.4.118" />
     <PackageVersion Include="RavenDB.Embedded" Version="5.4.118" />
-    <PackageVersion Include="ReactiveUI.WPF" Version="20.1.1" />
+    <PackageVersion Include="ReactiveUI.WPF" Version="20.0.1" />
     <PackageVersion Include="ServiceControl.Contracts" Version="4.0.0" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
     <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="8.0.0" />

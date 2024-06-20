@@ -1,11 +1,12 @@
 ﻿namespace Particular.LicensingComponent;
 
+using System.Threading;
 using AuditThroughput;
 using Contracts;
 using MonitoringThroughput;
+using Particular.LicensingComponent.Report;
 using Persistence;
-using Report;
-using ServiceControl.Transports.BrokerThroughput;
+using ServiceControl.Transports;
 using Shared;
 using QueueThroughput = Report.QueueThroughput;
 
@@ -60,7 +61,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
     public async Task<List<EndpointThroughputSummary>> GetThroughputSummary(CancellationToken cancellationToken)
     {
         var endpoints = (await dataStore.GetAllEndpoints(false, cancellationToken)).ToList();
-        var queueNames = endpoints.Select(endpoint => endpoint.SanitizedName).Distinct().ToList();
+        var queueNames = endpoints.Select(endpoint => endpoint.SanitizedName).Distinct();
         var endpointThroughputPerQueue = await dataStore.GetEndpointThroughputByQueueName(queueNames, cancellationToken);
         var endpointSummaries = new List<EndpointThroughputSummary>();
 
@@ -80,7 +81,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
                 Name = endpointGroupPerQueue.FirstOrDefault(endpoint => endpoint.Id.Name != endpoint.SanitizedName)?.Id.Name ?? endpointGroupPerQueue.Key,
                 UserIndicator = UserIndicator(endpointGroupPerQueue) ?? (isKnownEndpoint ? Contracts.UserIndicator.NServiceBusEndpoint.ToString() : string.Empty),
                 IsKnownEndpoint = isKnownEndpoint,
-                MaxDailyThroughput = data.Max()
+                MaxDailyThroughput = data.Max(),
             };
 
             endpointSummaries.Add(endpointSummary);
@@ -93,7 +94,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
     {
         var reportGenerationState = new ReportGenerationState(transport)
         {
-            ReportCanBeGenerated = await dataStore.IsThereThroughputForLastXDays(30, cancellationToken)
+            ReportCanBeGenerated = await dataStore.IsThereThroughputForLastXDays(30, cancellationToken),
         };
 
         if (!reportGenerationState.ReportCanBeGenerated)
@@ -111,7 +112,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         CreateMasks(reportMasks.ToArray());
 
         var endpoints = (await dataStore.GetAllEndpoints(false, cancellationToken)).ToArray();
-        var queueNames = endpoints.Select(endpoint => endpoint.SanitizedName).Distinct().ToList();
+        var queueNames = endpoints.Select(endpoint => endpoint.SanitizedName).Distinct();
         var endpointThroughputPerQueue = await dataStore.GetEndpointThroughputByQueueName(queueNames, cancellationToken);
         var queueThroughputs = new List<QueueThroughput>();
         List<string> ignoredQueueNames = [];
@@ -188,7 +189,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         report.EnvironmentInformation.EnvironmentData.AddOrUpdate(EnvironmentDataType.AuditEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Audit).ToString());
         report.EnvironmentInformation.EnvironmentData.AddOrUpdate(EnvironmentDataType.MonitoringEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Monitoring).ToString());
 
-        var throughputReport = new SignedReport { ReportData = report, Signature = Signature.SignReport(report) };
+        var throughputReport = new SignedReport() { ReportData = report, Signature = Signature.SignReport(report) };
         return throughputReport;
 
         void CreateMasks(string[] wordsToMask)
@@ -214,13 +215,13 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         }
     }
 
-    private static string? UserIndicator(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.UserIndicator))?.UserIndicator;
+    static string? UserIndicator(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.UserIndicator))?.UserIndicator;
 
-    private static string? EndpointScope(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.Scope))?.Scope;
+    static string? EndpointScope(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.Scope))?.Scope;
 
-    private bool IsKnownEndpoint(IGrouping<string, Endpoint> endpoint) => endpoint.Any(s => s.EndpointIndicators != null && s.EndpointIndicators.Contains(EndpointIndicator.KnownEndpoint.ToString()));
+    bool IsKnownEndpoint(IGrouping<string, Endpoint> endpoint) => endpoint.Any(s => s.EndpointIndicators != null && s.EndpointIndicators.Contains(EndpointIndicator.KnownEndpoint.ToString()));
 
-    private string[]? EndpointIndicators(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.EndpointIndicators?.Any() == true)?.SelectMany(s => s.EndpointIndicators)?.Distinct()?.ToArray();
+    string[]? EndpointIndicators(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.EndpointIndicators?.Any() == true)?.SelectMany(s => s.EndpointIndicators)?.Distinct()?.ToArray();
 
-    private readonly string transport = throughputQuery?.MessageTransport ?? throughputSettings.TransportType;
+    string transport = throughputQuery?.MessageTransport ?? throughputSettings.TransportType;
 }

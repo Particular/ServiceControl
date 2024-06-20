@@ -2,6 +2,7 @@ namespace ServiceControl.Configuration;
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using static ValueConverter;
 
@@ -28,28 +29,21 @@ static partial class EnvironmentVariableSettingsReader
 
     static IEnumerable<string> GetFullKeyOptions(SettingsRootNamespace settingsNamespace, string name)
     {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            yield return $"{settingsNamespace}/{name}";
+        }
+
         var regex = SeparatorsRegex();
 
         var namespacedKey = regex.Replace($"{settingsNamespace}_{name}", "_");
         yield return namespacedKey.ToUpperInvariant();
         yield return namespacedKey;
 
-        // The 3 app namespaces can be loaded from env vars without the namespace, so settings like TransportType can be
-        // shared between all instances in a container .env file. Settings in all other namespaces must be fully specified.
-        if (CanSetWithoutNamespaceList.Contains(settingsNamespace))
-        {
-            var nameOnly = regex.Replace(name, "_");
-            yield return nameOnly.ToUpperInvariant();
-            yield return nameOnly;
-        }
+        var nameOnly = regex.Replace(name, "_");
+        yield return nameOnly.ToUpperInvariant();
+        yield return nameOnly;
     }
-
-    static readonly HashSet<SettingsRootNamespace> CanSetWithoutNamespaceList =
-    [
-        new SettingsRootNamespace("ServiceControl"),
-        new SettingsRootNamespace("ServiceControl.Audit"),
-        new SettingsRootNamespace("Monitoring")
-    ];
 
     [GeneratedRegex(@"[\./]")]
     private static partial Regex SeparatorsRegex();

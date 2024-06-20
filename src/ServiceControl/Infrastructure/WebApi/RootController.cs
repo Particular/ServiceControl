@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.WebApi
+namespace ServiceControl.Infrastructure.WebApi
 {
     using System.Threading;
     using System.Threading.Tasks;
@@ -13,16 +13,15 @@
     {
         [Route("")]
         [HttpGet]
-        public Task<RootUrls> Urls() => configurationApi.GetUrls(Request.GetDisplayUrl() + "/", default);
+        public RootUrls Urls() => configurationApi.GetUrls(Request.GetDisplayUrl() + "/", default).Result;
 
         [Route("instance-info")]
         [Route("configuration")]
         [HttpGet]
-        public Task<object> Config() => configurationApi.GetConfig(default);
+        public object Config() => configurationApi.GetConfig(default).Result;
 
         [Route("configuration/remotes")]
         [HttpGet]
-        public async Task<IActionResult> RemoteConfig(CancellationToken cancellationToken) =>
-            Ok(await configurationApi.GetRemoteConfigs(cancellationToken));
+        public async Task<IActionResult> RemoteConfig(CancellationToken cancellationToken) => Ok(await configurationApi.GetRemoteConfigs(cancellationToken));
     }
 }

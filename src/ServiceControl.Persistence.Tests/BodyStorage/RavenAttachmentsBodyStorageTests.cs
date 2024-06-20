@@ -13,7 +13,7 @@
     using ServiceControl.Persistence.UnitOfWork;
 
     [TestFixture]
-    sealed class AttachmentsBodyStorageTests : PersistenceTestBase
+    sealed class RavenAttachmentsBodyStorageTests : PersistenceTestBase
     {
         [Test]
         public async Task QueryByUniqueId()

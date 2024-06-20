@@ -1,9 +1,8 @@
 ﻿namespace ServiceControl.Transports.SqlServer
 {
+    using System;
     using System.Linq;
     using System.Runtime.CompilerServices;
-    using BrokerThroughput;
-    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
@@ -25,17 +24,8 @@
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        protected override void AddTransportForPrimaryCore(IServiceCollection services,
-            TransportSettings transportSettings)
-        {
-            services.AddSingleton<IBrokerThroughputQuery, SqlServerQuery>();
-        }
-
-        protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
-        {
-            services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
-            services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
-        }
+        public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
+        public override Type ThroughputQueryProvider => typeof(SqlServerQuery);
 
         protected override SqlServerTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {

@@ -5,6 +5,7 @@
     using System.IO;
     using System.Linq;
     using System.Text.Json;
+    using System.Text.Json.Serialization;
     using NServiceBus.Logging;
 
     public class PersistenceManifest
@@ -18,6 +19,11 @@
         public string Description { get; set; }
 
         public string AssemblyName { get; set; }
+
+        [JsonIgnore]
+        public string AssemblyPath => Location == null
+            ? null
+            : Path.Combine(Location, $"{AssemblyName}.dll");
 
         public string TypeName { get; set; }
 
@@ -43,7 +49,7 @@
                 return false;
             }
 
-            string partiallyQualifiedName = $"{type.FullName}, {type.Assembly.GetName().Name}";
+            var partiallyQualifiedName = $"{type.FullName}, {type.Assembly.GetName().Name}";
             return string.Equals(TypeName, partiallyQualifiedName, StringComparison.Ordinal);
         }
     }
@@ -107,6 +113,18 @@
             return persistenceManifest;
         }
 
+        public static string GetName(string persistenceType)
+        {
+            if (persistenceType == null)
+            {
+                throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
+            }
+
+            var persistenceManifestDefinition = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
+
+            return persistenceManifestDefinition?.Name ?? persistenceType;
+
+        }
         static readonly ILog logger = LogManager.GetLogger(typeof(PersistenceManifestLibrary));
     }
 }

@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.Tests;
+﻿namespace ServiceControl.Persistence.Tests;
 
 using System;
 using System.Diagnostics;
@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
+using Persistence.RavenDB;
 using Raven.Client.Documents;
-using ServiceControl.Persistence;
-using ServiceControl.Persistence.RavenDB;
 using ServiceControl.RavenDB;
 
 public class PersistenceTestsContext : IPersistenceTestsContext
@@ -44,7 +43,8 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 
     public async Task PostSetup(IHost host)
     {
-        DocumentStore = await host.Services.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore();
+        var provider = host.Services.GetRequiredService<IRavenDocumentStoreProvider>();
+        DocumentStore = await provider.GetDocumentStore();
         SessionProvider = host.Services.GetRequiredService<IRavenSessionProvider>();
 
         CompleteDatabaseOperation();

@@ -4,7 +4,6 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Api.Contracts;
     using Infrastructure.WebApi;
     using MessageCounting;
     using Microsoft.AspNetCore.Http;
@@ -14,6 +13,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Operations.BodyStorage;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Api.Contracts;
     using Yarp.ReverseProxy.Forwarder;
 
     // All routes matching `messages/*` must be in this controller as WebAPI cannot figure out the overlapping routes

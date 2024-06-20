@@ -13,7 +13,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 using Persistence.InMemory;
-using ServiceControl.Transports.BrokerThroughput;
+using ServiceControl.Transports;
+using QueueThroughput = ServiceControl.Transports.QueueThroughput;
 
 [TestFixture]
 class BrokerThroughputCollectorHostedServiceTests
@@ -26,10 +27,10 @@ class BrokerThroughputCollectorHostedServiceTests
 
         var dataStore = new InMemoryLicensingDataStore();
         using var brokerThroughputCollectorHostedService = new BrokerThroughputCollectorHostedService(
-            NullLogger<BrokerThroughputCollectorHostedService>.Instance,
-            new MockedBrokerThroughputQuery(),
-            new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
-            dataStore, TimeProvider.System)
+                NullLogger<BrokerThroughputCollectorHostedService>.Instance,
+                new MockedBrokerThroughputQuery(),
+                new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
+                dataStore, TimeProvider.System)
         { DelayStart = TimeSpan.Zero };
         await brokerThroughputCollectorHostedService.StartAsync(token);
         await (brokerThroughputCollectorHostedService.ExecuteTask! ?? Task.CompletedTask);
@@ -52,10 +53,10 @@ class BrokerThroughputCollectorHostedServiceTests
         var fakeTimeProvider = new FakeTimeProvider();
         var mockedBrokerThroughputQueryThatThrowsExceptions = new MockedBrokerThroughputQueryThatThrowsExceptions();
         using var brokerThroughputCollectorHostedService = new BrokerThroughputCollectorHostedService(
-            NullLogger<BrokerThroughputCollectorHostedService>.Instance,
-            mockedBrokerThroughputQueryThatThrowsExceptions,
-            new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
-            dataStore, fakeTimeProvider)
+                NullLogger<BrokerThroughputCollectorHostedService>.Instance,
+                mockedBrokerThroughputQueryThatThrowsExceptions,
+                new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
+                dataStore, fakeTimeProvider)
         { DelayStart = TimeSpan.Zero };
         await brokerThroughputCollectorHostedService.StartAsync(token);
 
@@ -80,10 +81,10 @@ class BrokerThroughputCollectorHostedServiceTests
 
         var dataStore = new InMemoryLicensingDataStore();
         using var brokerThroughputCollectorHostedService = new BrokerThroughputCollectorHostedService(
-            NullLogger<BrokerThroughputCollectorHostedService>.Instance,
-            new MockedBrokerThroughputQuery(),
-            new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
-            dataStore, TimeProvider.System)
+                NullLogger<BrokerThroughputCollectorHostedService>.Instance,
+                new MockedBrokerThroughputQuery(),
+                new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
+                dataStore, TimeProvider.System)
         { DelayStart = TimeSpan.Zero };
         await brokerThroughputCollectorHostedService.StartAsync(token);
         await Task.Delay(TimeSpan.FromSeconds(2), token);
@@ -101,11 +102,9 @@ class BrokerThroughputCollectorHostedServiceTests
         }
 
         public void Initialise(FrozenDictionary<string, string> settings)
-        {
-        }
+        { }
 
-        public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             GetGetThroughputPerDay++;
 
@@ -114,8 +113,7 @@ class BrokerThroughputCollectorHostedServiceTests
             throw new Exception("bang");
         }
 
-        public async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<IBrokerQueue> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken)
         {
             if (GetQueueNamesCalls++ % 2 == 0)
             {
@@ -132,11 +130,9 @@ class BrokerThroughputCollectorHostedServiceTests
         public Dictionary<string, string> Data { get; }
         public string MessageTransport { get; }
         public string ScopeType { get; }
-        public KeyDescriptionPair[] Settings { get; } = [];
-
+        public KeyDescriptionPair[] Settings { get; }
         public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
             CancellationToken cancellationToken) => throw new NotImplementedException();
-
         public string SanitizeEndpointName(string endpointName) => endpointName;
     }
 
@@ -149,8 +145,7 @@ class BrokerThroughputCollectorHostedServiceTests
         }
 
         public void Initialise(FrozenDictionary<string, string> settings)
-        {
-        }
+        { }
 
         public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
             [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -160,8 +155,7 @@ class BrokerThroughputCollectorHostedServiceTests
             yield break;
         }
 
-        public async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<IBrokerQueue> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken)
         {
             yield return new DefaultBrokerQueue("sales@one") { SanitizedName = "sales" };
             yield return new DefaultBrokerQueue("sales@two") { SanitizedName = "sales" };
@@ -174,11 +168,9 @@ class BrokerThroughputCollectorHostedServiceTests
         public Dictionary<string, string> Data { get; }
         public string MessageTransport { get; }
         public string ScopeType { get; }
-        public KeyDescriptionPair[] Settings { get; } = [];
-
+        public KeyDescriptionPair[] Settings { get; }
         public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
             CancellationToken cancellationToken) => throw new NotImplementedException();
-
         public string SanitizeEndpointName(string endpointName) => endpointName;
     }
 }

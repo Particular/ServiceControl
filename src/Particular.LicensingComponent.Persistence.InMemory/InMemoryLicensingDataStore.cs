@@ -32,7 +32,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.FromResult(endpoint);
     }
 
-    public Task<IEnumerable<(EndpointIdentifier, Endpoint?)>> GetEndpoints(IList<EndpointIdentifier> endpointIds, CancellationToken cancellationToken)
+    public Task<IEnumerable<(EndpointIdentifier, Endpoint?)>> GetEndpoints(IEnumerable<EndpointIdentifier> endpointIds, CancellationToken cancellationToken)
     {
         var endpointLookup = endpointIds.Select(id => (id, endpoints.TryGetValue(id, out var endpoint) ? endpoint : null));
 
@@ -61,7 +61,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.CompletedTask;
     }
 
-    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken)
+    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IEnumerable<string> queueNames, CancellationToken cancellationToken)
     {
         var result = endpoints
             .Where(endpoint => queueNames.Contains(endpoint.SanitizedName))
@@ -75,7 +75,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.FromResult((IDictionary<string, IEnumerable<ThroughputData>>)result);
     }
 
-    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken)
+    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IEnumerable<EndpointDailyThroughput> throughput, CancellationToken cancellationToken)
     {
         var id = new EndpointIdentifier(endpointName, throughputSource);
         if (!endpoints.TryGetValue(id, out _))
