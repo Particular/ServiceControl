@@ -4,7 +4,9 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Configuration;
 using Infrastructure;
+using Infrastructure.BackgroundTasks;
 using Infrastructure.Extensions;
 using Licensing;
 using Messaging;
@@ -19,8 +21,6 @@ using NServiceBus.Features;
 using NServiceBus.Metrics;
 using NServiceBus.Transport;
 using QueueLength;
-using ServiceControl.Configuration;
-using ServiceControl.Monitoring.Infrastructure.BackgroundTasks;
 using Timings;
 using Transports;
 
@@ -94,7 +94,7 @@ public static class HostApplicationBuilderExtensions
             var routing = new RoutingSettings(config.GetSettings());
             routing.RouteToEndpoint(typeof(RecordEndpointThroughputData), serviceControlThroughputDataQueue);
 
-            services.AddSingleton<ReportThroughputHostedService>();
+            services.AddHostedService<ReportThroughputHostedService>();
         }
 
 
