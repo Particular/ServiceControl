@@ -167,6 +167,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Api", "Servi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.LicensingComponent.Contracts", "Particular.LicensingComponent.Contracts\Particular.LicensingComponent.Contracts.csproj", "{6D07AC20-25B3-423F-A88E-64DED435DA06}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.LicensingComponent.Persistence.InMemory", "Particular.LicensingComponent.Persistence.InMemory\Particular.LicensingComponent.Persistence.InMemory.csproj", "{9D134CF7-F1A3-4935-BCBD-458406F8AA97}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -885,6 +887,18 @@ Global
 		{0EBBFE57-5760-43FC-A646-FE4C49F4BF59}.Release|x64.Build.0 = Release|Any CPU
 		{0EBBFE57-5760-43FC-A646-FE4C49F4BF59}.Release|x86.ActiveCfg = Release|Any CPU
 		{0EBBFE57-5760-43FC-A646-FE4C49F4BF59}.Release|x86.Build.0 = Release|Any CPU
+		{9D134CF7-F1A3-4935-BCBD-458406F8AA97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D134CF7-F1A3-4935-BCBD-458406F8AA97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D134CF7-F1A3-4935-BCBD-458406F8AA97}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9D134CF7-F1A3-4935-BCBD-458406F8AA97}.Debug|x64.Build.0 = Debug|Any CPU
+		{9D134CF7-F1A3-4935-BCBD-458406F8AA97}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9D134CF7-F1A3-4935-BCBD-458406F8AA97}.Debug|x86.Build.0 = Debug|Any CPU
+		{9D134CF7-F1A3-4935-BCBD-458406F8AA97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D134CF7-F1A3-4935-BCBD-458406F8AA97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D134CF7-F1A3-4935-BCBD-458406F8AA97}.Release|x64.ActiveCfg = Release|Any CPU
+		{9D134CF7-F1A3-4935-BCBD-458406F8AA97}.Release|x64.Build.0 = Release|Any CPU
+		{9D134CF7-F1A3-4935-BCBD-458406F8AA97}.Release|x86.ActiveCfg = Release|Any CPU
+		{9D134CF7-F1A3-4935-BCBD-458406F8AA97}.Release|x86.Build.0 = Release|Any CPU
 		{6D07AC20-25B3-423F-A88E-64DED435DA06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6D07AC20-25B3-423F-A88E-64DED435DA06}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D07AC20-25B3-423F-A88E-64DED435DA06}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -972,6 +986,7 @@ Global
 		{9682F7C5-C631-4924-A698-4C355BB14540} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
 		{0EBBFE57-5760-43FC-A646-FE4C49F4BF59} = {C22BFC89-851E-4D42-A878-C13B3F206908}
 		{C22BFC89-851E-4D42-A878-C13B3F206908} = {2D732554-9C3D-4509-8D0B-5595266A4D92}
+		{9D134CF7-F1A3-4935-BCBD-458406F8AA97} = {C22BFC89-851E-4D42-A878-C13B3F206908}
 		{6D07AC20-25B3-423F-A88E-64DED435DA06} = {2D732554-9C3D-4509-8D0B-5595266A4D92}
 EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
