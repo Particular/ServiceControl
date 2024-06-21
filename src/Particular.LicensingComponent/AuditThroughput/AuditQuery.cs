@@ -19,7 +19,7 @@
 
         public async Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken)
         {
-            var endpoints = await endpointsApi.GetEndpoints(default);
+            var endpoints = await endpointsApi.GetEndpoints(cancellationToken);
 
             var scEndpoints = endpoints?.Select(endpoint => new
             {
