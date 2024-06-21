@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { useFetchFromServiceControl, useTypedFetchFromServiceControl, serviceControlUrl } from "../../composables/serviceServiceControlUrls";
 import { useArchiveMessage, useRetryMessages, useUnarchiveMessage } from "../../composables/serviceFailedMessage";
-import { useDownloadFile } from "../../composables/fileDownloadCreator";
+import { useDownloadFileFromString } from "../../composables/fileDownloadCreator";
 import { useShowToast } from "../../composables/toast";
 import NoData from "../NoData.vue";
 import TimeSince from "../TimeSince.vue";
@@ -303,7 +303,7 @@ function exportMessage() {
   txtStr += "\n\nMESSAGE BODY\n";
   txtStr += failedMessage.value?.messageBody;
 
-  useDownloadFile(txtStr, "text/txt", "failedMessage.txt");
+  useDownloadFileFromString(txtStr, "text/txt", "failedMessage.txt");
   useShowToast(TYPE.INFO, "Info", "Message export completed.");
 }
 

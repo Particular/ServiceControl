@@ -144,6 +144,9 @@ span.connection-failed i,
   color: #ce4844 !important;
 }
 
+.failed-validation {
+  margin-left: 5px;
+}
 span.connection-test {
   position: relative;
   top: 14px;
