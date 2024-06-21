@@ -35,39 +35,39 @@ import { serviceControlUrl } from "@/composables/serviceServiceControlUrls";
 .sp-loader {
   width: 100%;
   height: 90vh;
-  margin-top: -100px;
+  margin-top: -6.25em;
   background-image: url("@/assets/sp-loader.gif");
-  background-size: 150px 150px;
+  background-size: 9.375em 9.375em;
   background-position: center center;
   background-repeat: no-repeat;
 }
 .unsupported {
-  margin: 60px auto 120px;
-  max-width: 520px;
-  line-height: 26px;
+  margin: 3.75em auto 7.5em;
+  max-width: 32.5em;
+  line-height: 1.625em;
 }
 
 .unsupported h1 {
-  font-size: 30px;
+  font-size: 1.875em;
 }
 .unsupported p {
-  font-size: 16px;
-  margin-bottom: 20px;
-  margin-top: -18px;
+  font-size: 1em;
+  margin-bottom: 1.25em;
+  margin-top: -1.125em;
 }
 
 .unsupported ul {
   padding-left: 0;
   text-align: left;
-  font-size: 16px;
-  margin-bottom: 30px;
+  font-size: 1em;
+  margin-bottom: 1.875em;
 }
 
 .unsupported .btn {
-  font-size: 16px;
+  font-size: 1em;
 }
 
 .unsupported a.btn.btn-default.btn-secondary {
-  margin-left: 10px;
+  margin-left: 0.625em;
 }
 </style>
