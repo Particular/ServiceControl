@@ -20,27 +20,16 @@
 
         public static bool TryImportLicense(string licenseFile, out string errorMessage)
         {
-            var licenseText = NonBlockingReader.ReadAllTextWithoutLocking(licenseFile);
+            var license = new LicenseSourceFilePath(licenseFile);
+            var result = license.Find("ServiceControl");
 
-            if (!LicenseVerifier.TryVerify(licenseText, out _))
+            if (result.License is null)
             {
-                errorMessage = "Invalid license file";
+                errorMessage = result.Result;
                 return false;
             }
 
-            if (!TryDeserializeLicense(licenseText, out var license))
-            {
-                errorMessage = "Invalid license file";
-                return false;
-            }
-
-            if (!license.ValidForApplication("ServiceControl"))
-            {
-                errorMessage = "License is not for ServiceControl";
-                return false;
-            }
-
-            if (license.HasExpired())
+            if (result.License.HasExpired())
             {
                 errorMessage = "Failed to import because the license has expired";
                 return false;
@@ -48,6 +37,7 @@
 
             try
             {
+                var licenseText = NonBlockingReader.ReadAllTextWithoutLocking(licenseFile);
                 var machineLevelLicenseLocation = LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData);
                 new FilePathLicenseStore().StoreLicense(machineLevelLicenseLocation, licenseText);
             }
@@ -62,19 +52,5 @@
         }
 
         public static DateTime GetReleaseDate() => ReleaseDateReader.GetReleaseDate();
-
-        static bool TryDeserializeLicense(string licenseText, out License license)
-        {
-            license = null;
-            try
-            {
-                license = LicenseDeserializer.Deserialize(licenseText);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
     }
 }
