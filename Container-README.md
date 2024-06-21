@@ -15,17 +15,17 @@ The following is the most basic way to create ServiceControl containers using [D
 
 ```shell
 # Run with setup entry point to create message queues, then exit and remove the container
-docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -e LICENCETEXT=$LICENSETEXT -rm particular/servicecontrol:latest --setup
-docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -e LICENCETEXT=$LICENSETEXT -rm particular/servicecontrol-audit:latest --setup
-docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString="host=host.docker.internal" -e LICENCETEXT=$LICENSETEXT -rm particular/servicecontrol-monitoring:latest --setup
+docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -rm particular/servicecontrol:latest --setup
+docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -rm particular/servicecontrol-audit:latest --setup
+docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString="host=host.docker.internal" -rm particular/servicecontrol-monitoring:latest --setup
 
 # Run one instance of the database
 docker run -d -p 8080:8080 particular/servicecontrol-ravendb:latest-x64
 
 # Run the instances in normal mode
-docker run -d -p 33333:33333 -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -e LICENCETEXT=$LICENSETEXT -e RavenDB_ConnectionString='http://host.docker.internal:8080' -e RemoteInstances='[{"api_uri":"http://host.docker.internal:44444/api"}]' particular/servicecontrol:latest
-docker run -d -p 44444:44444 -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -e LICENCETEXT=$LICENSETEXT -e RavenDB_ConnectionString='http://host.docker.internal:8080' particular/servicecontrol-audit:latest
-docker run -d -p 33633:33633 -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString="host=host.docker.internal" -e LICENCETEXT=$LICENSETEXT particular/servicecontrol-monitoring:latest
+docker run -d -p 33333:33333 -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -e RavenDB_ConnectionString='http://host.docker.internal:8080' -e RemoteInstances='[{"api_uri":"http://host.docker.internal:44444/api"}]' particular/servicecontrol:latest
+docker run -d -p 44444:44444 -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -e RavenDB_ConnectionString='http://host.docker.internal:8080' particular/servicecontrol-audit:latest
+docker run -d -p 33633:33633 -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString="host=host.docker.internal" particular/servicecontrol-monitoring:latest
 ```
 
 ## Image tagging
