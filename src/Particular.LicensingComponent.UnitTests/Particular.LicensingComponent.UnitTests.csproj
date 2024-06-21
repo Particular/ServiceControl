@@ -5,16 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="ThroughputCollector\throughput-report-v1.0.json" />
-    <None Remove="ThroughputCollector\throughput-report-v2.0.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="ThroughputCollector\throughput-report-v1.0.json" />
-    <EmbeddedResource Include="ThroughputCollector\throughput-report-v2.0.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Particular.LicensingComponent.Persistence.InMemory\Particular.LicensingComponent.Persistence.InMemory.csproj" />
     <ProjectReference Include="..\Particular.LicensingComponent\Particular.LicensingComponent.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
