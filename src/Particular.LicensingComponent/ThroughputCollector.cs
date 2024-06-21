@@ -98,7 +98,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
 
         if (!reportGenerationState.ReportCanBeGenerated)
         {
-            reportGenerationState.Reason = "24hrs worth of data needs to exist in the last 30 days.";
+            reportGenerationState.Reason = "24 hours worth of data needs to exist in the last 30 days.";
         }
 
         return reportGenerationState;
