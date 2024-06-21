@@ -26,12 +26,12 @@ const props = defineProps<{
 
 <style scoped>
 .dropdown .dropdown-menu {
-  top: 36px;
-  margin-left: 72px;
+  top: 2.25em;
+  margin-left: 4.5em;
 }
 
 .btn.btn-dropdown {
-  padding: 8px 16px;
+  padding: 0.5em 1em;
 }
 
 .btn.dropdown-toggle::after {

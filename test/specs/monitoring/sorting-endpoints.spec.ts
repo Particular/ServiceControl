@@ -6,7 +6,6 @@ import { endpointGroup } from "./questions/endpointGroup";
 import { sortEndpointsBy } from "./actions/sortEndpointsBy";
 import { findSortImageInColumn } from "./questions/sortDirection";
 import { smallGraphAverageValuesByColumn, columnName } from "./questions/smallGraphAverageValuesByColumn";
-import { ungroupedEndpointNames } from "./questions/ungroupedEndpointNames";
 import * as precondition from "../../preconditions";
 import { monitoredEndpointTemplate } from "../../mocks/monitored-endpoint-template";
 import { Endpoint } from "@/resources/MonitoringEndpoint";
@@ -110,7 +109,7 @@ describe("FEATURE: Endpoint sorting", () => {
 
       //Act
       await driver.goTo("monitoring");
-      
+
       //retrieve the endpoint names as a way to ensure the monitoring page finished rendering the endpoint list
       await endpointsNames();
       //Assert
@@ -214,7 +213,7 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.QUEUELENGTH }); // Act: Click the column title once for descending
 
       //Assert
-      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]);
+      expect(await endpointsNames()).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]);
       const avgValues = await smallGraphAverageValuesByColumn({ column: columnName.QUEUELENGTH });
       expect(avgValues).toEqual(["4.1", "2.1", "1.1"]);
     });
@@ -242,7 +241,7 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.QUEUELENGTH }); // Act: Click the column title once for ascending
 
       //Assert
-      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]);
+      expect(await endpointsNames()).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]);
       const ascendingAvgValues = await smallGraphAverageValuesByColumn({ column: columnName.QUEUELENGTH });
       expect(ascendingAvgValues).toEqual(["1.1", "2.1", "4.1"]);
     });
@@ -272,7 +271,7 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.THROUGHPUT }); // Act: Click the column title once for descending
 
       //Assert
-      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]);
+      expect(await endpointsNames()).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]);
       const avgValues = await smallGraphAverageValuesByColumn({ column: columnName.THROUGHPUT });
       expect(avgValues).toEqual(["4.1", "2.1", "1.1"]);
     });
@@ -300,7 +299,7 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.THROUGHPUT }); // Act: Click the column title once for ascending
 
       //Assert
-      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]);
+      expect(await endpointsNames()).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]);
       const ascendingAvgValues = await smallGraphAverageValuesByColumn({ column: columnName.THROUGHPUT });
       expect(ascendingAvgValues).toEqual(["1.1", "2.1", "4.1"]);
     });
@@ -330,7 +329,7 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.SCHEDULEDRETRIES }); // Act: Click the column title once for descending
 
       //Assert
-      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]);
+      expect(await endpointsNames()).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]);
       const avgValues = await smallGraphAverageValuesByColumn({ column: columnName.SCHEDULEDRETRIES });
       expect(avgValues).toEqual(["4.1", "2.1", "1.1"]);
     });
@@ -358,7 +357,7 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.SCHEDULEDRETRIES }); // Act: Click the column title once for ascending
 
       //Assert
-      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]);
+      expect(await endpointsNames()).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]);
       const ascendingAvgValues = await smallGraphAverageValuesByColumn({ column: columnName.SCHEDULEDRETRIES });
       expect(ascendingAvgValues).toEqual(["1.1", "2.1", "4.1"]);
     });
@@ -388,7 +387,7 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.PROCESSINGTIME }); // Act: Click the column title once for descending
 
       //Assert
-      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]);
+      expect(await endpointsNames()).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]);
       const avgValues = await smallGraphAverageValuesByColumn({ column: columnName.PROCESSINGTIME });
       expect(avgValues).toEqual(["800", "350", "225"]);
     });
@@ -416,7 +415,7 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.PROCESSINGTIME }); // Act: Click the column title once for ascending
 
       //Assert
-      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]);
+      expect(await endpointsNames()).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]);
       const ascendingAvgValues = await smallGraphAverageValuesByColumn({ column: columnName.PROCESSINGTIME });
       expect(ascendingAvgValues).toEqual(["225", "350", "800"]);
     });
@@ -446,7 +445,7 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.CRITICALTIME }); // Act: Click the column title once for descending
 
       //Assert
-      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]);
+      expect(await endpointsNames()).toEqual(["Endpoint2", "Endpoint1", "Endpoint3"]);
       const avgValues = await smallGraphAverageValuesByColumn({ column: columnName.CRITICALTIME });
       expect(avgValues).toEqual(["800", "350", "225"]);
     });
@@ -473,7 +472,7 @@ describe("FEATURE: Endpoint sorting", () => {
       await sortEndpointsBy({ column: columnName.CRITICALTIME }); // Act: Click the column title once for ascending
 
       //Assert
-      expect(ungroupedEndpointNames().Endpoints).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]);
+      expect(await endpointsNames()).toEqual(["Endpoint3", "Endpoint1", "Endpoint2"]);
       const ascendingAvgValues = await smallGraphAverageValuesByColumn({ column: columnName.CRITICALTIME });
       expect(ascendingAvgValues).toEqual(["225", "350", "800"]);
     });

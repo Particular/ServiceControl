@@ -1,4 +1,4 @@
-import { expect} from "vitest";
+import { expect } from "vitest";
 import { it, describe } from "../../drivers/vitest/driver";
 import * as precondition from "../../preconditions";
 import { endpointsNames } from "../monitoring/questions/endpointsNames";
@@ -10,9 +10,9 @@ describe("FEATURE: app.constants.js", () => {
       await driver.setUp(precondition.serviceControlWithMonitoring);
       window.defaultConfig.default_route = "/dashboard";
 
-      //act      
+      //act
       await driver.goTo("/");
-      
+
       expect(window.location.href).toBe("http://localhost:3000/#/dashboard");
     });
 
@@ -39,19 +39,19 @@ describe("FEATURE: app.constants.js", () => {
 
       //act
       await driver.goTo("");
-      
-      expect(window.location.href).toBe("http://localhost:3000/#/");      
+
+      expect(window.location.href).toBe("http://localhost:3000/#/");
     });
 
     it("EXAMPLE: default route is set to /", async ({ driver }) => {
       //Arrange
-      await driver.setUp(precondition.serviceControlWithMonitoring);  
+      await driver.setUp(precondition.serviceControlWithMonitoring);
       window.defaultConfig.default_route = "/";
-  
+
       //act
-      await driver.goTo("");  
-      
-      expect(window.location.href).toBe("http://localhost:3000/#/");      
+      await driver.goTo("");
+
+      expect(window.location.href).toBe("http://localhost:3000/#/");
     });
   });
 });

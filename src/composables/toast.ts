@@ -16,10 +16,8 @@ export function useShowToast(type: TYPE, title: string, message: string, doNotUs
     },
   };
   toast(content, {
-    ...{
-     timeout: doNotUseTimeout ? false : undefined,
-     type: type,
-    },
-    ...options
+    timeout: doNotUseTimeout ? false : undefined,
+    type: type,
+    ...options,
   });
 }
