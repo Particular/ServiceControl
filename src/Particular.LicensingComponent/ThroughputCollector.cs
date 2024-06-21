@@ -183,10 +183,10 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         report.StartTime = new DateTimeOffset(new[] { firstAuditThroughputDate, firstMonitoringThroughputDate, firstBrokerThroughputDate }.Min(), TimeSpan.Zero);
         report.ReportDuration = report.EndTime - report.StartTime;
 
-        report.EnvironmentInformation.EnvironmentData.AddOrUpdate(EnvironmentDataType.ServiceControlVersion.ToString(), throughputSettings.ServiceControlVersion);
-        report.EnvironmentInformation.EnvironmentData.AddOrUpdate(EnvironmentDataType.ServicePulseVersion.ToString(), spVersion);
-        report.EnvironmentInformation.EnvironmentData.AddOrUpdate(EnvironmentDataType.AuditEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Audit).ToString());
-        report.EnvironmentInformation.EnvironmentData.AddOrUpdate(EnvironmentDataType.MonitoringEnabled.ToString(), endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Monitoring).ToString());
+        report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.ServiceControlVersion.ToString()] = throughputSettings.ServiceControlVersion;
+        report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.ServicePulseVersion.ToString()] = spVersion;
+        report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.AuditEnabled.ToString()] = endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Audit).ToString();
+        report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.MonitoringEnabled.ToString()] = endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Monitoring).ToString();
 
         var throughputReport = new SignedReport { ReportData = report, Signature = Signature.SignReport(report) };
         return throughputReport;
