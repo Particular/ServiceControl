@@ -1,0 +1,5 @@
+Connection test to Audit Instance failed:
+http://localhost:44444/api/ - retention period of ServiceControl Audit instance is set to 1 days (minimum is 2 days),  hence audit throughput data will not be available.
+
+Connection attempted to the following Audit instances:
+http://localhost:44444/api/

@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure.WebApi;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
@@ -23,6 +24,7 @@
 
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
+            hostBuilder.AddServiceControlApi();
 
             using var app = hostBuilder.Build();
             await app.StartAsync();

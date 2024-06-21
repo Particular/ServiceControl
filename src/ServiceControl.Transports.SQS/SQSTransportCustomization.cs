@@ -26,10 +26,15 @@
 
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition, TransportSettings transportSettings) { }
 
+        protected override void AddTransportForPrimaryCore(IServiceCollection services,
+            TransportSettings transportSettings)
+        {
+            services.AddSingleton<IBrokerThroughputQuery, AmazonSQSQuery>();
+        }
+
         protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
         {
             services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
-            services.AddSingleton<IBrokerThroughputQuery, AmazonSQSQuery>();
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
 

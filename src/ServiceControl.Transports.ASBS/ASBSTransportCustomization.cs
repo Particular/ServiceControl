@@ -36,10 +36,15 @@
             return transport;
         }
 
+        protected override void AddTransportForPrimaryCore(IServiceCollection services,
+            TransportSettings transportSettings)
+        {
+            services.AddSingleton<IBrokerThroughputQuery, AzureQuery>();
+        }
+
         protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
         {
             services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
-            services.AddSingleton<IBrokerThroughputQuery, AzureQuery>();
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
     }

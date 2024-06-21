@@ -7,6 +7,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
+    using Particular.LicensingComponent.WebApi;
     using Particular.ServiceControl;
 
     static class HostApplicationBuilderExtensions
@@ -33,6 +34,7 @@
                 options.ModelBinderProviders.Insert(0, new SortInfoModelBindingProvider());
             });
             controllers.AddApplicationPart(Assembly.GetExecutingAssembly());
+            controllers.AddApplicationPart(typeof(LicensingController).Assembly);
             controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
 
             var signalR = builder.Services.AddSignalR();

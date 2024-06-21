@@ -28,10 +28,15 @@
             return transport;
         }
 
+        protected override void AddTransportForPrimaryCore(IServiceCollection services,
+            TransportSettings transportSettings)
+        {
+            services.AddSingleton<IBrokerThroughputQuery, RabbitMQQuery>();
+        }
+
         protected sealed override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
         {
             services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
-            services.AddSingleton<IBrokerThroughputQuery, RabbitMQQuery>();
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
     }
