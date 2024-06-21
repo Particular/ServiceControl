@@ -46,7 +46,7 @@ public class AuditThroughputCollectorHostedService(
         }
     }
 
-    private async Task GatherThroughput(CancellationToken cancellationToken)
+    async Task GatherThroughput(CancellationToken cancellationToken)
     {
         var utcYesterday = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
         logger.LogInformation($"Gathering throughput from audit for {utcYesterday.ToShortDateString()}");
@@ -90,7 +90,7 @@ public class AuditThroughputCollectorHostedService(
         }
     }
 
-    private Endpoint ConvertToEndpoint(ServiceControlEndpoint scEndpoint)
+    Endpoint ConvertToEndpoint(ServiceControlEndpoint scEndpoint)
     {
         var endpoint = new Endpoint(scEndpoint.Name, ThroughputSource.Audit)
         {
@@ -106,7 +106,7 @@ public class AuditThroughputCollectorHostedService(
         return endpoint;
     }
 
-    private async Task VerifyAuditInstances(CancellationToken cancellationToken)
+    async Task VerifyAuditInstances(CancellationToken cancellationToken)
     {
         var remotesInfo = await auditQuery.GetAuditRemotes(cancellationToken);
         await SaveAuditInstanceData(remotesInfo, cancellationToken);
@@ -130,7 +130,7 @@ public class AuditThroughputCollectorHostedService(
         }
     }
 
-    private async Task SaveAuditInstanceData(List<RemoteInstanceInformation>? auditRemotes, CancellationToken cancellationToken)
+    async Task SaveAuditInstanceData(List<RemoteInstanceInformation>? auditRemotes, CancellationToken cancellationToken)
     {
         AuditQueues = auditRemotes?.SelectMany(s => s.Queues)?.ToList() ?? [];
 
