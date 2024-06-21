@@ -89,7 +89,7 @@ function proceedWithChangesWarning() {
 async function loadData() {
   const results = await throughputClient.endpoints();
 
-  data.value = results.filter((row) => row.is_known_endpoint === (props.source === DataSource.wellKnownEndpoint));
+  data.value = results.filter((row) => row.is_known_endpoint === (props.source === DataSource.wellKnownEndpoint)).sort((a, b) => a.name.localeCompare(b.name));
 }
 function nameFilterChanged(event: Event) {
   filterData.name = (event.target as HTMLInputElement).value;
