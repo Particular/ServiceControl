@@ -18,44 +18,10 @@
             return detectedLicense;
         }
 
-        public static bool IsLicenseValidForServiceControlInit(DetectedLicense license, out string errorMessage)
+        public static bool TryImportLicense(string licenseFile, out string errorMessage)
         {
-            if (!license.Details.ValidForServiceControl)
-            {
-                errorMessage = "License is not for ServiceControl";
-                return false;
-            }
+            var licenseText = NonBlockingReader.ReadAllTextWithoutLocking(licenseFile);
 
-            if (license.Details.HasLicenseExpired())
-            {
-                errorMessage = "License has expired";
-                return false;
-            }
-
-            // E.g. Cannot set up a new instance of ServiceControl on a trial license when running in a docker container
-            if (IsRunningInDocker && license.IsEvaluationLicense)
-            {
-                errorMessage = "Cannot run ServiceControl in a container with a trial license";
-                return false;
-            }
-
-            errorMessage = "";
-            return true;
-        }
-
-        public static bool IsLicenseValidForServiceControlInit(string licenseText, out string errorMessage)
-        {
-            if (!TryDeserializeLicense(licenseText, out var license))
-            {
-                errorMessage = "Invalid license file";
-                return false;
-            }
-
-            return IsLicenseValidForServiceControlInit(new DetectedLicense("", LicenseDetails.FromLicense(license)), out errorMessage);
-        }
-
-        public static bool TryImportLicenseFromText(string licenseText, out string errorMessage)
-        {
             if (!LicenseVerifier.TryVerify(licenseText, out _))
             {
                 errorMessage = "Invalid license file";
@@ -82,7 +48,8 @@
 
             try
             {
-                new FilePathLicenseStore().StoreLicense(GetMachineLevelLicenseLocation(), licenseText);
+                var machineLevelLicenseLocation = LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData);
+                new FilePathLicenseStore().StoreLicense(machineLevelLicenseLocation, licenseText);
             }
             catch (Exception)
             {
@@ -95,19 +62,6 @@
         }
 
         public static DateTime GetReleaseDate() => ReleaseDateReader.GetReleaseDate();
-
-        public static bool TryImportLicense(string licenseFile, out string errorMessage)
-        {
-            var licenseText = NonBlockingReader.ReadAllTextWithoutLocking(licenseFile);
-            return TryImportLicenseFromText(licenseText, out errorMessage);
-        }
-
-        static string GetMachineLevelLicenseLocation()
-        {
-            return LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData);
-        }
-
-        static bool IsRunningInDocker => bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), out bool isDocker) && isDocker;
 
         static bool TryDeserializeLicense(string licenseText, out License license)
         {
