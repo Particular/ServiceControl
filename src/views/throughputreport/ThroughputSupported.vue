@@ -4,7 +4,7 @@ import { useIsSupported } from "@/composables/serviceSemVer";
 import { environment } from "@/composables/serviceServiceControl";
 import { computed } from "vue";
 
-const minimumSCVersionForThroughput = "5.0.0";
+const minimumSCVersionForThroughput = "5.3.0";
 const isThroughputSupported = computed(() => useIsSupported(environment.sc_version, minimumSCVersionForThroughput));
 </script>
 
