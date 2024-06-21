@@ -10,7 +10,6 @@
     [TestFixture]
     abstract class ThroughputCollectorTestFixture
     {
-        //public Action<PersistenceSettings> SetPersistenceSettings = _ => { };
         public Action<ThroughputSettings> SetThroughputSettings = _ => { };
         public Action<ServiceCollection> SetExtraDependencies = _ => { };
 
