@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Full version of container image to push
+        description: Full version of container image to push. Normally, this should exactly match the tag name.
         required: true
         type: string
 jobs:
