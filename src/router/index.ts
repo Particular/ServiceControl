@@ -5,8 +5,8 @@ function meta(item: { title: string }) {
   return { title: `${item.title} • ServicePulse` };
 }
 
-function addChildren(parent: RouteRecordSingleViewWithChildren, item: RouteItem){
-  if(item.children){
+function addChildren(parent: RouteRecordSingleViewWithChildren, item: RouteItem) {
+  if (item.children) {
     item.children.forEach(child => {
       const newItem: RouteRecordSingleViewWithChildren = ({
         path: child.path,
@@ -21,7 +21,7 @@ function addChildren(parent: RouteRecordSingleViewWithChildren, item: RouteItem)
       if (child.alias) newItem.alias = child.alias;
 
       addChildren(newItem, child);
-    })
+    });
   }
 }
 
@@ -44,7 +44,7 @@ export default function makeRouter() {
   });
 
   const defaultRoute = window.defaultConfig.default_route;
-  if(!!defaultRoute && defaultRoute!=='/'){
+  if (!!defaultRoute && defaultRoute !== "/") {
     routes.push({
       path: "/",
       redirect: defaultRoute,
