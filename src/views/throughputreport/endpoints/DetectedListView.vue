@@ -43,7 +43,7 @@ const props = defineProps<{
 
 const data = ref<EndpointThroughputSummary[]>([]);
 const dataChanges = ref(new Map<string, { indicator: string }>());
-const filterData = reactive({ name: "", nameFilterType: NameFilterType.beginsWith, sort: "By name", showUnsetOnly: false });
+const filterData = reactive({ name: "", nameFilterType: NameFilterType.beginsWith, sort: "name", showUnsetOnly: false });
 const filterNameOptions = [
   { text: NameFilterType.beginsWith, filter: (a: EndpointThroughputSummary) => a.name.toLowerCase().startsWith(filterData.name.toLowerCase()) },
   { text: NameFilterType.contains, filter: (a: EndpointThroughputSummary) => a.name.toLowerCase().includes(filterData.name.toLowerCase()) },
@@ -89,8 +89,9 @@ function proceedWithChangesWarning() {
 async function loadData() {
   const results = await throughputClient.endpoints();
 
-  data.value = results.filter((row) => row.is_known_endpoint === (props.source === DataSource.wellKnownEndpoint)).sort((a, b) => a.name.localeCompare(b.name));
+  data.value = results.filter((row) => row.is_known_endpoint === (props.source === DataSource.wellKnownEndpoint));
 }
+
 function nameFilterChanged(event: Event) {
   filterData.name = (event.target as HTMLInputElement).value;
 }
