@@ -67,7 +67,7 @@ onMounted(async () => {
         <p class="nogap">
           Settings to ensure that usage data is being collected from the Monitoring instance.<br />
           These settings do not need to be modified unless MSMQ transport is used with the Monitoring instance installed on a different machine to the ServiceControl Error instance.<br />
-          For more information read the <a href="https://docs.particular.net/servicecontrol/monitoring-instances/installation/creating-config-file">Monitoring</a> settings documentation.
+          For more information read the <a href="https://docs.particular.net/servicecontrol/monitoring-instances/installation/creating-config-file#usage-reporting">Monitoring</a> settings documentation.
         </p>
         <ConfigurationCode :settings="settingsInfo?.monitoring_settings ?? []" configFileName="ServiceControl.Monitoring.exe.config">
           <template #configInstructions>
