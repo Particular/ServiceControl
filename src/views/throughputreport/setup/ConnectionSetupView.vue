@@ -1,49 +1,23 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import ThroughputConnectionSettings from "@/resources/ThroughputConnectionSettings";
-import { Transport } from "@/views/throughputreport/transport";
 import throughputClient from "@/views/throughputreport/throughputClient";
 import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
 import ConfigurationCode from "@/views/throughputreport/setup/ConfigurationCode.vue";
 import { useThroughputStore } from "@/stores/ThroughputStore";
-import { storeToRefs } from "pinia";
 
 const store = useThroughputStore();
-const { testResults } = storeToRefs(store);
 const settingsInfo = ref<ThroughputConnectionSettings | null>(null);
-const transport = computed(() => {
-  if (testResults.value == null) {
-    return Transport.None;
-  }
-
-  return testResults.value.transport as Transport;
-});
 
 onMounted(async () => {
   settingsInfo.value = await throughputClient.setting();
 });
-
-function transportNameForInstructions() {
-  switch (transport.value) {
-    case Transport.AzureStorageQueue:
-    case Transport.NetStandardAzureServiceBus:
-      return "Azure";
-    case Transport.LearningTransport:
-      return "Learning Transport";
-    case Transport.RabbitMQ:
-      return "RabbitMQ";
-    case Transport.SQLServer:
-      return "Sql Server";
-    case Transport.AmazonSQS:
-      return "AWS";
-  }
-}
 </script>
 
 <template>
   <div class="row">
     <p v-if="store.isBrokerTransport || useIsMonitoringEnabled()">
-      In order for ServicePulse to collect usage data directly from {{ transportNameForInstructions() }} you need to configure the below settings.<br />
+      In order for ServicePulse to collect usage data directly from {{ store.transportNameForInstructions() }} you need to configure the below settings.<br />
       There are two configuration options, as environment variables or directly in the
       <a href="https://docs.particular.net/servicecontrol/creating-config-file"><code>ServiceControl.exe.config</code></a> file.
     </p>
@@ -54,9 +28,9 @@ function transportNameForInstructions() {
       <div class="col-12">
         <h4>Broker Settings</h4>
         <p class="nogap">
-          Settings to ensure that usage data is being collected from {{ transportNameForInstructions() }}.<br />
+          Settings to ensure that usage data is being collected from {{ store.transportNameForInstructions() }}.<br />
           Some settings can be automatically configured based on the current transport configuration, so if you have a <i style="color: green" class="fa fa-check"></i> above it means that ServiceControl has successfully connected to
-          {{ transportNameForInstructions() }}.
+          {{ store.transportNameForInstructions() }}.
         </p>
         <ConfigurationCode :settings="settingsInfo?.broker_settings ?? []">
           <template #configInstructions>
