@@ -56,7 +56,7 @@ onMounted(async () => {
             <div>Paste the settings above into the <code>ServiceControl.exe.config</code> file of the ServiceControl Error instance.</div>
           </template>
           <template #environmentVariableInstructions>
-            <div>Execute the above instructions in a terminal to set the environment variables, these variables need to be set for the user that in running the ServiceControl Error instance.</div>
+            <div>Execute the above instructions in a terminal to set the environment variables , these variables need to be set for the account under which the ServiceControl Error instance is running.</div>
           </template>
         </ConfigurationCode>
       </div>
