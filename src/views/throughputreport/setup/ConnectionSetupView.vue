@@ -53,7 +53,7 @@ onMounted(async () => {
         </p>
         <ConfigurationCode :settings="settingsInfo?.service_control_settings ?? []">
           <template #configInstructions>
-            <div>Paste the settings above in the <code>ServiceControl.exe.config</code> file of the ServiceControl Error instance.</div>
+            <div>Paste the settings above into the <code>ServiceControl.exe.config</code> file of the ServiceControl Error instance.</div>
           </template>
           <template #environmentVariableInstructions>
             <div>Execute the above instructions in a terminal to set the environment variables, these variables need to be set for the user that in running the ServiceControl Error instance.</div>
