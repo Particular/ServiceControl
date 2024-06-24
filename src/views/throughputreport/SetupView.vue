@@ -16,7 +16,7 @@ const { testResults } = storeToRefs(store);
         <div class="intro">
           <template v-if="testResults?.audit_connection_result.connection_successful">
             <div>
-              <h6><i style="color: green" class="fa fa-check"></i> Successfully connected to Audit instances for usage collection.</h6>
+              <h6><i style="color: green" class="fa fa-check"></i> Successfully connected to Audit instance(s) for usage collection.</h6>
             </div>
           </template>
           <template v-else>
