@@ -59,6 +59,7 @@ runs:
         $releasedVersions = $releases |
             where Draft -eq $false |
             where Prerelease -eq $false |
+            where Name -match '^\d+\.\d+\.\d+$' |  # Ignore prerelease tags
             select -ExpandProperty tag_name
 
         $latestVersion = $releasedVersions |
