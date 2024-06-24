@@ -15,7 +15,7 @@ const store = useThroughputStore();
         <h6><i style="color: red" class="fa fa-times"></i> There are some error collecting usage data.</h6>
         <p>
           You may have not setup all the connection settings, have a look at <RouterLink :to="routeLinks.throughput.setup.connectionSetup.link">Connection Setup in Configuration</RouterLink>.<br />
-          If you have set the settings but are still having issues, look at the <RouterLink :to="routeLinks.throughput.setup.diagnostics.link">Diagnostics in Configuration</RouterLink> for more information on how to fix the issue.
+          If you have set all the connection settings but are still having issues, look at the <RouterLink :to="routeLinks.throughput.setup.diagnostics.link">Diagnostics in Configuration</RouterLink> for more information on how to fix them.
         </p>
       </div>
     </template>
