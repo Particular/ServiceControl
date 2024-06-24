@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Full version of container image to push
+        description: Full version of container image to push. Normally, this should exactly match the tag name.
         required: true
         type: string
 jobs:
@@ -23,10 +23,12 @@ jobs:
           version: ${{ inputs.version }}
       - name: Log in to GitHub container registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: Azure Container Registry login
-        run: |
-          az acr login --name pswtestregistry --username pswtestregistry --password "${{ secrets.TEMP_ACR_PASSWORD }}"
-      - name: Try pushing tag between repos
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3.2.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Publish to Docker Hub
         run: |
           $containers = @('servicecontrol', 'servicecontrol-audit', 'servicecontrol-monitoring')
           $tags = "${{ steps.validate.outputs.container-tags }}" -Split ','
@@ -38,7 +40,7 @@ jobs:
             foreach($name in $containers)
             {
               Write-Output "::group::Pushing $($name):$($tag)"
-              $cmd = "docker buildx imagetools create --tag pswtestregistry.azurecr.io/$($name):$($tag) ghcr.io/particular/$($name):$($sourceTag)"
+              $cmd = "docker buildx imagetools create --tag particular/$($name):$($tag) ghcr.io/particular/$($name):$($sourceTag)"
               Write-Output "Command: $cmd"
               Invoke-Expression $cmd
               Write-Output "::endgroup::"
@@ -46,9 +48,41 @@ jobs:
             foreach ($dbArch in $dbArchTags)
             {
               Write-Output "::group::Pushing servicecontrol-ravendb:$($tag)-$($dbArch)"
-              $cmd = "docker buildx imagetools create --tag pswtestregistry.azurecr.io/servicecontrol-ravendb:$($tag)-$($dbArch) ghcr.io/particular/servicecontrol-ravendb:$($sourceTag)-$($dbArch)"
+              $cmd = "docker buildx imagetools create --tag particular/servicecontrol-ravendb:$($tag)-$($dbArch) ghcr.io/particular/servicecontrol-ravendb:$($sourceTag)-$($dbArch)"
               Write-Output "Command: $cmd"
               Invoke-Expression $cmd
               Write-Output "::endgroup::"
             }
           }
+      - name: Update Docker Hub Description - ServiceControl
+        #if: ${{ steps.validate.outputs.latest == 'true' }}
+        uses: peter-evans/dockerhub-description@v4.0.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: particular/servicecontrol
+          readme-filepath: ./Container-README.md
+      - name: Update Docker Hub Description - Audit
+        #if: ${{ steps.validate.outputs.latest == 'true' }}
+        uses: peter-evans/dockerhub-description@v4.0.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: particular/servicecontrol-audit
+          readme-filepath: ./Container-README.md
+      - name: Update Docker Hub Description - Monitoring
+        #if: ${{ steps.validate.outputs.latest == 'true' }}
+        uses: peter-evans/dockerhub-description@v4.0.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: particular/servicecontrol-monitoring
+          readme-filepath: ./Container-README.md
+      - name: Update Docker Hub Description - RavenDB
+        #if: ${{ steps.validate.outputs.latest == 'true' }}
+        uses: peter-evans/dockerhub-description@v4.0.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: particular/servicecontrol-ravendb
+          readme-filepath: ./Container-README.md

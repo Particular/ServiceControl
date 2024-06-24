@@ -20,6 +20,9 @@ outputs:
   container-tags:
     description: Tags to be added for container releases (comma-separated)
     value: ${{ steps.validate.outputs.container-tags }}
+  latest:
+    description: Evaluates to `true` if the version should be flagged as the new latest version
+    value: ${{ steps.validate.outputs.latest }}
 runs:
   using: composite
   steps:
@@ -102,3 +105,4 @@ runs:
 
         $tagsDelimited = $tags -Join ','
         echo "container-tags=$tagsDelimited" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append
+        echo "latest=$($isLatest.ToString().ToLower())" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append
