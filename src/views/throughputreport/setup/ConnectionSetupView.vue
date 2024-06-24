@@ -49,7 +49,7 @@ onMounted(async () => {
         <h4>ServiceControl Settings</h4>
         <p class="nogap">
           Settings to ensure that usage data is being collected from the Monitoring instance.<br />
-          For more information read the <a href="https://docs.particular.net/servicecontrol/creating-config-file">ServiceControl</a> settings documentation.
+          For more information read the <a href="https://docs.particular.net/servicecontrol/creating-config-file#usage-reporting">ServiceControl</a> settings documentation.
         </p>
         <ConfigurationCode :settings="settingsInfo?.service_control_settings ?? []">
           <template #configInstructions>
