@@ -74,7 +74,7 @@ onMounted(async () => {
             <div>Paste the settings above into the <code>ServiceControl.Monitoring.exe.config</code> file of the ServiceControl Monitoring instance.</div>
           </template>
           <template #environmentVariableInstructions>
-            <div>Execute the above instructions in a terminal to set the environment variables, these variables need to be set for the user that in running the ServiceControl Monitoring instance.</div>
+            <div>Execute the above instructions in a terminal to set the environment variables, these variables need to be set for the account under which the ServiceControl Monitoring instance is running.</div>
           </template>
         </ConfigurationCode>
       </div>
