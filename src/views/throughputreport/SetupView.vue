@@ -21,7 +21,7 @@ const { testResults } = storeToRefs(store);
           </template>
           <template v-else>
             <div>
-              <h6><i style="color: red" class="fa fa-times"></i> The connection to Audit instances was not successful.</h6>
+              <h6><i style="color: red" class="fa fa-times"></i> The connection to one or more Audit instances was not successful.</h6>
             </div>
           </template>
           <template v-if="useIsMonitoringEnabled()">
