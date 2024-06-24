@@ -44,7 +44,7 @@ const { testResults } = storeToRefs(store);
           <template v-if="!testResults?.audit_connection_result.connection_successful || !testResults?.monitoring_connection_result.connection_successful">
             <p>
               You may have not setup all the connection settings, have a look at the <RouterLink :to="routeLinks.throughput.setup.connectionSetup.link">Connection Setup</RouterLink> tab.<br />
-              If you have set the settings but are still having issues, look at the <RouterLink :to="routeLinks.throughput.setup.diagnostics.link">Diagnostics</RouterLink> tab for more information on how to fix the issue.
+              If you have set all the connection settings but are still having issues, look at the <RouterLink :to="routeLinks.throughput.setup.diagnostics.link">Diagnostics</RouterLink> tab for more information on how to fix them.
             </p>
           </template>
         </div>
