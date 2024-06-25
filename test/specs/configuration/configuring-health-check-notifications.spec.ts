@@ -1,8 +1,8 @@
 import { it, describe } from "../../drivers/vitest/driver";
 
 describe("FEATURE: Health check notifications", () => {
-  describe("Rule: Email notification should be able to toggled on and off", () => {
-    it.todo("Example: Email notification is toggled on");
+  describe("RULE: Email notification should be able to toggled on and off", () => {
+    it.todo("EXAMPLE: Email notification is toggled on");
 
     /* SCENARIO
           Enable email notifications
@@ -12,7 +12,7 @@ describe("FEATURE: Health check notifications", () => {
           Then Email notifications are ON
         */
 
-    it.todo("Example: Email notification is toggled off");
+    it.todo("EXAMPLE: Email notification is toggled off");
     /* SCENARIO
           Disable email notifications
           
@@ -21,8 +21,8 @@ describe("FEATURE: Health check notifications", () => {
           Then Email notifications are OFF
         */
   });
-  describe("Rule: Email notifications should be configurable", () => {
-    it.todo("Example: Clicking the configure button should open the email configuration popup");
+  describe("RULE: Email notifications should be configurable", () => {
+    it.todo("EXAMPLE: Clicking the configure button should open the email configuration popup");
 
     /* SCENARIO
           Open email configuration
@@ -32,9 +32,9 @@ describe("FEATURE: Health check notifications", () => {
           Then the Email configuration popup is displayed
         */
 
-    it.todo("Example: The save button should be enabled when the form is valid");
-    it.todo("Example: The save button should be disabled when the form is invalid");
-    it.todo("Example: The save button should update the email configuration and close the popup when clicked");
+    it.todo("EXAMPLE: The save button should be enabled when the form is valid");
+    it.todo("EXAMPLE: The save button should be disabled when the form is invalid");
+    it.todo("EXAMPLE: The save button should update the email configuration and close the popup when clicked");
 
     /* SCENARIO
           Invalid configurations cannot be saved
@@ -44,7 +44,7 @@ describe("FEATURE: Health check notifications", () => {
           Then the Save button is not enabled
     */
 
-    it.todo("Example: The cancel button should close the email configuration popup without saving changes");
+    it.todo("EXAMPLE: The cancel button should close the email configuration popup without saving changes");
 
     /* SCENARIO
           Email configuration changed can be cancelled
@@ -56,8 +56,8 @@ describe("FEATURE: Health check notifications", () => {
           And no changes have been made to the email configuration
         */
   });
-  describe("Rule: Health check notification configuration should be persistent", () => {
-    it.todo("Example: Updated email configuration should remain after a page refresh");
+  describe("RULE: Health check notification configuration should be persistent", () => {
+    it.todo("EXAMPLE: Updated email configuration should remain after a page refresh");
 
     /* SCENARIO
           Email configuration
@@ -67,8 +67,8 @@ describe("FEATURE: Health check notifications", () => {
           Then the email notification configuration matches what was last saved
         */
 
-    it.todo("Example: Email notification are on and remain on after a page refresh");
-    it.todo("Example: Email notification are off and remain off after a page refresh");
+    it.todo("EXAMPLE: Email notification are on and remain on after a page refresh");
+    it.todo("EXAMPLE: Email notification are off and remain off after a page refresh");
     /* SCENARIO
           Email notifications toggle
 
@@ -77,8 +77,8 @@ describe("FEATURE: Health check notifications", () => {
           Then the Email notifications are ON
         */
   });
-  describe("Rule: Sending a test notification should indicate success or failure", () => {
-    it.todo("Example: Invalid Configuration");
+  describe("RULE: Sending a test notification should indicate success or failure", () => {
+    it.todo("EXAMPLE: Invalid Configuration");
 
     /* SCENARIO
           Given an invalid configuration
@@ -86,7 +86,7 @@ describe("FEATURE: Health check notifications", () => {
           Then "TEST FAILED" is displayed
         */
 
-    it.todo("Example: Valid Configuration");
+    it.todo("EXAMPLE: Valid Configuration");
     /* SCENARIO          
 
           Given a valid configuration

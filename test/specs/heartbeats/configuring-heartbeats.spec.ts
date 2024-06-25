@@ -1,8 +1,8 @@
 import { it, describe } from "../../drivers/vitest/driver";
 
 describe("FEATURE: Heartbeats configuration", () => {
-  describe("Rule: A list of all endpoints with the heartbeats plug-in installed should be displayed", () => {
-    it.todo("Example: With no endpoints, the text 'Nothing to configure' should be displayed");
+  describe("RULE: A list of all endpoints with the heartbeats plug-in installed should be displayed", () => {
+    it.todo("EXAMPLE: With no endpoints, the text 'Nothing to configure' should be displayed");
 
     /* SCENARIO
       No endpoints
@@ -12,7 +12,7 @@ describe("FEATURE: Heartbeats configuration", () => {
       Then the text "Nothing to configure" should be displayed
     */
 
-    it.todo("Example: 3 endpoints should be displayed in the list");
+    it.todo("EXAMPLE: 3 endpoints should be displayed in the list");
     /* SCENARIO
       Some endpoints
 
@@ -32,8 +32,8 @@ describe("FEATURE: Heartbeats configuration", () => {
       Monitoring status
     */
   });
-  describe("Rule: Toggling on/off heartbeat monitoring for endpoints should be possible", () => {
-    it.todo("Example: Heartbeat monitoring toggle should be off by default");
+  describe("RULE: Toggling on/off heartbeat monitoring for endpoints should be possible", () => {
+    it.todo("EXAMPLE: Heartbeat monitoring toggle should be off by default");
 
     /* SCENARIO
       Given a monitored endpoint instance
@@ -43,7 +43,7 @@ describe("FEATURE: Heartbeats configuration", () => {
       And should not appear in the active endpoints list
     */
 
-    it.todo("Example: Clicking the monitoring toggle for an endpoint should activate heartbeat monitoring of the endpoint");
+    it.todo("EXAMPLE: Clicking the monitoring toggle for an endpoint should activate heartbeat monitoring of the endpoint");
     /* SCENARIO
       Given an unmonitored endpoint instance
       And the instance is sending heartbeats
@@ -60,8 +60,8 @@ describe("FEATURE: Heartbeats configuration", () => {
       And should appear in the Inactive Endpoints list
     */
   });
-  describe("Rule: Sorting by of the name of an endpoint should be possible in all displays", () => {
-    it.todo("Example: List of endpoints should be sorted by name in ascending order");
+  describe("RULE: Sorting by of the name of an endpoint should be possible in all displays", () => {
+    it.todo("EXAMPLE: List of endpoints should be sorted by name in ascending order");
 
     /* SCENARIO
       Given 3 endpoint instance
@@ -78,7 +78,7 @@ describe("FEATURE: Heartbeats configuration", () => {
       Latest heartbeat (asc/dec)
     */
 
-    it.todo("Example: List of endpoints should be sorted by name in descending order");
+    it.todo("EXAMPLE: List of endpoints should be sorted by name in descending order");
     /* SCENARIO
       Given 3 endpoint instance
         Name |
@@ -89,13 +89,13 @@ describe("FEATURE: Heartbeats configuration", () => {
       Then the instances should be listed in reverse order
     */
 
-    it.todo("Example: List of endpoints should be sorted by latest heartbeat in ascending order");
-    it.todo("Example: List of endpoints should be sorted by latest heartbeat in descending order");
+    it.todo("EXAMPLE: List of endpoints should be sorted by latest heartbeat in ascending order");
+    it.todo("EXAMPLE: List of endpoints should be sorted by latest heartbeat in descending order");
     /* SCENARIO
       Same again for Latest heartbeat
     */
 
-    it.todo("Example: Sort by should be persisted on page refresh and across tabs");
+    it.todo("EXAMPLE: Sort by should be persisted on page refresh and across tabs");
     /* SCENARIO
       Given the Sort By field has been changed
       When the page is refreshed
@@ -103,8 +103,8 @@ describe("FEATURE: Heartbeats configuration", () => {
       And the Sort By field has the same value on all other Endpoint Heartbeats tabs
     */
   });
-  describe("Rule: Filtering endpoints by name should be possible", () => {
-    it.todo("Example: Filter string matches a subset of endpoint names should display only those endpoints");
+  describe("RULE: Filtering endpoints by name should be possible", () => {
+    it.todo("EXAMPLE: Filter string matches a subset of endpoint names should display only those endpoints");
 
     /* SCENARIO
       Given 3 endpoint instances
@@ -118,7 +118,7 @@ describe("FEATURE: Heartbeats configuration", () => {
       And Bar should not be shown
     */
 
-    it.todo("Example: Filter string matches no endpoint names should display no endpoints");
+    it.todo("EXAMPLE: Filter string matches no endpoint names should display no endpoints");
     /* SCENARIO
       Given 3 endpoint instances
         Name |
@@ -131,7 +131,7 @@ describe("FEATURE: Heartbeats configuration", () => {
       And Foo3 should not be shown
     */
 
-    it.todo("Example: The filter string should be persisted on page refresh and across tabs");
+    it.todo("EXAMPLE: The filter string should be persisted on page refresh and across tabs");
     /* SCENARIO
       Given the filter string is ""
       When the text "Foo" is entered into the filter control
@@ -140,8 +140,8 @@ describe("FEATURE: Heartbeats configuration", () => {
       And the filter control on the Inactive endpoints tab contains "Foo"
     */
   });
-  describe("Rule: A performance monitoring warning should be displayed", () => {
-    it.todo("Example: A warning should be displayed when the configuration screen is loaded");
+  describe("RULE: A performance monitoring warning should be displayed", () => {
+    it.todo("EXAMPLE: A warning should be displayed when the configuration screen is loaded");
 
     /* SCENARIO
       When the configuration screen is loaded
