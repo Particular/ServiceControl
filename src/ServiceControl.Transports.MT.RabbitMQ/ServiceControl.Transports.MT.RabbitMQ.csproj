@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+  
+    <ItemGroup>
+      <!-- Private=false & ExcludeAssets=runtime prevent repeatedly including binary dependencies of ServiceControl.Transports in each transport directory -->
+      <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" Private="false" ExcludeAssets="runtime" />
+    </ItemGroup>
+
+  <ItemGroup>
+    <None Update="transport.manifest" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(Identity)\Transports\MTRabbitMQ')" />
+  </ItemGroup>
+</Project>

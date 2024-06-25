@@ -22,6 +22,7 @@
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.Learning"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.Msmq", "net8.0-windows"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.RabbitMQ"));
+                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.MT.RabbitMQ"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.SqlServer"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.SQS"));
             }
