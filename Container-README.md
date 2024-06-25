@@ -18,8 +18,8 @@ The following is the most basic way to create ServiceControl containers using [D
 docker run -d -p 8080:8080 particular/servicecontrol-ravendb:latest-x64
 
 # Run with setup entry point to create message queues, then exit and remove the container
-docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' --rm -e RavenDB_ConnectionString='http://host.docker.internal:8080' particular/servicecontrol:latest --setup
-docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' --rm -e RavenDB_ConnectionString='http://host.docker.internal:8080' particular/servicecontrol-audit:latest --setup
+docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -e RavenDB_ConnectionString='http://host.docker.internal:8080' --rm particular/servicecontrol:latest --setup
+docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -e RavenDB_ConnectionString='http://host.docker.internal:8080' --rm particular/servicecontrol-audit:latest --setup
 docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString="host=host.docker.internal" --rm particular/servicecontrol-monitoring:latest --setup
 
 # Run the instances in normal mode
