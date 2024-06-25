@@ -17,7 +17,7 @@ onMounted(async () => {
 <template>
   <div class="row">
     <p v-if="store.isBrokerTransport || useIsMonitoringEnabled()">
-      In order for ServicePulse to collect usage data directly from {{ store.transportNameForInstructions() }} you need to configure the below settings.<br />
+      In order for ServicePulse to collect usage data from {{ store.transportNameForInstructions() }} you need to configure the below settings.<br />
       There are two configuration options, as environment variables or directly in the
       <a href="https://docs.particular.net/servicecontrol/creating-config-file"><code>ServiceControl.exe.config</code></a> file.
     </p>

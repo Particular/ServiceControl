@@ -2,7 +2,7 @@ export enum Transport {
   None = "None",
   MSMQ = "MSMQ",
   AzureStorageQueue = "AzureStorageQueue",
-  NetStandardAzureServiceBus = "NetStandardAzureServiceBus",
+  NetStandardAzureServiceBus = "AzureServiceBus",
   LearningTransport = "LearningTransport",
   RabbitMQ = "RabbitMQ",
   SQLServer = "SQLServer",

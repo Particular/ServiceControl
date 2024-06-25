@@ -9,12 +9,12 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
   const testResults = ref<ConnectionTestResults | null>(null);
   const refresh = () => dataRetriever.executeAndResetTimer();
   const hasErrors = computed(() => {
-    if(isBrokerTransport) {
+    if (isBrokerTransport) {
       return !testResults.value?.broker_connection_result.connection_successful;
     }
 
     return !(testResults.value?.audit_connection_result.connection_successful || testResults.value?.monitoring_connection_result.connection_successful);
-  })
+  });
   const transport = computed(() => {
     if (testResults.value == null) {
       return Transport.None;
@@ -36,8 +36,11 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
   const transportNameForInstructions = () => {
     switch (transport.value) {
       case Transport.AzureStorageQueue:
+        return "Azure Storage Queue";
       case Transport.NetStandardAzureServiceBus:
-        return "Azure";
+        return "Azure Service Bus";
+      case Transport.MSMQ:
+        return "MSMQ";
       case Transport.LearningTransport:
         return "Learning Transport";
       case Transport.RabbitMQ:
@@ -45,12 +48,15 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
       case Transport.SQLServer:
         return "Sql Server";
       case Transport.AmazonSQS:
-        return "AWS";
+        return "Amazon SQS";
     }
-  }
-  const dataRetriever = useAutoRefresh(async () => {
+  };
+  const dataRetriever = useAutoRefresh(
+    async () => {
       testResults.value = await throughputClient.test();
-  }, 60 * 60 * 1000 /* 1 hour */);
+    },
+    60 * 60 * 1000 /* 1 hour */
+  );
 
   refresh();
 
@@ -60,7 +66,7 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
     transportNameForInstructions,
     isBrokerTransport,
     hasErrors,
-    transport
+    transport,
   };
 });
 
