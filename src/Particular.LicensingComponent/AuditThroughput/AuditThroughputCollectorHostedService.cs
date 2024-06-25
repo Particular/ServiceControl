@@ -1,5 +1,7 @@
 namespace Particular.LicensingComponent.AuditThroughput;
 
+using System;
+using System.Threading;
 using Contracts;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

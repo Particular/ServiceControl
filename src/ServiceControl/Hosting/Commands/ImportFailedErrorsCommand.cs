@@ -11,6 +11,7 @@
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.WebApi;
 
     class ImportFailedErrorsCommand : AbstractCommand
     {

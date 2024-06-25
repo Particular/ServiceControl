@@ -20,9 +20,17 @@ namespace ServiceControl.Monitoring
                 return Task.CompletedTask;
             }
 
-            var transportSettings = settings.ToTransportSettings();
-            transportSettings.ErrorQueue = settings.ErrorQueue;
-            var transportCustomization = TransportFactory.Create(transportSettings);
+            var transportCustomization = settings.LoadTransportCustomization();
+
+            var transportSettings = new TransportSettings
+            {
+                RunCustomChecks = false,
+                ConnectionString = settings.ConnectionString,
+                EndpointName = settings.EndpointName,
+                ErrorQueue = settings.ErrorQueue,
+                MaxConcurrency = settings.MaximumConcurrencyLevel
+            };
+
             return transportCustomization.ProvisionQueues(transportSettings, []);
         }
 
@@ -55,6 +63,6 @@ namespace ServiceControl.Monitoring
             return true;
         }
 
-        static readonly ILog Logger = LogManager.GetLogger<SetupCommand>();
+        static ILog Logger = LogManager.GetLogger<SetupCommand>();
     }
 }

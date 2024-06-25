@@ -2,6 +2,7 @@
 {
     using System;
     using System.Configuration;
+    using System.IO;
     using System.Runtime.Loader;
     using System.Text.Json.Serialization;
     using Configuration;
@@ -161,17 +162,21 @@
 
         public bool EnableFullTextSearchOnBodies { get; set; }
 
-        public TransportSettings ToTransportSettings()
+        public ITransportCustomization LoadTransportCustomization()
         {
-            var transportSettings = new TransportSettings
+            try
             {
-                EndpointName = ServiceName,
-                ConnectionString = TransportConnectionString,
-                MaxConcurrency = MaximumConcurrencyLevel,
-                TransportType = TransportType,
-                AssemblyLoadContextResolver = AssemblyLoadContextResolver
-            };
-            return transportSettings;
+                var transportManifest = TransportManifestLibrary.Find(TransportType);
+                var assemblyPath = Path.Combine(transportManifest.Location, $"{transportManifest.AssemblyName}.dll");
+                var loadContext = AssemblyLoadContextResolver(assemblyPath);
+                var customizationType = Type.GetType(transportManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
+
+                return (ITransportCustomization)Activator.CreateInstance(customizationType);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Could not load transport customization type {TransportType}.", e);
+            }
         }
 
         TimeSpan GetTimeToRestartAuditIngestionAfterFailure()

@@ -30,30 +30,27 @@ public static class HostApplicationBuilderExtensions
         Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, Settings settings,
         EndpointConfiguration endpointConfiguration)
     {
+        var transportCustomization = settings.LoadTransportCustomization();
+        var buildQueueLengthProvider = QueueLengthProviderBuilder(settings.ConnectionString, transportCustomization);
+
+        hostBuilder.Services.AddWindowsService();
+
         hostBuilder.Logging.ClearProviders();
         hostBuilder.Logging.AddNLog();
         hostBuilder.Logging.SetMinimumLevel(settings.LoggingSettings.ToHostLogLevel());
 
         var services = hostBuilder.Services;
-
-        var transportSettings = settings.ToTransportSettings();
-        var transportCustomization = TransportFactory.Create(transportSettings);
-        transportCustomization.AddTransportForMonitoring(services, transportSettings);
-
-        services.AddWindowsService();
-
         services.AddSingleton(settings);
         services.AddSingleton<EndpointRegistry>();
         services.AddSingleton<MessageTypeRegistry>();
         services.AddSingleton<EndpointInstanceActivityTracker>();
+        services.AddSingleton(sp => buildQueueLengthProvider(sp.GetRequiredService<QueueLengthStore>()));
         services.AddSingleton<LegacyQueueLengthReportHandler.LegacyQueueLengthEndpoints>();
 
         services.RegisterAsSelfAndImplementedInterfaces<RetriesStore>();
         services.RegisterAsSelfAndImplementedInterfaces<CriticalTimeStore>();
         services.RegisterAsSelfAndImplementedInterfaces<ProcessingTimeStore>();
         services.RegisterAsSelfAndImplementedInterfaces<QueueLengthStore>();
-        services.AddSingleton<Action<QueueLengthEntry[], EndpointToQueueMapping>>(provider => (es, q) =>
-            provider.GetRequiredService<QueueLengthStore>().Store(es.Select(e => ToEntry(e)).ToArray(), ToQueueId(q)));
 
         services.AddHttpLogging(options =>
         {
@@ -68,18 +65,26 @@ public static class HostApplicationBuilderExtensions
 
         services.AddLicenseCheck();
 
-        ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, transportSettings, settings, services);
+        ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, settings, services);
         hostBuilder.UseNServiceBus(endpointConfiguration);
 
         hostBuilder.AddAsyncTimer();
     }
 
-    static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings, IServiceCollection services)
+    static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, Settings settings, IServiceCollection services)
     {
         if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
         {
             config.License(settings.LicenseFileText);
         }
+
+        var transportSettings = new TransportSettings
+        {
+            RunCustomChecks = false,
+            ConnectionString = settings.ConnectionString,
+            EndpointName = settings.EndpointName,
+            MaxConcurrency = settings.MaximumConcurrencyLevel
+        };
 
         transportCustomization.CustomizeMonitoringEndpoint(config, transportSettings);
 
@@ -122,6 +127,7 @@ public static class HostApplicationBuilderExtensions
 
         config.AddDeserializer<TaggedLongValueWriterOccurrenceSerializerDefinition>();
         config.Pipeline.Register(typeof(MessagePoolReleasingBehavior), "Releases pooled message.");
+        config.EnableFeature<QueueLength.QueueLength>();
 
         if (AppEnvironment.RunningInContainer)
         {
@@ -130,8 +136,23 @@ public static class HostApplicationBuilderExtensions
         }
     }
 
-    static EndpointInputQueue ToQueueId(EndpointToQueueMapping endpointInputQueueDto) =>
-        new(endpointInputQueueDto.EndpointName, endpointInputQueueDto.InputQueue);
+    static Func<QueueLengthStore, IProvideQueueLength> QueueLengthProviderBuilder(string connectionString,
+        ITransportCustomization transportCustomization) =>
+        qls =>
+        {
+            var queueLengthProvider = transportCustomization.CreateQueueLengthProvider();
 
-    static RawMessage.Entry ToEntry(QueueLengthEntry entryDto) => new() { DateTicks = entryDto.DateTicks, Value = entryDto.Value };
+            Action<QueueLengthEntry[], EndpointToQueueMapping> store = (es, q) =>
+                qls.Store(es.Select(e => ToEntry(e)).ToArray(), ToQueueId(q));
+
+            queueLengthProvider.Initialize(connectionString, store);
+
+            return queueLengthProvider;
+        };
+
+    static EndpointInputQueue ToQueueId(EndpointToQueueMapping endpointInputQueueDto)
+        => new EndpointInputQueue(endpointInputQueueDto.EndpointName, endpointInputQueueDto.InputQueue);
+
+    static RawMessage.Entry ToEntry(QueueLengthEntry entryDto) =>
+        new RawMessage.Entry { DateTicks = entryDto.DateTicks, Value = entryDto.Value };
 }

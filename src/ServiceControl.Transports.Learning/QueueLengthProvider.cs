@@ -10,35 +10,45 @@
     using NServiceBus.Logging;
     using ServiceControl.Transports.Learning;
 
-    class QueueLengthProvider : AbstractQueueLengthProvider
+    class QueueLengthProvider : IProvideQueueLength
     {
-        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
-            : base(settings, store) =>
-            rootFolder = LearningTransportCustomization.FindStoragePath(ConnectionString);
-
-        public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
-            => endpointsHash.AddOrUpdate(queueToTrack, queueToTrack, (_, __) => queueToTrack);
-
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                try
-                {
-                    var queueLengths = GetQueueLengths();
-                    UpdateStore(queueLengths);
+            rootFolder = LearningTransportCustomization.FindStoragePath(connectionString);
+            this.store = store;
+        }
 
-                    await Task.Delay(QueryDelayInterval, stoppingToken);
-                }
-                catch (OperationCanceledException)
+        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
+        {
+            endpointsHash.AddOrUpdate(queueToTrack, queueToTrack, (_, __) => queueToTrack);
+        }
+
+        public Task Start()
+        {
+            cancel = new CancellationTokenSource();
+            task = Task.Run(async () =>
+            {
+                while (!cancel.IsCancellationRequested)
                 {
-                    // It's OK. We're shutting down
+                    try
+                    {
+                        var queueLengths = GetQueueLengths();
+                        UpdateStore(queueLengths);
+
+                        await Task.Delay(QueryDelayInterval, cancel.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // It's OK. We're shutting down
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warn("Problem getting learning transport queue length", ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Log.Warn("Problem getting learning transport queue length", ex);
-                }
-            }
+            });
+
+            return Task.CompletedTask;
         }
 
         void UpdateStore(ILookup<string, long?> queueLengths)
@@ -50,13 +60,14 @@
                 var queueLength = queueLengths[instance.InputQueue].FirstOrDefault();
                 if (queueLength.HasValue)
                 {
-                    Store([
+                    store(new[]
+                    {
                         new QueueLengthEntry
                         {
                             DateTicks = now,
                             Value = queueLength.Value
                         }
-                    ], instance);
+                    }, instance);
                 }
                 else
                 {
@@ -83,11 +94,19 @@
             return result.ToLookup(x => x.Key, x => (long?)x.Value);
         }
 
-        readonly string rootFolder;
-        readonly ConcurrentDictionary<EndpointToQueueMapping, EndpointToQueueMapping> endpointsHash = new ConcurrentDictionary<EndpointToQueueMapping, EndpointToQueueMapping>();
+        public Task Stop()
+        {
+            cancel?.Cancel(false);
+            return task;
+        }
 
-        static readonly TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
-        static readonly ILog Log = LogManager.GetLogger<QueueLengthProvider>();
+        string rootFolder;
+        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
+        ConcurrentDictionary<EndpointToQueueMapping, EndpointToQueueMapping> endpointsHash = new ConcurrentDictionary<EndpointToQueueMapping, EndpointToQueueMapping>();
+        CancellationTokenSource cancel;
+        Task task;
 
+        static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
+        static ILog Log = LogManager.GetLogger<QueueLengthProvider>();
     }
 }

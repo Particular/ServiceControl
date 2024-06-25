@@ -3,6 +3,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using System;
     using System.Collections.Generic;
     using System.Configuration;
+    using System.IO;
     using System.Linq;
     using System.Runtime.Loader;
     using System.Text.Json.Serialization;
@@ -189,6 +190,23 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool DisableHealthChecks { get; set; }
 
+        public ITransportCustomization LoadTransportCustomization()
+        {
+            try
+            {
+                var transportManifest = TransportManifestLibrary.Find(TransportType);
+                var assemblyPath = Path.Combine(transportManifest.Location, $"{transportManifest.AssemblyName}.dll");
+                var loadContext = AssemblyLoadContextResolver(assemblyPath);
+                var customizationType = Type.GetType(transportManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
+
+                return (ITransportCustomization)Activator.CreateInstance(customizationType);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Could not load transport customization type {TransportType}.", e);
+            }
+        }
+
         public string GetConnectionString()
         {
             var settingsValue = SettingsReader.Read<string>(SettingsRootNamespace, "ConnectionString");
@@ -199,20 +217,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
             var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
             return connectionStringSettings?.ConnectionString;
-        }
-
-        public TransportSettings ToTransportSettings()
-        {
-            var transportSettings = new TransportSettings
-            {
-                EndpointName = ServiceName,
-                ConnectionString = TransportConnectionString,
-                MaxConcurrency = MaximumConcurrencyLevel,
-                RunCustomChecks = true,
-                TransportType = TransportType,
-                AssemblyLoadContextResolver = AssemblyLoadContextResolver
-            };
-            return transportSettings;
         }
 
         static bool GetForwardErrorMessages()

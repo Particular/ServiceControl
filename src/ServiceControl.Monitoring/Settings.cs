@@ -3,6 +3,7 @@ namespace ServiceControl.Monitoring
     using System;
     using System.Collections.Generic;
     using System.Configuration;
+    using System.IO;
     using System.Runtime.Loader;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
@@ -82,18 +83,21 @@ namespace ServiceControl.Monitoring
 
         void TryLoadLicenseFromConfig() => LicenseFileText = SettingsReader.Read<string>(SettingsRootNamespace, "LicenseText");
 
-        public TransportSettings ToTransportSettings()
+        public ITransportCustomization LoadTransportCustomization()
         {
-            var transportSettings = new TransportSettings
+            try
             {
-                ConnectionString = ConnectionString,
-                EndpointName = EndpointName,
-                ErrorQueue = ErrorQueue,
-                MaxConcurrency = MaximumConcurrencyLevel,
-                AssemblyLoadContextResolver = AssemblyLoadContextResolver,
-                TransportType = TransportType
-            };
-            return transportSettings;
+                var transportManifest = TransportManifestLibrary.Find(TransportType);
+                var assemblyPath = Path.Combine(transportManifest.Location, $"{transportManifest.AssemblyName}.dll");
+                var loadContext = AssemblyLoadContextResolver(assemblyPath);
+                var customizationType = Type.GetType(transportManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
+
+                return (ITransportCustomization)Activator.CreateInstance(customizationType);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Could not load transport customization type {TransportType}.", e);
+            }
         }
 
         static string GetConnectionString()

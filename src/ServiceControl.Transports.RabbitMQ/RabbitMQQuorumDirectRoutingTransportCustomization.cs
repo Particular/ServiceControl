@@ -2,6 +2,8 @@
 {
     using NServiceBus;
 
-    public class RabbitMQQuorumDirectRoutingTransportCustomization()
-        : RabbitMQDirectRoutingTransportCustomization(QueueType.Quorum);
+    public class RabbitMQQuorumDirectRoutingTransportCustomization : RabbitMQDirectRoutingTransportCustomization
+    {
+        public RabbitMQQuorumDirectRoutingTransportCustomization() : base(QueueType.Quorum) { }
+    }
 }

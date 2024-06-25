@@ -8,7 +8,6 @@
     using Amazon.SimpleNotificationService;
     using Amazon.SQS;
     using BrokerThroughput;
-    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
@@ -35,6 +34,13 @@
         protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
         {
             services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
+            services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
+        }
+
+        protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
+        {
+            services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
+            services.AddSingleton<IBrokerThroughputQuery, AmazonSQSQuery>();
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
 
@@ -97,8 +103,7 @@
                 }
                 else
                 {
-                    log.Info(
-                        "BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials for S3 Client.");
+                    log.Info("BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials for S3 Client.");
                     s3Client = new AmazonS3Client();
                 }
 
@@ -112,8 +117,7 @@
             return transport;
         }
 
-        static void
-            PromoteEnvironmentVariableFromConnectionString(string value, string environmentVariableName) =>
+        static void PromoteEnvironmentVariableFromConnectionString(string value, string environmentVariableName) => 
             Environment.SetEnvironmentVariable(environmentVariableName, value, EnvironmentVariableTarget.Process);
 
         static readonly ILog log = LogManager.GetLogger<SQSTransportCustomization>();

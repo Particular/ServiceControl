@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.WebApi
+namespace ServiceControl.Infrastructure.WebApi
 {
     using System.Linq;
     using System.Reflection;
@@ -9,6 +9,7 @@
     using Microsoft.Extensions.Hosting;
     using Particular.LicensingComponent.WebApi;
     using Particular.ServiceControl;
+    using Particular.LicensingComponent.WebApi;
 
     static class HostApplicationBuilderExtensions
     {
