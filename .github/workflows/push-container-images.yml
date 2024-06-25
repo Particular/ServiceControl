@@ -55,7 +55,7 @@ jobs:
             }
           }
       - name: Update Docker Hub Description - ServiceControl
-        #if: ${{ steps.validate.outputs.latest == 'true' }}
+        if: ${{ steps.validate.outputs.latest == 'true' }}
         uses: peter-evans/dockerhub-description@v4.0.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -63,7 +63,7 @@ jobs:
           repository: particular/servicecontrol
           readme-filepath: ./Container-README.md
       - name: Update Docker Hub Description - Audit
-        #if: ${{ steps.validate.outputs.latest == 'true' }}
+        if: ${{ steps.validate.outputs.latest == 'true' }}
         uses: peter-evans/dockerhub-description@v4.0.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -71,7 +71,7 @@ jobs:
           repository: particular/servicecontrol-audit
           readme-filepath: ./Container-README.md
       - name: Update Docker Hub Description - Monitoring
-        #if: ${{ steps.validate.outputs.latest == 'true' }}
+        if: ${{ steps.validate.outputs.latest == 'true' }}
         uses: peter-evans/dockerhub-description@v4.0.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -79,7 +79,7 @@ jobs:
           repository: particular/servicecontrol-monitoring
           readme-filepath: ./Container-README.md
       - name: Update Docker Hub Description - RavenDB
-        #if: ${{ steps.validate.outputs.latest == 'true' }}
+        if: ${{ steps.validate.outputs.latest == 'true' }}
         uses: peter-evans/dockerhub-description@v4.0.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
