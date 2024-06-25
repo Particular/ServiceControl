@@ -20,7 +20,8 @@ const makeDriver = (): Driver => ({
 
 const driver = makeDriver();
 
-driver.setUp(serviceControlWithMonitoring).then(async () => {
+(async () => {
+  await driver.setUp(serviceControlWithMonitoring);
   //override the default mocked endpoints with a custom list
   await driver.setUp(
     monitoredEndpointsNamed([
@@ -32,4 +33,4 @@ driver.setUp(serviceControlWithMonitoring).then(async () => {
       "Universe.Solarsystem.Earth.Endpoint6",
     ])
   );
-});
+})();
