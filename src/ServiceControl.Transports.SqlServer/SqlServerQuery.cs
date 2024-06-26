@@ -14,7 +14,7 @@ using ServiceControl.Transports.BrokerThroughput;
 public class SqlServerQuery(
     ILogger<SqlServerQuery> logger,
     TimeProvider timeProvider,
-    TransportSettings transportSettings) : BrokerThroughputQuery(logger, "SqlTransport")
+    TransportSettings transportSettings) : BrokerThroughputQuery(logger, "SQLServer")
 {
     readonly List<DatabaseDetails> databases = [];
 
