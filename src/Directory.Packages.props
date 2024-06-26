@@ -1,11 +1,13 @@
 <Project>
+
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
+
   <ItemGroup Label="Versions for direct package references">
     <PackageVersion Include="Autofac" Version="8.0.0" />
-    <PackageVersion Include="AWSSDK.CloudWatch" Version="3.7.303" />
+    <PackageVersion Include="AWSSDK.CloudWatch" Version="3.7.304.35" />
     <PackageVersion Include="AWSSDK.SQS" Version="3.7.300.55" />
     <PackageVersion Include="Azure.Core" Version="1.40.0" />
     <PackageVersion Include="Azure.Identity" Version="1.12.0" />
@@ -15,12 +17,12 @@
     <PackageVersion Include="ByteSize" Version="2.1.2" />
     <PackageVersion Include="Caliburn.Micro" Version="4.0.212" />
     <PackageVersion Include="DotNetZip" Version="1.16.0" />
-    <PackageVersion Include="FluentValidation" Version="11.9.1" />
-    <PackageVersion Include="GitHubActionsTestLogger" Version="2.3.3" />
+    <PackageVersion Include="FluentValidation" Version="11.9.2" />
+    <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
     <PackageVersion Include="HdrHistogram" Version="2.5.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.3" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.5" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.2.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.6" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.6" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.2.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="8.0.0" />
@@ -28,14 +30,14 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="8.3.0" />
+    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="8.6.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="7.4.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
-    <PackageVersion Include="Mindscape.Raygun4Net.NetCore" Version="10.1.2" />
+    <PackageVersion Include="Mindscape.Raygun4Net.NetCore" Version="11.0.2" />
     <PackageVersion Include="NLog.Extensions.Logging" Version="5.3.11" />
-    <PackageVersion Include="NServiceBus" Version="9.0.0" />
-    <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="9.0.0" />
+    <PackageVersion Include="NServiceBus" Version="9.0.2" />
+    <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="9.0.2" />
     <PackageVersion Include="NServiceBus.AmazonSQS" Version="7.0.0" />
     <PackageVersion Include="NServiceBus.CustomChecks" Version="5.0.0" />
     <PackageVersion Include="NServiceBus.Extensions.Hosting" Version="3.0.0" />
@@ -50,7 +52,7 @@
     <PackageVersion Include="NServiceBus.Transport.AzureServiceBus" Version="4.0.1" />
     <PackageVersion Include="NServiceBus.Transport.AzureStorageQueues" Version="13.0.0" />
     <PackageVersion Include="NServiceBus.Transport.Msmq.Sources" Version="3.0.1" />
-    <PackageVersion Include="NServiceBus.Transport.SqlServer" Version="8.0.0" />
+    <PackageVersion Include="NServiceBus.Transport.SqlServer" Version="8.1.2" />
     <PackageVersion Include="NuGet.Versioning" Version="6.10.0" />
     <PackageVersion Include="NUnit" Version="3.14.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="4.5.0" />
@@ -61,26 +63,24 @@
     <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
     <PackageVersion Include="PropertyChanging.Fody" Version="1.30.3" />
     <PackageVersion Include="PublicApiGenerator" Version="11.1.0" />
-    <PackageVersion Include="RavenDB.Client" Version="5.4.118" />
-    <PackageVersion Include="RavenDB.Embedded" Version="5.4.118" />
+    <PackageVersion Include="RavenDB.Client" Version="5.4.200" />
+    <PackageVersion Include="RavenDB.Embedded" Version="5.4.200" />
     <PackageVersion Include="ReactiveUI.WPF" Version="20.1.1" />
     <PackageVersion Include="ServiceControl.Contracts" Version="4.0.0" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
     <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="8.0.0" />
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="8.0.0" />
     <PackageVersion Include="System.Management" Version="8.0.0" />
-    <PackageVersion Include="System.Management.Automation" Version="7.2.19" />
-    <PackageVersion Include="System.Reactive.Linq" Version="6.0.0" />
+    <PackageVersion Include="System.Management.Automation" Version="7.2.21" />
+    <PackageVersion Include="System.Reactive.Linq" Version="6.0.1" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="8.0.0" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.1.0" />
   </ItemGroup>
+
   <ItemGroup Label="Versions to pin transitive references">
-    <PackageVersion Include="Microsoft.AspNetCore.JsonPatch" Version="8.0.5" />
-    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
-    <PackageVersion Include="Microsoft.Identity.Client" Version="4.61.3" />
-    <PackageVersion Include="System.Drawing.Common" Version="8.0.5" />
+    <PackageVersion Include="System.Drawing.Common" Version="8.0.6" />
     <PackageVersion Include="System.IO.Hashing" Version="8.0.0" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
@@ -88,9 +88,11 @@
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
     <PackageVersion Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
+
   <ItemGroup>
     <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.30" />
     <GlobalPackageReference Include="Microsoft.Build.CopyOnWrite" Version="1.0.315" />
     <GlobalPackageReference Include="Particular.Packaging" Version="4.1.0" />
   </ItemGroup>
+
 </Project>
