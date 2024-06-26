@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { RouterView } from "vue-router";
+import { onMounted } from "vue";
+import { RouterView, useRouter } from "vue-router";
 import PageFooter from "./components/PageFooter.vue";
 import PageHeader from "./components/PageHeader.vue";
 import "bootstrap";
@@ -8,8 +9,12 @@ import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { useServiceControl } from "@/composables/serviceServiceControl";
 import "highlight.js/styles/github-dark.css";
 
-// eslint-disable-next-line github/no-then
-useServiceControlUrls().then(async () => await Promise.all([useLicense(), useServiceControl()]));
+useServiceControlUrls();
+
+onMounted(async () => {
+  const router = useRouter();
+  await Promise.all([useLicense(router), useServiceControl(router)]);
+});
 </script>
 
 <template>

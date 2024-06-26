@@ -6,15 +6,8 @@ import { TYPE } from "vue-toastification";
 import type LicenseInfo from "@/resources/LicenseInfo";
 import { LicenseStatus } from "@/resources/LicenseInfo";
 import { LicenseWarningLevel } from "@/composables/LicenseStatus";
-
-const subscriptionExpiring =
-  '<div><strong>Platform license expires soon</strong><div>Once the license expires you\'ll no longer be able to continue using the Particular Service Platform.</div><a href="#/configuration" class="btn btn-warning">View license details</a></div>';
-const upgradeProtectionExpiring =
-  '<div><strong>Upgrade protection expires soon</strong><div>Once upgrade protection expires, you\'ll no longer have access to support or new product versions</div><a href="#/configuration" class="btn btn-warning">View license details</a></div>';
-const upgradeProtectionExpired =
-  '<div><strong>Upgrade protection expired</strong><div>Once upgrade protection expires, you\'ll no longer have access to support or new product versions</div><a href="#/configuration" class="btn btn-warning">View license details</a></div>';
-const trialExpiring =
-  '<div ><strong>Non-production development license expiring</strong><div>Your non-production development license will expire soon. To continue using the Particular Service Platform you\'ll need to extend your license.</div><a href="http://particular.net/extend-your-trial?p=servicepulse" class="btn btn-warning"><i class="fa fa-external-link-alt"></i> Extend your license</a><a href="#/configuration" class="btn btn-light">View license details</a></div>';
+import routeLinks from "@/router/routeLinks";
+import { useRouter } from "vue-router";
 
 interface License extends LicenseInfo {
   licenseEdition: ComputedRef<string>;
@@ -66,8 +59,11 @@ const licenseStatus = reactive({
   warningLevel: LicenseWarningLevel.None,
 });
 
-async function useLicense() {
-  watch<UnwrapNestedRefs<License>>(license, async (newValue, oldValue) => {
+let router: ReturnType<typeof useRouter>;
+
+async function useLicense(vueRouter: ReturnType<typeof useRouter>) {
+  router = vueRouter;
+  watch<UnwrapNestedRefs<License>>(license, (newValue, oldValue) => {
     const checkForWarnings = oldValue !== null ? newValue && newValue.license_status != oldValue.license_status : newValue !== null;
     if (checkForWarnings) {
       displayWarningMessage(newValue.license_status);
@@ -119,20 +115,25 @@ function isSubscriptionLicense(license: UnwrapNestedRefs<License>) {
 }
 
 function displayWarningMessage(licenseStatus: LicenseStatus) {
+  const configurationRootLink = router.resolve(routeLinks.configuration.root).href;
   switch (licenseStatus) {
     case "ValidWithExpiredUpgradeProtection":
+      const upgradeProtectionExpired = `<div><strong>Upgrade protection expired</strong><div>Once upgrade protection expires, you\'ll no longer have access to support or new product versions</div><a href="${configurationRootLink}" class="btn btn-warning">View license details</a></div>`;
       useShowToast(TYPE.WARNING, "", upgradeProtectionExpired, true);
       break;
 
     case "ValidWithExpiringTrial":
+      const trialExpiring = `<div ><strong>Non-production development license expiring</strong><div>Your non-production development license will expire soon. To continue using the Particular Service Platform you\'ll need to extend your license.</div><a href="http://particular.net/extend-your-trial?p=servicepulse" class="btn btn-warning"><i class="fa fa-external-link-alt"></i> Extend your license</a><a href="${configurationRootLink}" class="btn btn-light">View license details</a></div>`;
       useShowToast(TYPE.WARNING, "", trialExpiring, true);
       break;
 
     case "ValidWithExpiringSubscription":
+      const subscriptionExpiring = `<div><strong>Platform license expires soon</strong><div>Once the license expires you\'ll no longer be able to continue using the Particular Service Platform.</div><a href="${configurationRootLink}" class="btn btn-warning">View license details</a></div>`;
       useShowToast(TYPE.WARNING, "", subscriptionExpiring, true);
       break;
 
     case "ValidWithExpiringUpgradeProtection":
+      const upgradeProtectionExpiring = `<div><strong>Upgrade protection expires soon</strong><div>Once upgrade protection expires, you\'ll no longer have access to support or new product versions</div><a href="${configurationRootLink}" class="btn btn-warning">View license details</a></div>`;
       useShowToast(TYPE.WARNING, "", upgradeProtectionExpiring, true);
       break;
 

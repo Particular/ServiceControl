@@ -8,6 +8,8 @@ import type RootUrls from "@/resources/RootUrls";
 import type FailedMessage from "@/resources/FailedMessage";
 import type MonitoredEndpoint from "@/resources/MonitoredEndpoint";
 import { FailedMessageStatus } from "@/resources/FailedMessage";
+import routeLinks from "@/router/routeLinks";
+import { useRouter } from "vue-router";
 
 export const stats = reactive({
   active_endpoints: 0,
@@ -106,7 +108,10 @@ export const connections = reactive<Connections>({
   },
 });
 
-export async function useServiceControl() {
+let router: ReturnType<typeof useRouter>;
+
+export async function useServiceControl(vueRouter: ReturnType<typeof useRouter>) {
+  router = vueRouter;
   await Promise.all([useServiceControlStats(), useServiceControlMonitoringStats(), getServiceControlVersion()]);
 }
 
@@ -120,8 +125,9 @@ const monitoringConnectionFailure = computed(() => monitoringConnectionState.una
 watch(primaryConnectionFailure, (newValue, oldValue) => {
   //NOTE to eliminate success msg showing everytime the screen is refreshed
   if (newValue !== oldValue && !(oldValue === null && newValue === false)) {
+    const connectionUrl = router.resolve(routeLinks.configuration.connections.link).href;
     if (newValue) {
-      useShowToast(TYPE.ERROR, "Error", `Could not connect to ServiceControl at ${serviceControlUrl.value}. <a class="btn btn-default" href="/#/configuration/connections">View connection settings</a>`);
+      useShowToast(TYPE.ERROR, "Error", `Could not connect to ServiceControl at ${serviceControlUrl.value}. <a class="btn btn-default" href="${connectionUrl}">View connection settings</a>`);
     } else {
       useShowToast(TYPE.SUCCESS, "Success", `Connection to ServiceControl was successful at ${serviceControlUrl.value}.`);
     }
@@ -136,8 +142,9 @@ watch(monitoringConnectionFailure, (newValue, oldValue) => {
 
   //NOTE to eliminate success msg showing everytime the screen is refreshed
   if (newValue !== oldValue && !(oldValue === null && newValue === false)) {
+    const connectionUrl = router.resolve(routeLinks.configuration.connections.link).href;
     if (newValue) {
-      useShowToast(TYPE.ERROR, "Error", `Could not connect to the ServiceControl Monitoring service at ${monitoringUrl.value}. <a class="btn btn-default" href="/#/configuration/connections">View connection settings</a>`);
+      useShowToast(TYPE.ERROR, "Error", `Could not connect to the ServiceControl Monitoring service at ${monitoringUrl.value}. <a class="btn btn-default" href="${connectionUrl}">View connection settings</a>`);
     } else {
       useShowToast(TYPE.SUCCESS, "Success", `Connection to ServiceControl Monitoring service was successful at ${monitoringUrl.value}.`);
     }
