@@ -51,6 +51,22 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
         return "Amazon SQS";
     }
   };
+  const transportDocsLinkForInstructions = () => {
+    switch (transport.value) {
+      case Transport.AzureStorageQueue:
+      case Transport.LearningTransport:
+      case Transport.MSMQ:
+        return "https://docs.particular.net/servicepulse/usage-config#connection-setup-msmq-azure-storage-queues";
+      case Transport.NetStandardAzureServiceBus:
+        return "https://docs.particular.net/servicepulse/usage-config#connection-setup-azure-service-bus";      
+      case Transport.RabbitMQ:
+        return "https://docs.particular.net/servicepulse/usage-config#connection-setup-rabbitmq";
+      case Transport.SQLServer:
+        return "https://docs.particular.net/servicepulse/usage-config#connection-setup-sqlserver";
+      case Transport.AmazonSQS:
+        return "https://docs.particular.net/servicepulse/usage-config#connection-setup-amazon-sqs";
+    }
+  };
   const dataRetriever = useAutoRefresh(
     async () => {
       testResults.value = await throughputClient.test();
@@ -64,6 +80,7 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
     testResults,
     refresh,
     transportNameForInstructions,
+    transportDocsLinkForInstructions,
     isBrokerTransport,
     hasErrors,
     transport,

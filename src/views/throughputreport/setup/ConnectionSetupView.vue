@@ -28,7 +28,8 @@ onMounted(async () => {
       <div class="col-12">
         <h4>Broker Settings</h4>
         <p class="nogap">
-          Settings to ensure that usage data is being collected from {{ store.transportNameForInstructions() }}.<br />
+          Settings to ensure that usage data is being collected from <a :href="store.transportDocsLinkForInstructions()">{{ store.transportNameForInstructions() }}</a
+          >.<br />
           Some settings can be automatically configured based on the current transport configuration, so if you have a <i style="color: green" class="fa fa-check"></i> above it means that ServiceControl has successfully connected to
           {{ store.transportNameForInstructions() }}.
         </p>
@@ -48,8 +49,9 @@ onMounted(async () => {
       <div class="col-12">
         <h4>ServiceControl Settings</h4>
         <p class="nogap">
-          Settings to ensure that usage data is being collected from the Monitoring instance.<br />
-          For more information read the <a href="https://docs.particular.net/servicecontrol/creating-config-file#usage-reporting">ServiceControl</a> settings documentation.
+          For more information read the
+          <a href="https://docs.particular.net/servicecontrol/monitoring-instances/installation/creating-config-file#usage-reporting-monitoringservicecontrolthroughputdataqueue">LicensingComponent/ServiceControlThroughputDataQueue</a> settings
+          documentation.
         </p>
         <ConfigurationCode :settings="settingsInfo?.service_control_settings ?? []">
           <template #configInstructions>
@@ -65,9 +67,8 @@ onMounted(async () => {
       <div class="col-12">
         <h4>Monitoring Settings</h4>
         <p class="nogap">
-          Settings to ensure that usage data is being collected from the Monitoring instance.<br />
-          In most instances these settings do not need to be modified.<br />
-          For more information read the <a href="https://docs.particular.net/servicecontrol/monitoring-instances/installation/creating-config-file#usage-reporting">Monitoring</a> settings documentation.
+          For more information read the
+          <a href="https://docs.particular.net/servicecontrol/monitoring-instances/installation/creating-config-file#usage-reporting-monitoringservicecontrolthroughputdataqueue">Monitoring/ServiceControlThroughputDataQueue</a> settings documentation.
         </p>
         <ConfigurationCode :settings="settingsInfo?.monitoring_settings ?? []" configFileName="ServiceControl.Monitoring.exe.config">
           <template #configInstructions>
