@@ -5,6 +5,6 @@ export enum Transport {
   NetStandardAzureServiceBus = "AzureServiceBus",
   LearningTransport = "LearningTransport",
   RabbitMQ = "RabbitMQ",
-  SQLServer = "SQLServer",
+  SQLServer = "SqlTransport",
   AmazonSQS = "AmazonSQS",
 }
