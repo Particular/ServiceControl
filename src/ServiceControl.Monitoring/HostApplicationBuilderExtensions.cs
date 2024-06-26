@@ -18,7 +18,6 @@ using NLog.Extensions.Logging;
 using NServiceBus;
 using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Features;
-using NServiceBus.Metrics;
 using NServiceBus.Transport;
 using QueueLength;
 using Timings;
@@ -86,14 +85,6 @@ public static class HostApplicationBuilderExtensions
         var serviceControlThroughputDataQueue = settings.ServiceControlThroughputDataQueue;
         if (!string.IsNullOrWhiteSpace(serviceControlThroughputDataQueue))
         {
-            if (serviceControlThroughputDataQueue.IndexOf("@") >= 0)
-            {
-                serviceControlThroughputDataQueue = serviceControlThroughputDataQueue.Substring(0, serviceControlThroughputDataQueue.IndexOf("@"));
-            }
-
-            var routing = new RoutingSettings(config.GetSettings());
-            routing.RouteToEndpoint(typeof(RecordEndpointThroughputData), serviceControlThroughputDataQueue);
-
             services.AddHostedService<ReportThroughputHostedService>();
         }
 
