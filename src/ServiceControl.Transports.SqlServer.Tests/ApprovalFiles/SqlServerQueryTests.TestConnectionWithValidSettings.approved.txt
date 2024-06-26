@@ -1,4 +1,4 @@
-Connection test to SqlTransport was successful
+Connection test to SQlServer was successful
 
 Connection settings used:
 ConnectionString set
