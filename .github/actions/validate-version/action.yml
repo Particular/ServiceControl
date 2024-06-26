@@ -36,11 +36,11 @@ runs:
         $isMatch = $version -match '^(?<Major>\d+)\.(?<Minor>\d+)\.(?<Patch>\d+)(-(?<PrereleaseLabel>[\w\-\.]+))?$'
         if ( -not $isMatch)
         {
-          throw "Invalid version ${{ inputs.version }}"
+          throw "Invalid version $version"
           exit 1
         }
 
-        Write-Output "Version ${{ inputs.version }} is valid."
+        Write-Output "Version $version is valid."
 
         $major = [int]$Matches.Major
         $minor = [int]$Matches.Minor
@@ -85,7 +85,7 @@ runs:
           }
 
           if ($vNew -lt $vPrevForMajor) {
-            throw "Releasing a version $version that is not the latest version for the major would break container tagging and is not supported. (Latest v$major version is $latestForMjajor)"
+            throw "Releasing a version $version that is not the latest version for the major would break container tagging and is not supported. (Latest v$major version is $latestForMajor)"
           }
         }
 
@@ -95,6 +95,7 @@ runs:
         $tags = @($version)
 
         if ( -not $isPrerelease ) {
+          $tags += "$major.$minor"
           $tags += "$major"
           if ($isLatest) {
             $tags += 'latest'
