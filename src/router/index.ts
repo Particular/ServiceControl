@@ -52,7 +52,7 @@ export default function makeRouter() {
   }
 
   return createRouter({
-    history: createWebHashHistory("/"),
+    history: createWebHashHistory(),
     routes: routes,
     strict: false,
   });
