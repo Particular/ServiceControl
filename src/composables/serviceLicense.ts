@@ -1,20 +1,10 @@
 import { computed, type ComputedRef, reactive, type UnwrapNestedRefs, watch } from "vue";
 import { useGetDayDiffFromToday } from "./formatter";
 import { useTypedFetchFromServiceControl } from "./serviceServiceControlUrls";
-import { useShowToast } from "./toast";
-import { TYPE } from "vue-toastification";
 import type LicenseInfo from "@/resources/LicenseInfo";
 import { LicenseStatus } from "@/resources/LicenseInfo";
 import { LicenseWarningLevel } from "@/composables/LicenseStatus";
-
-const subscriptionExpiring =
-  '<div><strong>Platform license expires soon</strong><div>Once the license expires you\'ll no longer be able to continue using the Particular Service Platform.</div><a href="#/configuration" class="btn btn-warning">View license details</a></div>';
-const upgradeProtectionExpiring =
-  '<div><strong>Upgrade protection expires soon</strong><div>Once upgrade protection expires, you\'ll no longer have access to support or new product versions</div><a href="#/configuration" class="btn btn-warning">View license details</a></div>';
-const upgradeProtectionExpired =
-  '<div><strong>Upgrade protection expired</strong><div>Once upgrade protection expires, you\'ll no longer have access to support or new product versions</div><a href="#/configuration" class="btn btn-warning">View license details</a></div>';
-const trialExpiring =
-  '<div ><strong>Non-production development license expiring</strong><div>Your non-production development license will expire soon. To continue using the Particular Service Platform you\'ll need to extend your license.</div><a href="http://particular.net/extend-your-trial?p=servicepulse" class="btn btn-warning"><i class="fa fa-external-link-alt"></i> Extend your license</a><a href="#/configuration" class="btn btn-light">View license details</a></div>';
+import { useRouter } from "vue-router";
 
 interface License extends LicenseInfo {
   licenseEdition: ComputedRef<string>;
@@ -66,14 +56,11 @@ const licenseStatus = reactive({
   warningLevel: LicenseWarningLevel.None,
 });
 
-async function useLicense() {
-  watch<UnwrapNestedRefs<License>>(license, async (newValue, oldValue) => {
-    const checkForWarnings = oldValue !== null ? newValue && newValue.license_status != oldValue.license_status : newValue !== null;
-    if (checkForWarnings) {
-      displayWarningMessage(newValue.license_status);
-    }
-  });
+function useLicense() {  
+  return { getOrUpdateLicenseStatus, license, licenseStatus };
+};
 
+async function getOrUpdateLicenseStatus() {
   const lic = await getLicense();
   license.license_type = lic.license_type;
   license.expiration_date = lic.expiration_date;
@@ -116,32 +103,6 @@ function isUpgradeProtectionLicense(license: UnwrapNestedRefs<License>) {
 
 function isSubscriptionLicense(license: UnwrapNestedRefs<License>) {
   return license.expiration_date !== undefined && license.expiration_date !== "" && !license.trial_license;
-}
-
-function displayWarningMessage(licenseStatus: LicenseStatus) {
-  switch (licenseStatus) {
-    case "ValidWithExpiredUpgradeProtection":
-      useShowToast(TYPE.WARNING, "", upgradeProtectionExpired, true);
-      break;
-
-    case "ValidWithExpiringTrial":
-      useShowToast(TYPE.WARNING, "", trialExpiring, true);
-      break;
-
-    case "ValidWithExpiringSubscription":
-      useShowToast(TYPE.WARNING, "", subscriptionExpiring, true);
-      break;
-
-    case "ValidWithExpiringUpgradeProtection":
-      useShowToast(TYPE.WARNING, "", upgradeProtectionExpiring, true);
-      break;
-
-    case "InvalidDueToExpiredTrial":
-    case "InvalidDueToExpiredSubscription":
-    case "InvalidDueToExpiredUpgradeProtection":
-      useShowToast(TYPE.ERROR, "Error", 'Your license has expired. Please contact Particular Software support at: <a href="http://particular.net/support">http://particular.net/support</a>', true);
-      break;
-  }
 }
 
 function getSubscriptionDaysLeft(license: UnwrapNestedRefs<License>) {

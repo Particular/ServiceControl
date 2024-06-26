@@ -2,8 +2,6 @@ import { computed, reactive, watch } from "vue";
 import { useIsSupported, useIsUpgradeAvailable } from "./serviceSemVer";
 import { useServiceProductUrls } from "./serviceProductUrls";
 import { monitoringUrl, serviceControlUrl, useTypedFetchFromMonitoring, useIsMonitoringDisabled, useTypedFetchFromServiceControl } from "./serviceServiceControlUrls";
-import { useShowToast } from "./toast";
-import { TYPE } from "vue-toastification";
 import type RootUrls from "@/resources/RootUrls";
 import type FailedMessage from "@/resources/FailedMessage";
 import type MonitoredEndpoint from "@/resources/MonitoredEndpoint";
@@ -106,43 +104,13 @@ export const connections = reactive<Connections>({
   },
 });
 
-export async function useServiceControl() {
+export async function useServiceControl() {  
   await Promise.all([useServiceControlStats(), useServiceControlMonitoringStats(), getServiceControlVersion()]);
 }
 
 setInterval(() => getServiceControlVersion(), 60000);
 setInterval(() => useServiceControlStats(), 5000); //NOTE is 5 seconds too often?
 setInterval(() => useServiceControlMonitoringStats(), 5000); //NOTE is 5 seconds too often?
-
-const primaryConnectionFailure = computed(() => connectionState.unableToConnect);
-const monitoringConnectionFailure = computed(() => monitoringConnectionState.unableToConnect);
-
-watch(primaryConnectionFailure, (newValue, oldValue) => {
-  //NOTE to eliminate success msg showing everytime the screen is refreshed
-  if (newValue !== oldValue && !(oldValue === null && newValue === false)) {
-    if (newValue) {
-      useShowToast(TYPE.ERROR, "Error", `Could not connect to ServiceControl at ${serviceControlUrl.value}. <a class="btn btn-default" href="/#/configuration/connections">View connection settings</a>`);
-    } else {
-      useShowToast(TYPE.SUCCESS, "Success", `Connection to ServiceControl was successful at ${serviceControlUrl.value}.`);
-    }
-  }
-});
-
-watch(monitoringConnectionFailure, (newValue, oldValue) => {
-  // Only watch the state change if monitoring is enabled
-  if (useIsMonitoringDisabled()) {
-    return;
-  }
-
-  //NOTE to eliminate success msg showing everytime the screen is refreshed
-  if (newValue !== oldValue && !(oldValue === null && newValue === false)) {
-    if (newValue) {
-      useShowToast(TYPE.ERROR, "Error", `Could not connect to the ServiceControl Monitoring service at ${monitoringUrl.value}. <a class="btn btn-default" href="/#/configuration/connections">View connection settings</a>`);
-    } else {
-      useShowToast(TYPE.SUCCESS, "Success", `Connection to ServiceControl Monitoring service was successful at ${monitoringUrl.value}.`);
-    }
-  }
-});
 
 async function useServiceControlStats() {
   const failedMessagesResult = getFailedMessagesCount();
@@ -181,15 +149,6 @@ export async function useServiceControlConnections() {
   }
   return connections;
 }
-
-watch(
-  () => environment.is_compatible_with_sc,
-  (newValue) => {
-    if (newValue == false) {
-      useShowToast(TYPE.ERROR, "Error", `You are using Service Control version ${environment.sc_version}. Please, upgrade to version ${environment.minimum_supported_sc_version} or higher to unlock new functionality in ServicePulse.`);
-    }
-  }
-);
 
 async function getServiceControlVersion() {
   const productsResult = useServiceProductUrls();

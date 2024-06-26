@@ -1,6 +1,7 @@
 ﻿<script setup lang="ts">
 import { ref } from "vue";
 import { monitoringUrl as configuredMonitoringUrl } from "../../composables/serviceServiceControlUrls";
+import routeLinks from "@/router/routeLinks";
 const monitoringUrl = ref(configuredMonitoringUrl.value);
 </script>
 
@@ -26,7 +27,7 @@ const monitoringUrl = ref(configuredMonitoringUrl.value);
                   </ol>
                 </div>
                 <div class="action-toolbar">
-                  <a href="#/configuration/connections" class="btn btn-default btn-primary">View connection details</a>
+                  <RouterLink :to="routeLinks.configuration.connections.link" class="btn btn-default btn-primary">View connection details</RouterLink>
                 </div>
               </div>
             </div>

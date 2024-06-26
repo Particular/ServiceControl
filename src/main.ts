@@ -5,17 +5,17 @@ import "vue3-simple-typeahead/dist/vue3-simple-typeahead.css"; //Optional defaul
 import "./assets/main.css";
 
 async function conditionallyEnableMocking() {
-    if (process.env.NODE_ENV !== 'dev-mocks') {
-      return
-    }
-    
-    const { worker } = await import('@/../test/mocks/browser')
-   
-    // `worker.start()` returns a Promise that resolves
-    // once the Service Worker is up and ready to intercept requests.
-    return worker.start()
+  if (process.env.NODE_ENV !== "dev-mocks") {
+    return;
   }
-   
-  conditionallyEnableMocking().then(() => {
-    mount({ router: makeRouter() });
-  })
+
+  const { worker } = await import("@/../test/mocks/browser");
+
+  // `worker.start()` returns a Promise that resolves
+  // once the Service Worker is up and ready to intercept requests.
+  return worker.start();
+}
+
+conditionallyEnableMocking().then(() => {
+  mount({ router: makeRouter() });
+});

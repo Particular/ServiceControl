@@ -3,7 +3,7 @@ import { type Ref, ref } from "vue";
 const serviceControlUrl = ref<string | null>();
 const monitoringUrl = ref<string | null>();
 
-async function useServiceControlUrls() {
+function useServiceControlUrls() {
   const params = getParams();
   const scu = getParameter(params, "scu");
   const mu = getParameter(params, "mu");

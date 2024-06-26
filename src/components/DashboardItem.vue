@@ -7,13 +7,13 @@ const props = defineProps<{
 </script>
 
 <template>
-  <a class="summary-item" :class="{ 'summary-danger': counter > 0, 'summary-info': counter === 0 || !counter }" :href="url">
+  <RouterLink class="summary-item" :class="{ 'summary-danger': counter > 0, 'summary-info': counter === 0 || !counter }" :to="url">
     <i class="fa fa-3x" :class="props.iconClass"> </i>
     <span v-if="counter > 0" class="badge badge-important">{{ counter }}</span>
     <h4>
       <slot></slot>
     </h4>
-  </a>
+  </RouterLink>
 </template>
 
 <style scoped>

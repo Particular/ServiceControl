@@ -7,14 +7,14 @@ function meta(item: { title: string }) {
 
 function addChildren(parent: RouteRecordSingleViewWithChildren, item: RouteItem) {
   if (item.children) {
-    item.children.forEach(child => {
-      const newItem: RouteRecordSingleViewWithChildren = ({
+    item.children.forEach((child) => {
+      const newItem: RouteRecordSingleViewWithChildren = {
         path: child.path,
         name: `${item.path}/${child.path}`,
         meta: meta(child),
         component: child.component,
         children: [],
-      });
+      };
       parent.children.push(newItem);
 
       if (child.redirect) newItem.redirect = child.redirect;
@@ -52,7 +52,7 @@ export default function makeRouter() {
   }
 
   return createRouter({
-    history: createWebHashHistory(window.defaultConfig.base_url),
+    history: createWebHashHistory(),
     routes: routes,
     strict: false,
   });
