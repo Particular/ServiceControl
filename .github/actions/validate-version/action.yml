@@ -91,6 +91,7 @@ runs:
           }
 
           # For new majors, vNew < null evaluates to false, no exception thrown
+          # Logic would not be appropriate if support policy allows backports to previous minors
           if ($vNew -lt $vPrevForMajor) {
             throw "Releasing a version $version that is not the latest version for the major would break container tagging and is not supported. (Latest v$major version is $latestForMajor)"
           }
