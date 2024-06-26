@@ -4,7 +4,7 @@
       "Name": "MTRabbitMQ",
       "DisplayName": "MassTransit RabbitMQ",
       "AssemblyName": "ServiceControl.Transports.MT.RabbitMQ",
-      "TypeName": "ServiceControl.Transports.MT.RabbitMQ.RabbitMQTransportAdapter, ServiceControl.Transports.MT.RabbitMQ",
+      "TypeName": "ServiceControl.Transports.MT.RabbitMQ.RabbitMQTransportAdapterCustomization, ServiceControl.Transports.MT.RabbitMQ",
       "SampleConnectionString": "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
       "AvailableInSCMU": true,
       "Aliases": [
