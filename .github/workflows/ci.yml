@@ -87,12 +87,14 @@ jobs:
         if: matrix.test-category == 'AzureServiceBus'
         with:
           connection-string-name: ServiceControl_TransportTests_ASBS_ConnectionString
+          azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControl
       - name: Setup Azure Storage Queues
         uses: Particular/setup-azurestorage-action@v2.0.0
         if: matrix.test-category == 'AzureStorageQueues'
         with:
           connection-string-name: ServiceControl_TransportTests_ASQ_ConnectionString
+          azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControl
       - name: Setup SQS environment variables
         if: matrix.test-category == 'SQS'
