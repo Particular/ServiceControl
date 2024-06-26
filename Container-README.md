@@ -14,13 +14,13 @@ Complete documentation of the ServiceControl container images can be found in th
 The following is the most basic way to create ServiceControl containers using [Docker](https://www.docker.com/), assuming a RabbitMQ message broker also hosted in a Docker container using default `guest`/`guest` credentials:
 
 ```shell
-# Run with setup entry point to create message queues, then exit and remove the container
-docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -rm particular/servicecontrol:latest --setup
-docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -rm particular/servicecontrol-audit:latest --setup
-docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString="host=host.docker.internal" -rm particular/servicecontrol-monitoring:latest --setup
-
-# Run one instance of the database
+# WARNING: A single database container should not be shared between multiple instances in production scenarios.
 docker run -d -p 8080:8080 particular/servicecontrol-ravendb:latest-x64
+
+# Run with setup entry point to create message queues, then exit and remove the container
+docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -e RavenDB_ConnectionString='http://host.docker.internal:8080' --rm particular/servicecontrol:latest --setup
+docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -e RavenDB_ConnectionString='http://host.docker.internal:8080' --rm particular/servicecontrol-audit:latest --setup
+docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString="host=host.docker.internal" --rm particular/servicecontrol-monitoring:latest --setup
 
 # Run the instances in normal mode
 docker run -d -p 33333:33333 -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -e RavenDB_ConnectionString='http://host.docker.internal:8080' -e RemoteInstances='[{"api_uri":"http://host.docker.internal:44444/api"}]' particular/servicecontrol:latest
