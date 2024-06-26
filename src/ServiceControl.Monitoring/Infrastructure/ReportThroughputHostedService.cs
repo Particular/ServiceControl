@@ -7,9 +7,10 @@
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Metrics;
+    using NServiceBus.Unicast.Queuing;
     using ServiceControl.Monitoring.Infrastructure.Api;
 
-    class ReportThroughputHostedService(ILogger<ReportThroughputHostedService> logger, IMessageSession session, IEndpointMetricsApi endpointMetricsApi, TimeProvider timeProvider) : BackgroundService
+    class ReportThroughputHostedService(ILogger<ReportThroughputHostedService> logger, IMessageSession session, IEndpointMetricsApi endpointMetricsApi, Settings settings, TimeProvider timeProvider) : BackgroundService
     {
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
@@ -27,7 +28,14 @@
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {
-                        logger.LogError(ex, $"Error obtaining throughput from Monitoring for {ReportSendingIntervalInMinutes} minutes interval.");
+                        if (ex.InnerException is not null and QueueNotFoundException)
+                        {
+                            logger.LogError($"Error obtaining throughput from Monitoring for {ReportSendingIntervalInMinutes} minutes interval: {ex?.InnerException?.Message}");
+                        }
+                        else
+                        {
+                            logger.LogError(ex, $"Error obtaining throughput from Monitoring for {ReportSendingIntervalInMinutes} minutes interval.");
+                        }
                     }
                 } while (await timer.WaitForNextTickAsync(cancellationToken));
             }
@@ -56,7 +64,7 @@
                     throughputData.EndpointThroughputData[i] = new EndpointThroughputData { Name = endpointData[i].Name, Throughput = Convert.ToInt64(average * ReportSendingIntervalInMinutes * 60) };
                 }
 
-                await session.Send(throughputData, cancellationToken);
+                await session.Send(settings.ServiceControlThroughputDataQueue, throughputData, cancellationToken);
             }
         }
 
