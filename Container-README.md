@@ -44,6 +44,10 @@ We use [SemVer](http://semver.org/) for versioning. Release images pushed to Doc
 
 The latest release within a major version will be tagged with the major version number only on images pushed to Docker Hub. This allows users to target a specific major version to help avoid the risk of incurring breaking changes between major versions.
 
+### Minor version tag
+
+The latest release within a minor version will be tagged with `{major}.{minor}` on images pushed to Docker Hub. This allows users to target the latest patch within a specific minor version.
+
 ## Image architecture
 
 The `servicecontrol`, `servicecontrol-audit`, and `servicecontrol-monitoring` images are multi-arch images based on the `mcr.microsoft.com/dotnet/aspnet:8.0` base image supporting `linux/arm64`, `linux/arm`, and `linux/amd64`.

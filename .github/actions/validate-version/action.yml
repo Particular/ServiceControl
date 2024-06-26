@@ -36,11 +36,11 @@ runs:
         $isMatch = $version -match '^(?<Major>\d+)\.(?<Minor>\d+)\.(?<Patch>\d+)(-(?<PrereleaseLabel>[\w\-\.]+))?$'
         if ( -not $isMatch)
         {
-          throw "Invalid version ${{ inputs.version }}"
+          throw "Invalid version $version"
           exit 1
         }
 
-        Write-Output "Version ${{ inputs.version }} is valid."
+        Write-Output "Version $version is valid."
 
         $major = [int]$Matches.Major
         $minor = [int]$Matches.Minor
@@ -73,19 +73,32 @@ runs:
             select -First 1
         Write-Output "Latest released v$major version on GitHub = $latestForMajor"
 
+        $latestForMinor = $releasedVersions |
+            where { ([System.Version]$_).Major -eq $major -and ([System.Version]$_).Minor -eq $minor } |
+            Sort-Object { [System.Version]$_ } -Descending |
+            select -First 1
+        Write-Output "Latest released v$major.$minor version on GitHub = $latestForMinor"
+
         $isLatest = $false
-        $isLatestForMajor = $false
         if ( -not $isPrerelease ) {
           $vNew = [System.Version]$version
           $vPrev = [System.Version]$latestVersion
           $vPrevForMajor = [System.Version]$latestForMajor
+          $vPrevForMinor = [System.Version]$latestForMinor
 
           if ($vNew -ge $vPrev) {
             $isLatest = $true
           }
 
+          # For new majors, vNew < null evaluates to false, no exception thrown
+          # Logic would not be appropriate if support policy allows backports to previous minors
           if ($vNew -lt $vPrevForMajor) {
-            throw "Releasing a version $version that is not the latest version for the major would break container tagging and is not supported. (Latest v$major version is $latestForMjajor)"
+            throw "Releasing a version $version that is not the latest version for the major would break container tagging and is not supported. (Latest v$major version is $latestForMajor)"
+          }
+
+          # For new minors, vNew < null evaluates to false, no exception thrown
+          if ($vNew -lt $vPrevForMinor) {
+            throw "Releasing a version $version that is not the latest version for the minor would break container tagging and is not supported. (Latest v$major.$minor version is $latestForMinor)"
           }
         }
 
@@ -95,6 +108,7 @@ runs:
         $tags = @($version)
 
         if ( -not $isPrerelease ) {
+          $tags += "$major.$minor"
           $tags += "$major"
           if ($isLatest) {
             $tags += 'latest'
