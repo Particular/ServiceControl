@@ -83,7 +83,7 @@ jobs:
           connection-string-name: ServiceControl_TransportTests_RabbitMQ_ConnectionString
           tag: ServiceControl
       - name: Setup Azure Service Bus
-        uses: Particular/setup-azureservicebus-action@v1.3.0
+        uses: Particular/setup-azureservicebus-action@v2.0.0
         if: matrix.test-category == 'AzureServiceBus'
         with:
           connection-string-name: ServiceControl_TransportTests_ASBS_ConnectionString
