@@ -44,7 +44,7 @@ onMounted(async () => {
       </div>
     </div>
   </template>
-  <template v-if="useIsMonitoringEnabled()">
+  <template v-if="!store.isBrokerTransport && useIsMonitoringEnabled()">
     <div class="row configuration">
       <div class="col-12">
         <h4>ServiceControl Settings</h4>
