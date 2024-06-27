@@ -103,7 +103,7 @@ public class BrokerThroughputCollectorHostedService(
             var defaultStartDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-30);
             var startDate = endpoint.LastCollectedDate < defaultStartDate
                 ? defaultStartDate
-                : endpoint.LastCollectedDate;
+                : endpoint.LastCollectedDate.AddDays(1);
 
             await foreach (var queueThroughput in brokerThroughputQuery.GetThroughputPerDay(queueName, startDate, stoppingToken))
             {

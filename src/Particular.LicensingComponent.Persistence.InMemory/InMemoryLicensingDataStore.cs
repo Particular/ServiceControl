@@ -28,7 +28,13 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
 
     public Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken)
     {
-        endpoints.TryGetValue(id, out var endpoint);
+        if (endpoints.TryGetValue(id, out var endpoint))
+        {
+            if (allThroughput.TryGetValue(id, out var endpointThroughput))
+            {
+                endpoint.LastCollectedDate = endpointThroughput.LastOrDefault().Key;
+            }
+        }
         return Task.FromResult(endpoint);
     }
 

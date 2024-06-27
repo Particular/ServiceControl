@@ -43,6 +43,36 @@ class BrokerThroughputCollectorHostedServiceTests
     }
 
     [Test]
+    public async Task EnsuringStartDatePassedToGetThroughputPerDayIsAlwaysOneDayAheadFromLastCollectionData()
+    {
+        var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        CancellationToken token = tokenSource.Token;
+        var lastCollectionDate = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        var dataStore = new InMemoryLicensingDataStore();
+        await dataStore.SaveEndpoint(new Endpoint("marketing", ThroughputSource.Broker), token);
+        await dataStore.RecordEndpointThroughput("marketing", ThroughputSource.Broker,
+            new List<EndpointDailyThroughput>([new EndpointDailyThroughput(lastCollectionDate, 10)]), token);
+        await dataStore.SaveEndpoint(new Endpoint("customer", ThroughputSource.Broker), token);
+        await dataStore.RecordEndpointThroughput("customer", ThroughputSource.Broker,
+            new List<EndpointDailyThroughput>([new EndpointDailyThroughput(lastCollectionDate, 100)]), token);
+        var mockedBrokerThroughputQueryThatRecordsDate = new MockedBrokerThroughputQueryThatRecordsDate();
+        using var brokerThroughputCollectorHostedService = new BrokerThroughputCollectorHostedService(
+            NullLogger<BrokerThroughputCollectorHostedService>.Instance,
+            mockedBrokerThroughputQueryThatRecordsDate,
+            new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
+            dataStore, TimeProvider.System)
+        { DelayStart = TimeSpan.Zero };
+        await brokerThroughputCollectorHostedService.StartAsync(token);
+        await (brokerThroughputCollectorHostedService.ExecuteTask! ?? Task.CompletedTask);
+
+        foreach (var startDate in mockedBrokerThroughputQueryThatRecordsDate.StartDates)
+        {
+            Assert.AreEqual(lastCollectionDate.AddDays(1), startDate);
+        }
+    }
+
+    [Test]
     public async Task EnsuringExceptionsAreHandledAndThroughputCollectorKeepsGoing()
     {
         var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
@@ -165,6 +195,50 @@ class BrokerThroughputCollectorHostedServiceTests
         {
             yield return new DefaultBrokerQueue("sales@one") { SanitizedName = "sales" };
             yield return new DefaultBrokerQueue("sales@two") { SanitizedName = "sales" };
+            yield return new DefaultBrokerQueue("marketing");
+            yield return new DefaultBrokerQueue("customer");
+
+            await Task.CompletedTask;
+        }
+
+        public Dictionary<string, string> Data { get; }
+        public string MessageTransport { get; }
+        public string ScopeType { get; }
+        public KeyDescriptionPair[] Settings { get; } = [];
+
+        public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
+            CancellationToken cancellationToken) => throw new NotImplementedException();
+
+        public string SanitizeEndpointName(string endpointName) => endpointName;
+    }
+
+    class MockedBrokerThroughputQueryThatRecordsDate : IBrokerThroughputQuery
+    {
+        public List<DateOnly> StartDates = [];
+
+        public bool HasInitialisationErrors(out string errorMessage)
+        {
+            errorMessage = string.Empty;
+            return false;
+        }
+
+        public void Initialise(FrozenDictionary<string, string> settings)
+        {
+        }
+
+        public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await Task.CompletedTask;
+
+            StartDates.Add(startDate);
+
+            yield break;
+        }
+
+        public async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
             yield return new DefaultBrokerQueue("marketing");
             yield return new DefaultBrokerQueue("customer");
 
