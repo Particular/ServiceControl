@@ -256,5 +256,6 @@ class BrokerThroughputCollectorHostedServiceTests
             CancellationToken cancellationToken) => throw new NotImplementedException();
 
         public string SanitizeEndpointName(string endpointName) => endpointName;
+        public string SanitizedEndpointNameCleanser(string endpointName) => endpointName;
     }
 }
