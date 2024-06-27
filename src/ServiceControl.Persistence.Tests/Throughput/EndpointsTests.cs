@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
 
-[TestFixture]
+[TestFixture, Ignore("TF3601 licensing not active")]
 class EndpointsTests : PersistenceTestBase
 {
     [Test]

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-[TestFixture]
+[TestFixture, Ignore("TF3601 licensing not active")]
 class ReportMasksTests : PersistenceTestBase
 {
     [Test]

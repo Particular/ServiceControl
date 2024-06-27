@@ -14,8 +14,7 @@ namespace Particular.ServiceControl
             new ExternalIntegrationsComponent(),
             new RecoverabilityComponent(),
             new HeartbeatMonitoringComponent(),
-            new CustomChecksComponent(),
-            new LicensingComponent()
+            new CustomChecksComponent()
         };
     }
 }

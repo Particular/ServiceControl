@@ -67,13 +67,13 @@ public static class HostApplicationBuilderExtensions
 
         services.AddLicenseCheck();
 
-        ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, transportSettings, settings, services);
+        ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, transportSettings, settings);
         hostBuilder.UseNServiceBus(endpointConfiguration);
 
         hostBuilder.AddAsyncTimer();
     }
 
-    static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings, IServiceCollection services)
+    static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings)
     {
         if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
         {
@@ -81,13 +81,6 @@ public static class HostApplicationBuilderExtensions
         }
 
         transportCustomization.CustomizeMonitoringEndpoint(config, transportSettings);
-
-        var serviceControlThroughputDataQueue = settings.ServiceControlThroughputDataQueue;
-        if (!string.IsNullOrWhiteSpace(serviceControlThroughputDataQueue))
-        {
-            services.AddHostedService<ReportThroughputHostedService>();
-        }
-
 
         if (settings.EnableInstallers)
         {
