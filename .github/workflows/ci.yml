@@ -111,7 +111,5 @@ jobs:
         uses: Particular/run-tests-action@v1.7.0
         env:
           ServiceControl_TESTS_FILTER: ${{ matrix.test-category }}
-          ServiceControl_LicenseText: ${{ secrets.LICENSETEXT }}
-          ServiceControl_Audit_LicenseText: ${{ secrets.LICENSETEXT }}
-          Monitoring_LicenseText: ${{ secrets.LICENSETEXT }}
+          PARTICULARSOFTWARE_LICENSE: ${{ secrets.LICENSETEXT }}
           AZURE_ACI_CREDENTIALS: ${{ secrets.AZURE_ACI_CREDENTIALS }}
