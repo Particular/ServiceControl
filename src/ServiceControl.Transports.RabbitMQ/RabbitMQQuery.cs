@@ -18,22 +18,29 @@ using Polly;
 using Polly.Retry;
 using ServiceControl.Transports.BrokerThroughput;
 
-public class RabbitMQQuery(
-    ILogger<RabbitMQQuery> logger,
-    TimeProvider timeProvider,
-    TransportSettings transportSettings) : BrokerThroughputQuery(logger, "RabbitMQ")
+public class RabbitMQQuery : BrokerThroughputQuery
 {
     HttpClient? httpClient;
     readonly ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
         .AddRetry(new RetryStrategyOptions()) // Add retry using the default options
         .AddTimeout(TimeSpan.FromMinutes(2)) // Add timeout if it keeps failing
         .Build();
+    readonly ILogger<RabbitMQQuery> logger;
+    readonly TimeProvider timeProvider;
+    readonly ConnectionConfiguration connectionConfiguration;
+
+    public RabbitMQQuery(ILogger<RabbitMQQuery> logger,
+        TimeProvider timeProvider,
+        TransportSettings transportSettings) : base(logger, "RabbitMQ")
+    {
+        this.logger = logger;
+        this.timeProvider = timeProvider;
+
+        connectionConfiguration = ConnectionConfiguration.Create(transportSettings.ConnectionString, string.Empty);
+    }
 
     protected override void InitialiseCore(FrozenDictionary<string, string> settings)
     {
-        string? connectionString = transportSettings.ConnectionString;
-        var connectionConfiguration = ConnectionConfiguration.Create(connectionString, string.Empty);
-
         if (!settings.TryGetValue(RabbitMQSettings.UserName, out string? username) ||
             string.IsNullOrEmpty(username))
         {
@@ -261,7 +268,7 @@ public class RabbitMQQuery(
 
     async Task<(RabbitMQBrokerQueueDetails[]?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
     {
-        var url = $"/api/queues?page={page}&page_size=500&name=&use_regex=false&pagination=true";
+        var url = $"/api/queues/{HttpUtility.UrlEncode(connectionConfiguration.VirtualHost)}?page={page}&page_size=500&name=&use_regex=false&pagination=true";
 
         var container = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonNode>(url, token), cancellationToken);
         switch (container)
