@@ -216,11 +216,8 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
 
     string CleanseSanitizedName(string endpointName)
     {
-        return throughputQuery == null ? defaultSanitizedEndpointNameCleanser(endpointName) : throughputQuery.SanitizedEndpointNameCleanser(endpointName);
+        return throughputQuery == null ? endpointName : throughputQuery.SanitizedEndpointNameCleanser(endpointName);
     }
-
-    Func<string, string> defaultSanitizedEndpointNameCleanser = endpointName => endpointName;
-
     static string? UserIndicator(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.UserIndicator))?.UserIndicator;
 
     static string? EndpointScope(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.Scope))?.Scope;
