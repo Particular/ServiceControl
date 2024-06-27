@@ -8,10 +8,7 @@
         [Test]
         public void PlatformSampleSettings()
         {
-            var settings = new Settings
-            {
-                LicenseFileText = null
-            };
+            var settings = new Settings();
 
             Approver.Verify(settings);
         }

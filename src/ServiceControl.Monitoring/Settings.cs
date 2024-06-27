@@ -16,8 +16,6 @@ namespace ServiceControl.Monitoring
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
-            TryLoadLicenseFromConfig();
-
             TransportType = SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
 
             ConnectionString = GetConnectionString();
@@ -75,10 +73,6 @@ namespace ServiceControl.Monitoring
         public string RootUrl => $"http://{HttpHostName}:{HttpPort}/";
 
         public int MaximumConcurrencyLevel { get; set; }
-
-        public string LicenseFileText { get; set; }
-
-        void TryLoadLicenseFromConfig() => LicenseFileText = SettingsReader.Read<string>(SettingsRootNamespace, "LicenseText");
 
         public TransportSettings ToTransportSettings()
         {

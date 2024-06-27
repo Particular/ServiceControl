@@ -21,7 +21,6 @@
   "StorageUrl": "http://localhost:8888/storage",
   "StagingQueue": "Particular.ServiceControl.staging",
   "Port": 8888,
-  "LicenseFileText": null,
   "PersisterSpecificSettings": null,
   "PrintMetrics": false,
   "Hostname": "localhost",

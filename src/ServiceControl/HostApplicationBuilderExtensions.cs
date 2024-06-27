@@ -35,11 +35,6 @@ namespace Particular.ServiceControl
 
             RecordStartup(settings, configuration);
 
-            if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
-            {
-                configuration.License(settings.LicenseFileText);
-            }
-
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.UserInteractive && Debugger.IsAttached)
             {
                 EventSourceCreator.Create();

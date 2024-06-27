@@ -42,8 +42,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
             LoadErrorIngestionSettings();
 
-            TryLoadLicenseFromConfig();
-
             TransportConnectionString = GetConnectionString();
             TransportType = transportType ?? SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
             PersistenceType = persisterType ?? SettingsReader.Read<string>(SettingsRootNamespace, "PersistenceType");
@@ -136,8 +134,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string StagingQueue => $"{ServiceName}.staging";
 
         public int Port { get; private set; }
-
-        public string LicenseFileText { get; set; }
 
         public PersistenceSettings PersisterSpecificSettings { get; set; }
 
@@ -415,8 +411,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
                 ErrorLogQueue = Subscope(ErrorQueue);
             }
         }
-
-        void TryLoadLicenseFromConfig() => LicenseFileText = SettingsReader.Read<string>(SettingsRootNamespace, "LicenseText");
 
         // logger is intentionally not static to prevent it from being initialized before LoggingConfigurator.ConfigureLogging has been called
         readonly ILog logger = LogManager.GetLogger(typeof(Settings));

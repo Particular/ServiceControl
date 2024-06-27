@@ -18,6 +18,5 @@
   "EndpointUptimeGracePeriod": "00:00:40",
   "SkipQueueCreation": false,
   "RootUrl": "http://localhost:9999/",
-  "MaximumConcurrencyLevel": 32,
-  "LicenseFileText": null
+  "MaximumConcurrencyLevel": 32
 }
