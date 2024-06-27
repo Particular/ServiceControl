@@ -20,4 +20,5 @@ public interface IBrokerThroughputQuery
     KeyDescriptionPair[] Settings { get; }
     Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(CancellationToken cancellationToken);
     string SanitizeEndpointName(string endpointName);
+    string SanitizedEndpointNameCleanser(string endpointName);
 }

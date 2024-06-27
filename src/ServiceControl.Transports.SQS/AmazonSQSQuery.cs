@@ -292,4 +292,6 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
             return endpointName;
         }
     }
+
+    public override string SanitizedEndpointNameCleanser(string endpointName) => endpointName.ToLower();
 }

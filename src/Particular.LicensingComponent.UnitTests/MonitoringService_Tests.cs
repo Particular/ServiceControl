@@ -184,5 +184,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
 
             return queueNameBuilder.ToString();
         }
+
+        public string SanitizedEndpointNameCleanser(string endpointName) => endpointName;
     }
 }

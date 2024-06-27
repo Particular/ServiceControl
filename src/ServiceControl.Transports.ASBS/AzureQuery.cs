@@ -288,6 +288,8 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         throw new Exception($"Could not find a ServiceBus named \"{serviceBusName}\"");
     }
 
+    public override string SanitizedEndpointNameCleanser(string endpointName) => endpointName.ToLower();
+
     public override KeyDescriptionPair[] Settings =>
     [
         new KeyDescriptionPair(AzureServiceBusSettings.ServiceBusName, AzureServiceBusSettings.ServiceBusNameDescription),

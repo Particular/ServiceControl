@@ -65,7 +65,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         var endpointSummaries = new List<EndpointThroughputSummary>();
 
         //group endpoints by sanitized name - so to group throughput recorded from broker, audit and monitoring
-        foreach (var endpointGroupPerQueue in endpoints.GroupBy(g => g.SanitizedName))
+        foreach (var endpointGroupPerQueue in endpoints.GroupBy(g => CleanseSanitizedName(g.SanitizedName)))
         {
             var data = new List<ThroughputData>();
             if (endpointThroughputPerQueue.TryGetValue(endpointGroupPerQueue.Key, out var tempData))
@@ -117,7 +117,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         List<string> ignoredQueueNames = [];
 
         //group endpoints by sanitized name - so to group throughput recorded from broker, audit and monitoring
-        foreach (var endpointGroupPerQueue in endpoints.GroupBy(g => g.SanitizedName))
+        foreach (var endpointGroupPerQueue in endpoints.GroupBy(g => CleanseSanitizedName(g.SanitizedName)))
         {
             //want to display the endpoint name if it's different to the sanitized endpoint name
             var endpointName = endpointGroupPerQueue.FirstOrDefault(endpoint => endpoint.Id.Name != endpoint.SanitizedName)?.Id.Name ?? endpointGroupPerQueue.Key;
@@ -213,6 +213,13 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
             return stringToMask;
         }
     }
+
+    string CleanseSanitizedName(string endpointName)
+    {
+        return throughputQuery == null ? defaultSanitizedEndpointNameCleanser(endpointName) : throughputQuery.SanitizedEndpointNameCleanser(endpointName);
+    }
+
+    Func<string, string> defaultSanitizedEndpointNameCleanser = endpointName => endpointName;
 
     static string? UserIndicator(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.UserIndicator))?.UserIndicator;
 

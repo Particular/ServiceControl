@@ -114,4 +114,6 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
         TestConnectionCore(CancellationToken cancellationToken);
 
     public virtual string SanitizeEndpointName(string endpointName) => endpointName;
+
+    public virtual string SanitizedEndpointNameCleanser(string endpointName) => endpointName;
 }

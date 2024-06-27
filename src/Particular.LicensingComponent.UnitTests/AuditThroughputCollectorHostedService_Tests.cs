@@ -330,5 +330,7 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
 
             return queueNameBuilder.ToString();
         }
+
+        public string SanitizedEndpointNameCleanser(string endpointName) => endpointName;
     }
 }
