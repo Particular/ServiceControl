@@ -75,11 +75,6 @@ public static class HostApplicationBuilderExtensions
 
     static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings, IServiceCollection services)
     {
-        if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
-        {
-            config.License(settings.LicenseFileText);
-        }
-
         transportCustomization.CustomizeMonitoringEndpoint(config, transportSettings);
 
         var serviceControlThroughputDataQueue = settings.ServiceControlThroughputDataQueue;

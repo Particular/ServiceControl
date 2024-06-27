@@ -35,8 +35,6 @@
 
             LoadAuditQueueInformation();
 
-            TryLoadLicenseFromConfig();
-
             ForwardAuditMessages = GetForwardAuditMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
 
@@ -131,8 +129,6 @@
         public bool IngestAuditMessages { get; set; } = true;
 
         public string AuditLogQueue { get; set; }
-
-        public string LicenseFileText { get; set; }
 
         public TimeSpan AuditRetentionPeriod { get; }
 
@@ -281,8 +277,6 @@
             var machine = address.Substring(atIndex + 1);
             return $"{queue}.log@{machine}";
         }
-
-        void TryLoadLicenseFromConfig() => LicenseFileText = SettingsReader.Read<string>(SettingsRootNamespace, "LicenseText");
 
         // logger is intentionally not static to prevent it from being initialized before LoggingConfigurator.ConfigureLogging has been called
         readonly ILog logger = LogManager.GetLogger(typeof(Settings));

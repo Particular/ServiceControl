@@ -125,8 +125,6 @@
             //If any changes have been made to settings, this may break the embedded config in that project, which may need to be updated.
             var settings = CreateTestSettings();
 
-            settings.LicenseFileText = null;
-
             Approver.Verify(settings);
         }
 

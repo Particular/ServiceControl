@@ -33,11 +33,6 @@ static class HostApplicationBuilderExtensions
 
         RecordStartup(settings, configuration, persistenceConfiguration);
 
-        if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
-        {
-            configuration.License(settings.LicenseFileText);
-        }
-
         builder.Logging.ClearProviders();
         builder.Logging.AddNLog();
         builder.Logging.SetMinimumLevel(settings.LoggingSettings.ToHostLogLevel());
