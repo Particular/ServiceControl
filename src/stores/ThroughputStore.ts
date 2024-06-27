@@ -4,16 +4,25 @@ import useAutoRefresh from "@/composables/autoRefresh";
 import ConnectionTestResults from "@/resources/ConnectionTestResults";
 import throughputClient from "@/views/throughputreport/throughputClient";
 import { Transport } from "@/views/throughputreport/transport";
+import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
 
 export const useThroughputStore = defineStore("ThroughputStore", () => {
   const testResults = ref<ConnectionTestResults | null>(null);
   const refresh = () => dataRetriever.executeAndResetTimer();
   const hasErrors = computed(() => {
-    if (isBrokerTransport) {
+    if (isBrokerTransport.value) {
       return !testResults.value?.broker_connection_result.connection_successful;
     }
 
-    return !(testResults.value?.audit_connection_result.connection_successful || testResults.value?.monitoring_connection_result.connection_successful);
+    if (!testResults.value?.audit_connection_result.connection_successful) {
+      return false;
+    }
+
+    if (useIsMonitoringEnabled()) {
+      return !testResults.value?.monitoring_connection_result.connection_successful;
+    }
+
+    return true;
   });
   const transport = computed(() => {
     if (testResults.value == null) {
@@ -58,7 +67,7 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
       case Transport.MSMQ:
         return "https://docs.particular.net/servicepulse/usage-config#connection-setup-msmq-azure-storage-queues";
       case Transport.NetStandardAzureServiceBus:
-        return "https://docs.particular.net/servicepulse/usage-config#connection-setup-azure-service-bus";      
+        return "https://docs.particular.net/servicepulse/usage-config#connection-setup-azure-service-bus";
       case Transport.RabbitMQ:
         return "https://docs.particular.net/servicepulse/usage-config#connection-setup-rabbitmq";
       case Transport.SQLServer:
