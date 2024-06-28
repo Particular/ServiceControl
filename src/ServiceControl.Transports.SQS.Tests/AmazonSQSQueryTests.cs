@@ -1,8 +1,8 @@
 namespace ServiceControl.Transport.Tests;
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,7 +46,7 @@ class AmazonSQSQueryTests : TransportTestFixture
             { AmazonSQSQuery.AmazonSQSSettings.SecretKey, "not_valid" },
             { AmazonSQSQuery.AmazonSQSSettings.Region, "us-east-1" }
         };
-        query.Initialise(dictionary.ToFrozenDictionary());
+        query.Initialise(dictionary.ToImmutableDictionary());
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
@@ -66,7 +66,7 @@ class AmazonSQSQueryTests : TransportTestFixture
             { AmazonSQSQuery.AmazonSQSSettings.AccessKey, "valid" },
             { AmazonSQSQuery.AmazonSQSSettings.SecretKey, "valid" }
         };
-        query.Initialise(dictionary.ToFrozenDictionary());
+        query.Initialise(dictionary.ToImmutableDictionary());
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
@@ -86,7 +86,7 @@ class AmazonSQSQueryTests : TransportTestFixture
             { AmazonSQSQuery.AmazonSQSSettings.AccessKey, "valid" },
             { AmazonSQSQuery.AmazonSQSSettings.SecretKey, "valid" }
         };
-        query.Initialise(dictionary.ToFrozenDictionary());
+        query.Initialise(dictionary.ToImmutableDictionary());
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
         Approver.Verify(diagnostics);
@@ -120,7 +120,7 @@ class AmazonSQSQueryTests : TransportTestFixture
             dictionary.Add(AmazonSQSQuery.AmazonSQSSettings.Region, connectionString.Region);
         }
 
-        query.Initialise(dictionary.ToFrozenDictionary());
+        query.Initialise(dictionary.ToImmutableDictionary());
 
         await Task.Delay(TimeSpan.FromMinutes(2), token);
 

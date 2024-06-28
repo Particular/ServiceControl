@@ -1,8 +1,8 @@
 namespace ServiceControl.Transport.Tests;
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -44,7 +44,7 @@ class AzureQueryTests : TransportTestFixture
 
         transportSettings.ConnectionString =
             "Endpoint=sb://testmenow.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=xxxxxxxxxxxxx";
-        query.Initialise(FrozenDictionary<string, string>.Empty);
+        query.Initialise(ImmutableDictionary<string, string>.Empty);
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
@@ -63,7 +63,7 @@ class AzureQueryTests : TransportTestFixture
 
         string serviceBusName = query.ExtractServiceBusName();
         Dictionary<string, string> dictionary = GetSettings();
-        query.Initialise(dictionary.ToFrozenDictionary());
+        query.Initialise(dictionary.ToImmutableDictionary());
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsTrue(success);
@@ -91,7 +91,7 @@ class AzureQueryTests : TransportTestFixture
             { AzureQuery.AzureServiceBusSettings.TenantId, "not valid" },
             { AzureQuery.AzureServiceBusSettings.SubscriptionId, "not valid" }
         };
-        query.Initialise(dictionary.ToFrozenDictionary());
+        query.Initialise(dictionary.ToImmutableDictionary());
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
@@ -114,7 +114,7 @@ class AzureQueryTests : TransportTestFixture
             { AzureQuery.AzureServiceBusSettings.TenantId, Guid.Empty.ToString() },
             { AzureQuery.AzureServiceBusSettings.SubscriptionId, "not valid" }
         };
-        query.Initialise(dictionary.ToFrozenDictionary());
+        query.Initialise(dictionary.ToImmutableDictionary());
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
@@ -132,7 +132,7 @@ class AzureQueryTests : TransportTestFixture
 
         Dictionary<string, string> dictionary = GetSettings();
         dictionary[AzureQuery.AzureServiceBusSettings.ClientId] = "not valid";
-        query.Initialise(dictionary.ToFrozenDictionary());
+        query.Initialise(dictionary.ToImmutableDictionary());
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
@@ -155,7 +155,7 @@ class AzureQueryTests : TransportTestFixture
 
         Dictionary<string, string> dictionary = GetSettings();
         dictionary[AzureQuery.AzureServiceBusSettings.ClientSecret] = "not valid";
-        query.Initialise(dictionary.ToFrozenDictionary());
+        query.Initialise(dictionary.ToImmutableDictionary());
         (bool success, List<string> errors, _) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
@@ -175,7 +175,7 @@ class AzureQueryTests : TransportTestFixture
 
         Dictionary<string, string> dictionary = GetSettings();
 
-        query.Initialise(dictionary.ToFrozenDictionary());
+        query.Initialise(dictionary.ToImmutableDictionary());
 
         var queueNames = new List<IBrokerQueue>();
         await foreach (IBrokerQueue queueName in query.GetQueueNames(token))

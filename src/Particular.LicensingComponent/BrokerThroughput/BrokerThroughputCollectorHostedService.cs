@@ -1,6 +1,7 @@
 namespace Particular.LicensingComponent.BrokerThroughput;
 
 using System.Collections.Frozen;
+using System.Collections.Immutable;
 using Contracts;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -21,11 +22,9 @@ public class BrokerThroughputCollectorHostedService(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        static FrozenDictionary<string, string> LoadBrokerSettingValues(IEnumerable<KeyDescriptionPair> brokerKeys)
-        {
-            return brokerKeys.Select(pair => KeyValuePair.Create(pair.Key, SettingsReader.Read<string>(ThroughputSettings.SettingsNamespace, pair.Key)))
-                .Where(pair => !string.IsNullOrEmpty(pair.Value)).ToFrozenDictionary(key => key.Key, key => key.Value);
-        }
+        static ImmutableDictionary<string, string> LoadBrokerSettingValues(IEnumerable<KeyDescriptionPair> brokerKeys)
+            => brokerKeys.Select(pair => KeyValuePair.Create(pair.Key, SettingsReader.Read<string>(ThroughputSettings.SettingsNamespace, pair.Key)))
+                .Where(pair => !string.IsNullOrEmpty(pair.Value)).ToImmutableDictionary();
 
         brokerThroughputQuery.Initialise(LoadBrokerSettingValues(brokerThroughputQuery.Settings));
 
