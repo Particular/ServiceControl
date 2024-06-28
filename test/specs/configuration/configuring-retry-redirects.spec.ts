@@ -1,8 +1,8 @@
-import { it, describe } from "../../drivers/vitest/driver";
+import { test, describe } from "../../drivers/vitest/driver";
 
 describe("FEATURE: Retry redirects", () => {
   describe("RULE: Existing connection details should be shown", () => {
-    it.todo("EXAMPLE: The set ServiceControl connection URL should be displayed");
+    test.todo("EXAMPLE: The set ServiceControl connection URL should be displayed");
 
     /* SCENARIO
           ServiceControl connection
@@ -11,7 +11,7 @@ describe("FEATURE: Retry redirects", () => {
           When the page loads
           Then the ServiceControl connection url box should show http://localhost:33333/api
         */
-    it.todo("EXAMPLE: The set ServiceControl Monitoring connection URL should be displayed");
+    test.todo("EXAMPLE: The set ServiceControl Monitoring connection URL should be displayed");
     /* SCENARIO
           ServiceControl Monitoring connection
 
@@ -21,7 +21,7 @@ describe("FEATURE: Retry redirects", () => {
         */
   });
   describe("RULE: Connection details should be able to be tested", () => {
-    it.todo("EXAMPLE: Clicking the ServiceControl 'Test' button with a valid URL should display a success message");
+    test.todo("EXAMPLE: Clicking the ServiceControl 'Test' button with a valid URL should display a success message");
 
     /* SCENARIO
           Valid ServiceControl connection
@@ -31,8 +31,8 @@ describe("FEATURE: Retry redirects", () => {
           Then "Connection successful" should be displayed
         */
 
-    it.todo("EXAMPLE: Clicking the ServiceControl 'Test' button with an invalid URL should display a failure message");
-    it.todo("EXAMPLE: Clicking the ServiceControl 'Test' button with a URL to an instance that isn't running should display a failure message");
+    test.todo("EXAMPLE: Clicking the ServiceControl 'Test' button with an invalid URL should display a failure message");
+    test.todo("EXAMPLE: Clicking the ServiceControl 'Test' button with a URL to an instance that isn't running should display a failure message");
     /* SCENARIO
           Invalid ServiceControl connection
 
@@ -41,7 +41,7 @@ describe("FEATURE: Retry redirects", () => {
           Then "Connection failed" should be displayed
         */
 
-    it.todo("EXAMPLE: Clicking the ServiceControl Monitoring 'Test' button with a valid URL should display a success message");
+    test.todo("EXAMPLE: Clicking the ServiceControl Monitoring 'Test' button with a valid URL should display a success message");
 
     /* SCENARIO
           Valid ServiceControl Monitoring connection
@@ -51,8 +51,8 @@ describe("FEATURE: Retry redirects", () => {
           Then "Connection successful" should be displayed
         */
 
-    it.todo("EXAMPLE: Clicking the ServiceControl Monitoring 'Test' button with an invalid URL should display a failure message");
-    it.todo("EXAMPLE: Clicking the ServiceControl Monitoring 'Test' button with a URL to an instance that isn't running should display a failure message");
+    test.todo("EXAMPLE: Clicking the ServiceControl Monitoring 'Test' button with an invalid URL should display a failure message");
+    test.todo("EXAMPLE: Clicking the ServiceControl Monitoring 'Test' button with a URL to an instance that isn't running should display a failure message");
     /* SCENARIO
           Invalid ServiceControl Monitoring connection
 
@@ -62,7 +62,7 @@ describe("FEATURE: Retry redirects", () => {
         */
   });
   describe("RULE: Connection URLs should be able to be saved", () => {
-    it.todo("EXAMPLE: Clicking the 'Save' button with a valid running instance should display a success message");
+    test.todo("EXAMPLE: Clicking the 'Save' button with a valid running instance should display a success message");
 
     /* SCENARIO
           Valid ServiceControl connection
@@ -72,7 +72,7 @@ describe("FEATURE: Retry redirects", () => {
           Then "Connection saved" should be displayed
         */
 
-    it.todo("EXAMPLE: Updating a connection URL and refreshing the page should display the original value");
+    test.todo("EXAMPLE: Updating a connection URL and refreshing the page should display the original value");
     /* SCENARIO
           Not saved
 
@@ -83,7 +83,7 @@ describe("FEATURE: Retry redirects", () => {
         */
   });
   describe("RULE: The ServiceControl Monitoring URL should be optional", () => {
-    it.todo("EXAMPLE: Entering a '!' into the Monitoring connection URL should disable the Test button and remove the Monitoring tab");
+    test.todo("EXAMPLE: Entering a '!' into the Monitoring connection URL should disable the Test button and remove the Monitoring tab");
 
     /* SCENARIO
           When the Monitoring connection is set to !

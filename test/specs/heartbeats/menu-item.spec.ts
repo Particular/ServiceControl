@@ -1,8 +1,8 @@
-import { it, describe } from "../../drivers/vitest/driver";
+import { test, describe } from "../../drivers/vitest/driver";
 
 describe("FEATURE: Menu item", () => {
   describe("RULE: The count of inactive endpoints should be displayed in the navigation menu", () => {
-    it.todo("EXAMPLE: An instance stops sending heartbeats, the menu item should show a badge with (1) of inactive endpoints");
+    test.todo("EXAMPLE: An instance stops sending heartbeats, the menu item should show a badge with (1) of inactive endpoints");
 
     /* SCENARIO
       Given 5 monitored endpoint instances sending heartbeats
@@ -10,14 +10,14 @@ describe("FEATURE: Menu item", () => {
       Then the menu item in the page header updates to include a badge indicating how many have stopped
     */
 
-    it.todo("EXAMPLE: An instance starts sending heartbeats, the menu item should remove the badge");
+    test.todo("EXAMPLE: An instance starts sending heartbeats, the menu item should remove the badge");
     /* SCENARIO
       Given a set of monitored endpoint instances
       When all instances are sending heartbeats
       Then the menu item in the page header does not include a badge
     */
 
-    it.todo("EXAMPLE: An unmonitored instance stops sending heartbeats, the menu item should not show a badge with a count");
+    test.todo("EXAMPLE: An unmonitored instance stops sending heartbeats, the menu item should not show a badge with a count");
 
     /* SCENARIO
       Given a set of monitored endpoint instances

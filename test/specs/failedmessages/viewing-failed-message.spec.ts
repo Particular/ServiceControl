@@ -1,8 +1,8 @@
-import { it, describe } from "../../drivers/vitest/driver";
+import { test, describe } from "../../drivers/vitest/driver";
 
 describe("FEATURE: Message View", () => {
   describe("RULE: Error scenarios should be handled gracefully", () => {
-    it.todo("EXAMPLE: When no data is returned for a message, text should be shown indicating that the message could not be found");
+    test.todo("EXAMPLE: When no data is returned for a message, text should be shown indicating that the message could not be found");
 
     /* SCENARIO
         Given no data is returned from ServiceControl for a message id
@@ -10,7 +10,7 @@ describe("FEATURE: Message View", () => {
         Then a text will be shown indicating that the message could not be found
       */
 
-    it.todo("EXAMPLE: When an error is returned for a message, text should be shown indicating that an error occurred");
+    test.todo("EXAMPLE: When an error is returned for a message, text should be shown indicating that an error occurred");
     /* SCENARIO
         Given an error is returned from ServiceControl for a message id
         When the message view is shown
@@ -18,14 +18,14 @@ describe("FEATURE: Message View", () => {
       */
   });
   describe("RULE: Header should show meta information and action buttons for a message that has not been deleted", () => {
-    it.todo("EXAMPLE: Message name should be displayed as a heading");
-    it.todo("EXAMPLE: Time period indicating how long ago the failure happened should be displayed");
-    it.todo("EXAMPLE: Name of the Endpoint that the message failed on should be displayed");
-    it.todo("EXAMPLE: Name of the Machine that the message failed on should be displayed");
-    it.todo("EXAMPLE: Delete message button should be displayed");
-    it.todo("EXAMPLE: Retry message button should be displayed");
-    it.todo("EXAMPLE: View in ServiceInsight button should be displayed");
-    it.todo("EXAMPLE: Export message button should be displayed");
+    test.todo("EXAMPLE: Message name should be displayed as a heading");
+    test.todo("EXAMPLE: Time period indicating how long ago the failure happened should be displayed");
+    test.todo("EXAMPLE: Name of the Endpoint that the message failed on should be displayed");
+    test.todo("EXAMPLE: Name of the Machine that the message failed on should be displayed");
+    test.todo("EXAMPLE: Delete message button should be displayed");
+    test.todo("EXAMPLE: Retry message button should be displayed");
+    test.todo("EXAMPLE: View in ServiceInsight button should be displayed");
+    test.todo("EXAMPLE: Export message button should be displayed");
 
     /* SCENARIO
         Given the message is not deleted
@@ -39,15 +39,15 @@ describe("FEATURE: Message View", () => {
       */
   });
   describe("RULE: Header should show meta information and action buttons for a message that has been deleted", () => {
-    it.todo("EXAMPLE: Message name should be displayed as a heading");
-    it.todo("EXAMPLE: Header should display prominently that the message is deleted");
-    it.todo("EXAMPLE: Time period indicating how long ago the failure happened should be displayed");
-    it.todo("EXAMPLE: Name of the Endpoint that the message failed on should be displayed");
-    it.todo("EXAMPLE: Name of the Machine that the message failed on should be displayed");
-    it.todo("EXAMPLE: Time period indicating how long ago the message was deleted should be displayed");
-    it.todo("EXAMPLE: Time period indicating when the messages is schedule for hard deletion should be displayed prominently");
-    it.todo("EXAMPLE: Restore button should be displayed");
-    it.todo("EXAMPLE: View in ServiceInsight button should be displayed");
+    test.todo("EXAMPLE: Message name should be displayed as a heading");
+    test.todo("EXAMPLE: Header should display prominently that the message is deleted");
+    test.todo("EXAMPLE: Time period indicating how long ago the failure happened should be displayed");
+    test.todo("EXAMPLE: Name of the Endpoint that the message failed on should be displayed");
+    test.todo("EXAMPLE: Name of the Machine that the message failed on should be displayed");
+    test.todo("EXAMPLE: Time period indicating how long ago the message was deleted should be displayed");
+    test.todo("EXAMPLE: Time period indicating when the messages is schedule for hard deletion should be displayed prominently");
+    test.todo("EXAMPLE: Restore button should be displayed");
+    test.todo("EXAMPLE: View in ServiceInsight button should be displayed");
 
     /* SCENARIO
         Given the message is deleted

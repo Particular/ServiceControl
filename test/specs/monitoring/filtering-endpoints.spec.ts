@@ -1,5 +1,5 @@
 import { expect } from "vitest";
-import { it, describe } from "../../drivers/vitest/driver";
+import { test, describe } from "../../drivers/vitest/driver";
 import { enterFilterString } from "./actions/enterFilterString";
 import { groupEndpointsBy } from "./actions/groupEndpointsBy";
 import { endpointGroupNames } from "./questions/endpointGroupNames";
@@ -26,8 +26,8 @@ describe("FEATURE: Endpoint filtering", () => {
         filterString: "WrongName",
         expectedEndpoints: [],
       },
-    ].forEach((example) => {
-      it(`EXAMPLE: ${example.description}`, async ({ driver }) => {
+    ].forEach((scenario) => {
+      test(`EXAMPLE: ${scenario.description}`, async ({ driver }) => {
         // Arrange
         await driver.setUp(precondition.serviceControlWithMonitoring);
         await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));
@@ -35,14 +35,14 @@ describe("FEATURE: Endpoint filtering", () => {
         // Act
         await driver.goTo("monitoring");
         expect(await endpointsNames()).toEqual(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]);
-        await enterFilterString(example.filterString);
+        await enterFilterString(scenario.filterString);
 
         // Assert
-        expect(await endpointsNames()).toEqual(example.expectedEndpoints);
+        expect(await endpointsNames()).toEqual(scenario.expectedEndpoints);
       });
     });
 
-    it("EXAMPLE: Enter filter string that matches 1 endpoint and clearing the filter string should display all endpoints", async ({ driver }) => {
+    test("EXAMPLE: Enter filter string that matches 1 endpoint and clearing the filter string should display all endpoints", async ({ driver }) => {
       // Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));
@@ -61,7 +61,7 @@ describe("FEATURE: Endpoint filtering", () => {
       expect(await endpointsNames()).toEqual(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]);
     });
 
-    it("EXAMPLE: No filter string is entered and all endpoints should be displayed", async ({ driver }) => {
+    test("EXAMPLE: No filter string is entered and all endpoints should be displayed", async ({ driver }) => {
       // Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));
@@ -80,8 +80,8 @@ describe("FEATURE: Endpoint filtering", () => {
       { description: "All lower case letters are used for a filter string that matches only 1 endpoint", filterString: "endpoint1" },
       { description: "All upper case letters are used for a filter string that matches only 1 endpoint", filterString: "ENDPOINT1" },
       { description: "A mix of upper and lower case letters are used for a filter string that matches only 1 endpoint", filterString: "EnDpOiNt1" },
-    ].forEach((example) => {
-      it(`Example: ${example.description}`, async ({ driver }) => {
+    ].forEach((scenario) => {
+      test(`EXAMPLE: ${scenario.description}`, async ({ driver }) => {
         // Arrange
         await driver.setUp(precondition.serviceControlWithMonitoring);
         await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));
@@ -89,7 +89,7 @@ describe("FEATURE: Endpoint filtering", () => {
         // Act
         await driver.goTo("monitoring");
         expect(await endpointsNames()).toEqual(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]);
-        await enterFilterString(example.filterString);
+        await enterFilterString(scenario.filterString);
 
         // Assert
         // Confirm only endpoint1 shows in the list after filtering
@@ -99,7 +99,7 @@ describe("FEATURE: Endpoint filtering", () => {
   });
 
   describe("RULE: Filtering by endpoint name should be possible when endpoints are grouped", () => {
-    it("Example: Filter string matches only 1 endpoint in only 1 group", async ({ driver }) => {
+    test("EXAMPLE: Filter string matches only 1 endpoint in only 1 group", async ({ driver }) => {
       // Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(
@@ -128,7 +128,7 @@ describe("FEATURE: Endpoint filtering", () => {
       expect(await endpointsNames()).toEqual(["Endpoint1"]);
     });
 
-    it("Example: Filter string matches all endpoints in each group", async ({ driver }) => {
+    test("EXAMPLE: Filter string matches all endpoints in each group", async ({ driver }) => {
       // Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(
@@ -159,7 +159,7 @@ describe("FEATURE: Endpoint filtering", () => {
       expect(await endpointsNames()).toEqual(["Endpoint5", "Endpoint6", "Endpoint1", "Endpoint2", "Endpoint3", "Endpoint4"]);
     });
 
-    it("Example: Filter string doesn't match any endpoints in any groups", async ({ driver }) => {
+    test("EXAMPLE: Filter string doesn't match any endpoints in any groups", async ({ driver }) => {
       // Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(
@@ -189,7 +189,7 @@ describe("FEATURE: Endpoint filtering", () => {
   });
 
   describe("RULE: Filter string can get and set the filter parameter in the permalink", () => {
-    it("EXAMPLE: Filter string should be updated when the permalink has the filter parameter set", async ({ driver }) => {
+    test("EXAMPLE: Filter string should be updated when the permalink has the filter parameter set", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
 
@@ -204,7 +204,7 @@ describe("FEATURE: Endpoint filtering", () => {
       expect(currentFilterValueToBe("Endpoint1")).toBeTruthy();
     });
 
-    it("EXAMPLE: The permalink's filter parameter is updated when a filter string is entered", async ({ driver }) => {
+    test("EXAMPLE: The permalink's filter parameter is updated when a filter string is entered", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       //Setup at least one endpoint to prevent the no-data screen to show, which would prevent the filter input from being displayed
@@ -218,7 +218,7 @@ describe("FEATURE: Endpoint filtering", () => {
       expect(window.location.href).toEqual("http://localhost:3000/#/monitoring?historyPeriod=1&filter=Endpoint1");
     });
 
-    it("EXAMPLE: The permalink's filter parameter is removed when filter string is empty", async ({ driver }) => {
+    test("EXAMPLE: The permalink's filter parameter is removed when filter string is empty", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       //Setup at least one endpoint to prevent the no-data screen to show, which would prevent the filter input from being displayed

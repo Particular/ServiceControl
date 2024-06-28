@@ -1,11 +1,11 @@
 import { expect } from "vitest";
-import { it, describe } from "../../drivers/vitest/driver";
+import { test, describe } from "../../drivers/vitest/driver";
 import { screen } from "@testing-library/vue";
 import * as precondition from "../../preconditions";
 
 describe("FEATURE: Endpoint listing", () => {
   describe("RULE: It should be indicated when there is connectivity to the backend but there is no endpoints found (no data)", () => {
-    it("EXAMPLE: No monitored endpoints", async ({ driver }) => {
+    test("EXAMPLE: No monitored endpoints", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.hasNoMonitoredEndpoints);

@@ -1,5 +1,5 @@
 import { expect } from "vitest";
-import { it, describe } from "../../drivers/vitest/driver";
+import { test, describe } from "../../drivers/vitest/driver";
 import * as precondition from "../../preconditions";
 import { numberOfGroupingSegments } from "./questions/numberOfGroupingSegments";
 import { groupingOptionWithName } from "./questions/groupingOptionWithName";
@@ -11,7 +11,7 @@ import { endpointGroup } from "./questions/endpointGroup";
 
 describe("FEATURE: Grouping endpoints", () => {
   describe("RULE: The number of grouping segments is determined by the number of periods in the endpoint name", () => {
-    it("Example: All endpoints have three periods in their name", async ({ driver }) => {
+    test("EXAMPLE: All endpoints have three periods in their name", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));
@@ -27,7 +27,7 @@ describe("FEATURE: Grouping endpoints", () => {
       expect(await numberOfGroupingSegments()).toBe(3);
     });
 
-    it("Example: One endpoint has three periods in its name and the other endpoints have two periods in their name", async ({ driver }) => {
+    test("EXAMPLE: One endpoint has three periods in its name and the other endpoints have two periods in their name", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Endpoint2", "Universe.Solarsystem.Endpoint3"]));
@@ -43,7 +43,7 @@ describe("FEATURE: Grouping endpoints", () => {
       expect(await numberOfGroupingSegments()).toBe(3);
     });
 
-    it("Example: All endpoints have a different number of periods in their respective names", async ({ driver }) => {
+    test("EXAMPLE: All endpoints have a different number of periods in their respective names", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Endpoint1", "Universe.Solarsystem.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));
@@ -59,7 +59,7 @@ describe("FEATURE: Grouping endpoints", () => {
       expect(await numberOfGroupingSegments()).toBe(3);
     });
 
-    it("Example: One endpoint does not have a period in its name and the other endpoints have one period in their respective names", async ({ driver }) => {
+    test("EXAMPLE: One endpoint does not have a period in its name and the other endpoints have one period in their respective names", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Endpoint1", "Universe.Endpoint2", "Universe.Endpoint3"]));
@@ -73,7 +73,7 @@ describe("FEATURE: Grouping endpoints", () => {
       expect(await numberOfGroupingSegments()).toBe(1);
     });
 
-    it("Example: No endpoints have a period in their respective names", async ({ driver }) => {
+    test("EXAMPLE: No endpoints have a period in their respective names", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Endpoint1", "Endpoint2", "Endpoint3"]));
@@ -89,7 +89,7 @@ describe("FEATURE: Grouping endpoints", () => {
   });
 
   describe("RULE: Allow the user to group endpoints by the number of segments in the endpoint name", () => {
-    it("Example: Grouping by ONE segment", async ({ driver }) => {
+    test("EXAMPLE: Grouping by ONE segment", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Alphacentauri.Proximacentauri.Endpoint1", "Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2"]));
@@ -103,7 +103,7 @@ describe("FEATURE: Grouping endpoints", () => {
       expect(endpointGroup("Universe").Endpoints).toEqual(["Alphacentauri.Proximacentauri.Endpoint1", "Solarsystem.Earth.Endpoint1", "Solarsystem.Earth.Endpoint2"]);
     });
 
-    it("Example: Grouping by ONE segment when a single endpoint does not have a segment to be grouped by", async ({ driver }) => {
+    test("EXAMPLE: Grouping by ONE segment when a single endpoint does not have a segment to be grouped by", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));
@@ -118,7 +118,7 @@ describe("FEATURE: Grouping endpoints", () => {
       expect(endpointGroup("Universe").Endpoints).toEqual(["Solarsystem.Earth.Endpoint2", "Solarsystem.Earth.Endpoint3"]);
     });
 
-    it("Example: Grouping by TWO segments", async ({ driver }) => {
+    test("EXAMPLE: Grouping by TWO segments", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Alphacentauri.Proximacentauri.Endpoint1", "Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2"]));
@@ -133,7 +133,7 @@ describe("FEATURE: Grouping endpoints", () => {
       expect(endpointGroup("Universe.Solarsystem").Endpoints).toEqual(["Earth.Endpoint1", "Earth.Endpoint2"]);
     });
 
-    it("Example: Grouping by TWO segments when a single endpoint only has ONE segment to be grouped by", async ({ driver }) => {
+    test("EXAMPLE: Grouping by TWO segments when a single endpoint only has ONE segment to be grouped by", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));
@@ -150,7 +150,7 @@ describe("FEATURE: Grouping endpoints", () => {
   });
 
   describe("RULE:  Allow the user to ungroup endpoints", () => {
-    it("Example: Select grouping by ONE segment and then select `no grouping` when all endpoints have one or more segments", async ({ driver }) => {
+    test("EXAMPLE: Select grouping by ONE segment and then select `no grouping` when all endpoints have one or more segments", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));

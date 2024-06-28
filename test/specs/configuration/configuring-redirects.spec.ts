@@ -1,8 +1,8 @@
-import { it, describe } from "../../drivers/vitest/driver";
+import { test, describe } from "../../drivers/vitest/driver";
 
 describe("FEATURE: Configuring queue redirects", () => {
   describe("RULE: All queue redirects should be listed", () => {
-    it.todo("EXAMPLE: A message should be shown when there are no redirects");
+    test.todo("EXAMPLE: A message should be shown when there are no redirects");
 
     /* SCENARIO
           Empty
@@ -11,7 +11,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           Then "There are currently no redirects" should appear
         */
 
-    it.todo("EXAMPLE: Exiting redirects should be shown in a list");
+    test.todo("EXAMPLE: Exiting redirects should be shown in a list");
     /* SCENARIO
           Non-empty
 
@@ -19,7 +19,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           Then they are shown
         */
 
-    it.todo("EXAMPLE: Redirects should be shown in a list when there are created");
+    test.todo("EXAMPLE: Redirects should be shown in a list when there are created");
 
     /* SCENARIO
           Empty
@@ -38,7 +38,7 @@ describe("FEATURE: Configuring queue redirects", () => {
         */
   });
   describe("RULE: Queue redirects should be able to be created", () => {
-    it.todo("EXAMPLE: The 'create' button in the create redirect dialog should be disabled when the form is invalid");
+    test.todo("EXAMPLE: The 'create' button in the create redirect dialog should be disabled when the form is invalid");
 
     /* SCENARIO
           Cannot save invalid
@@ -48,7 +48,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           Then the Save button is disabled
         */
 
-    it.todo("EXAMPLE: Clicking the 'create' button with Valid redirect information in the create redirect dialog should create a redirect");
+    test.todo("EXAMPLE: Clicking the 'create' button with Valid redirect information in the create redirect dialog should create a redirect");
 
     /* SCENARIO
           Valid redirect
@@ -59,7 +59,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           Then the redirect is created
         */
 
-    it.todo("EXAMPLE: A valid 'To' address that is not known should show a warning message but still allow the redirect to be created");
+    test.todo("EXAMPLE: A valid 'To' address that is not known should show a warning message but still allow the redirect to be created");
     /* SCENARIO
           Warn if to-address is not known
 
@@ -70,7 +70,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           And the redirect can still be created
         */
 
-    it.todo("EXAMPLE: Clicking the 'create' button with the 'Immediately retry any matching failed messages' checkbox checked should create a redirect and start a retry operation");
+    test.todo("EXAMPLE: Clicking the 'create' button with the 'Immediately retry any matching failed messages' checkbox checked should create a redirect and start a retry operation");
     /* SCENARIO
           Immediate retry
 
@@ -82,7 +82,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           And a retry operation starts matching the from physical address
         */
 
-    it.todo("EXAMPLE: Clicking the 'create' button with the 'Immediately retry any matching failed messages' checkbox unchecked should create a redirect and not start a retry operation");
+    test.todo("EXAMPLE: Clicking the 'create' button with the 'Immediately retry any matching failed messages' checkbox unchecked should create a redirect and not start a retry operation");
 
     /* SCENARIO
           No immediate retry
@@ -95,7 +95,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           And no retry operation starts
         */
 
-    it.todo("EXAMPLE: Creating a redirect with a 'From' address that already exists should show an error message and not create a new redirect");
+    test.todo("EXAMPLE: Creating a redirect with a 'From' address that already exists should show an error message and not create a new redirect");
     /* SCENARIO
           Cannot create multiple redirects for same from address
 
@@ -105,7 +105,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           And the user is notified that this action is invalid
         */
 
-    it.todo("EXAMPLE: Creating a redirect with a 'To' address that already exists should show an error message and not create a new redirect");
+    test.todo("EXAMPLE: Creating a redirect with a 'To' address that already exists should show an error message and not create a new redirect");
     /* SCENARIO
           Cannot chain redirects
 
@@ -115,7 +115,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           And the user is notified that this action is invalid
         */
 
-    it.todo("EXAMPLE: Creating a redirect with a 'From' address when a redirect with the same 'To' address already exists should show an error message and not create a new redirect");
+    test.todo("EXAMPLE: Creating a redirect with a 'From' address when a redirect with the same 'To' address already exists should show an error message and not create a new redirect");
     /* SCENARIO
           Cannot chain redirects 2
 
@@ -125,7 +125,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           And the user is notified that this action is invalid
         */
 
-    it.todo("EXAMPLE: Clicking the 'cancel' button in the create redirect dialog should close the dialog and not create a redirect");
+    test.todo("EXAMPLE: Clicking the 'cancel' button in the create redirect dialog should close the dialog and not create a redirect");
     /* SCENARIO
           Cancel
 
@@ -137,7 +137,7 @@ describe("FEATURE: Configuring queue redirects", () => {
         */
   });
   describe("RULE: Existing queue redirects should not allow the 'From' address to modified", () => {
-    it.todo("EXAMPLE: Opening the 'Modify redirect' dialog should not allow the 'From' address to be changed");
+    test.todo("EXAMPLE: Opening the 'Modify redirect' dialog should not allow the 'From' address to be changed");
     /* SCENARIO
           Cannot change from address
 
@@ -148,7 +148,7 @@ describe("FEATURE: Configuring queue redirects", () => {
         */
   });
   describe("RULE: Existing queue redirects should be able to be modified", () => {
-    it.todo("EXAMPLE: Changes to the 'To' address should be saved when the 'modify' button is clicked");
+    test.todo("EXAMPLE: Changes to the 'To' address should be saved when the 'modify' button is clicked");
 
     /* SCENARIO
           Can change to address
@@ -160,7 +160,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           Then the redirect is updated
         */
 
-    it.todo("EXAMPLE: 'To' address that is not known should show a warning message but still allow the redirect to be modified");
+    test.todo("EXAMPLE: 'To' address that is not known should show a warning message but still allow the redirect to be modified");
     /* SCENARIO
           Warn if to-address is not known
 
@@ -171,7 +171,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           And the redirect can still be modified
         */
 
-    it.todo("EXAMPLE: Modifying a redirect with a 'to' address that already exists to another redirect's 'from' address should show an error message and not modify the redirect");
+    test.todo("EXAMPLE: Modifying a redirect with a 'to' address that already exists to another redirect's 'from' address should show an error message and not modify the redirect");
     /* SCENARIO
           Cannot chain redirects
 
@@ -181,7 +181,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           And the user is notified that this action is invalid
         */
 
-    it.todo("EXAMPLE: Modifying a redirect and checking the 'Immediately retry any matching failed messages' checkbox should update the redirect and start a retry operation");
+    test.todo("EXAMPLE: Modifying a redirect and checking the 'Immediately retry any matching failed messages' checkbox should update the redirect and start a retry operation");
     /* SCENARIO
           Immediate retry
 
@@ -193,7 +193,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           And a retry operation starts matching the from physical address
         */
 
-    it.todo("EXAMPLE: Modifying a redirect and unchecking the 'Immediately retry any matching failed messages' checkbox should update the redirect and not start a retry operation");
+    test.todo("EXAMPLE: Modifying a redirect and unchecking the 'Immediately retry any matching failed messages' checkbox should update the redirect and not start a retry operation");
     /* SCENARIO
           No immediate retry
 
@@ -205,7 +205,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           And no retry operation starts
         */
 
-    it.todo("EXAMPLE: Clicking the 'cancel' button in the modify redirect dialog should close the dialog and not modify the redirect");
+    test.todo("EXAMPLE: Clicking the 'cancel' button in the modify redirect dialog should close the dialog and not modify the redirect");
 
     /* SCENARIO
           Cancel
@@ -219,7 +219,7 @@ describe("FEATURE: Configuring queue redirects", () => {
         */
   });
   describe("RULE: Redirects should be able to be ended", () => {
-    it.todo("EXAMPLE: Clicking the 'Yes' button in the end redirect dialog should end the redirect");
+    test.todo("EXAMPLE: Clicking the 'Yes' button in the end redirect dialog should end the redirect");
 
     /* SCENARIO
           Confirmed
@@ -230,7 +230,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           And the redirect is ended
         */
 
-    it.todo("EXAMPLE: Clicking the 'No' button in the end redirect dialog should not end the redirect");
+    test.todo("EXAMPLE: Clicking the 'No' button in the end redirect dialog should not end the redirect");
     /* SCENARIO
           Not confirmed
 
@@ -241,7 +241,7 @@ describe("FEATURE: Configuring queue redirects", () => {
         */
   });
   describe("RULE: The number of redirects should be displayed", () => {
-    it.todo("EXAMPLE: The tab should include a (0) suffix when there are no redirects");
+    test.todo("EXAMPLE: The tab should include a (0) suffix when there are no redirects");
 
     /* SCENARIO
           Empty
@@ -250,7 +250,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           Then the tab should include a (0) suffix
         */
 
-    it.todo("EXAMPLE: The tab should increment the counter when a redirect is added");
+    test.todo("EXAMPLE: The tab should increment the counter when a redirect is added");
     /* SCENARIO
           A redirect is added
 
@@ -258,7 +258,7 @@ describe("FEATURE: Configuring queue redirects", () => {
           Then the counter next to the tab should be incremented
         */
 
-    it.todo("EXAMPLE: The tab should decrement the counter when a redirect is ended");
+    test.todo("EXAMPLE: The tab should decrement the counter when a redirect is ended");
     /* SCENARIO
           A redirect is ended
 

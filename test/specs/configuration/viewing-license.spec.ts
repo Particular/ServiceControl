@@ -1,8 +1,8 @@
-import { it, describe } from "../../drivers/vitest/driver";
+import { test, describe } from "../../drivers/vitest/driver";
 
 describe("FEATURE: License", () => {
   describe("RULE: Platform license type should be shown shown", () => {
-    it.todo("EXAMPLE: Valid platform license type should be shown");
+    test.todo("EXAMPLE: Valid platform license type should be shown");
 
     /* SCENARIO
           Given the platform license is valid
@@ -10,7 +10,7 @@ describe("FEATURE: License", () => {
         */
   });
   describe("RULE: License expiry date should be shown", () => {
-    it.todo("EXAMPLE: Valid license expiry date should be shown");
+    test.todo("EXAMPLE: Valid license expiry date should be shown");
 
     /* SCENARIO
           Given a valid platform license
@@ -18,7 +18,7 @@ describe("FEATURE: License", () => {
         */
   });
   describe("RULE: Remaining license period should be displayed", () => {
-    it.todo("EXAMPLE: An expired license should show 'expired'");
+    test.todo("EXAMPLE: An expired license should show 'expired'");
 
     /* SCENARIO
           Expired license
@@ -27,7 +27,7 @@ describe("FEATURE: License", () => {
           Then "expired" is shown
         */
 
-    it.todo("EXAMPLE: License expiring with 10 days should show 'expiring in X days'");
+    test.todo("EXAMPLE: License expiring with 10 days should show 'expiring in X days'");
     /* SCENARIO
           License expiring soon
 
@@ -35,7 +35,7 @@ describe("FEATURE: License", () => {
           Then "expiring in X days" is shown
         */
 
-    it.todo("EXAMPLE: License expiring tomorrow should show 'expiring tomorrow'");
+    test.todo("EXAMPLE: License expiring tomorrow should show 'expiring tomorrow'");
     /* SCENARIO
           License expiring tomorrow
 
@@ -43,7 +43,7 @@ describe("FEATURE: License", () => {
           Then "expiring tomorrow" is shown
         */
 
-    it.todo("EXAMPLE: License expiring today should show 'expiring today'");
+    test.todo("EXAMPLE: License expiring today should show 'expiring today'");
     /* SCENARIO
           License expiring today
 
@@ -51,7 +51,7 @@ describe("FEATURE: License", () => {
           Then "expiring today" is shown
         */
 
-    it.todo("EXAMPLE: License expiring in more than 10 days should show 'X days left");
+    test.todo("EXAMPLE: License expiring in more than 10 days should show 'X days left");
     /* SCENARIO
           License expiring in the future
 
@@ -60,7 +60,7 @@ describe("FEATURE: License", () => {
         */
   });
   describe("RULE: Non-license options should be hidden if license has expired", () => {
-    it.todo("EXAMPLE: Only 'LICENSE' tab is visible when license has expired");
+    test.todo("EXAMPLE: Only 'LICENSE' tab is visible when license has expired");
 
     /* SCENARIO
           Given an expired license

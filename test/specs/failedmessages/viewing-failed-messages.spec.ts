@@ -1,10 +1,10 @@
-import { it, describe } from "../../drivers/vitest/driver";
+import { test, describe } from "../../drivers/vitest/driver";
 
 describe("FEATURE: Viewing the details of a message group", () => {
   describe("RULE: Viewing the details of a Failed message group should be possible", () => {
-    it.todo("EXAMPLE: Selecting a group from the failed messages view should show all messages associated with that group");
-    it.todo("EXAMPLE: The group heading should be the group name of the group that was selected");
-    it.todo("EXAMPLE: The browser tab title should show 'Failed Messages', not 'All Failed Messages'");
+    test.todo("EXAMPLE: Selecting a group from the failed messages view should show all messages associated with that group");
+    test.todo("EXAMPLE: The group heading should be the group name of the group that was selected");
+    test.todo("EXAMPLE: The browser tab title should show 'Failed Messages', not 'All Failed Messages'");
 
     /* SCENARIO
           Selecting a group from the failed messages view
