@@ -9,7 +9,7 @@ namespace ServiceControl.Infrastructure
     using NLog.Targets;
     using NServiceBus.Extensions.Logging;
     using ServiceControl.Configuration;
-    using LogLevel = NLog.LogLevel;
+
     using LogManager = NServiceBus.Logging.LogManager;
 
     public static class LoggingConfigurator
@@ -45,14 +45,11 @@ namespace ServiceControl.Infrastructure
                 UseDefaultRowHighlightingRules = true
             };
 
-            // Always want to see license logging regardless of default logging level
-            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget));
             // Defaults
             nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, consoleTarget));
 
             if (!AppEnvironment.RunningInContainer)
             {
-                nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
                 nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, fileTarget));
             }
 
