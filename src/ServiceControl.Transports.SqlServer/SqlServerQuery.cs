@@ -19,7 +19,7 @@ public class SqlServerQuery(
 {
     readonly List<DatabaseDetails> databases = [];
 
-    protected override void InitialiseCore(ImmutableDictionary<string, string> settings)
+    protected override void InitializeCore(ImmutableDictionary<string, string> settings)
     {
         if (!settings.TryGetValue(SqlServerSettings.ConnectionString, out string? connectionString))
         {

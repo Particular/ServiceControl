@@ -32,7 +32,7 @@ class RabbitMQQueryTests : TransportTestFixture
         string[] additionalQueues = Enumerable.Range(1, 10).Select(i => $"myqueue{i}").ToArray();
         await configuration.TransportCustomization.ProvisionQueues(transportSettings, additionalQueues);
 
-        query.Initialise(ImmutableDictionary<string, string>.Empty);
+        query.Initialize(ImmutableDictionary<string, string>.Empty);
 
         var queueNames = new List<IBrokerQueue>();
         await foreach (IBrokerQueue queueName in query.GetQueueNames(token))

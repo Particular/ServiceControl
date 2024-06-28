@@ -162,7 +162,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
             CancellationToken cancellationToken) => throw new NotImplementedException();
 
         public bool HasInitialisationErrors(out string errorMessage) => throw new NotImplementedException();
-        public void Initialise(ImmutableDictionary<string, string> settings) => throw new NotImplementedException();
+        public void Initialize(ImmutableDictionary<string, string> settings) => throw new NotImplementedException();
 
         public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
             CancellationToken cancellationToken) => throw new NotImplementedException();

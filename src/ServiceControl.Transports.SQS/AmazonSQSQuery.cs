@@ -26,7 +26,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
     AmazonSQSClient? sqs;
     string? prefix;
 
-    protected override void InitialiseCore(ImmutableDictionary<string, string> settings)
+    protected override void InitializeCore(ImmutableDictionary<string, string> settings)
     {
         var sqsConnectionString = new SQSTransportConnectionString(transportSettings.ConnectionString);
         AWSCredentials credentials = FallbackCredentialsFactory.GetCredentials();

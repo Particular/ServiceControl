@@ -28,7 +28,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     ArmClient? armClient;
     string? resourceId;
 
-    protected override void InitialiseCore(ImmutableDictionary<string, string> settings)
+    protected override void InitializeCore(ImmutableDictionary<string, string> settings)
     {
         ConnectionSettings? connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
         bool usingManagedIdentity =

@@ -130,7 +130,7 @@ class BrokerThroughputCollectorHostedServiceTests
             return false;
         }
 
-        public void Initialise(ImmutableDictionary<string, string> settings)
+        public void Initialize(ImmutableDictionary<string, string> settings)
         {
         }
 
@@ -179,7 +179,7 @@ class BrokerThroughputCollectorHostedServiceTests
             return false;
         }
 
-        public void Initialise(ImmutableDictionary<string, string> settings)
+        public void Initialize(ImmutableDictionary<string, string> settings)
         {
         }
 
@@ -224,7 +224,7 @@ class BrokerThroughputCollectorHostedServiceTests
             return false;
         }
 
-        public void Initialise(ImmutableDictionary<string, string> settings)
+        public void Initialize(ImmutableDictionary<string, string> settings)
         {
         }
 

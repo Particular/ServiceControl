@@ -28,14 +28,14 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
         return true;
     }
 
-    public void Initialise(ImmutableDictionary<string, string> settings)
+    public void Initialize(ImmutableDictionary<string, string> settings)
     {
         InitialiseErrors.Clear();
         Diagnostics.Clear();
 
         try
         {
-            InitialiseCore(settings);
+            InitializeCore(settings);
         }
         catch (Exception e)
         {
@@ -44,7 +44,7 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
         }
     }
 
-    protected abstract void InitialiseCore(ImmutableDictionary<string, string> settings);
+    protected abstract void InitializeCore(ImmutableDictionary<string, string> settings);
 
     public abstract IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
         CancellationToken cancellationToken);
