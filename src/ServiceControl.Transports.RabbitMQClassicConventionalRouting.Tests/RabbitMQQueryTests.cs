@@ -1,8 +1,8 @@
 namespace ServiceControl.Transport.Tests;
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,8 +32,7 @@ class RabbitMQQueryTests : TransportTestFixture
         string[] additionalQueues = Enumerable.Range(1, 10).Select(i => $"myqueue{i}").ToArray();
         await configuration.TransportCustomization.ProvisionQueues(transportSettings, additionalQueues);
 
-        var dictionary = new Dictionary<string, string>();
-        query.Initialise(dictionary.ToFrozenDictionary());
+        query.Initialise(ImmutableDictionary<string, string>.Empty);
 
         var queueNames = new List<IBrokerQueue>();
         await foreach (IBrokerQueue queueName in query.GetQueueNames(token))

@@ -2,8 +2,8 @@
 namespace ServiceControl.Transports.BrokerThroughput;
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,7 +28,7 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
         return true;
     }
 
-    public void Initialise(FrozenDictionary<string, string> settings)
+    public void Initialise(ImmutableDictionary<string, string> settings)
     {
         InitialiseErrors.Clear();
         Diagnostics.Clear();
@@ -44,7 +44,7 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
         }
     }
 
-    protected abstract void InitialiseCore(FrozenDictionary<string, string> settings);
+    protected abstract void InitialiseCore(ImmutableDictionary<string, string> settings);
 
     public abstract IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
         CancellationToken cancellationToken);

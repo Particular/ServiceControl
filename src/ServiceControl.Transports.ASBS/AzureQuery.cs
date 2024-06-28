@@ -2,8 +2,8 @@
 namespace ServiceControl.Transports.ASBS;
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
@@ -28,7 +28,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     ArmClient? armClient;
     string? resourceId;
 
-    protected override void InitialiseCore(FrozenDictionary<string, string> settings)
+    protected override void InitialiseCore(ImmutableDictionary<string, string> settings)
     {
         ConnectionSettings? connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
         bool usingManagedIdentity =
