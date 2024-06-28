@@ -14,11 +14,6 @@ const isThroughputSupported = computed(() => useIsSupported(environment.sc_versi
       <div class="container">
         <div class="row">
           <div class="col-sm-12">
-            <h1>Usage</h1>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-sm-12">
             <div class="text-center message">
               <p>
                 The minimum version of ServiceControl required to enable the Usage feature is
