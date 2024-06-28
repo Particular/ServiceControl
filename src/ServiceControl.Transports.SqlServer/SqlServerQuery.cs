@@ -8,9 +8,10 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using BrokerThroughput;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
-using ServiceControl.Transports.BrokerThroughput;
+
 public class SqlServerQuery(
     ILogger<SqlServerQuery> logger,
     TimeProvider timeProvider,
@@ -147,8 +148,12 @@ public class SqlServerQuery(
     public static class SqlServerSettings
     {
         public static readonly string ConnectionString = "SqlServer/ConnectionString";
-        public static readonly string ConnectionStringDescription = "A single database connection string that will provide at least read access to all queue tables.";
+
+        public static readonly string ConnectionStringDescription =
+            "Database connection string that will provide at least read access to all queue tables.";
         public static readonly string AdditionalCatalogs = "SqlServer/AdditionalCatalogs";
-        public static readonly string AdditionalCatalogsDescription = "When the ConnectionString setting points to a single database, but multiple database catalogs on the same server also contain NServiceBus message queues, the AdditionalCatalogs setting specifies additional database catalogs to search. The tool replaces the Database or Initial Catalog parameter in the connection string with the additional catalog and queries all of them.";
+
+        public static readonly string AdditionalCatalogsDescription =
+            "When additional databases on the same server also contain NServiceBus message queues, the AdditionalCatalogs setting specifies additional database catalogs to search. The tool replaces the Database or Initial Catalog parameter in the connection string with the additional catalog and queries all of them.";
     }
 }
