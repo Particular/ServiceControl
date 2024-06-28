@@ -39,7 +39,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
         connectionConfiguration = ConnectionConfiguration.Create(transportSettings.ConnectionString, string.Empty);
     }
 
-    protected override void InitialiseCore(ImmutableDictionary<string, string> settings)
+    protected override void InitializeCore(ImmutableDictionary<string, string> settings)
     {
         if (!settings.TryGetValue(RabbitMQSettings.UserName, out string? username) ||
             string.IsNullOrEmpty(username))

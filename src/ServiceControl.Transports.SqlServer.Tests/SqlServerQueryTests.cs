@@ -45,7 +45,7 @@ class SqlServerQueryTests : TransportTestFixture
         {
             { SqlServerQuery.SqlServerSettings.ConnectionString, "not valid" }
         };
-        query.Initialise(dictionary.ToImmutableDictionary());
+        query.Initialize(dictionary.ToImmutableDictionary());
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
@@ -64,7 +64,7 @@ class SqlServerQueryTests : TransportTestFixture
             { SqlServerQuery.SqlServerSettings.ConnectionString, configuration.ConnectionString },
             { SqlServerQuery.SqlServerSettings.AdditionalCatalogs, "not_here" }
         };
-        query.Initialise(dictionary.ToImmutableDictionary());
+        query.Initialize(dictionary.ToImmutableDictionary());
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
@@ -83,7 +83,7 @@ class SqlServerQueryTests : TransportTestFixture
         {
             { SqlServerQuery.SqlServerSettings.ConnectionString, configuration.ConnectionString }
         };
-        query.Initialise(dictionary.ToImmutableDictionary());
+        query.Initialize(dictionary.ToImmutableDictionary());
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsTrue(success);
@@ -103,7 +103,7 @@ class SqlServerQueryTests : TransportTestFixture
 
         await CreateTestQueue(transportSettings.EndpointName);
 
-        query.Initialise(dictionary.ToImmutableDictionary());
+        query.Initialize(dictionary.ToImmutableDictionary());
 
         var queueNames = new List<IBrokerQueue>();
         await foreach (IBrokerQueue queueName in query.GetQueueNames(token))

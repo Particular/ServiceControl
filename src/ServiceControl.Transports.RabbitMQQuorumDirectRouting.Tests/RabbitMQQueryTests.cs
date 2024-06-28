@@ -44,7 +44,7 @@ class RabbitMQQueryTests : TransportTestFixture
         {
             { RabbitMQQuery.RabbitMQSettings.API, "http://localhost:12345" }
         };
-        query.Initialise(dictionary.ToImmutableDictionary());
+        query.Initialize(dictionary.ToImmutableDictionary());
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
@@ -58,7 +58,7 @@ class RabbitMQQueryTests : TransportTestFixture
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
-        query.Initialise(ImmutableDictionary<string, string>.Empty);
+        query.Initialize(ImmutableDictionary<string, string>.Empty);
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsTrue(success);
@@ -83,7 +83,7 @@ class RabbitMQQueryTests : TransportTestFixture
 
         await CreateTestQueue(transportSettings.EndpointName);
 
-        query.Initialise(ImmutableDictionary<string, string>.Empty);
+        query.Initialize(ImmutableDictionary<string, string>.Empty);
 
         var queueNames = new List<IBrokerQueue>();
         await foreach (IBrokerQueue queueName in query.GetQueueNames(token))

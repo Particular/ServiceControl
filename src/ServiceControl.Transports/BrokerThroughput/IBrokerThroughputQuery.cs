@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 public interface IBrokerThroughputQuery
 {
     bool HasInitialisationErrors(out string errorMessage);
-    void Initialise(ImmutableDictionary<string, string> settings);
+    void Initialize(ImmutableDictionary<string, string> settings);
     IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
         CancellationToken cancellationToken);
     IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken);

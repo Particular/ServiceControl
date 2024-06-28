@@ -26,7 +26,7 @@ public class BrokerThroughputCollectorHostedService(
             => brokerKeys.Select(pair => KeyValuePair.Create(pair.Key, SettingsReader.Read<string>(ThroughputSettings.SettingsNamespace, pair.Key)))
                 .Where(pair => !string.IsNullOrEmpty(pair.Value)).ToImmutableDictionary();
 
-        brokerThroughputQuery.Initialise(LoadBrokerSettingValues(brokerThroughputQuery.Settings));
+        brokerThroughputQuery.Initialize(LoadBrokerSettingValues(brokerThroughputQuery.Settings));
 
         if (brokerThroughputQuery.HasInitialisationErrors(out var errorMessage))
         {
