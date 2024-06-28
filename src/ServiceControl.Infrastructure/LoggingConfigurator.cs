@@ -45,7 +45,21 @@ namespace ServiceControl.Infrastructure
                 UseDefaultRowHighlightingRules = true
             };
 
-            // Defaults
+            var aspNetCoreRule = new LoggingRule()
+            {
+                LoggerNamePattern = "Microsoft.AspNetCore.*",
+                FinalMinLevel = LogLevel.Warn
+            };
+
+            var httpClientRule = new LoggingRule()
+            {
+                LoggerNamePattern = "System.Net.Http.HttpClient.*",
+                FinalMinLevel = LogLevel.Warn
+            };
+
+            nlogConfig.LoggingRules.Add(aspNetCoreRule);
+            nlogConfig.LoggingRules.Add(httpClientRule);
+
             nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, consoleTarget));
 
             if (!AppEnvironment.RunningInContainer)
