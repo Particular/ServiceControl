@@ -22,7 +22,11 @@ internal class MonitoringThroughputHostedService(ITransportCustomization transpo
         }
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken) => transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(ServiceControlSettings.ServiceControlThroughputDataQueue, transportSettings, Handle, (_, __) => Task.FromResult(ErrorHandleResult.Handled), (_, __) => Task.CompletedTask);
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(ServiceControlSettings.ServiceControlThroughputDataQueue, transportSettings, Handle, (_, __) => Task.FromResult(ErrorHandleResult.Handled), (_, __) => Task.CompletedTask);
+        await transportInfrastructure.Receivers[ServiceControlSettings.ServiceControlThroughputDataQueue].StartReceive(cancellationToken);
+    }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
