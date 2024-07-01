@@ -95,4 +95,4 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: particular/servicecontrol-ravendb
-          readme-filepath: ./Container-README.md
+          readme-filepath: ./src/ServiceControl.RavenDB/Container-README.md
