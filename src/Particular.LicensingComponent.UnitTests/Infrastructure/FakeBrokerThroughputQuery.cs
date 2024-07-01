@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 using ServiceControl.Transports.BrokerThroughput;
@@ -24,7 +24,7 @@ class FakeBrokerThroughputQuery : IBrokerThroughputQuery
         CancellationToken cancellationToken) => throw new NotImplementedException();
 
     public bool HasInitialisationErrors(out string errorMessage) => throw new NotImplementedException();
-    public void Initialize(ImmutableDictionary<string, string> settings) => throw new NotImplementedException();
+    public void Initialize(ReadOnlyDictionary<string, string> settings) => throw new NotImplementedException();
 
     public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
         CancellationToken cancellationToken) => throw new NotImplementedException();

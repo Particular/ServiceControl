@@ -3,7 +3,7 @@ namespace ServiceControl.Transports.SQS;
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
@@ -26,7 +26,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
     AmazonSQSClient? sqs;
     string? prefix;
 
-    protected override void InitializeCore(ImmutableDictionary<string, string> settings)
+    protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
         var sqsConnectionString = new SQSTransportConnectionString(transportSettings.ConnectionString);
         AWSCredentials credentials = FallbackCredentialsFactory.GetCredentials();
