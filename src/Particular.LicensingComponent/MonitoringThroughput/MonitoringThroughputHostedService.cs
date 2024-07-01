@@ -6,11 +6,11 @@ using NServiceBus.Transport;
 using ServiceControl.Transports;
 using Shared;
 
-internal class MonitoringThroughputHostedService(ITransportCustomization transportCustomization, TransportSettings transportSettings, ILogger<MonitoringThroughputHostedService> logger, MonitoringService monitoringService) : IHostedService
+class MonitoringThroughputHostedService(ITransportCustomization transportCustomization, TransportSettings transportSettings, ILogger<MonitoringThroughputHostedService> logger, MonitoringService monitoringService) : IHostedService
 {
-    private TransportInfrastructure? transportInfrastructure;
+    TransportInfrastructure? transportInfrastructure;
 
-    private async Task Handle(MessageContext message, CancellationToken cancellationToken)
+    async Task Handle(MessageContext message, CancellationToken cancellationToken)
     {
         try
         {
@@ -24,12 +24,16 @@ internal class MonitoringThroughputHostedService(ITransportCustomization transpo
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        logger.LogInformation($"Starting {nameof(MonitoringThroughputHostedService)}");
+
         transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(ServiceControlSettings.ServiceControlThroughputDataQueue, transportSettings, Handle, (_, __) => Task.FromResult(ErrorHandleResult.Handled), (_, __) => Task.CompletedTask);
         await transportInfrastructure.Receivers[ServiceControlSettings.ServiceControlThroughputDataQueue].StartReceive(cancellationToken);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
+        logger.LogInformation($"Stopping {nameof(MonitoringThroughputHostedService)}");
+
         if (transportInfrastructure != null)
         {
             await transportInfrastructure.Shutdown(cancellationToken);
