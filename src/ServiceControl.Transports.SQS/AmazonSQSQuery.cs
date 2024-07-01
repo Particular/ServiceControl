@@ -16,8 +16,8 @@ using Amazon.Runtime;
 using Amazon.Runtime.CredentialManagement;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using BrokerThroughput;
 using Microsoft.Extensions.Logging;
-using ServiceControl.Transports.BrokerThroughput;
 
 public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings)
     : BrokerThroughputQuery(logger, "AmazonSQS")
@@ -175,7 +175,10 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
 
     class AwsHttpClientFactory : HttpClientFactory
     {
-        public override HttpClient CreateHttpClient(IClientConfig clientConfig) => new(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) });
+        readonly HttpClient httpClient =
+            new(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) });
+
+        public override HttpClient CreateHttpClient(IClientConfig clientConfig) => httpClient;
         public override bool DisposeHttpClientsAfterUse(IClientConfig clientConfig) => false;
     }
 
