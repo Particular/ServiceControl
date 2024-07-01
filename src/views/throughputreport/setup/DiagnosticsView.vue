@@ -6,7 +6,7 @@ import { storeToRefs } from "pinia";
 import { ref } from "vue";
 
 const store = useThroughputStore();
-const { testResults } = storeToRefs(store);
+const { testResults, isBrokerTransport } = storeToRefs(store);
 const loading = ref(false);
 
 async function testConnection() {
@@ -23,7 +23,7 @@ async function testConnection() {
       <div class="sp-loader" />
     </template>
     <template v-else>
-      <ConnectionResultView v-if="store.isBrokerTransport" title="Broker" :result="testResults?.broker_connection_result!" />
+      <ConnectionResultView v-if="isBrokerTransport" title="Broker" :result="testResults?.broker_connection_result!" />
       <ConnectionResultView title="Audit" :result="testResults?.audit_connection_result!">
         <template #instructions>
           <a href="https://docs.particular.net/servicecontrol/servicecontrol-instances/remotes#configuration" target="_blank">Learn how to configure audit instances</a>

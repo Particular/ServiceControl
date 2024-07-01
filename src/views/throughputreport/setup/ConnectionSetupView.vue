@@ -5,8 +5,10 @@ import throughputClient from "@/views/throughputreport/throughputClient";
 import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
 import ConfigurationCode from "@/views/throughputreport/setup/ConfigurationCode.vue";
 import { useThroughputStore } from "@/stores/ThroughputStore";
+import { storeToRefs } from "pinia";
 
 const store = useThroughputStore();
+const { isBrokerTransport } = storeToRefs(useThroughputStore());
 const settingsInfo = ref<ThroughputConnectionSettings | null>(null);
 
 onMounted(async () => {
@@ -16,7 +18,7 @@ onMounted(async () => {
 
 <template>
   <div class="row">
-    <p v-if="store.isBrokerTransport || useIsMonitoringEnabled()">
+    <p v-if="isBrokerTransport || useIsMonitoringEnabled()">
       In order for ServicePulse to collect usage data from {{ store.transportNameForInstructions() }} you need to configure the below settings.<br />
       There are two configuration options, as environment variables or directly in the
       <a href="https://docs.particular.net/servicecontrol/creating-config-file"><code>ServiceControl.exe.config</code></a> file.
@@ -44,7 +46,7 @@ onMounted(async () => {
       </div>
     </div>
   </template>
-  <template v-if="!store.isBrokerTransport && useIsMonitoringEnabled()">
+  <template v-if="!isBrokerTransport && useIsMonitoringEnabled()">
     <div class="row configuration">
       <div class="col-12">
         <h4>ServiceControl Settings</h4>

@@ -7,14 +7,14 @@ import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls"
 import ThroughputSupported from "@/views/throughputreport/ThroughputSupported.vue";
 
 const store = useThroughputStore();
-const { testResults } = storeToRefs(store);
+const { testResults, isBrokerTransport } = storeToRefs(store);
 </script>
 
 <template>
   <ThroughputSupported>
     <div class="box">
       <div class="row">
-        <template v-if="!store.isBrokerTransport">
+        <template v-if="!isBrokerTransport">
           <div class="intro">
             <template v-if="testResults?.audit_connection_result.connection_successful">
               <div>
@@ -72,7 +72,7 @@ const { testResults } = storeToRefs(store);
           </div>
         </template>
       </div>
-      <br v-if="store.isBrokerTransport" />
+      <br v-if="isBrokerTransport" />
       <div class="row">
         <div class="col-sm-12">
           <div class="nav tabs">

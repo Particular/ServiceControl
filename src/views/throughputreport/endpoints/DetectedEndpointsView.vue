@@ -4,13 +4,14 @@ import { DataSource } from "@/views/throughputreport/endpoints/dataSource";
 import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator";
 import routeLinks from "@/router/routeLinks";
 import { useThroughputStore } from "@/stores/ThroughputStore";
+import { storeToRefs } from "pinia";
 
-const store = useThroughputStore();
+const { isBrokerTransport, hasErrors } = storeToRefs(useThroughputStore());
 </script>
 
 <template>
-  <template v-if="!store.isBrokerTransport">
-    <template v-if="store.hasErrors">
+  <template v-if="!isBrokerTransport">
+    <template v-if="hasErrors">
       <div class="errorContainer text-center">
         <h6><i style="color: red" class="fa fa-times"></i> There were some errors collecting usage data.</h6>
         <p>

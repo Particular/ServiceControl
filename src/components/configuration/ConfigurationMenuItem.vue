@@ -8,14 +8,15 @@ import { WarningLevel } from "@/components/WarningLevel";
 import routeLinks from "@/router/routeLinks";
 import { displayConnectionsWarning } from "@/components/configuration/displayConnectionsWarning";
 import { useThroughputStore } from "@/stores/ThroughputStore";
+import { storeToRefs } from "pinia";
 
-const throughputStore = useThroughputStore();
+const { hasErrors } = storeToRefs(useThroughputStore());
 
 const displayWarn = computed(() => {
   return licenseStatus.warningLevel === LicenseWarningLevel.Warning;
 });
 const displayDanger = computed(() => {
-  return throughputStore.hasErrors || displayConnectionsWarning.value || licenseStatus.warningLevel === LicenseWarningLevel.Danger;
+  return hasErrors.value || displayConnectionsWarning.value || licenseStatus.warningLevel === LicenseWarningLevel.Danger;
 });
 </script>
 

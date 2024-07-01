@@ -5,8 +5,9 @@ import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator"
 import { userIndicatorMapper } from "@/views/throughputreport/endpoints/userIndicatorMapper";
 import { ref } from "vue";
 import { useThroughputStore } from "@/stores/ThroughputStore";
+import { storeToRefs } from "pinia";
 
-const store = useThroughputStore();
+const { isBrokerTransport } = storeToRefs(useThroughputStore());
 const showLegend = ref(true);
 const legendOptions = new Map<UserIndicator, string>([
   [UserIndicator.NServiceBusEndpoint, "Known NServiceBus Endpoint"],
@@ -42,7 +43,7 @@ function showHideOptionsLegend() {
           <h5 class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.endpoints.detectedEndpoints.link) }">
             <RouterLink :to="routeLinks.throughput.endpoints.detectedEndpoints.link">Detected Endpoints</RouterLink>
           </h5>
-          <h5 v-if="store.isBrokerTransport" class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.endpoints.detectedBrokerQueues.link) }">
+          <h5 v-if="isBrokerTransport" class="nav-item" :class="{ active: isRouteSelected(routeLinks.throughput.endpoints.detectedBrokerQueues.link) }">
             <RouterLink :to="routeLinks.throughput.endpoints.detectedBrokerQueues.link">Detected Broker Queues</RouterLink>
           </h5>
         </div>
