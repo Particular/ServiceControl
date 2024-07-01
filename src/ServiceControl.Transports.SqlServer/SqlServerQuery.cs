@@ -3,7 +3,7 @@ namespace ServiceControl.Transports.SqlServer;
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -19,7 +19,7 @@ public class SqlServerQuery(
 {
     readonly List<DatabaseDetails> databases = [];
 
-    protected override void InitializeCore(ImmutableDictionary<string, string> settings)
+    protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
         if (!settings.TryGetValue(SqlServerSettings.ConnectionString, out string? connectionString))
         {

@@ -2,7 +2,7 @@ namespace ServiceControl.Transport.Tests;
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -45,7 +45,7 @@ class SqlServerQueryTests : TransportTestFixture
         {
             { SqlServerQuery.SqlServerSettings.ConnectionString, "not valid" }
         };
-        query.Initialize(dictionary.ToImmutableDictionary());
+        query.Initialize(new ReadOnlyDictionary<string, string>(dictionary));
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
@@ -64,7 +64,7 @@ class SqlServerQueryTests : TransportTestFixture
             { SqlServerQuery.SqlServerSettings.ConnectionString, configuration.ConnectionString },
             { SqlServerQuery.SqlServerSettings.AdditionalCatalogs, "not_here" }
         };
-        query.Initialize(dictionary.ToImmutableDictionary());
+        query.Initialize(new ReadOnlyDictionary<string, string>(dictionary));
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
@@ -83,7 +83,7 @@ class SqlServerQueryTests : TransportTestFixture
         {
             { SqlServerQuery.SqlServerSettings.ConnectionString, configuration.ConnectionString }
         };
-        query.Initialize(dictionary.ToImmutableDictionary());
+        query.Initialize(new ReadOnlyDictionary<string, string>(dictionary));
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsTrue(success);
@@ -103,7 +103,7 @@ class SqlServerQueryTests : TransportTestFixture
 
         await CreateTestQueue(transportSettings.EndpointName);
 
-        query.Initialize(dictionary.ToImmutableDictionary());
+        query.Initialize(new ReadOnlyDictionary<string, string>(dictionary));
 
         var queueNames = new List<IBrokerQueue>();
         await foreach (IBrokerQueue queueName in query.GetQueueNames(token))
