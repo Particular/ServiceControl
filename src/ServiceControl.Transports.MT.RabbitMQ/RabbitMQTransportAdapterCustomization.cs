@@ -1,20 +1,15 @@
 ﻿namespace ServiceControl.Transports.MT.RabbitMQ;
 
+using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
+using NServiceBus.Faults;
 using NServiceBus.Features;
 using NServiceBus.Transport;
 
 public class RabbitMQTransportAdapterCustomization : ITransportCustomization
 {
-    public void CustomizeAuditEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) { }
-
-    public void AddTransportForAudit(IServiceCollection services, TransportSettings transportSettings) { }
-
-    public void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) { }
-
-    public void AddTransportForMonitoring(IServiceCollection services, TransportSettings transportSettings) { }
-
-    public void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+    public void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration,
+        TransportSettings transportSettings)
     {
         endpointConfiguration.DisableFeature<Audit>();
         endpointConfiguration.DisableFeature<AutoSubscribe>();
@@ -27,7 +22,7 @@ public class RabbitMQTransportAdapterCustomization : ITransportCustomization
             throw new InvalidOperationException("Connection string not configured");
         }
 
-        var transport = new RabbitMQAdapter(transportSettings.ConnectionString) { TransportTransactionMode = TransportTransactionMode.ReceiveOnly };
+        var transport = new RabbitMQTransport(RoutingTopology.Conventional(QueueType.Quorum), transportSettings.ConnectionString) { TransportTransactionMode = TransportTransactionMode.ReceiveOnly };
 
         endpointConfiguration.UseTransport(transport);
     }
@@ -36,15 +31,97 @@ public class RabbitMQTransportAdapterCustomization : ITransportCustomization
     {
         services.AddSingleton<ITransportCustomization>(this);
         services.AddSingleton(transportSettings);
-        //services.AddSingleton<IBrokerThroughputQuery, RabbitMQQuery>();
     }
 
-    public Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues) => Task.CompletedTask;
+    public void CustomizeAuditEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
 
-    public Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings,
+    public void AddTransportForAudit(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
+
+    public void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
+
+    public void AddTransportForMonitoring(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
+
+    public Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues) => throw new NotImplementedException();
+
+    public async Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings,
         OnMessage onMessage = null,
         OnError onError = null, Func<string, Exception, Task> onCriticalError = null,
-        TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly) =>
+        TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
+    {
         //HINT: this is called by primary instance only when message is returned to the endpoint's queueu
-        throw new NotImplementedException();
+
+        if (transportSettings.ConnectionString == null)
+        {
+            throw new InvalidOperationException("Connection string not configured");
+        }
+
+        var transport = new RabbitMQTransport(RoutingTopology.Conventional(QueueType.Classic), transportSettings.ConnectionString);
+        transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
+
+        onCriticalError ??= (_, __) => Task.CompletedTask;
+
+        var hostSettings = new HostSettings(
+            name,
+            $"TransportInfrastructure for {name}",
+            new StartupDiagnosticEntries(),
+            (msg, exception, cancellationToken) => Task.Run(() => onCriticalError(msg, exception), cancellationToken),
+            false,
+            null); //null means "not hosted by core", transport SHOULD adjust accordingly to not assume things
+
+
+        ReceiveSettings[] receivers;
+        var createReceiver = onMessage != null && onError != null;
+
+        if (createReceiver)
+        {
+            if (name == "error")
+            {
+                //HACK: This is a hack!!!!
+                receivers = [new ReceiveSettings("error", new QueueAddress("FailWhenReceivingMyMessage_error"), false, false, transportSettings.ErrorQueue)];
+                onMessage = AdaptOnMessage(onMessage);
+
+                OnMessage AdaptOnMessage(OnMessage baseOnMessage)
+                {
+                    return (context, token) =>
+                    {
+                        //TODO: header mapping goes here
+                        var h = context.Headers;
+                        if (h.ContainsKey(MtHeaders.FaultInputAddress))
+                        {
+                            h[Headers.MessageId] = context.NativeMessageId;
+                            h[FaultsHeaderKeys.FailedQ] = h[MtHeaders.FaultInputAddress];
+                            h[Headers.ProcessingEndpoint] = h[MtHeaders.FaultConsumerType];
+                            h[FaultsHeaderKeys.ExceptionType] = h[MtHeaders.FaultExceptionType];
+                            h[FaultsHeaderKeys.Message] = h[MtHeaders.FaultMessage];
+                            h[Headers.EnclosedMessageTypes] = h[MtHeaders.FaultMessageType];
+                            h[Headers.DelayedRetries] = h[MtHeaders.FaultRetryCount];
+                            h[FaultsHeaderKeys.StackTrace] = h[MtHeaders.FaultStackTrace];
+                            h[FaultsHeaderKeys.TimeOfFailure] = h[MtHeaders.FaultTimestamp];
+                        }
+
+                        return baseOnMessage(context, token);
+                    };
+                }
+            }
+            else
+            {
+                receivers = [new ReceiveSettings(name, new QueueAddress(name), false, false, transportSettings.ErrorQueue)];
+            }
+
+        }
+        else
+        {
+            receivers = [];
+        }
+
+        var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { transportSettings.ErrorQueue }).ConfigureAwait(false);
+
+        if (createReceiver)
+        {
+            var transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
+            await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None).ConfigureAwait(false);
+        }
+
+        return transportInfrastructure;
+    }
 }
