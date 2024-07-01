@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import ConditionalRender from "@/components/ConditionalRender.vue";
-import { useIsSupported } from "@/composables/serviceSemVer";
-import { environment } from "@/composables/serviceServiceControl";
-import { computed } from "vue";
-
-const minimumSCVersionForThroughput = "5.4.0";
-const isThroughputSupported = computed(() => useIsSupported(environment.sc_version, minimumSCVersionForThroughput));
+import isThroughputSupported, { minimumSCVersionForThroughput } from "@/views/throughputreport/isThroughputSupported";
 </script>
 
 <template>

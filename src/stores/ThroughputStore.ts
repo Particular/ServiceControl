@@ -1,10 +1,11 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import useAutoRefresh from "@/composables/autoRefresh";
 import ConnectionTestResults from "@/resources/ConnectionTestResults";
 import throughputClient from "@/views/throughputreport/throughputClient";
 import { Transport } from "@/views/throughputreport/transport";
 import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
+import isThroughputSupported from "@/views/throughputreport/isThroughputSupported";
 
 export const useThroughputStore = defineStore("ThroughputStore", () => {
   const testResults = ref<ConnectionTestResults | null>(null);
@@ -78,10 +79,18 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
   };
   const dataRetriever = useAutoRefresh(
     async () => {
-      testResults.value = await throughputClient.test();
+      if (isThroughputSupported) {
+        testResults.value = await throughputClient.test();
+      }
     },
     60 * 60 * 1000 /* 1 hour */
   );
+
+  watch(isThroughputSupported, (value) => {
+    if (value) {
+      refresh();
+    }
+  });
 
   refresh();
 
