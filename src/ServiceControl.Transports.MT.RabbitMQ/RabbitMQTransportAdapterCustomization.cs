@@ -84,21 +84,7 @@ public class RabbitMQTransportAdapterCustomization : ITransportCustomization
                 {
                     return (context, token) =>
                     {
-                        //TODO: header mapping goes here
-                        var h = context.Headers;
-                        if (h.ContainsKey(MtHeaders.FaultInputAddress))
-                        {
-                            h[Headers.MessageId] = context.NativeMessageId;
-                            h[FaultsHeaderKeys.FailedQ] = h[MtHeaders.FaultInputAddress];
-                            h[Headers.ProcessingEndpoint] = h[MtHeaders.FaultConsumerType];
-                            h[FaultsHeaderKeys.ExceptionType] = h[MtHeaders.FaultExceptionType];
-                            h[FaultsHeaderKeys.Message] = h[MtHeaders.FaultMessage];
-                            h[Headers.EnclosedMessageTypes] = h[MtHeaders.FaultMessageType];
-                            h[Headers.DelayedRetries] = h[MtHeaders.FaultRetryCount];
-                            h[FaultsHeaderKeys.StackTrace] = h[MtHeaders.FaultStackTrace];
-                            h[FaultsHeaderKeys.TimeOfFailure] = h[MtHeaders.FaultTimestamp];
-                        }
-
+                        MassTransitConverter.From(context);
                         return baseOnMessage(context, token);
                     };
                 }
