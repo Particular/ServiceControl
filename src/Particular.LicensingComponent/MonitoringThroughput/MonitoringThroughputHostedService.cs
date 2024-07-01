@@ -36,6 +36,7 @@ class MonitoringThroughputHostedService(ITransportCustomization transportCustomi
 
         if (transportInfrastructure != null)
         {
+            await transportInfrastructure.Receivers[ServiceControlSettings.ServiceControlThroughputDataQueue].StopReceive(cancellationToken);
             await transportInfrastructure.Shutdown(cancellationToken);
         }
     }
