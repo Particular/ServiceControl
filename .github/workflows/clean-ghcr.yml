@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: ServiceControl PRs/alphas
-        uses: snok/container-retention-policy@v2.2.1
+        uses: snok/container-retention-policy@v3.0.0
         with:
           image-names: servicecontrol
           filter-tags: pr-*, *-alpha.*
@@ -22,7 +22,7 @@ jobs:
           token-type: github-token
           dry-run: false
       - name: ServiceControl untagged
-        uses: snok/container-retention-policy@v2.2.1
+        uses: snok/container-retention-policy@v3.0.0
         with:
           image-names: servicecontrol
           untagged-only: true
@@ -34,7 +34,7 @@ jobs:
           token-type: github-token
           dry-run: false
       - name: Audit PRs/alphas
-        uses: snok/container-retention-policy@v2.2.1
+        uses: snok/container-retention-policy@v3.0.0
         with:
           image-names: servicecontrol-audit
           filter-tags: pr-*, *-alpha.*
@@ -47,7 +47,7 @@ jobs:
           token-type: github-token
           dry-run: false
       - name: Audit untagged
-        uses: snok/container-retention-policy@v2.2.1
+        uses: snok/container-retention-policy@v3.0.0
         with:
           image-names: servicecontrol-audit
           untagged-only: true
@@ -59,7 +59,7 @@ jobs:
           token-type: github-token
           dry-run: false
       - name: Monitoring PRs/alphas
-        uses: snok/container-retention-policy@v2.2.1
+        uses: snok/container-retention-policy@v3.0.0
         with:
           image-names: servicecontrol-monitoring
           filter-tags: pr-*, *-alpha.*
@@ -72,7 +72,7 @@ jobs:
           token-type: github-token
           dry-run: false
       - name: Monitoring untagged
-        uses: snok/container-retention-policy@v2.2.1
+        uses: snok/container-retention-policy@v3.0.0
         with:
           image-names: servicecontrol-monitoring
           untagged-only: true
@@ -84,7 +84,7 @@ jobs:
           token-type: github-token
           dry-run: false
       - name: RavenDB PRs/alphas
-        uses: snok/container-retention-policy@v2.2.1
+        uses: snok/container-retention-policy@v3.0.0
         with:
           image-names: servicecontrol-ravendb
           filter-tags: pr-*, *-alpha.*
@@ -97,7 +97,7 @@ jobs:
           token-type: github-token
           dry-run: false
       - name: RavenDB untagged
-        uses: snok/container-retention-policy@v2.2.1
+        uses: snok/container-retention-policy@v3.0.0
         with:
           image-names: servicecontrol-ravendb
           untagged-only: true
