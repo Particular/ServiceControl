@@ -1,8 +1,8 @@
 ﻿namespace Particular.LicensingComponent.UnitTests;
 
-using System.Collections.Frozen;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -133,7 +133,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
             CancellationToken cancellationToken) => throw new NotImplementedException();
 
         public bool HasInitialisationErrors(out string errorMessage) => throw new NotImplementedException();
-        public void Initialise(FrozenDictionary<string, string> settings) => throw new NotImplementedException();
+        public void Initialize(ReadOnlyDictionary<string, string> settings) => throw new NotImplementedException();
 
         public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
             CancellationToken cancellationToken) => throw new NotImplementedException();
@@ -160,7 +160,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
             CancellationToken cancellationToken) => throw new NotImplementedException();
 
         public bool HasInitialisationErrors(out string errorMessage) => throw new NotImplementedException();
-        public void Initialise(FrozenDictionary<string, string> settings) => throw new NotImplementedException();
+        public void Initialize(ReadOnlyDictionary<string, string> settings) => throw new NotImplementedException();
 
         public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
             CancellationToken cancellationToken) => throw new NotImplementedException();

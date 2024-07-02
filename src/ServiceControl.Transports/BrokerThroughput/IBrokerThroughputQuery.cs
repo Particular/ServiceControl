@@ -2,15 +2,15 @@
 namespace ServiceControl.Transports.BrokerThroughput;
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 
 public interface IBrokerThroughputQuery
 {
     bool HasInitialisationErrors(out string errorMessage);
-    void Initialise(FrozenDictionary<string, string> settings);
+    void Initialize(ReadOnlyDictionary<string, string> settings);
     IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
         CancellationToken cancellationToken);
     IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken);

@@ -2,8 +2,8 @@
 namespace ServiceControl.Transports.RabbitMQ;
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -39,7 +39,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
         connectionConfiguration = ConnectionConfiguration.Create(transportSettings.ConnectionString, string.Empty);
     }
 
-    protected override void InitialiseCore(FrozenDictionary<string, string> settings)
+    protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
         if (!settings.TryGetValue(RabbitMQSettings.UserName, out string? username) ||
             string.IsNullOrEmpty(username))
