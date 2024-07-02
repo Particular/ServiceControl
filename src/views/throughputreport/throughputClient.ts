@@ -6,6 +6,7 @@ import ThroughputConnectionSettings from "@/resources/ThroughputConnectionSettin
 import { useDownloadFileFromResponse } from "@/composables/fileDownloadCreator";
 import ReportGenerationState from "@/resources/ReportGenerationState";
 import { parse } from "@tinyhttp/content-disposition";
+import isThroughputSupported from "@/views/throughputreport/isThroughputSupported";
 
 class ThroughputClient {
   constructor(readonly basePath: string) {}
@@ -31,8 +32,11 @@ class ThroughputClient {
   }
 
   public async reportAvailable() {
-    const [, data] = await useTypedFetchFromServiceControl<ReportGenerationState>(`${this.basePath}/report/available`);
-    return data;
+    if (isThroughputSupported.value) {
+      const [, data] = await useTypedFetchFromServiceControl<ReportGenerationState>(`${this.basePath}/report/available`);
+      return data;
+    }
+    return null;    
   }
 
   public async downloadReport() {
@@ -56,8 +60,11 @@ class ThroughputClient {
   }
 
   public async getMasks() {
+    if (isThroughputSupported.value) {
     const [, data] = await useTypedFetchFromServiceControl<string[]>(`${this.basePath}/settings/masks`);
     return data;
+    }
+    return [];
   }
 
   public async updateMasks(data: string[]): Promise<void> {

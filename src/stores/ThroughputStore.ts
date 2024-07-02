@@ -79,7 +79,7 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
   };
   const dataRetriever = useAutoRefresh(
     async () => {
-      if (isThroughputSupported) {
+      if (isThroughputSupported.value) {
         testResults.value = await throughputClient.test();
       }
     },
