@@ -54,7 +54,7 @@
                 var throughputData = new RecordEndpointThroughputData
                 {
                     EndDateTime = DateTime.UtcNow,
-                    StartDateTime = DateTime.UtcNow.AddMinutes(ReportSendingIntervalInMinutes),
+                    StartDateTime = DateTime.UtcNow.AddMinutes(-ReportSendingIntervalInMinutes),
                     EndpointThroughputData = new EndpointThroughputData[endpointData.Length]
                 };
 
