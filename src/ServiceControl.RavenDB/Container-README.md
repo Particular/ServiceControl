@@ -9,7 +9,7 @@ The purpose of this image is to provide version parity between ServiceControl an
 This is the most basic way to start the container using `docker run`:
 
 ```shell
-docker run -d -p 8080:8080 particular/servicecontrol-ravendb:latest-x64
+docker run -d -p 8080:8080 particular/servicecontrol-ravendb:latest
 ```
 
 _**IMPORTANT:**  A single database container should not be shared between multiple ServiceControl instances in production scenarios._
