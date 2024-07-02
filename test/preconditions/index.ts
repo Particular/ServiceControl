@@ -13,5 +13,6 @@ export { hasNoMonitoredEndpoints, hasMonitoredEndpointsList, monitoredEndpointsN
 export { hasEventLogItems } from "../preconditions/hasEventLogItems";
 export { hasRecoverabilityGroups } from "../preconditions/hasEmptyRecoverabilityGroups";
 export * from "./hasEndpointsWithHistoryPeriodData";
+export * from "./hasMonitoredEndpointDetails";
 export { hasNoHeartbeatsEndpoints } from "../preconditions/hasHeartbeatEndpoints";
 export { serviceControlWithMonitoring } from "./serviceControlWithMonitoring";

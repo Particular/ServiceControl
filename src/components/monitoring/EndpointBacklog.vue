@@ -9,7 +9,7 @@ const endpoint = defineModel<ExtendedEndpointDetails>({
 </script>
 
 <template>
-  <div class="col-xs-4 no-side-padding list-section graph-area graph-queue-length">
+  <div role="gridcell" aria-label="backlog-data" class="col-xs-4 no-side-padding list-section graph-area graph-queue-length">
     <!-- large graph -->
     <LargeGraph
       v-if="endpoint.metricDetails.metrics.queueLength"
@@ -22,18 +22,20 @@ const endpoint = defineModel<ExtendedEndpointDetails>({
     />
     <!--Queue Length-->
     <div class="no-side-padding graph-values">
-      <div class="queue-length-values">
-        <div>
+      <div aria-label="queue-length-values" class="queue-length-values">
+        <div aria-label="metric-header">
           <span class="metric-digest-header" v-tooltip :title="`Queue length: The number of messages waiting to be processed in the input queue(s) of the endpoint.`"> Queue Length </span>
         </div>
-        <div class="metric-digest-value current">
+        <div aria-label="metric-current-value" class="metric-digest-value current">
           <div v-if="!endpoint.isStale && !endpoint.isScMonitoringDisconnected">
             {{ formatGraphDecimalFromNumber(endpoint.digest.metrics.queueLength?.latest, 0) }} <span v-if="!endpoint.isStale || !endpoint.isScMonitoringDisconnected" class="metric-digest-value-suffix">MSGS</span>
           </div>
           <strong v-if="endpoint.isStale || endpoint.isScMonitoringDisconnected">?</strong>
         </div>
-        <div class="metric-digest-value average">
-          <div v-if="!endpoint.isStale && !endpoint.isScMonitoringDisconnected">{{ formatGraphDecimalFromNumber(endpoint.digest.metrics.queueLength?.average, 0) }} <span class="metric-digest-value-suffix">MSGS AVG</span></div>
+        <div aria-label="metric-average-value" class="metric-digest-value average">
+          <div aria-label="graph-average" v-if="!endpoint.isStale && !endpoint.isScMonitoringDisconnected">
+            {{ formatGraphDecimalFromNumber(endpoint.digest.metrics.queueLength?.average, 0) }} <span class="metric-digest-value-suffix">MSGS AVG</span>
+          </div>
           <strong v-if="endpoint.isStale || endpoint.isScMonitoringDisconnected">?</strong>
         </div>
       </div>

@@ -43,4 +43,13 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
 
   //http://localhost:33633/monitored-endpoints
   await driver.setUp(precondition.hasNoMonitoredEndpoints);
+
+  //http://localhost:33333/recoverability/groups/Endpoint%20Instance
+  await driver.setUp(precondition.endpointRecoverabilityByInstanceDefaultHandler)
+
+  //http://localhost:33333/recoverability/groups/Endpoint%20Name?classifierFilter=${name} -  the classifierFilter is ignored, this is a default handler for the route.
+  await driver.setUp(precondition.endpointRecoverabilityByNameDefaultHandler);  
+
+ //OPTIONS VERB agaisnt monitoring instance http://localhost:33633/ - this is used for enabling deleting an instance from the endpoint details page - instances panel
+ await driver.setUp(precondition.serviceControlMonitoringOptions)
 };

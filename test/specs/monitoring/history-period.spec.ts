@@ -125,23 +125,23 @@ describe("FEATURE: Endpoint history periods", () => {
       test(`EXAMPLE: ${description}`, async ({ driver }) => {
         //Arrange
         vi.useFakeTimers(); // Needs to be called before the first call to setInterval
-        await driver.setUp(precondition.serviceControlWithMonitoring);        
+        await driver.setUp(precondition.serviceControlWithMonitoring);
 
         //Act & Assert
-        await driver.goTo(`monitoring`);        
+        await driver.goTo(`monitoring`);
 
         // Update the mocked data to what the backed should respond with when the fetching happens
         await driver.setUp(precondition.hasEndpointWithMetricsPoints(12, 9.56, 13.24, 81, 215));
         // simulate clicking on the history period buttons
-        await selectHistoryPeriod(historyPeriod, true);                
-        
+        await selectHistoryPeriod(historyPeriod, true);
+
         // Wait for component to update from selected history period
         await waitFor(async () => {
           // check the endpoint data has been updated immediately
           expect(await endpointSparklineValues("Endpoint1")).toEqual(["12", "9.56", "13.24", "81", "215"]);
         });
 
-        // Update the mocked data to what the backed should respond with when the fetching happens
+        // Update the mocked data to what the backend should respond with when the fetching happens
         await driver.setUp(precondition.hasEndpointWithMetricsPoints(12, 9.56, 13.24, 81, 220));
 
         // Simulate the time passing for half the selected history period
@@ -149,13 +149,13 @@ describe("FEATURE: Endpoint history periods", () => {
         expect(await endpointSparklineValues("Endpoint1")).toEqual(["12", "9.56", "13.24", "81", "215"]);
 
         // Simulate the time passing for all except 1 millisecond of the selected history period
-        await vi.advanceTimersByTimeAsync(((historyPeriod * 1000) / 2) - 1);
+        await vi.advanceTimersByTimeAsync((historyPeriod * 1000) / 2 - 1);
         expect(await endpointSparklineValues("Endpoint1")).toEqual(["12", "9.56", "13.24", "81", "215"]);
 
         // Simulate the time passing for the last millisecond to make the selected history period time now be elapsed
         await vi.advanceTimersByTimeAsync(1);
-        expect(await endpointSparklineValues("Endpoint1")).toEqual(["12", "9.56", "13.24", "81", "220"]);        
-        
+        expect(await endpointSparklineValues("Endpoint1")).toEqual(["12", "9.56", "13.24", "81", "220"]);
+
         vi.useRealTimers();
       });
     });
