@@ -2,10 +2,11 @@
 
 This document describes basic usage and information related to the Particular ServiceControl images:
 
-* `particular/servicecontrol`: The image for the error instance
-* `particular/servicecontrol-audit`: The image for the audit instance
-* `particular/servicecontrol-monitoring`: The image for the monitoring instance
-* `particular/servicecontrol-ravendb`: The image for the database used by ServiceControl
+* [`particular/servicecontrol`](https://hub.docker.com/r/particular/servicecontrol): The image for the error instance
+* [`particular/servicecontrol-audit`](https://hub.docker.com/r/particular/servicecontrol-audit): The image for the audit instance
+* [`particular/servicecontrol-monitoring`](https://hub.docker.com/r/particular/servicecontrol-monitoring): The image for the monitoring instance
+
+The `servicecontrol` and `servicecontrol-audit` images also require the [`particular/servicecontrol-ravendb`](https://hub.docker.com/r/particular/servicecontrol-ravendb) image.
 
 Complete documentation of the ServiceControl container images can be found in the [Particular Software ServiceControl documentation](https://docs.particular.net/servicecontrol).
 
