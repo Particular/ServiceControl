@@ -52,7 +52,7 @@ onMounted(async () => {
         <h4>ServiceControl Settings</h4>
         <p class="nogap">
           For more information read the
-          <a href="https://docs.particular.net/servicecontrol/monitoring-instances/installation/creating-config-file#usage-reporting-monitoringservicecontrolthroughputdataqueue">LicensingComponent/ServiceControlThroughputDataQueue</a> settings
+          <a href="https://docs.particular.net/servicecontrol/creating-config-file#usage-reporting-when-using-servicecontrol-licensingcomponentservicecontrolthroughputdataqueue">LicensingComponent/ServiceControlThroughputDataQueue</a> settings
           documentation.
         </p>
         <ConfigurationCode :settings="settingsInfo?.service_control_settings ?? []">
