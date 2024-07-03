@@ -38,7 +38,7 @@ const createLicenseMockedResponse =
         status = expiring? LicenseStatus.ValidWithExpiringUpgradeProtection: LicenseStatus.InvalidDueToExpiredUpgradeProtection;
         break;      
     }
-    console.debug("status: " + status);
+    
     driver.mockEndpoint(`${serviceControlInstanceUrl}license`, {
       body: <LicenseInfo>{
         registered_to: "ACME Software",

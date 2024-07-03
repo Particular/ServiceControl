@@ -7,7 +7,7 @@ import { extendYourLicenseButton } from "./questions/extendYourLicenseButton";
 import { getAlertNotifications } from "./questions/alertNotifications";
 
 describe("FEATURE: EXPIRING license detection", () => {
-  describe("RULE: The user should be alerted while using the {monitoring endpoint list} functionality about an EXPIRING license", () => {
+  describe("RULE: The user should be alerted while using the monitoring endpoint list functionality about an EXPIRING license", () => {
     test("EXAMPLE: Expiring trial", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
@@ -50,7 +50,7 @@ describe("FEATURE: EXPIRED license detection", () => {
   const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
 
   //As of the moment of writing this test, license check is performed during the first load of the application only. No continuous check is performed.
-  describe("RULE: Access to the {monitoring endpoint list} functionality should be blocked when a expired license is detected and a notification should be displayed", () => {
+  describe("RULE: Access to the monitoring endpoint list functionality should be blocked when a expired license is detected and a notification should be displayed", () => {
     test("EXAMPLE: Expired trial", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
