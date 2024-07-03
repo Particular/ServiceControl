@@ -1,5 +1,5 @@
 import { expect } from "vitest";
-import { it, describe } from "../../drivers/vitest/driver";
+import { test, describe } from "../../drivers/vitest/driver";
 import { groupEndpointsBy } from "./actions/groupEndpointsBy";
 import { endpointGroupNames } from "./questions/endpointGroupNames";
 import { endpointGroup } from "./questions/endpointGroup";
@@ -13,7 +13,7 @@ import { endpointsNames } from "./questions/endpointsNames";
 
 describe("FEATURE: Endpoint sorting", () => {
   describe("RULE: Grouped endpoints should be able to be sorted in ascending and descending order by group name and by endpoint name inside the group", () => {
-    it("EXAMPLE: Endpoints inside of the groups and group names should be sorted in the same direction as the ungrouped endpoints", async ({ driver }) => {
+    test("EXAMPLE: Endpoints inside of the groups and group names should be sorted in the same direction as the ungrouped endpoints", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(
@@ -47,7 +47,7 @@ describe("FEATURE: Endpoint sorting", () => {
       expect(endpointGroup("Universe.Solarsystem.Earth").Endpoints).toEqual(["Endpoint6", "Endpoint5"]);
     });
 
-    it("EXAMPLE: Endpoints inside of the groups and group names should be sorted in descending order when clicking the endpoint name column title", async ({ driver }) => {
+    test("EXAMPLE: Endpoints inside of the groups and group names should be sorted in descending order when clicking the endpoint name column title", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(
@@ -73,7 +73,7 @@ describe("FEATURE: Endpoint sorting", () => {
       expect(endpointGroup("Universe.Solarsystem.Earth").Endpoints).toEqual(["Endpoint6", "Endpoint5"]);
     });
 
-    it("EXAMPLE: Endpoints inside of the groups and group names should be sorted in ascending order when clicking twice on the endpoint name column title", async ({ driver }) => {
+    test("EXAMPLE: Endpoints inside of the groups and group names should be sorted in ascending order when clicking twice on the endpoint name column title", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(
@@ -102,7 +102,7 @@ describe("FEATURE: Endpoint sorting", () => {
   });
 
   describe("RULE: Sort arrow images should only be visible on the column that is being sorted", () => {
-    it("EXAMPLE: Sort up arrow should only be visible on endpoint name column on page load", async ({ driver }) => {
+    test("EXAMPLE: Sort up arrow should only be visible on endpoint name column on page load", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));
@@ -119,7 +119,7 @@ describe("FEATURE: Endpoint sorting", () => {
       }
     });
 
-    it("EXAMPLE: Sort up and down arrow images should alternate visibility only on the column where the title was clicked", async ({ driver }) => {
+    test("EXAMPLE: Sort up and down arrow images should alternate visibility only on the column where the title was clicked", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));
@@ -155,7 +155,7 @@ describe("FEATURE: Endpoint sorting", () => {
   });
 
   describe("RULE: Ungrouped endpoints should be able to be sorted in ascending and descending order based on endpoint name", () => {
-    it("EXAMPLE: Endpoints are sorted in descending order by clicking name on the Endpoint name column title", async ({ driver }) => {
+    test("EXAMPLE: Endpoints are sorted in descending order by clicking name on the Endpoint name column title", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));
@@ -171,7 +171,7 @@ describe("FEATURE: Endpoint sorting", () => {
         assertSortImageState(otherColumn, null); // Assert that all other columns don't have sorting images
       }
     });
-    it("EXAMPLE: Endpoints are sorted in ascending order by clicking name on the Endpoint name column title twice", async ({ driver }) => {
+    test("EXAMPLE: Endpoints are sorted in ascending order by clicking name on the Endpoint name column title twice", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));
@@ -190,7 +190,7 @@ describe("FEATURE: Endpoint sorting", () => {
   });
 
   describe("RULE: Ungrouped endpoints should be able to be sorted in ascending and descending order based on average queue length", () => {
-    it("EXAMPLE: Endpoints are sorted in descending order by clicking the queue length column title", async ({ driver }) => {
+    test("EXAMPLE: Endpoints are sorted in descending order by clicking the queue length column title", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
 
@@ -217,7 +217,7 @@ describe("FEATURE: Endpoint sorting", () => {
       const avgValues = await smallGraphAverageValuesByColumn({ column: columnName.QUEUELENGTH });
       expect(avgValues).toEqual(["4.1", "2.1", "1.1"]);
     });
-    it("EXAMPLE: Endpoints are sorted in ascending order by clicking the queue length column title twice", async ({ driver }) => {
+    test("EXAMPLE: Endpoints are sorted in ascending order by clicking the queue length column title twice", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
 
@@ -248,7 +248,7 @@ describe("FEATURE: Endpoint sorting", () => {
   });
 
   describe("RULE: Ungrouped endpoints should be able to be sorted in ascending and descending order based on average throughput per second", () => {
-    it("EXAMPLE: Endpoints are sorted in descending order by clicking the throughput column title", async ({ driver }) => {
+    test("EXAMPLE: Endpoints are sorted in descending order by clicking the throughput column title", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
 
@@ -275,7 +275,7 @@ describe("FEATURE: Endpoint sorting", () => {
       const avgValues = await smallGraphAverageValuesByColumn({ column: columnName.THROUGHPUT });
       expect(avgValues).toEqual(["4.1", "2.1", "1.1"]);
     });
-    it("EXAMPLE: Endpoints are sorted in ascending order by clicking the throughput column title twice", async ({ driver }) => {
+    test("EXAMPLE: Endpoints are sorted in ascending order by clicking the throughput column title twice", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
 
@@ -306,7 +306,7 @@ describe("FEATURE: Endpoint sorting", () => {
   });
 
   describe("RULE: Ungrouped endpoints should be able to be sorted in ascending and descending order based on average scheduled retries per second", () => {
-    it("EXAMPLE: Endpoints are sorted in descending order by clicking the scheduled retries column title", async ({ driver }) => {
+    test("EXAMPLE: Endpoints are sorted in descending order by clicking the scheduled retries column title", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
 
@@ -333,7 +333,7 @@ describe("FEATURE: Endpoint sorting", () => {
       const avgValues = await smallGraphAverageValuesByColumn({ column: columnName.SCHEDULEDRETRIES });
       expect(avgValues).toEqual(["4.1", "2.1", "1.1"]);
     });
-    it("EXAMPLE: Endpoints are sorted in ascending order by clicking the scheduled retries column title twice", async ({ driver }) => {
+    test("EXAMPLE: Endpoints are sorted in ascending order by clicking the scheduled retries column title twice", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
 
@@ -364,7 +364,7 @@ describe("FEATURE: Endpoint sorting", () => {
   });
 
   describe("RULE: Ungrouped endpoints should be able to be sorted in ascending and descending order based on average processing time", () => {
-    it("EXAMPLE: Endpoints are sorted in descending order by clicking the scheduled retries column title", async ({ driver }) => {
+    test("EXAMPLE: Endpoints are sorted in descending order by clicking the scheduled retries column title", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
 
@@ -391,7 +391,7 @@ describe("FEATURE: Endpoint sorting", () => {
       const avgValues = await smallGraphAverageValuesByColumn({ column: columnName.PROCESSINGTIME });
       expect(avgValues).toEqual(["800", "350", "225"]);
     });
-    it("EXAMPLE: Endpoints are sorted in ascending order by clicking the scheduled retries column title twice", async ({ driver }) => {
+    test("EXAMPLE: Endpoints are sorted in ascending order by clicking the scheduled retries column title twice", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
 
@@ -422,7 +422,7 @@ describe("FEATURE: Endpoint sorting", () => {
   });
 
   describe("RULE: Ungrouped endpoints should be able to be sorted in ascending and descending order based on average critical time", () => {
-    it("EXAMPLE: Endpoints are sorted in descending order by clicking the scheduled retries column title", async ({ driver }) => {
+    test("EXAMPLE: Endpoints are sorted in descending order by clicking the scheduled retries column title", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
 
@@ -449,7 +449,7 @@ describe("FEATURE: Endpoint sorting", () => {
       const avgValues = await smallGraphAverageValuesByColumn({ column: columnName.CRITICALTIME });
       expect(avgValues).toEqual(["800", "350", "225"]);
     });
-    it("EXAMPLE: Endpoints are sorted in ascending order by clicking the scheduled retries column title twice", async ({ driver }) => {
+    test("EXAMPLE: Endpoints are sorted in ascending order by clicking the scheduled retries column title twice", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       const endpoint1 = structuredClone(monitoredEndpointTemplate);

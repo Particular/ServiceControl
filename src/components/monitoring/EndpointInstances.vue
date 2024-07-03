@@ -53,33 +53,39 @@ onMounted(async () => {
 
 <template>
   <div class="row">
-    <div class="col-xs-12 no-side-padding">
+    <div role="table" aria-label="instances" class="col-xs-12 no-side-padding">
       <!-- Breakdown by instance-->
       <!--headers-->
-      <div class="row box box-no-click table-head-row">
+      <div role="row" aria-label="instances-column-headers" class="row box box-no-click table-head-row">
         <div class="col-xs-4 col-xl-8">
-          <div class="row box-header">
+          <div role="columnheader" aria-label="instance-name" class="row box-header">
             <div class="col-xs-12">Instance Name</div>
           </div>
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div class="col-xs-12 no-side-padding" v-tooltip :title="`Throughput: The number of messages per second successfully processed by a receiving endpoint.`">Throughput <span class="table-header-unit">(msgs/s)</span></div>
+            <div role="columnheader" aria-label="throughput" class="col-xs-12 no-side-padding" v-tooltip :title="`Throughput: The number of messages per second successfully processed by a receiving endpoint.`">
+              Throughput <span class="table-header-unit">(msgs/s)</span>
+            </div>
           </div>
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div class="col-xs-12 no-side-padding" v-tooltip :title="`Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).`">Scheduled retries <span class="table-header-unit">(msgs/s)</span></div>
+            <div role="columnheader" aria-label="scheduled-retires" class="col-xs-12 no-side-padding" v-tooltip :title="`Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).`">
+              Scheduled retries <span class="table-header-unit">(msgs/s)</span>
+            </div>
           </div>
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div class="col-xs-12 no-side-padding" v-tooltip :title="`Processing time: The time taken for a receiving endpoint to successfully process a message.`">Processing Time <span class="table-header-unit">(t)</span></div>
+            <div role="columnheader" aria-label="processing-time" class="col-xs-12 no-side-padding" v-tooltip :title="`Processing time: The time taken for a receiving endpoint to successfully process a message.`">
+              Processing Time <span class="table-header-unit">(t)</span>
+            </div>
           </div>
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div class="col-xs-12 no-side-padding" v-tooltip :title="`Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.`">
+            <div role="columnheader" aria-label="critical-time" class="col-xs-12 no-side-padding" v-tooltip :title="`Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.`">
               Critical Time <span class="table-header-unit">(t)</span>
             </div>
           </div>
@@ -88,36 +94,36 @@ onMounted(async () => {
 
       <NoData v-if="!endpoint?.instances?.length" title="No messages" message="No messages processed in this period of time"></NoData>
 
-      <div class="row endpoint-instances">
+      <div role="rowgroup" class="row endpoint-instances">
         <div class="col-xs-12 no-side-padding">
           <div class="row box endpoint-row" v-for="(instance, id) in endpoint.instances" :key="id">
             <div class="col-xs-12 no-side-padding">
-              <div class="row">
-                <div class="col-xs-4 col-xl-8 endpoint-name">
+              <div role="row" :aria-label="instance.name" class="row">
+                <div role="cell" aria-label="instance-name" class="col-xs-4 col-xl-8 endpoint-name">
                   <div class="box-header with-status">
-                    <div class="no-side-padding lead righ-side-ellipsis" v-tooltip :title="instance.name">
+                    <div role="instance-name" aria-label="instance-name" class="no-side-padding lead righ-side-ellipsis" v-tooltip :title="instance.name">
                       {{ instance.name }}
                     </div>
                     <div class="no-side-padding endpoint-status">
-                      <span class="warning" v-if="parseFloat(formatGraphDuration(instance.metrics.criticalTime).value) < 0">
+                      <span role="status" aria-label="negative-critical-time-warning" class="warning" v-if="parseFloat(formatGraphDuration(instance.metrics.criticalTime).value) < 0">
                         <i class="fa pa-warning" v-tooltip :title="`Warning: instance currently has negative critical time, possibly because of a clock drift.`"></i>
                       </span>
-                      <span class="warning" v-if="instance.isScMonitoringDisconnected">
+                      <span role="status" aria-label="disconnected-warning" class="warning" v-if="instance.isScMonitoringDisconnected">
                         <i class="fa pa-monitoring-lost endpoint-details" v-tooltip :title="`Unable to connect to monitoring server`"></i>
                       </span>
-                      <span class="warning" v-if="instance.isStale">
+                      <span role="status" aria-label="stale-warning" class="warning" v-if="instance.isStale">
                         <i class="fa pa-endpoint-lost endpoint-details" v-tooltip :title="`Unable to connect to instance`"></i>
                       </span>
-                      <span class="warning" v-if="instance.errorCount" v-tooltip :title="instance.errorCount + ` failed messages associated with this endpoint. Click to see list.`">
+                      <span role="status" aria-label="error-count-warning" class="warning" v-if="instance.errorCount" v-tooltip :title="instance.errorCount + ` failed messages associated with this endpoint. Click to see list.`">
                         <RouterLink :to="routeLinks.failedMessage.group.link(instance.serviceControlId)" v-if="instance.errorCount" class="warning cursorpointer">
                           <i class="fa fa-envelope"></i>
-                          <span class="badge badge-important cursorpointer"> {{ instance.errorCount }}</span>
+                          <span aria-label="error-count" class="badge badge-important cursorpointer"> {{ instance.errorCount }}</span>
                         </RouterLink>
                       </span>
                     </div>
                   </div>
                 </div>
-                <div class="col-xs-2 col-xl-1 no-side-padding">
+                <div role="cell" aria-label="throughput" class="col-xs-2 col-xl-1 no-side-padding">
                   <div class="row box-header">
                     <div class="no-side-padding">
                       <SmallGraph :type="'throughput'" :isdurationgraph="false" :plotdata="instance.metrics.throughput" :minimumyaxis="smallGraphsMinimumYAxis.throughput" :metricsuffix="'MSGS/S'" />
@@ -129,7 +135,7 @@ onMounted(async () => {
                     </div>
                   </div>
                 </div>
-                <div class="col-xs-2 col-xl-1 no-side-padding">
+                <div role="cell" aria-label="retires" class="col-xs-2 col-xl-1 no-side-padding">
                   <div class="row box-header">
                     <div class="no-side-padding">
                       <SmallGraph :type="'retries'" :isdurationgraph="false" :plotdata="instance.metrics.retries" :minimumyaxis="smallGraphsMinimumYAxis.retries" :metricsuffix="'MSGS/S'" />
@@ -141,7 +147,7 @@ onMounted(async () => {
                     </div>
                   </div>
                 </div>
-                <div class="col-xs-2 col-xl-1 no-side-padding">
+                <div role="cell" aria-label="processing-time" class="col-xs-2 col-xl-1 no-side-padding">
                   <div class="row box-header">
                     <div class="no-side-padding">
                       <SmallGraph :type="'processing-time'" :isdurationgraph="true" :plotdata="instance.metrics.processingTime" :minimumyaxis="smallGraphsMinimumYAxis.processingTime" />
@@ -156,7 +162,7 @@ onMounted(async () => {
                     </div>
                   </div>
                 </div>
-                <div class="col-xs-2 col-xl-1 no-side-padding">
+                <div role="cell" aria-label="critical-time" class="col-xs-2 col-xl-1 no-side-padding">
                   <div class="row box-header">
                     <div class="no-side-padding">
                       <SmallGraph :type="'critical-time'" :isdurationgraph="true" :plotdata="instance.metrics.criticalTime" :minimumyaxis="smallGraphsMinimumYAxis.criticalTime" />

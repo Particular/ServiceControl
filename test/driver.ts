@@ -2,7 +2,7 @@ type GoTo = (path: string) => Promise<void>;
 type DisposeApp = () => void;
 export type MockEndpointOptions = {
   body: Record<string, any> | string | number | boolean | null | undefined;
-  method?: "get" | "post" | "patch" | "put" | "delete";
+  method?: "get" | "post" | "patch" | "put" | "delete" | "options";
   status?: number;
   headers?: { [key: string]: string };
 };

@@ -1,11 +1,11 @@
 import { expect } from "vitest";
-import { it, describe } from "../../drivers/vitest/driver";
+import { test, describe } from "../../drivers/vitest/driver";
 import * as precondition from "../../preconditions";
 import { endpointsNames } from "../monitoring/questions/endpointsNames";
 
 describe("FEATURE: app.constants.js", () => {
   describe("RULE: The system should automatically navigate to the specified path in default_route property", () => {
-    it("EXAMPLE: default route is set to /dashboard", async ({ driver }) => {
+    test("EXAMPLE: default route is set to /dashboard", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       window.defaultConfig.default_route = "/dashboard";
@@ -16,7 +16,7 @@ describe("FEATURE: app.constants.js", () => {
       expect(window.location.href).toBe("http://localhost:3000/#/dashboard");
     });
 
-    it("EXAMPLE: default route is set to /monitoring", async ({ driver }) => {
+    test("EXAMPLE: default route is set to /monitoring", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Endpoint1"]));
@@ -32,7 +32,7 @@ describe("FEATURE: app.constants.js", () => {
       expect(window.location.href).toBe("http://localhost:3000/#/monitoring");
     });
 
-    it("EXAMPLE: default route is set to a empty value", async ({ driver }) => {
+    test("EXAMPLE: default route is set to a empty value", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       window.defaultConfig.default_route = "";
@@ -43,7 +43,7 @@ describe("FEATURE: app.constants.js", () => {
       expect(window.location.href).toBe("http://localhost:3000/#/");
     });
 
-    it("EXAMPLE: default route is set to /", async ({ driver }) => {
+    test("EXAMPLE: default route is set to /", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       window.defaultConfig.default_route = "/";

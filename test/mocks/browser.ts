@@ -1,7 +1,7 @@
 import { setupWorker } from "msw/browser";
 import { Driver } from "../driver";
 import { makeMockEndpoint } from "../mock-endpoint";
-import { serviceControlWithMonitoring, monitoredEndpointsNamed } from "../preconditions";
+import * as precondition from "../preconditions";
 export const worker = setupWorker();
 const mockEndpoint = makeMockEndpoint({ mockServer: worker });
 
@@ -21,10 +21,10 @@ const makeDriver = (): Driver => ({
 const driver = makeDriver();
 
 (async () => {
-  await driver.setUp(serviceControlWithMonitoring);
+  await driver.setUp(precondition.serviceControlWithMonitoring);
   //override the default mocked endpoints with a custom list
   await driver.setUp(
-    monitoredEndpointsNamed([
+    precondition.monitoredEndpointsNamed([
       "Universe.Solarsystem.Mercury.Endpoint1",
       "Universe.Solarsystem.Mercury.Endpoint2",
       "Universe.Solarsystem.Venus.Endpoint3",

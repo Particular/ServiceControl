@@ -1,6 +1,7 @@
 import { http, HttpResponse } from "msw";
 import type { SetupWorker } from "msw/browser";
 import { SetupServer } from "msw/node";
+import { MockEndpointOptions } from "./driver";
 
 export const makeMockEndpoint =
   ({ mockServer }: { mockServer: SetupServer | SetupWorker }) =>
@@ -11,12 +12,7 @@ export const makeMockEndpoint =
       method = "get",
       status = 200,
       headers = {},
-    }: {
-      body: Record<string, any> | string | number | boolean | null | undefined;
-      method?: "get" | "post" | "put" | "patch" | "delete";
-      status?: number;
-      headers?: { [key: string]: string };
-    }
+    }: MockEndpointOptions
   ) => {
     mockServer.use(http[method](endpoint, () => HttpResponse.json(body, { status: status, headers: headers })));
   };

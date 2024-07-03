@@ -36,7 +36,7 @@ function makeDriver() {
   return driver;
 }
 
-const it = itVitest.extend<{ driver: Driver }>({
+const test = itVitest.extend<{ driver: Driver }>({
   driver: async ({}, use: any) => {
     //Reset the mocked handlers before executing the test
     mockServer.resetHandlers();
@@ -50,4 +50,4 @@ const it = itVitest.extend<{ driver: Driver }>({
   },
 });
 
-export { it, describe };
+export { test, describe };

@@ -89,23 +89,23 @@ onMounted(() => {
         <!--Header-->
         <div class="monitoring-head">
           <div class="endpoint-title no-side-padding list-section">
-            <h1 class="righ-side-ellipsis" v-tooltip :title="endpointName">
+            <h1 aria-label="endpoint-title" aria-level="1" class="righ-side-ellipsis" v-tooltip :title="endpointName">
               {{ endpointName }}
             </h1>
             <div class="endpoint-status">
-              <span class="warning" v-if="negativeCriticalTimeIsPresent">
+              <span role="status" aria-label="negative-critical-time-warning" class="warning" v-if="negativeCriticalTimeIsPresent">
                 <i class="fa pa-warning" v-tooltip :title="`Warning: endpoint currently has negative critical time, possibly because of a clock drift.`"></i>
               </span>
-              <span v-if="endpoint.isStale" class="warning">
+              <span role="status" aria-label="stale-warning" v-if="endpoint.isStale" class="warning">
                 <i class="fa pa-endpoint-lost endpoint-details" v-tooltip :title="`Unable to connect to endpoint`"></i>
               </span>
-              <span class="warning" v-if="endpoint.isScMonitoringDisconnected">
+              <span role="status" aria-label="disconnected-warning" class="warning" v-if="endpoint.isScMonitoringDisconnected">
                 <i class="fa pa-monitoring-lost endpoint-details" v-tooltip :title="`Unable to connect to monitoring server`"></i>
               </span>
-              <span class="warning" v-if="endpoint.errorCount" v-tooltip :title="endpoint.errorCount + ` failed messages associated with this endpoint. Click to see list.`">
+              <span role="status" aria-label="error-count-warning" class="warning" v-if="endpoint.errorCount" v-tooltip :title="endpoint.errorCount + ` failed messages associated with this endpoint. Click to see list.`">
                 <RouterLink :to="routeLinks.failedMessage.group.link(endpoint.serviceControlId)" v-if="endpoint.errorCount" class="warning cursorpointer">
                   <i class="fa fa-envelope"></i>
-                  <span class="badge badge-important ng-binding cursorpointer"> {{ endpoint.errorCount }}</span>
+                  <span aria-label="error-count" class="badge badge-important ng-binding cursorpointer"> {{ endpoint.errorCount }}</span>
                 </RouterLink>
               </span>
             </div>
@@ -118,9 +118,9 @@ onMounted(() => {
           </div>
         </div>
         <!--large graphs-->
-        <div class="large-graphs">
+        <div role="grid" aria-label="detail-graphs-data" class="large-graphs">
           <div class="container">
-            <div class="row">
+            <div role="row" class="row">
               <EndpointBacklog v-model="endpoint" />
               <EndpointWorkload v-model="endpoint" />
               <EndpointTimings v-model="endpoint" />
@@ -133,10 +133,16 @@ onMounted(() => {
           <!--tabs-->
           <div class="tabs">
             <h5 :class="{ active: activeTab === tabs.messageTypeBreakdown }">
-              <a @click="activeTab = tabs.messageTypeBreakdown" class="cursorpointer ng-binding">Message Types ({{ endpoint.messageTypes.length }})</a>
+              <a @click="activeTab = tabs.messageTypeBreakdown" class="cursorpointer ng-binding"
+                >Message Types (<span aria-label="message-types-count">{{ endpoint.messageTypes.length }}</span
+                >)</a
+              >
             </h5>
             <h5 :class="{ active: activeTab === tabs.instancesBreakdown }">
-              <a @click="activeTab = tabs.instancesBreakdown" class="cursorpointer ng-binding">Instances ({{ endpoint.instances.length }})</a>
+              <a @click="activeTab = tabs.instancesBreakdown" class="cursorpointer ng-binding"
+                >Instances (<span aria-label="instances-count">{{ endpoint.instances.length }}</span
+                >)</a
+              >
             </h5>
           </div>
 

@@ -1,8 +1,8 @@
-import { it, describe } from "../../drivers/vitest/driver";
+import { test, describe } from "../../drivers/vitest/driver";
 
 describe("FEATURE: Failed Message Groups", () => {
   describe("RULE: Failed Message Groups view should shows all current failed messages, grouped by the selected grouping and sorted by the selected sort", () => {
-    it.todo("EXAMPLE: A message should be shown when there are no failed messages");
+    test.todo("EXAMPLE: A message should be shown when there are no failed messages");
 
     /* SCENARIO
           Given there are no Failed Messages 
@@ -10,11 +10,11 @@ describe("FEATURE: Failed Message Groups", () => {
         */
   });
   describe("RULE: Overview information of each group should be displayed without having to navigate to the Failed Message Group details", () => {
-    it.todo("EXAMPLE: The number of deleted messages in a group should be shown");
-    it.todo("EXAMPLE: The time period from the first failed message should be shown");
-    it.todo("EXAMPLE: The time period of the last failed message should be shown");
-    it.todo("EXAMPLE: The time period of when the group was last retried should be shown");
-    it.todo("EXAMPLE: A deleted message group that has not been retried should show N/A for the last retry time");
+    test.todo("EXAMPLE: The number of deleted messages in a group should be shown");
+    test.todo("EXAMPLE: The time period from the first failed message should be shown");
+    test.todo("EXAMPLE: The time period of the last failed message should be shown");
+    test.todo("EXAMPLE: The time period of when the group was last retried should be shown");
+    test.todo("EXAMPLE: A deleted message group that has not been retried should show N/A for the last retry time");
 
     /* SCENARIO
           A group with failures that occurred in different times that has also been retried
@@ -37,7 +37,7 @@ describe("FEATURE: Failed Message Groups", () => {
         */
   });
   describe("RULE: Ability to select a given group should be hinted ", () => {
-    it.todo("EXAMPLE: Hovering the cursor over a group should indicate that it is active and selectable");
+    test.todo("EXAMPLE: Hovering the cursor over a group should indicate that it is active and selectable");
 
     /* SCENARIO
           Mouse hovering a group
@@ -49,7 +49,7 @@ describe("FEATURE: Failed Message Groups", () => {
         */
   });
   describe("RULE: Routing should place routes in browser history", () => {
-    it.todo("EXAMPLE: Navigating away from and then back to a detail view should return to the same detail view");
+    test.todo("EXAMPLE: Navigating away from and then back to a detail view should return to the same detail view");
 
     /* SCENARIO
           Navigating back after selecting a group
@@ -62,7 +62,7 @@ describe("FEATURE: Failed Message Groups", () => {
           (and subsequently navigating forwards should return me to the same "Failed Messages" view)
         */
 
-    it.todo("EXAMPLE: Forward and backward navigation should navigate through the selected tabs in order");
+    test.todo("EXAMPLE: Forward and backward navigation should navigate through the selected tabs in order");
     /* SCENARIO
           Navigating between tabs of "Failed Messages" area
 
@@ -72,7 +72,7 @@ describe("FEATURE: Failed Message Groups", () => {
         */
   });
   describe("RULE: Selected Grouping and Sort Order should remain selected when returning to Failed Message Groups tab", () => {
-    it.todo("EXAMPLE: The selected grouping and sorting should be restored when returning to the tab");
+    test.todo("EXAMPLE: The selected grouping and sorting should be restored when returning to the tab");
 
     /* SCENARIO
           Given I have selected a particular grouping and sorting on the "Failed Message Groups" tab
@@ -82,20 +82,20 @@ describe("FEATURE: Failed Message Groups", () => {
         */
   });
   describe("RULE: Something to do with last 10 completed retry requests", () => {
-    it.todo("Not implemented");
+    test.todo("Not implemented");
   });
   describe("RULE: Something to do with the badge on the tab header", () => {
-    it.todo("Not implemented");
+    test.todo("Not implemented");
   });
   describe("RULE: Actions on groups should be conditional on the state of the group", () => {
-    it.todo("EXAMPLE: Adding a note should be possible when there are no notes on a group");
+    test.todo("EXAMPLE: Adding a note should be possible when there are no notes on a group");
     /* SCENARIO
           Given there are 1 or more groups shown on the "Failed Message Groups" tab
           and no note has been added to the group
           Then "Add Note" is shown as an available action on the group
         */
 
-    it.todo("EXAMPLE: Editing a note should be possible when there is a note on a group");
+    test.todo("EXAMPLE: Editing a note should be possible when there is a note on a group");
     /* SCENARIO
           Given there are 1 or more groups shown on the "Failed Message Groups" tab
           and a note has been added to the group
@@ -104,7 +104,7 @@ describe("FEATURE: Failed Message Groups", () => {
           and "Remove Note" is shown as an available action on the group
         */
 
-    it.todo("EXAMPLE: Removing a note should be possible when there is a note on a group");
+    test.todo("EXAMPLE: Removing a note should be possible when there is a note on a group");
     /* SCENARIO
           Given there is a group shown on the "Failed Message Groups" tab
           and a note has been added to the group
@@ -113,7 +113,7 @@ describe("FEATURE: Failed Message Groups", () => {
           Then the note is removed from the group
         */
 
-    it.todo("EXAMPLE: Requesting a retry should be possible when there are failed messages in a group");
+    test.todo("EXAMPLE: Requesting a retry should be possible when there are failed messages in a group");
     /* SCENARIO
           Given there are 1 or more groups shown on the "Failed Message Groups" tab
           When the user clicks the "Request Retry" action
@@ -122,7 +122,7 @@ describe("FEATURE: Failed Message Groups", () => {
           and the list refreshes with the retried group removed
         */
 
-    it.todo("EXAMPLE: Deleting a group should be possible when there are failed messages in a group");
+    test.todo("EXAMPLE: Deleting a group should be possible when there are failed messages in a group");
     /* SCENARIO
           Given there are 1 or more groups shown on the "Failed Message Groups" tab
           When the user clicks the "Delete Group" action

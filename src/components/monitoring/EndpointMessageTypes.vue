@@ -36,7 +36,7 @@ const paginatedMessageTypes = computed(() => {
 
 <template>
   <div class="row">
-    <div class="col-xs-12 no-side-padding">
+    <div role="table" aria-label="message-types" class="col-xs-12 no-side-padding">
       <div v-if="messageTypesAvailable" class="alert alert-warning endpoint-data-changed">
         <i class="fa fa-warning"></i> <strong>Warning:</strong> The number of available message types has changed.
         <a @click="monitoringStore.updateMessageTypes()" class="alink">Click here to reload the view</a>
@@ -44,30 +44,36 @@ const paginatedMessageTypes = computed(() => {
 
       <!-- Breakdown by message type-->
       <!--headers-->
-      <div class="row box box-no-click table-head-row">
+      <div role="row" aria-label="message-type-column-headers" class="row box box-no-click table-head-row">
         <div class="col-xs-4 col-xl-8">
           <div class="row box-header">
-            <div class="col-xs-12">Message type name</div>
+            <div role="columnheader" aria-label="message-type-name" class="col-xs-12">Message type name</div>
           </div>
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div class="col-xs-12 no-side-padding" v-tooltip :title="`Throughput: The number of messages per second successfully processed by a receiving endpoint.`">Throughput <span class="table-header-unit">(msgs/s)</span></div>
+            <div role="columnheader" aria-label="throughput" class="col-xs-12 no-side-padding" v-tooltip :title="`Throughput: The number of messages per second successfully processed by a receiving endpoint.`">
+              Throughput <span class="table-header-unit">(msgs/s)</span>
+            </div>
           </div>
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div class="col-xs-12 no-side-padding" v-tooltip :title="`Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).`">Scheduled retries <span class="table-header-unit">(msgs/s)</span></div>
+            <div role="columnheader" aria-label="scheduled-retires" class="col-xs-12 no-side-padding" v-tooltip :title="`Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).`">
+              Scheduled retries <span class="table-header-unit">(msgs/s)</span>
+            </div>
           </div>
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div class="col-xs-12 no-side-padding" v-tooltip :title="`Processing time: The time taken for a receiving endpoint to successfully process a message.`">Processing Time <span class="table-header-unit">(t)</span></div>
+            <div role="columnheader" aria-label="processing-time" class="col-xs-12 no-side-padding" v-tooltip :title="`Processing time: The time taken for a receiving endpoint to successfully process a message.`">
+              Processing Time <span class="table-header-unit">(t)</span>
+            </div>
           </div>
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div class="col-xs-12 no-side-padding" v-tooltip :title="`Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.`">
+            <div role="columnheader" aria-label="critical-time" class="col-xs-12 no-side-padding" v-tooltip :title="`Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.`">
               Critical Time <span class="table-header-unit">(t)</span>
             </div>
           </div>
@@ -76,14 +82,14 @@ const paginatedMessageTypes = computed(() => {
 
       <no-data v-if="!endpoint?.messageTypes?.length" message="No messages processed in this period of time."></no-data>
 
-      <div class="row">
+      <div role="rowgroup" aria-label="message-type-rows" class="row">
         <div class="col-xs-12 no-side-padding">
           <div class="row box endpoint-row" v-for="messageType in paginatedMessageTypes" :key="messageType.id">
             <div class="col-xs-12 no-side-padding">
-              <div class="row">
-                <div class="col-xs-4 col-xl-8 endpoint-name" :title="messageType?.tooltipText">
+              <div role="row" :aria-label="messageType.shortName" class="row">
+                <div role="cell" class="col-xs-4 col-xl-8 endpoint-name" :title="messageType?.tooltipText">
                   <div class="box-header with-status">
-                    <div class="col-lg-max-9 no-side-padding lead message-type-label righ-side-ellipsis">
+                    <div role="message-type-name" aria-label="message-type-name" class="col-lg-max-9 no-side-padding lead message-type-label righ-side-ellipsis">
                       <div class="lead">
                         {{ messageType?.shortName || "Unknown" }}
                       </div>
@@ -97,7 +103,7 @@ const paginatedMessageTypes = computed(() => {
                       </span>
                     </div>
                   </div>
-                  <div class="row message-type-properties">
+                  <div aria-label="message-type-properties" class="row message-type-properties">
                     <div v-if="messageType.typeName && messageType.typeName != 'null' && !messageType.containsTypeHierarchy" class="message-type-part">
                       {{ messageType.assemblyName + "-" + messageType.assemblyVersion }}
                     </div>
@@ -108,7 +114,7 @@ const paginatedMessageTypes = computed(() => {
                     <div v-if="messageType.publicKeyToken && messageType.publicKeyToken != 'null'" class="message-type-part">{{ "PublicKeyToken=" + messageType.publicKeyToken }}</div>
                   </div>
                 </div>
-                <div class="col-xs-2 col-xl-1 no-side-padding">
+                <div role="cell" aria-label="throughput" class="col-xs-2 col-xl-1 no-side-padding">
                   <div class="row box-header">
                     <div class="no-side-padding">
                       <SmallGraph :type="'throughput'" :isdurationgraph="false" :plotdata="messageType.metrics.throughput" :minimumyaxis="smallGraphsMinimumYAxis.throughput" :metricsuffix="'MSGS/S'" />
@@ -120,7 +126,7 @@ const paginatedMessageTypes = computed(() => {
                     </div>
                   </div>
                 </div>
-                <div class="col-xs-2 col-xl-1 no-side-padding">
+                <div role="cell" aria-label="retires" class="col-xs-2 col-xl-1 no-side-padding">
                   <div class="row box-header">
                     <div class="no-side-padding">
                       <SmallGraph :type="'retries'" :isdurationgraph="false" :plotdata="messageType.metrics.retries" :minimumyaxis="smallGraphsMinimumYAxis.retries" :metricsuffix="'MSGS/S'" />
@@ -132,7 +138,7 @@ const paginatedMessageTypes = computed(() => {
                     </div>
                   </div>
                 </div>
-                <div class="col-xs-2 col-xl-1 no-side-padding">
+                <div role="cell" aria-label="processing-time" class="col-xs-2 col-xl-1 no-side-padding">
                   <div class="row box-header">
                     <div class="no-side-padding">
                       <SmallGraph :type="'processing-time'" :isdurationgraph="true" :plotdata="messageType.metrics.processingTime" :minimumyaxis="smallGraphsMinimumYAxis.processingTime" />
@@ -147,7 +153,7 @@ const paginatedMessageTypes = computed(() => {
                     </div>
                   </div>
                 </div>
-                <div class="col-xs-2 col-xl-1 no-side-padding">
+                <div role="cell" aria-label="critical-time" class="col-xs-2 col-xl-1 no-side-padding">
                   <div class="row box-header">
                     <div class="no-side-padding">
                       <SmallGraph :type="'critical-time'" :isdurationgraph="true" :plotdata="messageType.metrics.criticalTime" :minimumyaxis="smallGraphsMinimumYAxis.criticalTime" />

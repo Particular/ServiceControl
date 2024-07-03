@@ -1,5 +1,5 @@
 import { expect, vi } from "vitest";
-import { it, describe } from "../../drivers/vitest/driver";
+import { test, describe } from "../../drivers/vitest/driver";
 import { screen, waitFor } from "@testing-library/vue";
 import * as precondition from "../../preconditions";
 import { selectHistoryPeriod } from "./actions/selectHistoryPeriod";
@@ -18,7 +18,7 @@ describe("FEATURE: Endpoint history periods", () => {
       { description: "History period '30m' selected and permalink history period query parameter should be set to 30", historyPeriod: 30 },
       { description: "History period '1h' selected and permalink history period query parameter should be set to 60", historyPeriod: 60 },
     ].forEach(({ description, historyPeriod }) => {
-      it(`EXAMPLE: ${description}`, async ({ driver }) => {
+      test(`EXAMPLE: ${description}`, async ({ driver }) => {
         //Arrange
         await driver.setUp(precondition.serviceControlWithMonitoring);
         await driver.setUp(precondition.monitoredEndpointsNamed(["Endpoint1"]));
@@ -39,7 +39,7 @@ describe("FEATURE: Endpoint history periods", () => {
       { description: "History period query parameter is set to 30 and history period '30m' should be selected", historyPeriod: 30 },
       { description: "History period query parameter is set to 60 and history period '1h' should be selected", historyPeriod: 60 },
     ].forEach(({ description, historyPeriod }) => {
-      it(`EXAMPLE: ${description}`, async ({ driver }) => {
+      test(`EXAMPLE: ${description}`, async ({ driver }) => {
         //Arrange
         await driver.setUp(precondition.serviceControlWithMonitoring);
         await driver.setUp(precondition.monitoredEndpointsNamed(["Endpoint1"]));
@@ -51,7 +51,7 @@ describe("FEATURE: Endpoint history periods", () => {
         expect(await historyPeriodSelected(historyPeriod)).toEqual("true");
       });
     });
-    it("EXAMPLE: No history query parameter set and History period '1m' should be selected", async ({ driver }) => {
+    test("EXAMPLE: No history query parameter set and History period '1m' should be selected", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Endpoint1"]));
@@ -69,7 +69,7 @@ describe("FEATURE: Endpoint history periods", () => {
       { description: "Selecting history period '30m' should update the endpoint name link with the history period selected for details", historyPeriod: 30 },
       { description: "Selecting history period '1h' should update the endpoint name link with the history period selected for details", historyPeriod: 60 },
     ].forEach(({ description, historyPeriod }) => {
-      it(`EXAMPLE: ${description}`, async ({ driver }) => {
+      test(`EXAMPLE: ${description}`, async ({ driver }) => {
         //Arrange
         await driver.setUp(precondition.serviceControlWithMonitoring);
         await driver.setUp(precondition.monitoredEndpointsNamed(["Endpoint1", "Endpoint2"]));
@@ -84,7 +84,7 @@ describe("FEATURE: Endpoint history periods", () => {
     });
   });
   describe("RULE: Endpoint history period data should be displayed immediately after the history period is updated", () => {
-    it(`EXAMPLE: As history periods are selected the endpoint sparkline data should update immediately`, async ({ driver }) => {
+    test(`EXAMPLE: As history periods are selected the endpoint sparkline data should update immediately`, async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.hasEndpointWithMetricsPoints(14, 9.28, 13.8, 76, 217));
@@ -122,26 +122,26 @@ describe("FEATURE: Endpoint history periods", () => {
       { description: "As history period is changed to 30 minutes the endpoint sparkline data should be updated at the correct interval", historyPeriod: 30 },
       { description: "As history period is changed to 60 minutes the endpoint sparkline data should be updated at the correct interval", historyPeriod: 60 },
     ].forEach(({ description, historyPeriod }) => {
-      it(`EXAMPLE: ${description}`, async ({ driver }) => {
+      test(`EXAMPLE: ${description}`, async ({ driver }) => {
         //Arrange
         vi.useFakeTimers(); // Needs to be called before the first call to setInterval
-        await driver.setUp(precondition.serviceControlWithMonitoring);        
+        await driver.setUp(precondition.serviceControlWithMonitoring);
 
         //Act & Assert
-        await driver.goTo(`monitoring`);        
+        await driver.goTo(`monitoring`);
 
         // Update the mocked data to what the backed should respond with when the fetching happens
         await driver.setUp(precondition.hasEndpointWithMetricsPoints(12, 9.56, 13.24, 81, 215));
         // simulate clicking on the history period buttons
-        await selectHistoryPeriod(historyPeriod, true);                
-        
+        await selectHistoryPeriod(historyPeriod, true);
+
         // Wait for component to update from selected history period
         await waitFor(async () => {
           // check the endpoint data has been updated immediately
           expect(await endpointSparklineValues("Endpoint1")).toEqual(["12", "9.56", "13.24", "81", "215"]);
         });
 
-        // Update the mocked data to what the backed should respond with when the fetching happens
+        // Update the mocked data to what the backend should respond with when the fetching happens
         await driver.setUp(precondition.hasEndpointWithMetricsPoints(12, 9.56, 13.24, 81, 220));
 
         // Simulate the time passing for half the selected history period
@@ -149,12 +149,13 @@ describe("FEATURE: Endpoint history periods", () => {
         expect(await endpointSparklineValues("Endpoint1")).toEqual(["12", "9.56", "13.24", "81", "215"]);
 
         // Simulate the time passing for all except 1 millisecond of the selected history period
-        await vi.advanceTimersByTimeAsync(((historyPeriod * 1000) / 2) - 1);
+        await vi.advanceTimersByTimeAsync((historyPeriod * 1000) / 2 - 1);
         expect(await endpointSparklineValues("Endpoint1")).toEqual(["12", "9.56", "13.24", "81", "215"]);
 
         // Simulate the time passing for the last millisecond to make the selected history period time now be elapsed
         await vi.advanceTimersByTimeAsync(1);
-        expect(await endpointSparklineValues("Endpoint1")).toEqual(["12", "9.56", "13.24", "81", "220"]);        
+
+        expect(await endpointSparklineValues("Endpoint1")).toEqual(["12", "9.56", "13.24", "81", "220"]);
 
         vi.useRealTimers();
       });

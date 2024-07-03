@@ -1,19 +1,19 @@
-import { it, describe } from "../../drivers/vitest/driver";
+import { test, describe } from "../../drivers/vitest/driver";
 
 describe("FEATURE: Deleted Message Groups", () => {
   describe("RULE: Deleted Message Groups view should shows all current deleted messages, grouped by the selected grouping", () => {
-    it.todo("EXAMPLE: A message should be show when there are no deleted messages");
+    test.todo("EXAMPLE: A message should be show when there are no deleted messages");
 
     /* SCENARIO
           Given there are no Deleted Messages
           Then the "Deleted Message Groups" tab will display a message indicating the fact
         */
 
-    it.todo("EXAMPLE: The number of deleted messages in a group should be shown");
-    it.todo("EXAMPLE: The time period from the first failed message should be shown");
-    it.todo("EXAMPLE: The time period of the last failed message should be shown");
-    it.todo("EXAMPLE: The time period of when the group was last retried should be shown");
-    it.todo("EXAMPLE: A deleted message group that has not been retried should show N/A for the last retry time");
+    test.todo("EXAMPLE: The number of deleted messages in a group should be shown");
+    test.todo("EXAMPLE: The time period from the first failed message should be shown");
+    test.todo("EXAMPLE: The time period of the last failed message should be shown");
+    test.todo("EXAMPLE: The time period of when the group was last retried should be shown");
+    test.todo("EXAMPLE: A deleted message group that has not been retried should show N/A for the last retry time");
 
     /* SCENARIO
           Given there are 1 or more groups shown on the "Deleted Message Groups" tab
@@ -25,7 +25,7 @@ describe("FEATURE: Deleted Message Groups", () => {
         */
   });
   describe("RULE: All messages in a Deleted Message Group should be able to be restored in a single action", () => {
-    it.todo("EXAMPLE: A restore button should be shown when there are deleted messages in a group");
+    test.todo("EXAMPLE: A restore button should be shown when there are deleted messages in a group");
     /* SCENARIO
           Given there are 1 or more groups shown on the "Deleted Message Groups" tab
           Then "Restore group" is shown as an available action on the group
@@ -40,7 +40,7 @@ describe("FEATURE: Deleted Message Groups", () => {
         */
   });
   describe("RULE: Ability to select a given group should be hinted ", () => {
-    it.todo("EXAMPLE: A group should indicate that it is active and selectable when the cursor is hovered over");
+    test.todo("EXAMPLE: A group should indicate that it is active and selectable when the cursor is hovered over");
 
     /* SCENARIO
           Mouse hovering a group

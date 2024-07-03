@@ -1,4 +1,4 @@
-export { hasActiveLicense } from "../preconditions/hasActiveLicense";
+export * from "../preconditions/hasLicense";
 export { hasServiceControlMainInstance } from "../preconditions/hasServiceControlMainInstance";
 export { hasServiceControlMonitoringInstance } from "../preconditions/hasServiceControlMonitoringInstance";
 export { hasServiceControlMonitoringInstanceUrl } from "../preconditions/hasServiceControlMonitoringInstanceUrl";
@@ -13,5 +13,6 @@ export { hasNoMonitoredEndpoints, hasMonitoredEndpointsList, monitoredEndpointsN
 export { hasEventLogItems } from "../preconditions/hasEventLogItems";
 export { hasRecoverabilityGroups } from "../preconditions/hasEmptyRecoverabilityGroups";
 export * from "./hasEndpointsWithHistoryPeriodData";
+export * from "./hasMonitoredEndpointDetails";
 export { hasNoHeartbeatsEndpoints } from "../preconditions/hasHeartbeatEndpoints";
 export { serviceControlWithMonitoring } from "./serviceControlWithMonitoring";

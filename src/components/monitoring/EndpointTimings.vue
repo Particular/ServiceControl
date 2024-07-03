@@ -17,7 +17,7 @@ const averageCriticalTime = computed(() => useFormatTime(endpoint.value.digest.m
 
 <template>
   <!--ProcessingTime and Critical Time-->
-  <div class="col-xs-4 no-side-padding list-section graph-area graph-critical-processing-times">
+  <div role="gridcell" aria-label="timings-data" class="col-xs-4 no-side-padding list-section graph-area graph-critical-processing-times">
     <!-- large graph -->
     <LargeGraph
       v-if="endpoint.metricDetails.metrics.criticalTime"
@@ -30,18 +30,18 @@ const averageCriticalTime = computed(() => useFormatTime(endpoint.value.digest.m
       :avgdecimals="0"
     />
     <div class="no-side-padding graph-values">
-      <div class="no-side-padding processing-time-values">
-        <div class="">
+      <div aria-label="processing-time-values" class="no-side-padding processing-time-values">
+        <div aria-label="metric-header">
           <span class="metric-digest-header" v-tooltip :title="`Processing time: The time taken for a receiving endpoint to successfully process a message.`"> Processing Time </span>
         </div>
-        <div class="metric-digest-value current">
+        <div aria-label="metric-current-value" class="metric-digest-value current">
           <div v-if="!endpoint.isStale && !endpoint.isScMonitoringDisconnected">
             {{ latestProcessingTime.value }}
             <span class="metric-digest-value-suffix"> {{ latestProcessingTime.unit }}</span>
           </div>
           <strong v-if="endpoint.isStale || endpoint.isScMonitoringDisconnected">?</strong>
         </div>
-        <div class="metric-digest-value average">
+        <div aria-label="metric-average-value" class="metric-digest-value average">
           <div v-if="!endpoint.isStale && !endpoint.isScMonitoringDisconnected">
             {{ averageProcessingTime.value }}
             <span class="metric-digest-value-suffix"> {{ averageProcessingTime.unit }} AVG</span>
@@ -50,18 +50,18 @@ const averageCriticalTime = computed(() => useFormatTime(endpoint.value.digest.m
         </div>
       </div>
 
-      <div class="no-side-padding critical-time-values">
-        <div class="">
+      <div aria-label="critical-time-values" class="no-side-padding critical-time-values">
+        <div aria-label="metric-header">
           <span class="metric-digest-header" v-tooltip :title="`Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.`"> Critical Time </span>
         </div>
-        <div class="metric-digest-value current">
+        <div aria-label="metric-current-value" class="metric-digest-value current">
           <div v-if="!endpoint.isStale && !endpoint.isScMonitoringDisconnected">
             <span :class="{ negative: parseFloat(latestCriticalTime.value) < 0 }"> {{ latestCriticalTime.value }}</span>
             <span class="metric-digest-value-suffix"> &nbsp;{{ latestCriticalTime.unit }}</span>
           </div>
           <strong v-if="endpoint.isStale || endpoint.isScMonitoringDisconnected">?</strong>
         </div>
-        <div class="metric-digest-value average">
+        <div aria-label="metric-average-value" class="metric-digest-value average">
           <div v-if="!endpoint.isStale && !endpoint.isScMonitoringDisconnected">
             <span :class="{ negative: parseFloat(averageCriticalTime.value) < 0 }"> {{ averageCriticalTime.value }}</span>
             <span class="metric-digest-value-suffix"> &nbsp;{{ averageCriticalTime.unit }} AVG </span>
