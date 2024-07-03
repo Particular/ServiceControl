@@ -112,8 +112,8 @@ namespace ServiceControl.Transports.BrokerThroughput
         public abstract System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.IBrokerQueue> GetQueueNames(System.Threading.CancellationToken cancellationToken);
         public abstract System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.QueueThroughput> GetThroughputPerDay(ServiceControl.Transports.BrokerThroughput.IBrokerQueue brokerQueue, System.DateOnly startDate, System.Threading.CancellationToken cancellationToken);
         public bool HasInitialisationErrors(out string errorMessage) { }
-        public void Initialise(System.Collections.Frozen.FrozenDictionary<string, string> settings) { }
-        protected abstract void InitialiseCore(System.Collections.Frozen.FrozenDictionary<string, string> settings);
+        public void Initialize(System.Collections.ObjectModel.ReadOnlyDictionary<string, string> settings) { }
+        protected abstract void InitializeCore(System.Collections.ObjectModel.ReadOnlyDictionary<string, string> settings);
         public virtual string SanitizeEndpointName(string endpointName) { }
         public virtual string SanitizedEndpointNameCleanser(string endpointName) { }
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
@@ -150,7 +150,7 @@ namespace ServiceControl.Transports.BrokerThroughput
         System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.IBrokerQueue> GetQueueNames(System.Threading.CancellationToken cancellationToken);
         System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.QueueThroughput> GetThroughputPerDay(ServiceControl.Transports.BrokerThroughput.IBrokerQueue brokerQueue, System.DateOnly startDate, System.Threading.CancellationToken cancellationToken);
         bool HasInitialisationErrors(out string errorMessage);
-        void Initialise(System.Collections.Frozen.FrozenDictionary<string, string> settings);
+        void Initialize(System.Collections.ObjectModel.ReadOnlyDictionary<string, string> settings);
         string SanitizeEndpointName(string endpointName);
         string SanitizedEndpointNameCleanser(string endpointName);
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {

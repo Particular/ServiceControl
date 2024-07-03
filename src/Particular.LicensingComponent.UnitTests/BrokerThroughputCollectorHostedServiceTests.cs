@@ -1,8 +1,8 @@
 namespace Particular.LicensingComponent.UnitTests;
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -130,7 +130,7 @@ class BrokerThroughputCollectorHostedServiceTests
             return false;
         }
 
-        public void Initialise(FrozenDictionary<string, string> settings)
+        public void Initialize(ReadOnlyDictionary<string, string> settings)
         {
         }
 
@@ -179,7 +179,7 @@ class BrokerThroughputCollectorHostedServiceTests
             return false;
         }
 
-        public void Initialise(FrozenDictionary<string, string> settings)
+        public void Initialize(ReadOnlyDictionary<string, string> settings)
         {
         }
 
@@ -224,7 +224,7 @@ class BrokerThroughputCollectorHostedServiceTests
             return false;
         }
 
-        public void Initialise(FrozenDictionary<string, string> settings)
+        public void Initialize(ReadOnlyDictionary<string, string> settings)
         {
         }
 
