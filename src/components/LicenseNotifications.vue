@@ -18,7 +18,7 @@ function displayWarningMessage(licenseStatus: LicenseStatus) {
       break;
     }
     case "ValidWithExpiringTrial": {
-      const trialExpiring = `<div ><strong>Non-production development license expiring</strong><div>Your non-production development license will expire soon. To continue using the Particular Service Platform you'll need to extend your license.</div><a href="http://particular.net/extend-your-trial?p=servicepulse" class="btn btn-warning"><i class="fa fa-external-link-alt"></i> Extend your license</a><a href="${configurationRootLink}" class="btn btn-light">View license details</a></div>`;
+      const trialExpiring = `<div><strong>Non-production development license expiring</strong><div>Your non-production development license will expire soon. To continue using the Particular Service Platform you'll need to extend your license.</div><a href="http://particular.net/extend-your-trial?p=servicepulse" class="btn btn-warning"><i class="fa fa-external-link-alt"></i> Extend your license</a><a href="${configurationRootLink}" class="btn btn-light">View license details</a></div>`;
       useShowToast(TYPE.WARNING, "", trialExpiring, true);
       break;
     }

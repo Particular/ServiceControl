@@ -1,4 +1,4 @@
-export { hasActiveLicense } from "../preconditions/hasActiveLicense";
+export * from "../preconditions/hasLicense";
 export { hasServiceControlMainInstance } from "../preconditions/hasServiceControlMainInstance";
 export { hasServiceControlMonitoringInstance } from "../preconditions/hasServiceControlMonitoringInstance";
 export { hasServiceControlMonitoringInstanceUrl } from "../preconditions/hasServiceControlMonitoringInstanceUrl";
