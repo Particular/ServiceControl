@@ -243,7 +243,10 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
 
             foreach (var queue in response.QueueUrls.Select(url => url.Split('/')[4]))
             {
-                yield return new DefaultBrokerQueue(queue);
+                if (!queue.EndsWith("-delay.fifo", StringComparison.OrdinalIgnoreCase))
+                {
+                    yield return new DefaultBrokerQueue(queue);
+                }
             }
 
             if (response.NextToken is not null)
