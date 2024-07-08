@@ -177,6 +177,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Particular.LicensingCompone
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Particular.LicensingComponent.UnitTests", "Particular.LicensingComponent.UnitTests\Particular.LicensingComponent.UnitTests.csproj", "{51F5504E-E915-40EC-B96E-CA700A57982C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.Transport.SQS", "..\..\NServiceBus.AmazonSQS\src\NServiceBus.Transport.SQS\NServiceBus.Transport.SQS.csproj", "{884B6515-6064-4EE4-96FA-731C65660D25}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -955,6 +957,18 @@ Global
 		{51F5504E-E915-40EC-B96E-CA700A57982C}.Release|x64.Build.0 = Release|Any CPU
 		{51F5504E-E915-40EC-B96E-CA700A57982C}.Release|x86.ActiveCfg = Release|Any CPU
 		{51F5504E-E915-40EC-B96E-CA700A57982C}.Release|x86.Build.0 = Release|Any CPU
+		{884B6515-6064-4EE4-96FA-731C65660D25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{884B6515-6064-4EE4-96FA-731C65660D25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{884B6515-6064-4EE4-96FA-731C65660D25}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{884B6515-6064-4EE4-96FA-731C65660D25}.Debug|x64.Build.0 = Debug|Any CPU
+		{884B6515-6064-4EE4-96FA-731C65660D25}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{884B6515-6064-4EE4-96FA-731C65660D25}.Debug|x86.Build.0 = Debug|Any CPU
+		{884B6515-6064-4EE4-96FA-731C65660D25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{884B6515-6064-4EE4-96FA-731C65660D25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{884B6515-6064-4EE4-96FA-731C65660D25}.Release|x64.ActiveCfg = Release|Any CPU
+		{884B6515-6064-4EE4-96FA-731C65660D25}.Release|x64.Build.0 = Release|Any CPU
+		{884B6515-6064-4EE4-96FA-731C65660D25}.Release|x86.ActiveCfg = Release|Any CPU
+		{884B6515-6064-4EE4-96FA-731C65660D25}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -13,7 +13,8 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.CloudWatch"/>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions"/>
-    <PackageReference Include="NServiceBus.AmazonSQS" />
+<!--    <PackageReference Include="NServiceBus.AmazonSQS" />-->
+    <ProjectReference Include="..\..\..\NServiceBus.AmazonSQS\src\NServiceBus.Transport.SQS\NServiceBus.Transport.SQS.csproj" />
   </ItemGroup>
 
   <ItemGroup>
