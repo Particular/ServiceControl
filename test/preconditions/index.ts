@@ -6,7 +6,7 @@ export { hasUpToDateServiceControl } from "../preconditions/hasUpToDateServiceCo
 export { hasUpToDateServicePulse } from "../preconditions/hasUpToDateServicePulse";
 export { hasFiveActiveOneFailingHeartbeats } from "../preconditions/hasFiveActiveOneFailingHeartbeats";
 export { hasFourActiveTwoFailingHeartbeats } from "../preconditions/hasFourActiveTwoFailingHeartbeats";
-export { hasNoErrors } from "../preconditions/hasNoErrors";
+export { errorsDefaultHandler } from "../preconditions/hasNoErrors";
 export { hasNoFailingCustomChecks } from "../preconditions/hasNoFailingCustomChecks";
 export { hasNoDisconnectedEndpoints } from "../preconditions/hasNoDisconnectedEndpoints";
 export { hasNoMonitoredEndpoints, hasMonitoredEndpointsList, monitoredEndpointsNamed } from "../preconditions/hasMonitoredEndpoints";
@@ -16,3 +16,4 @@ export * from "./hasEndpointsWithHistoryPeriodData";
 export * from "./hasMonitoredEndpointDetails";
 export { hasNoHeartbeatsEndpoints } from "../preconditions/hasHeartbeatEndpoints";
 export { serviceControlWithMonitoring } from "./serviceControlWithMonitoring";
+export * from "./recoverability";

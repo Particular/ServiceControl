@@ -23,7 +23,7 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
   await driver.setUp(precondition.hasUpToDateServicePulse);
 
   //http://localhost:33333/api/errors
-  await driver.setUp(precondition.hasNoErrors);
+  await driver.setUp(precondition.errorsDefaultHandler);
 
   //http://localhost:33333/api/customchecks
   await driver.setUp(precondition.hasNoFailingCustomChecks);
@@ -50,10 +50,28 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
   await driver.setUp(precondition.endpointRecoverabilityByInstanceDefaultHandler);
 
   //http://localhost:33333/recoverability/groups/Endpoint%20Name?classifierFilter=${name} -  the classifierFilter is ignored, this is a default handler for the route.
-  await driver.setUp(precondition.endpointRecoverabilityByNameDefaultHandler);  
+  await driver.setUp(precondition.endpointRecoverabilityByNameDefaultHandler);
 
   //OPTIONS VERB agaisnt monitoring instance http://localhost:33633/ - this is used for enabling deleting an instance from the endpoint details page - instances panel
   await driver.setUp(precondition.serviceControlMonitoringOptions);
+
+  //http://localhost:33333/api/configuration default handler
+  await driver.setUp(precondition.serviceControlConfigurationDefaultHandler);
+
+  //http://localhost:33333/api/recoverability/classifiers default handler
+  await driver.setUp(precondition.recoverabilityClassifiers);
+
+  //http://localhost:33333/api/recoverability/history default handler
+  await driver.setUp(precondition.recoverabilityHistoryDefaultHandler);
+
+  //http://localhost:33333/api/edit/config default handler
+  await driver.setUp(precondition.recoverabilityEditConfigDefaultHandler);
+
+  //http://localhost:33333/api/errors/groups{/:classifier}? default handler
+  await driver.setUp(precondition.archivedGroupsWithClassifierDefaulthandler);  
+
+  //http://localhost:33333/api/recoverability/groups{/:classifier} default handler
+  await driver.setUp(precondition.recoverabilityGroupsWithClassifierDefaulthandler);
   
   //Default handler for /api/licensing/report/available
   driver.mockEndpoint(`${window.defaultConfig.service_control_url}licensing/report/available`, {
@@ -101,4 +119,5 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
     method: "get",
     status: 200,
   });
+
 };

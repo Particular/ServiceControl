@@ -2,7 +2,7 @@ import { it as itVitest, describe } from "vitest";
 import { Driver } from "../../driver";
 import { mount } from "../../../src/mount";
 import makeRouter from "../../../src/router";
-import { mockEndpoint } from "../../utils";
+import { mockEndpoint, mockEndpointDynamic } from "../../utils";
 import { mockServer } from "../../mock-server";
 import { App } from "vue";
 
@@ -22,14 +22,18 @@ function makeDriver() {
         throw error;
       }
 
-      document.body.innerHTML = '<div id="app"></div>';
+      document.body.innerHTML = '<div id="app"></div><div id="modalDisplay"></div>';
       app = mount({ router });
     },
     mockEndpoint,
+    mockEndpointDynamic: mockEndpointDynamic,
     setUp(factory) {
       return factory({ driver: this });
     },
     disposeApp() {
+      if (!app) {
+        throw new Error("App is not mounted, make your sure to await driver.goTo().");
+      }
       app.unmount();
     },
   };

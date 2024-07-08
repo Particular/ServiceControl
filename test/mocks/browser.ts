@@ -1,15 +1,17 @@
 import { setupWorker } from "msw/browser";
 import { Driver } from "../driver";
-import { makeMockEndpoint } from "../mock-endpoint";
+import { makeMockEndpoint, makeMockEndpointDynamic } from "../mock-endpoint";
 import * as precondition from "../preconditions";
 export const worker = setupWorker();
 const mockEndpoint = makeMockEndpoint({ mockServer: worker });
+const mockEndpointDynamic = makeMockEndpointDynamic({ mockServer: worker });
 
 const makeDriver = (): Driver => ({
   async goTo() {
     throw new Error("Not implemented");
   },
   mockEndpoint,
+  mockEndpointDynamic,
   setUp(factory) {
     return factory({ driver: this });
   },
@@ -32,5 +34,14 @@ const driver = makeDriver();
       "Universe.Solarsystem.Earth.Endpoint5",
       "Universe.Solarsystem.Earth.Endpoint6",
     ])
+  );
+
+  await driver.setUp(
+    precondition.hasFailedMessage({
+      withGroupId: "81dca64e-76fc-e1c3-11a2-3069f51c58c8",
+      withMessageId: "40134401-bab9-41aa-9acb-b19c0066f22d",
+      withContentType: "application/json",
+      withBody: {"Index":0,"Data":""},
+    })
   );
 })();
