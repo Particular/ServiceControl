@@ -1,4 +1,4 @@
 export enum DataSource {
-  "wellKnownEndpoint" = "ServiceControl",
-  "broker" = "Broker",
+  "WellKnownEndpoint" = "ServiceControl",
+  "Broker" = "Broker",
 }

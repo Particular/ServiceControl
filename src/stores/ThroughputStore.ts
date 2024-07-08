@@ -9,7 +9,15 @@ import isThroughputSupported from "@/views/throughputreport/isThroughputSupporte
 
 export const useThroughputStore = defineStore("ThroughputStore", () => {
   const testResults = ref<ConnectionTestResults | null>(null);
-  const refresh = () => dataRetriever.executeAndResetTimer();
+  const dataRetriever = useAutoRefresh(
+    async () => {
+      if (isThroughputSupported.value) {
+        testResults.value = await throughputClient.test();
+      }
+    },
+    60 * 60 * 1000 /* 1 hour */
+  );
+  const refresh = dataRetriever.executeAndResetTimer;
   const hasErrors = computed(() => {
     if (isBrokerTransport.value) {
       return !testResults.value?.broker_connection_result.connection_successful;
@@ -77,14 +85,6 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
         return "https://docs.particular.net/servicepulse/usage-config#connection-setup-amazon-sqs";
     }
   };
-  const dataRetriever = useAutoRefresh(
-    async () => {
-      if (isThroughputSupported.value) {
-        testResults.value = await throughputClient.test();
-      }
-    },
-    60 * 60 * 1000 /* 1 hour */
-  );
 
   watch(isThroughputSupported, (value) => {
     if (value) {

@@ -23,7 +23,7 @@ const { isBrokerTransport, hasErrors } = storeToRefs(useThroughputStore());
   </template>
   <DetectedListView
     :indicator-options="[UserIndicator.NServiceBusEndpoint, UserIndicator.SendOnlyOrTransactionSessionEndpoint, UserIndicator.NServiceBusEndpointNoLongerInUse, UserIndicator.PlannedToDecommission]"
-    :source="DataSource.wellKnownEndpoint"
+    :source="DataSource.WellKnownEndpoint"
     column-title="Endpoint Name"
     :show-endpoint-type-placeholder="false"
   >

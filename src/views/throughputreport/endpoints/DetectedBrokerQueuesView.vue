@@ -31,7 +31,7 @@ onMounted(async () => {
   </template>
   <DetectedListView
     :indicator-options="[UserIndicator.NServiceBusEndpoint, UserIndicator.NotNServiceBusEndpoint, UserIndicator.SendOnlyOrTransactionSessionEndpoint, UserIndicator.NServiceBusEndpointNoLongerInUse, UserIndicator.PlannedToDecommission]"
-    :source="DataSource.broker"
+    :source="DataSource.Broker"
     column-title="Queue Name"
     :show-endpoint-type-placeholder="true"
   >

@@ -36,7 +36,7 @@ class ThroughputClient {
       const [, data] = await useTypedFetchFromServiceControl<ReportGenerationState>(`${this.basePath}/report/available`);
       return data;
     }
-    return null;    
+    return null;
   }
 
   public async downloadReport() {
@@ -47,11 +47,10 @@ class ThroughputClient {
       const contentDisposition = response.headers.get("Content-Disposition");
       try {
         if (contentDisposition != null) {
-          parse(contentDisposition);
           fileName = parse(contentDisposition).parameters["filename"] as string;
         }
       } catch {
-        //do nothing
+        //fallback to the default name, if filename is missing in response header
       }
       await useDownloadFileFromResponse(response, contentType, fileName);
       return fileName;
@@ -61,8 +60,8 @@ class ThroughputClient {
 
   public async getMasks() {
     if (isThroughputSupported.value) {
-    const [, data] = await useTypedFetchFromServiceControl<string[]>(`${this.basePath}/settings/masks`);
-    return data;
+      const [, data] = await useTypedFetchFromServiceControl<string[]>(`${this.basePath}/settings/masks`);
+      return data;
     }
     return [];
   }

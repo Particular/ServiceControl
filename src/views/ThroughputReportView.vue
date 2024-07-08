@@ -17,9 +17,9 @@ onMounted(async () => {
 
 async function generateReport() {
   const results = await throughputClient.endpoints();
-  const found = results.find((value) => !value.user_indicator);
+  const hasNonUserIndicatorEndpoint = results.find((value) => !value.user_indicator);
 
-  if (found) {
+  if (hasNonUserIndicatorEndpoint) {
     showWarning.value = true;
   } else {
     await downloadReport();

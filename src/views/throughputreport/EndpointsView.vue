@@ -17,7 +17,7 @@ const legendOptions = new Map<UserIndicator, string>([
   [UserIndicator.NotNServiceBusEndpoint, "Not an NServiceBus Endpoint"],
 ]);
 
-function showHideOptionsLegend() {
+function toggleOptionsLegendVisible() {
   showLegend.value = !showLegend.value;
 }
 </script>
@@ -29,7 +29,7 @@ function showHideOptionsLegend() {
         Set an Endpoint Type for all detected endpoints and broker queues with the most appropriate option.<br />
         Use the filters to bulk set the Endpoint Types on similar named endpoints/queues.<br />
         If the names of the endpoints/queues contain confidential or proprietary information, make sure you set up <RouterLink :to="routeLinks.throughput.setup.mask.link">masking in Configuration</RouterLink>.<br />
-        <a href="#" @click.prevent="showHideOptionsLegend()">{{ showLegend ? "Hide" : "Show" }} Endpoint Types meaning.</a>
+        <a href="#" @click.prevent="toggleOptionsLegendVisible()">{{ showLegend ? "Hide" : "Show" }} Endpoint Types meaning.</a>
       </p>
       <div v-show="showLegend" class="alert alert-info">
         <div v-for="[key, value] in legendOptions" :key="key">
