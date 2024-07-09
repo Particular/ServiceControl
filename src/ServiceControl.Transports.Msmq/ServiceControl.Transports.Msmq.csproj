@@ -21,7 +21,7 @@
     <None Update="transport.manifest" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="$(RuntimeIdentifier.StartsWith(linux)) == false">
     <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(Identity)\Transports\MSMQ')" />
   </ItemGroup>
 
