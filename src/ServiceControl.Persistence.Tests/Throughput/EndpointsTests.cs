@@ -179,10 +179,12 @@ class EndpointsTests : PersistenceTestBase
         Assert.That(await LicensingDataStore.IsThereThroughputForLastXDays(timeFrameToCheck, default), expectedValue ? Is.True : Is.False);
     }
 
-    [TestCase(10, 5, ThroughputSource.Monitoring, ThroughputSource.Monitoring, false)]
-    [TestCase(10, 20, ThroughputSource.Monitoring, ThroughputSource.Monitoring, true)]
-    [TestCase(10, 20, ThroughputSource.Audit, ThroughputSource.Monitoring, false)]
-    public async Task Should_correctly_report_throughput_existence_for_X_days_for_specific_source(int daysSinceLastThroughputEntry, int timeFrameToCheck, ThroughputSource throughputSourceToRecord, ThroughputSource throughputSourceToCheck, bool expectedValue)
+    [TestCase(10, 5, ThroughputSource.Monitoring, ThroughputSource.Monitoring, false, false)]
+    [TestCase(10, 20, ThroughputSource.Monitoring, ThroughputSource.Monitoring, false, true)]
+    [TestCase(10, 20, ThroughputSource.Audit, ThroughputSource.Monitoring, false, false)]
+    [TestCase(0, 5, ThroughputSource.Monitoring, ThroughputSource.Monitoring, false, false)]
+    [TestCase(0, 5, ThroughputSource.Monitoring, ThroughputSource.Monitoring, true, true)]
+    public async Task Should_correctly_report_throughput_existence_for_X_days_for_specific_source(int daysSinceLastThroughputEntry, int timeFrameToCheck, ThroughputSource throughputSourceToRecord, ThroughputSource throughputSourceToCheck, bool includeToday, bool expectedValue)
     {
         // Arrange
         var endpointAudit = new Endpoint("Endpoint", throughputSourceToRecord);
@@ -195,6 +197,6 @@ class EndpointsTests : PersistenceTestBase
             50,
             default);
 
-        Assert.That(await LicensingDataStore.IsThereThroughputForLastXDaysForSource(timeFrameToCheck, throughputSourceToCheck, default), expectedValue ? Is.True : Is.False);
+        Assert.That(await LicensingDataStore.IsThereThroughputForLastXDaysForSource(timeFrameToCheck, throughputSourceToCheck, includeToday, default), expectedValue ? Is.True : Is.False);
     }
 }

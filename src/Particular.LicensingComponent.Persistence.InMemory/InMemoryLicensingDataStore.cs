@@ -128,10 +128,15 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
             t => t.Key >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) &&
                  t.Key <= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1))));
 
-    public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken) => await Task.FromResult(
-        allThroughput.Any(endpointThroughput => endpointThroughput.Key.ThroughputSource == throughputSource && endpointThroughput.Value.Any(
-            t => t.Key >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) &&
-                 t.Key <= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1))));
+    public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, bool includeToday, CancellationToken cancellationToken)
+    {
+        var endDate = includeToday ? DateOnly.FromDateTime(DateTime.UtcNow) : DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+
+        return await Task.FromResult(
+            allThroughput.Any(
+                endpointThroughput => endpointThroughput.Key.ThroughputSource == throughputSource &&
+                endpointThroughput.Value.Any(t => t.Key >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) && t.Key <= endDate)));
+    }
 
     List<Endpoint> GetAllConnectedEndpoints(string name) => endpoints.Where(w => w.SanitizedName == name).ToList();
 
