@@ -25,7 +25,7 @@ public interface ILicensingDataStore
     Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken);
 
     Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken);
-    Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken);
+    Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, bool includeToday, CancellationToken cancellationToken);
 
     Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken);
 
