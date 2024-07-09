@@ -205,12 +205,12 @@ class LicensingDataStore(
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        var result = await IsThereThroughputForLastXDaysInternal(session.Query<EndpointDocument>(), days, cancellationToken);
+        var result = await IsThereThroughputForLastXDaysInternal(session.Query<EndpointDocument>(), days, false, cancellationToken);
 
         return result;
     }
 
-    public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, CancellationToken cancellationToken)
+    public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, bool includeToday, CancellationToken cancellationToken)
     {
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
@@ -218,18 +218,18 @@ class LicensingDataStore(
         var baseQuery = session.Query<EndpointDocument>()
             .Where(endpoint => endpoint.EndpointId.ThroughputSource == throughputSource);
 
-        var result = await IsThereThroughputForLastXDaysInternal(baseQuery, days, cancellationToken);
+        var result = await IsThereThroughputForLastXDaysInternal(baseQuery, days, includeToday, cancellationToken);
 
         return result;
     }
 
-    static async Task<bool> IsThereThroughputForLastXDaysInternal(IRavenQueryable<EndpointDocument> baseQuery, int days, CancellationToken cancellationToken)
+    static async Task<bool> IsThereThroughputForLastXDaysInternal(IRavenQueryable<EndpointDocument> baseQuery, int days, bool includeToday, CancellationToken cancellationToken)
     {
         DateTime fromDate = DateTime.UtcNow.AddDays(-days).Date;
-        DateTime yesterday = DateTime.UtcNow.AddDays(-1).Date;
+        DateTime toDate = includeToday ? DateTime.UtcNow.Date : DateTime.UtcNow.AddDays(-1).Date;
 
         var documents = await baseQuery
-            .Select(e => RavenQuery.TimeSeries(e, ThroughputTimeSeriesName, fromDate, yesterday).ToList())
+            .Select(e => RavenQuery.TimeSeries(e, ThroughputTimeSeriesName, fromDate, toDate).ToList())
             .ToListAsync(cancellationToken);
 
         return documents.SelectMany(timeSeries => timeSeries.Results).Any();
