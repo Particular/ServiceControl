@@ -52,7 +52,7 @@ public class MonitoringService(ILicensingDataStore dataStore, IBrokerThroughputQ
         var connectionTestResult = new ConnectionSettingsTestResult { ConnectionSuccessful = true };
 
         var diagnostics = new StringBuilder();
-        if (await dataStore.IsThereThroughputForLastXDaysForSource(30, ThroughputSource.Monitoring, cancellationToken))
+        if (await dataStore.IsThereThroughputForLastXDaysForSource(30, ThroughputSource.Monitoring, true, cancellationToken))
         {
             diagnostics.AppendLine("Throughput from Monitoring recorded in the last 30 days");
         }
