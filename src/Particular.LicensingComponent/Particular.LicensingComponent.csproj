@@ -5,19 +5,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  
+
   <ItemGroup>
-    <PackageReference Include="Particular.LicensingComponent.Report" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" />
-    <ProjectReference Include="..\Particular.LicensingComponent.Contracts\Particular.LicensingComponent.Contracts.csproj" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Particular.LicensingComponent.Persistence\Particular.LicensingComponent.Persistence.csproj" />
     <ProjectReference Include="..\ServiceControl.Api\ServiceControl.Api.csproj" />
-    <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />  
+    <PackageReference Include="Particular.LicensingComponent.Report" />
   </ItemGroup>
- 
+
 </Project>
