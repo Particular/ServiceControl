@@ -1,1 +1,1 @@
-﻿[assembly: IncludeInTestCategory("PrimaryRavenPersistence")]
+﻿[assembly: IncludeInDefaultTests()]
