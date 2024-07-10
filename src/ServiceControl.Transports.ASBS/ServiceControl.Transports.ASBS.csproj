@@ -12,8 +12,8 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Identity" />
-    <PackageReference Include="Azure.Monitor.Query"/>
-    <PackageReference Include="Azure.ResourceManager.ServiceBus"/>
+    <PackageReference Include="Azure.Monitor.Query" />
+    <PackageReference Include="Azure.ResourceManager.ServiceBus" />
     <PackageReference Include="NServiceBus.CustomChecks" />
     <PackageReference Include="NServiceBus.Transport.AzureServiceBus" />
   </ItemGroup>

@@ -65,7 +65,7 @@
                                         </DoubleAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
-                                
+
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
                     </Border>
@@ -127,7 +127,7 @@
                                     </Storyboard>
                                 </VisualState>
                             </VisualStateGroup>
-                            
+
                         </VisualStateManager.VisualStateGroups>
                     </Border>
                 </ControlTemplate>
@@ -561,7 +561,7 @@
                             <VisualStateGroup Name="CommonStates">
                                 <VisualState Name="Normal" />
                                 <VisualState Name="MouseOver" Storyboard="{StaticResource LinkButtonMouseOverStoryboard}" />
-                                <VisualState Name="Pressed" Storyboard="{StaticResource LinkButtonPressedStoryboard}"/>
+                                <VisualState Name="Pressed" Storyboard="{StaticResource LinkButtonPressedStoryboard}" />
                                 <!-- Removed as we did not want the License button to gray out when the license dialog is open -->
                                 <!--<VisualState Name="Disabled" Storyboard="{StaticResource LinkButtonDisabledStoryboard}" />-->
                             </VisualStateGroup>
@@ -766,7 +766,7 @@
 
     <SolidColorBrush x:Key="MenuHiliteBrush">#2D2D2D</SolidColorBrush>
     <SolidColorBrush x:Key="Grey60Brush">#999999</SolidColorBrush>
-    
+
     <Style x:Key="DarkMenuItemStyle" TargetType="MenuItem">
         <Setter Property="Foreground" Value="White" />
         <Setter Property="Template">
@@ -954,7 +954,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Grid x:Name="Root" Background="Transparent">
-                        <Path x:Name="Icon" Width="12" Height="12" Fill="Black" Stretch="Fill" Data="M 357,35.7 321.3,0 178.5,142.8 35.7,0 0,35.7 142.8,178.5 0,321.3 35.7,357 178.5,214.2 321.3,357 357,321.3 214.2,178.5"/>
+                        <Path x:Name="Icon" Width="12" Height="12" Fill="Black" Stretch="Fill" Data="M 357,35.7 321.3,0 178.5,142.8 35.7,0 0,35.7 142.8,178.5 0,321.3 35.7,357 178.5,214.2 321.3,357 357,321.3 214.2,178.5" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -975,10 +975,10 @@
                     <StackPanel Orientation="Horizontal">
                         <Image Source="{TemplateBinding ImageSource}" Margin="0,0,2,0" />
                         <TextBlock x:Name="PART_Text"
-                                   VerticalAlignment="Center" 
+                                   VerticalAlignment="Center"
                                    Margin="2">
                             <Hyperlink x:Name="PART_Link" Foreground="{TemplateBinding Foreground}" Command="{TemplateBinding Command}">
-                                <Run Text="{TemplateBinding Text}"/>
+                                <Run Text="{TemplateBinding Text}" />
                             </Hyperlink>
                         </TextBlock>
                     </StackPanel>

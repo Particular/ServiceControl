@@ -15,7 +15,7 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            
+
             <Grid.Resources>
                 <Style TargetType="{x:Type TextBlock}">
                     <Setter Property="FontSize" Value="14px" />
@@ -23,27 +23,27 @@
             </Grid.Resources>
 
             <!--Instance Title -->
-            
+
             <TextBlock Grid.Row="1"
                     FontSize="18px"
                     FontWeight="Bold"
-                    Text="{Binding Name}" Margin="60,0,60,0" VerticalAlignment="Center"/>
+                    Text="{Binding Name}" Margin="60,0,60,0" VerticalAlignment="Center" />
 
-            
+
             <StackPanel Grid.Row="2" Margin="60,10,60,0">
-                
+
                 <!-- Removal Section-->
                 <Border Margin="0,0,0,0"
                         BorderBrush="{StaticResource Gray90Brush}"
                         BorderThickness="0,0,0,1">
                         <TextBlock FontSize="13px"
                                FontWeight="Bold"
-                               Text="REMOVE INSTANCE"  
+                               Text="REMOVE INSTANCE"
                         />
                 </Border>
 
-                <TextBlock FontSize="12px" 
-                           TextWrapping="Wrap" 
+                <TextBlock FontSize="12px"
+                           TextWrapping="Wrap"
                            Margin="0,0,0,20">
                         Removing this instance of Monitoring will delete the associated Windows service and installation directory.<LineBreak />The associated logs can be also removed via the confirmation dialog.
                 </TextBlock>
@@ -51,12 +51,12 @@
                         Command="{Binding DeleteCommand}"
                         CommandParameter="{Binding}"
                         Content="Remove"
-                        Style="{StaticResource ErrorButton}" 
+                        Style="{StaticResource ErrorButton}"
                         HorizontalAlignment="Left"
                         Padding="10,10"
                         Width="180"
                         />
-                
+
             </StackPanel>
 
 
@@ -100,7 +100,7 @@
             </Border>
 
             <!-- Back Button -->
-           
+
             <Grid Grid.Row="3"
                   Margin="40,40"
                   HorizontalAlignment="Right" Visibility="{Binding InProgress,

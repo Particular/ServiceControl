@@ -88,7 +88,7 @@
                 <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding PortNumber}" />
                 <controls:FormTextBox Header="DATABASE MAINTENANCE PORT NUMBER (1 - 49151)"
                                       Text="{Binding DatabaseMaintenancePortNumber}"
-                                      Visibility="{Binding DatabaseMaintenancePortNumberRequired, Converter={StaticResource boolToVis}}"/>
+                                      Visibility="{Binding DatabaseMaintenancePortNumberRequired, Converter={StaticResource boolToVis}}" />
 
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
@@ -107,7 +107,7 @@
                         BorderThickness="0,0,0,1">
                     <TextBlock FontSize="13px"
                                FontWeight="Bold"
-                               Text="DATABASE RETENTION CONFIGURATION"/>
+                               Text="DATABASE RETENTION CONFIGURATION" />
                 </Border>
 
                 <controls:FormSlider Explanation="Error Messages that have been archived or resolved will be removed after this period"

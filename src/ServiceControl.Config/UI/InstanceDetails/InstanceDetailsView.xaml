@@ -168,7 +168,7 @@
                                         VerticalAlignment="Center"
                                         Template="{StaticResource BrowseIcon}"
                                         Height="12px" />
-                    <TextBlock FontSize="14px" Text="Browse..." Margin="3,0,0,0" VerticalAlignment="Center"/>
+                    <TextBlock FontSize="14px" Text="Browse..." Margin="3,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
             </Hyperlink>
         </GroupBox>
@@ -191,7 +191,7 @@
                                     VerticalAlignment="Center"
                                     Template="{StaticResource BrowseIcon}"
                                     Height="12px" />
-                    <TextBlock FontSize="14px" Text="Browse..." Margin="3,0,0,0" VerticalAlignment="Center"/>
+                    <TextBlock FontSize="14px" Text="Browse..." Margin="3,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
 
             </Hyperlink>
@@ -216,7 +216,7 @@
                                     VerticalAlignment="Center"
                                     Template="{StaticResource BrowseIcon}"
                                     Height="12px" />
-                    <TextBlock FontSize="14px" Text="Browse..." Margin="3,0,0,0" VerticalAlignment="Center"/>
+                    <TextBlock FontSize="14px" Text="Browse..." Margin="3,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
             </Hyperlink>
         </GroupBox>

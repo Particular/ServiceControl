@@ -17,7 +17,7 @@
                       mc:Ignorable="d">
     <Window.Resources>
         <Style TargetType="{x:Type ToggleButton}" x:Key="ImageButton">
-            <Setter Property="Width" Value="16"/>
+            <Setter Property="Width" Value="16" />
             <Setter Property="Height" Value="16" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -73,17 +73,17 @@
                         Visibility="{Binding IsModal,
                                              Converter={StaticResource boolToVisInverted}}">
 
-                <Button Command="{Binding AddInstance}" Style="{StaticResource OriginalNewButton}" 
-                        Visibility="{Binding ShowMonitoringInstances, 
-                                     Converter={StaticResource boolToVisInverted}}"/>
+                <Button Command="{Binding AddInstance}" Style="{StaticResource OriginalNewButton}"
+                        Visibility="{Binding ShowMonitoringInstances,
+                                     Converter={StaticResource boolToVisInverted}}" />
 
                 <ToggleButton Name="AddInstanceButton"
-                              Style="{StaticResource NewButton}" 
+                              Style="{StaticResource NewButton}"
                               IsChecked="{Binding ShowingMenuOverlay, Mode=TwoWay}"
                               Visibility="{Binding ShowMonitoringInstances,
-                                                   Converter={StaticResource boolToVis}}"/>
+                                                   Converter={StaticResource boolToVis}}" />
 
-                <Popup PlacementTarget="{Binding ElementName=RootBorder}" 
+                <Popup PlacementTarget="{Binding ElementName=RootBorder}"
                        Focusable="False"
                        StaysOpen="False"
                        IsOpen="{Binding ElementName=AddInstanceButton, Path=IsChecked, Mode=TwoWay}"
@@ -105,9 +105,9 @@
                            Margin="5,0,0,0"
                            Source="/Resources/Images/Status-Error.png"
                            Stretch="Uniform"
-                           Visibility="{Binding Path=LicenseStatusManager.IsSerious, 
+                           Visibility="{Binding Path=LicenseStatusManager.IsSerious,
                                             Converter={StaticResource boolToVis},
-                                            Mode=OneWay}"/>
+                                            Mode=OneWay}" />
 
                     <Image x:Name="WarningIcon"
                            Width="16"
@@ -115,9 +115,9 @@
                            Margin="5,0,0,0"
                            Source="/Resources/Images/Status-Warning.png"
                            Stretch="Uniform"
-                           Visibility="{Binding Path=LicenseStatusManager.IsWarning, 
+                           Visibility="{Binding Path=LicenseStatusManager.IsWarning,
                                             Converter={StaticResource boolToVis},
-                                            Mode=OneWay}"/>
+                                            Mode=OneWay}" />
 
                     <Popup x:Name="licenseWarningPopup"
                            IsOpen="{Binding LicenseStatusManager.ShowPopup, Mode=TwoWay}"
@@ -164,8 +164,8 @@
                 <TextBlock>
                     <Hyperlink Command="{Binding OpenFeedBack}">Feedback</Hyperlink>
                 </TextBlock>
-                <TextBlock Name="upgradeAvailableTextBlock" Visibility="{Binding UpdateAvailable, Converter={StaticResource boolToVis}}"                           
-                           Background="{StaticResource ThemeBrush}" Padding="3">                         
+                <TextBlock Name="upgradeAvailableTextBlock" Visibility="{Binding UpdateAvailable, Converter={StaticResource boolToVis}}"
+                           Background="{StaticResource ThemeBrush}" Padding="3">
                     <Hyperlink Name="upgradeAvailableHyperLink" Command="{Binding OpenUrl}" CommandParameter="{Binding AvailableUpgradeReleaseLink}" Foreground="{StaticResource WhiteBrush}">
                         <TextBlock Text="{Binding UpdateAvailableText}"></TextBlock>
                     </Hyperlink>

@@ -13,13 +13,13 @@
 
   <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" />
-    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing"/>
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" />
-    <PackageReference Include="NServiceBus.Persistence.NonDurable"/>
+    <PackageReference Include="NServiceBus.Persistence.NonDurable" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
-    <PackageReference Include="Particular.Approvals"/>
+    <PackageReference Include="Particular.Approvals" />
   </ItemGroup>
 
   <ItemGroup>

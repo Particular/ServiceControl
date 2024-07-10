@@ -15,7 +15,7 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            
+
             <Grid.Resources>
                 <Style TargetType="{x:Type TextBlock}">
                     <Setter Property="FontSize" Value="14px" />
@@ -23,11 +23,11 @@
             </Grid.Resources>
 
             <!--Instance Title -->
-            
+
             <TextBlock Grid.Row="1"
                     FontSize="18px"
                     FontWeight="Bold"
-                    Text="{Binding Name}" Margin="60,0,60,0" VerticalAlignment="Center"/>
+                    Text="{Binding Name}" Margin="60,0,60,0" VerticalAlignment="Center" />
 
             <!-- Maintenance Section-->
             <StackPanel Grid.Row="2" Margin="60,10,60,0">
@@ -41,16 +41,16 @@
                 </Border>
 
 
-                <TextBlock FontSize="12px" 
-                           TextWrapping="Wrap" 
+                <TextBlock FontSize="12px"
+                           TextWrapping="Wrap"
                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVisInverted}}"
                            Margin="0,0,0,20"
                 >
                 Enter database maintenance mode to access to RavenDB Management Studio.  While in this mode all message processing is disabled and the REST API is unavailable. This will prevent ServicePulse and ServiceInsight connecting to this instance.
                 </TextBlock>
-                
-                <TextBlock FontSize="12px" 
-                           TextWrapping="Wrap" 
+
+                <TextBlock FontSize="12px"
+                           TextWrapping="Wrap"
                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}"
                            Margin="0,0,0,20"
                 >
@@ -68,37 +68,37 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto" />
                     </Grid.ColumnDefinitions>
-                    
+
                     <Button Command="{Binding StartServiceInMaintenanceModeCommand}"
                             CommandParameter="{Binding DataContext, ElementName=root}"
                             Content="Start Maintenance Mode"
-                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVisInverted}}" 
+                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVisInverted}}"
                             Padding="10,10"
                             Width="180"
                             />
-                    
+
                     <Button Command="{Binding StopMaintenanceModeCommand}"
                             CommandParameter="{Binding DataContext, ElementName=root}"
                             Content="Stop Maintenance Mode"
-                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}"  
+                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}"
                             Padding="10,10"
                             Width="180"
                             />
                 </Grid>
                 </StackPanel>
-                
+
                 <!-- Removal Section-->
                 <Border Margin="0,0,0,0"
                         BorderBrush="{StaticResource Gray90Brush}"
                         BorderThickness="0,0,0,1">
                         <TextBlock FontSize="13px"
                                FontWeight="Bold"
-                               Text="REMOVE INSTANCE"  
+                               Text="REMOVE INSTANCE"
                         />
                 </Border>
 
-                <TextBlock FontSize="12px" 
-                           TextWrapping="Wrap" 
+                <TextBlock FontSize="12px"
+                           TextWrapping="Wrap"
                            Margin="0,0,0,20">
                         Removing this instance of ServiceControl will delete the associated Windows service and installation directory.<LineBreak />The associated database and logs can be also removed via the confirmation dialog.
                 </TextBlock>
@@ -106,7 +106,7 @@
                         Command="{Binding DeleteCommand}"
                         CommandParameter="{Binding}"
                         Content="Remove"
-                        Style="{StaticResource ErrorButton}" 
+                        Style="{StaticResource ErrorButton}"
                         HorizontalAlignment="Left"
                         Padding="10,10"
                         Width="180"
@@ -123,11 +123,11 @@
                         />
                     </Border>
 
-                    <TextBlock FontSize="12px" 
-                               TextWrapping="Wrap" 
+                    <TextBlock FontSize="12px"
+                               TextWrapping="Wrap"
                                Margin="0,0,0,20"
                                >
-                        Forced upgrade will not preserve data stored by the instance. Before the migration, the current, RavenDB 3.5 database will be moved to 
+                        Forced upgrade will not preserve data stored by the instance. Before the migration, the current, RavenDB 3.5 database will be moved to
                         <TextBlock FontSize="12px" FontWeight="Bold" Text="{Binding ForcedUpgradeBackupLocation}" /> directory.
                         <LineBreak/>
                         <LineBreak/>
@@ -140,7 +140,7 @@
                         Command="{Binding ForceUpgradeCommand}"
                         CommandParameter="{Binding DataContext, ElementName=root}"
                         Content="Upgrade instance"
-                        Style="{StaticResource ErrorButton}" 
+                        Style="{StaticResource ErrorButton}"
                         HorizontalAlignment="Left"
                         Padding="10,10"
                         Width="180"
@@ -189,7 +189,7 @@
             </Border>
 
             <!-- Back Button -->
-           
+
             <Grid Grid.Row="3"
                   Margin="40,40"
                   HorizontalAlignment="Right" Visibility="{Binding InProgress,
