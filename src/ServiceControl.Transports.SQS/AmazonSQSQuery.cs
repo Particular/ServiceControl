@@ -219,7 +219,10 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
 
         foreach (var datapoint in resp.Datapoints)
         {
-            data[DateOnly.FromDateTime(datapoint.Timestamp.ToUniversalTime())].TotalThroughput = (long)datapoint.Sum;
+            // There is a bug in the AWS SDK. The timestamp is actually UTC time, eventhough the DateTime returned type says Local
+            // See https://github.com/aws/aws-sdk-net/issues/167
+            // So do not convert the timestamp to UTC time!
+            data[DateOnly.FromDateTime(datapoint.Timestamp)].TotalThroughput = (long)datapoint.Sum;
         }
 
         foreach (QueueThroughput queueThroughput in data.Values)
