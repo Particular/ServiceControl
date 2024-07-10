@@ -28,8 +28,4 @@
     <Compile Remove="..\ServiceControl.Transports.Tests\TestsFilter.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ApprovalFiles\"/>
-  </ItemGroup>
-
 </Project>
