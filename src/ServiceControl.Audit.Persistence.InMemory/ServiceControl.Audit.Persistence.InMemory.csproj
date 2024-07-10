@@ -16,8 +16,4 @@
     <None Update="persistence.manifest" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters\InMemory" />
-  </ItemGroup>
-
 </Project>
