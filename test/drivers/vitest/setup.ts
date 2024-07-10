@@ -18,8 +18,9 @@ beforeEach(() => {
 
 beforeAll(() => {
   mockServer.listen({
-    onUnhandledRequest: (request) => {
+    onUnhandledRequest: (request, { error }) => {
       console.log("Unhandled %s %s", request.method, request.url);
+      error();
     },
   });
 });

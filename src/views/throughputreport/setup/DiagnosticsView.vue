@@ -23,13 +23,13 @@ async function testConnection() {
       <div class="sp-loader" />
     </template>
     <template v-else>
-      <ConnectionResultView v-if="isBrokerTransport" title="Broker" :result="testResults?.broker_connection_result!" />
-      <ConnectionResultView title="Audit" :result="testResults?.audit_connection_result!">
+      <ConnectionResultView v-if="isBrokerTransport && testResults !== null" title="Broker" :result="testResults.broker_connection_result" />
+      <ConnectionResultView v-if="testResults !== null" title="Audit" :result="testResults.audit_connection_result">
         <template #instructions>
           <a href="https://docs.particular.net/servicecontrol/servicecontrol-instances/remotes#configuration" target="_blank">Learn how to configure audit instances</a>
         </template>
       </ConnectionResultView>
-      <ConnectionResultView v-if="useIsMonitoringEnabled()" title="Monitoring" :result="testResults?.monitoring_connection_result!">
+      <ConnectionResultView v-if="useIsMonitoringEnabled() && testResults !== null" title="Monitoring" :result="testResults.monitoring_connection_result">
         <template #instructions>
           <a href="https://docs.particular.net/servicecontrol/monitoring-instances/installation/creating-config-file" target="_blank">Learn how to configure monitor instances</a>
         </template>
@@ -38,7 +38,7 @@ async function testConnection() {
   </div>
   <div class="row">
     <div class="col-6">
-      <button class="btn btn-primary actions" type="button" :disabled="loading" @click="testConnection()">Refresh Connection Test</button>
+      <button class="btn btn-primary actions" type="button" :disabled="loading" @click="testConnection()" aria-label="Refresh Connection Test">Refresh Connection Test</button>
     </div>
   </div>
 </template>

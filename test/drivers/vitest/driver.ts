@@ -1,6 +1,6 @@
 import { it as itVitest, describe } from "vitest";
 import { Driver } from "../../driver";
-import { mount } from "../../../src/mount";
+import { mount } from "@/mount";
 import makeRouter from "../../../src/router";
 import { mockEndpoint, mockEndpointDynamic } from "../../utils";
 import { mockServer } from "../../mock-server";
@@ -31,10 +31,9 @@ function makeDriver() {
       return factory({ driver: this });
     },
     disposeApp() {
-      if (!app) {
-        throw new Error("App is not mounted, make your sure to await driver.goTo().");
+      if (app !== undefined) {
+        app.unmount();
       }
-      app.unmount();
     },
   };
   return driver;

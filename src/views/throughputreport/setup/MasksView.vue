@@ -39,14 +39,14 @@ async function updateMasks() {
   <div class="row">
     <div class="col-6">
       <label class="form-label">List of words to mask</label>
-      <textarea class="form-control" rows="3" :value="masks" @input="masksChanged"></textarea>
+      <textarea class="form-control" aria-label="List of words to mask" rows="3" :value="masks" @input="masksChanged"></textarea>
       <div class="form-text">One word per line.</div>
     </div>
   </div>
   <div class="row">
     <div class="col-6">
       <br />
-      <button class="btn btn-primary" type="button" @click="updateMasks">Save</button>
+      <button class="btn btn-primary" type="button" @click="updateMasks" aria-label="Save">Save</button>
     </div>
   </div>
 </template>
