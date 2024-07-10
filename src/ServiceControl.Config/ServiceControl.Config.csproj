@@ -21,6 +21,7 @@
 
   <!-- Fody and friends -->
   <ItemGroup>
+    <PackageReference Include="Fody" PrivateAssets="All" />
     <PackageReference Include="PropertyChanged.Fody" PrivateAssets="All" />
     <PackageReference Include="PropertyChanging.Fody" PrivateAssets="All" />
     <PackageReference Include="Validar.Fody" PrivateAssets="All" />
