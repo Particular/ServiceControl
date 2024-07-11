@@ -102,7 +102,7 @@
                     Content="Extend license..."
                     FontSize="12"
                     IsDefault="True"
-                    Style="{StaticResource HiliteButton}"/>
+                    Style="{StaticResource HiliteButton}" />
 
             <Button Margin="5,0"
                     Command="{Binding BrowseForFile}"

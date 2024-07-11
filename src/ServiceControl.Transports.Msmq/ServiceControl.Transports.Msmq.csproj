@@ -11,8 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.Transport.Msmq.Sources" />
     <PackageReference Include="NServiceBus.CustomChecks" />
+    <PackageReference Include="NServiceBus.Transport.Msmq.Sources" />
     <PackageReference Include="System.Configuration.ConfigurationManager" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" />
   </ItemGroup>

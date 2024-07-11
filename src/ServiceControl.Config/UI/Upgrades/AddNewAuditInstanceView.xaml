@@ -30,7 +30,7 @@
                        FontWeight="Bold"
                        Foreground="{StaticResource Gray60Brush}"
                        Text="Input Required - Audit Instance Service"
-                       Typography.Capitals="SmallCaps"/>
+                       Typography.Capitals="SmallCaps" />
 
             <TextBlock Grid.Row="1"
                        Margin="20,10,20,10"
@@ -63,11 +63,11 @@
                             </RadioButton>
                             <RadioButton IsChecked="{Binding ServiceControlAudit.UseServiceAccount}">
                                 <TextBlock Text="LOCAL SERVICE"
-                                           Foreground="{StaticResource Gray70Brush}"/>
+                                           Foreground="{StaticResource Gray70Brush}" />
                             </RadioButton>
                             <RadioButton HorizontalContentAlignment="Stretch" IsChecked="{Binding ServiceControlAudit.UseProvidedAccount}">
                                 <TextBlock Text="USER"
-                                           Foreground="{StaticResource Gray70Brush}"/>
+                                           Foreground="{StaticResource Gray70Brush}" />
                             </RadioButton>
                             <Grid Margin="15,0,0,0">
                                 <Grid.RowDefinitions>

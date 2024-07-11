@@ -237,9 +237,9 @@
                                               ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                                               ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
                                               IsHitTestVisible="False" />
-                            <TextBlock Grid.Row="1" Margin="3,3,23,3" 
-                                       Text="Please Select..." 
-                                       Foreground="{StaticResource Gray50Brush}" 
+                            <TextBlock Grid.Row="1" Margin="3,3,23,3"
+                                       Text="Please Select..."
+                                       Foreground="{StaticResource Gray50Brush}"
                                        FontSize="13px"
                                        Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(SelectedIndex), Converter={StaticResource HasSelectedIndex}}" />
                             <TextBox x:Name="PART_EditableTextBox"
@@ -807,8 +807,8 @@
                 <ControlTemplate TargetType="{x:Type controls:FormWarningTextBlock}">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="28"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
                         <Control x:Name="errorIcon"
@@ -816,20 +816,20 @@
                                              Width="16"
                                              Height="16"
                                              Foreground="{StaticResource WarningBrush}"
-                                             VerticalAlignment="Top" 
+                                             VerticalAlignment="Top"
                                              Template="{StaticResource WarningIcon}"
                                              Visibility="{TemplateBinding  Text, Converter={StaticResource nullOrEmptyToVis}}"
                                              IsTabStop="{TemplateBinding IsTabStop}"
                                  />
 
-                        <TextBlock x:Name="PART_TextBlock" 
+                        <TextBlock x:Name="PART_TextBlock"
                                Width="Auto"
                                Grid.Column="1"
                                Foreground="{TemplateBinding Foreground}"
-                               FontSize="{TemplateBinding FontSize}" 
-                               FontFamily="{TemplateBinding FontFamily}" 
+                               FontSize="{TemplateBinding FontSize}"
+                               FontFamily="{TemplateBinding FontFamily}"
                                FontWeight="{TemplateBinding FontWeight}"
-                               VerticalAlignment="Top" 
+                               VerticalAlignment="Top"
                                HorizontalAlignment="Left"
                                TextWrapping="Wrap"
                                Text="{TemplateBinding Text}" />
@@ -838,5 +838,5 @@
             </Setter.Value>
             </Setter>
     </Style>
-    
+
 </ResourceDictionary>

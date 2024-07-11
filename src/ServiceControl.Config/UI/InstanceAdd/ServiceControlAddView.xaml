@@ -11,7 +11,7 @@
              mc:Ignorable="d">
     <UserControl.Resources>
         <Style TargetType="CheckBox">
-            <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
+            <Setter Property="Validation.ErrorTemplate" Value="{x:Null}" />
         </Style>
     </UserControl.Resources>
     <sie:SharedServiceControlEditorView IsTabStop="False" SaveText="Add">
@@ -122,7 +122,7 @@
                                                                                Converter={StaticResource boolToVis}}" />
                                            <TextBlock Grid.Row="2"
                                            Text="No password is required for an AD Group Managed Service Account"
-                                           Visibility="{Binding ErrorManagedAccount, 
+                                           Visibility="{Binding ErrorManagedAccount,
                                                                 Converter={StaticResource boolToVis}}" />
                                         </Grid>
                                     </StackPanel>
@@ -134,8 +134,8 @@
 
 
                                 <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding ErrorPortNumber}" />
-                                
-                                
+
+
                                 <controls:FormTextBox Header="DATABASE MAINTENANCE PORT NUMBER (1 - 49151)" Text="{Binding ErrorDatabaseMaintenancePortNumber}" />
 
                                 <Border Margin="0,40,0,20"
@@ -212,7 +212,7 @@
                                               Grid.Row="1"
                                               Header="ERROR FORWARDING QUEUE NAME"
                                               Text="{Binding ErrorForwardingQueueName}"
-                                              Visibility="{Binding ShowErrorForwardingQueue, Converter={StaticResource boolToVis}}"/>
+                                              Visibility="{Binding ShowErrorForwardingQueue, Converter={StaticResource boolToVis}}" />
 
                                     <controls:FormWarningTextBlock Grid.Column="0"
                                                Grid.ColumnSpan="2"
@@ -370,7 +370,7 @@
                                                   Grid.Row="1"
                                                   Header="AUDIT FORWARDING QUEUE NAME"
                                                   Text="{Binding AuditForwardingQueueName}"
-                                                  Visibility="{Binding ShowAuditForwardingQueue, Converter={StaticResource boolToVis}}"/>
+                                                  Visibility="{Binding ShowAuditForwardingQueue, Converter={StaticResource boolToVis}}" />
 
                                 <controls:FormWarningTextBlock Grid.Column="0"
                                                    Grid.ColumnSpan="2"

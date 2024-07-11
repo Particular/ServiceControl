@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Particular.LicensingComponent.Persistence.InMemory\Particular.LicensingComponent.Persistence.InMemory.csproj" />
     <ProjectReference Include="..\Particular.LicensingComponent\Particular.LicensingComponent.csproj" />
+    <ProjectReference Include="..\Particular.LicensingComponent.Persistence.InMemory\Particular.LicensingComponent.Persistence.InMemory.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
   </ItemGroup>
 
@@ -17,7 +17,6 @@
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="Particular.Approvals" />
-    <PackageReference Include="Particular.LicensingComponent.Report" />
   </ItemGroup>
 
 </Project>

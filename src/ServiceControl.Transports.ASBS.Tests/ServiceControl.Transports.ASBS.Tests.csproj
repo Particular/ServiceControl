@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -13,14 +13,13 @@
 
   <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing"/>
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" />
-    <PackageReference Include="NServiceBus.Persistence.NonDurable"/>
+    <PackageReference Include="NServiceBus.Persistence.NonDurable" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
-    <PackageReference Include="Particular.Approvals"/>
+    <PackageReference Include="Particular.Approvals" />
   </ItemGroup>
 
   <ItemGroup>

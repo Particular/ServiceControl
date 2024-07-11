@@ -87,7 +87,7 @@
                                       Warning="{Binding HostNameWarning}" />
                 <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding PortNumber}" />
                 <controls:FormTextBox Header="DATABASE MAINTENANCE PORT NUMBER (1 - 49151)"
-                                      Text="{Binding DatabaseMaintenancePortNumber}"/>
+                                      Text="{Binding DatabaseMaintenancePortNumber}" />
 
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
@@ -208,7 +208,7 @@
                                           Grid.Row="1"
                                           Header="AUDIT FORWARDING LOG QUEUE NAME"
                                           Text="{Binding AuditForwardingQueueName}"
-                                          Visibility="{Binding ShowAuditForwardingQueue, Converter={StaticResource boolToVis}}"/>
+                                          Visibility="{Binding ShowAuditForwardingQueue, Converter={StaticResource boolToVis}}" />
 
                     <controls:FormWarningTextBlock Grid.Column="0"
                                            Grid.ColumnSpan="2"
