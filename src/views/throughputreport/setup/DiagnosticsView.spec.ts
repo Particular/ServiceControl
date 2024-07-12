@@ -1,30 +1,36 @@
-import { test } from "../../../../test/drivers/vitest/driver";
-import { describe, expect } from "vitest";
+import { describe, expect, test } from "vitest";
 import * as precondition from "../../../../test/preconditions";
 import { useServiceControl } from "@/composables/serviceServiceControl";
 import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { minimumSCVersionForThroughput } from "@/views/throughputreport/isThroughputSupported";
 import flushPromises from "flush-promises";
-import { Driver } from "../../../../test/driver";
-import { render, screen } from "@testing-library/vue";
 import DiagnosticsView from "./DiagnosticsView.vue";
 import { createTestingPinia } from "@pinia/testing";
 import ConnectionTestResults, { ConnectionSettingsTestResult } from "@/resources/ConnectionTestResults";
 import { Transport } from "@/views/throughputreport/transport";
-import { userEvent } from "@component-test-utils";
+import { makeDriverForTests, userEvent, render, screen } from "@component-test-utils";
+import { Driver } from "../../../../test/driver";
+import { disableMonitoring } from "../../../../test/drivers/vitest/setup";
 
 describe("DiagnosticsView tests", () => {
   const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
 
-  async function setup(driver: Driver) {
-    await driver.setUp(({ driver }) => precondition.hasServiceControlMainInstance({ driver }, minimumSCVersionForThroughput));
+  async function setup() {
+    const driver = makeDriverForTests();
+
+    await driver.setUp(precondition.hasServiceControlMainInstance(minimumSCVersionForThroughput));
     await driver.setUp(precondition.hasUpToDateServicePulse);
     await driver.setUp(precondition.hasUpToDateServiceControl);
-    await driver.setUp(precondition.hasNoErrors);
+    await driver.setUp(precondition.errorsDefaultHandler);
+
+    return driver;
   }
 
-  async function renderComponent(driver: Driver, transport: Transport = Transport.MSMQ) {
-    await setup(driver);
+  async function renderComponent(transport: Transport = Transport.MSMQ, preSetup: (driver: Driver) => Promise<void> = () => Promise.resolve()) {
+    const driver = await setup();
+
+    await preSetup(driver);
+
     driver.mockEndpoint(`${serviceControlInstanceUrl}licensing/settings/test`, {
       body: <ConnectionTestResults>{
         transport,
@@ -45,16 +51,20 @@ describe("DiagnosticsView tests", () => {
         },
       },
     });
+
     useServiceControlUrls();
     await useServiceControl();
+
     const { debug } = render(DiagnosticsView, { global: { plugins: [createTestingPinia({ stubActions: false })] } });
     await flushPromises();
-    return { debug };
+
+    return { debug, driver };
   }
 
-  test("renders audit diagnostics when not a broker and monitoring is not enabled", async ({ driver }) => {
-    window.defaultConfig.monitoring_urls = ["!"];
-    await renderComponent(driver);
+  test("renders audit diagnostics when not a broker and monitoring is not enabled", async () => {
+    disableMonitoring();
+
+    await renderComponent();
     const use = userEvent.setup();
     await use.click(screen.getByRole("button", { name: /Refresh Connection Test/i }));
     expect(screen.getByText(/Audit diagnostics/i)).toBeInTheDocument();
@@ -62,9 +72,10 @@ describe("DiagnosticsView tests", () => {
     expect(screen.queryByText(/Monitoring diagnostics/i)).toBeNull();
   });
 
-  test("renders audit and broker diagnostics with monitoring not enabled", async ({ driver }) => {
-    window.defaultConfig.monitoring_urls = ["!"];
-    await renderComponent(driver, Transport.AmazonSQS);
+  test("renders audit and broker diagnostics with monitoring not enabled", async () => {
+    disableMonitoring();
+
+    await renderComponent(Transport.AmazonSQS);
     const use = userEvent.setup();
     await use.click(screen.getByRole("button", { name: /Refresh Connection Test/i }));
     expect(screen.getByText(/Audit diagnostics/i)).toBeInTheDocument();
@@ -72,10 +83,11 @@ describe("DiagnosticsView tests", () => {
     expect(screen.queryByText(/Monitoring diagnostics/i)).toBeNull();
   });
 
-  test("renders audit, broker and monitoring diagnostics when all enabled", async ({ driver }) => {
-    await driver.setUp(precondition.hasServiceControlMonitoringInstance);
-    await driver.setUp(precondition.hasNoDisconnectedEndpoints);
-    await renderComponent(driver, Transport.AmazonSQS);
+  test("renders audit, broker and monitoring diagnostics when all enabled", async () => {
+    await renderComponent(Transport.AmazonSQS, async (driver) => {
+      await driver.setUp(precondition.hasServiceControlMonitoringInstance);
+      await driver.setUp(precondition.hasNoDisconnectedEndpoints);
+    });
     const use = userEvent.setup();
     await use.click(screen.getByRole("button", { name: /Refresh Connection Test/i }));
     expect(screen.getByText(/Audit diagnostics/i)).toBeInTheDocument();
@@ -83,10 +95,11 @@ describe("DiagnosticsView tests", () => {
     expect(screen.getByText(/Monitoring diagnostics/i)).toBeInTheDocument();
   });
 
-  test("refreshes diagnostics", async ({ driver }) => {
-    await driver.setUp(precondition.hasServiceControlMonitoringInstance);
-    await driver.setUp(precondition.hasNoDisconnectedEndpoints);
-    await renderComponent(driver, Transport.AmazonSQS);
+  test("refreshes diagnostics", async () => {
+    const { driver } = await renderComponent(Transport.AmazonSQS, async (driver) => {
+      await driver.setUp(precondition.hasServiceControlMonitoringInstance);
+      await driver.setUp(precondition.hasNoDisconnectedEndpoints);
+    });
     const use = userEvent.setup();
     await use.click(screen.getByRole("button", { name: /Refresh Connection Test/i }));
 

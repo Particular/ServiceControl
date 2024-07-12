@@ -11,7 +11,7 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
   await driver.setUp(precondition.hasActiveLicense);
 
   //http://localhost:33333/api/
-  await driver.setUp(precondition.hasServiceControlMainInstance);
+  await driver.setUp(precondition.hasServiceControlMainInstance());
 
   //http://localhost:33633
   await driver.setUp(precondition.hasServiceControlMonitoringInstance);
@@ -68,11 +68,11 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
   await driver.setUp(precondition.recoverabilityEditConfigDefaultHandler);
 
   //http://localhost:33333/api/errors/groups{/:classifier}? default handler
-  await driver.setUp(precondition.archivedGroupsWithClassifierDefaulthandler);  
+  await driver.setUp(precondition.archivedGroupsWithClassifierDefaulthandler);
 
   //http://localhost:33333/api/recoverability/groups{/:classifier} default handler
   await driver.setUp(precondition.recoverabilityGroupsWithClassifierDefaulthandler);
-  
+
   //Default handler for /api/licensing/report/available
   driver.mockEndpoint(`${window.defaultConfig.service_control_url}licensing/report/available`, {
     body: <ReportGenerationState>{
@@ -86,12 +86,14 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
 
   //Default handler for /api/licensing/endpoints
   driver.mockEndpoint(`${window.defaultConfig.service_control_url}licensing/endpoints`, {
-    body: [<EndpointThroughputSummary>{
-      name: "",
-      is_known_endpoint: true,
-      user_indicator: "",
-      max_daily_throughput: 10,
-    }],
+    body: [
+      <EndpointThroughputSummary>{
+        name: "",
+        is_known_endpoint: true,
+        user_indicator: "",
+        max_daily_throughput: 10,
+      },
+    ],
     method: "get",
     status: 200,
   });
@@ -119,5 +121,4 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
     method: "get",
     status: 200,
   });
-
 };

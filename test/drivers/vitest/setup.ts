@@ -10,6 +10,10 @@ const defaultConfig = {
   showPendingRetry: false,
 };
 
+export function disableMonitoring() {
+  vi.stubGlobal("defaultConfig", { ...defaultConfig, ...{ monitoring_urls: ["!"] } });
+}
+
 vi.stubGlobal("defaultConfig", defaultConfig);
 
 beforeEach(() => {
