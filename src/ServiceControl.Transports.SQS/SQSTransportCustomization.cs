@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using Amazon;
     using Amazon.Runtime;
     using Amazon.S3;
@@ -108,9 +109,13 @@
             transport.DoNotWrapOutgoingMessages = builder.DoNotWrapOutgoingMessages;
 
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
+            DisableDelayedDelivery(transport) = true;
 
             return transport;
         }
+
+        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "<DisableDelayedDelivery>k__BackingField")]
+        static extern ref bool DisableDelayedDelivery(SqsTransport transport);
 
         static void
             PromoteEnvironmentVariableFromConnectionString(string value, string environmentVariableName) =>

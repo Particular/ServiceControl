@@ -1,10 +1,8 @@
 <Project>
-
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-
   <ItemGroup Label="Versions for direct package references">
     <PackageVersion Include="Autofac" Version="8.0.0" />
     <PackageVersion Include="AWSSDK.CloudWatch" Version="3.7.304.40" />
@@ -34,7 +32,7 @@
     <PackageVersion Include="NLog.Extensions.Logging" Version="5.3.11" />
     <PackageVersion Include="NServiceBus" Version="9.0.3" />
     <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="9.0.3" />
-    <PackageVersion Include="NServiceBus.AmazonSQS" Version="7.0.0" />
+    <PackageVersion Include="NServiceBus.AmazonSQS" Version="7.0.1" />
     <PackageVersion Include="NServiceBus.CustomChecks" Version="5.0.0" />
     <PackageVersion Include="NServiceBus.Extensions.Hosting" Version="3.0.0" />
     <PackageVersion Include="NServiceBus.Extensions.Logging" Version="3.0.0" />
@@ -74,7 +72,6 @@
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.1.0" />
   </ItemGroup>
-
   <ItemGroup Label="Versions to pin transitive references">
     <PackageVersion Include="System.Drawing.Common" Version="8.0.7" />
     <PackageVersion Include="System.Formats.Asn1" Version="8.0.1" />
@@ -86,11 +83,9 @@
     <PackageVersion Include="System.Text.Json" Version="8.0.4" />
     <PackageVersion Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
-
   <ItemGroup>
     <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.30" />
     <GlobalPackageReference Include="Microsoft.Build.CopyOnWrite" Version="1.0.315" />
     <GlobalPackageReference Include="Particular.Packaging" Version="4.1.0" />
   </ItemGroup>
-
 </Project>
