@@ -31,9 +31,7 @@ function makeDriver() {
       return factory({ driver: this });
     },
     disposeApp() {
-      if (app !== undefined) {
-        app.unmount();
-      }
+      app.unmount();
     },
   };
   return driver;
