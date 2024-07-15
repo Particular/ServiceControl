@@ -9,15 +9,11 @@ import { Transport } from "@/views/throughputreport/transport";
 import { makeDriverForTests, render, screen, userEvent } from "@component-test-utils";
 import { Driver } from "../../../test/driver";
 import { disableMonitoring } from "../../../test/drivers/vitest/setup";
-import SetupView from "./SetupView.vue";
-import ConnectionTestResults, { ConnectionSettingsTestResult } from "@/resources/ConnectionTestResults";
 import makeRouter from "@/router";
 import { RouterLinkStub } from "@vue/test-utils";
 import EndpointsView from "./EndpointsView.vue";
 
 describe("EndpointsView tests", () => {
-  const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
-
   async function setup() {
     const driver = makeDriverForTests();
 
@@ -28,26 +24,7 @@ describe("EndpointsView tests", () => {
     await driver.setUp(precondition.hasEventLogItems);
     await driver.setUp(precondition.hasNoHeartbeatsEndpoints);
     await driver.setUp(precondition.hasServiceControlMainInstance(minimumSCVersionForThroughput));
-    driver.mockEndpoint(`${serviceControlInstanceUrl}licensing/settings/test`, {
-      body: <ConnectionTestResults>{
-        transport: Transport.MSMQ,
-        audit_connection_result: <ConnectionSettingsTestResult>{
-          connection_successful: true,
-          connection_error_messages: [],
-          diagnostics: "Audit diagnostics",
-        },
-        monitoring_connection_result: <ConnectionSettingsTestResult>{
-          connection_successful: true,
-          connection_error_messages: [],
-          diagnostics: "Monitoring diagnostics",
-        },
-        broker_connection_result: <ConnectionSettingsTestResult>{
-          connection_successful: true,
-          connection_error_messages: [],
-          diagnostics: "Broker diagnostics",
-        },
-      },
-    });
+    await driver.setUp(precondition.hasLicensingSettingTest({ transport: Transport.MSMQ }));
 
     return driver;
   }

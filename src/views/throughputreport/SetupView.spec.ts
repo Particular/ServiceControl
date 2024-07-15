@@ -10,13 +10,11 @@ import { makeDriverForTests, render, screen } from "@component-test-utils";
 import { Driver } from "../../../test/driver";
 import { disableMonitoring } from "../../../test/drivers/vitest/setup";
 import SetupView from "./SetupView.vue";
-import ConnectionTestResults, { ConnectionSettingsTestResult } from "@/resources/ConnectionTestResults";
+import { ConnectionSettingsTestResult } from "@/resources/ConnectionTestResults";
 import makeRouter from "@/router";
 import { RouterLinkStub } from "@vue/test-utils";
 
 describe("SetupView tests", () => {
-  const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
-
   async function setup() {
     const driver = makeDriverForTests();
 
@@ -34,8 +32,8 @@ describe("SetupView tests", () => {
   async function renderComponent(transport: Transport = Transport.MSMQ, preSetup: (driver: Driver) => Promise<void> = () => Promise.resolve()) {
     const driver = await setup();
 
-    driver.mockEndpoint(`${serviceControlInstanceUrl}licensing/settings/test`, {
-      body: <ConnectionTestResults>{
+    await driver.setUp(
+      precondition.hasLicensingSettingTest({
         transport,
         audit_connection_result: <ConnectionSettingsTestResult>{
           connection_successful: true,
@@ -52,8 +50,8 @@ describe("SetupView tests", () => {
           connection_error_messages: [],
           diagnostics: "Broker diagnostics",
         },
-      },
-    });
+      })
+    );
 
     await preSetup(driver);
 
@@ -105,8 +103,8 @@ describe("SetupView tests", () => {
       await renderComponent(Transport.MSMQ, async (driver) => {
         await driver.setUp(precondition.serviceControlWithMonitoring);
         await driver.setUp(precondition.hasServiceControlMainInstance(minimumSCVersionForThroughput));
-        driver.mockEndpoint(`${serviceControlInstanceUrl}licensing/settings/test`, {
-          body: <ConnectionTestResults>{
+        await driver.setUp(
+          precondition.hasLicensingSettingTest({
             transport: Transport.MSMQ,
             audit_connection_result: <ConnectionSettingsTestResult>{
               connection_successful: true,
@@ -123,11 +121,11 @@ describe("SetupView tests", () => {
               connection_error_messages: [],
               diagnostics: "Broker diagnostics",
             },
-          },
-        });
+          })
+        );
       });
 
-      expect(screen.getByText(/Successfully connected to Audit instance/i)).toBeInTheDocument();
+      expect(screen.getByText(/Successfully connected to Audit/i)).toBeInTheDocument();
       expect(screen.getByText(/Successfully connected to Monitoring/i)).toBeInTheDocument();
     });
   });
@@ -143,8 +141,8 @@ describe("SetupView tests", () => {
     test("display failure", async () => {
       disableMonitoring();
       await renderComponent(Transport.AmazonSQS, async (driver) => {
-        driver.mockEndpoint(`${serviceControlInstanceUrl}licensing/settings/test`, {
-          body: <ConnectionTestResults>{
+        await driver.setUp(
+          precondition.hasLicensingSettingTest({
             transport: Transport.AmazonSQS,
             audit_connection_result: <ConnectionSettingsTestResult>{
               connection_successful: true,
@@ -161,8 +159,8 @@ describe("SetupView tests", () => {
               connection_error_messages: [],
               diagnostics: "Broker diagnostics",
             },
-          },
-        });
+          })
+        );
       });
 
       expect(screen.getByText(/The connection to Amazon SQS was not successful/i)).toBeInTheDocument();

@@ -6,15 +6,12 @@ import { minimumSCVersionForThroughput } from "@/views/throughputreport/isThroug
 import flushPromises from "flush-promises";
 import DiagnosticsView from "./DiagnosticsView.vue";
 import { createTestingPinia } from "@pinia/testing";
-import ConnectionTestResults, { ConnectionSettingsTestResult } from "@/resources/ConnectionTestResults";
 import { Transport } from "@/views/throughputreport/transport";
 import { makeDriverForTests, userEvent, render, screen } from "@component-test-utils";
 import { Driver } from "../../../../test/driver";
 import { disableMonitoring } from "../../../../test/drivers/vitest/setup";
 
 describe("DiagnosticsView tests", () => {
-  const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
-
   async function setup() {
     const driver = makeDriverForTests();
 
@@ -31,26 +28,26 @@ describe("DiagnosticsView tests", () => {
 
     await preSetup(driver);
 
-    driver.mockEndpoint(`${serviceControlInstanceUrl}licensing/settings/test`, {
-      body: <ConnectionTestResults>{
+    await driver.setUp(
+      precondition.hasLicensingSettingTest({
         transport,
-        audit_connection_result: <ConnectionSettingsTestResult>{
+        audit_connection_result: {
           connection_successful: true,
           connection_error_messages: [],
           diagnostics: "Audit diagnostics",
         },
-        monitoring_connection_result: <ConnectionSettingsTestResult>{
+        monitoring_connection_result: {
           connection_successful: true,
           connection_error_messages: [],
           diagnostics: "Monitoring diagnostics",
         },
-        broker_connection_result: <ConnectionSettingsTestResult>{
+        broker_connection_result: {
           connection_successful: true,
           connection_error_messages: [],
           diagnostics: "Broker diagnostics",
         },
-      },
-    });
+      })
+    );
 
     useServiceControlUrls();
     await useServiceControl();
@@ -103,26 +100,26 @@ describe("DiagnosticsView tests", () => {
     const use = userEvent.setup();
     await use.click(screen.getByRole("button", { name: /Refresh Connection Test/i }));
 
-    driver.mockEndpoint(`${serviceControlInstanceUrl}licensing/settings/test`, {
-      body: <ConnectionTestResults>{
+    await driver.setUp(
+      precondition.hasLicensingSettingTest({
         transport: Transport.AmazonSQS,
-        audit_connection_result: <ConnectionSettingsTestResult>{
+        audit_connection_result: {
           connection_successful: true,
           connection_error_messages: [],
           diagnostics: "Audit refreshed diagnostics",
         },
-        monitoring_connection_result: <ConnectionSettingsTestResult>{
+        monitoring_connection_result: {
           connection_successful: true,
           connection_error_messages: [],
           diagnostics: "Monitoring refreshed diagnostics",
         },
-        broker_connection_result: <ConnectionSettingsTestResult>{
+        broker_connection_result: {
           connection_successful: true,
           connection_error_messages: [],
           diagnostics: "Broker refreshed diagnostics",
         },
-      },
-    });
+      })
+    );
 
     await use.click(screen.getByRole("button", { name: /Refresh Connection Test/i }));
     expect(screen.getByText(/Audit refreshed diagnostics/i)).toBeInTheDocument();

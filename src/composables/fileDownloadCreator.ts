@@ -6,7 +6,7 @@
 
 export async function useDownloadFileFromResponse(response: Response, fileType: string, fileName: string) {
   const fileBlob = await response.blob();
-  const url = window.URL.createObjectURL(new Blob([fileBlob], { type: fileType }));
+  const url = URL.createObjectURL(new Blob([fileBlob], { type: fileType }));
   downloadFile(url, fileType, fileName);
 }
 

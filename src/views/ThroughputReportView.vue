@@ -46,7 +46,7 @@ async function downloadReport() {
           </div>
           <div class="col-sm-6 text-end">
             <span class="reason" v-if="!reportState?.report_can_be_generated">{{ reportState?.reason }}</span>
-            <button type="button" class="btn btn-primary actions" @click="generateReport()" :disabled="!reportState?.report_can_be_generated"><i class="fa fa-download"></i> Download Report</button>
+            <button type="button" aria-label="Download Report" class="btn btn-primary actions" @click="generateReport()" :disabled="!reportState?.report_can_be_generated"><i class="fa fa-download"></i> Download Report</button>
             <Teleport to="#modalDisplay">
               <ConfirmDialog v-if="showWarning" heading="Not all endpoints/queues have an Endpoint Type set" body="Are you sure you want to continue?" @cancel="showWarning = false" @confirm="downloadReport" />
             </Teleport>
