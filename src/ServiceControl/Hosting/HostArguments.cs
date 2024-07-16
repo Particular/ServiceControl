@@ -1,7 +1,6 @@
 namespace Particular.ServiceControl.Hosting
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
     using global::ServiceControl.Configuration;
@@ -17,30 +16,17 @@ namespace Particular.ServiceControl.Hosting
                 args = [.. args, "-m"];
             }
 
-            var executionMode = ExecutionMode.Run;
-            Commands = [typeof(RunCommand)];
-            ServiceName = Settings.DEFAULT_SERVICE_NAME;
-
             var defaultOptions = new OptionSet
             {
-                {
-                    "?|h|help", "Help about the command line options.", key => { Help = true; }
-                }
+                { "?|h|help", "Help about the command line options.", key => Help = true }
             };
 
             var maintenanceOptions = new OptionSet
             {
                 {
                     "m|maint|maintenance",
-                    @"Run RavenDB only - use for DB maintenance",
-                    s =>
-                    {
-                        Commands =
-                        [
-                            typeof(MaintenanceModeCommand)
-                        ];
-                        executionMode = ExecutionMode.Maintenance;
-                    }
+                    "Run RavenDB only - use for DB maintenance",
+                    s => Command = typeof(MaintenanceModeCommand)
                 }
             };
 
@@ -48,20 +34,18 @@ namespace Particular.ServiceControl.Hosting
             {
                 {
                     "s|setup",
-                    @"Internal use - for new installer", s =>
-                    {
-                        Commands = [typeof(SetupCommand)];
-                        executionMode = ExecutionMode.RunInstallers;
-                    }
+                    "Internal use - for new installer",
+                    s => Command = typeof(SetupCommand)
                 },
                 {
                     "serviceName=",
-                    @"Specify the service name for the installed service.", s => { ServiceName = s; }
+                    "Specify the service name for the installed service.",
+                    s => ServiceName = s
                 },
                 {
                     "skip-queue-creation",
-                    @"Skip queue creation during install/update",
-                    s => { SkipQueueCreation = true; }
+                    "Skip queue creation during install/update",
+                    s => SkipQueueCreation = true
                 }
             };
 
@@ -70,30 +54,29 @@ namespace Particular.ServiceControl.Hosting
                 {
                     "import-failed-errors",
                     "Import failed error messages",
-                    s =>
-                    {
-                        Commands = [typeof(ImportFailedErrorsCommand)];
-                        executionMode = ExecutionMode.ImportFailedErrors;
-                    }
+                    s => Command = typeof(ImportFailedErrorsCommand)
                 }
             };
 
             try
             {
                 externalInstallerOptions.Parse(args);
-                if (executionMode == ExecutionMode.RunInstallers)
+
+                if (Command == typeof(SetupCommand))
                 {
                     return;
                 }
 
                 maintenanceOptions.Parse(args);
-                if (executionMode == ExecutionMode.Maintenance)
+
+                if (Command == typeof(MaintenanceModeCommand))
                 {
                     return;
                 }
 
                 reimportFailedErrorsOptions.Parse(args);
-                if (executionMode == ExecutionMode.ImportFailedErrors)
+
+                if (Command == typeof(ImportFailedErrorsCommand))
                 {
                     return;
                 }
@@ -107,40 +90,27 @@ namespace Particular.ServiceControl.Hosting
             }
         }
 
-        public List<Type> Commands { get; private set; }
+        public Type Command { get; private set; } = typeof(RunCommand);
 
-        public bool Help { get; set; }
+        public bool Help { get; private set; }
 
-        public string ServiceName { get; set; }
+        public string ServiceName { get; private set; } = Settings.DEFAULT_SERVICE_NAME;
 
-        public bool SkipQueueCreation { get; set; }
+        public bool SkipQueueCreation { get; private set; }
 
         public void PrintUsage()
         {
             var helpText = string.Empty;
-            using (
-                var stream =
-                    Assembly.GetCallingAssembly()
-                        .GetManifestResourceStream("ServiceControl.Hosting.Help.txt"))
+
+            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ServiceControl.Hosting.Help.txt");
+
+            if (stream != null)
             {
-                if (stream != null)
-                {
-                    using (var streamReader = new StreamReader(stream))
-                    {
-                        helpText = streamReader.ReadToEnd();
-                    }
-                }
+                using var streamReader = new StreamReader(stream);
+                helpText = streamReader.ReadToEnd();
             }
 
             Console.Out.WriteLine(helpText);
         }
-    }
-
-    enum ExecutionMode
-    {
-        RunInstallers,
-        Run,
-        Maintenance,
-        ImportFailedErrors
     }
 }

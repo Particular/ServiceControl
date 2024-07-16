@@ -16,4 +16,4 @@ LoggingConfigurator.ConfigureLogging(loggingSettings);
 
 var settings = new Settings(loggingSettings);
 
-await new CommandRunner(arguments.Commands).Execute(arguments, settings);
+await new CommandRunner(arguments.Command).Execute(arguments, settings);
