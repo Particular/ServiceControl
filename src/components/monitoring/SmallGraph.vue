@@ -20,7 +20,7 @@ const { valuesPath, valuesArea, maxYaxis, average, averageLine } = useGraph(
 );
 
 const averageLabelValue = computed(() => (props.isdurationgraph ? useFormatTime(average.value).value : useFormatLargeNumber(average.value, 2)));
-const averageLabelSuffix = computed(() => (props.isdurationgraph ? useFormatTime(average.value).unit.toUpperCase() : props.metricsuffix ?? ""));
+const averageLabelSuffix = computed(() => (props.isdurationgraph ? useFormatTime(average.value).unit.toUpperCase() : (props.metricsuffix ?? "")));
 //38 is 50 (height of parent) - 6 - 6 for padding.
 //To get it exact without hard coding a height value, we would need to perform measurement on the rendered SVG element, which we want to avoid
 const averageLabelPosition = computed(() => `calc(${(average.value / maxYaxis.value) * 38}px - 1em)`);

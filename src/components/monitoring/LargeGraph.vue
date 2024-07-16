@@ -58,8 +58,8 @@ function padToWholeValue(value: number) {
 
 const series1AverageLabelValue = computed(() => (props.isdurationgraph ? useFormatTime(series1.average.value).value : useFormatLargeNumber(series1.average.value, 2)));
 const series2AverageLabelValue = computed(() => (props.isdurationgraph ? useFormatTime(series2.average.value).value : useFormatLargeNumber(series2.average.value, 2)));
-const series1AverageLabelSuffix = computed(() => (props.isdurationgraph ? useFormatTime(series1.average.value).unit.toUpperCase() : props.metricsuffix ?? ""));
-const series2AverageLabelSuffix = computed(() => (props.isdurationgraph ? useFormatTime(series2.average.value).unit.toUpperCase() : props.metricsuffix ?? ""));
+const series1AverageLabelSuffix = computed(() => (props.isdurationgraph ? useFormatTime(series1.average.value).unit.toUpperCase() : (props.metricsuffix ?? "")));
+const series2AverageLabelSuffix = computed(() => (props.isdurationgraph ? useFormatTime(series2.average.value).unit.toUpperCase() : (props.metricsuffix ?? "")));
 //NOTE: using hard coded height of graph (200px - 10 for padding). To get it exact without hard coding a height value, we would need to perform measurement on the rendered SVG element, which we want to avoid
 const series1AverageLabelPosition = computed(() => `calc(${(series1.average.value / maxYaxis.value) * 190}px - 1em)`);
 const series2AverageLabelPosition = computed(() => `calc(${(series2.average.value / maxYaxis.value) * 190}px - 1em)`);
