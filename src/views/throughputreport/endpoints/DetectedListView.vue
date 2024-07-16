@@ -34,12 +34,14 @@ const sortData: SortData[] = [
   ];
 });
 
-const props = defineProps<{
+export interface DetectedListViewProps {
   columnTitle: string;
   showEndpointTypePlaceholder: boolean;
   indicatorOptions: UserIndicator[];
   source: DataSource;
-}>();
+}
+
+const props = defineProps<DetectedListViewProps>();
 
 const data = ref<EndpointThroughputSummary[]>([]);
 const dataChanges = ref(new Map<string, { indicator: string }>());

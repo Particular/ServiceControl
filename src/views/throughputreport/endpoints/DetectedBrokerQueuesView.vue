@@ -2,21 +2,12 @@
 import DetectedListView from "@/views/throughputreport/endpoints/DetectedListView.vue";
 import { DataSource } from "@/views/throughputreport/endpoints/dataSource";
 import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator";
-import { onMounted, ref } from "vue";
-import throughputClient from "@/views/throughputreport/throughputClient";
 import routeLinks from "@/router/routeLinks";
-import ReportGenerationState from "@/resources/ReportGenerationState";
 import { useThroughputStore } from "@/stores/ThroughputStore";
 import { storeToRefs } from "pinia";
 
-const reportAvailable = ref<ReportGenerationState | null>(null);
-
 const store = useThroughputStore();
 const { testResults } = storeToRefs(store);
-
-onMounted(async () => {
-  reportAvailable.value = await throughputClient.reportAvailable();
-});
 </script>
 
 <template>

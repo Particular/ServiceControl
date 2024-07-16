@@ -14,7 +14,7 @@ import { RouterLinkStub } from "@vue/test-utils";
 import EndpointsView from "./EndpointsView.vue";
 
 describe("EndpointsView tests", () => {
-  async function setup() {
+  async function setup(transport: Transport) {
     const driver = makeDriverForTests();
 
     await driver.setUp(precondition.hasUpToDateServicePulse);
@@ -24,7 +24,7 @@ describe("EndpointsView tests", () => {
     await driver.setUp(precondition.hasEventLogItems);
     await driver.setUp(precondition.hasNoHeartbeatsEndpoints);
     await driver.setUp(precondition.hasServiceControlMainInstance(minimumSCVersionForThroughput));
-    await driver.setUp(precondition.hasLicensingSettingTest({ transport: Transport.MSMQ }));
+    await driver.setUp(precondition.hasLicensingSettingTest({ transport }));
 
     return driver;
   }
@@ -32,7 +32,7 @@ describe("EndpointsView tests", () => {
   async function renderComponent(transport: Transport = Transport.MSMQ, preSetup: (driver: Driver) => Promise<void> = () => Promise.resolve()) {
     disableMonitoring();
 
-    const driver = await setup();
+    const driver = await setup(transport);
     await preSetup(driver);
 
     useServiceControlUrls();
@@ -64,5 +64,17 @@ describe("EndpointsView tests", () => {
     await use.click(screen.getByRole("link", { name: /Hide Endpoint Types meaning/i }));
 
     expect(screen.queryByText(/Show Endpoint Types meaning/i)).toBeInTheDocument();
+  });
+
+  test("broker displays the two tabs", async () => {
+    await renderComponent(Transport.AmazonSQS);
+
+    expect(screen.getByText(/Detected Broker Queues/i)).toBeInTheDocument();
+  });
+
+  test("non broker displays only one tabs", async () => {
+    await renderComponent();
+
+    expect(screen.queryByText(/Detected Broker Queues/i)).not.toBeInTheDocument();
   });
 });
