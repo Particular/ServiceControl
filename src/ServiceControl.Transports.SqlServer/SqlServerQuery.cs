@@ -95,24 +95,11 @@ public class SqlServerQuery(
         var catalogCount = tables.Select(t => t.DatabaseDetails.DatabaseName).Distinct().Count();
         var schemaCount = tables.Select(t => $"{t.DatabaseDetails.DatabaseName}/{t.Schema}").Distinct().Count();
 
-        if (catalogCount > 1)
-        {
-            ScopeType = schemaCount > 1 ? "Catalog & Schema" : "Catalog";
-        }
-        else if (schemaCount > 1)
-        {
-            ScopeType = "Schema";
-        }
+        ScopeType = "Catalog & Schema";
 
         foreach (var tableName in tables)
         {
-            tableName.Scope = ScopeType switch
-            {
-                "Schema" => tableName.Schema,
-                "Catalog" => tableName.DatabaseDetails.DatabaseName,
-                "Catalog & Schema" => tableName.DatabaseNameAndSchema,
-                _ => null
-            };
+            tableName.Scope = tableName.DatabaseNameAndSchema;
 
             yield return tableName;
         }
