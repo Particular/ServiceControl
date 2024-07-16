@@ -93,8 +93,6 @@
 
         public bool ValidateConfiguration => SettingsReader.Read(SettingsRootNamespace, "ValidateConfig", true);
 
-        public bool SkipQueueCreation { get; set; }
-
         public string RootUrl
         {
             get

@@ -59,10 +59,6 @@ namespace Particular.ServiceControl.Hosting
                     @"Specify the service name for the installed service.", s => { ServiceName = s; }
                 },
                 {
-                    "userName=",
-                    @"Username for the account the service should run under.", s => { Username = s; }
-                },
-                {
                     "skip-queue-creation",
                     @"Skip queue creation during install/update",
                     s => { SkipQueueCreation = true; }
@@ -116,8 +112,6 @@ namespace Particular.ServiceControl.Hosting
         public bool Help { get; set; }
 
         public string ServiceName { get; set; }
-
-        public string Username { get; set; }
 
         public bool SkipQueueCreation { get; set; }
 

@@ -8,7 +8,7 @@ namespace ServiceControl.Monitoring
 
     class RunCommand : AbstractCommand
     {
-        public override async Task Execute(Settings settings)
+        public override async Task Execute(HostArguments args, Settings settings)
         {
             var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
 

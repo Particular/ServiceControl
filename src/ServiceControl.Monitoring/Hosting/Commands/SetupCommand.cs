@@ -6,9 +6,9 @@ namespace ServiceControl.Monitoring
 
     class SetupCommand : AbstractCommand
     {
-        public override Task Execute(Settings settings)
+        public override Task Execute(HostArguments args, Settings settings)
         {
-            if (settings.SkipQueueCreation)
+            if (args.SkipQueueCreation)
             {
                 Logger.Info("Skipping queue creation");
                 return Task.CompletedTask;

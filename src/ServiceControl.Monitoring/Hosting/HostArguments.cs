@@ -19,17 +19,12 @@
                 {
                     "serviceName=",
                     "Specify the service name for the installed service.",
-                    s => overrides.Add(settings => { settings.ServiceName = s; })
-                },
-                {
-                    "userName=",
-                    "Username for the account the service should run under.",
-                    s => overrides.Add(settings => settings.Username = s)
+                    s => ServiceName = s
                 },
                 {
                     "skip-queue-creation",
                     "Skip queue creation during install/update",
-                    s => overrides.Add(settings => settings.SkipQueueCreation = true)
+                    s => SkipQueueCreation = true
                 }
             };
 
@@ -49,15 +44,9 @@
 
         public List<Type> Commands { get; } = [];
 
-        public void ApplyOverridesTo(Settings settings)
-        {
-            foreach (var @override in overrides)
-            {
-                @override.Invoke(settings);
-            }
-        }
+        public string ServiceName { get; set; }
 
-        IList<Action<Settings>> overrides = [];
+        public bool SkipQueueCreation { get; set; }
 
         enum ExecutionMode
         {

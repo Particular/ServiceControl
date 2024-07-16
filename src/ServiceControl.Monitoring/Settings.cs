@@ -59,17 +59,11 @@ namespace ServiceControl.Monitoring
 
         public string ErrorQueue { get; set; }
 
-        public string Username { get; set; }
-
-        public bool EnableInstallers { get; set; }
-
         public string HttpHostName { get; set; }
 
         public string HttpPort { get; set; }
 
         public TimeSpan EndpointUptimeGracePeriod { get; set; }
-
-        public bool SkipQueueCreation { get; set; }
 
         public string RootUrl => $"http://{HttpHostName}:{HttpPort}/";
 

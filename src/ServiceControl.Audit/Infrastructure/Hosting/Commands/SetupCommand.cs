@@ -12,11 +12,9 @@
     {
         public override async Task Execute(HostArguments args, Settings settings)
         {
-            settings.SkipQueueCreation = args.SkipQueueCreation;
-
             if (settings.IngestAuditMessages)
             {
-                if (settings.SkipQueueCreation)
+                if (args.SkipQueueCreation)
                 {
                     Logger.Info("Skipping queue creation");
                 }
