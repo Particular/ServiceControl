@@ -8,7 +8,6 @@
   },
   "MessageFilter": null,
   "ValidateConfiguration": true,
-  "SkipQueueCreation": false,
   "RootUrl": "http://localhost:8888/",
   "ApiUrl": "http://localhost:8888/api",
   "Port": 8888,

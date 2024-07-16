@@ -1,5 +1,4 @@
 {
-  "EndpointName": "Particular.Monitoring",
   "LoggingSettings": {
     "LogLevel": {
       "Name": "Info",
@@ -11,12 +10,9 @@
   "TransportType": "NServiceBus.ServiceControlLearningTransport, ServiceControl.Transports.LearningTransport",
   "ConnectionString": null,
   "ErrorQueue": "error",
-  "Username": null,
-  "EnableInstallers": false,
   "HttpHostName": "localhost",
   "HttpPort": "9999",
   "EndpointUptimeGracePeriod": "00:00:40",
-  "SkipQueueCreation": false,
   "RootUrl": "http://localhost:9999/",
   "MaximumConcurrencyLevel": 32,
   "ServiceControlThroughputDataQueue": "ServiceControl.ThroughputData"

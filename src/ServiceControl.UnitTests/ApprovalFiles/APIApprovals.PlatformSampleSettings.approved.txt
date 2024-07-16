@@ -13,7 +13,6 @@
   "ValidateConfiguration": true,
   "ExternalIntegrationsDispatchingBatchSize": 100,
   "DisableExternalIntegrationsPublishing": false,
-  "SkipQueueCreation": false,
   "RunCleanupBundle": false,
   "RootUrl": "http://localhost:8888/",
   "ApiUrl": "http://localhost:8888/api",
