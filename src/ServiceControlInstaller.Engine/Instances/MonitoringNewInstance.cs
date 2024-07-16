@@ -106,7 +106,7 @@
                 ServiceAccountPwd = ServiceAccountPwd,
                 DisplayName = DisplayName,
                 Name = Name,
-                ImagePath = $"\"{Path.Combine(InstallPath, Constants.MonitoringExe)}\" --serviceName={Name}",
+                ImagePath = $"\"{Path.Combine(InstallPath, Constants.MonitoringExe)}\"",
                 ServiceDescription = ServiceDescription
             };
             var dependencies = new List<string>

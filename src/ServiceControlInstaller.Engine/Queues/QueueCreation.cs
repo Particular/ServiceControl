@@ -31,9 +31,9 @@
                 instance.SkipQueueCreation);
         }
 
-        static void RunQueueCreation(string installPath, string exeName, string serviceName, bool skipQueueCreation = false)
+        static void RunQueueCreation(string installPath, string exeName, string instanceName, bool skipQueueCreation = false)
         {
-            var args = $"--setup --serviceName={serviceName}";
+            var args = $"--setup";
 
             if (skipQueueCreation)
             {
@@ -49,6 +49,8 @@
                 WorkingDirectory = installPath,
                 RedirectStandardError = true
             };
+
+            processStartupInfo.EnvironmentVariables.Add("INSTANCE_NAME", instanceName);
 
             var p = Process.Start(processStartupInfo);
             if (p != null)

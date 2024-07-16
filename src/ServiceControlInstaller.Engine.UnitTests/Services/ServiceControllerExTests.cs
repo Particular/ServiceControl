@@ -23,7 +23,7 @@
         {
             var s = new WindowsServiceDetails
             {
-                ImagePath = @"C:\Program Files (x86)\Particular Software\ServiceControl\ServiceControl.exe  --serviceName=Test.SC",
+                ImagePath = @"C:\Program Files (x86)\Particular Software\ServiceControl\ServiceControl.exe",
                 DisplayName = "Test SC",
                 Name = "Test.SC",
                 ServiceAccount = @"NT Authority\NetworkService",
