@@ -3,51 +3,37 @@
     using System;
     using System.Diagnostics;
     using System.IO;
-    using Accounts;
     using Instances;
 
     static class QueueCreation
     {
         public static void RunQueueCreation(IServiceControlInstance instance)
         {
-            var accountName = instance.ServiceAccount;
             RunQueueCreation(instance.InstallPath,
                 Constants.ServiceControlExe,
                 instance.Name,
-                accountName,
                 instance.SkipQueueCreation);
         }
 
         public static void RunQueueCreation(IServiceControlAuditInstance instance)
         {
-            var accountName = instance.ServiceAccount;
             RunQueueCreation(instance.InstallPath,
                 Constants.ServiceControlAuditExe,
                 instance.Name,
-                accountName,
                 instance.SkipQueueCreation);
         }
 
         public static void RunQueueCreation(IMonitoringInstance instance)
         {
-            var accountName = instance.ServiceAccount;
             RunQueueCreation(instance.InstallPath,
                 Constants.MonitoringExe,
                 instance.Name,
-                accountName,
                 instance.SkipQueueCreation);
         }
 
-        static void RunQueueCreation(string installPath, string exeName, string serviceName, string serviceAccount, bool skipQueueCreation = false)
+        static void RunQueueCreation(string installPath, string exeName, string serviceName, bool skipQueueCreation = false)
         {
-            var userAccount = UserAccount.ParseAccountName(serviceAccount);
-
             var args = $"--setup --serviceName={serviceName}";
-
-            if (!userAccount.IsLocalSystem())
-            {
-                args += $" --userName=\"{userAccount.QualifiedName}\"";
-            }
 
             if (skipQueueCreation)
             {
