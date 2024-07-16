@@ -14,6 +14,6 @@ var arguments = new HostArguments(args);
 var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
 LoggingConfigurator.ConfigureLogging(loggingSettings);
 
-var settings = new Settings(arguments.ServiceName, loggingSettings: loggingSettings);
+var settings = new Settings(loggingSettings: loggingSettings);
 
 await new CommandRunner(arguments.Command).Execute(arguments, settings);

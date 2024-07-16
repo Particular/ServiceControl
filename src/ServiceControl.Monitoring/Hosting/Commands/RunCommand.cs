@@ -10,7 +10,7 @@ namespace ServiceControl.Monitoring
     {
         public override async Task Execute(HostArguments args, Settings settings)
         {
-            var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
+            var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
 
             var hostBuilder = WebApplication.CreateBuilder();
             hostBuilder.AddServiceControlMonitoring((_, __) => Task.CompletedTask, settings, endpointConfiguration);

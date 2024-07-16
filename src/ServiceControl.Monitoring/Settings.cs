@@ -12,22 +12,15 @@ namespace ServiceControl.Monitoring
 
     public class Settings
     {
-        public Settings(string serviceName = null, LoggingSettings loggingSettings = null)
+        public Settings(LoggingSettings loggingSettings = null)
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
-            ServiceName = serviceName;
+            // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
+            InstanceName = SettingsReader.Read(SettingsRootNamespace, "EndpointName", InstanceName);
 
-            if (string.IsNullOrEmpty(serviceName))
-            {
-                ServiceName = DEFAULT_SERVICE_NAME;
-            }
-
-            // Overwrite the service name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
-            ServiceName = SettingsReader.Read(SettingsRootNamespace, "EndpointName", ServiceName);
-
-            // Overwrite the service name if it is specified in ENVVAR, reg, or config file
-            ServiceName = SettingsReader.Read(SettingsRootNamespace, "ServiceName", ServiceName);
+            // Overwrite the instance name if it is specified in ENVVAR, reg, or config file
+            InstanceName = SettingsReader.Read(SettingsRootNamespace, "InstanceName", InstanceName);
 
             TransportType = SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
 
@@ -58,7 +51,7 @@ namespace ServiceControl.Monitoring
 
         public LoggingSettings LoggingSettings { get; }
 
-        public string ServiceName { get; }
+        public string InstanceName { get; init; } = DEFAULT_INSTANCE_NAME;
 
         public string TransportType { get; set; }
 
@@ -83,7 +76,7 @@ namespace ServiceControl.Monitoring
             var transportSettings = new TransportSettings
             {
                 ConnectionString = ConnectionString,
-                EndpointName = ServiceName,
+                EndpointName = InstanceName,
                 ErrorQueue = ErrorQueue,
                 MaxConcurrency = MaximumConcurrencyLevel,
                 AssemblyLoadContextResolver = AssemblyLoadContextResolver,
@@ -106,7 +99,7 @@ namespace ServiceControl.Monitoring
 
         internal Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
 
-        public const string DEFAULT_SERVICE_NAME = "Particular.Monitoring";
+        public const string DEFAULT_INSTANCE_NAME = "Particular.Monitoring";
         public static readonly SettingsRootNamespace SettingsRootNamespace = new("Monitoring");
     }
 }
