@@ -24,7 +24,7 @@
                     new RemoteInstanceSetting(settings.RootUrl),
                     new RemoteInstanceSetting(settings.RootUrl)
                 ];
-                serviceName = settings.ServiceName;
+                serviceName = settings.InstanceName;
                 baseAddress = settings.RootUrl;
             };
 

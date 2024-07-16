@@ -121,7 +121,7 @@
 
         public class WithCustomCheck : EndpointConfigurationBuilder
         {
-            public WithCustomCheck() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
+            public WithCustomCheck() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromSeconds(1)); });
 
             class FailingCustomCheck(MyContext context)
                 : NServiceBus.CustomChecks.CustomCheck("MyCustomCheckId", "MyCategory", TimeSpan.FromSeconds(5))

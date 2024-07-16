@@ -51,8 +51,9 @@
             Directory.CreateDirectory(logPath);
             var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace, defaultLevel: LogLevel.Debug, logPath: logPath);
 
-            var settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType, loggingSettings, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
+            var settings = new Settings(transportToUse.TypeName, persistenceToUse.PersistenceType, loggingSettings, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
             {
+                InstanceName = instanceName,
                 AllowMessageEditing = true,
                 ForwardErrorMessages = false,
                 TransportConnectionString = transportToUse.ConnectionString,
@@ -151,6 +152,6 @@
         readonly Action<Settings> setSettings;
         readonly Action<EndpointConfiguration> customConfiguration;
         readonly Action<IHostApplicationBuilder> hostBuilderCustomization;
-        readonly string instanceName = Settings.DEFAULT_SERVICE_NAME;
+        readonly string instanceName = Settings.DEFAULT_INSTANCE_NAME;
     }
 }

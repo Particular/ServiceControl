@@ -276,7 +276,7 @@
         class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
         {
             public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore store, IDomainEvents domainEvents, string endpointName)
-                : base(returnToSender, store, domainEvents, null, null, new Settings(serviceName: endpointName))
+                : base(returnToSender, store, domainEvents, null, null, new Settings { InstanceName = endpointName })
             {
             }
 

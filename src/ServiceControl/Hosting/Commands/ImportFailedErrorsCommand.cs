@@ -50,7 +50,7 @@
 
         protected virtual EndpointConfiguration CreateEndpointConfiguration(Settings settings)
         {
-            var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
+            var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
             var assemblyScanner = endpointConfiguration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 

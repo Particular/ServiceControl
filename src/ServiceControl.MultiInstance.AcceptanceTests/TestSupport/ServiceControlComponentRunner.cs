@@ -60,7 +60,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 transportToUse,
                 new AcceptanceTestStorageConfiguration(), auditSettings =>
                 {
-                    auditSettings.ServiceControlQueueAddress = PrimaryInstanceSettings.DEFAULT_SERVICE_NAME;
+                    auditSettings.ServiceControlQueueAddress = PrimaryInstanceSettings.DEFAULT_INSTANCE_NAME;
                     customServiceControlAuditSettings(auditSettings);
                     SettingsPerInstance[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditSettings;
                 }, auditEndpointConfiguration =>
@@ -94,7 +94,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 {
                     primarySettings.RemoteInstances = [auditInstance];
                     customServiceControlSettings(primarySettings);
-                    SettingsPerInstance[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME] = primarySettings;
+                    SettingsPerInstance[PrimaryInstanceSettings.DEFAULT_INSTANCE_NAME] = primarySettings;
                 },
                 primaryEndpointConfiguration =>
                 {
@@ -118,7 +118,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     // For example one way to deal with this is to have a custom invoker that figures out the right target based on the base address
                     // in the request URI.
                     primaryHostBuilder.Services.AddKeyedSingleton("Forwarding", () => auditInstanceComponentRunner.InstanceTestServer.CreateHandler());
-                    foreach (var remoteInstance in ((PrimaryInstanceSettings)SettingsPerInstance[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME]).RemoteInstances)
+                    foreach (var remoteInstance in ((PrimaryInstanceSettings)SettingsPerInstance[PrimaryInstanceSettings.DEFAULT_INSTANCE_NAME]).RemoteInstances)
                     {
                         if (TestServerPerRemoteInstance.TryGetValue(remoteInstance.InstanceId, out var testServer))
                         {
@@ -132,11 +132,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
                     primaryHostBuilderCustomization(primaryHostBuilder);
                 });
-            typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(run.ScenarioContext, PrimaryInstanceSettings.DEFAULT_SERVICE_NAME);
+            typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(run.ScenarioContext, PrimaryInstanceSettings.DEFAULT_INSTANCE_NAME);
             await primaryInstanceComponentRunner.Initialize(run);
 
-            HttpClients[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME] = primaryInstanceComponentRunner.HttpClient;
-            SerializerOptions[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME] = primaryInstanceComponentRunner.SerializerOptions;
+            HttpClients[PrimaryInstanceSettings.DEFAULT_INSTANCE_NAME] = primaryInstanceComponentRunner.HttpClient;
+            SerializerOptions[PrimaryInstanceSettings.DEFAULT_INSTANCE_NAME] = primaryInstanceComponentRunner.SerializerOptions;
         }
 
         public override async Task Stop(CancellationToken cancellationToken = default)

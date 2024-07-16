@@ -72,8 +72,8 @@
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
-                    routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
-                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<MessageFailed>(Settings.DEFAULT_SERVICE_NAME); });
+                    routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_INSTANCE_NAME);
+                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<MessageFailed>(Settings.DEFAULT_INSTANCE_NAME); });
 
             public class FailureHandler(MyContext testContext) : IHandleMessages<MessageFailed>
             {

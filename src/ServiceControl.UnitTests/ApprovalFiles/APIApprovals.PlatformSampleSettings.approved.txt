@@ -34,7 +34,7 @@
   "AuditRetentionPeriod": null,
   "ErrorRetentionPeriod": "10.00:00:00",
   "EventsRetentionPeriod": "14.00:00:00",
-  "ServiceName": "Particular.ServiceControl",
+  "InstanceName": "Particular.ServiceControl",
   "TransportConnectionString": null,
   "ProcessRetryBatchesFrequency": "00:00:30",
   "TimeToRestartErrorIngestionAfterFailure": "00:01:00",

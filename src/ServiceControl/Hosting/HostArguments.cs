@@ -38,11 +38,6 @@ namespace Particular.ServiceControl.Hosting
                     s => Command = typeof(SetupCommand)
                 },
                 {
-                    "serviceName=",
-                    "Specify the service name for the installed service.",
-                    s => ServiceName = s
-                },
-                {
                     "skip-queue-creation",
                     "Skip queue creation during install/update",
                     s => SkipQueueCreation = true
@@ -93,8 +88,6 @@ namespace Particular.ServiceControl.Hosting
         public Type Command { get; private set; } = typeof(RunCommand);
 
         public bool Help { get; private set; }
-
-        public string ServiceName { get; private set; } = Settings.DEFAULT_SERVICE_NAME;
 
         public bool SkipQueueCreation { get; private set; }
 

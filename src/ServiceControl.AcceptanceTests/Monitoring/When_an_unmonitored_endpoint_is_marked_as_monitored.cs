@@ -33,7 +33,7 @@
                     var options = new SendOptions();
 
                     options.DoNotEnforceBestPractices();
-                    options.SetDestination(Settings.DEFAULT_SERVICE_NAME);
+                    options.SetDestination(Settings.DEFAULT_INSTANCE_NAME);
 
                     return bus.Send(new NewEndpointDetected
                     {
