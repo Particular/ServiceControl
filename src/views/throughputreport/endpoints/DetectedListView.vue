@@ -165,18 +165,18 @@ async function save() {
       <div class="col">
         <div class="text-search-container">
           <div>
-            <select class="form-select text-search format-text" @change="searchTypeChanged">
+            <select class="form-select text-search format-text" aria-label="Filter name type" @change="searchTypeChanged">
               <option v-for="item in filterNameOptions" :value="item.text" :key="item.text">{{ item.text }}</option>
             </select>
           </div>
           <div>
-            <input type="search" class="form-control format-text" :value="filterData.name" @input="nameFilterChanged" placeholder="Filter by name..." />
+            <input type="search" aria-label="Filter by name" class="form-control format-text" :value="filterData.name" @input="nameFilterChanged" placeholder="Filter by name..." />
           </div>
         </div>
       </div>
       <div class="col" style="align-content: center">
         <div>
-          <input type="checkbox" class="check-label" id="showUnsetOnly" @input="showUnsetChanged" />
+          <input type="checkbox" aria-label="Show only not set Endpoint Types" class="check-label" id="showUnsetOnly" @input="showUnsetChanged" />
           <label for="showUnsetOnly">Show only not set Endpoint Types</label>
         </div>
       </div>

@@ -14,11 +14,13 @@ const props = defineProps<{
 
 <template>
   <div class="dropdown">
-    <label v-if="label" class="control-label" style="float: inherit">{{ props.label }}:</label>
-    <button type="button" class="btn btn-dropdown dropdown-toggle sp-btn-menu" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ props.selectItem?.text ?? props.items[0].text }}</button>
+    <label v-if="label" class="control-label" style="float: inherit">{{ label }}:</label>
+    <button type="button" :aria-label="label ?? 'open dropdown menu'" class="btn btn-dropdown dropdown-toggle sp-btn-menu" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      {{ props.selectItem?.text ?? props.items[0].text }}
+    </button>
     <ul class="dropdown-menu">
       <li v-for="item in props.items" :key="item.value">
-        <a href="#" @click.prevent="callback(item)">{{ item.text }}</a>
+        <a href="#" :aria-label="item.text" @click.prevent="callback(item)">{{ item.text }}</a>
       </li>
     </ul>
   </div>
