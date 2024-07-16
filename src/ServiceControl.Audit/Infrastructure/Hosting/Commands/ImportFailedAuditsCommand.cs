@@ -15,7 +15,7 @@
         {
             settings.IngestAuditMessages = false;
 
-            var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
+            var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
 
             using var tokenSource = new CancellationTokenSource();
 

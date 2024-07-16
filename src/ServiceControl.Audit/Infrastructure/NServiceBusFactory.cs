@@ -18,7 +18,7 @@ namespace ServiceControl.Audit.Infrastructure
             TransportSettings transportSettings,
             Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, EndpointConfiguration configuration)
         {
-            var endpointName = settings.ServiceName;
+            var endpointName = settings.InstanceName;
             if (configuration == null)
             {
                 configuration = new EndpointConfiguration(endpointName);

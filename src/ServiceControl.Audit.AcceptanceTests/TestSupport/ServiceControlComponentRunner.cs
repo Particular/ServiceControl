@@ -45,8 +45,9 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace, defaultLevel: NLog.LogLevel.Debug, logPath: logPath);
 
-            settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType, loggingSettings)
+            settings = new Settings(transportToUse.TypeName, persistenceToUse.PersistenceType, loggingSettings)
             {
+                InstanceName = instanceName,
                 TransportConnectionString = transportToUse.ConnectionString,
                 MaximumConcurrencyLevel = 2,
                 ServiceControlQueueAddress = "SHOULDNOTBEUSED",
@@ -118,9 +119,9 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 {
                     var logitem = new ScenarioContext.LogItem
                     {
-                        Endpoint = settings.ServiceName,
+                        Endpoint = settings.InstanceName,
                         Level = NServiceBus.Logging.LogLevel.Fatal,
-                        LoggerName = $"{settings.ServiceName}.CriticalError",
+                        LoggerName = $"{settings.InstanceName}.CriticalError",
                         Message = $"{criticalErrorContext.Error}{Environment.NewLine}{criticalErrorContext.Exception}"
                     };
                     context.Logs.Enqueue(logitem);
@@ -152,7 +153,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             }
         }
 
-        string instanceName = Settings.DEFAULT_SERVICE_NAME;
+        string instanceName = Settings.DEFAULT_INSTANCE_NAME;
         WebApplication host;
         Settings settings;
     }

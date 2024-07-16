@@ -34,8 +34,9 @@
 
             var instanceInputQueueName = "SomeInstanceQueue";
 
-            var settings = new Settings(instanceInputQueueName, "FakeTransport", "InMemory")
+            var settings = new Settings("FakeTransport", "InMemory")
             {
+                InstanceName = instanceInputQueueName,
                 ForwardAuditMessages = true,
                 AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
             };

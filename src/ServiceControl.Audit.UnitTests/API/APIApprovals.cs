@@ -128,10 +128,6 @@
             Approver.Verify(settings);
         }
 
-        static Settings CreateTestSettings() =>
-            new(
-                Settings.DEFAULT_SERVICE_NAME,
-                "LearningTransport",
-                "InMemory");
+        static Settings CreateTestSettings() => new("LearningTransport", "InMemory");
     }
 }

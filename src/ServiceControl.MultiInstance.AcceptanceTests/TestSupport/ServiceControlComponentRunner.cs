@@ -62,7 +62,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 {
                     auditSettings.ServiceControlQueueAddress = PrimaryInstanceSettings.DEFAULT_INSTANCE_NAME;
                     customServiceControlAuditSettings(auditSettings);
-                    SettingsPerInstance[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditSettings;
+                    SettingsPerInstance[AuditInstanceSettings.DEFAULT_INSTANCE_NAME] = auditSettings;
                 }, auditEndpointConfiguration =>
                 {
                     var scanner = auditEndpointConfiguration.AssemblyScanner();
@@ -80,11 +80,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 },
                 _ => { },
                 auditHostBuilder => auditHostBuilderCustomization(auditHostBuilder));
-            typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(run.ScenarioContext, AuditInstanceSettings.DEFAULT_SERVICE_NAME);
+            typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(run.ScenarioContext, AuditInstanceSettings.DEFAULT_INSTANCE_NAME);
             await auditInstanceComponentRunner.Initialize(run);
 
-            HttpClients[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditInstanceComponentRunner.HttpClient;
-            SerializerOptions[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditInstanceComponentRunner.SerializerOptions;
+            HttpClients[AuditInstanceSettings.DEFAULT_INSTANCE_NAME] = auditInstanceComponentRunner.HttpClient;
+            SerializerOptions[AuditInstanceSettings.DEFAULT_INSTANCE_NAME] = auditInstanceComponentRunner.SerializerOptions;
             var auditInstance = new RemoteInstanceSetting(auditInstanceComponentRunner.InstanceTestServer.BaseAddress.ToString());
             TestServerPerRemoteInstance[auditInstance.InstanceId] = auditInstanceComponentRunner.InstanceTestServer;
 

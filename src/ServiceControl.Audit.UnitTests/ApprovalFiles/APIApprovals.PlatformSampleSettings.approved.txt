@@ -22,7 +22,7 @@
   "AuditLogQueue": "audit.log",
   "AuditRetentionPeriod": "30.00:00:00",
   "MaxBodySizeToStore": 102400,
-  "ServiceName": "Particular.ServiceControl.Audit",
+  "InstanceName": "Particular.ServiceControl.Audit",
   "TransportConnectionString": null,
   "MaximumConcurrencyLevel": 32,
   "ServiceControlQueueAddress": "Particular.ServiceControl",
