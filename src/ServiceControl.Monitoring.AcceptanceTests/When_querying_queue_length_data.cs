@@ -33,7 +33,7 @@
                          ec.UniquelyIdentifyRunningInstance()
                              .UsingCustomIdentifier(instanceId);
                          ec.EnableMetrics()
-                             .SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
+                             .SendMetricDataToServiceControl(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1));
                      });
                      c.DoNotFailOnErrorMessages();
                      c.When(async s =>
@@ -50,7 +50,7 @@
                      {
                          ec.MakeInstanceUniquelyAddressable("2");
                          ec.EnableMetrics()
-                             .SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME,
+                             .SendMetricDataToServiceControl(Settings.DEFAULT_SERVICE_NAME,
                              TimeSpan.FromSeconds(1),
                              metricsInstanceId.ToString("N"));
                      });

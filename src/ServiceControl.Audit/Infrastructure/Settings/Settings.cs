@@ -24,8 +24,11 @@
                 ServiceName = DEFAULT_SERVICE_NAME;
             }
 
-            // Overwrite the service name if it is specified in ENVVAR, reg, or config file
+            // Overwrite the service name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
             ServiceName = SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", ServiceName);
+
+            // Overwrite the service name if it is specified in ENVVAR, reg, or config file
+            ServiceName = SettingsReader.Read(SettingsRootNamespace, "ServiceName", ServiceName);
 
             TransportType = transportType ?? SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
 

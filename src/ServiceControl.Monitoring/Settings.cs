@@ -12,9 +12,22 @@ namespace ServiceControl.Monitoring
 
     public class Settings
     {
-        public Settings(LoggingSettings loggingSettings = null)
+        public Settings(string serviceName = null, LoggingSettings loggingSettings = null)
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
+
+            ServiceName = serviceName;
+
+            if (string.IsNullOrEmpty(serviceName))
+            {
+                ServiceName = DEFAULT_SERVICE_NAME;
+            }
+
+            // Overwrite the service name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
+            ServiceName = SettingsReader.Read(SettingsRootNamespace, "EndpointName", ServiceName);
+
+            // Overwrite the service name if it is specified in ENVVAR, reg, or config file
+            ServiceName = SettingsReader.Read(SettingsRootNamespace, "ServiceName", ServiceName);
 
             TransportType = SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
 
@@ -32,7 +45,7 @@ namespace ServiceControl.Monitoring
                 HttpHostName = SettingsReader.Read<string>(SettingsRootNamespace, "HttpHostname");
                 HttpPort = SettingsReader.Read<string>(SettingsRootNamespace, "HttpPort");
             }
-            EndpointName = SettingsReader.Read<string>(SettingsRootNamespace, "EndpointName");
+
             EndpointUptimeGracePeriod = TimeSpan.Parse(SettingsReader.Read(SettingsRootNamespace, "EndpointUptimeGracePeriod", "00:00:40"));
             MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", 32);
             ServiceControlThroughputDataQueue = SettingsReader.Read(SettingsRootNamespace, "ServiceControlThroughputDataQueue", "ServiceControl.ThroughputData");
@@ -40,18 +53,12 @@ namespace ServiceControl.Monitoring
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
 
-        public string EndpointName
-        {
-            get => endpointName ?? ServiceName;
-            set => endpointName = value;
-        }
-
         [JsonIgnore]
         public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
 
         public LoggingSettings LoggingSettings { get; }
 
-        public string ServiceName { get; set; } = DEFAULT_ENDPOINT_NAME;
+        public string ServiceName { get; }
 
         public string TransportType { get; set; }
 
@@ -76,7 +83,7 @@ namespace ServiceControl.Monitoring
             var transportSettings = new TransportSettings
             {
                 ConnectionString = ConnectionString,
-                EndpointName = EndpointName,
+                EndpointName = ServiceName,
                 ErrorQueue = ErrorQueue,
                 MaxConcurrency = MaximumConcurrencyLevel,
                 AssemblyLoadContextResolver = AssemblyLoadContextResolver,
@@ -97,11 +104,9 @@ namespace ServiceControl.Monitoring
             return connectionStringSettings?.ConnectionString;
         }
 
-        string endpointName;
-
         internal Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
 
-        public const string DEFAULT_ENDPOINT_NAME = "Particular.Monitoring";
+        public const string DEFAULT_SERVICE_NAME = "Particular.Monitoring";
         public static readonly SettingsRootNamespace SettingsRootNamespace = new("Monitoring");
     }
 }

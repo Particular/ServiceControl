@@ -19,7 +19,7 @@
                     b.When(session =>
                     {
                         var sendOptions = new SendOptions();
-                        sendOptions.SetDestination(Settings.DEFAULT_ENDPOINT_NAME);
+                        sendOptions.SetDestination(Settings.DEFAULT_SERVICE_NAME);
                         sendOptions.SetHeader(MetricHeaders.MetricInstanceId, "MetricInstanceId");
                         return session.Send(new MetricReport { Data = "{}" }, sendOptions);
                     }))

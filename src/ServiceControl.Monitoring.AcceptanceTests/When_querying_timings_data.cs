@@ -37,7 +37,7 @@
             public EndpointWithTimings() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
+                    c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1));
                 });
 
             class Handler : IHandleMessages<SampleMessage>

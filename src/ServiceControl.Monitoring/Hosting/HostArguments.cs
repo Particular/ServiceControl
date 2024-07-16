@@ -30,7 +30,7 @@
 
         public Type Command { get; private set; } = typeof(RunCommand);
 
-        public string ServiceName { get; private set; }
+        public string ServiceName { get; private set; } = Settings.DEFAULT_SERVICE_NAME;
 
         public bool SkipQueueCreation { get; private set; }
     }

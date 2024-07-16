@@ -35,7 +35,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         {
             settings = new Settings
             {
-                EndpointName = Settings.DEFAULT_ENDPOINT_NAME,
                 TransportType = transportToUse.TypeName,
                 ConnectionString = transportToUse.ConnectionString,
                 HttpHostName = "localhost",
@@ -72,18 +71,18 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
             setSettings(settings);
 
-            using (new DiagnosticTimer($"Creating infrastructure for {settings.EndpointName}"))
+            using (new DiagnosticTimer($"Creating infrastructure for {settings.ServiceName}"))
             {
                 var setupCommand = new SetupCommand();
                 await setupCommand.Execute(new HostArguments([]), settings);
             }
 
-            var configuration = new EndpointConfiguration(settings.EndpointName);
+            var configuration = new EndpointConfiguration(settings.ServiceName);
             configuration.CustomizeServiceControlMonitoringEndpointTesting(context);
 
             customConfiguration(configuration);
 
-            using (new DiagnosticTimer($"Starting host for {settings.EndpointName}"))
+            using (new DiagnosticTimer($"Starting host for {settings.ServiceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
@@ -113,13 +112,13 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 host.UseServiceControlMonitoring();
                 await host.StartAsync();
 
-                HttpClient = host.Services.GetRequiredKeyedService<TestServer>(settings.EndpointName).CreateClient();
+                HttpClient = host.Services.GetRequiredKeyedService<TestServer>(settings.ServiceName).CreateClient();
             }
         }
 
         public override async Task Stop(CancellationToken cancellationToken = default)
         {
-            using (new DiagnosticTimer($"Test TearDown for {settings.EndpointName}"))
+            using (new DiagnosticTimer($"Test TearDown for {settings.ServiceName}"))
             {
                 await host.StopAsync(cancellationToken);
                 HttpClient.Dispose();
