@@ -119,6 +119,7 @@ namespace ServiceControl.Management.PowerShell
                 InstallPath = InstallPath,
                 LogPath = LogPath,
                 Name = Name,
+                InstanceName = Name,
                 DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? Name : DisplayName,
                 ServiceDescription = Description,
                 ServiceAccount = ServiceAccount,

@@ -102,6 +102,10 @@ namespace ServiceControlInstaller.Engine.Instances
             Service.Refresh();
 
             AppConfig = CreateAppConfig();
+
+            InstanceName = AppConfig.Read(ServiceControlSettings.InternalQueueName, Name);
+            InstanceName = AppConfig.Read(ServiceControlSettings.InstanceName, InstanceName);
+
             HostName = AppConfig.Read(ServiceControlSettings.HostName, "localhost");
             Port = AppConfig.Read(ServiceControlSettings.Port, 33333);
             DatabaseMaintenancePort = AppConfig.Read<int?>(ServiceControlSettings.DatabaseMaintenancePort, null);

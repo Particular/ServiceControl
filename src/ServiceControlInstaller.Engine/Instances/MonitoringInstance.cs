@@ -27,12 +27,19 @@
         }
 
         public AppConfig AppConfig { get; set; }
+
         public ReportCard ReportCard { get; set; }
+
         public int Port { get; set; }
+
         public string HostName { get; set; }
+
         public string ErrorQueue { get; set; }
+
         public string ConnectionString { get; set; }
+
         public string LogPath { get; set; }
+
         public bool SkipQueueCreation { get; set; }
 
         public string Url => $"http://{HostName}:{Port}/";
@@ -56,6 +63,8 @@
             Service.Refresh();
 
             AppConfig = new AppConfig(this);
+
+            InstanceName = AppConfig.Read(SettingsList.InstanceName, Name);
             HostName = AppConfig.Read(SettingsList.HostName, "localhost");
             Port = AppConfig.Read(SettingsList.Port, 1234);
             LogPath = AppConfig.Read(SettingsList.LogPath, DefaultLogPath());
@@ -65,7 +74,6 @@
             Description = GetDescription();
             ServiceAccount = Service.Account;
         }
-
 
         string DefaultLogPath()
         {

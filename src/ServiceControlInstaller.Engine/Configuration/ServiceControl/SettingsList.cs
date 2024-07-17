@@ -5,6 +5,18 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
     // See Compatibility.cs for version switching that isn't related to Settings
     public static class ServiceControlSettings
     {
+        public static readonly SettingInfo InternalQueueName = new()
+        {
+            Name = "ServiceControl/InternalQueueName",
+            RemovedFrom = new(5, 5, 0)
+        };
+
+        public static readonly SettingInfo InstanceName = new()
+        {
+            Name = "ServiceControl/InstanceName",
+            SupportedFrom = new SemanticVersion(5, 5, 0)
+        };
+
         public static readonly SettingInfo VirtualDirectory = new() { Name = "ServiceControl/VirtualDirectory" };
         public static readonly SettingInfo Port = new() { Name = "ServiceControl/Port" };
         public static readonly SettingInfo DatabaseMaintenancePort = new SettingInfo

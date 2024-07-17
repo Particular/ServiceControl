@@ -155,6 +155,7 @@ namespace ServiceControl.Management.PowerShell
             details.LogPath = LogPath;
             details.DBPath = DBPath;
             details.Name = Name;
+            details.InstanceName = Name;
             details.DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? Name : DisplayName;
             details.ServiceDescription = Description;
             details.ServiceAccount = ServiceAccount;

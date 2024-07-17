@@ -58,6 +58,7 @@
             {
                 DisplayName = viewModel.InstanceName,
                 Name = viewModel.InstanceName.Replace(' ', '.'),
+                InstanceName = viewModel.InstanceName.Replace(' ', '.'),
                 ServiceDescription = viewModel.Description,
                 InstallPath = viewModel.DestinationPath,
                 LogPath = viewModel.LogPath,

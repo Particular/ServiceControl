@@ -70,6 +70,10 @@ namespace ServiceControlInstaller.Engine.Instances
             Service.Refresh();
 
             AppConfig = CreateAppConfig();
+
+            InstanceName = AppConfig.Read(AuditInstanceSettingsList.InternalQueueName, Name);
+            InstanceName = AppConfig.Read(AuditInstanceSettingsList.InstanceName, InstanceName);
+
             HostName = AppConfig.Read(AuditInstanceSettingsList.HostName, "localhost");
             Port = AppConfig.Read(AuditInstanceSettingsList.Port, 33333);
             DatabaseMaintenancePort = AppConfig.Read<int?>(AuditInstanceSettingsList.DatabaseMaintenancePort, null);

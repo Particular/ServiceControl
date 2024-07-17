@@ -145,6 +145,7 @@
             newAuditInstance.LogPath = LogPath;
             newAuditInstance.DBPath = DBPath;
             newAuditInstance.Name = Name;
+            newAuditInstance.InstanceName = Name;
             newAuditInstance.DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? Name : DisplayName;
             newAuditInstance.ServiceDescription = Description;
             newAuditInstance.ServiceAccount = ServiceAccount;

@@ -15,11 +15,16 @@
             Config.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", details.ConnectionString);
             var settings = Config.AppSettings.Settings;
             var version = details.Version;
+            settings.Set(SettingsList.InstanceName, details.InstanceName, version);
             settings.Set(SettingsList.Port, details.Port.ToString());
             settings.Set(SettingsList.HostName, details.HostName);
             settings.Set(SettingsList.LogPath, details.LogPath);
             settings.Set(SettingsList.TransportType, details.TransportPackage.Name, version);
             settings.Set(SettingsList.ErrorQueue, details.ErrorQueue);
+
+            // Retired settings
+            settings.RemoveIfRetired(SettingsList.EndpointName, version);
+
             Config.Save();
         }
 

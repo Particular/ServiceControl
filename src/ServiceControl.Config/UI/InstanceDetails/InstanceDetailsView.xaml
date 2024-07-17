@@ -222,10 +222,10 @@
         </GroupBox>
         <GroupBox Grid.Row="7"
                   Grid.Column="1"
-                  Header="ENDPOINT NAME"
+                  Header="INSTANCE/QUEUE NAME"
                   Margin="0 1 0 0"
                   HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
-            <TextBlock FontSize="14px" Text="{Binding Name}" />
+            <TextBlock FontSize="14px" Text="{Binding InstanceName}" />
         </GroupBox>
 
         <GroupBox Grid.Row="8"

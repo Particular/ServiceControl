@@ -8,21 +8,32 @@
 
     public class PsServiceControl
     {
-        public string Name { get; set; }
+        public string ServiceName { get; set; }
+
+        public string InstanceName { get; set; }
+
         public string Url { get; set; }
+
         public string HostName { get; set; }
+
         public int Port { get; set; }
+
         public int? DatabaseMaintenancePort { get; set; }
 
         public string InstallPath { get; set; }
+
         public string DBPath { get; set; }
+
         public string LogPath { get; set; }
 
         public string TransportPackageName { get; set; }
+
         public string ConnectionString { get; set; }
 
         public string ErrorQueue { get; set; }
+
         public string ErrorLogQueue { get; set; }
+
         public bool ForwardErrorMessages { get; set; }
 
         public TimeSpan ErrorRetentionPeriod { get; set; }
@@ -47,7 +58,8 @@
         {
             var result = new PsServiceControl
             {
-                Name = instance.Name,
+                ServiceName = instance.Name,
+                InstanceName = instance.InstanceName,
                 Url = instance.Url,
                 HostName = instance.HostName,
                 Port = instance.Port,
