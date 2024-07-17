@@ -35,7 +35,7 @@ onMounted(() => {
 <template>
   <div class="modal-mask">
     <div class="modal-wrapper">
-      <div class="modal-container">
+      <div class="modal-container" role="dialog" :aria-label="heading">
         <div class="modal-header">
           <div class="modal-title">
             <h3>{{ heading }}</h3>
@@ -46,8 +46,8 @@ onMounted(() => {
           <p v-if="secondParagraph && secondParagraph.length">{{ secondParagraph }}</p>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-primary" @click="confirm">{{ hideCancel ? "Ok" : "Yes" }}</button>
-          <button v-if="!hideCancel" class="btn btn-default" @click="close">No</button>
+          <button class="btn btn-primary" :aria-label="hideCancel ? 'Ok' : 'Yes'" @click="confirm">{{ hideCancel ? "Ok" : "Yes" }}</button>
+          <button v-if="!hideCancel" aria-label="No" class="btn btn-default" @click="close">No</button>
         </div>
       </div>
     </div>

@@ -195,10 +195,12 @@ async function save() {
         </td>
         <td class="col" style="width: 350px; padding-left: 0">
           <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle" :disabled="filteredData.length === 0" type="button" data-bs-toggle="dropdown" aria-expanded="false">Set Endpoint Type for all items below</button>
+            <button class="btn btn-secondary dropdown-toggle" aria-label="Set Endpoint Type for all items below" :disabled="filteredData.length === 0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Set Endpoint Type for all items below
+            </button>
             <ul class="dropdown-menu">
               <li v-for="indicator in props.indicatorOptions" :key="indicator">
-                <a href="#" @click.prevent="showBulkUpdateIndicatorWarning(indicator)">{{ userIndicatorMapper.get(indicator) }}</a>
+                <a href="#" :aria-label="userIndicatorMapper.get(indicator)" @click.prevent="showBulkUpdateIndicatorWarning(indicator)">{{ userIndicatorMapper.get(indicator) }}</a>
               </li>
             </ul>
           </div>

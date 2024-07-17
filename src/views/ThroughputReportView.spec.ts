@@ -2,7 +2,6 @@ import { describe, expect, test } from "vitest";
 import * as precondition from "../../test/preconditions";
 import { useServiceControl } from "@/composables/serviceServiceControl";
 import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
-import { minimumSCVersionForThroughput } from "@/views/throughputreport/isThroughputSupported";
 import flushPromises from "flush-promises";
 import { createTestingPinia } from "@pinia/testing";
 import { Transport } from "@/views/throughputreport/transport";
@@ -13,6 +12,7 @@ import makeRouter from "@/router";
 import { RouterLinkStub } from "@vue/test-utils";
 import ThroughputReportView from "@/views/ThroughputReportView.vue";
 import Toast from "vue-toastification";
+import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
 
 describe("EndpointsView tests", () => {
   const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
@@ -20,13 +20,7 @@ describe("EndpointsView tests", () => {
   async function setup() {
     const driver = makeDriverForTests();
 
-    await driver.setUp(precondition.hasUpToDateServicePulse);
-    await driver.setUp(precondition.hasUpToDateServiceControl);
-    await driver.setUp(precondition.errorsDefaultHandler);
-    await driver.setUp(precondition.hasNoFailingCustomChecks);
-    await driver.setUp(precondition.hasEventLogItems);
-    await driver.setUp(precondition.hasNoHeartbeatsEndpoints);
-    await driver.setUp(precondition.hasServiceControlMainInstance(minimumSCVersionForThroughput));
+    await driver.setUp(serviceControlWithThroughput);
 
     return driver;
   }

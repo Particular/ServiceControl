@@ -13,18 +13,13 @@ import SetupView from "./SetupView.vue";
 import { ConnectionSettingsTestResult } from "@/resources/ConnectionTestResults";
 import makeRouter from "@/router";
 import { RouterLinkStub } from "@vue/test-utils";
+import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
 
 describe("SetupView tests", () => {
   async function setup() {
     const driver = makeDriverForTests();
 
-    await driver.setUp(precondition.hasUpToDateServicePulse);
-    await driver.setUp(precondition.hasUpToDateServiceControl);
-    await driver.setUp(precondition.errorsDefaultHandler);
-    await driver.setUp(precondition.hasNoFailingCustomChecks);
-    await driver.setUp(precondition.hasEventLogItems);
-    await driver.setUp(precondition.hasNoHeartbeatsEndpoints);
-    await driver.setUp(precondition.hasServiceControlMainInstance(minimumSCVersionForThroughput));
+    await driver.setUp(serviceControlWithThroughput);
 
     return driver;
   }

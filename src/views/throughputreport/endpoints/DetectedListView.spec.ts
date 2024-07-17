@@ -2,27 +2,23 @@ import { describe, expect, test } from "vitest";
 import * as precondition from "../../../../test/preconditions";
 import { useServiceControl } from "@/composables/serviceServiceControl";
 import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
-import { minimumSCVersionForThroughput } from "@/views/throughputreport/isThroughputSupported";
 import flushPromises from "flush-promises";
 import { Transport } from "@/views/throughputreport/transport";
 import { makeDriverForTests, render, screen, userEvent } from "@component-test-utils";
-import { Driver } from "../../../../test/driver";
+import { Driver, SetupFactoryOptions } from "../../../../test/driver";
 import { disableMonitoring } from "../../../../test/drivers/vitest/setup";
 import DetectedListView, { DetectedListViewProps } from "@/views/throughputreport/endpoints/DetectedListView.vue";
 import { DataSource } from "@/views/throughputreport/endpoints/dataSource";
 import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator";
+import { within } from "@testing-library/vue";
+import UpdateUserIndicator from "@/resources/UpdateUserIndicator";
+import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
 
 describe("DetectedListView tests", () => {
   async function setup() {
     const driver = makeDriverForTests();
 
-    await driver.setUp(precondition.hasUpToDateServicePulse);
-    await driver.setUp(precondition.hasUpToDateServiceControl);
-    await driver.setUp(precondition.errorsDefaultHandler);
-    await driver.setUp(precondition.hasNoFailingCustomChecks);
-    await driver.setUp(precondition.hasEventLogItems);
-    await driver.setUp(precondition.hasNoHeartbeatsEndpoints);
-    await driver.setUp(precondition.hasServiceControlMainInstance(minimumSCVersionForThroughput));
+    await driver.setUp(serviceControlWithThroughput);
     await driver.setUp(precondition.hasLicensingSettingTest({ transport: Transport.AmazonSQS }));
 
     return driver;
@@ -249,6 +245,85 @@ describe("DetectedListView tests", () => {
       idx = 0;
       for (const row of [...table.rows].slice(1)) {
         expect(row.cells[0].textContent).toBe(orderedNames[idx++]);
+      }
+    });
+  });
+
+  describe("updating data", () => {
+    const updateLicensingEndpoints =
+      (
+        body: UpdateUserIndicator[] = [
+          <UpdateUserIndicator>{
+            name: "Sender",
+            user_indicator: "",
+          },
+        ]
+      ) =>
+      ({ driver }: SetupFactoryOptions) => {
+        driver.mockEndpoint(`${window.defaultConfig.service_control_url}licensing/endpoints/update`, {
+          body,
+          method: "post",
+          status: 200,
+        });
+        return [];
+      };
+
+    const setup = async () => {
+      const columnTitle = "Special column name";
+
+      const { driver } = await renderComponent({ source: DataSource.Broker, indicatorOptions: [UserIndicator.PlannedToDecommission, UserIndicator.NServiceBusEndpoint], columnTitle: columnTitle }, async (driver) => {
+        await driver.setUp(
+          precondition.hasLicensingEndpoints([
+            { name: `Not set yet`, is_known_endpoint: false, user_indicator: "", max_daily_throughput: 100 },
+            { name: `Set and needs updating`, is_known_endpoint: false, user_indicator: UserIndicator.PlannedToDecommission, max_daily_throughput: 50 },
+          ])
+        );
+        await driver.setUp(updateLicensingEndpoints());
+      });
+
+      const user = userEvent.setup();
+
+      const th = screen.getByText(columnTitle);
+      const table = th.parentElement?.parentElement?.parentElement as HTMLTableElement;
+
+      await driver.setUp(
+        precondition.hasLicensingEndpoints([
+          { name: `Not set yet`, is_known_endpoint: false, user_indicator: UserIndicator.NServiceBusEndpoint, max_daily_throughput: 100 },
+          { name: `Set and needs updating`, is_known_endpoint: false, user_indicator: UserIndicator.NServiceBusEndpoint, max_daily_throughput: 50 },
+        ])
+      );
+
+      return { user, table };
+    };
+
+    test("single", async () => {
+      const { user, table } = await setup();
+
+      for (const row of [...table.rows].slice(1)) {
+        const dropdown = within(row).getByRole("combobox");
+        await user.selectOptions(dropdown, UserIndicator.NServiceBusEndpoint);
+      }
+
+      for (const row of [...table.rows].slice(1)) {
+        const dropdown = within(row).getByRole("combobox") as HTMLSelectElement;
+        expect(dropdown.value).toBe(UserIndicator.NServiceBusEndpoint);
+      }
+    });
+
+    test("bulk", async () => {
+      const { user, table } = await setup();
+
+      const bulkDropdown = screen.getByRole("button", { name: /Set Endpoint Type for all items below/i });
+      await user.click(bulkDropdown);
+      const link = within(bulkDropdown.parentElement!).getByRole("link", { name: /NServiceBus Endpoint/i });
+      await user.click(link);
+      const confirmDialog = screen.getByRole("dialog", { name: /Proceed with bulk operation/i });
+      const yesButton = within(confirmDialog).getByRole("button", { name: /Yes/i });
+      await user.click(yesButton);
+
+      for (const row of [...table.rows].slice(1)) {
+        const dropdown = within(row).getByRole("combobox") as HTMLSelectElement;
+        expect(dropdown.value).toBe(UserIndicator.NServiceBusEndpoint);
       }
     });
   });
