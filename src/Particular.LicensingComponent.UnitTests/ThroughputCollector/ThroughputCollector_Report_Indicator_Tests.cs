@@ -47,7 +47,7 @@ class ThroughputCollector_Report_Indicator_Tests : ThroughputCollectorTestFixtur
         await DataStore.CreateBuilder()
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker, ThroughputSource.Monitoring])
             .ConfigureEndpoint(ThroughputSource.Broker,
-                endpoint => endpoint.UserIndicator = UserIndicator.TransactionSessionEndpoint.ToString())
+                endpoint => endpoint.UserIndicator = UserIndicator.SendOnlyOrTransactionSessionEndpoint.ToString())
             .WithThroughput(ThroughputSource.Broker, days: 2)
             .WithThroughput(ThroughputSource.Monitoring, days: 2)
             .Build();
@@ -60,6 +60,6 @@ class ThroughputCollector_Report_Indicator_Tests : ThroughputCollectorTestFixtur
         Assert.That(report.ReportData.Queues.Length, Is.EqualTo(1));
 
         Assert.That(report.ReportData.Queues[0].UserIndicator,
-            Is.EqualTo(UserIndicator.TransactionSessionEndpoint.ToString()));
+            Is.EqualTo(UserIndicator.SendOnlyOrTransactionSessionEndpoint.ToString()));
     }
 }

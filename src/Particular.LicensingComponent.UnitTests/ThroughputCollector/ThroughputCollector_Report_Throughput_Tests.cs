@@ -60,7 +60,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .WithThroughput(days: 2)
             .AddEndpoint("Endpoint3", sources: [ThroughputSource.Broker])
             .ConfigureEndpoint(
-                endpoint => endpoint.UserIndicator = UserIndicator.NServiceBusEndpointSendOnly.ToString())
+                endpoint => endpoint.UserIndicator = UserIndicator.SendOnlyOrTransactionSessionEndpoint.ToString())
             .WithThroughput(days: 2)
             .AddEndpoint("Endpoint4", sources: [ThroughputSource.Broker])
             .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.PlannedToDecommission.ToString())
