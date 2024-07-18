@@ -21,7 +21,6 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
         // Arrange
         await DataStore.CreateBuilder()
             .AddEndpoint().WithThroughput(startDate: DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-32), days: 2)
-            .AddEndpoint().WithThroughput(startDate: DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-32), days: 2)
             .Build();
 
         // Act
@@ -33,12 +32,11 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
     }
 
     [Test]
-    public async Task Should_return_ReportCanBeGenerated_true_when_there_is_throughput_for_last_30_days()
+    public async Task Should_return_ReportCanBeGenerated_true_when_using_broker_and_there_is_broker_throughput_for_last_30_days()
     {
         // Arrange
         await DataStore.CreateBuilder()
-            .AddEndpoint().WithThroughput(startDate: DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), days: 2)
-            .AddEndpoint().WithThroughput(startDate: DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), days: 2)
+            .AddEndpoint().WithThroughput(source: Contracts.ThroughputSource.Broker, startDate: DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), days: 2)
             .Build();
 
         // Act
@@ -50,12 +48,29 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
     }
 
     [Test]
+    public async Task Should_return_ReportCanBeGenerated_false_when_using_broker_and_no_broker_throughput_for_last_30_days()
+    {
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint().WithThroughput(source: Contracts.ThroughputSource.Broker, startDate: DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-32), days: 2)
+            .AddEndpoint().WithThroughput(source: Contracts.ThroughputSource.Audit, startDate: DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), days: 2)
+            .Build();
+
+        // Act
+        var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
+
+        // Assert
+        Assert.That(reportGenerationState.ReportCanBeGenerated, Is.False);
+        Assert.That(reportGenerationState.Reason.Contains("24"), Is.True);
+    }
+
+    [Test]
     public async Task Should_return_ReportCanBeGenerated_false_when_throughput_exists_only_for_today()
     {
         // Arrange
         await DataStore.CreateBuilder()
-            .AddEndpoint().WithThroughput(startDate: DateOnly.FromDateTime(DateTime.UtcNow))
-            .AddEndpoint().WithThroughput(startDate: DateOnly.FromDateTime(DateTime.UtcNow))
+            .AddEndpoint().WithThroughput(source: Contracts.ThroughputSource.Broker, startDate: DateOnly.FromDateTime(DateTime.UtcNow))
+            .AddEndpoint().WithThroughput(source: Contracts.ThroughputSource.Audit, startDate: DateOnly.FromDateTime(DateTime.UtcNow))
             .Build();
 
         // Act

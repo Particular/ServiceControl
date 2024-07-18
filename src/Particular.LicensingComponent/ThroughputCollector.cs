@@ -96,6 +96,15 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
             ReportCanBeGenerated = await dataStore.IsThereThroughputForLastXDays(30, cancellationToken)
         };
 
+        //ensure that if there is a broker that we only allow generation if there is broker data in the last 30 days
+        if (reportGenerationState.ReportCanBeGenerated && throughputQuery != null)
+        {
+            if (!await dataStore.IsThereThroughputForLastXDaysForSource(30, ThroughputSource.Broker, false, cancellationToken))
+            {
+                reportGenerationState.ReportCanBeGenerated = false;
+            }
+        }
+
         if (!reportGenerationState.ReportCanBeGenerated)
         {
             reportGenerationState.Reason = "24 hours worth of data needs to exist in the last 30 days.";
