@@ -16,9 +16,6 @@ namespace ServiceControl.Monitoring
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
-            // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
-            InstanceName = SettingsReader.Read(SettingsRootNamespace, "EndpointName", InstanceName);
-
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file
             InstanceName = SettingsReader.Read(SettingsRootNamespace, "InstanceName", InstanceName);
 
