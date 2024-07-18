@@ -19,8 +19,10 @@ class ThroughputTestsConfiguration
     public IAuditQuery AuditQuery { get; protected set; }
     public MonitoringService MonitoringService { get; protected set; }
 
-    public Task Configure(Action<ThroughputSettings> setThroughputSettings,
-        Action<ServiceCollection> setExtraDependencies)
+    public Task Configure(
+        Action<ThroughputSettings> setThroughputSettings,
+        Action<ServiceCollection> setExtraDependencies,
+        bool useBrokerTransport)
     {
         var throughputSettings = new ThroughputSettings("Particular.ServiceControl", "error", "Learning",
             "TestCustomer", "5.0.1");
@@ -39,7 +41,12 @@ class ThroughputTestsConfiguration
         serviceCollection.AddSingleton<IAuditCountApi, FakeAuditCountApi>();
         serviceCollection.AddSingleton<IConfigurationApi, FakeConfigurationApi>();
         serviceCollection.AddSingleton<IThroughputCollector, ThroughputCollector>();
-        serviceCollection.AddSingleton<IBrokerThroughputQuery, FakeBrokerThroughputQuery>();
+
+        if (useBrokerTransport)
+        {
+            serviceCollection.AddSingleton<IBrokerThroughputQuery, FakeBrokerThroughputQuery>();
+        }
+
         serviceCollection.AddSingleton<IAuditQuery, AuditQuery>();
         serviceCollection.AddSingleton<MonitoringService>();
 
