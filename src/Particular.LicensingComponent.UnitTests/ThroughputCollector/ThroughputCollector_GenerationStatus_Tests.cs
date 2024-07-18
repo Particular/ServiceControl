@@ -32,6 +32,25 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
     }
 
     [Test]
+    public async Task Should_return_ReportCanBeGenerated_true_when_not_using_broker_and_no_broker_throughput_for_last_30_days()
+    {
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint().WithThroughput(source: Contracts.ThroughputSource.Audit, startDate: DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2), days: 2)
+            .Build();
+
+        var throughputCollector = new ThroughputCollector(DataStore, configuration.ThroughputSettings, null, null, null);
+
+        // Act
+        var reportGenerationState = await throughputCollector.GetReportGenerationState(default);
+
+        // Assert
+        Assert.That(reportGenerationState.ReportCanBeGenerated, Is.True);
+        Assert.That(reportGenerationState.Reason, Is.EqualTo(""));
+    }
+
+
+    [Test]
     public async Task Should_return_ReportCanBeGenerated_true_when_using_broker_and_there_is_broker_throughput_for_last_30_days()
     {
         // Arrange
