@@ -37,6 +37,8 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             public string Name { get; set; }
 
+            public string InstanceName { get; set; }
+
             public string DisplayName { get; set; }
 
             public string ServiceAccount { get; set; }
@@ -89,6 +91,8 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             public int? DatabaseMaintenancePort { get; set; }
 
             public string Name { get; set; }
+
+            public string InstanceName { get; set; }
 
             public string DisplayName { get; set; }
 

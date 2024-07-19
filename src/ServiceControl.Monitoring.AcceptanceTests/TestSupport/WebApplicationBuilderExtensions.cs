@@ -14,7 +14,7 @@ static class WebApplicationBuilderExtensions
 
         hostBuilder.WebHost.UseTestServer(options => options.BaseAddress = new Uri(settings.RootUrl));
         // This facilitates receiving the test server anywhere where DI is available
-        hostBuilder.Services.AddKeyedSingleton(settings.EndpointName,
+        hostBuilder.Services.AddKeyedSingleton(settings.InstanceName,
             (provider, _) => (TestServer)provider.GetRequiredService<IServer>());
 
         // // For acceptance testing purposes we are adding more controllers to the host

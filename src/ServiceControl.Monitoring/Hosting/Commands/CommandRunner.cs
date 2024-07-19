@@ -1,25 +1,14 @@
 namespace ServiceControl.Monitoring
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    class CommandRunner
+    class CommandRunner(Type commandType)
     {
-        public CommandRunner(List<Type> commands)
+        public async Task Execute(HostArguments args, Settings settings)
         {
-            this.commands = commands;
+            var command = (AbstractCommand)Activator.CreateInstance(commandType);
+            await command.Execute(args, settings);
         }
-
-        public async Task Execute(Settings settings)
-        {
-            foreach (var commandType in commands)
-            {
-                var command = (AbstractCommand)Activator.CreateInstance(commandType);
-                await command.Execute(settings);
-            }
-        }
-
-        List<Type> commands;
     }
 }

@@ -99,7 +99,7 @@
             public Sender() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1));
+                    c.ReportCustomChecksTo(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromSeconds(1));
                     c.NoRetries();
                 });
 

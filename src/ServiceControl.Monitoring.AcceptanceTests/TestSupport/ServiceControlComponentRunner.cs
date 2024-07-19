@@ -35,7 +35,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         {
             settings = new Settings
             {
-                EndpointName = Settings.DEFAULT_ENDPOINT_NAME,
                 TransportType = transportToUse.TypeName,
                 ConnectionString = transportToUse.ConnectionString,
                 HttpHostName = "localhost",
@@ -72,18 +71,18 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
             setSettings(settings);
 
-            using (new DiagnosticTimer($"Creating infrastructure for {settings.EndpointName}"))
+            using (new DiagnosticTimer($"Creating infrastructure for {settings.InstanceName}"))
             {
                 var setupCommand = new SetupCommand();
-                await setupCommand.Execute(settings);
+                await setupCommand.Execute(new HostArguments([]), settings);
             }
 
-            var configuration = new EndpointConfiguration(settings.EndpointName);
+            var configuration = new EndpointConfiguration(settings.InstanceName);
             configuration.CustomizeServiceControlMonitoringEndpointTesting(context);
 
             customConfiguration(configuration);
 
-            using (new DiagnosticTimer($"Starting host for {settings.EndpointName}"))
+            using (new DiagnosticTimer($"Starting host for {settings.InstanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
@@ -97,9 +96,9 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 {
                     var logitem = new ScenarioContext.LogItem
                     {
-                        Endpoint = settings.ServiceName,
+                        Endpoint = settings.InstanceName,
                         Level = LogLevel.Fatal,
-                        LoggerName = $"{settings.ServiceName}.CriticalError",
+                        LoggerName = $"{settings.InstanceName}.CriticalError",
                         Message = $"{criticalErrorContext.Error}{Environment.NewLine}{criticalErrorContext.Exception}"
                     };
                     context.Logs.Enqueue(logitem);
@@ -113,13 +112,13 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 host.UseServiceControlMonitoring();
                 await host.StartAsync();
 
-                HttpClient = host.Services.GetRequiredKeyedService<TestServer>(settings.EndpointName).CreateClient();
+                HttpClient = host.Services.GetRequiredKeyedService<TestServer>(settings.InstanceName).CreateClient();
             }
         }
 
         public override async Task Stop(CancellationToken cancellationToken = default)
         {
-            using (new DiagnosticTimer($"Test TearDown for {settings.EndpointName}"))
+            using (new DiagnosticTimer($"Test TearDown for {settings.InstanceName}"))
             {
                 await host.StopAsync(cancellationToken);
                 HttpClient.Dispose();

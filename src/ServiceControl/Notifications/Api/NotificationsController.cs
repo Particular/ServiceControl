@@ -71,8 +71,8 @@
             {
                 await EmailSender.Send(
                         notificationsSettings.Email,
-                        $"[{settings.ServiceName}] health check notification check successful",
-                        $"[{settings.ServiceName}] health check notification check successful.");
+                        $"[{settings.InstanceName}] health check notification check successful",
+                        $"[{settings.InstanceName}] health check notification check successful.");
             }
             catch (Exception e)
             {

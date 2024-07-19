@@ -46,7 +46,7 @@
             public EndpointWithRetries() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
+                    c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromSeconds(1));
                 });
 
             class Handler(TestContext testContext) : IHandleMessages<SampleMessage>

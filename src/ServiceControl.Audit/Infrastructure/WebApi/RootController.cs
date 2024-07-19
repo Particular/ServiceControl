@@ -47,7 +47,7 @@
             {
                 Host = new
                 {
-                    settings.ServiceName,
+                    settings.InstanceName,
                     Logging = new
                     {
                         settings.LoggingSettings.LogPath,

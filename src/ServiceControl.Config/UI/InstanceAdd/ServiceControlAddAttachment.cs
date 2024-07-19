@@ -58,6 +58,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
             {
                 serviceControlNewInstance.DisplayName = viewModel.ServiceControl.InstanceName;
                 serviceControlNewInstance.Name = viewModel.ServiceControl.InstanceName.Replace(' ', '.');
+                serviceControlNewInstance.InstanceName = viewModel.ServiceControl.InstanceName.Replace(' ', '.');
                 serviceControlNewInstance.ServiceDescription = viewModel.ServiceControl.Description;
                 serviceControlNewInstance.DBPath = viewModel.ServiceControl.DatabasePath;
                 serviceControlNewInstance.LogPath = viewModel.ServiceControl.LogPath;
@@ -82,6 +83,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
             {
                 auditNewInstance.DisplayName = viewModel.ServiceControlAudit.InstanceName;
                 auditNewInstance.Name = viewModel.ServiceControlAudit.InstanceName.Replace(' ', '.');
+                auditNewInstance.InstanceName = viewModel.ServiceControlAudit.InstanceName.Replace(' ', '.');
                 auditNewInstance.ServiceDescription = viewModel.ServiceControlAudit.Description;
                 auditNewInstance.DBPath = viewModel.ServiceControlAudit.DatabasePath;
                 auditNewInstance.LogPath = viewModel.ServiceControlAudit.LogPath;
@@ -97,7 +99,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 auditNewInstance.AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod;
                 auditNewInstance.ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount;
                 auditNewInstance.ServiceAccountPwd = viewModel.ServiceControlAudit.Password;
-                auditNewInstance.ServiceControlQueueAddress = serviceControlNewInstance == null ? string.Empty : serviceControlNewInstance.Name;
+                auditNewInstance.ServiceControlQueueAddress = serviceControlNewInstance == null ? string.Empty : serviceControlNewInstance.InstanceName;
                 auditNewInstance.EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value;
             }
 

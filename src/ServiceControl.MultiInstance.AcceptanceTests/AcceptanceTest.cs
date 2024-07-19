@@ -19,8 +19,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
     [TestFixture]
     abstract class AcceptanceTest : NServiceBusAcceptanceTest, IAcceptanceTestInfrastructureProviderMultiInstance
     {
-        protected static string ServiceControlInstanceName { get; } = Settings.DEFAULT_SERVICE_NAME;
-        protected static string ServiceControlAuditInstanceName { get; } = Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
+        protected static string ServiceControlInstanceName { get; } = Settings.DEFAULT_INSTANCE_NAME;
+        protected static string ServiceControlAuditInstanceName { get; } = Audit.Infrastructure.Settings.Settings.DEFAULT_INSTANCE_NAME;
 
         public Dictionary<string, HttpClient> HttpClients => serviceControlRunnerBehavior.HttpClients;
         public Dictionary<string, JsonSerializerOptions> SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;

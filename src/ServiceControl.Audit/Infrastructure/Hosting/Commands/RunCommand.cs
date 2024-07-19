@@ -10,7 +10,7 @@
     {
         public override async Task Execute(HostArguments args, Settings settings)
         {
-            var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
+            var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
             var assemblyScanner = endpointConfiguration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 

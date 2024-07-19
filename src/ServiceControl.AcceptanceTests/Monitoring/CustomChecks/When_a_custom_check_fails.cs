@@ -41,7 +41,7 @@
 
         public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
         {
-            public EndpointWithFailingCustomCheck() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
+            public EndpointWithFailingCustomCheck() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromSeconds(1)); });
 
             class FailingCustomCheck() : CustomCheck("MyCustomCheckId", "MyCategory")
             {

@@ -22,7 +22,7 @@
                 provider.GetRequiredService<HostInformation>(),
                 provider.GetRequiredService<IAsyncTimer>(),
                 provider.GetRequiredService<CustomCheckResultProcessor>(),
-                provider.GetRequiredService<Settings>().ServiceName));
+                provider.GetRequiredService<Settings>().InstanceName));
             return hostBuilder;
         }
     }

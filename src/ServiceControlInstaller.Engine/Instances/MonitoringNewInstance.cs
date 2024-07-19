@@ -41,23 +41,30 @@
         }
 
         public string HostName { get; set; }
+
         public int Port { get; set; }
 
         public string ErrorQueue { get; set; }
 
-
         public string InstallPath { get; set; }
+
         public string LogPath { get; set; }
 
         public TransportInfo TransportPackage { get; set; }
+
         public string ConnectionString { get; set; }
 
         public string Name { get; set; }
-        public string DisplayName { get; set; }
-        public string ServiceAccount { get; set; }
-        public string ServiceAccountPwd { get; set; }
-        public bool SkipQueueCreation { get; set; }
 
+        public string InstanceName { get; set; }
+
+        public string DisplayName { get; set; }
+
+        public string ServiceAccount { get; set; }
+
+        public string ServiceAccountPwd { get; set; }
+
+        public bool SkipQueueCreation { get; set; }
 
         public SemanticVersion Version { get; }
 
@@ -106,7 +113,7 @@
                 ServiceAccountPwd = ServiceAccountPwd,
                 DisplayName = DisplayName,
                 Name = Name,
-                ImagePath = $"\"{Path.Combine(InstallPath, Constants.MonitoringExe)}\" --serviceName={Name}",
+                ImagePath = $"\"{Path.Combine(InstallPath, Constants.MonitoringExe)}\"",
                 ServiceDescription = ServiceDescription
             };
             var dependencies = new List<string>

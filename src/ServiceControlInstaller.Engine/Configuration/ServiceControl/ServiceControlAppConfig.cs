@@ -15,6 +15,7 @@
             Config.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", details.ConnectionString);
             var settings = Config.AppSettings.Settings;
             var version = details.Version;
+            settings.Set(ServiceControlSettings.InstanceName, details.InstanceName, version);
             settings.Set(ServiceControlSettings.VirtualDirectory, details.VirtualDirectory);
             settings.Set(ServiceControlSettings.Port, details.Port.ToString());
             settings.Set(ServiceControlSettings.DatabaseMaintenancePort, details.DatabaseMaintenancePort.ToString(), version);
@@ -35,6 +36,7 @@
             settings.RemoveIfRetired(ServiceControlSettings.AuditQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.AuditLogQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.ForwardAuditMessages, version);
+            settings.RemoveIfRetired(ServiceControlSettings.InternalQueueName, version);
 
             RemoveRavenDB35Settings(settings, version);
         }

@@ -84,6 +84,8 @@
 
         public string Name => ServiceInstance.Name;
 
+        public string InstanceName => ServiceInstance.InstanceName;
+
         public string Host
         {
             get

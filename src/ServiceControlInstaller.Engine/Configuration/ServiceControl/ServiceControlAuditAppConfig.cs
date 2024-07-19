@@ -17,6 +17,7 @@
             Config.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", instance.ConnectionString);
             var settings = Config.AppSettings.Settings;
             var version = instance.Version;
+            settings.Set(AuditInstanceSettingsList.InstanceName, instance.InstanceName, version);
             settings.Set(AuditInstanceSettingsList.Port, instance.Port.ToString());
             settings.Set(AuditInstanceSettingsList.HostName, instance.HostName);
             settings.Set(AuditInstanceSettingsList.LogPath, instance.LogPath);
@@ -64,6 +65,9 @@
                     }
                 }
             }
+
+            // Retired setting
+            settings.RemoveIfRetired(AuditInstanceSettingsList.InternalQueueName, version);
 
             RemoveRavenDB35Settings(settings, version);
         }

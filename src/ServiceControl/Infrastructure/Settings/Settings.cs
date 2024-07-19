@@ -20,7 +20,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
     public class Settings
     {
         public Settings(
-            string serviceName = null,
             string transportType = null,
             string persisterType = null,
             LoggingSettings loggingSettings = null,
@@ -30,15 +29,11 @@ namespace ServiceBus.Management.Infrastructure.Settings
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
-            ServiceName = serviceName;
+            // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
+            InstanceName = SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", InstanceName);
 
-            if (string.IsNullOrEmpty(serviceName))
-            {
-                ServiceName = DEFAULT_SERVICE_NAME;
-            }
-
-            // Overwrite the service name if it is specified in ENVVAR, reg, or config file
-            ServiceName = SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", ServiceName);
+            // Overwrite the instance name if it is specified in ENVVAR, reg, or config file
+            InstanceName = SettingsReader.Read(SettingsRootNamespace, "InstanceName", InstanceName);
 
             LoadErrorIngestionSettings();
 
@@ -94,8 +89,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool DisableExternalIntegrationsPublishing { get; set; }
 
-        public bool SkipQueueCreation { get; set; }
-
         public bool RunCleanupBundle { get; set; }
 
         public string RootUrl
@@ -131,7 +124,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public string StorageUrl => $"{RootUrl}storage";
 
-        public string StagingQueue => $"{ServiceName}.staging";
+        public string StagingQueue => $"{InstanceName}.staging";
 
         public int Port { get; private set; }
 
@@ -172,7 +165,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public TimeSpan ErrorRetentionPeriod { get; }
 
         public TimeSpan EventsRetentionPeriod { get; }
-        public string ServiceName { get; }
+
+        public string InstanceName { get; init; } = DEFAULT_INSTANCE_NAME;
 
         public string TransportConnectionString { get; set; }
         public TimeSpan ProcessRetryBatchesFrequency { get; set; }
@@ -201,7 +195,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         {
             var transportSettings = new TransportSettings
             {
-                EndpointName = ServiceName,
+                EndpointName = InstanceName,
                 ConnectionString = TransportConnectionString,
                 MaxConcurrency = MaximumConcurrencyLevel,
                 RunCustomChecks = true,
@@ -415,7 +409,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         // logger is intentionally not static to prevent it from being initialized before LoggingConfigurator.ConfigureLogging has been called
         readonly ILog logger = LogManager.GetLogger(typeof(Settings));
 
-        public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
+        public const string DEFAULT_INSTANCE_NAME = "Particular.ServiceControl";
         public static readonly SettingsRootNamespace SettingsRootNamespace = new("ServiceControl");
     }
 }

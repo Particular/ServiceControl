@@ -16,7 +16,7 @@
             if (context.MessageHeaders.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var messageId))
             {
                 var options = new SendOptions();
-                options.SetDestination(Settings.DEFAULT_SERVICE_NAME);
+                options.SetDestination(Settings.DEFAULT_INSTANCE_NAME);
 
                 await context.Send(new MarkMessageFailureResolvedByRetry
                 {

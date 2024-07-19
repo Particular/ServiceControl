@@ -53,7 +53,7 @@
                 ServiceAccountPwd = ServiceAccountPwd,
                 DisplayName = DisplayName,
                 Name = Name,
-                ImagePath = $"\"{Path.Combine(InstallPath, Constants.ServiceControlAuditExe)}\" --serviceName={Name}",
+                ImagePath = $"\"{Path.Combine(InstallPath, Constants.ServiceControlAuditExe)}\"",
                 ServiceDescription = ServiceDescription
             };
         }

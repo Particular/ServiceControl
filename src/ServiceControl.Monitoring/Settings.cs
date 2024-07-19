@@ -16,6 +16,9 @@ namespace ServiceControl.Monitoring
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
+            // Overwrite the instance name if it is specified in ENVVAR, reg, or config file
+            InstanceName = SettingsReader.Read(SettingsRootNamespace, "InstanceName", InstanceName);
+
             TransportType = SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
 
             ConnectionString = GetConnectionString();
@@ -32,7 +35,7 @@ namespace ServiceControl.Monitoring
                 HttpHostName = SettingsReader.Read<string>(SettingsRootNamespace, "HttpHostname");
                 HttpPort = SettingsReader.Read<string>(SettingsRootNamespace, "HttpPort");
             }
-            EndpointName = SettingsReader.Read<string>(SettingsRootNamespace, "EndpointName");
+
             EndpointUptimeGracePeriod = TimeSpan.Parse(SettingsReader.Read(SettingsRootNamespace, "EndpointUptimeGracePeriod", "00:00:40"));
             MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", 32);
             ServiceControlThroughputDataQueue = SettingsReader.Read(SettingsRootNamespace, "ServiceControlThroughputDataQueue", "ServiceControl.ThroughputData");
@@ -40,18 +43,12 @@ namespace ServiceControl.Monitoring
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
 
-        public string EndpointName
-        {
-            get => endpointName ?? ServiceName;
-            set => endpointName = value;
-        }
-
         [JsonIgnore]
         public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
 
         public LoggingSettings LoggingSettings { get; }
 
-        public string ServiceName { get; set; } = DEFAULT_ENDPOINT_NAME;
+        public string InstanceName { get; init; } = DEFAULT_INSTANCE_NAME;
 
         public string TransportType { get; set; }
 
@@ -59,17 +56,11 @@ namespace ServiceControl.Monitoring
 
         public string ErrorQueue { get; set; }
 
-        public string Username { get; set; }
-
-        public bool EnableInstallers { get; set; }
-
         public string HttpHostName { get; set; }
 
         public string HttpPort { get; set; }
 
         public TimeSpan EndpointUptimeGracePeriod { get; set; }
-
-        public bool SkipQueueCreation { get; set; }
 
         public string RootUrl => $"http://{HttpHostName}:{HttpPort}/";
 
@@ -82,7 +73,7 @@ namespace ServiceControl.Monitoring
             var transportSettings = new TransportSettings
             {
                 ConnectionString = ConnectionString,
-                EndpointName = EndpointName,
+                EndpointName = InstanceName,
                 ErrorQueue = ErrorQueue,
                 MaxConcurrency = MaximumConcurrencyLevel,
                 AssemblyLoadContextResolver = AssemblyLoadContextResolver,
@@ -103,11 +94,9 @@ namespace ServiceControl.Monitoring
             return connectionStringSettings?.ConnectionString;
         }
 
-        string endpointName;
-
         internal Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
 
-        public const string DEFAULT_ENDPOINT_NAME = "Particular.Monitoring";
+        public const string DEFAULT_INSTANCE_NAME = "Particular.Monitoring";
         public static readonly SettingsRootNamespace SettingsRootNamespace = new("Monitoring");
     }
 }

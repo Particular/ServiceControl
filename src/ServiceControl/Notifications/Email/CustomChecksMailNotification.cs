@@ -33,7 +33,7 @@
             this.messageSession = messageSession;
             this.throttlingState = throttlingState;
 
-            instanceName = settings.ServiceName;
+            instanceName = settings.InstanceName;
             instanceAddress = settings.ApiUrl;
 
             if (string.IsNullOrWhiteSpace(settings.NotificationsFilter) == false)

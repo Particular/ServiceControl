@@ -83,12 +83,6 @@ public static class HostApplicationBuilderExtensions
             services.AddHostedService<ReportThroughputHostedService>();
         }
 
-
-        if (settings.EnableInstallers)
-        {
-            config.EnableInstallers(settings.Username);
-        }
-
         config.DefineCriticalErrorAction(onCriticalError);
 
         config.GetSettings().Set(settings);

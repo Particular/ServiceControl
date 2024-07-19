@@ -55,7 +55,7 @@ class ConfigurationApi(ActiveLicense license,
         {
             Host = new
             {
-                settings.ServiceName,
+                settings.InstanceName,
                 Logging = new
                 {
                     settings.LoggingSettings.LogPath,

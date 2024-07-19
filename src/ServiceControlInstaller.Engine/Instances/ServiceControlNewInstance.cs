@@ -80,7 +80,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 ServiceAccountPwd = ServiceAccountPwd,
                 DisplayName = DisplayName,
                 Name = Name,
-                ImagePath = $"\"{Path.Combine(InstallPath, Constants.ServiceControlExe)}\" --serviceName={Name}",
+                ImagePath = $"\"{Path.Combine(InstallPath, Constants.ServiceControlExe)}\"",
                 ServiceDescription = ServiceDescription
             };
         }

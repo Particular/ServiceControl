@@ -15,7 +15,7 @@ class LicensingComponent : ServiceControlComponent
         hostBuilder.AddLicensingComponent(
             TransportManifestLibrary.Find(settings.TransportType)?.Name ?? settings.TransportType,
             settings.ErrorQueue,
-            settings.ServiceName,
+            settings.InstanceName,
             LicenseManager.FindLicense().Details.RegisteredTo,
             ServiceControlVersion.GetFileVersion());
 

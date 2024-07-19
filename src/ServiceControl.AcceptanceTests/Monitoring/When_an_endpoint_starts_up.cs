@@ -42,7 +42,7 @@
             public StartingEndpoint() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME);
+                    c.SendHeartbeatTo(Settings.DEFAULT_INSTANCE_NAME);
 
                     c.GetSettings().Set("ServiceControl.CustomHostIdentifier", hostIdentifier);
                     c.UniquelyIdentifyRunningInstance().UsingCustomIdentifier(hostIdentifier);

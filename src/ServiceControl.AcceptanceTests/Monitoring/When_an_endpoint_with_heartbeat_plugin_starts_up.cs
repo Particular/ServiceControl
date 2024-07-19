@@ -58,7 +58,7 @@
 
         public class StartingEndpoint : EndpointConfigurationBuilder
         {
-            public StartingEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME));
+            public StartingEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => c.SendHeartbeatTo(Settings.DEFAULT_INSTANCE_NAME));
         }
     }
 }

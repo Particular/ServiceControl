@@ -4,7 +4,6 @@
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using System.Runtime;
     using System.ServiceProcess;
     using System.Threading;
     using Engine;
@@ -16,11 +15,19 @@
     public abstract class BaseService : IServiceInstance
     {
         public string Description { get; set; }
+
         public IWindowsServiceController Service { get; set; }
+
         public string InstallPath => Path.GetDirectoryName(Service.ExePath);
+
         public string DisplayName { get; set; }
+
         public string Name => Service.ServiceName;
+
+        public string InstanceName { get; set; }
+
         public string ServiceAccount { get; set; }
+
         public string ServiceAccountPwd { get; set; }
 
         public TransportInfo TransportPackage { get; set; }
@@ -231,7 +238,6 @@
                 }
             }
         }
-
 
         static void PurgeOld(string oldPath)
         {

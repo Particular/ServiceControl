@@ -13,19 +13,15 @@
 
     public class Settings
     {
-        public Settings(string serviceName = null, string transportType = null, string persisterType = null, LoggingSettings loggingSettings = null)
+        public Settings(string transportType = null, string persisterType = null, LoggingSettings loggingSettings = null)
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
-            ServiceName = serviceName;
+            // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
+            InstanceName = SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", InstanceName);
 
-            if (string.IsNullOrEmpty(serviceName))
-            {
-                ServiceName = DEFAULT_SERVICE_NAME;
-            }
-
-            // Overwrite the service name if it is specified in ENVVAR, reg, or config file
-            ServiceName = SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", ServiceName);
+            // Overwrite the instance name if it is specified in ENVVAR, reg, or config file
+            InstanceName = SettingsReader.Read(SettingsRootNamespace, "InstanceName", InstanceName);
 
             TransportType = transportType ?? SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
 
@@ -93,8 +89,6 @@
 
         public bool ValidateConfiguration => SettingsReader.Read(SettingsRootNamespace, "ValidateConfig", true);
 
-        public bool SkipQueueCreation { get; set; }
-
         public string RootUrl
         {
             get
@@ -147,7 +141,7 @@
             set => maxBodySizeToStore = value;
         }
 
-        public string ServiceName { get; }
+        public string InstanceName { get; init; } = DEFAULT_INSTANCE_NAME;
 
         public string TransportConnectionString { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
@@ -161,7 +155,7 @@
         {
             var transportSettings = new TransportSettings
             {
-                EndpointName = ServiceName,
+                EndpointName = InstanceName,
                 ConnectionString = TransportConnectionString,
                 MaxConcurrency = MaximumConcurrencyLevel,
                 TransportType = TransportType,
@@ -283,7 +277,7 @@
 
         int maxBodySizeToStore = SettingsReader.Read(SettingsRootNamespace, "MaxBodySizeToStore", MaxBodySizeToStoreDefault);
 
-        public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
+        public const string DEFAULT_INSTANCE_NAME = "Particular.ServiceControl.Audit";
         public static readonly SettingsRootNamespace SettingsRootNamespace = new("ServiceControl.Audit");
 
         const int MaxBodySizeToStoreDefault = 102400; //100 kb

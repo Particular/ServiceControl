@@ -61,6 +61,9 @@ namespace ServiceControlInstaller.Engine
     public interface IServiceInstance : IServiceAccount, IVersionInfo
     {
         string Name { get; }
+
+        string InstanceName { get; }
+
         string DisplayName { get; }
     }
 

@@ -69,23 +69,43 @@
         }
 
         public string LogPath { get; set; }
+
         public string DBPath { get; set; }
+
         public string HostName { get; set; }
+
         public string InstallPath { get; set; }
+
         public int Port { get; set; }
+
         public int? DatabaseMaintenancePort { get; set; }
+
         public string VirtualDirectory { get; set; }
+
         public string ErrorQueue { get; set; }
+
         public string ErrorLogQueue { get; set; }
+
         public string AuditQueue { get; set; }
+
         public string AuditLogQueue { get; set; }
+
         public bool ForwardAuditMessages { get; set; }
+
         public bool ForwardErrorMessages { get; set; }
+
         public TransportInfo TransportPackage { get; set; }
+
         public string ConnectionString { get; set; }
+
         public string Name { get; set; }
+
+        public string InstanceName { get; set; }
+
         public string DisplayName { get; set; }
+
         public bool SkipQueueCreation { get; set; }
+
         public bool EnableFullTextSearchOnBodies { get; set; }
 
         [XmlIgnore]
