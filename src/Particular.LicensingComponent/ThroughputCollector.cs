@@ -97,7 +97,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
     async Task<ReportGenerationState> GetReportGenerationStateForBroker(CancellationToken cancellationToken)
     {
         var reportCanBeGenerated = await dataStore.IsThereThroughputForLastXDaysForSource(30, ThroughputSource.Broker, false, cancellationToken);
-        var reason = reportCanBeGenerated ? string.Empty : $"Need at least one day of usage data in the last 30 days from {transport} broker.";
+        var reason = reportCanBeGenerated ? string.Empty : "Need at least one day of usage data in the last 30 days from the configured broker.";
 
         return new ReportGenerationState(transport)
         {
