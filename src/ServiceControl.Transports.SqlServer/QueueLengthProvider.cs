@@ -99,7 +99,7 @@
 
         async Task UpdateChunk(SqlConnection connection, KeyValuePair<SqlTable, int>[] chunk, CancellationToken cancellationToken)
         {
-            var query = string.Join(Environment.NewLine, chunk.Select(c => BuildQueueLengthQuery(c.Key)).ToArray());
+            var query = string.Join(Environment.NewLine, chunk.Select(c => BuildQueueLengthQuery(c.Key)));
 
             await using var command = new SqlCommand(query, connection);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
