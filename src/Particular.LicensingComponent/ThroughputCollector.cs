@@ -89,19 +89,33 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         return endpointSummaries;
     }
 
-    public async Task<ReportGenerationState> GetReportGenerationState(CancellationToken cancellationToken)
+    public async Task<ReportGenerationState> GetReportGenerationState(CancellationToken cancellationToken) =>
+        throughputQuery == null ?
+            await GetReportGenerationStateForNonBroker(cancellationToken) :
+            await GetReportGenerationStateForBroker(cancellationToken);
+
+    async Task<ReportGenerationState> GetReportGenerationStateForBroker(CancellationToken cancellationToken)
     {
-        var reportGenerationState = new ReportGenerationState(transport)
+        var reportCanBeGenerated = await dataStore.IsThereThroughputForLastXDaysForSource(30, ThroughputSource.Broker, false, cancellationToken);
+        var reason = reportCanBeGenerated ? string.Empty : "Need at least one day of usage data in the last 30 days from the configured broker.";
+
+        return new ReportGenerationState(transport)
         {
-            ReportCanBeGenerated = await dataStore.IsThereThroughputForLastXDays(30, cancellationToken)
+            ReportCanBeGenerated = reportCanBeGenerated,
+            Reason = reason
         };
+    }
 
-        if (!reportGenerationState.ReportCanBeGenerated)
+    async Task<ReportGenerationState> GetReportGenerationStateForNonBroker(CancellationToken cancellationToken)
+    {
+        var reportCanBeGenerated = await dataStore.IsThereThroughputForLastXDays(30, cancellationToken);
+        var reason = reportCanBeGenerated ? string.Empty : $"Need at least one day of usage data in the last 30 days.";
+
+        return new ReportGenerationState(transport)
         {
-            reportGenerationState.Reason = "24 hours worth of data needs to exist in the last 30 days.";
-        }
-
-        return reportGenerationState;
+            ReportCanBeGenerated = reportCanBeGenerated,
+            Reason = reason
+        };
     }
 
     public async Task<SignedReport> GenerateThroughputReport(string spVersion, DateTime? reportEndDate, CancellationToken cancellationToken)

@@ -7,8 +7,7 @@ public enum UserIndicator
 {
     NServiceBusEndpoint,
     NotNServiceBusEndpoint,
-    NServiceBusEndpointSendOnly,
+    SendOnlyOrTransactionSessionEndpoint,
     NServiceBusEndpointNoLongerInUse,
-    TransactionSessionEndpoint,
     PlannedToDecommission
 }
