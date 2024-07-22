@@ -1,7 +1,7 @@
 ﻿#nullable enable
 namespace ServiceControl.Transports.SqlServer
 {
-    class SqlNameHelper
+    static class SqlNameHelper
     {
         const string prefix = "[";
         const string suffix = "]";
