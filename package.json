@@ -63,7 +63,7 @@
     "vite": "^5.3.4",
     "vite-plugin-checker": "^0.7.2",
     "vitest": "^2.0.3",
-    "vue-tsc": "^2.0.26"
+    "vue-tsc": "^2.0.28"
   },
   "msw": {
     "workerDirectory": [
