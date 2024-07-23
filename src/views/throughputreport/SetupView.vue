@@ -39,7 +39,7 @@ const { testResults, isBrokerTransport } = storeToRefs(store);
               </template>
             </template>
             <p>
-              You are using a transport that does not support automatic usage collection.<br />
+              You are using a transport that does not support automatic usage collection directly from the broker.<br />
               In order for ServicePulse to collect usage data from your endpoints, you need to ensure that either Audit or Monitoring (metrics) are enabled on all your endpoints.<br />
               Read the <a href="https://docs.particular.net/servicecontrol/audit-instances/">Audit documentation</a> and the <a href="https://docs.particular.net/monitoring/metrics/">Monitoring documentation</a> for setup instructions.
             </p>
