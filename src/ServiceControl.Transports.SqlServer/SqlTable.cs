@@ -27,7 +27,7 @@
 
         public static SqlTable Parse(string address, string defaultSchema)
         {
-            var parts = address.Split('@').ToArray();
+            var parts = address.Split('@');
 
             return new SqlTable(
                 parts[0],
