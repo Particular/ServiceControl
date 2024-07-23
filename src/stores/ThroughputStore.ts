@@ -19,19 +19,24 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
   );
   const refresh = dataRetriever.executeAndResetTimer;
   const hasErrors = computed(() => {
-    if (isBrokerTransport.value) {
-      return !testResults.value?.broker_connection_result.connection_successful;
+    // if it is a broker transport, we return true if connection test is unsuccessful
+    if (isBrokerTransport.value && !testResults.value?.broker_connection_result.connection_successful) {
+      return true;
     }
 
+    // if Audit connection test fails, we will return true.
+    // the connection test will return true if there are no Audit instances configured.
     if (!testResults.value?.audit_connection_result.connection_successful) {
-      return false;
+      return true;
     }
 
+    // if Monitoring is enabled, we return whatever the value of the connection test
     if (useIsMonitoringEnabled()) {
       return !testResults.value?.monitoring_connection_result.connection_successful;
     }
 
-    return true;
+    // Last but not least we assume no errors
+    return false;
   });
   const transport = computed(() => {
     if (testResults.value == null) {
