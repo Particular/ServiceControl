@@ -44,6 +44,7 @@ describe("DetectedListView tests", () => {
       container: document.body,
       props: {
         ...{
+          ariaLabel: "my endpoints",
           columnTitle: "Name",
           showEndpointTypePlaceholder: true,
           indicatorOptions: [],
@@ -158,8 +159,9 @@ describe("DetectedListView tests", () => {
     });
 
     test("by combination of all", async () => {
-      const columnTitle = "Special column name";
-      await renderComponent({ source: DataSource.Broker, indicatorOptions: [UserIndicator.NServiceBusEndpoint], columnTitle: columnTitle }, async (driver) => {
+      const tableName = "Special table";
+
+      await renderComponent({ source: DataSource.Broker, indicatorOptions: [UserIndicator.NServiceBusEndpoint], ariaLabel: tableName }, async (driver) => {
         await driver.setUp(
           precondition.hasLicensingEndpoints([
             ...[...Array(5).keys()].map((i) => ({ name: `${i}Beta`, is_known_endpoint: false, user_indicator: UserIndicator.PlannedToDecommission, max_daily_throughput: i })),
@@ -180,19 +182,18 @@ describe("DetectedListView tests", () => {
       await user.clear(filterNameElement);
       await user.type(filterNameElement, "boo");
 
-      const th = screen.getByText(columnTitle);
-      const table = th.parentElement?.parentElement?.parentElement as HTMLTableElement;
+      const table = screen.getByRole("table", { name: tableName });
 
-      expect(table.rows.length).toBe(1 + 1 /* includes headers */);
+      expect(within(table).getAllByRole("row").length).toBe(1 + 1 /* includes header row */);
     });
   });
 
   describe("sorting by", async () => {
     test("throughput", async () => {
-      const columnTitle = "Special column name";
+      const tableName = "Special table";
       const dataLength = 5;
 
-      await renderComponent({ source: DataSource.Broker, indicatorOptions: [UserIndicator.NServiceBusEndpoint], columnTitle: columnTitle }, async (driver) => {
+      await renderComponent({ source: DataSource.Broker, indicatorOptions: [UserIndicator.NServiceBusEndpoint], ariaLabel: tableName }, async (driver) => {
         await driver.setUp(precondition.hasLicensingEndpoints([...[...Array(dataLength).keys()].map((i) => ({ name: `${i}Beta`, is_known_endpoint: false, user_indicator: UserIndicator.PlannedToDecommission, max_daily_throughput: i }))]));
       });
 
@@ -200,51 +201,71 @@ describe("DetectedListView tests", () => {
       await user.click(screen.getByRole("button", { name: /Sort by/i }));
       await user.click(screen.getByRole("link", { name: "throughput" }));
 
-      const th = screen.getByText(columnTitle);
-      const table = th.parentElement?.parentElement?.parentElement as HTMLTableElement;
+      const table = screen.getByRole("table", { name: tableName }) as HTMLTableElement;
 
       let throughput = 0;
-      for (const row of [...table.rows].slice(1)) {
-        expect(row.cells[1].textContent).toBe(`${throughput++}`);
+      for (const row of within(table).getAllByRole("row").slice(1)) {
+        expect(within(row).getByRole("cell", { name: "maximum daily throughput" }).textContent).toBe(`${throughput++}`);
       }
 
       await user.click(screen.getByRole("button", { name: /Sort by/i }));
       await user.click(screen.getByRole("link", { name: "throughput (Descending)" }));
 
       throughput = dataLength - 1;
-      for (const row of [...table.rows].slice(1)) {
-        expect(row.cells[1].textContent).toBe(`${throughput--}`);
+      for (const row of within(table).getAllByRole("row").slice(1)) {
+        expect(within(row).getByRole("cell", { name: "maximum daily throughput" }).textContent).toBe(`${throughput--}`);
       }
     });
 
     test("name", async () => {
-      const columnTitle = "Special column name";
-      const names = ["basilisk", "octopus", "hamster", "anteater", "porcupine", "gazelle", "seal", "lynx", "crocodile", "mountain goat", "yak", "polar bear", "horse", "gorilla", "zebu", "salamander", "alligator", "vicuna", "goat", "bunny"];
+      const tableName = "Special table";
+      const unsortedNames = ["basilisk", "octopus", "hamster", "anteater", "porcupine", "gazelle", "seal", "lynx", "crocodile", "mountain goat", "yak", "polar bear", "horse", "gorilla", "zebu", "salamander", "alligator", "vicuna", "goat", "bunny"];
+      const lexicallySortedNames = [
+        "alligator",
+        "anteater",
+        "basilisk",
+        "bunny",
+        "crocodile",
+        "gazelle",
+        "goat",
+        "gorilla",
+        "hamster",
+        "horse",
+        "lynx",
+        "mountain goat",
+        "octopus",
+        "polar bear",
+        "porcupine",
+        "salamander",
+        "seal",
+        "vicuna",
+        "yak",
+        "zebu",
+      ];
 
-      await renderComponent({ source: DataSource.Broker, indicatorOptions: [UserIndicator.NServiceBusEndpoint], columnTitle: columnTitle }, async (driver) => {
-        await driver.setUp(precondition.hasLicensingEndpoints([...[...names].map((name, idx) => ({ name, is_known_endpoint: false, user_indicator: UserIndicator.PlannedToDecommission, max_daily_throughput: idx }))]));
+      await renderComponent({ source: DataSource.Broker, indicatorOptions: [UserIndicator.NServiceBusEndpoint], ariaLabel: tableName }, async (driver) => {
+        await driver.setUp(precondition.hasLicensingEndpoints([...[...unsortedNames].map((name, idx) => ({ name, is_known_endpoint: false, user_indicator: UserIndicator.PlannedToDecommission, max_daily_throughput: idx }))]));
       });
 
       const user = userEvent.setup();
       await user.click(screen.getByRole("button", { name: /Sort by/i }));
       await user.click(screen.getByRole("link", { name: "name" }));
 
-      const th = screen.getByText(columnTitle);
-      const table = th.parentElement?.parentElement?.parentElement as HTMLTableElement;
+      const table = screen.getByRole("table", { name: tableName });
 
-      let orderedNames = names.sort((a, b) => a.localeCompare(b));
+      //let orderedNames = unsortedNames.sort((a, b) => a.localeCompare(b));
       let idx = 0;
-      for (const row of [...table.rows].slice(1)) {
-        expect(row.cells[0].textContent).toBe(orderedNames[idx++]);
+      for (const row of within(table).getAllByRole("row").slice(1)) {
+        expect(within(row).getByRole("cell", { name: "name" }).textContent).toBe(lexicallySortedNames[idx++]);
       }
 
       await user.click(screen.getByRole("button", { name: /Sort by/i }));
       await user.click(screen.getByRole("link", { name: "name (Descending)" }));
 
-      orderedNames = orderedNames.sort((a, b) => -a.localeCompare(b));
+      const reverseLexicallySortedNames = lexicallySortedNames.reverse();
       idx = 0;
-      for (const row of [...table.rows].slice(1)) {
-        expect(row.cells[0].textContent).toBe(orderedNames[idx++]);
+      for (const row of within(table).getAllByRole("row").slice(1)) {
+        expect(within(row).getByRole("cell", { name: "name" }).textContent).toBe(reverseLexicallySortedNames[idx++]);
       }
     });
   });
@@ -269,9 +290,9 @@ describe("DetectedListView tests", () => {
       };
 
     const setup = async () => {
-      const columnTitle = "Special column name";
+      const tableName = "Special table";
 
-      const { driver } = await renderComponent({ source: DataSource.Broker, indicatorOptions: [UserIndicator.PlannedToDecommission, UserIndicator.NServiceBusEndpoint], columnTitle: columnTitle }, async (driver) => {
+      const { driver } = await renderComponent({ source: DataSource.Broker, indicatorOptions: [UserIndicator.PlannedToDecommission, UserIndicator.NServiceBusEndpoint], ariaLabel: tableName }, async (driver) => {
         await driver.setUp(
           precondition.hasLicensingEndpoints([
             { name: `Not set yet`, is_known_endpoint: false, user_indicator: "", max_daily_throughput: 100 },
@@ -283,8 +304,7 @@ describe("DetectedListView tests", () => {
 
       const user = userEvent.setup();
 
-      const th = screen.getByText(columnTitle);
-      const table = th.parentElement?.parentElement?.parentElement as HTMLTableElement;
+      const table = screen.getByRole("table", { name: tableName });
 
       await driver.setUp(
         precondition.hasLicensingEndpoints([
@@ -299,12 +319,12 @@ describe("DetectedListView tests", () => {
     test("single", async () => {
       const { user, table } = await setup();
 
-      for (const row of [...table.rows].slice(1)) {
+      for (const row of within(table).getAllByRole("row").slice(1)) {
         const dropdown = within(row).getByRole("combobox");
         await user.selectOptions(dropdown, UserIndicator.NServiceBusEndpoint);
       }
 
-      for (const row of [...table.rows].slice(1)) {
+      for (const row of within(table).getAllByRole("row").slice(1)) {
         const dropdown = within(row).getByRole("combobox") as HTMLSelectElement;
         expect(dropdown.value).toBe(UserIndicator.NServiceBusEndpoint);
       }
@@ -321,7 +341,7 @@ describe("DetectedListView tests", () => {
       const yesButton = within(confirmDialog).getByRole("button", { name: /Yes/i });
       await user.click(yesButton);
 
-      for (const row of [...table.rows].slice(1)) {
+      for (const row of within(table).getAllByRole("row").slice(1)) {
         const dropdown = within(row).getByRole("combobox") as HTMLSelectElement;
         expect(dropdown.value).toBe(UserIndicator.NServiceBusEndpoint);
       }

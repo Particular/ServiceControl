@@ -231,11 +231,11 @@ async function save() {
         <td colspan="3" class="text-center"><slot name="nodata"></slot></td>
       </tr>
       <tr v-for="row in filteredData" :key="row.name">
-        <td class="col">
+        <td class="col" aria-label="name">
           {{ row.name }}
         </td>
-        <td class="col text-end formatThroughputColumn" style="width: 250px">{{ row.max_daily_throughput.toLocaleString() }}</td>
-        <td class="col" style="width: 350px">
+        <td class="col text-end formatThroughputColumn" style="width: 250px" aria-label="maximum daily throughput">{{ row.max_daily_throughput.toLocaleString() }}</td>
+        <td class="col" style="width: 350px" aria-label="endpoint type">
           <select class="form-select endpointType format-text" @change="(event) => updateIndicator(event, row.name)">
             <option v-if="props.showEndpointTypePlaceholder" value="">Pick the most appropriate option</option>
             <option v-for="item in props.indicatorOptions" :key="item" :value="item" :selected="(dataChanges.get(row.name)?.indicator ?? getDefaultEndpointType(row)) === item">{{ userIndicatorMapper.get(item) }}</option>
