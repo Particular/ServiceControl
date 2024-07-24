@@ -21,6 +21,7 @@ const { testResults } = storeToRefs(store);
     </div>
   </template>
   <DetectedListView
+    ariaLabel="Detected broker queues"
     :indicator-options="[UserIndicator.NServiceBusEndpoint, UserIndicator.NotNServiceBusEndpoint, UserIndicator.SendOnlyOrTransactionSessionEndpoint, UserIndicator.NServiceBusEndpointNoLongerInUse, UserIndicator.PlannedToDecommission]"
     :source="DataSource.Broker"
     column-title="Queue Name"

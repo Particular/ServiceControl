@@ -35,6 +35,7 @@ const sortData: SortData[] = [
 });
 
 export interface DetectedListViewProps {
+  ariaLabel: string;
   columnTitle: string;
   showEndpointTypePlaceholder: boolean;
   indicatorOptions: UserIndicator[];
@@ -217,7 +218,7 @@ async function save() {
       @confirm="proceedWithChangesWarning"
     />
   </Teleport>
-  <table class="table">
+  <table class="table" :aria-label="ariaLabel">
     <thead>
       <tr>
         <th scope="col">{{ props.columnTitle }}</th>
