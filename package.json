@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@tinyhttp/content-disposition": "^2.2.1",
-    "@vue-flow/core": "^1.39.0",
+    "@vue-flow/core": "^1.39.1",
     "@wdns/vue-code-block": "^2.3.3",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
@@ -33,7 +33,7 @@
     "vue3-simple-typeahead": "^1.0.11"
   },
   "devDependencies": {
-    "@rushstack/eslint-patch": "^1.10.3",
+    "@rushstack/eslint-patch": "^1.10.4",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.4.8",
     "@testing-library/user-event": "^14.5.2",
@@ -43,7 +43,7 @@
     "@types/node": "^20.14.12",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
-    "@vitejs/plugin-vue": "^5.1.0",
+    "@vitejs/plugin-vue": "^5.1.1",
     "@vitest/coverage-v8": "^2.0.4",
     "@vue/eslint-config-prettier": "^9.0.0",
     "@vue/eslint-config-typescript": "^13.0.0",
