@@ -28,9 +28,10 @@
                 .WithEndpoint<EndpointWithTimings>(c => c.When(async s =>
                 {
                     var tasks = new List<Task>();
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 100; i++)
                     {
                         tasks.Add(s.SendLocal(new SampleMessage()));
+                        tasks.Add(s.SendLocal(new AnotherSampleMessage()));
                     }
 
                     await Task.WhenAll(tasks);
@@ -62,6 +63,12 @@
                 public Task Handle(SampleMessage message, IMessageHandlerContext context)
                     => Task.Delay(TimeSpan.FromMilliseconds(10), context.CancellationToken);
             }
+
+            class AnotherHandler : IHandleMessages<AnotherSampleMessage>
+            {
+                public Task Handle(AnotherSampleMessage message, IMessageHandlerContext context)
+                    => Task.Delay(TimeSpan.FromMilliseconds(10), context.CancellationToken);
+            }
         }
 
         class InterceptIngestionBehavior(ScenarioContext scenarioContext) : Behavior<IIncomingPhysicalMessageContext>
@@ -91,6 +98,8 @@
         }
 
         class SampleMessage : SampleBaseMessage;
+
+        class AnotherSampleMessage : SampleBaseMessage;
 
         class SampleBaseMessage : IMessage;
     }
