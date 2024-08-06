@@ -178,6 +178,10 @@ jobs:
           [xml]$xml = Get-Content ./src/Custom.Build.props
           $minMajorMinor = $xml.selectNodes('/Project/PropertyGroup/MinVerMinimumMajorMinor').InnerText
           $autoIncrement = $xml.selectNodes('/Project/PropertyGroup/MinVerAutoIncrement').InnerText
+          echo "MinVerMinimumMajorMinor=$minMajorMinor, MinVerAutoIncrement=$autoIncrement"
+          if (-not ($minMajorMinor -and $autoIncrement)) {
+            throw "Missing MinVer settings in Custom.Build.props"
+          }
           
           # Execute MinVer
           echo "MinVerVersion=$(minver --minimum-major-minor $minMajorMinor --auto-increment $autoIncrement)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
