@@ -91,5 +91,5 @@
     <GlobalPackageReference Include="Microsoft.Build.CopyOnWrite" Version="1.0.315" />
     <GlobalPackageReference Include="Particular.Packaging" Version="4.1.0" />
   </ItemGroup>
-  
+
 </Project>
