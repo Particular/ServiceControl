@@ -18,4 +18,4 @@ jobs:
           timestamp-to-use: updated_at
           account: particular
           token: ${{ secrets.GITHUB_TOKEN }}
-          dry-run: false
+          dry-run: true
