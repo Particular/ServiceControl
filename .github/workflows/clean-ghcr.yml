@@ -8,85 +8,45 @@ jobs:
     name: Delete unused containers
     runs-on: ubuntu-latest
     steps:
-      - name: ServiceControl PRs/alphas
+      - name: ServiceControl
         uses: snok/container-retention-policy@v3.0.0
         with:
           image-names: servicecontrol
           image-tags: pr-*, *-alpha.*
-          filter-include-untagged: true
+          tag-selection: both
           cut-off: 2 weeks ago UTC
           timestamp-to-use: updated_at
           account: particular
           token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: false
-      - name: ServiceControl untagged
-        uses: snok/container-retention-policy@v3.0.0
-        with:
-          image-names: servicecontrol
-          untagged-only: true
-          cut-off: 2 weeks ago UTC
-          timestamp-to-use: updated_at
-          account: particular
-          token: ${{ secrets.GITHUB_TOKEN }}
-          dry-run: false
-      - name: Audit PRs/alphas
+      - name: Audit
         uses: snok/container-retention-policy@v3.0.0
         with:
           image-names: servicecontrol-audit
           image-tags: pr-*, *-alpha.*
-          filter-include-untagged: true
+          tag-selection: both
           cut-off: 2 weeks ago UTC
           timestamp-to-use: updated_at
           account: particular
           token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: false
-      - name: Audit untagged
-        uses: snok/container-retention-policy@v3.0.0
-        with:
-          image-names: servicecontrol-audit
-          untagged-only: true
-          cut-off: 2 weeks ago UTC
-          timestamp-to-use: updated_at
-          account: particular
-          token: ${{ secrets.GITHUB_TOKEN }}
-          dry-run: false
-      - name: Monitoring PRs/alphas
+      - name: Monitoring
         uses: snok/container-retention-policy@v3.0.0
         with:
           image-names: servicecontrol-monitoring
           image-tags: pr-*, *-alpha.*
-          filter-include-untagged: true
+          tag-selection: both
           cut-off: 2 weeks ago UTC
           timestamp-to-use: updated_at
           account: particular
           token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: false
-      - name: Monitoring untagged
-        uses: snok/container-retention-policy@v3.0.0
-        with:
-          image-names: servicecontrol-monitoring
-          untagged-only: true
-          cut-off: 2 weeks ago UTC
-          timestamp-to-use: updated_at
-          account: particular
-          token: ${{ secrets.GITHUB_TOKEN }}
-          dry-run: false
-      - name: RavenDB PRs/alphas
+      - name: RavenDB
         uses: snok/container-retention-policy@v3.0.0
         with:
           image-names: servicecontrol-ravendb
           image-tags: pr-*, *-alpha.*
-          filter-include-untagged: true
-          cut-off: 2 weeks ago UTC
-          timestamp-to-use: updated_at
-          account: particular
-          token: ${{ secrets.GITHUB_TOKEN }}
-          dry-run: false
-      - name: RavenDB untagged
-        uses: snok/container-retention-policy@v3.0.0
-        with:
-          image-names: servicecontrol-ravendb
-          untagged-only: true
+          tag-selection: both
           cut-off: 2 weeks ago UTC
           timestamp-to-use: updated_at
           account: particular
