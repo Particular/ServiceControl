@@ -8,43 +8,10 @@ jobs:
     name: Delete unused containers
     runs-on: ubuntu-latest
     steps:
-      - name: ServiceControl
+      - name: Clean up images
         uses: snok/container-retention-policy@v3.0.0
         with:
-          image-names: servicecontrol
-          image-tags: pr-*, *-alpha.*
-          tag-selection: both
-          cut-off: 2w
-          timestamp-to-use: updated_at
-          account: particular
-          token: ${{ secrets.GITHUB_TOKEN }}
-          dry-run: false
-      - name: Audit
-        uses: snok/container-retention-policy@v3.0.0
-        with:
-          image-names: servicecontrol-audit
-          image-tags: pr-*, *-alpha.*
-          tag-selection: both
-          cut-off: 2w
-          timestamp-to-use: updated_at
-          account: particular
-          token: ${{ secrets.GITHUB_TOKEN }}
-          dry-run: false
-      - name: Monitoring
-        uses: snok/container-retention-policy@v3.0.0
-        with:
-          image-names: servicecontrol-monitoring
-          image-tags: pr-*, *-alpha.*
-          tag-selection: both
-          cut-off: 2w
-          timestamp-to-use: updated_at
-          account: particular
-          token: ${{ secrets.GITHUB_TOKEN }}
-          dry-run: false
-      - name: RavenDB
-        uses: snok/container-retention-policy@v3.0.0
-        with:
-          image-names: servicecontrol-ravendb
+          image-names: servicecontrol servicecontrol-audit servicecontrol-monitoring servicecontrol-ravendb
           image-tags: pr-*, *-alpha.*
           tag-selection: both
           cut-off: 2w
