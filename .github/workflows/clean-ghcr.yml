@@ -16,8 +16,7 @@ jobs:
           filter-include-untagged: true
           cut-off: 2 weeks ago UTC
           timestamp-to-use: updated_at
-          account-type: org
-          org-name: particular
+          account: particular
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
           dry-run: false
@@ -28,8 +27,7 @@ jobs:
           untagged-only: true
           cut-off: 2 weeks ago UTC
           timestamp-to-use: updated_at
-          account-type: org
-          org-name: particular
+          account: particular
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
           dry-run: false
@@ -41,8 +39,7 @@ jobs:
           filter-include-untagged: true
           cut-off: 2 weeks ago UTC
           timestamp-to-use: updated_at
-          account-type: org
-          org-name: particular
+          account: particular
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
           dry-run: false
@@ -53,8 +50,7 @@ jobs:
           untagged-only: true
           cut-off: 2 weeks ago UTC
           timestamp-to-use: updated_at
-          account-type: org
-          org-name: particular
+          account: particular
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
           dry-run: false
@@ -66,8 +62,7 @@ jobs:
           filter-include-untagged: true
           cut-off: 2 weeks ago UTC
           timestamp-to-use: updated_at
-          account-type: org
-          org-name: particular
+          account: particular
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
           dry-run: false
@@ -78,8 +73,7 @@ jobs:
           untagged-only: true
           cut-off: 2 weeks ago UTC
           timestamp-to-use: updated_at
-          account-type: org
-          org-name: particular
+          account: particular
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
           dry-run: false
@@ -91,8 +85,7 @@ jobs:
           filter-include-untagged: true
           cut-off: 2 weeks ago UTC
           timestamp-to-use: updated_at
-          account-type: org
-          org-name: particular
+          account: particular
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
           dry-run: false
@@ -103,8 +96,7 @@ jobs:
           untagged-only: true
           cut-off: 2 weeks ago UTC
           timestamp-to-use: updated_at
-          account-type: org
-          org-name: particular
+          account: particular
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
           dry-run: false
