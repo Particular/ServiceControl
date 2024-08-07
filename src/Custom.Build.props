@@ -32,7 +32,6 @@
   <PropertyGroup>
     <RuntimeIdentifier Condition="'$(WindowsSelfContained)' == 'true'">win-x64</RuntimeIdentifier>
     <RuntimeIdentifier Condition="'$(TargetArch)' == 'amd64'">linux-x64</RuntimeIdentifier>
-    <RuntimeIdentifier Condition="'$(TargetArch)' == 'arm'">linux-arm</RuntimeIdentifier>
     <RuntimeIdentifier Condition="'$(TargetArch)' == 'arm64'">linux-arm64</RuntimeIdentifier>
   </PropertyGroup>
 

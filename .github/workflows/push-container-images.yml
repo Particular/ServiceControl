@@ -33,7 +33,7 @@ jobs:
           $containers = @('servicecontrol', 'servicecontrol-audit', 'servicecontrol-monitoring')
           $tags = "${{ steps.validate.outputs.container-tags }}" -Split ','
           $sourceTag = "${{ inputs.version }}"
-          $dbArchTags = @('x64', 'arm64v8', 'arm32v7')
+          $dbArchTags = @('x64', 'arm64v8')
 
           foreach ($tag in $tags)
           {
