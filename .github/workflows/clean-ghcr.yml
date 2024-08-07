@@ -14,8 +14,8 @@ jobs:
           image-names: servicecontrol servicecontrol-audit servicecontrol-monitoring servicecontrol-ravendb
           image-tags: pr-*, *-alpha.*
           tag-selection: both
-          cut-off: 2d
+          cut-off: 2w
           timestamp-to-use: updated_at
           account: particular
           token: ${{ secrets.GITHUB_TOKEN }}
-          dry-run: true
+          dry-run: false
