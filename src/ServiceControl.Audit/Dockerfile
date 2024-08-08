@@ -29,7 +29,7 @@ COPY --from=build /deploy/healthcheck ./healthcheck
 ENV PersistenceType=RavenDB \
     AuditRetentionPeriod=7
 
-HEALTHCHECK --start-period=10s CMD /healthcheck/healthcheck http://localhost:44444/api/configuration || exit 1
+HEALTHCHECK --start-period=10s CMD ["/healthcheck/healthcheck", "http://localhost:44444/api/configuration"]
 
 USER $APP_UID
 ENTRYPOINT ["./app/ServiceControl.Audit"]

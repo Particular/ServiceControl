@@ -30,7 +30,7 @@ ENV PersistenceType=RavenDB \
     ForwardErrorMessages=false \
     ErrorRetentionPeriod=15
 
-HEALTHCHECK --start-period=10s CMD /healthcheck/healthcheck http://localhost:33333/api/configuration || exit 1
+HEALTHCHECK --start-period=10s CMD ["/healthcheck/healthcheck", "http://localhost:33333/api/configuration"]
 
 USER $APP_UID
 ENTRYPOINT ["./app/ServiceControl"]
