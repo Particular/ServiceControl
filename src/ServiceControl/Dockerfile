@@ -6,14 +6,13 @@ ENV CI=true
 
 COPY . .
 RUN dotnet build src/ServiceControl/ServiceControl.csproj --configuration Release -graph --property:TargetArch=$TARGETARCH
+RUN dotnet build src/HealthCheckApp/HealthCheckApp.csproj --configuration Release --property:TargetArch=$TARGETARCH
 
 
 # Runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled-composite
 ARG VERSION
 WORKDIR /
-
-RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 
 LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceControl \
       org.opencontainers.image.authors="Particular Software" \
@@ -25,12 +24,13 @@ LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceContr
 
 EXPOSE 33333
 COPY --from=build /deploy/Particular.ServiceControl ./app
+COPY --from=build /deploy/healthcheck ./healthcheck
 
 ENV PersistenceType=RavenDB \
     ForwardErrorMessages=false \
     ErrorRetentionPeriod=15
 
-HEALTHCHECK --start-period=60s CMD wget --tries=1 --no-verbose -O/dev/null http://localhost:33333/api/configuration || exit 1
+HEALTHCHECK --start-period=10s CMD /healthcheck/healthcheck http://localhost:33333/api/configuration || exit 1
 
 USER $APP_UID
 ENTRYPOINT ["./app/ServiceControl"]

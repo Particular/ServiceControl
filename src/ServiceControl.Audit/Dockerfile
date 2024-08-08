@@ -6,14 +6,13 @@ ENV CI=true
 
 COPY . .
 RUN dotnet build src/ServiceControl.Audit/ServiceControl.Audit.csproj --configuration Release -graph --property:TargetArch=$TARGETARCH
+RUN dotnet build src/HealthCheckApp/HealthCheckApp.csproj --configuration Release --property:TargetArch=$TARGETARCH
 
 
 # Runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled-composite
 ARG VERSION
 WORKDIR /
-
-RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 
 LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceControl \
       org.opencontainers.image.authors="Particular Software" \
@@ -25,12 +24,12 @@ LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceContr
 
 EXPOSE 44444
 COPY --from=build /deploy/Particular.ServiceControl.Audit ./app
+COPY --from=build /deploy/healthcheck ./healthcheck
 
 ENV PersistenceType=RavenDB \
     AuditRetentionPeriod=7
 
-HEALTHCHECK --start-period=60s CMD wget --tries=1 --no-verbose -O/dev/null http://localhost:44444/api/configuration || exit 1
-
+HEALTHCHECK --start-period=10s CMD /healthcheck/healthcheck http://localhost:44444/api/configuration || exit 1
 
 USER $APP_UID
 ENTRYPOINT ["./app/ServiceControl.Audit"]
