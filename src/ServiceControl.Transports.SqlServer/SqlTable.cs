@@ -1,29 +1,50 @@
-﻿namespace ServiceControl.Transports.SqlServer
+﻿#nullable enable
+namespace ServiceControl.Transports.SqlServer
 {
     using System.Linq;
 
     class SqlTable
     {
-        SqlTable(string name, string schema, string catalog)
+        SqlTable(string name, string schema, string? catalog)
         {
-            QuotedName = SqlNameHelper.Quote(name);
-            QuotedSchema = SqlNameHelper.Quote(schema);
-            QuotedCatalog = SqlNameHelper.Quote(catalog);
+            var quotedName = SqlNameHelper.Quote(name);
+            var quotedSchema = SqlNameHelper.Quote(schema);
+            //HINT: The query approximates queue length value based on max and min
+            //      of RowVersion IDENTITY(1,1) column. There are couple of scenarios
+            //      that might lead to the approximation being off. More details here:
+            //      https://docs.microsoft.com/en-us/sql/t-sql/statements/create-table-transact-sql-identity-property?view=sql-server-ver15#remarks
+            //
+            //      Min and Max values return NULL when no rows are found.
+            if (catalog == null)
+            {
+                _fullTableName = $"{quotedSchema}.{quotedName}";
+
+                LengthQuery = $"""
+                               IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{schema}' AND TABLE_NAME = '{name}'))
+                                 SELECT isnull(cast(max([RowVersion]) - min([RowVersion]) + 1 AS int), 0) FROM {_fullTableName} WITH (nolock)
+                               ELSE
+                                 SELECT -1;
+                               """;
+            }
+            else
+            {
+                var quotedCatalog = SqlNameHelper.Quote(catalog);
+                _fullTableName = $"{quotedCatalog}.{quotedSchema}.{quotedName}";
+
+                LengthQuery = $"""
+                               IF (EXISTS (SELECT TABLE_NAME FROM {quotedCatalog}.INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{schema}' AND TABLE_NAME = '{name}'))
+                                 SELECT isnull(cast(max([RowVersion]) - min([RowVersion]) + 1 AS int), 0) FROM {_fullTableName} WITH (nolock)
+                               ELSE
+                                 SELECT -1;
+                               """;
+            }
         }
 
-        public string QuotedName { get; }
-        public string UnquotedName => SqlNameHelper.Unquote(QuotedName);
+        readonly string _fullTableName;
+        public string LengthQuery { get; }
 
-        public string QuotedSchema { get; }
-        public string UnquotedSchema => SqlNameHelper.Unquote(QuotedSchema);
-
-        public string QuotedCatalog { get; }
-        public string UnquotedCatalog => SqlNameHelper.Unquote(QuotedCatalog);
-
-        public override string ToString()
-        {
-            return QuotedCatalog != null ? $"{QuotedCatalog}.{QuotedSchema}.{QuotedName}" : $"{QuotedSchema}.{QuotedName}";
-        }
+        public override string ToString() =>
+            _fullTableName;
 
         public static SqlTable Parse(string address, string defaultSchema)
         {
@@ -36,12 +57,10 @@
             );
         }
 
-        protected bool Equals(SqlTable other)
-        {
-            return string.Equals(QuotedName, other.QuotedName) && string.Equals(QuotedSchema, other.QuotedSchema) && string.Equals(QuotedCatalog, other.QuotedCatalog);
-        }
+        protected bool Equals(SqlTable other) =>
+            string.Equals(_fullTableName, other._fullTableName);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -61,15 +80,7 @@
             return Equals((SqlTable)obj);
         }
 
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = QuotedName != null ? QuotedName.GetHashCode() : 0;
-                hashCode = (hashCode * 397) ^ (QuotedSchema != null ? QuotedSchema.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (QuotedCatalog != null ? QuotedCatalog.GetHashCode() : 0);
-                return hashCode;
-            }
-        }
+        public override int GetHashCode() =>
+            _fullTableName.GetHashCode();
     }
 }
