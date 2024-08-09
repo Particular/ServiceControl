@@ -75,7 +75,7 @@ jobs:
           connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
           catalog: nservicebus
       - name: Setup RabbitMQ
-        uses: Particular/setup-rabbitmq-action@v1.6.0
+        uses: Particular/setup-rabbitmq-action@54f80cb95e2f197ce88790aa2fc70e5c69ff5ac8
         if: matrix.test-category == 'RabbitMQ'
         with:
           connection-string-name: ServiceControl_TransportTests_RabbitMQ_ConnectionString
