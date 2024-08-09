@@ -51,9 +51,9 @@ The latest release within a minor version will be tagged with `{major}.{minor}` 
 
 ## Image architecture
 
-The `servicecontrol`, `servicecontrol-audit`, and `servicecontrol-monitoring` images are multi-arch images based on the `mcr.microsoft.com/dotnet/aspnet:8.0` base image supporting `linux/arm64`, `linux/arm`, and `linux/amd64`.
+The `servicecontrol`, `servicecontrol-audit`, and `servicecontrol-monitoring` images are multi-arch images based on the `mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled-composite` base image supporting `linux/arm64` and `linux/amd64`.
 
-The `servicecontrol-ravendb` image is based on versions of the [`ravendb/ravendb`](https://hub.docker.com/r/ravendb/ravendb) image, and have separate tags for `-x64`, `-arm64v8`, and `-arm32v7`.
+The `servicecontrol-ravendb` image is based on versions of the [`ravendb/ravendb`](https://hub.docker.com/r/ravendb/ravendb) image, and have separate tags for `-x64`, `-arm64v8`.
 
 ## Authors
 
