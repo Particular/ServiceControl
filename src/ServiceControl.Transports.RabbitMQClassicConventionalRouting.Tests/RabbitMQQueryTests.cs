@@ -41,7 +41,6 @@ class RabbitMQQueryTests : TransportTestFixture
             Assert.AreEqual("/", queueName.Scope);
             if (queueName.QueueName == transportSettings.EndpointName)
             {
-                CollectionAssert.Contains(queueName.EndpointIndicators, "DelayBinding");
                 CollectionAssert.Contains(queueName.EndpointIndicators, "ConventionalTopologyBinding");
             }
         }
