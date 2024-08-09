@@ -11,7 +11,7 @@ RUN dotnet publish src/HealthCheckApp/HealthCheckApp.csproj --arch $TARGETARCH -
 # Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled-composite
 ARG VERSION
-WORKDIR /
+WORKDIR /app
 
 LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceControl \
       org.opencontainers.image.authors="Particular Software" \
@@ -32,6 +32,5 @@ ENV PersistenceType=RavenDB \
 
 HEALTHCHECK --start-period=10s CMD ["/healthcheck/healthcheck", "http://localhost:33333/api/configuration"]
 
-WORKDIR /app
 USER $APP_UID
 ENTRYPOINT ["/app/ServiceControl"]
