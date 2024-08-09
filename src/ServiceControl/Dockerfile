@@ -22,6 +22,7 @@ LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceContr
       org.opencontainers.image.description="ServiceControl primary instance"
 
 EXPOSE 33333
+
 COPY --from=build /deploy/Particular.ServiceControl ./app
 COPY --from=build /healthcheck /healthcheck
 

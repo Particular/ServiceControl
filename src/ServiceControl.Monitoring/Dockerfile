@@ -8,7 +8,6 @@ COPY . .
 RUN dotnet build src/ServiceControl.Monitoring/ServiceControl.Monitoring.csproj --configuration Release -graph --property:TargetArch=$TARGETARCH
 RUN dotnet publish src/HealthCheckApp/HealthCheckApp.csproj --arch $TARGETARCH --output /healthcheck
 
-
 # Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled-composite
 ARG VERSION

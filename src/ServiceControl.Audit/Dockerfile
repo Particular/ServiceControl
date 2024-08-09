@@ -8,7 +8,6 @@ COPY . .
 RUN dotnet build src/ServiceControl.Audit/ServiceControl.Audit.csproj --configuration Release -graph --property:TargetArch=$TARGETARCH
 RUN dotnet publish src/HealthCheckApp/HealthCheckApp.csproj --arch $TARGETARCH --output /healthcheck
 
-
 # Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled-composite
 ARG VERSION
@@ -23,6 +22,7 @@ LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceContr
       org.opencontainers.image.description="ServiceControl audit instance"
 
 EXPOSE 44444
+
 COPY --from=build /deploy/Particular.ServiceControl.Audit ./app
 COPY --from=build /healthcheck /healthcheck
 
