@@ -6,7 +6,7 @@ ENV CI=true
 
 COPY . .
 RUN dotnet build src/ServiceControl.Audit/ServiceControl.Audit.csproj --configuration Release -graph --property:TargetArch=$TARGETARCH
-RUN dotnet build src/HealthCheckApp/HealthCheckApp.csproj --configuration Release --property:TargetArch=$TARGETARCH
+RUN dotnet publish src/HealthCheckApp/HealthCheckApp.csproj --arch $TARGETARCH --output /healthcheck
 
 
 # Runtime image
@@ -24,7 +24,7 @@ LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceContr
 
 EXPOSE 44444
 COPY --from=build /deploy/Particular.ServiceControl.Audit ./app
-COPY --from=build /deploy/healthcheck ./healthcheck
+COPY --from=build /healthcheck /healthcheck
 
 ENV PersistenceType=RavenDB \
     AuditRetentionPeriod=7

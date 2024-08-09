@@ -6,8 +6,7 @@ ENV CI=true
 
 COPY . .
 RUN dotnet build src/ServiceControl/ServiceControl.csproj --configuration Release -graph --property:TargetArch=$TARGETARCH
-RUN dotnet build src/HealthCheckApp/HealthCheckApp.csproj --configuration Release --property:TargetArch=$TARGETARCH
-
+RUN dotnet publish src/HealthCheckApp/HealthCheckApp.csproj --arch $TARGETARCH --output /healthcheck
 
 # Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled-composite
@@ -24,7 +23,7 @@ LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceContr
 
 EXPOSE 33333
 COPY --from=build /deploy/Particular.ServiceControl ./app
-COPY --from=build /deploy/healthcheck ./healthcheck
+COPY --from=build /healthcheck /healthcheck
 
 ENV PersistenceType=RavenDB \
     ForwardErrorMessages=false \
