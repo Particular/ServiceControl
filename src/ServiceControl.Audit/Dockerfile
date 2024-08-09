@@ -23,7 +23,7 @@ LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceContr
 
 EXPOSE 44444
 
-COPY --from=build /deploy/Particular.ServiceControl.Audit ./app
+COPY --from=build /deploy/Particular.ServiceControl.Audit /app
 COPY --from=build /healthcheck /healthcheck
 
 ENV PersistenceType=RavenDB \
@@ -31,5 +31,6 @@ ENV PersistenceType=RavenDB \
 
 HEALTHCHECK --start-period=10s CMD ["/healthcheck/healthcheck", "http://localhost:44444/api/configuration"]
 
+WORKDIR /app
 USER $APP_UID
-ENTRYPOINT ["./app/ServiceControl.Audit"]
+ENTRYPOINT ["/app/ServiceControl.Audit"]
