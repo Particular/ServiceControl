@@ -7,7 +7,7 @@ The zip files are crafted to minimize duplication in order to control the overal
 - `ServiceControl.zip`
 - `ServiceControl.Audit.zip`
 - `ServiceControl.Monitoring.zip`
-- `InstanceShared.zip` - Contains the transport assemblies that are shared by each instance
+- `InstanceShared.zip` - Contains the transport assemblies that are shared by each instance, as well as any other assemblies that are shared across all 3 instance zip files, such as `NServiceBus.Core.dll`.
 - `RavenDBServer.zip` - Contains the RavenDB server assemblies used by ServiceControl and Monitoring instances
 
 ## The mechanics

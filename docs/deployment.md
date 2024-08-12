@@ -6,16 +6,16 @@ All ServiceControl deployment options listed below rely on the files produced by
 
 The zips are packaged as embedded resources in the ServiceControl Management Utility (the "installer").
 
-When installing an instance using one of the above method instance files, the following binaries are unzipped together to form a complete instance:
+When installing an instance, the following binaries are unzipped from the embedded resources and combined to form a complete instance:
 
 - Application & persistence files
-- Selected transport
+- All transport assemblies (not just the selected one)
 - RavenDB server files (ServiceControl and Audit only)
 
 A configuration file generated based on:
 
-- User input (and defaults)
-- Contents of the `transport.manifest` and `persister.manifest` file for the selected transport and persister.
+- User input, defaults, and previous settings
+- In some cases, hints from the `transport.manifest` or `persistence.manifest` such as config keys that are no longer used.
 
 ## PowerShell module
 
