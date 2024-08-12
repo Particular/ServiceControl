@@ -13,7 +13,7 @@ A long (though not exhaustive) list, although not every change will merit runnin
 
 ## Functionality
 
-- [ ] Install and run ServiceControl Primary, Adult i Monitoring instances
+- [ ] Install and run ServiceControl Primary, Audit, and Monitoring instances
 - [ ] [Install the ServiceControl.SmokeTesting tool](https://github.com/Particular/ServiceControl.SmokeTest#installing)
 - [ ] Start the smoke testing tool e.g.: `dotnet servicecontrol.smoketest rabbitmq`
 - [ ] Test Custom checks
