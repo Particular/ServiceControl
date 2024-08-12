@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { RouterLink, useRoute } from "vue-router";
-import { useFetchFromServiceControl, useTypedFetchFromServiceControl, serviceControlUrl } from "../../composables/serviceServiceControlUrls";
+import { serviceControlUrl, useFetchFromServiceControl, useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
 import { useArchiveMessage, useRetryMessages, useUnarchiveMessage } from "../../composables/serviceFailedMessage";
 import { useDownloadFileFromString } from "../../composables/fileDownloadCreator";
 import { useShowToast } from "../../composables/toast";
@@ -14,7 +14,7 @@ import EditRetryDialog from "./EditRetryDialog.vue";
 import routeLinks from "@/router/routeLinks";
 import Configuration, { EditAndRetryConfig } from "@/resources/Configuration";
 import { TYPE } from "vue-toastification";
-import { FailedMessageStatus, ExtendedFailedMessage, FailedMessageError, isError } from "@/resources/FailedMessage";
+import { ExtendedFailedMessage, FailedMessageError, FailedMessageStatus, isError } from "@/resources/FailedMessage";
 import Message from "@/resources/Message";
 import { NServiceBusHeaders } from "@/resources/Header";
 
@@ -72,8 +72,7 @@ async function loadFailedMessage() {
 
 async function getConfiguration() {
   const response = await useFetchFromServiceControl("configuration");
-  const data = await response.json();
-  configuration.value = data;
+  configuration.value = await response.json();
   return getEditAndRetryConfig();
 }
 
@@ -123,14 +122,15 @@ async function downloadHeadersAndBody(message: ExtendedFailedMessage) {
   try {
     const [, data] = await useTypedFetchFromServiceControl<Message[]>(`messages/search/${message.message_id}`);
 
-    if (data[0] == null) {
+    const messageDetails = data.find((value) => value.receiving_endpoint.name === message.receiving_endpoint?.name);
+
+    if (!messageDetails) {
       message.headersNotFound = true;
       message.messageBodyNotFound = true;
 
       return;
     }
 
-    const messageDetails = data[0];
     message.headers = messageDetails.headers;
     message.conversationId = messageDetails.headers.find((header) => header.key === NServiceBusHeaders.ConversationId)?.value ?? "";
 
@@ -176,7 +176,7 @@ async function downloadBody(message: ExtendedFailedMessage) {
 // taken from https://github.com/krtnio/angular-pretty-xml/blob/master/src/angular-pretty-xml.js
 function formatXml(xml: string) {
   function createShiftArr(step: string) {
-    let space = "";
+    let space: string;
     if (isNaN(parseInt(step))) {
       // argument is string
       space = step;
