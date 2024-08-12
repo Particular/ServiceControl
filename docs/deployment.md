@@ -10,6 +10,7 @@ When installing an instance, the following binaries are unzipped from the embedd
 
 - Application & persistence files
 - All transport assemblies (not just the selected one)
+- All files from `InstanceShared.zip` that are common to all 3 application instances
 - RavenDB server files (ServiceControl and Audit only)
 
 A configuration file generated based on:
