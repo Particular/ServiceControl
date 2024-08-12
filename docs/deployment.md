@@ -4,7 +4,7 @@ All ServiceControl deployment options listed below rely on the files produced by
 
 ## ServiceControl installer
 
-The zips are packaged as embedded resources in the ServiceControl Management Utility (the "installer").
+The zips are packaged as embedded resources in the ServiceControl Management Utility. Although technically embedded in a specific assembly, ServiceControl Management is shipped as a self-contained, single-file executable that has everything inside it.
 
 When installing an instance, the following binaries are unzipped from the embedded resources and combined to form a complete instance:
 
