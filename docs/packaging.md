@@ -1,15 +1,14 @@
 # Packaging
 
-Each product (ServiceControl, ServiceControl.Monitoring and ServiceControl.Audit), is packaged into its own versioned zip file in the `zip` folder. These zip files are included in the installation package.
+Each product (ServiceControl, ServiceControl.Monitoring and ServiceControl.Audit), is packaged into its own versioned zip file in the `zip` folder. These zip files are included as resources in the ServiceControlInstaller.Engine project, to be used to create new app instances from both ServiceControl Management as well as the PowerShell module.
 
-Each zip has the following folder structure:
+The zip files are crafted to minimize duplication in order to control the overall file size of each installer. The zips for each app contain only the specific app code as well as persistence code unique to that application.
 
-- `/Transports` contains a folder for each supported transport
-- `/Persisters` contains a folder for each supported persister (Only the Audit instance use this currently)
-- `/<product>` contains the instance files specific to the type of instance
-  - `/ServiceControl`
-  - `/ServiceControl.Audit`
-  - `/ServiceControl.Monitoring`
+- `ServiceControl.zip`
+- `ServiceControl.Audit.zip`
+- `ServiceControl.Monitoring.zip`
+- `InstanceShared.zip` - Contains the transport assemblies that are shared by each instance, as well as any other assemblies that are shared across all 3 instance zip files, such as `NServiceBus.Core.dll`.
+- `RavenDBServer.zip` - Contains the RavenDB server assemblies used by ServiceControl and Monitoring instances
 
 ## The mechanics
 
