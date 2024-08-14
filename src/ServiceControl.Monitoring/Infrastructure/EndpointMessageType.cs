@@ -4,7 +4,7 @@
     {
         public EndpointMessageType(string endpointName, string enclosedMessageTypes)
         {
-            var index = enclosedMessageTypes.IndexOf(';');
+            var index = (enclosedMessageTypes ?? "").IndexOf(';');
 
             var firstType = index != -1
                 ? enclosedMessageTypes.Substring(0, index)
