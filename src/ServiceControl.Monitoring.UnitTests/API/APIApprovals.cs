@@ -19,7 +19,7 @@ public class APIApprovals
         var httpApiMethods = GetControllerRoutes()
             .Select(pair =>
             {
-                (MethodInfo method, RouteAttribute route) = pair;
+                (var method, var route) = pair;
                 var type = method.DeclaringType;
                 var httpMethods = method.GetCustomAttributes(true)
                     .OfType<IActionHttpMethodProvider>()

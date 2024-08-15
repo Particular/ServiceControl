@@ -63,7 +63,9 @@
             new(TimeSpan.FromMinutes(10), numberOfIntervals: 60, delayedIntervals: 1),
             new(TimeSpan.FromMinutes(15), numberOfIntervals: 60, delayedIntervals: 1),
             new(TimeSpan.FromMinutes(30), numberOfIntervals: 60, delayedIntervals: 1),
-            new(TimeSpan.FromMinutes(60), numberOfIntervals: 60, delayedIntervals: 1)
+            new HistoryPeriod(TimeSpan.FromMinutes(LargestHistoryPeriod), 60, 1)
         ];
+
+        public const int LargestHistoryPeriod = 60;
     }
 }

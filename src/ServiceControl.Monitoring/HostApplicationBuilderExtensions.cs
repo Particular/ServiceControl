@@ -83,6 +83,8 @@ public static class HostApplicationBuilderExtensions
             services.AddHostedService<ReportThroughputHostedService>();
         }
 
+        services.AddHostedService<RemoveExpiredEndpointInstances>();
+
         config.DefineCriticalErrorAction(onCriticalError);
 
         config.GetSettings().Set(settings);

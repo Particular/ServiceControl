@@ -2,7 +2,6 @@
 {
     using System;
     using System.Linq;
-    using Http.Diagrams;
     using Messaging;
     using Monitoring.Infrastructure;
     using Monitoring.Infrastructure.Api;
@@ -23,7 +22,7 @@
         public void Setup()
         {
             settings = new Settings { EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5) };
-            activityTracker = new EndpointInstanceActivityTracker(settings);
+            activityTracker = new EndpointInstanceActivityTracker(settings, TimeProvider.System);
             processingTimeStore = new ProcessingTimeStore();
             endpointRegistry = new EndpointRegistry();
 
@@ -57,9 +56,9 @@
             processingTimeStore.Store([dataA], instanceAId, EndpointMessageType.Unknown(instanceAId.EndpointName));
             processingTimeStore.Store([dataB], instanceBId, EndpointMessageType.Unknown(instanceBId.EndpointName));
 
-            MonitoredEndpointDetails result = endpointMetricsApi.GetSingleEndpointMetrics(instanceAId.EndpointName);
+            var result = endpointMetricsApi.GetSingleEndpointMetrics(instanceAId.EndpointName);
 
-            MonitoredEndpointDetails model = result;
+            var model = result;
 
             Assert.That(model.Instances[0].Metrics["ProcessingTime"].Average, Is.EqualTo(5));
         }
@@ -90,7 +89,7 @@
             Array.ForEach(connected, instance => activityTracker.Record(instance, now));
             Array.ForEach(connected, instance => processingTimeStore.Store(samples, instance, EndpointMessageType.Unknown(instance.EndpointName)));
 
-            MonitoredEndpoint[] model = endpointMetricsApi.GetAllEndpointsMetrics();
+            var model = endpointMetricsApi.GetAllEndpointsMetrics();
             var item = model[0];
 
             Assert.Multiple(() =>
