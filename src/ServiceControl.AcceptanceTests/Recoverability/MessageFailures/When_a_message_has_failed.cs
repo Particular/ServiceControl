@@ -118,7 +118,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 .Run();
 
             var content = await result.Content.ReadAsStringAsync();
-            Assert.That(content.Contains($"<Content>{myMessage.Content}</Content>"), Is.True);
+            Assert.That(content, Does.Contain($"<Content>{myMessage.Content}</Content>"));
         }
 
         [Test]
@@ -180,7 +180,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 .Run();
 
             Assert.That(entry.Severity, Is.EqualTo(Severity.Error), "Failures should be treated as errors");
-            Assert.That(entry.Description.Contains("exception"), Is.True, "For failed messages, the description should contain the exception information");
+            Assert.That(entry.Description, Does.Contain("exception"), "For failed messages, the description should contain the exception information");
             Assert.That(entry.RelatedTo.Any(item => item == "/message/" + context.UniqueMessageId), Is.True, "Should contain the api url to retrieve additional details about the failed message");
             Assert.That(entry.RelatedTo.Any(item => item == "/endpoint/" + context.EndpointNameOfReceivingEndpoint), Is.True, "Should contain the api url to retrieve additional details about the endpoint where the message failed");
         }

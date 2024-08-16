@@ -64,8 +64,8 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
 
         // Assert
         Assert.That(reportGenerationState.ReportCanBeGenerated, Is.False);
-        Assert.That(reportGenerationState.Reason.Contains("one day"), Is.True, "Report generation failure reason does not contain 'one day'");
-        Assert.That(reportGenerationState.Reason.Contains("broker"), Is.True, "Report generation failure reason does not contain 'broker'");
+        Assert.That(reportGenerationState.Reason, Does.Contain("one day"), "Report generation failure reason does not contain 'one day'");
+        Assert.That(reportGenerationState.Reason, Does.Contain("broker"), "Report generation failure reason does not contain 'broker'");
     }
 
     [Test]
@@ -82,7 +82,7 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
 
         // Assert
         Assert.That(reportGenerationState.ReportCanBeGenerated, Is.False);
-        Assert.That(reportGenerationState.Reason.Contains("one day"), Is.True, "Report generation failure reason does not contain 'one day'");
-        Assert.That(reportGenerationState.Reason.Contains("broker"), Is.True, "Report generation failure reason does not contain 'broker'");
+        Assert.That(reportGenerationState.Reason, Does.Contain("one day"), "Report generation failure reason does not contain 'one day'");
+        Assert.That(reportGenerationState.Reason, Does.Contain("broker"), "Report generation failure reason does not contain 'broker'");
     }
 }

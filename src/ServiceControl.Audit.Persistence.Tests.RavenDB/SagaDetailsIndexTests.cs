@@ -105,7 +105,7 @@
                 var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
                 var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
-                Assert.That(sagaDetailsIndexDefinition.Reduce.Contains("Take(50000)"), Is.True, "The SagaDetails index definition does not contain a .Take(50000) to limit the number of saga state changes that are reduced by the map/reduce");
+                Assert.That(sagaDetailsIndexDefinition.Reduce, Does.Contain("Take(50000)"), "The SagaDetails index definition does not contain a .Take(50000) to limit the number of saga state changes that are reduced by the map/reduce");
             }
         }
 
