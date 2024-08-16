@@ -196,9 +196,9 @@
             await handler.Handle(message, new TestableInvokeHandlerContext());
 
             var sentMessage = dispatcher.DispatchedMessages.Single();
-            Assert.AreNotEqual(
-                messageFailure.ProcessingAttempts.Last().MessageId,
-                sentMessage.Item1.Message.MessageId);
+            Assert.That(
+                sentMessage.Item1.Message.MessageId,
+                Is.Not.EqualTo(messageFailure.ProcessingAttempts.Last().MessageId));
         }
 
         static EditAndSend CreateEditMessage(string failedMessageId, byte[] newBodyContent = null, Dictionary<string, string> newHeaders = null)

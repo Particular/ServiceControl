@@ -18,7 +18,7 @@
             group.Id = "new";
             var newEtag = EtagHelper.CalculateEtag(data);
 
-            Assert.AreNotEqual(knownEtag, newEtag);
+            Assert.That(newEtag, Is.Not.EqualTo(knownEtag));
         }
 
         [Test]
@@ -32,7 +32,7 @@
             group.Count = 2;
             var newEtag = EtagHelper.CalculateEtag(data);
 
-            Assert.AreNotEqual(knownEtag, newEtag);
+            Assert.That(newEtag, Is.Not.EqualTo(knownEtag));
         }
 
         [Test]
@@ -46,7 +46,7 @@
             group.OperationStatus = RetryState.Preparing.ToString();
             var newEtag = EtagHelper.CalculateEtag(data);
 
-            Assert.AreNotEqual(knownEtag, newEtag);
+            Assert.That(newEtag, Is.Not.EqualTo(knownEtag));
         }
 
         [Test]
@@ -60,7 +60,7 @@
             group.OperationProgress = 0.01;
             var newEtag = EtagHelper.CalculateEtag(data);
 
-            Assert.AreNotEqual(knownEtag, newEtag);
+            Assert.That(newEtag, Is.Not.EqualTo(knownEtag));
         }
 
         [Test]
@@ -74,7 +74,7 @@
             group.OperationStartTime = DateTime.UtcNow;
             var newEtag = EtagHelper.CalculateEtag(data);
 
-            Assert.AreNotEqual(knownEtag, newEtag);
+            Assert.That(newEtag, Is.Not.EqualTo(knownEtag));
         }
 
         [Test]
@@ -88,7 +88,7 @@
             group.OperationCompletionTime = DateTime.UtcNow;
             var newEtag = EtagHelper.CalculateEtag(data);
 
-            Assert.AreNotEqual(knownEtag, newEtag);
+            Assert.That(newEtag, Is.Not.EqualTo(knownEtag));
         }
 
         [Test]
@@ -102,7 +102,7 @@
             group.NeedUserAcknowledgement = true;
             var newEtag = EtagHelper.CalculateEtag(data);
 
-            Assert.AreNotEqual(knownEtag, newEtag);
+            Assert.That(newEtag, Is.Not.EqualTo(knownEtag));
         }
 
         [Test]
@@ -116,7 +116,7 @@
 
             var newEtag = EtagHelper.CalculateEtag(data);
 
-            Assert.AreNotEqual(knownEtag, newEtag);
+            Assert.That(newEtag, Is.Not.EqualTo(knownEtag));
         }
     }
 }

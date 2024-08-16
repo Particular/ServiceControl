@@ -13,7 +13,7 @@
             var baseSettings = ServiceProvider.GetRequiredService<PersistenceSettings>();
 
             var actualType = baseSettings.GetType();
-            Assert.AreNotEqual(actualType, typeof(PersistenceSettings));
+            Assert.That(typeof(PersistenceSettings), Is.Not.EqualTo(actualType));
 
             // Persistence implementation must also register the same singleton as the persister-specific type
             var settingsAsActualType = ServiceProvider.GetRequiredService(actualType);

@@ -50,7 +50,7 @@
                     .OfType<ProcessedMessage>()
                     .ToList();
                 Assert.That(results.Count, Is.EqualTo(1));
-                Assert.AreNotEqual("1", results.Single().Id);
+                Assert.That(results.Single().Id, Is.Not.EqualTo("1"));
             }
         }
 

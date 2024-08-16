@@ -70,8 +70,8 @@
                 })
                 .Run();
 
-            Assert.AreNotEqual(context.EditedMessageFailure.Id, context.OriginalMessageFailure.Id);
-            Assert.AreNotEqual(context.EditedMessageFailure.UniqueMessageId, context.OriginalMessageFailure.UniqueMessageId);
+            Assert.That(context.OriginalMessageFailure.Id, Is.Not.EqualTo(context.EditedMessageFailure.Id));
+            Assert.That(context.OriginalMessageFailure.UniqueMessageId, Is.Not.EqualTo(context.EditedMessageFailure.UniqueMessageId));
             Assert.That(context.OriginalMessageFailure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
             Assert.That(context.EditedMessageFailure.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
             Assert.That(

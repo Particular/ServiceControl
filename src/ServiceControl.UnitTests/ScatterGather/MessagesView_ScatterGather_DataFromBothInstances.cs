@@ -26,8 +26,8 @@
         {
             var resultingEtag = Results.QueryStats.ETag;
 
-            Assert.AreNotEqual(LocalETag, resultingEtag, "Resulting etag should not equal local etag");
-            Assert.AreNotEqual(RemoteETag, resultingEtag, "Resulting etag should not equal remote etag");
+            Assert.That(resultingEtag, Is.Not.EqualTo(LocalETag), "Resulting etag should not equal local etag");
+            Assert.That(resultingEtag, Is.Not.EqualTo(RemoteETag), "Resulting etag should not equal remote etag");
         }
 
         [Test]

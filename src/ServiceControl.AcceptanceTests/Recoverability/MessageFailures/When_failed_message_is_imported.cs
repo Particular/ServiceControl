@@ -55,7 +55,7 @@
             Assert.That(failedMessage.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint),
                 "Receiving endpoint name should be parsed correctly");
 
-            Assert.AreNotEqual(Guid.Empty, failedMessage.ReceivingEndpoint.HostId, "Host id should be set");
+            Assert.That(failedMessage.ReceivingEndpoint.HostId, Is.Not.EqualTo(Guid.Empty), "Host id should be set");
             Assert.That(string.IsNullOrEmpty(failedMessage.ReceivingEndpoint.Host), Is.False, "Host display name should be set");
 
             Assert.That(failedMessage.MessageType, Is.EqualTo(typeof(MyMessage).FullName),
@@ -64,8 +64,8 @@
 
             Assert.NotNull(failedMessage.ConversationId);
 
-            Assert.AreNotEqual(DateTime.MinValue, failedMessage.TimeSent, "Time sent should be correctly set");
-            Assert.AreNotEqual(DateTime.MinValue, failedMessage.ProcessedAt, "Processed At should be correctly set");
+            Assert.That(failedMessage.TimeSent, Is.Not.EqualTo(DateTime.MinValue), "Time sent should be correctly set");
+            Assert.That(failedMessage.ProcessedAt, Is.Not.EqualTo(DateTime.MinValue), "Processed At should be correctly set");
 
             Assert.That(failedMessage.ProcessingTime, Is.EqualTo(TimeSpan.Zero), "Processing time should not be calculated");
             Assert.That(failedMessage.CriticalTime, Is.EqualTo(TimeSpan.Zero), "Critical time should be not calculated");
