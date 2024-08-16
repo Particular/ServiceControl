@@ -26,7 +26,7 @@
                 })
                 .Run();
 
-            Assert.NotNull(auditedMessage.OriginatesFromSaga);
+            Assert.That(auditedMessage.OriginatesFromSaga, Is.Not.Null);
 
             Assert.That(auditedMessage.OriginatesFromSaga.SagaType, Is.EqualTo(typeof(SagaEndpoint.MySaga).FullName));
             Assert.That(auditedMessage.OriginatesFromSaga.SagaId, Is.EqualTo(context.SagaId));

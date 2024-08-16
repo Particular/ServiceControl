@@ -35,7 +35,7 @@
                 })
                 .Run();
 
-            Assert.NotNull(auditedMessage);
+            Assert.That(auditedMessage, Is.Not.Null);
 
             Assert.That(auditedMessage.InvokedSagas.First().SagaType, Is.EqualTo(typeof(SagaEndpoint.MySaga).FullName));
             Assert.That(auditedMessage.InvokedSagas.Last().SagaType, Is.EqualTo(typeof(SagaEndpoint.MyOtherSaga).FullName));

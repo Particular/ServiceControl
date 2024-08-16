@@ -63,7 +63,7 @@
                 "AuditMessage type should be set to the FullName of the message type");
             Assert.That(auditedMessage.IsSystemMessage, Is.False, "AuditMessage should not be marked as a system message");
 
-            Assert.NotNull(auditedMessage.ConversationId);
+            Assert.That(auditedMessage.ConversationId, Is.Not.Null);
 
             Assert.That(auditedMessage.TimeSent, Is.Not.EqualTo(DateTime.MinValue), "Time sent should be correctly set");
             Assert.That(auditedMessage.ProcessedAt, Is.Not.EqualTo(DateTime.MinValue), "Processed At should be correctly set");

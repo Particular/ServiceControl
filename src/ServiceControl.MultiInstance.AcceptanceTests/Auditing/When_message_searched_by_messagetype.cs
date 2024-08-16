@@ -46,12 +46,12 @@
 
             var sentMessage = response.SingleOrDefault(msg => msg.MessageId == context.SentMessageId);
 
-            Assert.NotNull(sentMessage, "Sent message not found");
+            Assert.That(sentMessage, Is.Not.Null, "Sent message not found");
             Assert.AreEqual(expectedAuditInstanceId, sentMessage.InstanceId, "Audit instance id mismatch");
 
             var sentLocalMessage = response.SingleOrDefault(msg => msg.MessageId == context.SentLocalMessageId);
 
-            Assert.NotNull(sentLocalMessage, "Sent local message not found");
+            Assert.That(sentLocalMessage, Is.Not.Null, "Sent local message not found");
             Assert.AreEqual(expectedAuditInstanceId, sentLocalMessage.InstanceId, "Audit instance id mismatch");
         }
 

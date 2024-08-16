@@ -57,7 +57,7 @@
                 })
                 .Run();
 
-            Assert.NotNull(sagaHistory);
+            Assert.That(sagaHistory, Is.Not.Null);
 
             Assert.That(sagaHistory.SagaId, Is.EqualTo(context.SagaId));
             Assert.That(sagaHistory.SagaType, Is.EqualTo(typeof(SagaEndpoint.MySaga).FullName));

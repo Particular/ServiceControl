@@ -69,7 +69,7 @@
 
             Assert.That(body, Is.EqualTo(context.MessageBody), "Body bytes mismatch");
 
-            Assert.NotNull(response.Headers.GetValues("ETag").SingleOrDefault(), "Etag not set");
+            Assert.That(response.Headers.GetValues("ETag").SingleOrDefault(), Is.Not.Null, "Etag not set");
         }
 
         class MyContext : ScenarioContext
