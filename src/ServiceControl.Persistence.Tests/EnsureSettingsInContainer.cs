@@ -17,7 +17,7 @@
 
             // Persistence implementation must also register the same singleton as the persister-specific type
             var settingsAsActualType = ServiceProvider.GetRequiredService(actualType);
-            Assert.AreSame(baseSettings, settingsAsActualType);
+            Assert.That(settingsAsActualType, Is.SameAs(baseSettings));
         }
     }
 }

@@ -149,7 +149,7 @@
 
             await handler.Handle(message, handlerContent);
 
-            Assert.AreSame(dispatcher.DispatchedMessages.Single().Item2, transportTransaction);
+            Assert.That(transportTransaction, Is.SameAs(dispatcher.DispatchedMessages.Single().Item2));
         }
 
         [Test]
