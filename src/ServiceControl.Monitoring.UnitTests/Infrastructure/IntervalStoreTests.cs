@@ -100,11 +100,11 @@
 
             var currentTimings = store.GetIntervals(now);
 
-            Assert.That(currentTimings[0].TotalMeasurements == 0, Is.True);
+            Assert.That(currentTimings[0].TotalMeasurements, Is.EqualTo(0));
 
             var futureTimings = store.GetIntervals(now.Add(store.IntervalSize).AddMinutes(6));
 
-            Assert.That(futureTimings[0].TotalMeasurements == 1, Is.True);
+            Assert.That(futureTimings[0].TotalMeasurements, Is.EqualTo(1));
         }
 
         [Test]
