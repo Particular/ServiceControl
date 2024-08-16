@@ -54,7 +54,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
 
         //Assert
         Assert.That(remotes, Is.Not.Null, "Remotes should be found");
-        Assert.That(remotes.Count, Is.EqualTo(1), "Invalid number of remotes");
+        Assert.That(remotes, Has.Count.EqualTo(1), "Invalid number of remotes");
         Assert.Multiple(() =>
         {
             Assert.That(remotes[0].ApiUri, Is.EqualTo("http://localhost:44444/api/"), "Invalid ApiUri on remote");
@@ -62,7 +62,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
             Assert.That(remotes[0].Retention, Is.EqualTo(new TimeSpan(7, 0, 0, 0)), "Invalid Retention on remote");
             Assert.That(remotes[0].Queues, Is.Not.Null, "Queues should be reported on remote");
         });
-        Assert.That(remotes[0].Queues.Count, Is.EqualTo(2), "Invalid number of queues reported on remote");
+        Assert.That(remotes[0].Queues, Has.Count.EqualTo(2), "Invalid number of queues reported on remote");
         Assert.That(remotes[0].Queues, Does.Contain("audit"), "Should have foind audit queue");
         Assert.That(remotes[0].Queues, Does.Contain("audit.log"), "Should have found audit.log queue");
     }

@@ -96,7 +96,7 @@
 
             var values = Aggregator.ToRoundedSumOfBreakdownAverages(intervals, HistoryPeriod.FromMinutes(5));
 
-            Assert.That(values.Points.Length, Is.EqualTo(3));
+            Assert.That(values.Points, Has.Length.EqualTo(3));
         }
 
         DateTime now = DateTime.UtcNow;

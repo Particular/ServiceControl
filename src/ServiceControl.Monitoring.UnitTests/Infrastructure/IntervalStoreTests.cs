@@ -29,8 +29,8 @@
 
             var timings = store.GetIntervals(now.Add(store.IntervalSize));
 
-            Assert.That(timings.Length, Is.EqualTo(1));
-            Assert.That(timings[0].Intervals.Length, Is.EqualTo(33));
+            Assert.That(timings, Has.Length.EqualTo(1));
+            Assert.That(timings[0].Intervals, Has.Length.EqualTo(33));
 
             // ordering of intervals
             var dateTimes = timings[0].Intervals.Select(i => i.IntervalStart).ToArray();
@@ -136,7 +136,7 @@
 
             Assert.Multiple(() =>
             {
-                Assert.That(nonEmptyIntervals.Length, Is.EqualTo(3));
+                Assert.That(nonEmptyIntervals, Has.Length.EqualTo(3));
                 Assert.That(timings[0].TotalMeasurements, Is.EqualTo(4));
             });
             CollectionAssert.AreEqual(new double[] { 4, 1, 1 }, nonEmptyIntervals.Select(i => i.TotalValue));

@@ -49,7 +49,7 @@
                     .Where(x => !x.IsSystemMessage)
                     .OfType<ProcessedMessage>()
                     .ToList();
-                Assert.That(results.Count, Is.EqualTo(1));
+                Assert.That(results, Has.Count.EqualTo(1));
                 Assert.That(results.Single().Id, Is.Not.EqualTo("1"));
             }
         }

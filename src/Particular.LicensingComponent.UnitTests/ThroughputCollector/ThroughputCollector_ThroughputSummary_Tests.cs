@@ -37,7 +37,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
 
         // Assert
         Assert.That(summary, Is.Not.Null);
-        Assert.That(summary.Count, Is.EqualTo(3), $"Incorrect number of endpoints in throughput summary");
+        Assert.That(summary, Has.Count.EqualTo(3), $"Incorrect number of endpoints in throughput summary");
     }
 
     [TestCase(ThroughputSource.Audit)]
@@ -57,7 +57,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
 
         // Assert
         Assert.That(summary, Is.Not.Null);
-        Assert.That(summary.Count, Is.EqualTo(3), $"Incorrect number of endpoints in throughput summary");
+        Assert.That(summary, Has.Count.EqualTo(3), $"Incorrect number of endpoints in throughput summary");
     }
 
     [Test]
@@ -75,7 +75,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
 
         // Assert
         Assert.That(summary, Is.Not.Null);
-        Assert.That(summary.Count, Is.EqualTo(3), $"Incorrect number of endpoints in throughput summary");
+        Assert.That(summary, Has.Count.EqualTo(3), $"Incorrect number of endpoints in throughput summary");
     }
 
     [TestCase(ThroughputSource.Audit)]
@@ -95,7 +95,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
 
         // Assert
         Assert.That(summary, Is.Not.Null);
-        Assert.That(summary.Count, Is.EqualTo(3), $"Incorrect number of endpoints in throughput summary");
+        Assert.That(summary, Has.Count.EqualTo(3), $"Incorrect number of endpoints in throughput summary");
 
         Assert.Multiple(() =>
         {
@@ -127,7 +127,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
 
         // Assert
         Assert.That(summary, Is.Not.Null);
-        Assert.That(summary.Count, Is.EqualTo(3));
+        Assert.That(summary, Has.Count.EqualTo(3));
 
         Assert.Multiple(() =>
         {
@@ -148,7 +148,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
 
         // Assert
         Assert.That(summary, Is.Not.Null);
-        Assert.That(summary.Count, Is.EqualTo(1), "Invalid number of endpoints in throughput summary");
+        Assert.That(summary, Has.Count.EqualTo(1), "Invalid number of endpoints in throughput summary");
         Assert.That(summary[0].MaxDailyThroughput, Is.EqualTo(0), $"Incorrect MaxDailyThroughput recorded for {summary[0].Name}");
     }
 
@@ -169,7 +169,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
 
         // Assert
         Assert.That(summary, Is.Not.Null);
-        Assert.That(summary.Count, Is.EqualTo(1));
+        Assert.That(summary, Has.Count.EqualTo(1));
 
         Assert.Multiple(() =>
         {

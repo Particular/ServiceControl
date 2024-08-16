@@ -147,7 +147,7 @@
             await handler.Handle(message, handlerContext);
             await handler.Handle(message, handlerContext);
 
-            Assert.That(dispatcher.DispatchedMessages.Count, Is.EqualTo(2), "Dispatched message count");
+            Assert.That(dispatcher.DispatchedMessages, Has.Count.EqualTo(2), "Dispatched message count");
         }
 
         [Test]

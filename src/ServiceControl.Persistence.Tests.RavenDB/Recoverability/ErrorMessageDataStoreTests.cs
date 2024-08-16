@@ -42,7 +42,7 @@
             );
 
             Assert.That(result.Results, Is.Not.Empty);
-            Assert.That(result.Results.Count, Is.EqualTo(1));
+            Assert.That(result.Results, Has.Count.EqualTo(1));
             Assert.That(result.Results[0].Id, Is.EqualTo(id));
         }
 

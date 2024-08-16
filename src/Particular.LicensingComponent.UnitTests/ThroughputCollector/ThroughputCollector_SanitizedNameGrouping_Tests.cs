@@ -42,7 +42,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
 
         // Assert
         Assert.That(summary, Is.Not.Null);
-        Assert.That(summary.Count, Is.EqualTo(1));
+        Assert.That(summary, Has.Count.EqualTo(1));
     }
 
 
@@ -89,7 +89,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
 
         // Assert
         Assert.That(summary, Is.Not.Null);
-        Assert.That(summary.Count, Is.EqualTo(2));
+        Assert.That(summary, Has.Count.EqualTo(2));
     }
 
 

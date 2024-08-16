@@ -43,7 +43,7 @@
                 })
                 .Run();
 
-            Assert.That(messages.Count, Is.EqualTo(5));
+            Assert.That(messages, Has.Count.EqualTo(5));
 
             AssertStateChange<UpdateSaga1>(messages, context.Saga1Id, "Updated");
             AssertStateChange<UpdateSaga2>(messages, context.Saga2Id, "Updated");

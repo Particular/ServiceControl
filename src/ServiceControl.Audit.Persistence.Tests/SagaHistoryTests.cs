@@ -27,7 +27,7 @@
             {
                 Assert.That(queryResult.Results.SagaId, Is.EqualTo(sagaId));
                 Assert.That(queryResult.Results.SagaType, Is.EqualTo("MySagaType"));
-                Assert.That(queryResult.Results.Changes.Count, Is.EqualTo(1));
+                Assert.That(queryResult.Results.Changes, Has.Count.EqualTo(1));
             });
             Assert.That(queryResult.Results.Changes[0].Status, Is.EqualTo(SagaStateChangeStatus.New));
         }
@@ -55,7 +55,7 @@
 
             var queryResult = await DataStore.QuerySagaHistoryById(sagaId);
 
-            Assert.That(queryResult.Results.Changes.Count, Is.EqualTo(2));
+            Assert.That(queryResult.Results.Changes, Has.Count.EqualTo(2));
         }
 
 

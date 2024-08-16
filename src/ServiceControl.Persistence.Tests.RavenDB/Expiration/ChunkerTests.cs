@@ -31,8 +31,8 @@
                 Assert.That(starts[2], Is.EqualTo(1000));
                 Assert.That(ends[2], Is.EqualTo(1499));
 
-                Assert.That(starts.Count, Is.EqualTo(3));
-                Assert.That(ends.Count, Is.EqualTo(3));
+                Assert.That(starts, Has.Count.EqualTo(3));
+                Assert.That(ends, Has.Count.EqualTo(3));
                 Assert.That(count, Is.EqualTo(3));
             });
         }
@@ -55,8 +55,8 @@
                 Assert.That(starts[0], Is.EqualTo(0));
                 Assert.That(ends[0], Is.EqualTo(0));
 
-                Assert.That(starts.Count, Is.EqualTo(1));
-                Assert.That(ends.Count, Is.EqualTo(1));
+                Assert.That(starts, Has.Count.EqualTo(1));
+                Assert.That(ends, Has.Count.EqualTo(1));
                 Assert.That(count, Is.EqualTo(1));
             });
         }
@@ -85,8 +85,8 @@
                 Assert.That(starts[2], Is.EqualTo(1000));
                 Assert.That(ends[2], Is.EqualTo(1000));
 
-                Assert.That(starts.Count, Is.EqualTo(3));
-                Assert.That(ends.Count, Is.EqualTo(3));
+                Assert.That(starts, Has.Count.EqualTo(3));
+                Assert.That(ends, Has.Count.EqualTo(3));
                 Assert.That(count, Is.EqualTo(3));
             });
         }

@@ -33,7 +33,7 @@ namespace ServiceControl.Persistence.Tests
             CompleteDatabaseOperation();
             var stats = await CustomChecks.GetStats(new PagingInfo());
 
-            Assert.That(stats.Results.Count, Is.EqualTo(1));
+            Assert.That(stats.Results, Has.Count.EqualTo(1));
             Assert.Multiple(() =>
             {
                 Assert.That(stats.Results[0].Status, Is.EqualTo(Status.Fail));
@@ -93,7 +93,7 @@ namespace ServiceControl.Persistence.Tests
 
             var stats = await CustomChecks.GetStats(new PagingInfo(), "pass");
 
-            Assert.That(stats.Results.Count, Is.EqualTo(1));
+            Assert.That(stats.Results, Has.Count.EqualTo(1));
         }
 
         [Test]

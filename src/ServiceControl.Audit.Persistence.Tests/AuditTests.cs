@@ -32,7 +32,7 @@
 
             var queryResult = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"));
 
-            Assert.That(queryResult.Results.Count, Is.EqualTo(1));
+            Assert.That(queryResult.Results, Has.Count.EqualTo(1));
             Assert.That(queryResult.Results[0].MessageId, Is.EqualTo("MyMessageId"));
         }
 
@@ -60,7 +60,7 @@
             var queryResult = await DataStore.QueryMessagesByConversationId(conversationId, new PagingInfo(),
                 new SortInfo("message_id", "asc"));
 
-            Assert.That(queryResult.Results.Count, Is.EqualTo(2));
+            Assert.That(queryResult.Results, Has.Count.EqualTo(2));
         }
 
         [Test]
@@ -75,7 +75,7 @@
             var queryResult = await DataStore.QueryMessages("MyMessageType", new PagingInfo(),
                 new SortInfo("message_id", "asc"));
 
-            Assert.That(queryResult.Results.Count, Is.EqualTo(2));
+            Assert.That(queryResult.Results, Has.Count.EqualTo(2));
         }
         [Test]
         public async Task Can_roundtrip_message_body()

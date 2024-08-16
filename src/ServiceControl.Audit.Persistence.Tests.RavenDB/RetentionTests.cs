@@ -38,7 +38,7 @@
 
             var queryResultAfterExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"));
 
-            Assert.That(queryResultBeforeExpiration.Results.Count, Is.EqualTo(1));
+            Assert.That(queryResultBeforeExpiration.Results, Has.Count.EqualTo(1));
             Assert.Multiple(() =>
             {
                 Assert.That(queryResultBeforeExpiration.Results[0].MessageId, Is.EqualTo("MyMessageId"));
@@ -69,7 +69,7 @@
 
             var queryResultAfterExpiration = await DataStore.QueryKnownEndpoints();
 
-            Assert.That(queryResultBeforeExpiration.Results.Count, Is.EqualTo(1));
+            Assert.That(queryResultBeforeExpiration.Results, Has.Count.EqualTo(1));
             Assert.Multiple(() =>
             {
                 Assert.That(queryResultBeforeExpiration.Results[0].EndpointDetails.Name, Is.EqualTo("Wazowsky"));
@@ -99,7 +99,7 @@
             Assert.That(queryResultBeforeExpiration.Results, Is.Not.Null);
             Assert.Multiple(() =>
             {
-                Assert.That(queryResultBeforeExpiration.Results.Changes.Count, Is.EqualTo(2));
+                Assert.That(queryResultBeforeExpiration.Results.Changes, Has.Count.EqualTo(2));
                 Assert.That(queryResultAfterExpiration.Results, Is.Null);
             });
         }

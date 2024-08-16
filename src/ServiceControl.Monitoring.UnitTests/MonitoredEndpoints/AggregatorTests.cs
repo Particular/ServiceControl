@@ -60,7 +60,7 @@
 
             var values = Aggregator.ToAverages(intervals, HistoryPeriod.FromMinutes(5));
 
-            Assert.That(values.Points.Length, Is.EqualTo(1));
+            Assert.That(values.Points, Has.Length.EqualTo(1));
             Assert.That(values.Points[0], Is.EqualTo(1.0d));
         }
 
@@ -101,7 +101,7 @@
             Assert.Multiple(() =>
             {
                 Assert.That(values.Average, Is.EqualTo((4d + 5d + 6d + 7d) / 2 / seconds));
-                Assert.That(values.Points.Length, Is.EqualTo(2));
+                Assert.That(values.Points, Has.Length.EqualTo(2));
             });
             Assert.Multiple(() =>
             {

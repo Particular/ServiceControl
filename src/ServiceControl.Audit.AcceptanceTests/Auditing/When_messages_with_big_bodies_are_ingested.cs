@@ -90,7 +90,7 @@
                 .Run();
 
             //Assert
-            Assert.That(body.Length, Is.EqualTo(0));
+            Assert.That(body, Is.Empty);
         }
 
         [Test]

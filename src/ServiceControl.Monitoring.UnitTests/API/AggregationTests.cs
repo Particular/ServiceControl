@@ -95,7 +95,7 @@
 
             Assert.Multiple(() =>
             {
-                Assert.That(item.EndpointInstanceIds.Length, Is.EqualTo(3), nameof(item.EndpointInstanceIds));
+                Assert.That(item.EndpointInstanceIds, Has.Length.EqualTo(3), nameof(item.EndpointInstanceIds));
                 Assert.That(item.ConnectedCount, Is.EqualTo(2), nameof(item.ConnectedCount));
                 Assert.That(item.DisconnectedCount, Is.EqualTo(1), nameof(item.DisconnectedCount));
             });

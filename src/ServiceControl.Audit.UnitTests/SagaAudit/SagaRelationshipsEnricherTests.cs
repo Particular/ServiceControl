@@ -30,7 +30,7 @@
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
-            Assert.That(sagaData.Count, Is.EqualTo(1));
+            Assert.That(sagaData, Has.Count.EqualTo(1));
             Assert.That(sagaData[0].ChangeStatus, Is.EqualTo("New"));
         }
 
@@ -53,7 +53,7 @@
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
-            Assert.That(sagaData.Count, Is.EqualTo(1));
+            Assert.That(sagaData, Has.Count.EqualTo(1));
             Assert.That(sagaData[0].ChangeStatus, Is.EqualTo("New"));
         }
 
@@ -76,7 +76,7 @@
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
-            Assert.That(sagaData.Count, Is.EqualTo(1));
+            Assert.That(sagaData, Has.Count.EqualTo(1));
             Assert.That(sagaData[0].ChangeStatus, Is.EqualTo("Completed"));
         }
 
@@ -99,7 +99,7 @@
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
-            Assert.That(sagaData.Count, Is.EqualTo(1));
+            Assert.That(sagaData, Has.Count.EqualTo(1));
             Assert.That(sagaData[0].ChangeStatus, Is.EqualTo("Completed"));
         }
 
@@ -122,7 +122,7 @@
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
-            Assert.That(sagaData.Count, Is.EqualTo(1));
+            Assert.That(sagaData, Has.Count.EqualTo(1));
             Assert.That(sagaData[0].ChangeStatus, Is.EqualTo("Completed"));
         }
 
@@ -145,7 +145,7 @@
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
-            Assert.That(sagaData.Count, Is.EqualTo(3));
+            Assert.That(sagaData, Has.Count.EqualTo(3));
         }
     }
 }

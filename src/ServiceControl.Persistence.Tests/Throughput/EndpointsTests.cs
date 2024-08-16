@@ -69,7 +69,7 @@ class EndpointsTests : PersistenceTestBase
             Assert.That(throughput, Contains.Key(endpoint1.SanitizedName));
         });
         Assert.That(throughput[endpoint1.SanitizedName].Count, Is.EqualTo(1), "Should be only a single ThroughputData returned");
-        Assert.That(throughput[endpoint1.SanitizedName].Single().Count, Is.EqualTo(2), "Should be two days of throughput data");
+        Assert.That(throughput[endpoint1.SanitizedName].Single(), Has.Count.EqualTo(2), "Should be two days of throughput data");
     }
 
     [Test]

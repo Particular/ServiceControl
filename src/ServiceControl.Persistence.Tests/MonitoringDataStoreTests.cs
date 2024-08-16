@@ -141,7 +141,7 @@
 
             var knownEndpoints = await MonitoringDataStore.GetAllKnownEndpoints();
 
-            Assert.That(knownEndpoints.Count, Is.EqualTo(1));
+            Assert.That(knownEndpoints, Has.Count.EqualTo(1));
             var fromStorage = knownEndpoints[0];
 
             Assert.Multiple(() =>

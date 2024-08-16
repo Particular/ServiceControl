@@ -34,7 +34,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
                 })
                 .Run();
 
-            Assert.That(response.Count, Is.EqualTo(0), "Expected no redirects after delete");
+            Assert.That(response, Is.Empty, "Expected no redirects after delete");
         }
 
         class Context : ScenarioContext

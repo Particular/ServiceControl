@@ -117,7 +117,7 @@
                 })
                 .Run();
 
-            Assert.That(counts.Count, Is.EqualTo(1));
+            Assert.That(counts, Has.Count.EqualTo(1));
             Assert.Multiple(() =>
             {
                 Assert.That(counts[0].UtcDate, Is.EqualTo(DateTime.UtcNow.Date));
