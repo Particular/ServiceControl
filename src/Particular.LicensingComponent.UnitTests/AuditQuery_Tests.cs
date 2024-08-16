@@ -57,8 +57,8 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         Assert.That(remotes[0].Retention, Is.EqualTo(new TimeSpan(7, 0, 0, 0)), "Invalid Retention on remote");
         Assert.That(remotes[0].Queues, Is.Not.Null, "Queues should be reported on remote");
         Assert.That(remotes[0].Queues.Count, Is.EqualTo(2), "Invalid number of queues reported on remote");
-        Assert.That(remotes[0].Queues.Contains("audit"), Is.True, "Should have foind audit queue");
-        Assert.That(remotes[0].Queues.Contains("audit.log"), Is.True, "Should have found audit.log queue");
+        Assert.That(remotes[0].Queues, Does.Contain("audit"), "Should have foind audit queue");
+        Assert.That(remotes[0].Queues, Does.Contain("audit.log"), "Should have found audit.log queue");
     }
 
     [Test]

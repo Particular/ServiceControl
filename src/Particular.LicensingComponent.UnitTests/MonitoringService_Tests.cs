@@ -49,7 +49,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         Assert.That(foundEndpoint, Is.Not.Null, "Expected to find Endpoint1");
         Assert.That(foundEndpoint.Id.Name, Is.EqualTo("Endpoint1"), "Expected name to be Endpoint1");
         Assert.That(foundEndpoint.EndpointIndicators, Is.Not.Null, "Expected to find endpoint indicators");
-        Assert.That(foundEndpoint.EndpointIndicators.Contains(EndpointIndicator.KnownEndpoint.ToString()), Is.True,
+        Assert.That(foundEndpoint.EndpointIndicators, Does.Contain(EndpointIndicator.KnownEndpoint.ToString()),
             "Expected KnownEndpoint indicator");
 
         Assert.That(foundEndpointThroughput, Is.Not.Null, "Expected endpoint throughput");

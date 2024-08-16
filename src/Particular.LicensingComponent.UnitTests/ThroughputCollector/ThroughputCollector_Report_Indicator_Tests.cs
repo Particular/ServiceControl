@@ -37,7 +37,7 @@ class ThroughputCollector_Report_Indicator_Tests : ThroughputCollectorTestFixtur
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Length, Is.EqualTo(1));
 
-        Assert.That(report.ReportData.Queues[0].EndpointIndicators.Contains(EndpointIndicator.KnownEndpoint.ToString()), Is.True, $"Incorrect IsKnownEndpoint recorded for {report.ReportData.Queues[0].QueueName}");
+        Assert.That(report.ReportData.Queues[0].EndpointIndicators, Does.Contain(EndpointIndicator.KnownEndpoint.ToString()), $"Incorrect IsKnownEndpoint recorded for {report.ReportData.Queues[0].QueueName}");
     }
 
     [Test]

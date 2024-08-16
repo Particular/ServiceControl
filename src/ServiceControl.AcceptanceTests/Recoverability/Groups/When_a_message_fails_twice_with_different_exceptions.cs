@@ -71,7 +71,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
             foreach (var failureId in originalExceptionAndStackTraceFailureGroupIds)
             {
                 Console.WriteLine($"failureId: {failureId}");
-                Assert.That(retriedExceptionAndStackTraceFailureGroupIds.Contains(failureId), Is.False, $"Failure Group {failureId} is still set on retried message");
+                Assert.That(retriedExceptionAndStackTraceFailureGroupIds, Does.Not.Contain(failureId), $"Failure Group {failureId} is still set on retried message");
             }
         }
 
