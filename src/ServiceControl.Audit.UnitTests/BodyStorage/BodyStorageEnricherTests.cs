@@ -232,7 +232,7 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             await enricher.StoreAuditMessageBody(body, message);
 
-            Assert.IsTrue(fakeStorage.StoredBodySize > 0);
+            Assert.That(fakeStorage.StoredBodySize > 0, Is.True);
         }
 
         class FakeBodyStorage : IBodyStorage

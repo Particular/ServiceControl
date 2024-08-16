@@ -56,7 +56,7 @@
                 })
                 .Run();
             Assert.IsNotNull(failure);
-            Assert.IsTrue(failure.IsSystemMessage);
+            Assert.That(failure.IsSystemMessage, Is.True);
         }
 
         [Test]
@@ -79,7 +79,7 @@
                 })
                 .Run();
             Assert.IsNotNull(failure);
-            Assert.IsTrue(failure.IsSystemMessage);
+            Assert.That(failure.IsSystemMessage, Is.True);
         }
 
         [Test]
@@ -103,7 +103,7 @@
                 .Run();
 
             Assert.IsNotNull(failure);
-            Assert.IsTrue(failure.IsSystemMessage);
+            Assert.That(failure.IsSystemMessage, Is.True);
         }
 
         [Test]

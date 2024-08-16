@@ -45,7 +45,7 @@
 
             var error = await GetAllMessages();
 
-            Assert.IsTrue(error.Results.Count == 1, "Failed message should be available to query after ingestion");
+            Assert.That(error.Results.Count == 1, Is.True, "Failed message should be available to query after ingestion");
 
             await ErrorStore.FailedMessageMarkAsArchived(error.Results.First().Id);
 
@@ -75,7 +75,7 @@
 
             var error = await GetAllMessages();
 
-            Assert.IsTrue(error.Results.Count == 2, "Failed message should be available to query after ingestion");
+            Assert.That(error.Results.Count == 2, Is.True, "Failed message should be available to query after ingestion");
 
             await DisableExpiration();
 
@@ -106,7 +106,7 @@
 
             var error = await GetAllMessages();
 
-            Assert.IsTrue(error.Results.Count == 1, "Failed message should be available to query after ingestion");
+            Assert.That(error.Results.Count == 1, Is.True, "Failed message should be available to query after ingestion");
 
             await ArchiveMessages.ArchiveAllInGroup(groupId);
 
@@ -129,7 +129,7 @@
 
             var errors = await GetAllMessages();
 
-            Assert.IsTrue(errors.Results.Count == 1, "Failed message should be available to query after ingestion");
+            Assert.That(errors.Results.Count == 1, Is.True, "Failed message should be available to query after ingestion");
 
             await ErrorStore.MarkMessageAsResolved(errors.Results.First().Id);
 
@@ -152,7 +152,7 @@
 
             var errors = await GetAllMessages();
 
-            Assert.IsTrue(errors.Results.Count == 1, "Failed message should be available to query after ingestion");
+            Assert.That(errors.Results.Count == 1, Is.True, "Failed message should be available to query after ingestion");
 
             using (var uow = await IngestionUnitOfWorkFactory.StartNew())
             {
@@ -190,7 +190,7 @@
 
             var (logItems, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(1, 1));
 
-            Assert.IsTrue(logItems.Count == 1, "Event log items should be available to query.");
+            Assert.That(logItems.Count == 1, Is.True, "Event log items should be available to query.");
 
             await EnableExpiration();
 

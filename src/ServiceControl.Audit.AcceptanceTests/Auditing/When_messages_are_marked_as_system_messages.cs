@@ -57,7 +57,7 @@
                 })
                 .Run();
             Assert.IsNotNull(auditMessage);
-            Assert.IsTrue(auditMessage.IsSystemMessage);
+            Assert.That(auditMessage.IsSystemMessage, Is.True);
         }
 
         [Test]

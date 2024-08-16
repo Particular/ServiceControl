@@ -44,7 +44,7 @@
                 })
                 .Run();
 
-            Assert.IsTrue(context.RetryHandled, "Retry not handled correctly");
+            Assert.That(context.RetryHandled, Is.True, "Retry not handled correctly");
         }
 
         class MyMessage : IMessage

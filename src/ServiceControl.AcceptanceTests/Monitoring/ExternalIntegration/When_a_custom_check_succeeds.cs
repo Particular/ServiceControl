@@ -55,7 +55,7 @@
                 .Done(c => c.CustomCheckSucceededReceived)
                 .Run();
 
-            Assert.IsTrue(context.CustomCheckSucceededReceived);
+            Assert.That(context.CustomCheckSucceededReceived, Is.True);
         }
 
         public class ExternalProcessor : EndpointConfigurationBuilder

@@ -41,7 +41,7 @@
                 })
                 .Run();
 
-            Assert.IsTrue(context.MessageFound);
+            Assert.That(context.MessageFound, Is.True);
         }
 
         [Test]
@@ -74,7 +74,7 @@
                 })
                 .Run();
 
-            Assert.IsTrue(context.MessageIngested);
+            Assert.That(context.MessageIngested, Is.True);
             Assert.That(context.MessageFound, Is.False);
         }
 

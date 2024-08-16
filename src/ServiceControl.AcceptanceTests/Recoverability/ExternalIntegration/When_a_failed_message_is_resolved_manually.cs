@@ -60,7 +60,7 @@
                 .Run();
 
             var deserializedEvent = JsonSerializer.Deserialize<MessageFailureResolvedManually>(context.Event);
-            Assert.IsTrue(deserializedEvent.FailedMessageId == context.FailedMessageId.ToString());
+            Assert.That(deserializedEvent.FailedMessageId == context.FailedMessageId.ToString(), Is.True);
         }
 
         public class ExternalProcessor : EndpointConfigurationBuilder

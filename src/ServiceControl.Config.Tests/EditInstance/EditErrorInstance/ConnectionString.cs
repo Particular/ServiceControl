@@ -59,7 +59,7 @@
             var viewModel = Given_a_service_control_instance()
                 .When_a_transport_is_selected(transportInfoName);
 
-            Assert.IsTrue(viewModel.ShowConnectionString);
+            Assert.That(viewModel.ShowConnectionString, Is.True);
             StringAssert.StartsWith(transportInfoName, viewModel.SelectedTransport.Name);
             Assert.IsNotEmpty(viewModel.SampleConnectionString);
             if (transportInfoName is "SQLServer" or "AmazonSQS" or "AzureStorageQueue")

@@ -66,8 +66,8 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                 .Done(c => c.NotificationDelivered)
                 .Run();
 
-            Assert.IsTrue(context.NotificationDelivered);
-            Assert.IsTrue(context.Failed);
+            Assert.That(context.NotificationDelivered, Is.True);
+            Assert.That(context.Failed, Is.True);
         }
 
         class FaultyPublisher(MyContext context) : IEventPublisher

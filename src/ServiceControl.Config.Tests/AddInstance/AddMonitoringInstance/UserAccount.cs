@@ -72,7 +72,7 @@
         {
             var viewModel = Given_adding_monitoring_instance();
 
-            Assert.IsTrue(viewModel.UseSystemAccount);
+            Assert.That(viewModel.UseSystemAccount, Is.True);
 
             Assert.That(viewModel.UseServiceAccount, Is.False);
 
@@ -95,7 +95,7 @@
                 .Collect_changed_properties(changedProperties)
                 .When_local_system_account_selected();
 
-            Assert.IsTrue(viewModel.UseSystemAccount);
+            Assert.That(viewModel.UseSystemAccount, Is.True);
 
             Assert.That(viewModel.UseServiceAccount, Is.False);
 
@@ -126,7 +126,7 @@
 
             Assert.That(viewModel.UseSystemAccount, Is.False);
 
-            Assert.IsTrue(viewModel.UseServiceAccount);
+            Assert.That(viewModel.UseServiceAccount, Is.True);
 
             Assert.That(viewModel.UseProvidedAccount, Is.False);
 
@@ -157,11 +157,11 @@
 
             Assert.That(viewModel.UseServiceAccount, Is.False);
 
-            Assert.IsTrue(viewModel.UseProvidedAccount);
+            Assert.That(viewModel.UseProvidedAccount, Is.True);
 
             Assert.IsNull(viewModel.ServiceAccount);
 
-            Assert.IsTrue(viewModel.PasswordEnabled);
+            Assert.That(viewModel.PasswordEnabled, Is.True);
 
             Assert.IsNull(viewModel.Password);
         }
@@ -191,9 +191,9 @@
 
             Assert.That(viewModel.UseServiceAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.UseServiceAccount)));
 
-            Assert.IsTrue(viewModel.UseProvidedAccount, ShouldBeTrue, nameof(viewModel.UseProvidedAccount));
+            Assert.That(viewModel.UseProvidedAccount, Is.True, () => string.Format(ShouldBeTrue, nameof(viewModel.UseProvidedAccount)));
 
-            Assert.IsTrue(viewModel.PasswordEnabled, ShouldBeTrue, nameof(viewModel.PasswordEnabled));
+            Assert.That(viewModel.PasswordEnabled, Is.True, () => string.Format(ShouldBeTrue, nameof(viewModel.PasswordEnabled)));
 
             Assert.AreEqual(userAccount, viewModel.ServiceAccount, ShouldEqual, nameof(viewModel.ServiceAccount), userAccount);
 
@@ -222,7 +222,7 @@
 
             nameof(viewModel.Password).Was_notified_of_change(changedProperties);
 
-            Assert.IsTrue(viewModel.UseSystemAccount, ShouldBeFalse, nameof(viewModel.UseSystemAccount));
+            Assert.That(viewModel.UseSystemAccount, Is.True, () => string.Format(ShouldBeFalse, nameof(viewModel.UseSystemAccount)));
 
             Assert.That(viewModel.UseServiceAccount, Is.False, () => string.Format(ShouldBeTrue, nameof(viewModel.UseServiceAccount)));
 
@@ -260,7 +260,7 @@
 
             Assert.That(viewModel.UseSystemAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.UseSystemAccount)));
 
-            Assert.IsTrue(viewModel.UseServiceAccount, ShouldBeTrue, nameof(viewModel.UseServiceAccount));
+            Assert.That(viewModel.UseServiceAccount, Is.True, () => string.Format(ShouldBeTrue, nameof(viewModel.UseServiceAccount)));
 
             Assert.That(viewModel.UseProvidedAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.UseProvidedAccount)));
 

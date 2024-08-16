@@ -44,8 +44,8 @@
 
 
 
-            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/customcheck/ServiceControl Primary Instance"), "Event log entry should be related to the Primary instance health Custom Check");
-            Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith("/endpoint/Particular.ServiceControl")), "Event log entry should be related to the ServiceControl endpoint");
+            Assert.That(entry.RelatedTo.Any(item => item == "/customcheck/ServiceControl Primary Instance"), Is.True, "Event log entry should be related to the Primary instance health Custom Check");
+            Assert.That(entry.RelatedTo.Any(item => item.StartsWith("/endpoint/Particular.ServiceControl")), Is.True, "Event log entry should be related to the ServiceControl endpoint");
         }
 
         public class MyContext : ScenarioContext

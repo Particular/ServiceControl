@@ -46,7 +46,7 @@
                 })
                 .Run();
 
-            Assert.IsTrue(metricReported);
+            Assert.That(metricReported, Is.True);
             Assert.IsEmpty(ctx.Errors);
         }
 

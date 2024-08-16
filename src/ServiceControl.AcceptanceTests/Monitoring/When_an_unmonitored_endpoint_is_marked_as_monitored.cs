@@ -74,8 +74,8 @@
 
             var myEndpoint = endpoints.FirstOrDefault(e => e.Name == EndpointName);
             Assert.NotNull(myEndpoint);
-            Assert.IsTrue(myEndpoint.Monitored);
-            Assert.IsTrue(myEndpoint.MonitorHeartbeat);
+            Assert.That(myEndpoint.Monitored, Is.True);
+            Assert.That(myEndpoint.MonitorHeartbeat, Is.True);
             Assert.That(myEndpoint.IsSendingHeartbeats, Is.False);
         }
 

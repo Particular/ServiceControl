@@ -28,8 +28,8 @@ namespace ServiceControl.AcceptanceTests.Monitoring
                 })
                 .Run();
 
-            Assert.IsTrue(response.IsSuccessStatusCode);
-            Assert.IsTrue(response.Content.Headers.Allow.Contains("DELETE"));
+            Assert.That(response.IsSuccessStatusCode, Is.True);
+            Assert.That(response.Content.Headers.Allow.Contains("DELETE"), Is.True);
         }
 
         [Test]

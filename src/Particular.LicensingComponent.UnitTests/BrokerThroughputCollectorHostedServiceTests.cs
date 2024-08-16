@@ -119,7 +119,7 @@ class BrokerThroughputCollectorHostedServiceTests
         await Task.Delay(TimeSpan.FromSeconds(2), token);
         await brokerThroughputCollectorHostedService.StopAsync(token);
 
-        Assert.IsTrue(brokerThroughputCollectorHostedService.ExecuteTask?.IsCompletedSuccessfully);
+        Assert.That(brokerThroughputCollectorHostedService.ExecuteTask?.IsCompletedSuccessfully, Is.True);
     }
 
     class MockedBrokerThroughputQueryThatThrowsExceptions : IBrokerThroughputQuery

@@ -130,8 +130,8 @@
                 //Intentionally empty catch
             }
 
-            Assert.IsTrue(message.Headers.ContainsKey("ServiceControl.TargetEndpointAddress"));
-            Assert.IsTrue(message.Headers.ContainsKey("ServiceControl.Retry.Attempt.MessageId"));
+            Assert.That(message.Headers.ContainsKey("ServiceControl.TargetEndpointAddress"), Is.True);
+            Assert.That(message.Headers.ContainsKey("ServiceControl.Retry.Attempt.MessageId"), Is.True);
         }
 
         class FaultySender : IMessageDispatcher

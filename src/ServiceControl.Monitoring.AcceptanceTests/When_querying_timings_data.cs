@@ -29,7 +29,7 @@
                 })
                 .Run();
 
-            Assert.IsTrue(metricReported);
+            Assert.That(metricReported, Is.True);
         }
 
         class EndpointWithTimings : EndpointConfigurationBuilder

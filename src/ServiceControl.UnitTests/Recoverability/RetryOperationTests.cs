@@ -27,7 +27,7 @@
         {
             var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents());
             summary.Fail();
-            Assert.IsTrue(summary.Failed);
+            Assert.That(summary.Failed, Is.True);
         }
 
         [Test]
@@ -88,11 +88,11 @@
             await summary.Forwarding();
             await summary.BatchForwarded(1000);
 
-            Assert.IsTrue(domainEvents.RaisedEvents[0] is RetryOperationPreparing);
-            Assert.IsTrue(domainEvents.RaisedEvents[1] is RetryOperationPreparing);
-            Assert.IsTrue(domainEvents.RaisedEvents[2] is RetryOperationForwarding);
-            Assert.IsTrue(domainEvents.RaisedEvents[3] is RetryMessagesForwarded);
-            Assert.IsTrue(domainEvents.RaisedEvents[4] is RetryOperationCompleted);
+            Assert.That(domainEvents.RaisedEvents[0] is RetryOperationPreparing, Is.True);
+            Assert.That(domainEvents.RaisedEvents[1] is RetryOperationPreparing, Is.True);
+            Assert.That(domainEvents.RaisedEvents[2] is RetryOperationForwarding, Is.True);
+            Assert.That(domainEvents.RaisedEvents[3] is RetryMessagesForwarded, Is.True);
+            Assert.That(domainEvents.RaisedEvents[4] is RetryOperationCompleted, Is.True);
         }
 
         [Test]

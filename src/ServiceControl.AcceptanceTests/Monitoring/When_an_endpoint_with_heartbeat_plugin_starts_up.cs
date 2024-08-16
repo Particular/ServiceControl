@@ -30,8 +30,8 @@
                 })
                 .Run();
 
-            Assert.IsTrue(endpoint.Monitored);
-            Assert.IsTrue(endpoint.IsSendingHeartbeats);
+            Assert.That(endpoint.Monitored, Is.True);
+            Assert.That(endpoint.IsSendingHeartbeats, Is.True);
         }
 
         [Test]

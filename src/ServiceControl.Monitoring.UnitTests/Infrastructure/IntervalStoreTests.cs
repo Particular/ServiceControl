@@ -83,7 +83,7 @@
 
             var timings = store.GetIntervals(now.Add(store.IntervalSize));
 
-            Assert.IsTrue(timings[0].Intervals.All(i => i.TotalMeasurements == 0));
+            Assert.That(timings[0].Intervals.All(i => i.TotalMeasurements == 0), Is.True);
         }
 
         [Test]
@@ -100,11 +100,11 @@
 
             var currentTimings = store.GetIntervals(now);
 
-            Assert.IsTrue(currentTimings[0].TotalMeasurements == 0);
+            Assert.That(currentTimings[0].TotalMeasurements == 0, Is.True);
 
             var futureTimings = store.GetIntervals(now.Add(store.IntervalSize).AddMinutes(6));
 
-            Assert.IsTrue(futureTimings[0].TotalMeasurements == 1);
+            Assert.That(futureTimings[0].TotalMeasurements == 1, Is.True);
         }
 
         [Test]
@@ -154,8 +154,8 @@
             var timings = store.GetIntervals(now);
             var intervalStarts = timings[0].Intervals.Select(i => i.IntervalStart).ToArray();
 
-            Assert.IsTrue(intervalStarts[0] > intervalStarts[1]);
-            Assert.IsTrue(intervalStarts[1] > intervalStarts[2]);
+            Assert.That(intervalStarts[0] > intervalStarts[1], Is.True);
+            Assert.That(intervalStarts[1] > intervalStarts[2], Is.True);
         }
 
         [Test]

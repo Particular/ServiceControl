@@ -32,7 +32,7 @@
                 .Run();
 
             Assert.AreEqual(Severity.Error, entry.Severity, "Failed custom checks should be treated as error");
-            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/customcheck/EventuallyFailingCustomCheck"));
+            Assert.That(entry.RelatedTo.Any(item => item == "/customcheck/EventuallyFailingCustomCheck"), Is.True);
         }
 
         public class MyContext : ScenarioContext

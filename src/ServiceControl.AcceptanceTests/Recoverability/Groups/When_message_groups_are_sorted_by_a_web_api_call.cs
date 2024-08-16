@@ -21,9 +21,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
         {
             var errors = await SortTest("time_sent");
 
-            Assert.IsTrue(errors[0].MessageId.StartsWith("1"));
-            Assert.IsTrue(errors[1].MessageId.StartsWith("2"));
-            Assert.IsTrue(errors[2].MessageId.StartsWith("3"));
+            Assert.That(errors[0].MessageId.StartsWith("1"), Is.True);
+            Assert.That(errors[1].MessageId.StartsWith("2"), Is.True);
+            Assert.That(errors[2].MessageId.StartsWith("3"), Is.True);
         }
 
         [Test]
@@ -31,9 +31,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
         {
             var errors = await SortTest("message_type");
 
-            Assert.IsTrue(errors[0].MessageId.StartsWith("1"));
-            Assert.IsTrue(errors[1].MessageId.StartsWith("2"));
-            Assert.IsTrue(errors[2].MessageId.StartsWith("3"));
+            Assert.That(errors[0].MessageId.StartsWith("1"), Is.True);
+            Assert.That(errors[1].MessageId.StartsWith("2"), Is.True);
+            Assert.That(errors[2].MessageId.StartsWith("3"), Is.True);
         }
 
         async Task<List<FailedMessageView>> SortTest(string sortProperty)

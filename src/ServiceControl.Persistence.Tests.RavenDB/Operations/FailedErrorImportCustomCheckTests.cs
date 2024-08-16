@@ -50,7 +50,7 @@
 
             var result = await customCheck.PerformCheck();
 
-            Assert.IsTrue(result.HasFailed);
+            Assert.That(result.HasFailed, Is.True);
             StringAssert.StartsWith("One or more error messages have failed to import properly into ServiceControl and have been stored in the ServiceControl database.", result.FailureReason);
         }
     }

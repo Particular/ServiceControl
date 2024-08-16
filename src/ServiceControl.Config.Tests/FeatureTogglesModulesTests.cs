@@ -21,7 +21,7 @@
 
             var injectionTarget = container.Resolve<FakeClass>();
 
-            Assert.IsTrue(injectionTarget.SomeFeatureIsEnabled, "Property with activated feature toggle should be set.");
+            Assert.That(injectionTarget.SomeFeatureIsEnabled, Is.True, "Property with activated feature toggle should be set.");
             Assert.That(injectionTarget.SomeUnrelatedFeatureIsEnabled, Is.False, "Property without activated feature toggle should be ignored.");
         }
 

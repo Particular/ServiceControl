@@ -16,7 +16,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             };
 
             var result = headers.IsBinary();
-            Assert.IsTrue(result);
+            Assert.That(result, Is.True);
         }
 
         [Test]
@@ -50,7 +50,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             };
 
             var result = headers.IsBinary();
-            Assert.IsTrue(result);
+            Assert.That(result, Is.True);
         }
     }
 }

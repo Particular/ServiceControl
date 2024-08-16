@@ -103,7 +103,7 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         await auditThroughputCollectorHostedService.StopAsync(token);
 
         //Assert
-        Assert.IsTrue(auditThroughputCollectorHostedService.ExecuteTask?.IsCompletedSuccessfully);
+        Assert.That(auditThroughputCollectorHostedService.ExecuteTask?.IsCompletedSuccessfully, Is.True);
     }
 
     [Test]

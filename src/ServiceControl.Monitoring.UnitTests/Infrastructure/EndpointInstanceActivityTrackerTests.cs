@@ -17,7 +17,7 @@
         [Test]
         public void When_no_endpoint_instance_reports_stale()
         {
-            Assert.IsTrue(tracker.IsStale(A1));
+            Assert.That(tracker.IsStale(A1), Is.True);
         }
 
         [Test]
@@ -37,7 +37,7 @@
                 .Subtract(TimeSpan.FromSeconds(1));
 
             tracker.Record(A1, now);
-            Assert.IsTrue(tracker.IsStale(A1));
+            Assert.That(tracker.IsStale(A1), Is.True);
         }
 
         [Test]

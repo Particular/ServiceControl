@@ -97,7 +97,7 @@
 
             CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
-            Assert.IsTrue(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id));
+            Assert.That(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id), Is.True);
         }
 
 

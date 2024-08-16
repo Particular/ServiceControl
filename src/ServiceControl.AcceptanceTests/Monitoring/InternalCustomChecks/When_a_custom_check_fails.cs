@@ -52,8 +52,8 @@
                 .Run();
 
             Assert.AreEqual(Severity.Error, entry.Severity, "Failed custom checks should be treated as error");
-            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/customcheck/MyCustomCheckId"));
-            Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith("/endpoint/Particular.ServiceControl")));
+            Assert.That(entry.RelatedTo.Any(item => item == "/customcheck/MyCustomCheckId"), Is.True);
+            Assert.That(entry.RelatedTo.Any(item => item.StartsWith("/endpoint/Particular.ServiceControl")), Is.True);
         }
 
         public class MyContext : ScenarioContext

@@ -31,7 +31,7 @@
             lockedHeaders = new[] { "NServiceBus.MessageId" };
             editedMessageHeaders = new Dictionary<string, string> { { "foo", "bar" } };
             originalMessageHeaders = new Dictionary<string, string> { { "NServiceBus.MessageId", "asdf" } };
-            Assert.IsTrue(LockedHeaderModificationValidator.Check(lockedHeaders, editedMessageHeaders, originalMessageHeaders));
+            Assert.That(LockedHeaderModificationValidator.Check(lockedHeaders, editedMessageHeaders, originalMessageHeaders), Is.True);
         }
 
         [Test]
@@ -40,7 +40,7 @@
             lockedHeaders = new[] { "NServiceBus.MessageId" };
             editedMessageHeaders = new Dictionary<string, string> { { "NServiceBus.MessageId", "bar" } };
             originalMessageHeaders = new Dictionary<string, string> { { "NServiceBus.MessageId", "asdf" } };
-            Assert.IsTrue(LockedHeaderModificationValidator.Check(lockedHeaders, editedMessageHeaders, originalMessageHeaders));
+            Assert.That(LockedHeaderModificationValidator.Check(lockedHeaders, editedMessageHeaders, originalMessageHeaders), Is.True);
         }
 
         [Test]
@@ -49,7 +49,7 @@
             lockedHeaders = new[] { "NServiceBus.MessageId" };
             editedMessageHeaders = new Dictionary<string, string> { { "NServiceBus.MessageId", "asdf" } };
             originalMessageHeaders = new Dictionary<string, string> { { "NServiceBus.MessageId", "ASDF" } };
-            Assert.IsTrue(LockedHeaderModificationValidator.Check(lockedHeaders, editedMessageHeaders, originalMessageHeaders));
+            Assert.That(LockedHeaderModificationValidator.Check(lockedHeaders, editedMessageHeaders, originalMessageHeaders), Is.True);
         }
 
         [Test]
@@ -58,7 +58,7 @@
             lockedHeaders = new[] { "NServiceBus.MessageId" };
             editedMessageHeaders = new Dictionary<string, string> { { "nservicebus.messageid", "asdf" } };
             originalMessageHeaders = new Dictionary<string, string> { { "NServiceBus.MessageId", "asdf" } };
-            Assert.IsTrue(LockedHeaderModificationValidator.Check(lockedHeaders, editedMessageHeaders, originalMessageHeaders));
+            Assert.That(LockedHeaderModificationValidator.Check(lockedHeaders, editedMessageHeaders, originalMessageHeaders), Is.True);
         }
 
         string[] lockedHeaders;

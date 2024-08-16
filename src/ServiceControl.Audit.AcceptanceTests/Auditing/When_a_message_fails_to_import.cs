@@ -57,7 +57,7 @@
                 })
                 .Run();
 
-            Assert.IsTrue(runResult.AuditForwarded);
+            Assert.That(runResult.AuditForwarded, Is.True);
         }
 
         class FailOnceEnricher(MyContext testContext) : IEnrichImportedAuditMessages

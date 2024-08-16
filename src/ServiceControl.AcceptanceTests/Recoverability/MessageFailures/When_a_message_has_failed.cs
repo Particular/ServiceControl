@@ -118,7 +118,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 .Run();
 
             var content = await result.Content.ReadAsStringAsync();
-            Assert.IsTrue(content.Contains($"<Content>{myMessage.Content}</Content>"));
+            Assert.That(content.Contains($"<Content>{myMessage.Content}</Content>"), Is.True);
         }
 
         [Test]
@@ -180,9 +180,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 .Run();
 
             Assert.AreEqual(Severity.Error, entry.Severity, "Failures should be treated as errors");
-            Assert.IsTrue(entry.Description.Contains("exception"), "For failed messages, the description should contain the exception information");
-            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/message/" + context.UniqueMessageId), "Should contain the api url to retrieve additional details about the failed message");
-            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/endpoint/" + context.EndpointNameOfReceivingEndpoint), "Should contain the api url to retrieve additional details about the endpoint where the message failed");
+            Assert.That(entry.Description.Contains("exception"), Is.True, "For failed messages, the description should contain the exception information");
+            Assert.That(entry.RelatedTo.Any(item => item == "/message/" + context.UniqueMessageId), Is.True, "Should contain the api url to retrieve additional details about the failed message");
+            Assert.That(entry.RelatedTo.Any(item => item == "/endpoint/" + context.EndpointNameOfReceivingEndpoint), Is.True, "Should contain the api url to retrieve additional details about the endpoint where the message failed");
         }
 
         [Test]
@@ -266,7 +266,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 .Run();
 
             Assert.AreEqual(1, searchResults.Count, "Result count did not match");
-            Assert.IsTrue(searchResults[0].PhysicalAddress.StartsWith(searchEndpointName, StringComparison.InvariantCultureIgnoreCase));
+            Assert.That(searchResults[0].PhysicalAddress.StartsWith(searchEndpointName, StringComparison.InvariantCultureIgnoreCase), Is.True);
         }
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder

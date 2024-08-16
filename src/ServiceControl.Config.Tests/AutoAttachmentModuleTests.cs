@@ -25,8 +25,8 @@
             var container = builder.Build();
 
             var viewModel = container.Resolve<TargetViewModel>();
-            Assert.IsTrue(viewModel.FirstAttachmentActivated, "First Attachment should have been attached");
-            Assert.IsTrue(viewModel.SecondAttachmentActivated, "Second Attachment should have been attached");
+            Assert.That(viewModel.FirstAttachmentActivated, Is.True, "First Attachment should have been attached");
+            Assert.That(viewModel.SecondAttachmentActivated, Is.True, "Second Attachment should have been attached");
         }
 
         [Test]

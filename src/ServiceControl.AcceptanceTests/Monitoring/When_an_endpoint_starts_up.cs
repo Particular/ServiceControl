@@ -32,7 +32,7 @@
                 .Run();
 
             Assert.AreEqual(Severity.Info, entry.Severity, "Endpoint startup should be treated as info");
-            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/host/" + hostIdentifier));
+            Assert.That(entry.RelatedTo.Any(item => item == "/host/" + hostIdentifier), Is.True);
         }
 
         static readonly Guid hostIdentifier = Guid.NewGuid();

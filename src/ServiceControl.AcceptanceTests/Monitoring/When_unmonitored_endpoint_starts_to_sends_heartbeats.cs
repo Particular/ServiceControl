@@ -67,9 +67,9 @@
                 })
                 .Run();
 
-            Assert.IsTrue(endpoint.MonitorHeartbeat, "Should have heartbeat monitoring on");
-            Assert.IsTrue(endpoint.Monitored, "Should be flagged as monitored");
-            Assert.IsTrue(endpoint.IsSendingHeartbeats, "Should be emitting heartbeats");
+            Assert.That(endpoint.MonitorHeartbeat, Is.True, "Should have heartbeat monitoring on");
+            Assert.That(endpoint.Monitored, Is.True, "Should be flagged as monitored");
+            Assert.That(endpoint.IsSendingHeartbeats, Is.True, "Should be emitting heartbeats");
         }
 
         public class MyContext : ScenarioContext;

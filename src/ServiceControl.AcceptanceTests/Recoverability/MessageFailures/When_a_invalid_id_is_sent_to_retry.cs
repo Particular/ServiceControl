@@ -38,7 +38,7 @@
                 .Done(ctx => ctx.Done)
                 .Run(TimeSpan.FromMinutes(3));
 
-            Assert.IsTrue(context.Done);
+            Assert.That(context.Done, Is.True);
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder

@@ -47,7 +47,7 @@
                 .Done(ctx => ctx.Received)
                 .Run(TimeSpan.FromSeconds(120));
 
-            Assert.IsTrue(context.Received);
+            Assert.That(context.Received, Is.True);
         }
 
         public class FromEndpoint : EndpointConfigurationBuilder

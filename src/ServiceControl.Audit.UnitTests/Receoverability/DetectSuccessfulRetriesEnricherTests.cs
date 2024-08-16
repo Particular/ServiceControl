@@ -75,7 +75,7 @@
             CollectionAssert.IsEmpty(outgoingCommands);
 
             var ack = transportOperations.Single();
-            Assert.IsTrue(ack.Message.Headers.ContainsKey("ServiceControl.Retry.Successful"));
+            Assert.That(ack.Message.Headers.ContainsKey("ServiceControl.Retry.Successful"), Is.True);
         }
     }
 }

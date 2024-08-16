@@ -57,7 +57,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsTrue(instanceNamesProvided, "Instance names were not provided.");
+            Assert.That(instanceNamesProvided, Is.True, "Instance names were not provided.");
 
             Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)));
         }

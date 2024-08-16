@@ -20,7 +20,7 @@
             monitor.RecordHeartbeat(monitoredEndpoint, lastHeartbeat);
             await monitor.CheckEndpoints(lastHeartbeat);
 
-            Assert.IsTrue(monitor.HasEndpoint(monitoredEndpoint.UniqueId), "Monitored Endpoint should be recorded");
+            Assert.That(monitor.HasEndpoint(monitoredEndpoint.UniqueId), Is.True, "Monitored Endpoint should be recorded");
 
             monitor.RemoveEndpoint(monitoredEndpoint.UniqueId);
 

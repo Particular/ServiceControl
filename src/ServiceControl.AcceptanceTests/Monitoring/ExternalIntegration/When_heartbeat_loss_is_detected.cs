@@ -57,7 +57,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
                 .Done(c => c.NotificationDelivered)
                 .Run();
 
-            Assert.IsTrue(context.NotificationDelivered);
+            Assert.That(context.NotificationDelivered, Is.True);
         }
 
         public class ExternalProcessor : EndpointConfigurationBuilder

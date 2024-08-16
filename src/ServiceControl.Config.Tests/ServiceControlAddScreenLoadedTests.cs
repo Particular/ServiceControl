@@ -17,9 +17,9 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsTrue(viewModel.InstallErrorInstance);
+            Assert.That(viewModel.InstallErrorInstance, Is.True);
 
-            Assert.IsTrue(viewModel.InstallAuditInstance);
+            Assert.That(viewModel.InstallAuditInstance, Is.True);
         }
 
         [Test]
@@ -67,7 +67,7 @@
 
             Assert.AreEqual("LocalSystem", viewModel.ErrorServiceAccount);
 
-            Assert.IsTrue(viewModel.ErrorUseSystemAccount);
+            Assert.That(viewModel.ErrorUseSystemAccount, Is.True);
 
             Assert.That(viewModel.ErrorUseServiceAccount, Is.False);
 
@@ -79,7 +79,7 @@
 
             Assert.AreEqual("LocalSystem", viewModel.AuditServiceAccount);
 
-            Assert.IsTrue(viewModel.AuditUseSystemAccount);
+            Assert.That(viewModel.AuditUseSystemAccount, Is.True);
 
             Assert.That(viewModel.AuditUseServiceAccount, Is.False);
 
