@@ -45,7 +45,7 @@
         {
             var pagingHeaders = GetLinks(totalResults: 50);
 
-            Assert.IsEmpty(pagingHeaders);
+            Assert.That(pagingHeaders, Is.Empty);
         }
 
         [Test]
@@ -61,7 +61,7 @@
         {
             var pagingHeaders = GetLinks(totalResults: 49, 150);
 
-            Assert.IsEmpty(pagingHeaders);
+            Assert.That(pagingHeaders, Is.Empty);
         }
 
         [Test]

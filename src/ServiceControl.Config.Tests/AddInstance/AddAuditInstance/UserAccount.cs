@@ -72,7 +72,7 @@
 
             Assert.That(viewModel.AuditPasswordEnabled, Is.False);
 
-            Assert.IsEmpty(viewModel.AuditPassword);
+            Assert.That(viewModel.AuditPassword, Is.Empty);
 
             Assert.That(viewModel.AuditServiceAccount, Is.EqualTo("LocalSystem"));
         }
@@ -92,7 +92,7 @@
 
             Assert.That(viewModel.AuditPasswordEnabled, Is.False);
 
-            Assert.IsEmpty(viewModel.AuditPassword);
+            Assert.That(viewModel.AuditPassword, Is.Empty);
 
             Assert.That(viewModel.AuditServiceAccount, Is.EqualTo("LocalSystem"));
 
@@ -113,7 +113,7 @@
 
             Assert.That(viewModel.AuditPasswordEnabled, Is.False);
 
-            Assert.IsEmpty(viewModel.AuditPassword);
+            Assert.That(viewModel.AuditPassword, Is.Empty);
 
             Assert.That(viewModel.AuditServiceAccount, Is.EqualTo("LocalService"));
         }
@@ -208,7 +208,7 @@
 
             Assert.That(viewModel.AuditServiceAccount, Is.EqualTo("LocalSystem"));
 
-            Assert.IsEmpty(viewModel.AuditPassword);
+            Assert.That(viewModel.AuditPassword, Is.Empty);
         }
 
 
@@ -244,7 +244,7 @@
 
             Assert.That(viewModel.AuditServiceAccount, Is.EqualTo("LocalService"));
 
-            Assert.IsEmpty(viewModel.AuditPassword);
+            Assert.That(viewModel.AuditPassword, Is.Empty);
         }
     }
 }

@@ -47,7 +47,7 @@
                 .Run();
 
             Assert.That(metricReported, Is.True);
-            Assert.IsEmpty(ctx.Errors);
+            Assert.That(ctx.Errors, Is.Empty);
         }
 
         class EndpointWithTimings : EndpointConfigurationBuilder

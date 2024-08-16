@@ -54,7 +54,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)), Is.Empty);
         }
         #endregion
 

@@ -32,7 +32,7 @@
 
             Assert.That(instanceNamesProvided); // Provided because the convention default auto-fills them on instantiation
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)), Is.Empty);
         }
 
         [Test]
@@ -61,7 +61,7 @@
 
             Assert.That(instanceNamesProvided, Is.True, "Instance names were not provided.");
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)), Is.Empty);
         }
 
         [Test]
@@ -196,7 +196,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ErrorInstanceName));
 
-            Assert.IsEmpty(errors);
+            Assert.That(errors, Is.Empty);
         }
 
         #endregion
@@ -220,7 +220,7 @@
 
             Assert.That(selectedAccount, Is.EqualTo("LocalSystem"));
 
-            Assert.IsEmpty(errors);
+            Assert.That(errors, Is.Empty);
         }
 
         [Test]
@@ -258,7 +258,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)), Is.Empty);
         }
 
         [Test]
@@ -275,7 +275,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)), Is.Empty);
         }
 
         [Test]
@@ -325,7 +325,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)), Is.Empty);
         }
 
         #endregion
@@ -532,7 +532,7 @@
             };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorDestinationPath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorDestinationPath)), Is.Empty);
 
         }
 
@@ -609,7 +609,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ErrorLogPath));
 
-            Assert.IsEmpty(errors);
+            Assert.That(errors, Is.Empty);
         }
 
         [TestCase(@"<")]
@@ -663,7 +663,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorDatabasePath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorDatabasePath)), Is.Empty);
         }
 
         [TestCase(@"<")]
@@ -793,7 +793,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ErrorForwardingQueueName));
 
-            Assert.IsEmpty(errors);
+            Assert.That(errors, Is.Empty);
         }
 
         [Test]
@@ -813,7 +813,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ErrorForwardingQueueName));
 
-            Assert.IsEmpty(errors);
+            Assert.That(errors, Is.Empty);
         }
         #endregion
 

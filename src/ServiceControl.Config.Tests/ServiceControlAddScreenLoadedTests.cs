@@ -75,7 +75,7 @@
 
             Assert.That(viewModel.ErrorPasswordEnabled, Is.False);
 
-            Assert.IsEmpty(viewModel.ErrorPassword);
+            Assert.That(viewModel.ErrorPassword, Is.Empty);
 
             Assert.That(viewModel.AuditServiceAccount, Is.EqualTo("LocalSystem"));
 
@@ -87,7 +87,7 @@
 
             Assert.That(viewModel.AuditPasswordEnabled, Is.False);
 
-            Assert.IsEmpty(viewModel.AuditPassword);
+            Assert.That(viewModel.AuditPassword, Is.Empty);
         }
 
         [Test]
@@ -97,11 +97,11 @@
 
             Assert.That(viewModel.ErrorHostName, Is.EqualTo("localhost"));
 
-            Assert.IsEmpty(viewModel.ErrorHostNameWarning);
+            Assert.That(viewModel.ErrorHostNameWarning, Is.Empty);
 
             Assert.That(viewModel.AuditHostName, Is.EqualTo("localhost"));
 
-            Assert.IsEmpty(viewModel.AuditHostNameWarning);
+            Assert.That(viewModel.AuditHostNameWarning, Is.Empty);
         }
 
         [Test]
@@ -115,13 +115,13 @@
 
             var errorPortNumberErrors = errorInfo.GetErrors(nameof(viewModel.ErrorPortNumber));
 
-            Assert.IsEmpty(errorPortNumberErrors);
+            Assert.That(errorPortNumberErrors, Is.Empty);
 
             Assert.That(viewModel.AuditPortNumber, Is.EqualTo("44444"));
 
             var auditPortNumberErrors = errorInfo.GetErrors(nameof(viewModel.AuditPortNumber));
 
-            Assert.IsEmpty(auditPortNumberErrors);
+            Assert.That(auditPortNumberErrors, Is.Empty);
         }
 
         [Test]
@@ -135,13 +135,13 @@
 
             var errorPortNumberErrors = errorInfo.GetErrors(nameof(viewModel.ErrorDatabaseMaintenancePortNumber));
 
-            Assert.IsEmpty(errorPortNumberErrors);
+            Assert.That(errorPortNumberErrors, Is.Empty);
 
             Assert.That(viewModel.AuditDatabaseMaintenancePortNumber, Is.EqualTo("44445"));
 
             var auditPortNumberErrors = errorInfo.GetErrors(nameof(viewModel.AuditDatabaseMaintenancePortNumber));
 
-            Assert.IsEmpty(auditPortNumberErrors);
+            Assert.That(auditPortNumberErrors, Is.Empty);
         }
 
 
@@ -154,11 +154,11 @@
 
             Assert.That(viewModel.ErrorDestinationPath, Is.EqualTo($@"{programX86Path}\Particular Software\Particular.ServiceControl"));
 
-            Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.ErrorDestinationPath)));
+            Assert.That(errorInfo.GetErrors(nameof(viewModel.ErrorDestinationPath)), Is.Empty);
 
             Assert.That(viewModel.AuditDestinationPath, Is.EqualTo($@"{programX86Path}\Particular Software\Particular.ServiceControl.Audit"));
 
-            Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)));
+            Assert.That(errorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)), Is.Empty);
         }
 
         [Test]
@@ -170,11 +170,11 @@
 
             Assert.That(viewModel.ErrorLogPath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl\Logs"));
 
-            Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.ErrorLogPath)));
+            Assert.That(errorInfo.GetErrors(nameof(viewModel.ErrorLogPath)), Is.Empty);
 
             Assert.That(viewModel.AuditLogPath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl.Audit\Logs"));
 
-            Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.AuditLogPath)));
+            Assert.That(errorInfo.GetErrors(nameof(viewModel.AuditLogPath)), Is.Empty);
         }
 
 
@@ -187,11 +187,11 @@
 
             Assert.That(viewModel.ErrorDatabasePath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl\DB"));
 
-            Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.ErrorDatabasePath)));
+            Assert.That(errorInfo.GetErrors(nameof(viewModel.ErrorDatabasePath)), Is.Empty);
 
             Assert.That(viewModel.AuditDatabasePath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl.Audit\DB"));
 
-            Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)));
+            Assert.That(errorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)), Is.Empty);
         }
 
         [Test]

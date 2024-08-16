@@ -35,7 +35,7 @@
             var message = CreateEditMessage("some-id");
             await handler.Handle(message, new TestableMessageHandlerContext());
 
-            Assert.IsEmpty(dispatcher.DispatchedMessages);
+            Assert.That(dispatcher.DispatchedMessages, Is.Empty);
         }
 
         [Test]
@@ -58,7 +58,7 @@
             Assert.That(failedMessage.Status, Is.EqualTo(status));
             Assert.That(editOperation, Is.Null);
 
-            Assert.IsEmpty(dispatcher.DispatchedMessages);
+            Assert.That(dispatcher.DispatchedMessages, Is.Empty);
         }
 
         [Test]
@@ -90,7 +90,7 @@
                 Assert.That(failedMessage.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
             }
 
-            Assert.IsEmpty(dispatcher.DispatchedMessages);
+            Assert.That(dispatcher.DispatchedMessages, Is.Empty);
         }
 
         [Test]

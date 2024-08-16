@@ -143,7 +143,7 @@
                 })
                 .Run();
 
-            Assert.IsEmpty(retryHistory.UnacknowledgedOperations, "Unucknowledged retry operation not removed");
+            Assert.That(retryHistory.UnacknowledgedOperations, Is.Empty, "Unucknowledged retry operation not removed");
         }
 
         [Test]

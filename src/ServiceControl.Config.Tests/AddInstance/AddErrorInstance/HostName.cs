@@ -41,7 +41,7 @@
 
             Assert.That(viewModel.ErrorHostName, Is.EqualTo("localhost"));
 
-            Assert.IsEmpty(viewModel.ErrorHostNameWarning);
+            Assert.That(viewModel.ErrorHostNameWarning, Is.Empty);
         }
     }
 }

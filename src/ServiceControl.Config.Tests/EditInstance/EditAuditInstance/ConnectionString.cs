@@ -48,7 +48,7 @@
 
             Assert.That(viewModel.ShowConnectionString, Is.False);
             Assert.That(viewModel.SelectedTransport.Name, Is.EqualTo("MSMQ"));
-            Assert.IsEmpty(viewModel.SampleConnectionString);
+            Assert.That(viewModel.SampleConnectionString, Is.Empty);
             Assert.That(viewModel.TransportWarning, Is.Null);
         }
 

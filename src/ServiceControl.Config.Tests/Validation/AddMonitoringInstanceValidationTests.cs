@@ -65,7 +65,7 @@
 
             Assert.That(selectedAccount, Is.EqualTo("LocalSystem"));
 
-            Assert.IsEmpty(errors);
+            Assert.That(errors, Is.Empty);
         }
 
         //if custom user account is selected, then account name  are required fields
@@ -137,7 +137,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)), Is.Empty);
         }
 
         #endregion

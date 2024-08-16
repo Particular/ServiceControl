@@ -25,7 +25,7 @@
 
             var events = container.Resolve<FakeEventAggregator>();
 
-            Assert.IsEmpty(events.Subscribers, "There should be no handlers until they are resolved");
+            Assert.That(events.Subscribers, Is.Empty, "There should be no handlers until they are resolved");
 
             var handler = container.Resolve<FakeEventHandler>();
 
