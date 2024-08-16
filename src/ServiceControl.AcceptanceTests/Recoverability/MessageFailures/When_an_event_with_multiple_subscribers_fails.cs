@@ -35,7 +35,7 @@
 
             Assert.That(subscriber1FailedMessage, Is.Not.Null, "Subscriber1 did not report failed message");
             Assert.That(subscriber2FailedMessage, Is.Not.Null, "Subscriber2 did not report failed message");
-            Assert.AreNotSame(subscriber1FailedMessage, subscriber2FailedMessage, "There should be two distinct failed messages");
+            Assert.That(subscriber2FailedMessage, Is.Not.SameAs(subscriber1FailedMessage), "There should be two distinct failed messages");
         }
 
         public class FakeFailedSubscribers : EndpointConfigurationBuilder
