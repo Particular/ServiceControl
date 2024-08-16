@@ -47,7 +47,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
             Assert.That(response[0].message_redirect_id, Is.EqualTo(messageRedirectId), "Message Redirect Id mismatch");
             Assert.That(response[0].from_physical_address, Is.EqualTo(redirect.fromphysicaladdress), "From physical address mismatch");
             Assert.That(response[0].to_physical_address, Is.EqualTo(newTo), "To physical address mismatch");
-            Assert.Greater(response[0].last_modified, context.CreatedAt, "Last modified was not updated");
+            Assert.That(response[0].last_modified, Is.GreaterThan(context.CreatedAt), "Last modified was not updated");
         }
 
         [Test]
