@@ -47,7 +47,7 @@
             settings.PersisterSpecificSettings[RavenPersistenceConfiguration.LogPathKey] = logPath;
             var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
 
-            Assert.True(configuration.ServerConfiguration.UseEmbeddedServer);
+            Assert.That(configuration.ServerConfiguration.UseEmbeddedServer, Is.True);
             Assert.AreEqual(dpPath, configuration.ServerConfiguration.DbPath);
             Assert.AreEqual(logPath, configuration.ServerConfiguration.LogPath);
             Assert.AreEqual("http://localhost:11111", configuration.ServerConfiguration.ServerUrl);

@@ -73,11 +73,11 @@
 
             var bodyAsString = Encoding.UTF8.GetString(body);
 
-            Assert.True(bodyAsString.Contains(Payload), bodyAsString);
+            Assert.That(bodyAsString.Contains(Payload), Is.True, bodyAsString);
 
             Assert.AreEqual(body.Length, failedMessage.BodySize);
 
-            Assert.True(failedMessage.Headers.Any(h => h.Key == Headers.MessageId));
+            Assert.That(failedMessage.Headers.Any(h => h.Key == Headers.MessageId), Is.True);
         }
 
         public class Sender : EndpointConfigurationBuilder

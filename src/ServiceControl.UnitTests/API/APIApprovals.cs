@@ -97,7 +97,7 @@
 
             foreach (var type in controllers)
             {
-                Assert.True(type.IsPublic, $"Controller {type.FullName} must be public.");
+                Assert.That(type.IsPublic, Is.True, $"Controller {type.FullName} must be public.");
                 foreach (var method in type.GetMethods())
                 {
                     var routeAtts = method.GetCustomAttributes(true).OfType<RouteAttribute>();

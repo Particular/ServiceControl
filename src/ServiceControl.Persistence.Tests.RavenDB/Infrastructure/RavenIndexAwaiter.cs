@@ -11,11 +11,11 @@ public static class RavenIndexAwaiter
     static void WaitForIndexing(this IDocumentStore store, int secondsToWait)
     {
         var getStatisticsCommand = new GetStatisticsOperation();
-        Assert.True(SpinWait.SpinUntil(() =>
+        Assert.That(SpinWait.SpinUntil(() =>
         {
             var stats = store.Maintenance.Send(getStatisticsCommand);
 
             return stats.StaleIndexes.Length == 0;
-        }, TimeSpan.FromSeconds(secondsToWait)));
+        }, TimeSpan.FromSeconds(secondsToWait)), Is.True);
     }
 }

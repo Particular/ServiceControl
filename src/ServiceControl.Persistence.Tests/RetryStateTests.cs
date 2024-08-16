@@ -45,7 +45,7 @@
             CompleteDatabaseOperation();
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
-            Assert.True(status.Failed);
+            Assert.That(status.Failed, Is.True);
         }
 
         [Test]
