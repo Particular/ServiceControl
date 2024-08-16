@@ -76,7 +76,7 @@
                 .Run();
 
             Assert.IsTrue(context.MessageIngested);
-            Assert.IsFalse(context.MessageFound);
+            Assert.That(context.MessageFound, Is.False);
         }
 
         public class Sender : EndpointConfigurationBuilder

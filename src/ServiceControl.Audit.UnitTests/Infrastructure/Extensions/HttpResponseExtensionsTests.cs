@@ -77,7 +77,7 @@
         {
             var pagingHeaders = GetLinks(totalResults: 51, currentPage: 1);
 
-            Assert.IsFalse(pagingHeaders.Any(link => link.Contains("rel=\"prev\"")));
+            Assert.That(pagingHeaders.Any(link => link.Contains("rel=\"prev\"")), Is.False);
         }
 
         [Test]
@@ -93,7 +93,7 @@
         {
             var pagingHeaders = GetLinks(totalResults: 200, currentPage: 1);
 
-            Assert.IsFalse(pagingHeaders.Any(link => link.Contains("rel=\"first\"")));
+            Assert.That(pagingHeaders.Any(link => link.Contains("rel=\"first\"")), Is.False);
         }
 
         [Test]

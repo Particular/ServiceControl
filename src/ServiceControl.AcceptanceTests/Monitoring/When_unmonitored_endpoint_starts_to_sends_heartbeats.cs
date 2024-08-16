@@ -52,8 +52,8 @@
                 })
                 .Run();
 
-            Assert.IsFalse(endpoint.MonitorHeartbeat);
-            Assert.IsFalse(endpoint.Monitored);
+            Assert.That(endpoint.MonitorHeartbeat, Is.False);
+            Assert.That(endpoint.Monitored, Is.False);
 
             await Define<MyContext>()
                 .WithEndpoint<WithHeartbeat>()

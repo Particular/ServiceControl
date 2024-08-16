@@ -14,7 +14,7 @@
 
         public static void AssertHeaderMissing(this IDictionary<string, string> headers, string key)
         {
-            Assert.IsFalse(headers.ContainsKey(key), $"Unexpected header [{key}] found.");
+            Assert.That(headers.ContainsKey(key), Is.False, $"Unexpected header [{key}] found.");
         }
     }
 }

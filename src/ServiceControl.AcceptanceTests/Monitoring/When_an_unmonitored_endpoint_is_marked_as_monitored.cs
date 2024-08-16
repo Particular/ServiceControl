@@ -76,7 +76,7 @@
             Assert.NotNull(myEndpoint);
             Assert.IsTrue(myEndpoint.Monitored);
             Assert.IsTrue(myEndpoint.MonitorHeartbeat);
-            Assert.IsFalse(myEndpoint.IsSendingHeartbeats);
+            Assert.That(myEndpoint.IsSendingHeartbeats, Is.False);
         }
 
         enum State

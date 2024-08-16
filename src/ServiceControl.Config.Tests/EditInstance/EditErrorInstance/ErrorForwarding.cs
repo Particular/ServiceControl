@@ -54,7 +54,7 @@
                 .Collect_changed_properties(changedProperties)
                 .When_a_error_forwarding_is_off();
 
-            Assert.IsFalse(viewModel.ShowErrorForwardingQueue);
+            Assert.That(viewModel.ShowErrorForwardingQueue, Is.False);
             Assert.IsNull(viewModel.ErrorForwardingWarning);
             Assert.IsNull(viewModel.ErrorForwardingQueueName);
         }

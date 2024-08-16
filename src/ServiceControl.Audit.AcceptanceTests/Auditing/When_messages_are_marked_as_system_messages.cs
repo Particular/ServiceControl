@@ -35,7 +35,7 @@
                 .Run();
 
             Assert.IsNotNull(auditMessage);
-            Assert.IsFalse(auditMessage.IsSystemMessage);
+            Assert.That(auditMessage.IsSystemMessage, Is.False);
         }
 
         [Test]
@@ -98,7 +98,7 @@
                 })
                 .Run();
 
-            Assert.IsFalse(containsItem);
+            Assert.That(containsItem, Is.False);
         }
 
         [Test]
@@ -121,7 +121,7 @@
                 .Run();
 
             Assert.IsNotNull(auditMessage);
-            Assert.IsFalse(auditMessage.IsSystemMessage);
+            Assert.That(auditMessage.IsSystemMessage, Is.False);
         }
 
         class SystemMessageEndpoint : EndpointConfigurationBuilder

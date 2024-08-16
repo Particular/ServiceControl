@@ -53,7 +53,7 @@
                 })
                 .Run();
 
-            Assert.IsFalse(endpoint.Monitored, "Endpoint detected through error ingestion should not be monitored");
+            Assert.That(endpoint.Monitored, Is.False, "Endpoint detected through error ingestion should not be monitored");
         }
 
         public class Receiver : EndpointConfigurationBuilder

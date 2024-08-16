@@ -37,7 +37,7 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsFalse(viewModel.ShowConnectionString);
+            Assert.That(viewModel.ShowConnectionString, Is.False);
 
             Assert.IsNull(viewModel.ConnectionString);
 
@@ -69,11 +69,11 @@
 
             Assert.IsTrue(viewModel.ErrorUseSystemAccount);
 
-            Assert.IsFalse(viewModel.ErrorUseServiceAccount);
+            Assert.That(viewModel.ErrorUseServiceAccount, Is.False);
 
-            Assert.IsFalse(viewModel.ErrorUseProvidedAccount);
+            Assert.That(viewModel.ErrorUseProvidedAccount, Is.False);
 
-            Assert.IsFalse(viewModel.ErrorPasswordEnabled);
+            Assert.That(viewModel.ErrorPasswordEnabled, Is.False);
 
             Assert.IsEmpty(viewModel.ErrorPassword);
 
@@ -81,11 +81,11 @@
 
             Assert.IsTrue(viewModel.AuditUseSystemAccount);
 
-            Assert.IsFalse(viewModel.AuditUseServiceAccount);
+            Assert.That(viewModel.AuditUseServiceAccount, Is.False);
 
-            Assert.IsFalse(viewModel.AuditUseProvidedAccount);
+            Assert.That(viewModel.AuditUseProvidedAccount, Is.False);
 
-            Assert.IsFalse(viewModel.AuditPasswordEnabled);
+            Assert.That(viewModel.AuditPasswordEnabled, Is.False);
 
             Assert.IsEmpty(viewModel.AuditPassword);
         }
@@ -241,13 +241,13 @@
 
             Assert.IsNull(viewModel.ErrorForwardingQueueName);
 
-            Assert.IsFalse(viewModel.ShowErrorForwardingQueue);
+            Assert.That(viewModel.ShowErrorForwardingQueue, Is.False);
 
             Assert.IsNotEmpty(viewModel.AuditForwardingOptions);
 
             Assert.AreEqual(false, viewModel.AuditForwarding.Value);
 
-            Assert.IsFalse(viewModel.ShowAuditForwardingQueue);
+            Assert.That(viewModel.ShowAuditForwardingQueue, Is.False);
         }
 
         [Test]

@@ -26,7 +26,7 @@
             var now = DateTime.UtcNow;
 
             tracker.Record(A1, now);
-            Assert.IsFalse(tracker.IsStale(A1));
+            Assert.That(tracker.IsStale(A1), Is.False);
         }
 
         [Test]
@@ -49,7 +49,7 @@
 
             tracker.Record(A1, now);
             tracker.Record(A1, DateTime.UtcNow);
-            Assert.IsFalse(tracker.IsStale(A1));
+            Assert.That(tracker.IsStale(A1), Is.False);
         }
 
         EndpointInstanceActivityTracker tracker;

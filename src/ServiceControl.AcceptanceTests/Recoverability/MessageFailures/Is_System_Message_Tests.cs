@@ -34,7 +34,7 @@
                 .Run();
 
             Assert.IsNotNull(failure);
-            Assert.IsFalse(failure.IsSystemMessage);
+            Assert.That(failure.IsSystemMessage, Is.False);
         }
 
         [Test]
@@ -125,7 +125,7 @@
                 })
                 .Run();
             Assert.IsNotNull(failure);
-            Assert.IsFalse(failure.IsSystemMessage);
+            Assert.That(failure.IsSystemMessage, Is.False);
         }
 
         public class ServerEndpoint : EndpointConfigurationBuilder

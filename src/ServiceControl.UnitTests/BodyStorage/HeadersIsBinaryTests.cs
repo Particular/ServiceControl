@@ -34,7 +34,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             };
 
             var result = headers.IsBinary();
-            Assert.IsFalse(result);
+            Assert.That(result, Is.False);
         }
 
         [Test]

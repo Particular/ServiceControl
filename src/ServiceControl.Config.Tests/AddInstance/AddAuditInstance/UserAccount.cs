@@ -66,11 +66,11 @@
 
             Assert.IsTrue(viewModel.AuditUseSystemAccount);
 
-            Assert.IsFalse(viewModel.AuditUseServiceAccount);
+            Assert.That(viewModel.AuditUseServiceAccount, Is.False);
 
-            Assert.IsFalse(viewModel.AuditUseProvidedAccount);
+            Assert.That(viewModel.AuditUseProvidedAccount, Is.False);
 
-            Assert.IsFalse(viewModel.AuditPasswordEnabled);
+            Assert.That(viewModel.AuditPasswordEnabled, Is.False);
 
             Assert.IsEmpty(viewModel.AuditPassword);
 
@@ -86,11 +86,11 @@
 
             Assert.IsTrue(viewModel.AuditUseSystemAccount);
 
-            Assert.IsFalse(viewModel.AuditUseServiceAccount);
+            Assert.That(viewModel.AuditUseServiceAccount, Is.False);
 
-            Assert.IsFalse(viewModel.AuditUseProvidedAccount);
+            Assert.That(viewModel.AuditUseProvidedAccount, Is.False);
 
-            Assert.IsFalse(viewModel.AuditPasswordEnabled);
+            Assert.That(viewModel.AuditPasswordEnabled, Is.False);
 
             Assert.IsEmpty(viewModel.AuditPassword);
 
@@ -105,13 +105,13 @@
                 Given_adding_audit_instance()
                     .When_local_service_selected();
 
-            Assert.IsFalse(viewModel.AuditUseSystemAccount);
+            Assert.That(viewModel.AuditUseSystemAccount, Is.False);
 
             Assert.IsTrue(viewModel.AuditUseServiceAccount);
 
-            Assert.IsFalse(viewModel.AuditUseProvidedAccount);
+            Assert.That(viewModel.AuditUseProvidedAccount, Is.False);
 
-            Assert.IsFalse(viewModel.AuditPasswordEnabled);
+            Assert.That(viewModel.AuditPasswordEnabled, Is.False);
 
             Assert.IsEmpty(viewModel.AuditPassword);
 
@@ -132,9 +132,9 @@
 
             nameof(viewModel.AuditPasswordEnabled).Was_notified_of_change(changedProperties);
 
-            Assert.IsFalse(viewModel.AuditUseSystemAccount);
+            Assert.That(viewModel.AuditUseSystemAccount, Is.False);
 
-            Assert.IsFalse(viewModel.AuditUseServiceAccount);
+            Assert.That(viewModel.AuditUseServiceAccount, Is.False);
 
             Assert.IsTrue(viewModel.AuditUseProvidedAccount);
 
@@ -163,9 +163,9 @@
 
             nameof(viewModel.AuditPasswordEnabled).Was_notified_of_change(changedProperties);
 
-            Assert.IsFalse(viewModel.AuditUseSystemAccount, ShouldBeFalse, nameof(viewModel.AuditUseSystemAccount));
+            Assert.That(viewModel.AuditUseSystemAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditUseSystemAccount)));
 
-            Assert.IsFalse(viewModel.AuditUseServiceAccount, ShouldBeFalse, nameof(viewModel.AuditUseServiceAccount));
+            Assert.That(viewModel.AuditUseServiceAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditUseServiceAccount)));
 
             Assert.IsTrue(viewModel.AuditUseProvidedAccount, ShouldBeTrue, nameof(viewModel.AuditUseProvidedAccount));
 
@@ -200,11 +200,11 @@
 
             Assert.IsTrue(viewModel.AuditUseSystemAccount, ShouldBeFalse, nameof(viewModel.AuditUseSystemAccount));
 
-            Assert.IsFalse(viewModel.AuditUseServiceAccount, ShouldBeTrue, nameof(viewModel.AuditUseServiceAccount));
+            Assert.That(viewModel.AuditUseServiceAccount, Is.False, () => string.Format(ShouldBeTrue, nameof(viewModel.AuditUseServiceAccount)));
 
-            Assert.IsFalse(viewModel.AuditUseProvidedAccount, ShouldBeFalse, nameof(viewModel.AuditUseProvidedAccount));
+            Assert.That(viewModel.AuditUseProvidedAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditUseProvidedAccount)));
 
-            Assert.IsFalse(viewModel.AuditPasswordEnabled, ShouldBeFalse, nameof(viewModel.AuditPasswordEnabled));
+            Assert.That(viewModel.AuditPasswordEnabled, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditPasswordEnabled)));
 
             Assert.AreEqual(viewModel.AuditServiceAccount, "LocalSystem");
 
@@ -234,13 +234,13 @@
 
             nameof(viewModel.AuditPassword).Was_notified_of_change(changedProperties);
 
-            Assert.IsFalse(viewModel.AuditUseSystemAccount, ShouldBeFalse, nameof(viewModel.AuditUseSystemAccount));
+            Assert.That(viewModel.AuditUseSystemAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditUseSystemAccount)));
 
             Assert.IsTrue(viewModel.AuditUseServiceAccount, ShouldBeTrue, nameof(viewModel.AuditUseServiceAccount));
 
-            Assert.IsFalse(viewModel.AuditUseProvidedAccount, ShouldBeFalse, nameof(viewModel.AuditUseProvidedAccount));
+            Assert.That(viewModel.AuditUseProvidedAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditUseProvidedAccount)));
 
-            Assert.IsFalse(viewModel.AuditPasswordEnabled, ShouldBeFalse, nameof(viewModel.AuditPasswordEnabled));
+            Assert.That(viewModel.AuditPasswordEnabled, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditPasswordEnabled)));
 
             Assert.AreEqual(viewModel.AuditServiceAccount, "LocalService");
 

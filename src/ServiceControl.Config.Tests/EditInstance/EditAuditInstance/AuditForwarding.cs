@@ -54,7 +54,7 @@
                 .Collect_changed_properties(changedProperties)
                 .When_a_audit_forwarding_is_off();
 
-            Assert.IsFalse(viewModel.ShowAuditForwardingQueue);
+            Assert.That(viewModel.ShowAuditForwardingQueue, Is.False);
             Assert.IsNull(viewModel.AuditForwardingWarning);
             Assert.IsNull(viewModel.AuditForwardingQueueName);
         }

@@ -49,7 +49,7 @@
 
             await new ReturnToSender(null).HandleMessage(message, sender, "error");
 
-            Assert.IsFalse(sender.Message.Headers.ContainsKey("ServiceControl.Retry.StagingId"));
+            Assert.That(sender.Message.Headers.ContainsKey("ServiceControl.Retry.StagingId"), Is.False);
         }
 
         [Test]
@@ -105,7 +105,7 @@
             await new ReturnToSender(null).HandleMessage(message, sender, "error");
 
             Assert.AreEqual("TargetEndpoint", sender.Destination);
-            Assert.IsFalse(sender.Message.Headers.ContainsKey("ServiceControl.TargetEndpointAddress"));
+            Assert.That(sender.Message.Headers.ContainsKey("ServiceControl.TargetEndpointAddress"), Is.False);
         }
 
         [Test]

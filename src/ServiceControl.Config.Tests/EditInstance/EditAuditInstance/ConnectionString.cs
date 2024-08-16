@@ -46,7 +46,7 @@
             var viewModel = Given_an_audit_instance()
                 .When_MSQMQ_transport_is_selected();
 
-            Assert.IsFalse(viewModel.ShowConnectionString);
+            Assert.That(viewModel.ShowConnectionString, Is.False);
             Assert.AreEqual("MSMQ", viewModel.SelectedTransport.Name);
             Assert.IsEmpty(viewModel.SampleConnectionString);
             Assert.IsNull(viewModel.TransportWarning);
@@ -78,7 +78,7 @@
             var viewModel = Given_an_audit_instance()
                 .When_no_transport_is_selected();
 
-            Assert.IsFalse(viewModel.ShowConnectionString);
+            Assert.That(viewModel.ShowConnectionString, Is.False);
             Assert.IsNull(viewModel.SampleConnectionString);
             Assert.IsNull(viewModel.TransportWarning);
         }

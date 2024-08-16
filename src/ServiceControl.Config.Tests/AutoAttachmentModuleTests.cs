@@ -39,7 +39,7 @@
             var container = builder.Build();
 
             var viewModel = container.Resolve<ViewModelWithoutSuffix>();
-            Assert.IsFalse(viewModel.AttachmentActivated, "Attachment should not be activated when the target type name does not have a ViewModel suffix");
+            Assert.That(viewModel.AttachmentActivated, Is.False, "Attachment should not be activated when the target type name does not have a ViewModel suffix");
         }
 
         [Test]
@@ -52,7 +52,7 @@
             var container = builder.Build();
 
             var viewModel = container.Resolve<HasBadAttachmentViewModel>();
-            Assert.IsFalse(viewModel.AttachmentActivated, "Attachment should not be activated when it is missing the Attachment suffix");
+            Assert.That(viewModel.AttachmentActivated, Is.False, "Attachment should not be activated when it is missing the Attachment suffix");
         }
     }
 

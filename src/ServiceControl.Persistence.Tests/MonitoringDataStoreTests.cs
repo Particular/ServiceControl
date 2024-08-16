@@ -90,7 +90,7 @@
 
             CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
-            Assert.IsFalse(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id));
+            Assert.That(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id), Is.False);
 
             await MonitoringDataStore.UpdateEndpointMonitoring(endpoint1, true);
             endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents());

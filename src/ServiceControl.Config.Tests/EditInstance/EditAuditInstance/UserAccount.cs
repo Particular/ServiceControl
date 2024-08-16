@@ -88,11 +88,11 @@
 
             Assert.IsTrue(viewModel.UseSystemAccount);
 
-            Assert.IsFalse(viewModel.UseServiceAccount);
+            Assert.That(viewModel.UseServiceAccount, Is.False);
 
-            Assert.IsFalse(viewModel.UseProvidedAccount);
+            Assert.That(viewModel.UseProvidedAccount, Is.False);
 
-            Assert.IsFalse(viewModel.PasswordEnabled);
+            Assert.That(viewModel.PasswordEnabled, Is.False);
 
             Assert.IsEmpty(viewModel.Password);
 
@@ -116,13 +116,13 @@
 
             nameof(viewModel.Password).Was_notified_of_change(changedProperties);
 
-            Assert.IsFalse(viewModel.UseSystemAccount);
+            Assert.That(viewModel.UseSystemAccount, Is.False);
 
             Assert.IsTrue(viewModel.UseServiceAccount);
 
-            Assert.IsFalse(viewModel.UseProvidedAccount);
+            Assert.That(viewModel.UseProvidedAccount, Is.False);
 
-            Assert.IsFalse(viewModel.PasswordEnabled);
+            Assert.That(viewModel.PasswordEnabled, Is.False);
 
             Assert.IsEmpty(viewModel.Password);
 
@@ -145,9 +145,9 @@
 
             nameof(viewModel.Password).Was_notified_of_change(changedProperties);
 
-            Assert.IsFalse(viewModel.UseSystemAccount);
+            Assert.That(viewModel.UseSystemAccount, Is.False);
 
-            Assert.IsFalse(viewModel.UseServiceAccount);
+            Assert.That(viewModel.UseServiceAccount, Is.False);
 
             Assert.IsTrue(viewModel.UseProvidedAccount);
 
@@ -178,9 +178,9 @@
 
             nameof(viewModel.Password).Was_notified_of_change(changedProperties);
 
-            Assert.IsFalse(viewModel.UseSystemAccount, ShouldBeFalse, nameof(viewModel.UseSystemAccount));
+            Assert.That(viewModel.UseSystemAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.UseSystemAccount)));
 
-            Assert.IsFalse(viewModel.UseServiceAccount, ShouldBeFalse, nameof(viewModel.UseServiceAccount));
+            Assert.That(viewModel.UseServiceAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.UseServiceAccount)));
 
             Assert.IsTrue(viewModel.UseProvidedAccount, ShouldBeTrue, nameof(viewModel.UseProvidedAccount));
 
@@ -215,11 +215,11 @@
 
             Assert.IsTrue(viewModel.UseSystemAccount, ShouldBeFalse, nameof(viewModel.UseSystemAccount));
 
-            Assert.IsFalse(viewModel.UseServiceAccount, ShouldBeTrue, nameof(viewModel.UseServiceAccount));
+            Assert.That(viewModel.UseServiceAccount, Is.False, () => string.Format(ShouldBeTrue, nameof(viewModel.UseServiceAccount)));
 
-            Assert.IsFalse(viewModel.UseProvidedAccount, ShouldBeFalse, nameof(viewModel.UseProvidedAccount));
+            Assert.That(viewModel.UseProvidedAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.UseProvidedAccount)));
 
-            Assert.IsFalse(viewModel.PasswordEnabled, ShouldBeFalse, nameof(viewModel.PasswordEnabled));
+            Assert.That(viewModel.PasswordEnabled, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.PasswordEnabled)));
 
             Assert.AreEqual(viewModel.ServiceAccount, "LocalSystem");
 
@@ -249,13 +249,13 @@
 
             nameof(viewModel.Password).Was_notified_of_change(changedProperties);
 
-            Assert.IsFalse(viewModel.UseSystemAccount, ShouldBeFalse, nameof(viewModel.UseSystemAccount));
+            Assert.That(viewModel.UseSystemAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.UseSystemAccount)));
 
             Assert.IsTrue(viewModel.UseServiceAccount, ShouldBeTrue, nameof(viewModel.UseServiceAccount));
 
-            Assert.IsFalse(viewModel.UseProvidedAccount, ShouldBeFalse, nameof(viewModel.UseProvidedAccount));
+            Assert.That(viewModel.UseProvidedAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.UseProvidedAccount)));
 
-            Assert.IsFalse(viewModel.PasswordEnabled, ShouldBeFalse, nameof(viewModel.PasswordEnabled));
+            Assert.That(viewModel.PasswordEnabled, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.PasswordEnabled)));
 
             Assert.AreEqual(viewModel.ServiceAccount, "LocalService");
 
