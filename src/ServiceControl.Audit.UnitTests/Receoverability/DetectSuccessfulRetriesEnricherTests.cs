@@ -30,8 +30,8 @@
 
             enricher.Enrich(new AuditEnricherContext(headers, outgoingCommands, transportOperations, metadata));
 
-            CollectionAssert.IsEmpty(outgoingCommands);
-            CollectionAssert.IsEmpty(transportOperations);
+            Assert.That(outgoingCommands, Is.Empty);
+            Assert.That(transportOperations, Is.Empty);
         }
 
         [Test]
@@ -50,9 +50,9 @@
 
             enricher.Enrich(new AuditEnricherContext(headers, outgoingCommands, transportOperations, metadata));
 
-            CollectionAssert.IsNotEmpty(outgoingCommands);
-            CollectionAssert.AllItemsAreInstancesOfType(outgoingCommands, typeof(MarkMessageFailureResolvedByRetry));
-            CollectionAssert.IsEmpty(transportOperations);
+            Assert.That(outgoingCommands, Is.Not.Empty);
+            Assert.That(outgoingCommands, Is.All.InstanceOf(typeof(MarkMessageFailureResolvedByRetry)));
+            Assert.That(transportOperations, Is.Empty);
         }
 
         [Test]
@@ -72,7 +72,7 @@
 
             enricher.Enrich(new AuditEnricherContext(headers, outgoingCommands, transportOperations, metadata));
 
-            CollectionAssert.IsEmpty(outgoingCommands);
+            Assert.That(outgoingCommands, Is.Empty);
 
             var ack = transportOperations.Single();
             Assert.That(ack.Message.Headers.ContainsKey("ServiceControl.Retry.Successful"), Is.True);

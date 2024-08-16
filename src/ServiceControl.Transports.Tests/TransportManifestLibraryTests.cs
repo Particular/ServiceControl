@@ -22,7 +22,7 @@
             var transportManifest = TransportManifestLibrary.Find(transportName);
 
             Assert.IsNotNull(transportManifest);
-            Assert.AreEqual(transportName, transportManifest.Name);
+            Assert.That(transportManifest.Name, Is.EqualTo(transportName));
         }
 
         [Test]
@@ -31,7 +31,7 @@
             var transportManifest = TransportManifestLibrary.Find(transportType);
 
             Assert.IsNotNull(transportManifest);
-            Assert.AreEqual(transportType, transportManifest.TypeName);
+            Assert.That(transportManifest.TypeName, Is.EqualTo(transportType));
         }
 
         [Test]
@@ -40,7 +40,7 @@
             var transportManifest = TransportManifestLibrary.Find(transportAlias);
 
             Assert.IsNotNull(transportManifest);
-            Assert.AreEqual(transportAlias, transportManifest.Aliases[0]);
+            Assert.That(transportManifest.Aliases[0], Is.EqualTo(transportAlias));
         }
 
         [Test]

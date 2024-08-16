@@ -46,7 +46,7 @@
                 })
                 .Run();
 
-            CollectionAssert.IsNotEmpty(emails);
+            Assert.That(emails, Is.Not.Empty);
 
             var emailText = await File.ReadAllLinesAsync(emails[0]);
 

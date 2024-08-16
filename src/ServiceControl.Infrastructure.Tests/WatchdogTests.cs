@@ -133,7 +133,7 @@
 
             //Make sure failure is cleared
             Assert.That(lastFailure, Is.Null);
-            Assert.AreEqual(4, runAttempts);
+            Assert.That(runAttempts, Is.EqualTo(4));
         }
 
         [Test]

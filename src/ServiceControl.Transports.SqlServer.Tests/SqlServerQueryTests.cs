@@ -49,8 +49,8 @@ class SqlServerQueryTests : TransportTestFixture
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
-        Assert.IsFalse(success);
-        Assert.AreEqual("SQL Connection String could not be parsed.", errors.Single());
+        Assert.That(success, Is.False);
+        Assert.That(errors.Single(), Is.EqualTo("SQL Connection String could not be parsed."));
         Approver.Verify(diagnostics);
     }
 
@@ -69,7 +69,7 @@ class SqlServerQueryTests : TransportTestFixture
             await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
-        StringAssert.StartsWith("Cannot open database \"not_here\"", errors.Single());
+        Assert.That(errors.Single(), Does.StartWith("Cannot open database \"not_here\""));
         Approver.Verify(diagnostics,
             s => Regex.Replace(s, "^Login failed for user .*$", "Login failed for user.", RegexOptions.Multiline));
     }
@@ -135,6 +135,6 @@ class SqlServerQueryTests : TransportTestFixture
         await runScenarioAndAdvanceTime.WaitAsync(token);
 
         // Asserting that we have one message per hour during 24 hours, the first snapshot is not counted hence the 23 assertion. 
-        Assert.AreEqual(23, total);
+        Assert.That(total, Is.EqualTo(23));
     }
 }

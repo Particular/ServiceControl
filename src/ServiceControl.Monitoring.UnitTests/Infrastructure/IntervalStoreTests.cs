@@ -36,7 +36,7 @@
             var dateTimes = timings[0].Intervals.Select(i => i.IntervalStart).ToArray();
             var orderedDateTimes = dateTimes.OrderByDescending(d => d).ToArray();
 
-            CollectionAssert.AreEqual(orderedDateTimes, dateTimes);
+            Assert.That(dateTimes, Is.EqualTo(orderedDateTimes).AsCollection);
 
             // length of intervals
             var intervalLength = dateTimes[0] - dateTimes[1];
@@ -139,8 +139,8 @@
                 Assert.That(nonEmptyIntervals, Has.Length.EqualTo(3));
                 Assert.That(timings[0].TotalMeasurements, Is.EqualTo(4));
             });
-            CollectionAssert.AreEqual(new double[] { 4, 1, 1 }, nonEmptyIntervals.Select(i => i.TotalValue));
-            CollectionAssert.AreEqual(new double[] { 2, 1, 1 }, nonEmptyIntervals.Select(i => i.TotalMeasurements));
+            Assert.That(nonEmptyIntervals.Select(i => i.TotalValue), Is.EqualTo(new double[] { 4, 1, 1 }).AsCollection);
+            Assert.That(nonEmptyIntervals.Select(i => i.TotalMeasurements), Is.EqualTo(new double[] { 2, 1, 1 }).AsCollection);
         }
 
         [Test]

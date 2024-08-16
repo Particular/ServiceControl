@@ -62,9 +62,12 @@
             var viewModel = Given_a_monitoring_instance()
                 .When_a_transport_is_selected(transportInfoName);
 
-            Assert.That(viewModel.ShowConnectionString, Is.True);
-            StringAssert.StartsWith(transportInfoName, viewModel.SelectedTransport.Name);
-            Assert.That(viewModel.SampleConnectionString, Is.Not.Empty);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ShowConnectionString, Is.True);
+                Assert.That(viewModel.SelectedTransport.Name, Does.StartWith(transportInfoName));
+                Assert.That(viewModel.SampleConnectionString, Is.Not.Empty);
+            });
 
             if (transportInfoName is "SQLServer" or "AmazonSQS" or "AzureStorageQueue")
             {

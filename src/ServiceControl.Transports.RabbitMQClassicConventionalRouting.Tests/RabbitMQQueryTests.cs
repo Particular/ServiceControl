@@ -38,13 +38,13 @@ class RabbitMQQueryTests : TransportTestFixture
         await foreach (IBrokerQueue queueName in query.GetQueueNames(token))
         {
             queueNames.Add(queueName);
-            Assert.AreEqual("/", queueName.Scope);
+            Assert.That(queueName.Scope, Is.EqualTo("/"));
             if (queueName.QueueName == transportSettings.EndpointName)
             {
-                CollectionAssert.Contains(queueName.EndpointIndicators, "ConventionalTopologyBinding");
+                Assert.That(queueName.EndpointIndicators, Has.Member("ConventionalTopologyBinding"));
             }
         }
 
-        CollectionAssert.IsSubsetOf(additionalQueues.Concat([transportSettings.EndpointName]), queueNames.Select(queue => queue.QueueName));
+        Assert.That(additionalQueues.Concat([transportSettings.EndpointName]), Is.SubsetOf(queueNames.Select(queue => queue.QueueName)));
     }
 }

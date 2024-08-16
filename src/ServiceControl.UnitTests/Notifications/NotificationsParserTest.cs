@@ -11,7 +11,7 @@
         {
             var ids = NotificationsFilterParser.Parse("id1#id2");
 
-            CollectionAssert.AreEquivalent(new[] { "id1", "id2" }, ids);
+            Assert.That(ids, Is.EquivalentTo(new[] { "id1", "id2" }));
         }
 
         [Test]
@@ -19,7 +19,7 @@
         {
             var ids = NotificationsFilterParser.Parse("#id1#id2#");
 
-            CollectionAssert.AreEquivalent(new[] { "id1", "id2" }, ids);
+            Assert.That(ids, Is.EquivalentTo(new[] { "id1", "id2" }));
         }
 
         [Test]
@@ -27,7 +27,7 @@
         {
             var ids = NotificationsFilterParser.Parse("prefix##suffix#id2###");
 
-            CollectionAssert.AreEquivalent(new[] { "prefix#suffix", "id2#" }, ids);
+            Assert.That(ids, Is.EquivalentTo(new[] { "prefix#suffix", "id2#" }));
         }
     }
 }

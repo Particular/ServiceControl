@@ -47,7 +47,7 @@ namespace ServiceControl.Audit.AcceptanceTests
             StorageConfiguration = new AcceptanceTestStorageConfiguration();
 
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration, s => SetSettings(s), s => CustomConfiguration(s), d => SetStorageConfiguration(d), hb => CustomizeHostBuilder(hb));
-            TestContext.WriteLine($"Using persistence {StorageConfiguration.PersistenceType}");
+            TestContext.Out.WriteLine($"Using persistence {StorageConfiguration.PersistenceType}");
         }
 
         [TearDown]

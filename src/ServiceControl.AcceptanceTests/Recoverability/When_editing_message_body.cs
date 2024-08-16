@@ -69,7 +69,7 @@
                 Assert.That(context.EditedMessageId, Is.Not.EqualTo(context.OriginalMessageId));
                 Assert.That(context.OriginalMessageFailure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
             });
-            CollectionAssert.DoesNotContain(context.EditedMessageHeaders, "NServiceBus.ExceptionInfo.StackTrace");
+            Assert.That(context.EditedMessageHeaders, Has.No.Member("NServiceBus.ExceptionInfo.StackTrace"));
         }
 
         class EditedMessageReceiver : EndpointConfigurationBuilder

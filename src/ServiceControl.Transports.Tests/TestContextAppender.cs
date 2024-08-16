@@ -82,6 +82,6 @@
             Log(fullMessage, LogLevel.Fatal);
         }
 
-        static void Log(string message, LogLevel _) => TestContext.WriteLine(message);
+        static void Log(string message, LogLevel _) => TestContext.Out.WriteLine(message);
     }
 }

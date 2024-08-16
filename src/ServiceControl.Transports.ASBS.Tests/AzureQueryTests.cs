@@ -48,10 +48,14 @@ class AzureQueryTests : TransportTestFixture
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
-        Assert.IsFalse(success);
-        CollectionAssert.Contains(errors, "ClientId is a required setting");
-        CollectionAssert.Contains(errors, "ClientSecret is a required setting");
-        CollectionAssert.Contains(errors, "TenantId is a required setting");
+        Assert.That(success, Is.False);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(errors, Has.Member("ClientId is a required setting"));
+            Assert.That(errors, Has.Member("ClientSecret is a required setting"));
+            Assert.That(errors, Has.Member("TenantId is a required setting"));
+        });
 
         Approver.Verify(diagnostics);
     }
@@ -95,8 +99,8 @@ class AzureQueryTests : TransportTestFixture
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
-        Assert.IsFalse(success);
-        StringAssert.StartsWith("Invalid tenant id provided", errors.Single());
+        Assert.That(success, Is.False);
+        Assert.That(errors.Single(), Does.StartWith("Invalid tenant id provided"));
         Approver.Verify(diagnostics);
     }
 
@@ -118,8 +122,8 @@ class AzureQueryTests : TransportTestFixture
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
-        Assert.IsFalse(success);
-        StringAssert.StartsWith("The GUID for subscription is invalid", errors.Single());
+        Assert.That(success, Is.False);
+        Assert.That(errors.Single(), Does.StartWith("The GUID for subscription is invalid"));
         Approver.Verify(diagnostics);
     }
 
@@ -137,7 +141,7 @@ class AzureQueryTests : TransportTestFixture
             await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
-        StringAssert.StartsWith("ClientSecretCredential authentication failed", errors.Single());
+        Assert.That(errors.Single(), Does.StartWith("ClientSecretCredential authentication failed"));
         Approver.Verify(diagnostics, s =>
         {
             s = s.Replace(dictionary[AzureQuery.AzureServiceBusSettings.TenantId], "xxxxx");
@@ -159,7 +163,7 @@ class AzureQueryTests : TransportTestFixture
         (bool success, List<string> errors, _) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
-        StringAssert.StartsWith("ClientSecretCredential authentication failed", errors.Single());
+        Assert.That(errors.Single(), Does.StartWith("ClientSecretCredential authentication failed"));
     }
 
     [Test]
@@ -197,7 +201,7 @@ class AzureQueryTests : TransportTestFixture
             total += queueThroughput.TotalThroughput;
         }
 
-        Assert.AreEqual(numMessagesToIngest, total);
+        Assert.That(total, Is.EqualTo(numMessagesToIngest));
     }
 
     static Dictionary<string, string> GetSettings()

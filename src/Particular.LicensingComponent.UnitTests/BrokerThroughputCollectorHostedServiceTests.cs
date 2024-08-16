@@ -38,8 +38,8 @@ class BrokerThroughputCollectorHostedServiceTests
         IEnumerable<string> sanitizedNames = endpoints.Select(endpoint => endpoint.SanitizedName);
         IEnumerable<string> queueNames = endpoints.Select(endpoint => endpoint.Id.Name);
 
-        CollectionAssert.AreEquivalent(new[] { "sales", "sales1", "marketing", "customer" }, sanitizedNames);
-        CollectionAssert.AreEquivalent(new[] { "sales@one", "sales@two", "marketing", "customer" }, queueNames);
+        Assert.That(sanitizedNames, Is.EquivalentTo(new[] { "sales", "sales1", "marketing", "customer" }));
+        Assert.That(queueNames, Is.EquivalentTo(new[] { "sales@one", "sales@two", "marketing", "customer" }));
     }
 
     [Test]

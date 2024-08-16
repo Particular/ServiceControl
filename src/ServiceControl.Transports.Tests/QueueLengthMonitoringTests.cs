@@ -28,7 +28,7 @@
 
             var queueLengthEntry = await onQueueLengthEntryReceived.Task;
 
-            Assert.AreEqual(1, queueLengthEntry.Value);
+            Assert.That(queueLengthEntry.Value, Is.EqualTo(1));
         }
     }
 }

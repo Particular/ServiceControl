@@ -104,11 +104,11 @@ namespace ServiceControl.UnitTests.Monitoring
                 Assert.That(endpointStartup.HostDisplayName, Is.EqualTo("SampleHostDisplayName"));
                 Assert.That(endpointStartup.Host, Is.EqualTo("SampleHost"));
             });
-            CollectionAssert.AreEqual(new Dictionary<string, string>
+            Assert.That(endpointStartup.HostProperties, Is.EqualTo(new Dictionary<string, string>
             {
                 { "Property1", "Value1" },
                 { "Property2", "Value2" }
-            }, endpointStartup.HostProperties);
+            }).AsCollection);
         }
 
         [Test]
@@ -138,11 +138,11 @@ namespace ServiceControl.UnitTests.Monitoring
                 Assert.That(endpointStartup.HostDisplayName, Is.EqualTo("SampleHostDisplayName"));
                 Assert.That(endpointStartup.Host, Is.EqualTo("SampleHost"));
             });
-            CollectionAssert.AreEqual(new Dictionary<string, string>
+            Assert.That(endpointStartup.HostProperties, Is.EqualTo(new Dictionary<string, string>
             {
                 { "Property1", "Value1" },
                 { "Property2", "Value2" }
-            }, endpointStartup.HostProperties);
+            }).AsCollection);
         }
 
         [Test]

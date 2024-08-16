@@ -67,7 +67,7 @@
 
             var deserializedEvent = JsonSerializer.Deserialize<FailedMessagesUnArchived>(context.Event);
             Assert.That(deserializedEvent.FailedMessagesIds, Is.Not.Null);
-            CollectionAssert.Contains(deserializedEvent.FailedMessagesIds, context.FailedMessageId.ToString());
+            Assert.That(deserializedEvent.FailedMessagesIds, Has.Member(context.FailedMessageId.ToString()));
         }
 
         public class ExternalProcessor : EndpointConfigurationBuilder

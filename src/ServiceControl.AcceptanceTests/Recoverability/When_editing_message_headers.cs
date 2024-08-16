@@ -67,8 +67,8 @@
                 Assert.That(context.EditedMessageId, Is.Not.EqualTo(context.OriginalMessageId));
                 Assert.That(context.OriginalMessageFailure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
             });
-            CollectionAssert.AreEqual("42", context.EditedMessageHeaders["AcceptanceTest.NewHeader"]);
-            CollectionAssert.AreEqual(context.UniqueMessageId, context.EditedMessageHeaders["ServiceControl.EditOf"]);
+            Assert.That(context.EditedMessageHeaders["AcceptanceTest.NewHeader"], Is.EqualTo("42").AsCollection);
+            Assert.That(context.EditedMessageHeaders["ServiceControl.EditOf"], Is.EqualTo(context.UniqueMessageId).AsCollection);
         }
 
         class EditedMessageReceiver : EndpointConfigurationBuilder

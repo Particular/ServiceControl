@@ -88,11 +88,11 @@
             {
                 if (!scenarioContext.FailedImport)
                 {
-                    TestContext.WriteLine("Simulating message processing failure");
+                    TestContext.Out.WriteLine("Simulating message processing failure");
                     throw new MessageDeserializationException("ID", null);
                 }
 
-                TestContext.WriteLine("Message processed correctly");
+                TestContext.Out.WriteLine("Message processed correctly");
             }
         }
 

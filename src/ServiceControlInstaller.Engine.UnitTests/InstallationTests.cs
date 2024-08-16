@@ -11,7 +11,7 @@
     class InstallationTests
     {
         [Test]
-        [TestCaseSource("GetAuditPersistenceManifestPaths")]
+        [TestCaseSource(nameof(GetAuditPersistenceManifestPaths))]
         public void Audit_install_should_write_expected_config_file(string manifestPath)
         {
             var installPath = Path.Combine(Path.GetTempPath(), TestContext.CurrentContext.Test.ID, "install");
