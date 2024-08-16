@@ -55,8 +55,8 @@
                 .When_a_error_forwarding_is_off();
 
             Assert.That(viewModel.ShowErrorForwardingQueue, Is.False);
-            Assert.IsNull(viewModel.ErrorForwardingWarning);
-            Assert.IsNull(viewModel.ErrorForwardingQueueName);
+            Assert.That(viewModel.ErrorForwardingWarning, Is.Null);
+            Assert.That(viewModel.ErrorForwardingQueueName, Is.Null);
         }
     }
 }

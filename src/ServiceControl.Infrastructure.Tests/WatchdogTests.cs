@@ -132,7 +132,7 @@
             await dog.Stop();
 
             //Make sure failure is cleared
-            Assert.IsNull(lastFailure);
+            Assert.That(lastFailure, Is.Null);
             Assert.AreEqual(4, runAttempts);
         }
 

@@ -13,12 +13,12 @@
         {
             var result = MonitoredEndpointMessageTypeParser.Parse("");
 
-            Assert.IsNull(result.Id);
-            Assert.IsNull(result.TypeName);
-            Assert.IsNull(result.AssemblyName);
-            Assert.IsNull(result.AssemblyVersion);
-            Assert.IsNull(result.Culture);
-            Assert.IsNull(result.PublicKeyToken);
+            Assert.That(result.Id, Is.Null);
+            Assert.That(result.TypeName, Is.Null);
+            Assert.That(result.AssemblyName, Is.Null);
+            Assert.That(result.AssemblyVersion, Is.Null);
+            Assert.That(result.Culture, Is.Null);
+            Assert.That(result.PublicKeyToken, Is.Null);
         }
 
         [Test]
@@ -30,10 +30,10 @@
 
             Assert.That(result.Id, Is.EqualTo(typeName));
             Assert.That(result.TypeName, Is.EqualTo(typeName));
-            Assert.IsNull(result.AssemblyName);
-            Assert.IsNull(result.AssemblyVersion);
-            Assert.IsNull(result.Culture);
-            Assert.IsNull(result.PublicKeyToken);
+            Assert.That(result.AssemblyName, Is.Null);
+            Assert.That(result.AssemblyVersion, Is.Null);
+            Assert.That(result.Culture, Is.Null);
+            Assert.That(result.PublicKeyToken, Is.Null);
         }
 
         [Test]

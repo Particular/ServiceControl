@@ -56,7 +56,7 @@
                 .Build();
 
             var result = failedMessage.ToEvent();
-            Assert.IsNull(result.MessageDetails.Body);
+            Assert.That(result.MessageDetails.Body, Is.Null);
         }
 
         [Test]
@@ -68,7 +68,7 @@
                 .Build();
 
             var result = failedMessage.ToEvent();
-            Assert.IsNull(result.MessageType);
+            Assert.That(result.MessageType, Is.Null);
         }
 
         [Test]
@@ -80,7 +80,7 @@
                 .Build();
 
             var result = failedMessage.ToEvent();
-            Assert.IsNull(result.MessageDetails.ContentType);
+            Assert.That(result.MessageDetails.ContentType, Is.Null);
         }
 
         [Test]

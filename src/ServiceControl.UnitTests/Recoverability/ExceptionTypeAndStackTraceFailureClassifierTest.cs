@@ -13,7 +13,7 @@
             var classifier = new ExceptionTypeAndStackTraceFailureClassifier();
             var classification = classifier.ClassifyFailure(new ClassifiableMessageDetails());
 
-            Assert.IsNull(classification);
+            Assert.That(classification, Is.Null);
         }
 
         [Test]

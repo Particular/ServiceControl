@@ -70,7 +70,7 @@
 
             sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
-            Assert.IsNull(sagaDetailsIndexDefinition);
+            Assert.That(sagaDetailsIndexDefinition, Is.Null);
         }
 
         [Test]

@@ -159,11 +159,11 @@
 
             Assert.That(viewModel.UseProvidedAccount, Is.True);
 
-            Assert.IsNull(viewModel.ServiceAccount);
+            Assert.That(viewModel.ServiceAccount, Is.Null);
 
             Assert.That(viewModel.PasswordEnabled, Is.True);
 
-            Assert.IsNull(viewModel.Password);
+            Assert.That(viewModel.Password, Is.Null);
         }
 
 

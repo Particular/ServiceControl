@@ -50,7 +50,7 @@
             Assert.That(viewModel.ShowConnectionString, Is.False);
             Assert.That(viewModel.SelectedTransport.Name, Is.EqualTo("MSMQ"));
             Assert.IsEmpty(viewModel.SampleConnectionString);
-            Assert.IsNull(viewModel.TransportWarning);
+            Assert.That(viewModel.TransportWarning, Is.Null);
         }
 
         [TestAllTransportsExcept("MSMQ")]
@@ -70,7 +70,7 @@
             }
             else
             {
-                Assert.IsNull(viewModel.TransportWarning);
+                Assert.That(viewModel.TransportWarning, Is.Null);
             }
         }
 
@@ -81,8 +81,8 @@
                 .When_no_transport_is_selected();
 
             Assert.That(viewModel.ShowConnectionString, Is.False);
-            Assert.IsNull(viewModel.SampleConnectionString);
-            Assert.IsNull(viewModel.TransportWarning);
+            Assert.That(viewModel.SampleConnectionString, Is.Null);
+            Assert.That(viewModel.TransportWarning, Is.Null);
         }
 
     }

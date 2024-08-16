@@ -31,7 +31,7 @@
                 .Run();
 
             Assert.IsNotNull(auditedMessage);
-            Assert.IsNull(auditedMessage.TimeSent);
+            Assert.That(auditedMessage.TimeSent, Is.Null);
         }
 
         public class ThirdPartyEndpoint : EndpointConfigurationBuilder

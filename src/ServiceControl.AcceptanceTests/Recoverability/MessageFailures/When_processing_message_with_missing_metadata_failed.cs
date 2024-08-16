@@ -32,7 +32,7 @@
                 .Run();
 
             Assert.IsNotNull(failure);
-            Assert.IsNull(failure.TimeSent);
+            Assert.That(failure.TimeSent, Is.Null);
         }
 
         [Test]

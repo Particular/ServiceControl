@@ -138,11 +138,11 @@
 
             Assert.That(viewModel.AuditUseProvidedAccount, Is.True);
 
-            Assert.IsNull(viewModel.AuditServiceAccount);
+            Assert.That(viewModel.AuditServiceAccount, Is.Null);
 
             Assert.That(viewModel.AuditPasswordEnabled, Is.True);
 
-            Assert.IsNull(viewModel.AuditPassword);
+            Assert.That(viewModel.AuditPassword, Is.Null);
         }
 
         [TestCase("foo", null)]

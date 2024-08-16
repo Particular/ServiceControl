@@ -29,7 +29,7 @@
 
             Assert.IsNotEmpty(viewModel.Transports);
 
-            Assert.IsNull(viewModel.SelectedTransport);
+            Assert.That(viewModel.SelectedTransport, Is.Null);
         }
 
         [Test]
@@ -39,9 +39,9 @@
 
             Assert.That(viewModel.ShowConnectionString, Is.False);
 
-            Assert.IsNull(viewModel.ConnectionString);
+            Assert.That(viewModel.ConnectionString, Is.Null);
 
-            Assert.IsNull(viewModel.SampleConnectionString);
+            Assert.That(viewModel.SampleConnectionString, Is.Null);
         }
 
         [Test]
@@ -239,7 +239,7 @@
 
             Assert.That(viewModel.ErrorForwarding.Value, Is.EqualTo(false));
 
-            Assert.IsNull(viewModel.ErrorForwardingQueueName);
+            Assert.That(viewModel.ErrorForwardingQueueName, Is.Null);
 
             Assert.That(viewModel.ShowErrorForwardingQueue, Is.False);
 

@@ -55,8 +55,8 @@
                 .When_a_audit_forwarding_is_off();
 
             Assert.That(viewModel.ShowAuditForwardingQueue, Is.False);
-            Assert.IsNull(viewModel.AuditForwardingWarning);
-            Assert.IsNull(viewModel.AuditForwardingQueueName);
+            Assert.That(viewModel.AuditForwardingWarning, Is.Null);
+            Assert.That(viewModel.AuditForwardingQueueName, Is.Null);
         }
     }
 }

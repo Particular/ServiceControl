@@ -56,7 +56,7 @@
             var editOperation = await editFailedMessagesManager.GetCurrentEditingMessageId(failedMessageId);
 
             Assert.That(failedMessage.Status, Is.EqualTo(status));
-            Assert.IsNull(editOperation);
+            Assert.That(editOperation, Is.Null);
 
             Assert.IsEmpty(dispatcher.DispatchedMessages);
         }

@@ -16,7 +16,7 @@
             var classifier = new EndpointInstanceClassifier();
             var classification = classifier.ClassifyFailure(new ClassifiableMessageDetails());
 
-            Assert.IsNull(classification);
+            Assert.That(classification, Is.Null);
         }
 
         [Test]
