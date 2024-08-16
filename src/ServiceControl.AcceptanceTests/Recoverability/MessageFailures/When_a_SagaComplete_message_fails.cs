@@ -31,7 +31,7 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(failure);
+            Assert.That(failure, Is.Not.Null);
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder

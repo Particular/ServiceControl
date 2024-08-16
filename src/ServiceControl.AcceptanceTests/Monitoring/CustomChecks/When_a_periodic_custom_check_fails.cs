@@ -56,7 +56,7 @@
                 .Done(c => c.SignalrEventReceived)
                 .Run();
 
-            Assert.IsNotNull(context.SignalrData);
+            Assert.That(context.SignalrData, Is.Not.Null);
         }
 
         public class MyContext : ScenarioContext

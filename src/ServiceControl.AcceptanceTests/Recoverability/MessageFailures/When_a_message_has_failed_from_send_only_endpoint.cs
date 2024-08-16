@@ -31,7 +31,7 @@
                     return result;
                 })
                 .Run();
-            Assert.IsNotNull(failure);
+            Assert.That(failure, Is.Not.Null);
             Assert.That(failure.ReceivingEndpoint.Name, Does.Contain("SomeEndpoint"), $"The sending endpoint should be SomeEndpoint and not {failure.ReceivingEndpoint.Name}");
         }
 
@@ -52,7 +52,7 @@
                     return result;
                 })
                 .Run();
-            Assert.IsNotNull(failure);
+            Assert.That(failure, Is.Not.Null);
             Assert.That(failure.ReceivingEndpoint.Name, Does.Contain("SomeEndpoint"), $"The sending endpoint should be SomeEndpoint and not {failure.ReceivingEndpoint.Name}");
         }
 

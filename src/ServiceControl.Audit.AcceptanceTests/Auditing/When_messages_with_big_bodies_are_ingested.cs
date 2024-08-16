@@ -49,7 +49,7 @@
                 .Run();
 
             //Assert
-            Assert.IsNotNull(body);
+            Assert.That(body, Is.Not.Null);
         }
 
         [Test]
@@ -131,7 +131,7 @@
                 .Run();
 
             //Assert
-            Assert.IsNotNull(body);
+            Assert.That(body, Is.Not.Null);
         }
 
         const int MAX_BODY_SIZE = 20536;

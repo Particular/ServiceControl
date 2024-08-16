@@ -66,10 +66,10 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(exceptionTypeAndStackTraceGroups, "Exception Type And Stack Trace Group should be created");
-            Assert.IsNotNull(messageTypeGroups, "Message Type Group should be created");
-            Assert.IsNotNull(firstFailure, "The first failure message should be created");
-            Assert.IsNotNull(secondFailure, "The second failure message should be created");
+            Assert.That(exceptionTypeAndStackTraceGroups, Is.Not.Null, "Exception Type And Stack Trace Group should be created");
+            Assert.That(messageTypeGroups, Is.Not.Null, "Message Type Group should be created");
+            Assert.That(firstFailure, Is.Not.Null, "The first failure message should be created");
+            Assert.That(secondFailure, Is.Not.Null, "The second failure message should be created");
 
             Assert.That(exceptionTypeAndStackTraceGroups.Count, Is.EqualTo(1), "There should only be one Exception Type And Stack Trace Group");
             Assert.That(messageTypeGroups.Count, Is.EqualTo(1), "There should only be one Message Type Group");

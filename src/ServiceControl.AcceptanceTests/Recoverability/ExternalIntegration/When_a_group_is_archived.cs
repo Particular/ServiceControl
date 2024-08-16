@@ -65,7 +65,7 @@
                 .Run();
 
             var deserializedEvent = JsonSerializer.Deserialize<FailedMessagesArchived>(context.Event);
-            Assert.IsNotNull(deserializedEvent.FailedMessagesIds);
+            Assert.That(deserializedEvent.FailedMessagesIds, Is.Not.Null);
             CollectionAssert.Contains(deserializedEvent.FailedMessagesIds, context.FailedMessageId.ToString());
         }
 

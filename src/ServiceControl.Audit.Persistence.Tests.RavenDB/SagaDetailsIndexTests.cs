@@ -64,7 +64,7 @@
             var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
             var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
-            Assert.IsNotNull(sagaDetailsIndexDefinition);
+            Assert.That(sagaDetailsIndexDefinition, Is.Not.Null);
 
             await Persistence.RavenDB.DatabaseSetup.DeleteLegacySagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
 
@@ -81,7 +81,7 @@
             var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
             var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
-            Assert.IsNotNull(sagaDetailsIndexDefinition);
+            Assert.That(sagaDetailsIndexDefinition, Is.Not.Null);
         }
 
         [Test]

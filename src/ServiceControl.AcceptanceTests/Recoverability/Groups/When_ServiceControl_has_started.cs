@@ -23,7 +23,7 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(classifiers, "classifiers is null");
+            Assert.That(classifiers, Is.Not.Null, "classifiers is null");
             Assert.IsNotEmpty(classifiers, "No classifiers retrieved");
             Assert.Contains(ExceptionTypeAndStackTraceFailureClassifier.Id, classifiers, "ExceptionTypeAndStackTraceFailureClassifier was not found");
             Assert.Contains(MessageTypeFailureClassifier.Id, classifiers, "MessageTypeFailureClassifier was not found");

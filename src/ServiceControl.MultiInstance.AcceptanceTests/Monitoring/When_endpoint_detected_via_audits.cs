@@ -49,7 +49,7 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(response.First());
+            Assert.That(response.First(), Is.Not.Null);
             Assert.That(response.First().MonitorHeartbeat, Is.True);
         }
 

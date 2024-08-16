@@ -39,7 +39,7 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(config);
+            Assert.That(config, Is.Not.Null);
             Assert.That(config.Count, Is.EqualTo(2));
 
             var config1 = config[0];

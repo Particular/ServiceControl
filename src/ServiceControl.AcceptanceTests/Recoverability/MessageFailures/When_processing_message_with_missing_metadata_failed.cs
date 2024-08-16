@@ -31,7 +31,7 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(failure);
+            Assert.That(failure, Is.Not.Null);
             Assert.That(failure.TimeSent, Is.Null);
         }
 
@@ -52,7 +52,7 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(failure);
+            Assert.That(failure, Is.Not.Null);
             Assert.That(failure.TimeSent, Is.EqualTo(sentTime));
         }
 
@@ -71,7 +71,7 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(failure);
+            Assert.That(failure, Is.Not.Null);
         }
 
         public class Failing : EndpointConfigurationBuilder

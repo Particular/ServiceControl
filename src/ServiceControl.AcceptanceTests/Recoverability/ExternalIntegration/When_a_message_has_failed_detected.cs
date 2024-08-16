@@ -48,9 +48,9 @@
 
             Assert.That(deserializedEvent.FailureDetails.Exception.Message, Is.EqualTo("Faulty message"));
             //These are important so check it they are set
-            Assert.IsNotNull(deserializedEvent.MessageDetails.MessageId);
-            Assert.IsNotNull(deserializedEvent.SendingEndpoint.Name);
-            Assert.IsNotNull(deserializedEvent.ProcessingEndpoint.Name);
+            Assert.That(deserializedEvent.MessageDetails.MessageId, Is.Not.Null);
+            Assert.That(deserializedEvent.SendingEndpoint.Name, Is.Not.Null);
+            Assert.That(deserializedEvent.ProcessingEndpoint.Name, Is.Not.Null);
         }
 
         public class FailingReceiver : EndpointConfigurationBuilder

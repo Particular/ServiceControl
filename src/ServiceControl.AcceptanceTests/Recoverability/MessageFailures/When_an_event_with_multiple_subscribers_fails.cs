@@ -33,8 +33,8 @@
             var subscriber1FailedMessage = failedMessages.SingleOrDefault(msg => msg.QueueAddress.Contains("subscriber1"));
             var subscriber2FailedMessage = failedMessages.SingleOrDefault(msg => msg.QueueAddress.Contains("subscriber2"));
 
-            Assert.IsNotNull(subscriber1FailedMessage, "Subscriber1 did not report failed message");
-            Assert.IsNotNull(subscriber2FailedMessage, "Subscriber2 did not report failed message");
+            Assert.That(subscriber1FailedMessage, Is.Not.Null, "Subscriber1 did not report failed message");
+            Assert.That(subscriber2FailedMessage, Is.Not.Null, "Subscriber2 did not report failed message");
             Assert.AreNotSame(subscriber1FailedMessage, subscriber2FailedMessage, "There should be two distinct failed messages");
         }
 

@@ -34,7 +34,7 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(auditMessage);
+            Assert.That(auditMessage, Is.Not.Null);
             Assert.That(auditMessage.IsSystemMessage, Is.False);
         }
 
@@ -56,7 +56,7 @@
                     return result;
                 })
                 .Run();
-            Assert.IsNotNull(auditMessage);
+            Assert.That(auditMessage, Is.Not.Null);
             Assert.That(auditMessage.IsSystemMessage, Is.True);
         }
 
@@ -120,7 +120,7 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(auditMessage);
+            Assert.That(auditMessage, Is.Not.Null);
             Assert.That(auditMessage.IsSystemMessage, Is.False);
         }
 

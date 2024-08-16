@@ -57,7 +57,7 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(failedMessages);
+            Assert.That(failedMessages, Is.Not.Null);
             Assert.IsNotEmpty(failedMessages);
             Assert.That(failedMessages.Count, Is.EqualTo(1));
 

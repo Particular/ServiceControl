@@ -65,7 +65,7 @@
 
             if (transportInfoName is "SQLServer" or "AmazonSQS" or "AzureStorageQueue")
             {
-                Assert.IsNotNull(viewModel.TransportWarning);
+                Assert.That(viewModel.TransportWarning, Is.Not.Null);
                 Assert.IsNotEmpty(viewModel.TransportWarning);
             }
             else

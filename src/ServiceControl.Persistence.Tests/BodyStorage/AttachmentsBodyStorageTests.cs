@@ -78,7 +78,7 @@
             var fetchById = getIdToQuery(headers);
 
             var retrieved = await BodyStorage.TryFetch(fetchById);
-            Assert.IsNotNull(retrieved);
+            Assert.That(retrieved, Is.Not.Null);
             Assert.That(retrieved.HasResult, Is.True);
             Assert.That(retrieved.ContentType, Is.EqualTo(contentType));
 

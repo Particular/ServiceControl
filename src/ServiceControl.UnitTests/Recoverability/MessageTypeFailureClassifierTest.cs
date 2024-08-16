@@ -12,7 +12,7 @@
             var classifier = new MessageTypeFailureClassifier();
             var classification = classifier.ClassifyFailure(new ClassifiableMessageDetails(GetType().ToString(), null, null));
 
-            Assert.IsNotNull(classification);
+            Assert.That(classification, Is.Not.Null);
         }
 
         [Test]

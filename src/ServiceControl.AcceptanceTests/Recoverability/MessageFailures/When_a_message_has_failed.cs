@@ -197,7 +197,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 .Done(c => c.SignalrEventReceived)
                 .Run();
 
-            Assert.IsNotNull(context.SignalrData);
+            Assert.That(context.SignalrData, Is.Not.Null);
         }
 
         [Test]

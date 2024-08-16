@@ -54,11 +54,11 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
                 })
                 .Run(TimeSpan.FromMinutes(3));
 
-            Assert.IsNotNull(originalMessage, "Original message was not received");
-            Assert.IsNotNull(retriedMessage, "Retried message was not received");
+            Assert.That(originalMessage, Is.Not.Null, "Original message was not received");
+            Assert.That(retriedMessage, Is.Not.Null, "Retried message was not received");
 
-            Assert.IsNotNull(originalMessage.FailureGroups, "The original message has no failure groups");
-            Assert.IsNotNull(retriedMessage.FailureGroups, "The retried message has no failure groups");
+            Assert.That(originalMessage.FailureGroups, Is.Not.Null, "The original message has no failure groups");
+            Assert.That(retriedMessage.FailureGroups, Is.Not.Null, "The retried message has no failure groups");
 
             var originalExceptionAndStackTraceFailureGroupIds = originalMessage.FailureGroups.Where(x => x.Type == ExceptionTypeAndStackTraceFailureClassifier.Id).Select(x => x.Id).ToArray();
             var retriedExceptionAndStackTraceFailureGroupIds = retriedMessage.FailureGroups.Where(x => x.Type == ExceptionTypeAndStackTraceFailureClassifier.Id).Select(x => x.Id).ToArray();

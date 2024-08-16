@@ -30,7 +30,7 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(auditedMessage);
+            Assert.That(auditedMessage, Is.Not.Null);
             Assert.That(auditedMessage.TimeSent, Is.Null);
         }
 
