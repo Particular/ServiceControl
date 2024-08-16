@@ -36,7 +36,7 @@
                         failure = result;
                         if (result)
                         {
-                            Assert.False(string.IsNullOrEmpty(addressOfItself));
+                            Assert.That(string.IsNullOrEmpty(addressOfItself), Is.False);
 
                             c.RetryIssued = true;
                             await this.Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_id={InstanceIdGenerator.FromApiUrl(addressOfItself)}", null, null, ServiceControlInstanceName);

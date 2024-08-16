@@ -31,7 +31,7 @@
 
             var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
 
-            Assert.False(configuration.ServerConfiguration.UseEmbeddedServer);
+            Assert.That(configuration.ServerConfiguration.UseEmbeddedServer, Is.False);
             Assert.AreEqual(connectionString, configuration.ServerConfiguration.ConnectionString);
         }
 

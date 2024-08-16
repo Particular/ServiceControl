@@ -32,7 +32,7 @@
             var context = await Define<MyContext>()
                 .WithEndpoint<RemoteEndpoint>(b => b.When(async (bus, ctx) =>
                 {
-                    Assert.False(string.IsNullOrEmpty(addressOfAuditInstance));
+                    Assert.That(string.IsNullOrEmpty(addressOfAuditInstance), Is.False);
 
                     ctx.AuditInstanceId = InstanceIdGenerator.FromApiUrl(addressOfAuditInstance);
                     await bus.SendLocal(new MyMessage());

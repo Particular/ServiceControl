@@ -33,7 +33,7 @@
 
             var nonHandler = container.Resolve<FakeNonEventHandler>();
 
-            Assert.False(events.Subscribers.Contains(nonHandler), "Non-handlers should not be subscribed on activation");
+            Assert.That(events.Subscribers.Contains(nonHandler), Is.False, "Non-handlers should not be subscribed on activation");
         }
 
         class FakeEvent { }
