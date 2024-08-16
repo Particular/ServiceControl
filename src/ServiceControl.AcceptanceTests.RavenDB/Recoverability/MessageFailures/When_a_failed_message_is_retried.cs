@@ -61,7 +61,7 @@
                 })
                 .Run();
 
-            Assert.That(0, Is.EqualTo(failedMessageRetries.Count), "FailedMessageRetries not removed");
+            Assert.That(failedMessageRetries.Count, Is.EqualTo(0), "FailedMessageRetries not removed");
         }
 
         [Test]
@@ -102,7 +102,7 @@
                 })
                 .Run();
 
-            Assert.That(0, Is.EqualTo(failedMessageRetries.Count), "FailedMessageRetries not removed");
+            Assert.That(failedMessageRetries.Count, Is.EqualTo(0), "FailedMessageRetries not removed");
         }
 
         [Test]
@@ -189,7 +189,7 @@
                 })
                 .Run();
 
-            Assert.That(0, Is.EqualTo(failedMessageRetries.Count), "FailedMessageRetries not removed");
+            Assert.That(failedMessageRetries.Count, Is.EqualTo(0), "FailedMessageRetries not removed");
         }
 
         public class FailingEndpoint : EndpointConfigurationBuilder

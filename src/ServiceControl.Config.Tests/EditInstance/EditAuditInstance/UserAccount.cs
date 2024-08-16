@@ -96,7 +96,7 @@
 
             Assert.IsEmpty(viewModel.Password);
 
-            Assert.That("LocalSystem", Is.EqualTo(viewModel.ServiceAccount));
+            Assert.That(viewModel.ServiceAccount, Is.EqualTo("LocalSystem"));
 
         }
 
@@ -126,7 +126,7 @@
 
             Assert.IsEmpty(viewModel.Password);
 
-            Assert.That("LocalService", Is.EqualTo(viewModel.ServiceAccount));
+            Assert.That(viewModel.ServiceAccount, Is.EqualTo("LocalService"));
         }
 
         [Test]
@@ -221,7 +221,7 @@
 
             Assert.That(viewModel.PasswordEnabled, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.PasswordEnabled)));
 
-            Assert.That("LocalSystem", Is.EqualTo(viewModel.ServiceAccount));
+            Assert.That(viewModel.ServiceAccount, Is.EqualTo("LocalSystem"));
 
             Assert.IsEmpty(viewModel.Password);
         }
@@ -257,7 +257,7 @@
 
             Assert.That(viewModel.PasswordEnabled, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.PasswordEnabled)));
 
-            Assert.That("LocalService", Is.EqualTo(viewModel.ServiceAccount));
+            Assert.That(viewModel.ServiceAccount, Is.EqualTo("LocalService"));
 
             Assert.IsEmpty(viewModel.Password);
         }
