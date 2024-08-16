@@ -13,12 +13,15 @@
         {
             var result = MonitoredEndpointMessageTypeParser.Parse("");
 
-            Assert.That(result.Id, Is.Null);
-            Assert.That(result.TypeName, Is.Null);
-            Assert.That(result.AssemblyName, Is.Null);
-            Assert.That(result.AssemblyVersion, Is.Null);
-            Assert.That(result.Culture, Is.Null);
-            Assert.That(result.PublicKeyToken, Is.Null);
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Id, Is.Null);
+                Assert.That(result.TypeName, Is.Null);
+                Assert.That(result.AssemblyName, Is.Null);
+                Assert.That(result.AssemblyVersion, Is.Null);
+                Assert.That(result.Culture, Is.Null);
+                Assert.That(result.PublicKeyToken, Is.Null);
+            });
         }
 
         [Test]
@@ -28,12 +31,15 @@
 
             var result = MonitoredEndpointMessageTypeParser.Parse(typeName);
 
-            Assert.That(result.Id, Is.EqualTo(typeName));
-            Assert.That(result.TypeName, Is.EqualTo(typeName));
-            Assert.That(result.AssemblyName, Is.Null);
-            Assert.That(result.AssemblyVersion, Is.Null);
-            Assert.That(result.Culture, Is.Null);
-            Assert.That(result.PublicKeyToken, Is.Null);
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Id, Is.EqualTo(typeName));
+                Assert.That(result.TypeName, Is.EqualTo(typeName));
+                Assert.That(result.AssemblyName, Is.Null);
+                Assert.That(result.AssemblyVersion, Is.Null);
+                Assert.That(result.Culture, Is.Null);
+                Assert.That(result.PublicKeyToken, Is.Null);
+            });
         }
 
         [Test]
@@ -80,11 +86,14 @@
 
             var keyToken = assemblyName.GetPublicKeyToken();
 
-            Assert.That(result.TypeName, Is.EqualTo(type.FullName));
-            Assert.That(result.AssemblyName, Is.EqualTo(assemblyName.Name));
-            Assert.That(result.AssemblyVersion, Is.EqualTo(assemblyName.Version.ToString()));
-            Assert.That(result.Culture, Is.EqualTo(assemblyName.CultureName));
-            Assert.That(result.PublicKeyToken, Is.EqualTo(string.Concat(keyToken.Select(b => b.ToString("x2")))));
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.TypeName, Is.EqualTo(type.FullName));
+                Assert.That(result.AssemblyName, Is.EqualTo(assemblyName.Name));
+                Assert.That(result.AssemblyVersion, Is.EqualTo(assemblyName.Version.ToString()));
+                Assert.That(result.Culture, Is.EqualTo(assemblyName.CultureName));
+                Assert.That(result.PublicKeyToken, Is.EqualTo(string.Concat(keyToken.Select(b => b.ToString("x2")))));
+            });
         }
     }
 }

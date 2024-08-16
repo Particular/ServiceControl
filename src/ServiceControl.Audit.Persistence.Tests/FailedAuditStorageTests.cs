@@ -39,8 +39,11 @@
 
             var numFailures = await FailedAuditStorage.GetFailedAuditsCount();
 
-            Assert.That(succeeded, Is.EqualTo(2));
-            Assert.That(numFailures, Is.EqualTo(0));
+            Assert.Multiple(() =>
+            {
+                Assert.That(succeeded, Is.EqualTo(2));
+                Assert.That(numFailures, Is.EqualTo(0));
+            });
         }
     }
 }

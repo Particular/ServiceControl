@@ -79,9 +79,12 @@
                 })
                 .Run();
 
-            Assert.That(context.AfterAllStartedCount, Is.EqualTo(0), "Disconnected count after all endpoints started");
-            Assert.That(context.AfterFirstStoppedCount, Is.EqualTo(0), "Disconnected count after first endpoint stopped");
-            Assert.That(context.AfterSecondStoppedCount, Is.EqualTo(1), "Disconnected count after both endpoints stopped");
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.AfterAllStartedCount, Is.EqualTo(0), "Disconnected count after all endpoints started");
+                Assert.That(context.AfterFirstStoppedCount, Is.EqualTo(0), "Disconnected count after first endpoint stopped");
+                Assert.That(context.AfterSecondStoppedCount, Is.EqualTo(1), "Disconnected count after both endpoints stopped");
+            });
         }
 
         class MonitoredEndpoint : EndpointConfigurationBuilder

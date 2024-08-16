@@ -20,9 +20,12 @@
 
             var expectedErrorInstanceServiceName = $"Particular.{viewModel.ConventionName}-1";
 
-            Assert.That(viewModel.AuditInstanceName, Is.EqualTo(expectedAuditInstanceServiceName));
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.AuditInstanceName, Is.EqualTo(expectedAuditInstanceServiceName));
 
-            Assert.That(viewModel.ErrorInstanceName, Is.EqualTo(expectedErrorInstanceServiceName));
+                Assert.That(viewModel.ErrorInstanceName, Is.EqualTo(expectedErrorInstanceServiceName));
+            });
         }
 
         [Test]
@@ -47,8 +50,11 @@
                 SubmitAttempted = true
             };
 
-            Assert.That(viewModel.AuditInstanceName, Is.EqualTo(expected));
-            Assert.That(viewModel.ErrorInstanceName, Is.EqualTo(expected));
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.AuditInstanceName, Is.EqualTo(expected));
+                Assert.That(viewModel.ErrorInstanceName, Is.EqualTo(expected));
+            });
         }
     }
 }

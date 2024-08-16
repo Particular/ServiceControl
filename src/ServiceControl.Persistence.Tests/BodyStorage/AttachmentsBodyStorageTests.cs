@@ -79,8 +79,11 @@
 
             var retrieved = await BodyStorage.TryFetch(fetchById);
             Assert.That(retrieved, Is.Not.Null);
-            Assert.That(retrieved.HasResult, Is.True);
-            Assert.That(retrieved.ContentType, Is.EqualTo(contentType));
+            Assert.Multiple(() =>
+            {
+                Assert.That(retrieved.HasResult, Is.True);
+                Assert.That(retrieved.ContentType, Is.EqualTo(contentType));
+            });
 
             var buffer = new byte[retrieved.BodySize];
             retrieved.Stream.Read(buffer, 0, retrieved.BodySize);

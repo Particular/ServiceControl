@@ -93,9 +93,12 @@
             MonitoredEndpoint[] model = endpointMetricsApi.GetAllEndpointsMetrics();
             var item = model[0];
 
-            Assert.That(item.EndpointInstanceIds.Length, Is.EqualTo(3), nameof(item.EndpointInstanceIds));
-            Assert.That(item.ConnectedCount, Is.EqualTo(2), nameof(item.ConnectedCount));
-            Assert.That(item.DisconnectedCount, Is.EqualTo(1), nameof(item.DisconnectedCount));
+            Assert.Multiple(() =>
+            {
+                Assert.That(item.EndpointInstanceIds.Length, Is.EqualTo(3), nameof(item.EndpointInstanceIds));
+                Assert.That(item.ConnectedCount, Is.EqualTo(2), nameof(item.ConnectedCount));
+                Assert.That(item.DisconnectedCount, Is.EqualTo(1), nameof(item.DisconnectedCount));
+            });
         }
     }
 }

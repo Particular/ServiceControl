@@ -144,10 +144,13 @@
             Assert.That(knownEndpoints.Count, Is.EqualTo(1));
             var fromStorage = knownEndpoints[0];
 
-            Assert.That(fromStorage.EndpointDetails.Host, Is.EqualTo(knownEndpoint.EndpointDetails.Host), "EndpointDetails.Host should match");
-            Assert.That(fromStorage.EndpointDetails.HostId, Is.EqualTo(knownEndpoint.EndpointDetails.HostId), "EndpointDetails.HostId should match");
-            Assert.That(fromStorage.EndpointDetails.Name, Is.EqualTo(knownEndpoint.EndpointDetails.Name), "EndpointDetails.Name should match");
-            Assert.That(fromStorage.Monitored, Is.EqualTo(knownEndpoint.Monitored), "Monitored should match");
+            Assert.Multiple(() =>
+            {
+                Assert.That(fromStorage.EndpointDetails.Host, Is.EqualTo(knownEndpoint.EndpointDetails.Host), "EndpointDetails.Host should match");
+                Assert.That(fromStorage.EndpointDetails.HostId, Is.EqualTo(knownEndpoint.EndpointDetails.HostId), "EndpointDetails.HostId should match");
+                Assert.That(fromStorage.EndpointDetails.Name, Is.EqualTo(knownEndpoint.EndpointDetails.Name), "EndpointDetails.Name should match");
+                Assert.That(fromStorage.Monitored, Is.EqualTo(knownEndpoint.Monitored), "Monitored should match");
+            });
         }
     }
 }

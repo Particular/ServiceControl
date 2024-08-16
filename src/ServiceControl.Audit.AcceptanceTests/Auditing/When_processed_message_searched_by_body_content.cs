@@ -74,8 +74,11 @@
                 })
                 .Run();
 
-            Assert.That(context.MessageIngested, Is.True);
-            Assert.That(context.MessageFound, Is.False);
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.MessageIngested, Is.True);
+                Assert.That(context.MessageFound, Is.False);
+            });
         }
 
         public class Sender : EndpointConfigurationBuilder

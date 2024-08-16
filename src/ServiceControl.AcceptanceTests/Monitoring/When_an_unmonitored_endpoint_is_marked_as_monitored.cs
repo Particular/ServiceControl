@@ -74,9 +74,12 @@
 
             var myEndpoint = endpoints.FirstOrDefault(e => e.Name == EndpointName);
             Assert.That(myEndpoint, Is.Not.Null);
-            Assert.That(myEndpoint.Monitored, Is.True);
-            Assert.That(myEndpoint.MonitorHeartbeat, Is.True);
-            Assert.That(myEndpoint.IsSendingHeartbeats, Is.False);
+            Assert.Multiple(() =>
+            {
+                Assert.That(myEndpoint.Monitored, Is.True);
+                Assert.That(myEndpoint.MonitorHeartbeat, Is.True);
+                Assert.That(myEndpoint.IsSendingHeartbeats, Is.False);
+            });
         }
 
         enum State

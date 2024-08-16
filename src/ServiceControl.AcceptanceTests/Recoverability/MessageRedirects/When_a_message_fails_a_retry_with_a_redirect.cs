@@ -62,8 +62,11 @@
             Assert.That(failedMessages.Count, Is.EqualTo(1));
 
             var failedMessageView = failedMessages.Single();
-            Assert.That(failedMessageView.NumberOfProcessingAttempts, Is.EqualTo(2));
-            Assert.That(failedMessageView.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
+            Assert.Multiple(() =>
+            {
+                Assert.That(failedMessageView.NumberOfProcessingAttempts, Is.EqualTo(2));
+                Assert.That(failedMessageView.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
+            });
         }
 
         class OriginalEndpoint : EndpointConfigurationBuilder

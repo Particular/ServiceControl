@@ -51,34 +51,40 @@
                 })
                 .Run();
 
-            Assert.That(auditedMessage.MessageId, Is.EqualTo(context.MessageId));
-            Assert.That(auditedMessage.Status, Is.EqualTo(MessageStatus.Successful));
-            Assert.That(auditedMessage.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint),
-                "Receiving endpoint name should be parsed correctly");
+            Assert.Multiple(() =>
+            {
+                Assert.That(auditedMessage.MessageId, Is.EqualTo(context.MessageId));
+                Assert.That(auditedMessage.Status, Is.EqualTo(MessageStatus.Successful));
+                Assert.That(auditedMessage.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint),
+                    "Receiving endpoint name should be parsed correctly");
 
-            Assert.That(auditedMessage.ReceivingEndpoint.HostId, Is.Not.EqualTo(Guid.Empty), "Host id should be set");
-            Assert.That(string.IsNullOrEmpty(auditedMessage.ReceivingEndpoint.Host), Is.False, "Host display name should be set");
+                Assert.That(auditedMessage.ReceivingEndpoint.HostId, Is.Not.EqualTo(Guid.Empty), "Host id should be set");
+                Assert.That(string.IsNullOrEmpty(auditedMessage.ReceivingEndpoint.Host), Is.False, "Host display name should be set");
 
-            Assert.That(auditedMessage.MessageType, Is.EqualTo(typeof(MyMessage).FullName),
-                "AuditMessage type should be set to the FullName of the message type");
-            Assert.That(auditedMessage.IsSystemMessage, Is.False, "AuditMessage should not be marked as a system message");
+                Assert.That(auditedMessage.MessageType, Is.EqualTo(typeof(MyMessage).FullName),
+                    "AuditMessage type should be set to the FullName of the message type");
+                Assert.That(auditedMessage.IsSystemMessage, Is.False, "AuditMessage should not be marked as a system message");
 
-            Assert.That(auditedMessage.ConversationId, Is.Not.Null);
+                Assert.That(auditedMessage.ConversationId, Is.Not.Null);
 
-            Assert.That(auditedMessage.TimeSent, Is.Not.EqualTo(DateTime.MinValue), "Time sent should be correctly set");
-            Assert.That(auditedMessage.ProcessedAt, Is.Not.EqualTo(DateTime.MinValue), "Processed At should be correctly set");
+                Assert.That(auditedMessage.TimeSent, Is.Not.EqualTo(DateTime.MinValue), "Time sent should be correctly set");
+                Assert.That(auditedMessage.ProcessedAt, Is.Not.EqualTo(DateTime.MinValue), "Processed At should be correctly set");
 
-            Assert.That(TimeSpan.Zero, Is.LessThan(auditedMessage.ProcessingTime), "Processing time should be calculated");
+                Assert.That(TimeSpan.Zero, Is.LessThan(auditedMessage.ProcessingTime), "Processing time should be calculated");
+            });
             Assert.That(TimeSpan.Zero, Is.LessThan(auditedMessage.CriticalTime), "Critical time should be calculated");
             Assert.That(auditedMessage.MessageIntent, Is.EqualTo(MessageIntent.Send), "Message intent should be set");
 
             var bodyAsString = Encoding.UTF8.GetString(body);
 
-            Assert.That(bodyAsString, Does.Contain(Payload), bodyAsString);
+            Assert.Multiple(() =>
+            {
+                Assert.That(bodyAsString, Does.Contain(Payload), bodyAsString);
 
-            Assert.That(auditedMessage.BodySize, Is.EqualTo(body.Length));
+                Assert.That(auditedMessage.BodySize, Is.EqualTo(body.Length));
 
-            Assert.That(auditedMessage.Headers.Any(h => h.Key == Headers.MessageId), Is.True);
+                Assert.That(auditedMessage.Headers.Any(h => h.Key == Headers.MessageId), Is.True);
+            });
         }
 
         [Test]
@@ -112,8 +118,11 @@
                 .Run();
 
             Assert.That(counts.Count, Is.EqualTo(1));
-            Assert.That(counts[0].UtcDate, Is.EqualTo(DateTime.UtcNow.Date));
-            Assert.That(counts[0].Count, Is.EqualTo(1));
+            Assert.Multiple(() =>
+            {
+                Assert.That(counts[0].UtcDate, Is.EqualTo(DateTime.UtcNow.Date));
+                Assert.That(counts[0].Count, Is.EqualTo(1));
+            });
         }
 
         public class Sender : EndpointConfigurationBuilder

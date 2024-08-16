@@ -55,10 +55,13 @@
             var editFailedMessagesManager = await ErrorMessageDataStore.CreateEditFailedMessageManager();
             var editOperation = await editFailedMessagesManager.GetCurrentEditingMessageId(failedMessageId);
 
-            Assert.That(failedMessage.Status, Is.EqualTo(status));
-            Assert.That(editOperation, Is.Null);
+            Assert.Multiple(() =>
+            {
+                Assert.That(failedMessage.Status, Is.EqualTo(status));
+                Assert.That(editOperation, Is.Null);
 
-            Assert.That(dispatcher.DispatchedMessages, Is.Empty);
+                Assert.That(dispatcher.DispatchedMessages, Is.Empty);
+            });
         }
 
         [Test]
@@ -86,8 +89,11 @@
                 var failedMessage = await editFailedMessagesManagerAssert.GetFailedMessage(failedMessageId);
                 var editId = await editFailedMessagesManagerAssert.GetCurrentEditingMessageId(failedMessageId);
 
-                Assert.That(editId, Is.EqualTo(previousEdit));
-                Assert.That(failedMessage.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
+                Assert.Multiple(() =>
+                {
+                    Assert.That(editId, Is.EqualTo(previousEdit));
+                    Assert.That(failedMessage.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
+                });
             }
 
             Assert.That(dispatcher.DispatchedMessages, Is.Empty);
@@ -106,11 +112,14 @@
             await handler.Handle(message, handlerContent);
 
             var dispatchedMessage = dispatcher.DispatchedMessages.Single();
-            Assert.That(
-                dispatchedMessage.Item1.Destination,
-                Is.EqualTo(failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint));
-            Assert.That(dispatchedMessage.Item1.Message.Body.ToArray(), Is.EqualTo(newBodyContent));
-            Assert.That(dispatchedMessage.Item1.Message.Headers["someKey"], Is.EqualTo("someValue"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                            dispatchedMessage.Item1.Destination,
+                            Is.EqualTo(failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint));
+                Assert.That(dispatchedMessage.Item1.Message.Body.ToArray(), Is.EqualTo(newBodyContent));
+                Assert.That(dispatchedMessage.Item1.Message.Headers["someKey"], Is.EqualTo("someValue"));
+            });
 
             using (var x = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {
@@ -119,8 +128,11 @@
 
                 var editId = await x.GetCurrentEditingMessageId(failedMessage2.UniqueMessageId);
 
-                Assert.That(failedMessage2.Status, Is.EqualTo(FailedMessageStatus.Resolved), "Failed message status");
-                Assert.That(editId, Is.EqualTo(handlerContent.MessageId), "MessageId");
+                Assert.Multiple(() =>
+                {
+                    Assert.That(failedMessage2.Status, Is.EqualTo(FailedMessageStatus.Resolved), "Failed message status");
+                    Assert.That(editId, Is.EqualTo(handlerContent.MessageId), "MessageId");
+                });
             }
         }
 

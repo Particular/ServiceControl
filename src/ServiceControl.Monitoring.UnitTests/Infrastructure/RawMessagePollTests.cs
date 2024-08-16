@@ -14,13 +14,19 @@
             message.TryRecord(3, 4);
 
             Assert.That(message.Length, Is.EqualTo(1));
-            Assert.That(message.Entries[0].DateTicks, Is.EqualTo(3));
-            Assert.That(message.Entries[0].Value, Is.EqualTo(4));
+            Assert.Multiple(() =>
+            {
+                Assert.That(message.Entries[0].DateTicks, Is.EqualTo(3));
+                Assert.That(message.Entries[0].Value, Is.EqualTo(4));
+            });
 
             pool.Release(message);
             Assert.That(message.Length, Is.EqualTo(0));
-            Assert.That(message.Entries[0].DateTicks, Is.EqualTo(0));
-            Assert.That(message.Entries[0].Value, Is.EqualTo(0));
+            Assert.Multiple(() =>
+            {
+                Assert.That(message.Entries[0].DateTicks, Is.EqualTo(0));
+                Assert.That(message.Entries[0].Value, Is.EqualTo(0));
+            });
         }
     }
 }

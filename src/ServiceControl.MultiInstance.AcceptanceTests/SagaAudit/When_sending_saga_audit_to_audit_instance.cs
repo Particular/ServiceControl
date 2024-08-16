@@ -59,8 +59,11 @@
 
             Assert.That(sagaHistory, Is.Not.Null);
 
-            Assert.That(sagaHistory.SagaId, Is.EqualTo(context.SagaId));
-            Assert.That(sagaHistory.SagaType, Is.EqualTo(typeof(SagaEndpoint.MySaga).FullName));
+            Assert.Multiple(() =>
+            {
+                Assert.That(sagaHistory.SagaId, Is.EqualTo(context.SagaId));
+                Assert.That(sagaHistory.SagaType, Is.EqualTo(typeof(SagaEndpoint.MySaga).FullName));
+            });
 
             var sagaStateChange = sagaHistory.Changes.First();
             Assert.That(sagaStateChange.InitiatingMessage.Intent, Is.EqualTo("Send"));

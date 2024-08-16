@@ -34,8 +34,11 @@ namespace ServiceControl.Persistence.Tests
             var stats = await CustomChecks.GetStats(new PagingInfo());
 
             Assert.That(stats.Results.Count, Is.EqualTo(1));
-            Assert.That(stats.Results[0].Status, Is.EqualTo(Status.Fail));
-            Assert.That(status, Is.EqualTo(CheckStateChange.Changed));
+            Assert.Multiple(() =>
+            {
+                Assert.That(stats.Results[0].Status, Is.EqualTo(Status.Fail));
+                Assert.That(status, Is.EqualTo(CheckStateChange.Changed));
+            });
         }
 
         [Test]
@@ -60,8 +63,11 @@ namespace ServiceControl.Persistence.Tests
 
             CompleteDatabaseOperation();
 
-            Assert.That(statusInitial, Is.EqualTo(CheckStateChange.Changed));
-            Assert.That(statusUpdate, Is.EqualTo(CheckStateChange.Unchanged));
+            Assert.Multiple(() =>
+            {
+                Assert.That(statusInitial, Is.EqualTo(CheckStateChange.Changed));
+                Assert.That(statusUpdate, Is.EqualTo(CheckStateChange.Unchanged));
+            });
         }
 
         [Test]

@@ -40,8 +40,11 @@
         {
             var viewModel = Given_editing_error_instance();
 
-            Assert.That(viewModel.HostName, Is.EqualTo("localhost"));
-            Assert.That(viewModel.HostNameWarning, Is.Not.EqualTo("Not using localhost can expose ServiceControl to anonymous access."));
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.HostName, Is.EqualTo("localhost"));
+                Assert.That(viewModel.HostNameWarning, Is.Not.EqualTo("Not using localhost can expose ServiceControl to anonymous access."));
+            });
         }
     }
 }

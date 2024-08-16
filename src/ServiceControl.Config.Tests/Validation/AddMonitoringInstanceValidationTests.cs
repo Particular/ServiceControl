@@ -63,9 +63,12 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceAccount));
 
-            Assert.That(selectedAccount, Is.EqualTo("LocalSystem"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(selectedAccount, Is.EqualTo("LocalSystem"));
 
-            Assert.That(errors, Is.Empty);
+                Assert.That(errors, Is.Empty);
+            });
         }
 
         //if custom user account is selected, then account name  are required fields

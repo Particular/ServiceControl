@@ -47,8 +47,11 @@
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
-            Assert.That(eventLogItems.Any(item => item.Description.Equals("Failed message resolved by retry") && item.RelatedTo.Contains("/message/" + failure.UniqueMessageId)), Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
+                Assert.That(eventLogItems.Any(item => item.Description.Equals("Failed message resolved by retry") && item.RelatedTo.Contains("/message/" + failure.UniqueMessageId)), Is.True);
+            });
         }
 
         [Test]

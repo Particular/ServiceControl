@@ -66,8 +66,11 @@
                 })
                 .Run();
 
-            Assert.That(runResult.ErrorForwarded, Is.True);
-            Assert.That(runResult.MessageFailedEventPublished, Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(runResult.ErrorForwarded, Is.True);
+                Assert.That(runResult.MessageFailedEventPublished, Is.True);
+            });
         }
 
         class MessageFailedHandler(MyContext scenarioContext) : IDomainHandler<MessageFailed>

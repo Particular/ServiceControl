@@ -98,8 +98,11 @@ class BrokerThroughputCollectorHostedServiceTests
             } while (!token.IsCancellationRequested);
         });
 
-        Assert.That(mockedBrokerThroughputQueryThatThrowsExceptions.GetQueueNamesCalls, Is.GreaterThan(1));
-        Assert.That(mockedBrokerThroughputQueryThatThrowsExceptions.GetGetThroughputPerDay, Is.GreaterThan(1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(mockedBrokerThroughputQueryThatThrowsExceptions.GetQueueNamesCalls, Is.GreaterThan(1));
+            Assert.That(mockedBrokerThroughputQueryThatThrowsExceptions.GetGetThroughputPerDay, Is.GreaterThan(1));
+        });
     }
 
     [Test]

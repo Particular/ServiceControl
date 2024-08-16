@@ -97,9 +97,12 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
         Assert.That(summary, Is.Not.Null);
         Assert.That(summary.Count, Is.EqualTo(3), $"Incorrect number of endpoints in throughput summary");
 
-        Assert.That(summary.Single(w => w.Name == "Endpoint1").MaxDailyThroughput, Is.EqualTo(55), $"Incorrect MaxDailyThroughput recorded for Endpoint1");
-        Assert.That(summary.Single(w => w.Name == "Endpoint2").MaxDailyThroughput, Is.EqualTo(65), $"Incorrect MaxDailyThroughput recorded for Endpoint2");
-        Assert.That(summary.Single(w => w.Name == "Endpoint3").MaxDailyThroughput, Is.EqualTo(75), $"Incorrect MaxDailyThroughput recorded for Endpoint3");
+        Assert.Multiple(() =>
+        {
+            Assert.That(summary.Single(w => w.Name == "Endpoint1").MaxDailyThroughput, Is.EqualTo(55), $"Incorrect MaxDailyThroughput recorded for Endpoint1");
+            Assert.That(summary.Single(w => w.Name == "Endpoint2").MaxDailyThroughput, Is.EqualTo(65), $"Incorrect MaxDailyThroughput recorded for Endpoint2");
+            Assert.That(summary.Single(w => w.Name == "Endpoint3").MaxDailyThroughput, Is.EqualTo(75), $"Incorrect MaxDailyThroughput recorded for Endpoint3");
+        });
     }
 
     [Test]
@@ -126,9 +129,12 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
         Assert.That(summary, Is.Not.Null);
         Assert.That(summary.Count, Is.EqualTo(3));
 
-        Assert.That(summary.FirstOrDefault(w => w.Name == "Endpoint1").MaxDailyThroughput, Is.EqualTo(65), $"Incorrect MaxDailyThroughput recorded for Endpoint1");
-        Assert.That(summary.FirstOrDefault(w => w.Name == "Endpoint2").MaxDailyThroughput, Is.EqualTo(65), $"Incorrect MaxDailyThroughput recorded for Endpoint2");
-        Assert.That(summary.FirstOrDefault(w => w.Name == "Endpoint3").MaxDailyThroughput, Is.EqualTo(57), $"Incorrect MaxDailyThroughput recorded for Endpoint3");
+        Assert.Multiple(() =>
+        {
+            Assert.That(summary.FirstOrDefault(w => w.Name == "Endpoint1").MaxDailyThroughput, Is.EqualTo(65), $"Incorrect MaxDailyThroughput recorded for Endpoint1");
+            Assert.That(summary.FirstOrDefault(w => w.Name == "Endpoint2").MaxDailyThroughput, Is.EqualTo(65), $"Incorrect MaxDailyThroughput recorded for Endpoint2");
+            Assert.That(summary.FirstOrDefault(w => w.Name == "Endpoint3").MaxDailyThroughput, Is.EqualTo(57), $"Incorrect MaxDailyThroughput recorded for Endpoint3");
+        });
     }
 
     [Test]
@@ -165,10 +171,13 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
         Assert.That(summary, Is.Not.Null);
         Assert.That(summary.Count, Is.EqualTo(1));
 
-        //we want to see the name for the endpoint if one exists, not the broker sanitized name
-        Assert.That(summary[0].Name, Is.EqualTo("Endpoint1_"), $"Incorrect Name for Endpoint1");
+        Assert.Multiple(() =>
+        {
+            //we want to see the name for the endpoint if one exists, not the broker sanitized name
+            Assert.That(summary[0].Name, Is.EqualTo("Endpoint1_"), $"Incorrect Name for Endpoint1");
 
-        //even though the names are different, we should have matched on the sanitized name and hence displayed max throughput from the 2 endpoints
-        Assert.That(summary[0].MaxDailyThroughput, Is.EqualTo(75), $"Incorrect MaxDailyThroughput recorded for Endpoint1");
+            //even though the names are different, we should have matched on the sanitized name and hence displayed max throughput from the 2 endpoints
+            Assert.That(summary[0].MaxDailyThroughput, Is.EqualTo(75), $"Incorrect MaxDailyThroughput recorded for Endpoint1");
+        });
     }
 }

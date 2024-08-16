@@ -54,8 +54,11 @@
 
             Assert.That(context.MessagesView.Count, Is.EqualTo(1));
             var failedMessage = context.MessagesView.Single();
-            Assert.That(failedMessage.Status, Is.EqualTo(FailedMessageStatus.Resolved));
-            Assert.That(failedMessage.NumberOfProcessingAttempts, Is.EqualTo(1));
+            Assert.Multiple(() =>
+            {
+                Assert.That(failedMessage.Status, Is.EqualTo(FailedMessageStatus.Resolved));
+                Assert.That(failedMessage.NumberOfProcessingAttempts, Is.EqualTo(1));
+            });
         }
 
         class Context : ScenarioContext, ISequenceContext

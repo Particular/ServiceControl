@@ -30,9 +30,12 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.That(instanceNamesProvided); // Provided because the convention default auto-fills them on instantiation
+            Assert.Multiple(() =>
+            {
+                Assert.That(instanceNamesProvided); // Provided because the convention default auto-fills them on instantiation
 
-            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)), Is.Empty);
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)), Is.Empty);
+            });
         }
 
         [Test]
@@ -59,9 +62,12 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.That(instanceNamesProvided, Is.True, "Instance names were not provided.");
+            Assert.Multiple(() =>
+            {
+                Assert.That(instanceNamesProvided, Is.True, "Instance names were not provided.");
 
-            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)), Is.Empty);
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)), Is.Empty);
+            });
         }
 
         [Test]
@@ -74,9 +80,12 @@
                 ConventionName = "Something"
             };
 
-            Assert.That(viewModel.ErrorInstanceName, Is.EqualTo($"Particular.{viewModel.ConventionName}"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ErrorInstanceName, Is.EqualTo($"Particular.{viewModel.ConventionName}"));
 
-            Assert.That(viewModel.AuditInstanceName, Is.EqualTo($"Particular.{viewModel.ConventionName}.Audit"));
+                Assert.That(viewModel.AuditInstanceName, Is.EqualTo($"Particular.{viewModel.ConventionName}.Audit"));
+            });
         }
 
         #endregion
@@ -218,9 +227,12 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ErrorServiceAccount));
 
-            Assert.That(selectedAccount, Is.EqualTo("LocalSystem"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(selectedAccount, Is.EqualTo("LocalSystem"));
 
-            Assert.That(errors, Is.Empty);
+                Assert.That(errors, Is.Empty);
+            });
         }
 
         [Test]

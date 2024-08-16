@@ -50,34 +50,40 @@
                 })
                 .Run();
 
-            Assert.That(failedMessage.MessageId, Is.EqualTo(context.MessageId));
-            Assert.That(failedMessage.Status, Is.EqualTo(MessageStatus.Failed));
-            Assert.That(failedMessage.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint),
-                "Receiving endpoint name should be parsed correctly");
+            Assert.Multiple(() =>
+            {
+                Assert.That(failedMessage.MessageId, Is.EqualTo(context.MessageId));
+                Assert.That(failedMessage.Status, Is.EqualTo(MessageStatus.Failed));
+                Assert.That(failedMessage.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint),
+                    "Receiving endpoint name should be parsed correctly");
 
-            Assert.That(failedMessage.ReceivingEndpoint.HostId, Is.Not.EqualTo(Guid.Empty), "Host id should be set");
-            Assert.That(string.IsNullOrEmpty(failedMessage.ReceivingEndpoint.Host), Is.False, "Host display name should be set");
+                Assert.That(failedMessage.ReceivingEndpoint.HostId, Is.Not.EqualTo(Guid.Empty), "Host id should be set");
+                Assert.That(string.IsNullOrEmpty(failedMessage.ReceivingEndpoint.Host), Is.False, "Host display name should be set");
 
-            Assert.That(failedMessage.MessageType, Is.EqualTo(typeof(MyMessage).FullName),
-                "AuditMessage type should be set to the FullName of the message type");
-            Assert.That(failedMessage.IsSystemMessage, Is.False, "ErrorMessage should not be marked as a system message");
+                Assert.That(failedMessage.MessageType, Is.EqualTo(typeof(MyMessage).FullName),
+                    "AuditMessage type should be set to the FullName of the message type");
+                Assert.That(failedMessage.IsSystemMessage, Is.False, "ErrorMessage should not be marked as a system message");
 
-            Assert.That(failedMessage.ConversationId, Is.Not.Null);
+                Assert.That(failedMessage.ConversationId, Is.Not.Null);
 
-            Assert.That(failedMessage.TimeSent, Is.Not.EqualTo(DateTime.MinValue), "Time sent should be correctly set");
-            Assert.That(failedMessage.ProcessedAt, Is.Not.EqualTo(DateTime.MinValue), "Processed At should be correctly set");
+                Assert.That(failedMessage.TimeSent, Is.Not.EqualTo(DateTime.MinValue), "Time sent should be correctly set");
+                Assert.That(failedMessage.ProcessedAt, Is.Not.EqualTo(DateTime.MinValue), "Processed At should be correctly set");
 
-            Assert.That(failedMessage.ProcessingTime, Is.EqualTo(TimeSpan.Zero), "Processing time should not be calculated");
-            Assert.That(failedMessage.CriticalTime, Is.EqualTo(TimeSpan.Zero), "Critical time should be not calculated");
-            Assert.That(failedMessage.MessageIntent, Is.EqualTo(MessageIntent.Send), "Message intent should be set");
+                Assert.That(failedMessage.ProcessingTime, Is.EqualTo(TimeSpan.Zero), "Processing time should not be calculated");
+                Assert.That(failedMessage.CriticalTime, Is.EqualTo(TimeSpan.Zero), "Critical time should be not calculated");
+                Assert.That(failedMessage.MessageIntent, Is.EqualTo(MessageIntent.Send), "Message intent should be set");
+            });
 
             var bodyAsString = Encoding.UTF8.GetString(body);
 
-            Assert.That(bodyAsString, Does.Contain(Payload), bodyAsString);
+            Assert.Multiple(() =>
+            {
+                Assert.That(bodyAsString, Does.Contain(Payload), bodyAsString);
 
-            Assert.That(failedMessage.BodySize, Is.EqualTo(body.Length));
+                Assert.That(failedMessage.BodySize, Is.EqualTo(body.Length));
 
-            Assert.That(failedMessage.Headers.Any(h => h.Key == Headers.MessageId), Is.True);
+                Assert.That(failedMessage.Headers.Any(h => h.Key == Headers.MessageId), Is.True);
+            });
         }
 
         public class Sender : EndpointConfigurationBuilder

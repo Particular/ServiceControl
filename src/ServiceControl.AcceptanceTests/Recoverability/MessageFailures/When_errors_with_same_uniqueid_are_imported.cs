@@ -55,8 +55,11 @@
                 })
                 .Run();
 
-            Assert.That(criticalErrorExecuted, Is.False);
-            Assert.That(failure, Is.Not.Null);
+            Assert.Multiple(() =>
+            {
+                Assert.That(criticalErrorExecuted, Is.False);
+                Assert.That(failure, Is.Not.Null);
+            });
 
             var attempts = failure.ProcessingAttempts;
             Assert.That(attempts.Count, Is.EqualTo(2));

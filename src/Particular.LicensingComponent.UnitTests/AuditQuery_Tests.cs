@@ -36,8 +36,11 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         //Assert
         Assert.That(endpoints, Is.Not.Null, "Endpoints should be found");
         Assert.That(endpoints.Count, Is.EqualTo(2), "Invalid number of on known endpoints");
-        Assert.That(endpoints.Any(a => a.Name == "Endpoint1"), Is.True, "Should have found Endpoint1");
-        Assert.That(endpoints.Any(a => a.Name == "Endpoint2"), Is.True, "Should have found Endpoint2");
+        Assert.Multiple(() =>
+        {
+            Assert.That(endpoints.Any(a => a.Name == "Endpoint1"), Is.True, "Should have found Endpoint1");
+            Assert.That(endpoints.Any(a => a.Name == "Endpoint2"), Is.True, "Should have found Endpoint2");
+        });
     }
 
     [Test]
@@ -52,10 +55,13 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         //Assert
         Assert.That(remotes, Is.Not.Null, "Remotes should be found");
         Assert.That(remotes.Count, Is.EqualTo(1), "Invalid number of remotes");
-        Assert.That(remotes[0].ApiUri, Is.EqualTo("http://localhost:44444/api/"), "Invalid ApiUri on remote");
-        Assert.That(remotes[0].VersionString, Is.EqualTo("5.1.0"), "Invalid VersionString on remote");
-        Assert.That(remotes[0].Retention, Is.EqualTo(new TimeSpan(7, 0, 0, 0)), "Invalid Retention on remote");
-        Assert.That(remotes[0].Queues, Is.Not.Null, "Queues should be reported on remote");
+        Assert.Multiple(() =>
+        {
+            Assert.That(remotes[0].ApiUri, Is.EqualTo("http://localhost:44444/api/"), "Invalid ApiUri on remote");
+            Assert.That(remotes[0].VersionString, Is.EqualTo("5.1.0"), "Invalid VersionString on remote");
+            Assert.That(remotes[0].Retention, Is.EqualTo(new TimeSpan(7, 0, 0, 0)), "Invalid Retention on remote");
+            Assert.That(remotes[0].Queues, Is.Not.Null, "Queues should be reported on remote");
+        });
         Assert.That(remotes[0].Queues.Count, Is.EqualTo(2), "Invalid number of queues reported on remote");
         Assert.That(remotes[0].Queues, Does.Contain("audit"), "Should have foind audit queue");
         Assert.That(remotes[0].Queues, Does.Contain("audit.log"), "Should have found audit.log queue");
@@ -72,8 +78,11 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
 
         //Assert
         Assert.That(connectionSettingsResult, Is.Not.Null, "connectionSettingsResult should be returned");
-        Assert.That(connectionSettingsResult.ConnectionSuccessful, Is.True, "Connection status should be successful");
-        Assert.That(connectionSettingsResult.ConnectionErrorMessages.Count, Is.EqualTo(0), "Unexpected ConnectionErrorMessages");
+        Assert.Multiple(() =>
+        {
+            Assert.That(connectionSettingsResult.ConnectionSuccessful, Is.True, "Connection status should be successful");
+            Assert.That(connectionSettingsResult.ConnectionErrorMessages.Count, Is.EqualTo(0), "Unexpected ConnectionErrorMessages");
+        });
 
         Approver.Verify(connectionSettingsResult.Diagnostics);
     }
@@ -91,8 +100,11 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
 
         //Assert
         Assert.That(connectionSettingsResult, Is.Not.Null, "connectionSettingsResult should be returned");
-        Assert.That(connectionSettingsResult.ConnectionSuccessful, Is.True, "Connection status should be successful");
-        Assert.That(connectionSettingsResult.ConnectionErrorMessages.Count, Is.EqualTo(0), "Unexpected ConnectionErrorMessages");
+        Assert.Multiple(() =>
+        {
+            Assert.That(connectionSettingsResult.ConnectionSuccessful, Is.True, "Connection status should be successful");
+            Assert.That(connectionSettingsResult.ConnectionErrorMessages.Count, Is.EqualTo(0), "Unexpected ConnectionErrorMessages");
+        });
 
         Approver.Verify(connectionSettingsResult.Diagnostics);
     }
@@ -113,8 +125,11 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
 
         //Assert
         Assert.That(connectionSettingsResult, Is.Not.Null, "connectionSettingsResult should be returned");
-        Assert.That(connectionSettingsResult.ConnectionSuccessful, Is.False, "Connection status should not be successful");
-        Assert.That(connectionSettingsResult.ConnectionErrorMessages.Count, Is.Not.EqualTo(0), "Expected ConnectionErrorMessages");
+        Assert.Multiple(() =>
+        {
+            Assert.That(connectionSettingsResult.ConnectionSuccessful, Is.False, "Connection status should not be successful");
+            Assert.That(connectionSettingsResult.ConnectionErrorMessages.Count, Is.Not.EqualTo(0), "Expected ConnectionErrorMessages");
+        });
 
         Approver.Verify(connectionSettingsResult.Diagnostics, scenario: $"status_{remoteStatus}.version_{remoteVersion?.Replace(".", "") ?? "null"}.retention_{retensionPeriod[0]}");
     }

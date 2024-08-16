@@ -60,8 +60,11 @@
             var value = m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value;
             var strings = value.Split(';');
 
-            Assert.That(strings.Any(s => s == context.Saga1Id + ":New"), Is.True);
-            Assert.That(strings.Any(s => s == context.Saga2Id + ":New"), Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(strings.Any(s => s == context.Saga1Id + ":New"), Is.True);
+                Assert.That(strings.Any(s => s == context.Saga2Id + ":New"), Is.True);
+            });
         }
 
         void AssertStateChange<T>(IEnumerable<MessagesView> messages, Guid sagaId, string stateChange)

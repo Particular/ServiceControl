@@ -40,9 +40,12 @@
                 .When_a_audit_forwarding_is_on();
 
             nameof(viewModel.AuditForwardingQueueName).Was_notified_of_change(changedProperties);
-            Assert.That(viewModel.ShowAuditForwardingQueue, Is.True);
-            Assert.That(viewModel.AuditForwardingWarning, Is.Not.Empty);
-            Assert.That(viewModel.AuditForwardingQueueName, Is.EqualTo("audit.log"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ShowAuditForwardingQueue, Is.True);
+                Assert.That(viewModel.AuditForwardingWarning, Is.Not.Empty);
+                Assert.That(viewModel.AuditForwardingQueueName, Is.EqualTo("audit.log"));
+            });
         }
 
         [Test]
@@ -54,9 +57,12 @@
                 .Collect_changed_properties(changedProperties)
                 .When_a_audit_forwarding_is_off();
 
-            Assert.That(viewModel.ShowAuditForwardingQueue, Is.False);
-            Assert.That(viewModel.AuditForwardingWarning, Is.Null);
-            Assert.That(viewModel.AuditForwardingQueueName, Is.Null);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ShowAuditForwardingQueue, Is.False);
+                Assert.That(viewModel.AuditForwardingWarning, Is.Null);
+                Assert.That(viewModel.AuditForwardingQueueName, Is.Null);
+            });
         }
     }
 }

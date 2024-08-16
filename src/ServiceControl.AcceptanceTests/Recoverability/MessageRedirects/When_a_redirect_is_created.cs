@@ -34,10 +34,13 @@
                 }).Run();
 
             Assert.That(response.Count, Is.EqualTo(1), "Expected 1 redirect to be created");
-            Assert.That(response[0].message_redirect_id, Is.EqualTo(DeterministicGuid.MakeId(redirect.fromphysicaladdress)), "Message Redirect Id mismatch");
-            Assert.That(response[0].from_physical_address, Is.EqualTo(redirect.fromphysicaladdress), "From physical address mismatch");
-            Assert.That(response[0].to_physical_address, Is.EqualTo(redirect.tophysicaladdress), "To physical address mismatch");
-            Assert.That(response[0].last_modified, Is.GreaterThan(DateTime.MinValue), "Last modified was not set");
+            Assert.Multiple(() =>
+            {
+                Assert.That(response[0].message_redirect_id, Is.EqualTo(DeterministicGuid.MakeId(redirect.fromphysicaladdress)), "Message Redirect Id mismatch");
+                Assert.That(response[0].from_physical_address, Is.EqualTo(redirect.fromphysicaladdress), "From physical address mismatch");
+                Assert.That(response[0].to_physical_address, Is.EqualTo(redirect.tophysicaladdress), "To physical address mismatch");
+                Assert.That(response[0].last_modified, Is.GreaterThan(DateTime.MinValue), "Last modified was not set");
+            });
         }
 
         [Test]

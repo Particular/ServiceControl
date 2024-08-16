@@ -50,11 +50,14 @@
 
             var emailText = await File.ReadAllLinesAsync(emails[0]);
 
-            Assert.That(emailText[0], Is.EqualTo("X-Sender: YouServiceControl@particular.net"));
-            Assert.That(emailText[1], Is.EqualTo("X-Receiver: WhoeverMightBeConcerned@particular.net"));
-            Assert.That(emailText[3], Is.EqualTo("From: YouServiceControl@particular.net"));
-            Assert.That(emailText[4], Is.EqualTo("To: WhoeverMightBeConcerned@particular.net"));
-            Assert.That(emailText[6], Is.EqualTo("Subject: [Particular.ServiceControl] health check failed"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(emailText[0], Is.EqualTo("X-Sender: YouServiceControl@particular.net"));
+                Assert.That(emailText[1], Is.EqualTo("X-Receiver: WhoeverMightBeConcerned@particular.net"));
+                Assert.That(emailText[3], Is.EqualTo("From: YouServiceControl@particular.net"));
+                Assert.That(emailText[4], Is.EqualTo("To: WhoeverMightBeConcerned@particular.net"));
+                Assert.That(emailText[6], Is.EqualTo("Subject: [Particular.ServiceControl] health check failed"));
+            });
         }
 
         class SetupNotificationSettings(IErrorMessageDataStore errorMessageDataStore) : IHostedService

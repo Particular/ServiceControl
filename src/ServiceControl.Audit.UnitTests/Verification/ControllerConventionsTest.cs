@@ -14,8 +14,11 @@
         {
             var allControllers = typeof(Settings).Assembly.GetTypes().Where(t => typeof(ControllerBase).IsAssignableFrom(t)).ToArray();
             Assert.That(allControllers, Is.Not.Empty);
-            Assert.That(allControllers.All(c => c.Name.EndsWith("Controller")), Is.True);
-            Assert.That(allControllers.All(c => c.GetCustomAttributes<ApiControllerAttribute>().Any()), Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(allControllers.All(c => c.Name.EndsWith("Controller")), Is.True);
+                Assert.That(allControllers.All(c => c.GetCustomAttributes<ApiControllerAttribute>().Any()), Is.True);
+            });
         }
     }
 }

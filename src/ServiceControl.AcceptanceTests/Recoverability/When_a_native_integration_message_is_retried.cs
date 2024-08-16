@@ -34,8 +34,11 @@
                 })
                 .Run();
 
-            Assert.That(context.Headers.ContainsKey(Headers.MessageIntent), Is.False, "Should not add the intent header");
-            Assert.That(context.Headers.ContainsKey("NServiceBus.NonDurableMessage"), Is.False, "Should not add the non-durable header");
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.Headers.ContainsKey(Headers.MessageIntent), Is.False, "Should not add the intent header");
+                Assert.That(context.Headers.ContainsKey("NServiceBus.NonDurableMessage"), Is.False, "Should not add the non-durable header");
+            });
         }
 
         class TestContext : ScenarioContext

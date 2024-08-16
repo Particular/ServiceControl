@@ -139,10 +139,13 @@
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
 
-            Assert.That(status.RetryState, Is.EqualTo(RetryState.Completed));
-            Assert.That(status.NumberOfMessagesPrepared, Is.EqualTo(3));
-            Assert.That(status.NumberOfMessagesForwarded, Is.EqualTo(2));
-            Assert.That(status.NumberOfMessagesSkipped, Is.EqualTo(1));
+            Assert.Multiple(() =>
+            {
+                Assert.That(status.RetryState, Is.EqualTo(RetryState.Completed));
+                Assert.That(status.NumberOfMessagesPrepared, Is.EqualTo(3));
+                Assert.That(status.NumberOfMessagesForwarded, Is.EqualTo(2));
+                Assert.That(status.NumberOfMessagesSkipped, Is.EqualTo(1));
+            });
         }
 
         [Test]

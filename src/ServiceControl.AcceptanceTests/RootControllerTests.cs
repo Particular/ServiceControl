@@ -47,11 +47,14 @@
             var config1Str = config1.ToString();
             var config2Str = config2.ToString();
 
-            Assert.That(config1Str, Is.EqualTo(config2Str));
+            Assert.Multiple(() =>
+            {
+                Assert.That(config1Str, Is.EqualTo(config2Str));
 
-            Assert.That(config1["api_uri"].GetValue<string>(), Is.EqualTo(baseAddress));
-            Assert.That(config1["status"].GetValue<string>(), Is.EqualTo("online"));
-            Assert.That(config1["version"].GetValue<string>(), Does.Match(@"^\d+\.\d+\.\d+(-[\w\d\.\-]+)?$"));
+                Assert.That(config1["api_uri"].GetValue<string>(), Is.EqualTo(baseAddress));
+                Assert.That(config1["status"].GetValue<string>(), Is.EqualTo("online"));
+                Assert.That(config1["version"].GetValue<string>(), Does.Match(@"^\d+\.\d+\.\d+(-[\w\d\.\-]+)?$"));
+            });
             Assert.That(config1Str, Contains.Substring(serviceName));
         }
     }

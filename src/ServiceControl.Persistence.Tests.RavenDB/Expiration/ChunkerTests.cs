@@ -20,18 +20,21 @@
                 return 1;
             }, starts, ends);
 
-            Assert.That(starts[0], Is.EqualTo(0));
-            Assert.That(ends[0], Is.EqualTo(499));
+            Assert.Multiple(() =>
+            {
+                Assert.That(starts[0], Is.EqualTo(0));
+                Assert.That(ends[0], Is.EqualTo(499));
 
-            Assert.That(starts[1], Is.EqualTo(500));
-            Assert.That(ends[1], Is.EqualTo(999));
+                Assert.That(starts[1], Is.EqualTo(500));
+                Assert.That(ends[1], Is.EqualTo(999));
 
-            Assert.That(starts[2], Is.EqualTo(1000));
-            Assert.That(ends[2], Is.EqualTo(1499));
+                Assert.That(starts[2], Is.EqualTo(1000));
+                Assert.That(ends[2], Is.EqualTo(1499));
 
-            Assert.That(starts.Count, Is.EqualTo(3));
-            Assert.That(ends.Count, Is.EqualTo(3));
-            Assert.That(count, Is.EqualTo(3));
+                Assert.That(starts.Count, Is.EqualTo(3));
+                Assert.That(ends.Count, Is.EqualTo(3));
+                Assert.That(count, Is.EqualTo(3));
+            });
         }
 
         [Test]
@@ -47,12 +50,15 @@
                 return 1;
             }, starts, ends);
 
-            Assert.That(starts[0], Is.EqualTo(0));
-            Assert.That(ends[0], Is.EqualTo(0));
+            Assert.Multiple(() =>
+            {
+                Assert.That(starts[0], Is.EqualTo(0));
+                Assert.That(ends[0], Is.EqualTo(0));
 
-            Assert.That(starts.Count, Is.EqualTo(1));
-            Assert.That(ends.Count, Is.EqualTo(1));
-            Assert.That(count, Is.EqualTo(1));
+                Assert.That(starts.Count, Is.EqualTo(1));
+                Assert.That(ends.Count, Is.EqualTo(1));
+                Assert.That(count, Is.EqualTo(1));
+            });
         }
 
         [Test]
@@ -68,18 +74,21 @@
                 return 1;
             }, starts, ends);
 
-            Assert.That(starts[0], Is.EqualTo(0));
-            Assert.That(ends[0], Is.EqualTo(499));
+            Assert.Multiple(() =>
+            {
+                Assert.That(starts[0], Is.EqualTo(0));
+                Assert.That(ends[0], Is.EqualTo(499));
 
-            Assert.That(starts[1], Is.EqualTo(500));
-            Assert.That(ends[1], Is.EqualTo(999));
+                Assert.That(starts[1], Is.EqualTo(500));
+                Assert.That(ends[1], Is.EqualTo(999));
 
-            Assert.That(starts[2], Is.EqualTo(1000));
-            Assert.That(ends[2], Is.EqualTo(1000));
+                Assert.That(starts[2], Is.EqualTo(1000));
+                Assert.That(ends[2], Is.EqualTo(1000));
 
-            Assert.That(starts.Count, Is.EqualTo(3));
-            Assert.That(ends.Count, Is.EqualTo(3));
-            Assert.That(count, Is.EqualTo(3));
+                Assert.That(starts.Count, Is.EqualTo(3));
+                Assert.That(ends.Count, Is.EqualTo(3));
+                Assert.That(count, Is.EqualTo(3));
+            });
         }
     }
 }

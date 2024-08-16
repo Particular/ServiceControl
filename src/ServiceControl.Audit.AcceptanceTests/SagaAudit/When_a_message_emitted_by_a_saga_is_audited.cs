@@ -28,8 +28,11 @@
 
             Assert.That(auditedMessage.OriginatesFromSaga, Is.Not.Null);
 
-            Assert.That(auditedMessage.OriginatesFromSaga.SagaType, Is.EqualTo(typeof(SagaEndpoint.MySaga).FullName));
-            Assert.That(auditedMessage.OriginatesFromSaga.SagaId, Is.EqualTo(context.SagaId));
+            Assert.Multiple(() =>
+            {
+                Assert.That(auditedMessage.OriginatesFromSaga.SagaType, Is.EqualTo(typeof(SagaEndpoint.MySaga).FullName));
+                Assert.That(auditedMessage.OriginatesFromSaga.SagaId, Is.EqualTo(context.SagaId));
+            });
         }
 
         public class SagaEndpoint : EndpointConfigurationBuilder
