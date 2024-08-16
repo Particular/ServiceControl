@@ -205,7 +205,7 @@
 
             Assert.That(viewModel.ErrorRetention, Is.GreaterThanOrEqualTo(viewModel.MinimumErrorRetentionPeriod));
 
-            Assert.LessOrEqual(viewModel.ErrorRetention, viewModel.MaximumErrorRetentionPeriod);
+            Assert.That(viewModel.ErrorRetention, Is.LessThanOrEqualTo(viewModel.MaximumErrorRetentionPeriod));
 
             Assert.That(viewModel.AuditRetentionUnits, Is.EqualTo(TimeSpanUnits.Days));
 
@@ -213,7 +213,7 @@
 
             Assert.That(viewModel.AuditRetention, Is.GreaterThanOrEqualTo(viewModel.MinimumErrorRetentionPeriod));
 
-            Assert.LessOrEqual(viewModel.AuditRetention, viewModel.MaximumErrorRetentionPeriod);
+            Assert.That(viewModel.AuditRetention, Is.LessThanOrEqualTo(viewModel.MaximumErrorRetentionPeriod));
         }
 
         [Test]
