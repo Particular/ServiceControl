@@ -75,8 +75,8 @@
 
             Assert.That(exceptionTypeAndStackTraceGroups.Select(g => g.Id).Except(defaultGroups.Select(g => g.Id)), Is.Empty, "/api/recoverability/groups did not retrieve Exception Type and Stack Trace Group");
 
-            Assert.Contains(DeterministicGuid.MakeId(MessageTypeFailureClassifier.Id, typeof(MyMessageA).FullName).ToString(), messageTypeGroups.Select(g => g.Id).ToArray());
-            Assert.Contains(DeterministicGuid.MakeId(MessageTypeFailureClassifier.Id, typeof(MyMessageB).FullName).ToString(), messageTypeGroups.Select(g => g.Id).ToArray());
+            Assert.That(messageTypeGroups.Select(g => g.Id).ToArray(), Does.Contain(DeterministicGuid.MakeId(MessageTypeFailureClassifier.Id, typeof(MyMessageA).FullName).ToString()));
+            Assert.That(messageTypeGroups.Select(g => g.Id).ToArray(), Does.Contain(DeterministicGuid.MakeId(MessageTypeFailureClassifier.Id, typeof(MyMessageB).FullName).ToString()));
 
             Assert.That(failedMessageA.UniqueMessageId, Is.EqualTo(context.UniqueMessageIdA));
             Assert.That(failedMessageB.UniqueMessageId, Is.EqualTo(context.UniqueMessageIdB));

@@ -20,7 +20,7 @@
 
         public static void Was_notified_of_change(this string property, List<string> changedProperties)
         {
-            Assert.Contains(property, changedProperties);
+            Assert.That(changedProperties, Does.Contain(property));
         }
     }
 }

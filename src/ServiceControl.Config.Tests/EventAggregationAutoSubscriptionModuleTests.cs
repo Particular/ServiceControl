@@ -29,7 +29,7 @@
 
             var handler = container.Resolve<FakeEventHandler>();
 
-            Assert.Contains(handler, events.Subscribers, "Items should be subscribed on activation");
+            Assert.That(events.Subscribers, Does.Contain(handler), "Items should be subscribed on activation");
 
             var nonHandler = container.Resolve<FakeNonEventHandler>();
 
