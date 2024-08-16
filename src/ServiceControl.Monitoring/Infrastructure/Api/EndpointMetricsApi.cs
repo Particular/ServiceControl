@@ -221,7 +221,9 @@
 
         static MonitoredEndpointMessageType[] GetMonitoredMessageTypes(IEnumerable<EndpointMessageType> messageTypes)
         {
-            return messageTypes.Select(mt => MonitoredEndpointMessageTypeParser.Parse(mt.MessageType))
+            return messageTypes
+                .Where(mt => !string.IsNullOrEmpty(mt.MessageType))
+                .Select(mt => MonitoredEndpointMessageTypeParser.Parse(mt.MessageType))
                 .ToArray();
         }
 
