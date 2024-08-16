@@ -18,7 +18,7 @@
         [Test]
         public void HasResults()
         {
-            Assert.IsNotEmpty(Results.Results, "There should be results returned");
+            Assert.That(Results.Results, Is.Not.Empty, "There should be results returned");
         }
 
         [Test]

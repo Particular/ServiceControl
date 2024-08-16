@@ -81,8 +81,8 @@
             Assert.That(failedMessageA.UniqueMessageId, Is.EqualTo(context.UniqueMessageIdA));
             Assert.That(failedMessageB.UniqueMessageId, Is.EqualTo(context.UniqueMessageIdB));
 
-            Assert.IsNotEmpty(failedMessageA.FailureGroups, "MyMessageA should have failure groups");
-            Assert.IsNotEmpty(failedMessageB.FailureGroups, "MyMessageB should have failure groups");
+            Assert.That(failedMessageA.FailureGroups, Is.Not.Empty, "MyMessageA should have failure groups");
+            Assert.That(failedMessageB.FailureGroups, Is.Not.Empty, "MyMessageB should have failure groups");
 
             Assert.That(failedMessageA.FailureGroups.Count(g => g.Type == ExceptionTypeAndStackTraceFailureClassifier.Id), Is.EqualTo(1), $"{ExceptionTypeAndStackTraceFailureClassifier.Id} FailureGroup was not created");
             Assert.That(failedMessageA.FailureGroups.Count(g => g.Type == MessageTypeFailureClassifier.Id), Is.EqualTo(1), $"{MessageTypeFailureClassifier.Id} FailureGroup was not created");

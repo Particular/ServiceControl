@@ -18,7 +18,7 @@
 
             var nonFlatEvents = eventTypes.Except(flatEvents).ToArray();
 
-            Assert.IsNotEmpty(eventTypes);
+            Assert.That(eventTypes, Is.Not.Empty);
             Assert.That(nonFlatEvents, Is.Empty, "Complex Event Hierarchy causes duplicate event handling with Azure ServiceBus and SubscribeToOwnEvents");
         }
     }

@@ -24,7 +24,7 @@
                 .Run();
 
             Assert.That(classifiers, Is.Not.Null, "classifiers is null");
-            Assert.IsNotEmpty(classifiers, "No classifiers retrieved");
+            Assert.That(classifiers, Is.Not.Empty, "No classifiers retrieved");
             Assert.Contains(ExceptionTypeAndStackTraceFailureClassifier.Id, classifiers, "ExceptionTypeAndStackTraceFailureClassifier was not found");
             Assert.Contains(MessageTypeFailureClassifier.Id, classifiers, "MessageTypeFailureClassifier was not found");
             Assert.Contains(AddressOfFailingEndpointClassifier.Id, classifiers, "AddressOfFailingEndpointClassifier was not found");

@@ -27,7 +27,7 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsNotEmpty(viewModel.Transports);
+            Assert.That(viewModel.Transports, Is.Not.Empty);
 
             Assert.That(viewModel.SelectedTransport, Is.Null);
         }
@@ -49,7 +49,7 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsNotEmpty(viewModel.ErrorForwardingOptions);
+            Assert.That(viewModel.ErrorForwardingOptions, Is.Not.Empty);
         }
 
         [Test]
@@ -57,7 +57,7 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsNotEmpty(viewModel.ErrorEnableFullTextSearchOnBodiesOptions);
+            Assert.That(viewModel.ErrorEnableFullTextSearchOnBodiesOptions, Is.Not.Empty);
         }
 
         [Test]
@@ -221,11 +221,11 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsNotEmpty(viewModel.ErrorQueueName);
+            Assert.That(viewModel.ErrorQueueName, Is.Not.Empty);
 
             Assert.That(viewModel.ErrorQueueName, Is.EqualTo("error"));
 
-            Assert.IsNotEmpty(viewModel.AuditQueueName);
+            Assert.That(viewModel.AuditQueueName, Is.Not.Empty);
 
             Assert.That(viewModel.AuditQueueName, Is.EqualTo("audit"));
         }
@@ -235,7 +235,7 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsNotEmpty(viewModel.ErrorForwardingOptions);
+            Assert.That(viewModel.ErrorForwardingOptions, Is.Not.Empty);
 
             Assert.That(viewModel.ErrorForwarding.Value, Is.EqualTo(false));
 
@@ -243,7 +243,7 @@
 
             Assert.That(viewModel.ShowErrorForwardingQueue, Is.False);
 
-            Assert.IsNotEmpty(viewModel.AuditForwardingOptions);
+            Assert.That(viewModel.AuditForwardingOptions, Is.Not.Empty);
 
             Assert.That(viewModel.AuditForwarding.Value, Is.EqualTo(false));
 
@@ -255,11 +255,11 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsNotEmpty(viewModel.ErrorEnableFullTextSearchOnBodiesOptions);
+            Assert.That(viewModel.ErrorEnableFullTextSearchOnBodiesOptions, Is.Not.Empty);
 
             Assert.That(viewModel.ErrorEnableFullTextSearchOnBodies.Value, Is.EqualTo(true));
 
-            Assert.IsNotEmpty(viewModel.AuditEnableFullTextSearchOnBodiesOptions);
+            Assert.That(viewModel.AuditEnableFullTextSearchOnBodiesOptions, Is.Not.Empty);
 
             Assert.That(viewModel.AuditEnableFullTextSearchOnBodies.Value, Is.EqualTo(true));
         }

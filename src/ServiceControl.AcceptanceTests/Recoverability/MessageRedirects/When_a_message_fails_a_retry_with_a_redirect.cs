@@ -58,7 +58,7 @@
                 .Run();
 
             Assert.That(failedMessages, Is.Not.Null);
-            Assert.IsNotEmpty(failedMessages);
+            Assert.That(failedMessages, Is.Not.Empty);
             Assert.That(failedMessages.Count, Is.EqualTo(1));
 
             var failedMessageView = failedMessages.Single();

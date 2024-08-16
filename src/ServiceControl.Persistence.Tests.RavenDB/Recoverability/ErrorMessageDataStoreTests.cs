@@ -22,7 +22,7 @@
         public async Task GetAllMessages()
         {
             var result = await store.GetAllMessages(new PagingInfo(1, 50), new SortInfo("", ""), false);
-            Assert.IsNotEmpty(result.Results);
+            Assert.That(result.Results, Is.Not.Empty);
         }
 
         [Test]
@@ -41,7 +41,7 @@
                 false
             );
 
-            Assert.IsNotEmpty(result.Results);
+            Assert.That(result.Results, Is.Not.Empty);
             Assert.That(result.Results.Count, Is.EqualTo(1));
             Assert.That(result.Results[0].Id, Is.EqualTo(id));
         }
@@ -50,7 +50,7 @@
         public async Task ErrorGet()
         {
             var result = await store.ErrorGet(null, null, null, new PagingInfo(1, 50), new SortInfo("", ""));
-            Assert.IsNotEmpty(result.Results);
+            Assert.That(result.Results, Is.Not.Empty);
         }
 
         [SetUp]

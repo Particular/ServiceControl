@@ -61,12 +61,12 @@
 
             Assert.That(viewModel.ShowConnectionString, Is.True);
             StringAssert.StartsWith(transportInfoName, viewModel.SelectedTransport.Name);
-            Assert.IsNotEmpty(viewModel.SampleConnectionString);
+            Assert.That(viewModel.SampleConnectionString, Is.Not.Empty);
 
             if (transportInfoName is "SQLServer" or "AmazonSQS" or "AzureStorageQueue")
             {
                 Assert.That(viewModel.TransportWarning, Is.Not.Null);
-                Assert.IsNotEmpty(viewModel.TransportWarning);
+                Assert.That(viewModel.TransportWarning, Is.Not.Empty);
             }
             else
             {
