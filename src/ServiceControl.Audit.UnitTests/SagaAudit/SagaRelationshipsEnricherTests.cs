@@ -30,8 +30,8 @@
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
-            Assert.AreEqual(1, sagaData.Count);
-            Assert.AreEqual("New", sagaData[0].ChangeStatus);
+            Assert.That(sagaData.Count, Is.EqualTo(1));
+            Assert.That(sagaData[0].ChangeStatus, Is.EqualTo("New"));
         }
 
         [Test]
@@ -53,8 +53,8 @@
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
-            Assert.AreEqual(1, sagaData.Count);
-            Assert.AreEqual("New", sagaData[0].ChangeStatus);
+            Assert.That(sagaData.Count, Is.EqualTo(1));
+            Assert.That(sagaData[0].ChangeStatus, Is.EqualTo("New"));
         }
 
         [Test]
@@ -76,8 +76,8 @@
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
-            Assert.AreEqual(1, sagaData.Count);
-            Assert.AreEqual("Completed", sagaData[0].ChangeStatus);
+            Assert.That(sagaData.Count, Is.EqualTo(1));
+            Assert.That(sagaData[0].ChangeStatus, Is.EqualTo("Completed"));
         }
 
         [Test]
@@ -99,8 +99,8 @@
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
-            Assert.AreEqual(1, sagaData.Count);
-            Assert.AreEqual("Completed", sagaData[0].ChangeStatus);
+            Assert.That(sagaData.Count, Is.EqualTo(1));
+            Assert.That(sagaData[0].ChangeStatus, Is.EqualTo("Completed"));
         }
 
         [Test]
@@ -122,8 +122,8 @@
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
-            Assert.AreEqual(1, sagaData.Count);
-            Assert.AreEqual("Completed", sagaData[0].ChangeStatus);
+            Assert.That(sagaData.Count, Is.EqualTo(1));
+            Assert.That(sagaData[0].ChangeStatus, Is.EqualTo("Completed"));
         }
 
         [Test]
@@ -145,7 +145,7 @@
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
-            Assert.AreEqual(3, sagaData.Count);
+            Assert.That(sagaData.Count, Is.EqualTo(3));
         }
     }
 }

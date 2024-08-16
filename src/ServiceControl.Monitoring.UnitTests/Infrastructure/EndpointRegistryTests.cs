@@ -19,8 +19,8 @@
 
             var records = registry.GetForEndpointName(originalId.EndpointName).ToArray();
 
-            Assert.AreEqual(1, records.Length, "Existing entry should be reused");
-            Assert.AreEqual("renamed-name", records[0].InstanceName);
+            Assert.That(records.Length, Is.EqualTo(1), "Existing entry should be reused");
+            Assert.That(records[0].InstanceName, Is.EqualTo("renamed-name"));
         }
     }
 }

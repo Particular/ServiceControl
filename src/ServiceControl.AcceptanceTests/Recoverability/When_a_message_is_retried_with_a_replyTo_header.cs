@@ -34,7 +34,7 @@
                 })
                 .Run();
 
-            Assert.AreEqual(context.ReplyToAddress, context.ReceivedReplyToAddress);
+            Assert.That(context.ReceivedReplyToAddress, Is.EqualTo(context.ReplyToAddress));
         }
 
         class OriginalMessage : IMessage

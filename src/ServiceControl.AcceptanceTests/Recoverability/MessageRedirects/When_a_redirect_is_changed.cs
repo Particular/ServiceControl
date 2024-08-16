@@ -43,10 +43,10 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
             }).Run();
 
             var response = context.Response;
-            Assert.AreEqual(1, response.Count, "Expected only 1 redirect");
-            Assert.AreEqual(messageRedirectId, response[0].message_redirect_id, "Message Redirect Id mismatch");
-            Assert.AreEqual(redirect.fromphysicaladdress, response[0].from_physical_address, "From physical address mismatch");
-            Assert.AreEqual(newTo, response[0].to_physical_address, "To physical address mismatch");
+            Assert.That(response.Count, Is.EqualTo(1), "Expected only 1 redirect");
+            Assert.That(response[0].message_redirect_id, Is.EqualTo(messageRedirectId), "Message Redirect Id mismatch");
+            Assert.That(response[0].from_physical_address, Is.EqualTo(redirect.fromphysicaladdress), "From physical address mismatch");
+            Assert.That(response[0].to_physical_address, Is.EqualTo(newTo), "To physical address mismatch");
             Assert.Greater(response[0].last_modified, context.CreatedAt, "Last modified was not updated");
         }
 

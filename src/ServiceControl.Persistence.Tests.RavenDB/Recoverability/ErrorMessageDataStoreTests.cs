@@ -42,8 +42,8 @@
             );
 
             Assert.IsNotEmpty(result.Results);
-            Assert.AreEqual(1, result.Results.Count);
-            Assert.AreEqual(id, result.Results[0].Id);
+            Assert.That(result.Results.Count, Is.EqualTo(1));
+            Assert.That(result.Results[0].Id, Is.EqualTo(id));
         }
 
         [Test]

@@ -31,8 +31,8 @@
                 })
                 .Run();
 
-            Assert.AreEqual(1, endpoints.Length);
-            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, endpoints.First().Name);
+            Assert.That(endpoints.Length, Is.EqualTo(1));
+            Assert.That(endpoints.First().Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
         }
 
         [Test]

@@ -46,7 +46,7 @@
 
             var deserializedEvent = JsonSerializer.Deserialize<MessageFailed>(context.Event);
 
-            Assert.AreEqual("Faulty message", deserializedEvent.FailureDetails.Exception.Message);
+            Assert.That(deserializedEvent.FailureDetails.Exception.Message, Is.EqualTo("Faulty message"));
             //These are important so check it they are set
             Assert.IsNotNull(deserializedEvent.MessageDetails.MessageId);
             Assert.IsNotNull(deserializedEvent.SendingEndpoint.Name);

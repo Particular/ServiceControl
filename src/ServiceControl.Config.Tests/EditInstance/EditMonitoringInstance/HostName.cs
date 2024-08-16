@@ -35,7 +35,7 @@
             var viewModel = Given_editing_monitoring_instance()
                 .When_the_user_doesnt_use_localhost(hostName);
 
-            Assert.AreEqual("Not using localhost can expose ServiceControl to anonymous access.", viewModel.HostNameWarning);
+            Assert.That(viewModel.HostNameWarning, Is.EqualTo("Not using localhost can expose ServiceControl to anonymous access."));
         }
 
         [Test]
@@ -43,7 +43,7 @@
         {
             var viewModel = Given_editing_monitoring_instance();
 
-            Assert.AreEqual("localhost", viewModel.HostName);
+            Assert.That(viewModel.HostName, Is.EqualTo("localhost"));
             Assert.AreNotEqual("Not using localhost can expose ServiceControl to anonymous access.", viewModel.HostNameWarning);
         }
     }

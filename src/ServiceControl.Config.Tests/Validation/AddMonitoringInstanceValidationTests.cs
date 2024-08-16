@@ -63,7 +63,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceAccount));
 
-            Assert.AreEqual("LocalSystem", selectedAccount);
+            Assert.That(selectedAccount, Is.EqualTo("LocalSystem"));
 
             Assert.IsEmpty(errors);
         }

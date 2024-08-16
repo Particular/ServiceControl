@@ -33,9 +33,9 @@ namespace ServiceControl.Persistence.Tests
             CompleteDatabaseOperation();
             var stats = await CustomChecks.GetStats(new PagingInfo());
 
-            Assert.AreEqual(1, stats.Results.Count);
-            Assert.AreEqual(Status.Fail, stats.Results[0].Status);
-            Assert.AreEqual(CheckStateChange.Changed, status);
+            Assert.That(stats.Results.Count, Is.EqualTo(1));
+            Assert.That(stats.Results[0].Status, Is.EqualTo(Status.Fail));
+            Assert.That(status, Is.EqualTo(CheckStateChange.Changed));
         }
 
         [Test]
@@ -60,8 +60,8 @@ namespace ServiceControl.Persistence.Tests
 
             CompleteDatabaseOperation();
 
-            Assert.AreEqual(CheckStateChange.Changed, statusInitial);
-            Assert.AreEqual(CheckStateChange.Unchanged, statusUpdate);
+            Assert.That(statusInitial, Is.EqualTo(CheckStateChange.Changed));
+            Assert.That(statusUpdate, Is.EqualTo(CheckStateChange.Unchanged));
         }
 
         [Test]
@@ -87,7 +87,7 @@ namespace ServiceControl.Persistence.Tests
 
             var stats = await CustomChecks.GetStats(new PagingInfo(), "pass");
 
-            Assert.AreEqual(1, stats.Results.Count);
+            Assert.That(stats.Results.Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -119,7 +119,7 @@ namespace ServiceControl.Persistence.Tests
             var storedChecks = await CustomChecks.GetStats(new PagingInfo());
             var check = storedChecks.Results.Where(c => c.Id == checkId.ToString()).ToList();
 
-            Assert.AreEqual(0, check.Count);
+            Assert.That(check.Count, Is.EqualTo(0));
         }
     }
 }

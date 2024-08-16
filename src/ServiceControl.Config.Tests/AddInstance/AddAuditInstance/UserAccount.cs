@@ -74,7 +74,7 @@
 
             Assert.IsEmpty(viewModel.AuditPassword);
 
-            Assert.AreEqual(viewModel.AuditServiceAccount, "LocalSystem");
+            Assert.That("LocalSystem", Is.EqualTo(viewModel.AuditServiceAccount));
         }
 
         [Test]
@@ -94,7 +94,7 @@
 
             Assert.IsEmpty(viewModel.AuditPassword);
 
-            Assert.AreEqual(viewModel.AuditServiceAccount, "LocalSystem");
+            Assert.That("LocalSystem", Is.EqualTo(viewModel.AuditServiceAccount));
 
         }
 
@@ -115,7 +115,7 @@
 
             Assert.IsEmpty(viewModel.AuditPassword);
 
-            Assert.AreEqual(viewModel.AuditServiceAccount, "LocalService");
+            Assert.That("LocalService", Is.EqualTo(viewModel.AuditServiceAccount));
         }
 
         [Test]
@@ -171,9 +171,9 @@
 
             Assert.That(viewModel.AuditPasswordEnabled, Is.True, () => string.Format(ShouldBeTrue, nameof(viewModel.AuditPasswordEnabled)));
 
-            Assert.AreEqual(userAccount, viewModel.AuditServiceAccount);
+            Assert.That(viewModel.AuditServiceAccount, Is.EqualTo(userAccount));
 
-            Assert.AreEqual(userPassword, viewModel.AuditPassword);
+            Assert.That(viewModel.AuditPassword, Is.EqualTo(userPassword));
         }
 
         [TestCase("foo", null)]
@@ -206,7 +206,7 @@
 
             Assert.That(viewModel.AuditPasswordEnabled, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditPasswordEnabled)));
 
-            Assert.AreEqual(viewModel.AuditServiceAccount, "LocalSystem");
+            Assert.That("LocalSystem", Is.EqualTo(viewModel.AuditServiceAccount));
 
             Assert.IsEmpty(viewModel.AuditPassword);
         }
@@ -242,7 +242,7 @@
 
             Assert.That(viewModel.AuditPasswordEnabled, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditPasswordEnabled)));
 
-            Assert.AreEqual(viewModel.AuditServiceAccount, "LocalService");
+            Assert.That("LocalService", Is.EqualTo(viewModel.AuditServiceAccount));
 
             Assert.IsEmpty(viewModel.AuditPassword);
         }

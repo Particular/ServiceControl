@@ -53,7 +53,7 @@
                 .Run();
 
             Assert.IsNotNull(failure);
-            Assert.AreEqual(sentTime, failure.TimeSent);
+            Assert.That(failure.TimeSent, Is.EqualTo(sentTime));
         }
 
         [Test]

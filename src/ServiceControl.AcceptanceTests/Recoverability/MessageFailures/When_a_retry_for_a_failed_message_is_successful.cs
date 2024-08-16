@@ -47,7 +47,7 @@
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
+            Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
             Assert.That(eventLogItems.Any(item => item.Description.Equals("Failed message resolved by retry") && item.RelatedTo.Contains("/message/" + failure.UniqueMessageId)), Is.True);
         }
 
@@ -78,7 +78,7 @@
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
+            Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
         }
 
         [Test]
@@ -108,7 +108,7 @@
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
+            Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
         }
 
         [Test]
@@ -166,7 +166,7 @@
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
+            Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
         }
 
         Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c)

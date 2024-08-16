@@ -14,12 +14,12 @@
         {
             var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents());
             await summary.Wait(DateTime.UtcNow, "FailureGroup1");
-            Assert.AreEqual(RetryState.Waiting, summary.RetryState);
-            Assert.AreEqual(0, summary.NumberOfMessagesForwarded);
-            Assert.AreEqual(0, summary.NumberOfMessagesPrepared);
-            Assert.AreEqual(0, summary.NumberOfMessagesSkipped);
-            Assert.AreEqual(0, summary.TotalNumberOfMessages);
-            Assert.AreEqual("FailureGroup1", summary.Originator);
+            Assert.That(summary.RetryState, Is.EqualTo(RetryState.Waiting));
+            Assert.That(summary.NumberOfMessagesForwarded, Is.EqualTo(0));
+            Assert.That(summary.NumberOfMessagesPrepared, Is.EqualTo(0));
+            Assert.That(summary.NumberOfMessagesSkipped, Is.EqualTo(0));
+            Assert.That(summary.TotalNumberOfMessages, Is.EqualTo(0));
+            Assert.That(summary.Originator, Is.EqualTo("FailureGroup1"));
         }
 
         [Test]
@@ -35,9 +35,9 @@
         {
             var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents());
             await summary.Prepare(1000);
-            Assert.AreEqual(RetryState.Preparing, summary.RetryState);
-            Assert.AreEqual(0, summary.NumberOfMessagesPrepared);
-            Assert.AreEqual(1000, summary.TotalNumberOfMessages);
+            Assert.That(summary.RetryState, Is.EqualTo(RetryState.Preparing));
+            Assert.That(summary.NumberOfMessagesPrepared, Is.EqualTo(0));
+            Assert.That(summary.TotalNumberOfMessages, Is.EqualTo(1000));
         }
 
         [Test]
@@ -46,9 +46,9 @@
             var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents());
             await summary.Prepare(1000);
             await summary.PrepareBatch(1000);
-            Assert.AreEqual(RetryState.Preparing, summary.RetryState);
-            Assert.AreEqual(1000, summary.NumberOfMessagesPrepared);
-            Assert.AreEqual(1000, summary.TotalNumberOfMessages);
+            Assert.That(summary.RetryState, Is.EqualTo(RetryState.Preparing));
+            Assert.That(summary.NumberOfMessagesPrepared, Is.EqualTo(1000));
+            Assert.That(summary.TotalNumberOfMessages, Is.EqualTo(1000));
         }
 
         [Test]
@@ -59,9 +59,9 @@
             await summary.PrepareBatch(1000);
             await summary.Forwarding();
 
-            Assert.AreEqual(RetryState.Forwarding, summary.RetryState);
-            Assert.AreEqual(0, summary.NumberOfMessagesForwarded);
-            Assert.AreEqual(1000, summary.TotalNumberOfMessages);
+            Assert.That(summary.RetryState, Is.EqualTo(RetryState.Forwarding));
+            Assert.That(summary.NumberOfMessagesForwarded, Is.EqualTo(0));
+            Assert.That(summary.TotalNumberOfMessages, Is.EqualTo(1000));
         }
 
         [Test]
@@ -73,9 +73,9 @@
             await summary.Forwarding();
             await summary.BatchForwarded(500);
 
-            Assert.AreEqual(RetryState.Forwarding, summary.RetryState);
-            Assert.AreEqual(500, summary.NumberOfMessagesForwarded);
-            Assert.AreEqual(1000, summary.TotalNumberOfMessages);
+            Assert.That(summary.RetryState, Is.EqualTo(RetryState.Forwarding));
+            Assert.That(summary.NumberOfMessagesForwarded, Is.EqualTo(500));
+            Assert.That(summary.TotalNumberOfMessages, Is.EqualTo(1000));
         }
 
         [Test]
@@ -104,9 +104,9 @@
             await summary.Forwarding();
             await summary.BatchForwarded(1000);
 
-            Assert.AreEqual(RetryState.Completed, summary.RetryState);
-            Assert.AreEqual(1000, summary.NumberOfMessagesForwarded);
-            Assert.AreEqual(1000, summary.TotalNumberOfMessages);
+            Assert.That(summary.RetryState, Is.EqualTo(RetryState.Completed));
+            Assert.That(summary.NumberOfMessagesForwarded, Is.EqualTo(1000));
+            Assert.That(summary.TotalNumberOfMessages, Is.EqualTo(1000));
         }
 
         [Test]
@@ -118,8 +118,8 @@
             await summary.PrepareBatch(1000);
             await summary.Skip(1000);
 
-            Assert.AreEqual(RetryState.Preparing, summary.RetryState);
-            Assert.AreEqual(1000, summary.NumberOfMessagesSkipped);
+            Assert.That(summary.RetryState, Is.EqualTo(RetryState.Preparing));
+            Assert.That(summary.NumberOfMessagesSkipped, Is.EqualTo(1000));
         }
 
         [Test]
@@ -131,8 +131,8 @@
             await summary.PrepareBatch(1000);
             await summary.Skip(1000);
 
-            Assert.AreEqual(RetryState.Completed, summary.RetryState);
-            Assert.AreEqual(1000, summary.NumberOfMessagesSkipped);
+            Assert.That(summary.RetryState, Is.EqualTo(RetryState.Completed));
+            Assert.That(summary.NumberOfMessagesSkipped, Is.EqualTo(1000));
         }
 
         [Test]
@@ -146,9 +146,9 @@
             await summary.Forwarding();
             await summary.BatchForwarded(1000);
 
-            Assert.AreEqual(RetryState.Completed, summary.RetryState);
-            Assert.AreEqual(1000, summary.NumberOfMessagesForwarded);
-            Assert.AreEqual(1000, summary.NumberOfMessagesSkipped);
+            Assert.That(summary.RetryState, Is.EqualTo(RetryState.Completed));
+            Assert.That(summary.NumberOfMessagesForwarded, Is.EqualTo(1000));
+            Assert.That(summary.NumberOfMessagesSkipped, Is.EqualTo(1000));
         }
     }
 }

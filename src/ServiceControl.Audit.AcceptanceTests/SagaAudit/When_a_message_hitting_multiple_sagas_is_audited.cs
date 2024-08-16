@@ -37,14 +37,14 @@
 
             Assert.NotNull(auditedMessage);
 
-            Assert.AreEqual(typeof(SagaEndpoint.MySaga).FullName, auditedMessage.InvokedSagas.First().SagaType);
-            Assert.AreEqual(typeof(SagaEndpoint.MyOtherSaga).FullName, auditedMessage.InvokedSagas.Last().SagaType);
+            Assert.That(auditedMessage.InvokedSagas.First().SagaType, Is.EqualTo(typeof(SagaEndpoint.MySaga).FullName));
+            Assert.That(auditedMessage.InvokedSagas.Last().SagaType, Is.EqualTo(typeof(SagaEndpoint.MyOtherSaga).FullName));
 
-            Assert.AreEqual(context.SagaId, auditedMessage.InvokedSagas.First().SagaId);
-            Assert.AreEqual(context.OtherSagaId, auditedMessage.InvokedSagas.Last().SagaId);
+            Assert.That(auditedMessage.InvokedSagas.First().SagaId, Is.EqualTo(context.SagaId));
+            Assert.That(auditedMessage.InvokedSagas.Last().SagaId, Is.EqualTo(context.OtherSagaId));
 
-            Assert.AreEqual("New", auditedMessage.InvokedSagas.First().ChangeStatus);
-            Assert.AreEqual("Completed", auditedMessage.InvokedSagas.Last().ChangeStatus);
+            Assert.That(auditedMessage.InvokedSagas.First().ChangeStatus, Is.EqualTo("New"));
+            Assert.That(auditedMessage.InvokedSagas.Last().ChangeStatus, Is.EqualTo("Completed"));
         }
 
         public class SagaAuditProcessorFake : EndpointConfigurationBuilder

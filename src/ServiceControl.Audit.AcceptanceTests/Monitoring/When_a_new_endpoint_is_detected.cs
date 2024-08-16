@@ -26,7 +26,7 @@
                 .Run();
 
             var command = context.SentRegisterEndpointCommands.Single();
-            Assert.AreEqual(Conventions.EndpointNamingConvention(typeof(Receiver)), command.Endpoint.Name);
+            Assert.That(command.Endpoint.Name, Is.EqualTo(Conventions.EndpointNamingConvention(typeof(Receiver))));
         }
 
         public class Receiver : EndpointConfigurationBuilder

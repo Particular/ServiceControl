@@ -23,7 +23,7 @@
             var failureWithEmptyStackTrace = CreateFailureDetailsWithStackTrace(string.Empty);
             var classification = classifier.ClassifyFailure(failureWithEmptyStackTrace);
 
-            Assert.AreEqual("exceptionType: 0", classification);
+            Assert.That(classification, Is.EqualTo("exceptionType: 0"));
         }
 
         [Test]
@@ -33,7 +33,7 @@
             var failureWithNullStackTrace = CreateFailureDetailsWithStackTrace(null);
             var classification = classifier.ClassifyFailure(failureWithNullStackTrace);
 
-            Assert.AreEqual("exceptionType: 0", classification);
+            Assert.That(classification, Is.EqualTo("exceptionType: 0"));
         }
 
         [Test]
@@ -43,7 +43,7 @@
             var failureWithNonStandardStackTrace = CreateFailureDetailsWithStackTrace("something other than a normal stack trace");
             var classification = classifier.ClassifyFailure(failureWithNonStandardStackTrace);
 
-            Assert.AreEqual("exceptionType: 0", classification);
+            Assert.That(classification, Is.EqualTo("exceptionType: 0"));
         }
 
         [Test]
@@ -53,7 +53,7 @@
             var failureWithNullMessage = CreateFailureDetailsWithMessage(null);
             var classification = classifier.ClassifyFailure(failureWithNullMessage);
 
-            Assert.AreEqual("exceptionType: 0", classification);
+            Assert.That(classification, Is.EqualTo("exceptionType: 0"));
         }
 
         [Test]
@@ -63,7 +63,7 @@
             var failureWithEmptyMessage = CreateFailureDetailsWithMessage(string.Empty);
             var classification = classifier.ClassifyFailure(failureWithEmptyMessage);
 
-            Assert.AreEqual("exceptionType: 0", classification);
+            Assert.That(classification, Is.EqualTo("exceptionType: 0"));
         }
 
         [Test]
@@ -73,7 +73,7 @@
             var failureWithWhitespaceMessage = CreateFailureDetailsWithMessage("   ");
             var classification = classifier.ClassifyFailure(failureWithWhitespaceMessage);
 
-            Assert.AreEqual("exceptionType: 0", classification);
+            Assert.That(classification, Is.EqualTo("exceptionType: 0"));
         }
 
         [Test]
@@ -88,7 +88,7 @@
             var standardStackTrace = CreateFailureDetailsWithStackTrace(stackTrace);
 
             var classification = classifier.ClassifyFailure(standardStackTrace);
-            Assert.AreEqual(@"exceptionType: System.Environment.GetStackTrace(Exception e)", classification);
+            Assert.That(classification, Is.EqualTo(@"exceptionType: System.Environment.GetStackTrace(Exception e)"));
         }
 
         [Test]
@@ -108,7 +108,7 @@ Cannot resolve parameter 'NHibernate.ISession session' of constructor 'Void .cto
             var standardStackTrace = CreateFailureDetailsWithStackTrace(stackTrace);
 
             var classification = classifier.ClassifyFailure(standardStackTrace);
-            Assert.AreEqual(@"exceptionType: Autofac.Core.Activators.Reflection.ReflectionActivator.ActivateInstance(IComponentContext context, IEnumerable`1 parameters)", classification);
+            Assert.That(classification, Is.EqualTo(@"exceptionType: Autofac.Core.Activators.Reflection.ReflectionActivator.ActivateInstance(IComponentContext context, IEnumerable`1 parameters)"));
         }
 
         [Test]
@@ -124,7 +124,7 @@ at NServiceBus.SagaPersistenceBehavior.Invoke(IInvokeHandlerContext context, Fun
             var standardStackTrace = CreateFailureDetailsWithStackTrace(stackTrace);
 
             var classification = classifier.ClassifyFailure(standardStackTrace);
-            Assert.AreEqual(@"exceptionType: Custom.Handlers.MyHandler.Handle(MyMessage message, IMessageHandlerContext context)", classification);
+            Assert.That(classification, Is.EqualTo(@"exceptionType: Custom.Handlers.MyHandler.Handle(MyMessage message, IMessageHandlerContext context)"));
         }
 
         static ClassifiableMessageDetails CreateFailureDetailsWithStackTrace(string stackTrace)

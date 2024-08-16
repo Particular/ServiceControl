@@ -60,7 +60,7 @@
             Assert.That(context.CustomCheckFailedReceived, Is.True);
 
             var enclosedType = context.IntegrationEventHeaders[Headers.EnclosedMessageTypes];
-            Assert.AreEqual("ServiceControl.Contracts.CustomCheckFailed, ServiceControl.Contracts", enclosedType);
+            Assert.That(enclosedType, Is.EqualTo("ServiceControl.Contracts.CustomCheckFailed, ServiceControl.Contracts"));
         }
 
         public class ExternalProcessor : EndpointConfigurationBuilder

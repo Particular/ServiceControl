@@ -43,7 +43,7 @@
                 })
                 .Run();
 
-            Assert.AreEqual(5, messages.Count);
+            Assert.That(messages.Count, Is.EqualTo(5));
 
             AssertStateChange<UpdateSaga1>(messages, context.Saga1Id, "Updated");
             AssertStateChange<UpdateSaga2>(messages, context.Saga2Id, "Updated");
@@ -67,7 +67,7 @@
         void AssertStateChange<T>(IEnumerable<MessagesView> messages, Guid sagaId, string stateChange)
         {
             var m = messages.First(message => message.MessageType == typeof(T).FullName);
-            Assert.AreEqual($"{sagaId}:{stateChange}", m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value);
+            Assert.That(m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value, Is.EqualTo($"{sagaId}:{stateChange}"));
         }
 
         public class SagaAuditProcessorFake : EndpointConfigurationBuilder

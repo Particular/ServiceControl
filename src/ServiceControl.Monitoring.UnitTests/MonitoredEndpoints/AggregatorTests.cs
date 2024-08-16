@@ -32,7 +32,7 @@
 
             var values = Aggregator.ToAverages(intervals, HistoryPeriod.FromMinutes(5));
 
-            Assert.AreEqual(0.5d, values.Average);
+            Assert.That(values.Average, Is.EqualTo(0.5d));
         }
 
         [Test]
@@ -60,8 +60,8 @@
 
             var values = Aggregator.ToAverages(intervals, HistoryPeriod.FromMinutes(5));
 
-            Assert.AreEqual(1, values.Points.Length);
-            Assert.AreEqual(1.0d, values.Points[0]);
+            Assert.That(values.Points.Length, Is.EqualTo(1));
+            Assert.That(values.Points[0], Is.EqualTo(1.0d));
         }
 
         [Test]
@@ -98,10 +98,10 @@
             var seconds = period.IntervalSize.TotalSeconds;
             var values = Aggregator.ToTotalMeasurementsPerSecond(intervals, period);
 
-            Assert.AreEqual((4d + 5d + 6d + 7d) / 2 / seconds, values.Average);
-            Assert.AreEqual(2, values.Points.Length);
-            Assert.AreEqual((4d + 6d) / seconds, values.Points[0]);
-            Assert.AreEqual((5d + 7d) / seconds, values.Points[1]);
+            Assert.That(values.Average, Is.EqualTo((4d + 5d + 6d + 7d) / 2 / seconds));
+            Assert.That(values.Points.Length, Is.EqualTo(2));
+            Assert.That(values.Points[0], Is.EqualTo((4d + 6d) / seconds));
+            Assert.That(values.Points[1], Is.EqualTo((5d + 7d) / seconds));
         }
 
         [Test]
@@ -135,7 +135,7 @@
 
             var values = Aggregator.ToTotalMeasurementsPerSecond(intervals, period);
 
-            Assert.AreEqual((7d + 9d) / 2 / seconds, values.Average);
+            Assert.That(values.Average, Is.EqualTo((7d + 9d) / 2 / seconds));
         }
 
         DateTime now = DateTime.UtcNow;

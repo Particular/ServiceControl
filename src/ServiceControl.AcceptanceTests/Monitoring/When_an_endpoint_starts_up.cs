@@ -31,7 +31,7 @@
                 })
                 .Run();
 
-            Assert.AreEqual(Severity.Info, entry.Severity, "Endpoint startup should be treated as info");
+            Assert.That(entry.Severity, Is.EqualTo(Severity.Info), "Endpoint startup should be treated as info");
             Assert.That(entry.RelatedTo.Any(item => item == "/host/" + hostIdentifier), Is.True);
         }
 

@@ -66,7 +66,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
             Assert.That(originalExceptionAndStackTraceFailureGroupIds.Any(), Is.True, "The original message was not classified");
             Assert.That(retriedExceptionAndStackTraceFailureGroupIds.Any(), Is.True, "The retried message was not classified");
 
-            Assert.AreEqual(originalMessage.FailureGroups.Single(x => x.Type == MessageTypeFailureClassifier.Id).Id, retriedMessage.FailureGroups.Single(x => x.Type == MessageTypeFailureClassifier.Id).Id, $"{MessageTypeFailureClassifier.Id} FailureGroup Ids changed");
+            Assert.That(retriedMessage.FailureGroups.Single(x => x.Type == MessageTypeFailureClassifier.Id).Id, Is.EqualTo(originalMessage.FailureGroups.Single(x => x.Type == MessageTypeFailureClassifier.Id).Id), $"{MessageTypeFailureClassifier.Id} FailureGroup Ids changed");
 
             foreach (var failureId in originalExceptionAndStackTraceFailureGroupIds)
             {

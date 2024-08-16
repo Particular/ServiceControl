@@ -42,7 +42,7 @@
             nameof(viewModel.AuditForwardingQueueName).Was_notified_of_change(changedProperties);
             Assert.That(viewModel.ShowAuditForwardingQueue, Is.True);
             Assert.IsNotEmpty(viewModel.AuditForwardingWarning);
-            Assert.AreEqual("audit.log", viewModel.AuditForwardingQueueName);
+            Assert.That(viewModel.AuditForwardingQueueName, Is.EqualTo("audit.log"));
         }
 
         [Test]

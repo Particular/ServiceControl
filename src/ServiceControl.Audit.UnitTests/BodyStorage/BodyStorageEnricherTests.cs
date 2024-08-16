@@ -35,10 +35,10 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             await enricher.StoreAuditMessageBody(body, message);
 
-            Assert.AreEqual(0, fakeStorage.StoredBodySize, "Body should be removed if above threshold");
+            Assert.That(fakeStorage.StoredBodySize, Is.EqualTo(0), "Body should be removed if above threshold");
             Assert.That(metadata.ContainsKey("Body"), Is.False);
             Assert.IsNull(message.Body, "Body property was set but shouldn't have been");
-            Assert.AreEqual("/messages/someid/body", metadata["BodyUrl"]);
+            Assert.That(metadata["BodyUrl"], Is.EqualTo("/messages/someid/body"));
         }
 
         [Test]
@@ -62,10 +62,10 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             await enricher.StoreAuditMessageBody(body, message);
 
-            Assert.AreEqual(0, fakeStorage.StoredBodySize, "Body should be removed if above threshold");
+            Assert.That(fakeStorage.StoredBodySize, Is.EqualTo(0), "Body should be removed if above threshold");
             Assert.That(metadata.ContainsKey("Body"), Is.False);
             Assert.IsNull(message.Body, "Body property was set but shouldn't have been");
-            Assert.AreEqual("/messages/someid/body", metadata["BodyUrl"]);
+            Assert.That(metadata["BodyUrl"], Is.EqualTo("/messages/someid/body"));
         }
 
         [Test]
@@ -91,10 +91,10 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             await enricher.StoreAuditMessageBody(body, message);
 
-            Assert.AreEqual(body, metadata["Body"], "Body should be stored if below threshold");
+            Assert.That(metadata["Body"], Is.EqualTo(body), "Body should be stored if below threshold");
             Assert.IsNull(message.Body, "Body property was set but shouldn't have been");
-            Assert.AreEqual(0, fakeStorage.StoredBodySize);
-            Assert.AreEqual("/messages/someid/body", metadata["BodyUrl"]);
+            Assert.That(fakeStorage.StoredBodySize, Is.EqualTo(0));
+            Assert.That(metadata["BodyUrl"], Is.EqualTo("/messages/someid/body"));
         }
 
         [Test]
@@ -120,10 +120,10 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             await enricher.StoreAuditMessageBody(body, message);
 
-            Assert.AreEqual(body, message.Body, "Body should be stored if below threshold");
+            Assert.That(message.Body, Is.EqualTo(body), "Body should be stored if below threshold");
             Assert.That(metadata.ContainsKey("Body"), Is.False, "Body should not be in metadata");
-            Assert.AreEqual(0, fakeStorage.StoredBodySize);
-            Assert.AreEqual("/messages/someid/body", metadata["BodyUrl"]);
+            Assert.That(fakeStorage.StoredBodySize, Is.EqualTo(0));
+            Assert.That(metadata["BodyUrl"], Is.EqualTo("/messages/someid/body"));
         }
 
         [Test]
@@ -149,10 +149,10 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             await enricher.StoreAuditMessageBody(body, message);
 
-            Assert.AreEqual(expectedBodySize, fakeStorage.StoredBodySize, "Body should be stored if below threshold");
+            Assert.That(fakeStorage.StoredBodySize, Is.EqualTo(expectedBodySize), "Body should be stored if below threshold");
             Assert.IsNull(message.Body, "Body property was set but shouldn't have been");
             Assert.That(metadata.ContainsKey("Body"), Is.False);
-            Assert.AreEqual("/messages/someid/body", metadata["BodyUrl"]);
+            Assert.That(metadata["BodyUrl"], Is.EqualTo("/messages/someid/body"));
         }
 
         [Test]
@@ -177,10 +177,10 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             await enricher.StoreAuditMessageBody(body, message);
 
-            Assert.AreEqual(expectedBodySize, fakeStorage.StoredBodySize, "Body should be stored if below threshold");
+            Assert.That(fakeStorage.StoredBodySize, Is.EqualTo(expectedBodySize), "Body should be stored if below threshold");
             Assert.IsNull(message.Body, "Body property was set but shouldn't have been");
             Assert.That(metadata.ContainsKey("Body"), Is.False);
-            Assert.AreEqual("/messages/someid/body", metadata["BodyUrl"]);
+            Assert.That(metadata["BodyUrl"], Is.EqualTo("/messages/someid/body"));
         }
 
         [Test]
@@ -205,10 +205,10 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             await enricher.StoreAuditMessageBody(body, message);
 
-            Assert.AreEqual(expectedBodySize, fakeStorage.StoredBodySize, "Body should be stored if below threshold");
+            Assert.That(fakeStorage.StoredBodySize, Is.EqualTo(expectedBodySize), "Body should be stored if below threshold");
             Assert.IsNull(message.Body, "Body property was set but shouldn't have been");
             Assert.That(metadata.ContainsKey("Body"), Is.False);
-            Assert.AreEqual("/messages/someid/body", metadata["BodyUrl"]);
+            Assert.That(metadata["BodyUrl"], Is.EqualTo("/messages/someid/body"));
         }
 
         [Test]

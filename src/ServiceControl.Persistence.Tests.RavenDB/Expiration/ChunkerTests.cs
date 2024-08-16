@@ -20,18 +20,18 @@
                 return 1;
             }, starts, ends);
 
-            Assert.AreEqual(0, starts[0]);
-            Assert.AreEqual(499, ends[0]);
+            Assert.That(starts[0], Is.EqualTo(0));
+            Assert.That(ends[0], Is.EqualTo(499));
 
-            Assert.AreEqual(500, starts[1]);
-            Assert.AreEqual(999, ends[1]);
+            Assert.That(starts[1], Is.EqualTo(500));
+            Assert.That(ends[1], Is.EqualTo(999));
 
-            Assert.AreEqual(1000, starts[2]);
-            Assert.AreEqual(1499, ends[2]);
+            Assert.That(starts[2], Is.EqualTo(1000));
+            Assert.That(ends[2], Is.EqualTo(1499));
 
-            Assert.AreEqual(3, starts.Count);
-            Assert.AreEqual(3, ends.Count);
-            Assert.AreEqual(3, count);
+            Assert.That(starts.Count, Is.EqualTo(3));
+            Assert.That(ends.Count, Is.EqualTo(3));
+            Assert.That(count, Is.EqualTo(3));
         }
 
         [Test]
@@ -47,12 +47,12 @@
                 return 1;
             }, starts, ends);
 
-            Assert.AreEqual(0, starts[0]);
-            Assert.AreEqual(0, ends[0]);
+            Assert.That(starts[0], Is.EqualTo(0));
+            Assert.That(ends[0], Is.EqualTo(0));
 
-            Assert.AreEqual(1, starts.Count);
-            Assert.AreEqual(1, ends.Count);
-            Assert.AreEqual(1, count);
+            Assert.That(starts.Count, Is.EqualTo(1));
+            Assert.That(ends.Count, Is.EqualTo(1));
+            Assert.That(count, Is.EqualTo(1));
         }
 
         [Test]
@@ -68,18 +68,18 @@
                 return 1;
             }, starts, ends);
 
-            Assert.AreEqual(0, starts[0]);
-            Assert.AreEqual(499, ends[0]);
+            Assert.That(starts[0], Is.EqualTo(0));
+            Assert.That(ends[0], Is.EqualTo(499));
 
-            Assert.AreEqual(500, starts[1]);
-            Assert.AreEqual(999, ends[1]);
+            Assert.That(starts[1], Is.EqualTo(500));
+            Assert.That(ends[1], Is.EqualTo(999));
 
-            Assert.AreEqual(1000, starts[2]);
-            Assert.AreEqual(1000, ends[2]);
+            Assert.That(starts[2], Is.EqualTo(1000));
+            Assert.That(ends[2], Is.EqualTo(1000));
 
-            Assert.AreEqual(3, starts.Count);
-            Assert.AreEqual(3, ends.Count);
-            Assert.AreEqual(3, count);
+            Assert.That(starts.Count, Is.EqualTo(3));
+            Assert.That(ends.Count, Is.EqualTo(3));
+            Assert.That(count, Is.EqualTo(3));
         }
     }
 }

@@ -25,7 +25,7 @@
 
             var result = await customCheck.PerformCheck();
 
-            Assert.AreEqual(CheckResult.Pass, result);
+            Assert.That(result, Is.EqualTo(CheckResult.Pass));
         }
 
         [Test]

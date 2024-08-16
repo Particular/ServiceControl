@@ -31,7 +31,7 @@
             var viewModel = Given_adding_error_instance()
                 .When_the_user_does_not_use_localhost(hostName);
 
-            Assert.AreEqual("Not using localhost can expose ServiceControl to anonymous access.", viewModel.ErrorHostNameWarning);
+            Assert.That(viewModel.ErrorHostNameWarning, Is.EqualTo("Not using localhost can expose ServiceControl to anonymous access."));
         }
 
         [Test]
@@ -39,7 +39,7 @@
         {
             var viewModel = Given_adding_error_instance();
 
-            Assert.AreEqual("localhost", viewModel.ErrorHostName);
+            Assert.That(viewModel.ErrorHostName, Is.EqualTo("localhost"));
 
             Assert.IsEmpty(viewModel.ErrorHostNameWarning);
         }

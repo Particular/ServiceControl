@@ -31,13 +31,13 @@
                     .Search(s => s.SagaType, sagaType)
                     .ToListAsync();
 
-                Assert.AreEqual(0, sagaTypeResults.Count);
+                Assert.That(sagaTypeResults.Count, Is.EqualTo(0));
 
                 var sagaChangeResults = await session.Query<SagaHistory, SagaDetailsIndex>()
                     .Search(s => s.Changes, sagaState)
                     .ToListAsync();
 
-                Assert.AreEqual(0, sagaChangeResults.Count);
+                Assert.That(sagaChangeResults.Count, Is.EqualTo(0));
             }
         }
 

@@ -73,9 +73,9 @@
                 ConventionName = "Something"
             };
 
-            Assert.AreEqual($"Particular.{viewModel.ConventionName}", viewModel.ErrorInstanceName);
+            Assert.That(viewModel.ErrorInstanceName, Is.EqualTo($"Particular.{viewModel.ConventionName}"));
 
-            Assert.AreEqual($"Particular.{viewModel.ConventionName}.Audit", viewModel.AuditInstanceName);
+            Assert.That(viewModel.AuditInstanceName, Is.EqualTo($"Particular.{viewModel.ConventionName}.Audit"));
         }
 
         #endregion
@@ -217,7 +217,7 @@
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditServiceAccount));
             //by default the add instance will always have a value of "LocalSystem"(even if you manually set everything to false or empty)
 
-            Assert.AreEqual("LocalSystem", selectedAccount);
+            Assert.That(selectedAccount, Is.EqualTo("LocalSystem"));
 
             Assert.IsEmpty(errors);
 

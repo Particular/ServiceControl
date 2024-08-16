@@ -29,8 +29,8 @@
 
             var timings = store.GetIntervals(now.Add(store.IntervalSize));
 
-            Assert.AreEqual(1, timings.Length);
-            Assert.AreEqual(33, timings[0].Intervals.Length);
+            Assert.That(timings.Length, Is.EqualTo(1));
+            Assert.That(timings[0].Intervals.Length, Is.EqualTo(33));
 
             // ordering of intervals
             var dateTimes = timings[0].Intervals.Select(i => i.IntervalStart).ToArray();
@@ -43,7 +43,7 @@
             for (var i = 1; i < dateTimes.Length; i++)
             {
                 var dateDiff = dateTimes[i - 1] - dateTimes[i];
-                Assert.AreEqual(intervalLength, dateDiff);
+                Assert.That(dateDiff, Is.EqualTo(intervalLength));
             }
         }
 
@@ -61,8 +61,8 @@
 
             var timings = store.GetIntervals(now.Add(store.IntervalSize));
 
-            Assert.AreEqual(1, timings[0].TotalMeasurements);
-            Assert.AreEqual(2L, timings[0].TotalValue);
+            Assert.That(timings[0].TotalMeasurements, Is.EqualTo(1));
+            Assert.That(timings[0].TotalValue, Is.EqualTo(2L));
         }
 
         [Test]
@@ -131,8 +131,8 @@
 
             var nonEmptyIntervals = timings[0].Intervals.Where(i => i.TotalMeasurements > 0).ToArray();
 
-            Assert.AreEqual(3, nonEmptyIntervals.Length);
-            Assert.AreEqual(4, timings[0].TotalMeasurements);
+            Assert.That(nonEmptyIntervals.Length, Is.EqualTo(3));
+            Assert.That(timings[0].TotalMeasurements, Is.EqualTo(4));
             CollectionAssert.AreEqual(new double[] { 4, 1, 1 }, nonEmptyIntervals.Select(i => i.TotalValue));
             CollectionAssert.AreEqual(new double[] { 2, 1, 1 }, nonEmptyIntervals.Select(i => i.TotalMeasurements));
         }
@@ -179,8 +179,8 @@
             var timings = store.GetIntervals(now);
             var delayedTimings = store.GetIntervals(now.Add(delay));
 
-            Assert.AreEqual(0, timings[0].TotalMeasurements);
-            Assert.AreEqual(3, delayedTimings[0].TotalMeasurements);
+            Assert.That(timings[0].TotalMeasurements, Is.EqualTo(0));
+            Assert.That(delayedTimings[0].TotalMeasurements, Is.EqualTo(3));
         }
 
         IntervalsStore<int> AnyStore()

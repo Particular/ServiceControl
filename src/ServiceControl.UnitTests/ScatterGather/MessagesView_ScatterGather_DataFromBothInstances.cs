@@ -35,7 +35,7 @@
         {
             var sumOfAllResults = LocalData().Count() + RemoteData().Count();
 
-            Assert.AreEqual(sumOfAllResults, Results.QueryStats.TotalCount);
+            Assert.That(Results.QueryStats.TotalCount, Is.EqualTo(sumOfAllResults));
         }
 
         [Test]
@@ -43,7 +43,7 @@
         {
             var highestInstanceCount = Math.Max(LocalData().Count(), RemoteData().Count());
 
-            Assert.AreEqual(highestInstanceCount, Results.QueryStats.HighestTotalCountOfAllTheInstances);
+            Assert.That(Results.QueryStats.HighestTotalCountOfAllTheInstances, Is.EqualTo(highestInstanceCount));
         }
     }
 }

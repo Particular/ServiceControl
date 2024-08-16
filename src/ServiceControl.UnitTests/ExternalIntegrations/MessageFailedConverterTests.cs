@@ -22,7 +22,7 @@
 
             var result = failedMessage.ToEvent();
 
-            Assert.AreEqual(MessageFailed.MessageStatus.ArchivedFailure, result.Status);
+            Assert.That(result.Status, Is.EqualTo(MessageFailed.MessageStatus.ArchivedFailure));
         }
 
         [Test]
@@ -33,7 +33,7 @@
                 .Build();
 
             var result = failedMessage.ToEvent();
-            Assert.AreEqual(MessageFailed.MessageStatus.Failed, result.Status);
+            Assert.That(result.Status, Is.EqualTo(MessageFailed.MessageStatus.Failed));
         }
 
         [Test]
@@ -45,7 +45,7 @@
                 .Build();
 
             var result = failedMessage.ToEvent();
-            Assert.AreEqual(MessageFailed.MessageStatus.RepeatedFailure, result.Status);
+            Assert.That(result.Status, Is.EqualTo(MessageFailed.MessageStatus.RepeatedFailure));
         }
 
         [Test]
@@ -91,7 +91,7 @@
                 .Build();
 
             var result = failedMessage.ToEvent();
-            Assert.AreEqual("Hello!", result.MessageDetails.Body);
+            Assert.That(result.MessageDetails.Body, Is.EqualTo("Hello!"));
         }
 
         [Test]
@@ -102,7 +102,7 @@
                 .Build();
 
             var result = failedMessage.ToEvent();
-            Assert.AreEqual("Hello!", result.MessageDetails.Body);
+            Assert.That(result.MessageDetails.Body, Is.EqualTo("Hello!"));
         }
 
         class FailedMessageBuilder

@@ -68,7 +68,7 @@ class BrokerThroughputCollectorHostedServiceTests
 
         foreach (var startDate in mockedBrokerThroughputQueryThatRecordsDate.StartDates)
         {
-            Assert.AreEqual(lastCollectionDate.AddDays(1), startDate);
+            Assert.That(startDate, Is.EqualTo(lastCollectionDate.AddDays(1)));
         }
     }
 

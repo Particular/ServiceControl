@@ -90,7 +90,7 @@
                 .Run();
 
             //Assert
-            Assert.AreEqual(0, body.Length);
+            Assert.That(body.Length, Is.EqualTo(0));
         }
 
         [Test]

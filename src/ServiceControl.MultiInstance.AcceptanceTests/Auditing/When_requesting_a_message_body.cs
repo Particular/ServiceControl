@@ -63,11 +63,11 @@
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.AreEqual(context.MessageContentType, response.Content.Headers.ContentType.ToString(), "ContentType mismatch");
+            Assert.That(response.Content.Headers.ContentType.ToString(), Is.EqualTo(context.MessageContentType), "ContentType mismatch");
 
             var body = await response.Content.ReadAsByteArrayAsync();
 
-            Assert.AreEqual(context.MessageBody, body, "Body bytes mismatch");
+            Assert.That(body, Is.EqualTo(context.MessageBody), "Body bytes mismatch");
 
             Assert.NotNull(response.Headers.GetValues("ETag").SingleOrDefault(), "Etag not set");
         }

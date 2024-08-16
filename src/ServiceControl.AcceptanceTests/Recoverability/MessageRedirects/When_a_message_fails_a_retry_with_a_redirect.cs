@@ -59,11 +59,11 @@
 
             Assert.IsNotNull(failedMessages);
             Assert.IsNotEmpty(failedMessages);
-            Assert.AreEqual(1, failedMessages.Count);
+            Assert.That(failedMessages.Count, Is.EqualTo(1));
 
             var failedMessageView = failedMessages.Single();
-            Assert.AreEqual(2, failedMessageView.NumberOfProcessingAttempts);
-            Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessageView.Status);
+            Assert.That(failedMessageView.NumberOfProcessingAttempts, Is.EqualTo(2));
+            Assert.That(failedMessageView.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
         }
 
         class OriginalEndpoint : EndpointConfigurationBuilder

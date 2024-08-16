@@ -59,7 +59,7 @@
             Assert.NotNull(failure);
 
             var attempts = failure.ProcessingAttempts;
-            Assert.AreEqual(2, attempts.Count);
+            Assert.That(attempts.Count, Is.EqualTo(2));
             CollectionAssert.AreEquivalent(context.FailureTimes, attempts.Select(a => a.AttemptedAt));
         }
 

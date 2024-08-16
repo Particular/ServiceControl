@@ -54,7 +54,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring
                 })
                 .Run();
 
-            Assert.AreEqual(0, endpointsAfterDelete.Count);
+            Assert.That(endpointsAfterDelete.Count, Is.EqualTo(0));
         }
 
         class Context : ScenarioContext;

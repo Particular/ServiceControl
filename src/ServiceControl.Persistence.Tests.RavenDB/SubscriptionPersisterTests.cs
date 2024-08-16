@@ -27,8 +27,8 @@
             var foundSubscriptions = await subscriptionPersister.GetSubscriberAddressesForMessage([v2MessageType], new ContextBag(), CancellationToken.None);
 
             var foundSubscriber = foundSubscriptions.Single();
-            Assert.AreEqual(v1Subscriber.Endpoint, foundSubscriber.Endpoint);
-            Assert.AreEqual(v1Subscriber.TransportAddress, foundSubscriber.TransportAddress);
+            Assert.That(foundSubscriber.Endpoint, Is.EqualTo(v1Subscriber.Endpoint));
+            Assert.That(foundSubscriber.TransportAddress, Is.EqualTo(v1Subscriber.TransportAddress));
         }
 
         [Test]
@@ -45,8 +45,8 @@
             var foundSubscriptions = await subscriptionPersister.GetSubscriberAddressesForMessage([v1MessageType], new ContextBag(), CancellationToken.None);
 
             var foundSubscriber = foundSubscriptions.Single();
-            Assert.AreEqual(v2Subscriber.Endpoint, foundSubscriber.Endpoint);
-            Assert.AreEqual(v2Subscriber.TransportAddress, foundSubscriber.TransportAddress);
+            Assert.That(foundSubscriber.Endpoint, Is.EqualTo(v2Subscriber.Endpoint));
+            Assert.That(foundSubscriber.TransportAddress, Is.EqualTo(v2Subscriber.TransportAddress));
         }
     }
 

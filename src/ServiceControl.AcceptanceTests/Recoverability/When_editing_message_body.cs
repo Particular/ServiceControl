@@ -63,9 +63,9 @@
                 })
                 .Run();
 
-            Assert.AreEqual("StarWars rocks", context.EditedMessageProperty);
+            Assert.That(context.EditedMessageProperty, Is.EqualTo("StarWars rocks"));
             Assert.AreNotEqual(context.OriginalMessageId, context.EditedMessageId);
-            Assert.AreEqual(FailedMessageStatus.Resolved, context.OriginalMessageFailure.Status);
+            Assert.That(context.OriginalMessageFailure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
             CollectionAssert.DoesNotContain(context.EditedMessageHeaders, "NServiceBus.ExceptionInfo.StackTrace");
         }
 

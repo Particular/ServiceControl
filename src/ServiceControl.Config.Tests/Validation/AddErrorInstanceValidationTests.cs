@@ -74,9 +74,9 @@
                 ConventionName = "Something"
             };
 
-            Assert.AreEqual($"Particular.{viewModel.ConventionName}", viewModel.ErrorInstanceName);
+            Assert.That(viewModel.ErrorInstanceName, Is.EqualTo($"Particular.{viewModel.ConventionName}"));
 
-            Assert.AreEqual($"Particular.{viewModel.ConventionName}.Audit", viewModel.AuditInstanceName);
+            Assert.That(viewModel.AuditInstanceName, Is.EqualTo($"Particular.{viewModel.ConventionName}.Audit"));
         }
 
         #endregion
@@ -218,7 +218,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ErrorServiceAccount));
 
-            Assert.AreEqual("LocalSystem", selectedAccount);
+            Assert.That(selectedAccount, Is.EqualTo("LocalSystem"));
 
             Assert.IsEmpty(errors);
         }

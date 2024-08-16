@@ -32,9 +32,9 @@
 
                 var intervals = store.GetIntervals(period, now.Add(reportDelay));
 
-                Assert.AreEqual(1, intervals.Length);
-                Assert.AreEqual(5L, intervals[0].TotalValue);
-                Assert.AreEqual(1L, intervals[0].TotalMeasurements);
+                Assert.That(intervals.Length, Is.EqualTo(1));
+                Assert.That(intervals[0].TotalValue, Is.EqualTo(5L));
+                Assert.That(intervals[0].TotalMeasurements, Is.EqualTo(1L));
             }
         }
 

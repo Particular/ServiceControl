@@ -16,7 +16,7 @@
         [Test]
         public void NoResults()
         {
-            Assert.AreEqual(0, Results.Results.Count, "There should be no Results");
+            Assert.That(Results.Results.Count, Is.EqualTo(0), "There should be no Results");
         }
     }
 }

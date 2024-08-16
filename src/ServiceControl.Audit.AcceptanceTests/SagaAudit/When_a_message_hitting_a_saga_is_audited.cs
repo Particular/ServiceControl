@@ -38,9 +38,9 @@
 
             Assert.NotNull(auditedMessage);
 
-            Assert.AreEqual(typeof(SagaEndpoint.MySaga).FullName, auditedMessage.InvokedSagas.Single().SagaType);
-            Assert.AreEqual(context.SagaId, auditedMessage.InvokedSagas.First().SagaId);
-            Assert.AreEqual("New", auditedMessage.InvokedSagas.First().ChangeStatus);
+            Assert.That(auditedMessage.InvokedSagas.Single().SagaType, Is.EqualTo(typeof(SagaEndpoint.MySaga).FullName));
+            Assert.That(auditedMessage.InvokedSagas.First().SagaId, Is.EqualTo(context.SagaId));
+            Assert.That(auditedMessage.InvokedSagas.First().ChangeStatus, Is.EqualTo("New"));
         }
 
         public class SagaAuditProcessorFake : EndpointConfigurationBuilder

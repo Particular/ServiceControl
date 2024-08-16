@@ -51,15 +51,15 @@
                 })
                 .Run();
 
-            Assert.AreEqual(context.MessageId, auditedMessage.MessageId);
-            Assert.AreEqual(MessageStatus.Successful, auditedMessage.Status);
-            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, auditedMessage.ReceivingEndpoint.Name,
+            Assert.That(auditedMessage.MessageId, Is.EqualTo(context.MessageId));
+            Assert.That(auditedMessage.Status, Is.EqualTo(MessageStatus.Successful));
+            Assert.That(auditedMessage.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint),
                 "Receiving endpoint name should be parsed correctly");
 
             Assert.AreNotEqual(Guid.Empty, auditedMessage.ReceivingEndpoint.HostId, "Host id should be set");
             Assert.That(string.IsNullOrEmpty(auditedMessage.ReceivingEndpoint.Host), Is.False, "Host display name should be set");
 
-            Assert.AreEqual(typeof(MyMessage).FullName, auditedMessage.MessageType,
+            Assert.That(auditedMessage.MessageType, Is.EqualTo(typeof(MyMessage).FullName),
                 "AuditMessage type should be set to the FullName of the message type");
             Assert.That(auditedMessage.IsSystemMessage, Is.False, "AuditMessage should not be marked as a system message");
 
@@ -70,13 +70,13 @@
 
             Assert.Less(TimeSpan.Zero, auditedMessage.ProcessingTime, "Processing time should be calculated");
             Assert.Less(TimeSpan.Zero, auditedMessage.CriticalTime, "Critical time should be calculated");
-            Assert.AreEqual(MessageIntent.Send, auditedMessage.MessageIntent, "Message intent should be set");
+            Assert.That(auditedMessage.MessageIntent, Is.EqualTo(MessageIntent.Send), "Message intent should be set");
 
             var bodyAsString = Encoding.UTF8.GetString(body);
 
             Assert.That(bodyAsString.Contains(Payload), Is.True, bodyAsString);
 
-            Assert.AreEqual(body.Length, auditedMessage.BodySize);
+            Assert.That(auditedMessage.BodySize, Is.EqualTo(body.Length));
 
             Assert.That(auditedMessage.Headers.Any(h => h.Key == Headers.MessageId), Is.True);
         }

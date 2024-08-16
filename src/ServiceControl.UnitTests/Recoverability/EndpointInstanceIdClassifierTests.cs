@@ -37,7 +37,7 @@
 
             var classification = classifier.ClassifyFailure(new ClassifiableMessageDetails(null, null, failure));
 
-            Assert.AreEqual(id, classification);
+            Assert.That(classification, Is.EqualTo(id));
         }
     }
 }

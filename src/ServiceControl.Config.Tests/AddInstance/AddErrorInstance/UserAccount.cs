@@ -75,7 +75,7 @@
 
             Assert.IsEmpty(viewModel.ErrorPassword);
 
-            Assert.AreEqual(viewModel.ErrorServiceAccount, "LocalSystem");
+            Assert.That("LocalSystem", Is.EqualTo(viewModel.ErrorServiceAccount));
         }
 
         [Test]
@@ -98,7 +98,7 @@
 
             Assert.IsEmpty(viewModel.ErrorPassword);
 
-            Assert.AreEqual(viewModel.ErrorServiceAccount, "LocalSystem");
+            Assert.That("LocalSystem", Is.EqualTo(viewModel.ErrorServiceAccount));
         }
 
         [Test]
@@ -127,7 +127,7 @@
 
             Assert.IsEmpty(viewModel.ErrorPassword);
 
-            Assert.AreEqual(viewModel.ErrorServiceAccount, "LocalService");
+            Assert.That("LocalService", Is.EqualTo(viewModel.ErrorServiceAccount));
         }
 
         [Test]
@@ -188,9 +188,9 @@
 
             Assert.That(viewModel.ErrorPasswordEnabled, Is.True, () => string.Format(ShouldBeTrue, nameof(viewModel.ErrorPasswordEnabled)));
 
-            Assert.AreEqual(userAccount, viewModel.ErrorServiceAccount, ShouldEqual, nameof(viewModel.ErrorServiceAccount), userAccount);
+            Assert.That(viewModel.ErrorServiceAccount, Is.EqualTo(userAccount), () => string.Format(ShouldEqual, nameof(viewModel.ErrorServiceAccount), userAccount));
 
-            Assert.AreEqual(userPassword, viewModel.ErrorPassword, ShouldEqual, nameof(viewModel.ErrorPassword), userPassword);
+            Assert.That(viewModel.ErrorPassword, Is.EqualTo(userPassword), () => string.Format(ShouldEqual, nameof(viewModel.ErrorPassword), userPassword));
         }
 
         [TestCase("foo", null)]
@@ -223,7 +223,7 @@
 
             Assert.That(viewModel.ErrorPasswordEnabled, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.ErrorPasswordEnabled)));
 
-            Assert.AreEqual(viewModel.ErrorServiceAccount, "LocalSystem");
+            Assert.That("LocalSystem", Is.EqualTo(viewModel.ErrorServiceAccount));
 
             Assert.IsEmpty(viewModel.ErrorPassword);
         }
@@ -259,7 +259,7 @@
 
             Assert.That(viewModel.ErrorPasswordEnabled, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.ErrorPasswordEnabled)));
 
-            Assert.AreEqual(viewModel.ErrorServiceAccount, "LocalService");
+            Assert.That("LocalService", Is.EqualTo(viewModel.ErrorServiceAccount));
 
             Assert.IsEmpty(viewModel.ErrorPassword);
         }

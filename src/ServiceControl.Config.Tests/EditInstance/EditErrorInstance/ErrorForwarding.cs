@@ -42,7 +42,7 @@
             nameof(viewModel.ErrorForwardingQueueName).Was_notified_of_change(changedProperties);
             Assert.That(viewModel.ShowErrorForwardingQueue, Is.True);
             Assert.IsNotEmpty(viewModel.ErrorForwardingWarning);
-            Assert.AreEqual("error.log", viewModel.ErrorForwardingQueueName);
+            Assert.That(viewModel.ErrorForwardingQueueName, Is.EqualTo("error.log"));
         }
 
         [Test]

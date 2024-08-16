@@ -33,7 +33,7 @@
                     return result.HasResult;
                 })
                 .Run();
-            Assert.AreEqual(1, knownEndpoints.Count);
+            Assert.That(knownEndpoints.Count, Is.EqualTo(1));
             var knownEndpoint = knownEndpoints.FirstOrDefault(x => x.EndpointDetails.Name == Conventions.EndpointNamingConvention(typeof(Sender)));
             Assert.IsNotNull(knownEndpoint);
         }
