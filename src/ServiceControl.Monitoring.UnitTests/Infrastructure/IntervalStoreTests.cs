@@ -154,8 +154,8 @@
             var timings = store.GetIntervals(now);
             var intervalStarts = timings[0].Intervals.Select(i => i.IntervalStart).ToArray();
 
-            Assert.That(intervalStarts[0] > intervalStarts[1], Is.True);
-            Assert.That(intervalStarts[1] > intervalStarts[2], Is.True);
+            Assert.That(intervalStarts[0], Is.GreaterThan(intervalStarts[1]));
+            Assert.That(intervalStarts[1], Is.GreaterThan(intervalStarts[2]));
         }
 
         [Test]
