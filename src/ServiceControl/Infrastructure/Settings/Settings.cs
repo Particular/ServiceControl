@@ -5,6 +5,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using System.Configuration;
     using System.Linq;
     using System.Runtime.Loader;
+    using System.Text.Json;
     using System.Text.Json.Serialization;
     using NLog.Common;
     using NServiceBus.Logging;
@@ -131,6 +132,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public PersistenceSettings PersisterSpecificSettings { get; set; }
 
         public bool PrintMetrics => SettingsReader.Read<bool>(SettingsRootNamespace, "PrintMetrics");
+
         public string Hostname { get; private set; }
         public string VirtualDirectory => SettingsReader.Read(SettingsRootNamespace, "VirtualDirectory", string.Empty);
 
@@ -363,8 +365,19 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return Array.Empty<RemoteInstanceSetting>();
         }
 
-        internal static RemoteInstanceSetting[] ParseRemoteInstances(string value) =>
-            JsonSerializer.Deserialize<RemoteInstanceSetting[]>(value, SerializerOptions.Default) ?? [];
+        internal static RemoteInstanceSetting[] ParseRemoteInstances(string value)
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<RemoteInstanceSetting[]>(value, SerializerOptions.Default) ?? [];
+            }
+            catch (JsonException)
+            {
+                // It is possible that the value is using single quotes, this was allowed in v4 and below, but with v5 we migrated to System.Text.Json which does not support single quotes in either property names nor values.
+                // See https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/migrate-from-newtonsoft?pivots=dotnet-9-0#json-strings-property-names-and-string-values
+                return JsonSerializer.Deserialize<RemoteInstanceSetting[]>(value.Replace('\'', '"'), SerializerOptions.Default) ?? [];
+            }
+        }
 
         static string Subscope(string address)
         {
