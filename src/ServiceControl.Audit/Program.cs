@@ -9,6 +9,9 @@ using ServiceControl.Infrastructure;
 
 AppDomain.CurrentDomain.UnhandledException += (s, e) => LogManager.GetLogger(typeof(Program)).Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
 
+// TODO Link to GitHub issue
+await IntegratedSetup.Run();
+
 ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
 var arguments = new HostArguments(args);
