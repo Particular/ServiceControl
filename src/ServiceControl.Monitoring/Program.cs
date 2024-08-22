@@ -7,7 +7,7 @@ using ServiceControl.Monitoring;
 
 AppDomain.CurrentDomain.UnhandledException += (s, e) => LogManager.GetLogger(typeof(Program)).Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
 
-// TODO Link to GitHub issue
+// Hack: See https://github.com/Particular/ServiceControl/issues/4392
 await IntegratedSetup.Run();
 
 ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());

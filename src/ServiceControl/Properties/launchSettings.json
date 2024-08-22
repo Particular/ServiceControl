@@ -17,7 +17,7 @@
     },
     "Integrated Setup": {
       "commandName": "Project",
-      "commandLineArgs": "--integrated-setup",
+      "commandLineArgs": "--setup-and-run",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

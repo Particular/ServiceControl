@@ -8,27 +8,28 @@
 
     public static class IntegratedSetup
     {
-        const string ArgName = "--integrated-setup";
+        const string SetupAndRunCmd = "--setup-and-run";
+        const string SetupCmd = "--setup";
 
         public static Task Run()
         {
             // Contains DLL if executed as `dotnet PATH`, which args passed to Main() do not
             var args = Environment.GetCommandLineArgs().ToList();
-            if (!args.Contains(ArgName))
+            if (!args.Contains(SetupAndRunCmd))
             {
                 return Task.CompletedTask;
             }
 
             for (var i = 0; i < args.Count; i++)
             {
-                if (args[i] == ArgName)
+                if (args[i] == SetupAndRunCmd)
                 {
-                    args[i] = "--setup";
+                    args[i] = SetupCmd;
                 }
             }
 
             var processPath = Environment.ProcessPath;
-            var commandLine = Environment.CommandLine.Replace(ArgName, "--setup");
+            var commandLine = Environment.CommandLine.Replace(SetupAndRunCmd, SetupCmd);
             if (!Path.GetFileNameWithoutExtension(processPath).Equals("dotnet", StringComparison.OrdinalIgnoreCase))
             {
                 args.RemoveAt(0);
