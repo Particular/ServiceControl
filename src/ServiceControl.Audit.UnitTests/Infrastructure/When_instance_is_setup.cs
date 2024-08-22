@@ -44,13 +44,13 @@
             var setupCommand = new SetupCommand();
             await setupCommand.Execute(new HostArguments([]), settings);
 
-            CollectionAssert.AreEquivalent(new[]
+            Assert.That(FakeTransport.QueuesCreated, Is.EquivalentTo(new[]
             {
                 instanceInputQueueName,
                 $"{instanceInputQueueName}.Errors",
                 settings.AuditQueue,
                 settings.AuditLogQueue
-            }, FakeTransport.QueuesCreated);
+            }));
         }
     }
 

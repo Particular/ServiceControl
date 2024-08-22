@@ -13,12 +13,15 @@
         {
             var result = MonitoredEndpointMessageTypeParser.Parse("");
 
-            Assert.IsNull(result.Id);
-            Assert.IsNull(result.TypeName);
-            Assert.IsNull(result.AssemblyName);
-            Assert.IsNull(result.AssemblyVersion);
-            Assert.IsNull(result.Culture);
-            Assert.IsNull(result.PublicKeyToken);
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Id, Is.Null);
+                Assert.That(result.TypeName, Is.Null);
+                Assert.That(result.AssemblyName, Is.Null);
+                Assert.That(result.AssemblyVersion, Is.Null);
+                Assert.That(result.Culture, Is.Null);
+                Assert.That(result.PublicKeyToken, Is.Null);
+            });
         }
 
         [Test]
@@ -28,12 +31,15 @@
 
             var result = MonitoredEndpointMessageTypeParser.Parse(typeName);
 
-            Assert.AreEqual(typeName, result.Id);
-            Assert.AreEqual(typeName, result.TypeName);
-            Assert.IsNull(result.AssemblyName);
-            Assert.IsNull(result.AssemblyVersion);
-            Assert.IsNull(result.Culture);
-            Assert.IsNull(result.PublicKeyToken);
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Id, Is.EqualTo(typeName));
+                Assert.That(result.TypeName, Is.EqualTo(typeName));
+                Assert.That(result.AssemblyName, Is.Null);
+                Assert.That(result.AssemblyVersion, Is.Null);
+                Assert.That(result.Culture, Is.Null);
+                Assert.That(result.PublicKeyToken, Is.Null);
+            });
         }
 
         [Test]
@@ -62,7 +68,7 @@
             var incorrectTypeName = "This/is not a proper file type,";
             var result = MonitoredEndpointMessageTypeParser.Parse(incorrectTypeName);
 
-            Assert.AreEqual(incorrectTypeName, result.TypeName);
+            Assert.That(result.TypeName, Is.EqualTo(incorrectTypeName));
         }
 
         [Test]
@@ -71,7 +77,7 @@
             var incorrectTypeName = "This/is not a proper file type, this-is-not assembly name";
             var result = MonitoredEndpointMessageTypeParser.Parse(incorrectTypeName);
 
-            Assert.AreEqual(incorrectTypeName, result.TypeName);
+            Assert.That(result.TypeName, Is.EqualTo(incorrectTypeName));
         }
 
         static void AssertParsedTypeInfo(Type type, MonitoredEndpointMessageType result)
@@ -80,11 +86,14 @@
 
             var keyToken = assemblyName.GetPublicKeyToken();
 
-            Assert.AreEqual(type.FullName, result.TypeName);
-            Assert.AreEqual(assemblyName.Name, result.AssemblyName);
-            Assert.AreEqual(assemblyName.Version.ToString(), result.AssemblyVersion);
-            Assert.AreEqual(assemblyName.CultureName, result.Culture);
-            Assert.AreEqual(string.Concat(keyToken.Select(b => b.ToString("x2"))), result.PublicKeyToken);
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.TypeName, Is.EqualTo(type.FullName));
+                Assert.That(result.AssemblyName, Is.EqualTo(assemblyName.Name));
+                Assert.That(result.AssemblyVersion, Is.EqualTo(assemblyName.Version.ToString()));
+                Assert.That(result.Culture, Is.EqualTo(assemblyName.CultureName));
+                Assert.That(result.PublicKeyToken, Is.EqualTo(string.Concat(keyToken.Select(b => b.ToString("x2")))));
+            });
         }
     }
 }

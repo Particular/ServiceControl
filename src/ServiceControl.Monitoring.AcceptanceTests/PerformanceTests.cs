@@ -226,7 +226,7 @@
                 var max = maximumMean.Value;
                 var actualMean = TimeSpan.FromMilliseconds(histogram.GetValueAtPercentile(50) / OutputScalingFactor.TimeStampToMilliseconds);
 
-                Assert.LessOrEqual(actualMean, max, $"The actual mean for {name} was '{actualMean}' and was bigger than maximum allowed mean '{max}'.");
+                Assert.That(actualMean, Is.LessThanOrEqualTo(max), $"The actual mean for {name} was '{actualMean}' and was bigger than maximum allowed mean '{max}'.");
             }
         }
 

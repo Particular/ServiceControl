@@ -48,14 +48,17 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 })
                 .Run();
 
-            Assert.AreEqual(context.UniqueMessageId, failedMessage.UniqueMessageId);
+            Assert.Multiple(() =>
+            {
+                Assert.That(failedMessage.UniqueMessageId, Is.EqualTo(context.UniqueMessageId));
 
-            // The message Ids may contain a \ if they are from older versions.
-            Assert.AreEqual(context.MessageId, failedMessage.ProcessingAttempts.Last().MessageId,
-                "The returned message should match the processed one");
-            Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status, "Status should be set to unresolved");
-            Assert.AreEqual(1, failedMessage.ProcessingAttempts.Count, "Failed count should be 1");
-            Assert.AreEqual("Simulated exception", failedMessage.ProcessingAttempts.Single().FailureDetails.Exception.Message,
+                // The message Ids may contain a \ if they are from older versions.
+                Assert.That(failedMessage.ProcessingAttempts.Last().MessageId, Is.EqualTo(context.MessageId),
+                    "The returned message should match the processed one");
+                Assert.That(failedMessage.Status, Is.EqualTo(FailedMessageStatus.Unresolved), "Status should be set to unresolved");
+                Assert.That(failedMessage.ProcessingAttempts.Count, Is.EqualTo(1), "Failed count should be 1");
+            });
+            Assert.That(failedMessage.ProcessingAttempts.Single().FailureDetails.Exception.Message, Is.EqualTo("Simulated exception"),
                 "Exception message should be captured");
         }
 
@@ -89,7 +92,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             var stringResult = await result.Content.ReadAsStringAsync();
             var expectedResult = $"{{\"Content\":\"{myMessage.Content}\"}}";
 
-            Assert.AreEqual(expectedResult, stringResult);
+            Assert.That(stringResult, Is.EqualTo(expectedResult));
         }
 
         [Test]
@@ -118,7 +121,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 .Run();
 
             var content = await result.Content.ReadAsStringAsync();
-            Assert.IsTrue(content.Contains($"<Content>{myMessage.Content}</Content>"));
+            Assert.That(content, Does.Contain($"<Content>{myMessage.Content}</Content>"));
         }
 
         [Test]
@@ -136,10 +139,13 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 })
                 .Run();
 
-            // The message Ids may contain a \ if they are from older versions.
-            Assert.AreEqual(context.MessageId, failure.MessageId.Replace(@"\", "-"), "The returned message should match the processed one");
-            Assert.AreEqual(FailedMessageStatus.Unresolved, failure.Status, "Status of new messages should be failed");
-            Assert.AreEqual(1, failure.NumberOfProcessingAttempts, "One attempt should be stored");
+            Assert.Multiple(() =>
+            {
+                // The message Ids may contain a \ if they are from older versions.
+                Assert.That(failure.MessageId.Replace(@"\", "-"), Is.EqualTo(context.MessageId), "The returned message should match the processed one");
+                Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Unresolved), "Status of new messages should be failed");
+                Assert.That(failure.NumberOfProcessingAttempts, Is.EqualTo(1), "One attempt should be stored");
+            });
         }
 
         [Test]
@@ -157,11 +163,14 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.AreEqual(context.UniqueMessageId, failure.Id, "The unique id should be returned");
+            Assert.Multiple(() =>
+            {
+                Assert.That(failure.Id, Is.EqualTo(context.UniqueMessageId), "The unique id should be returned");
 
-            Assert.AreEqual(MessageStatus.Failed, failure.Status, "Status of new messages should be failed");
-            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.SendingEndpoint.Name);
-            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.ReceivingEndpoint.Name);
+                Assert.That(failure.Status, Is.EqualTo(MessageStatus.Failed), "Status of new messages should be failed");
+                Assert.That(failure.SendingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
+                Assert.That(failure.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
+            });
         }
 
         [Test]
@@ -179,10 +188,13 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 })
                 .Run();
 
-            Assert.AreEqual(Severity.Error, entry.Severity, "Failures should be treated as errors");
-            Assert.IsTrue(entry.Description.Contains("exception"), "For failed messages, the description should contain the exception information");
-            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/message/" + context.UniqueMessageId), "Should contain the api url to retrieve additional details about the failed message");
-            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/endpoint/" + context.EndpointNameOfReceivingEndpoint), "Should contain the api url to retrieve additional details about the endpoint where the message failed");
+            Assert.Multiple(() =>
+            {
+                Assert.That(entry.Severity, Is.EqualTo(Severity.Error), "Failures should be treated as errors");
+                Assert.That(entry.Description, Does.Contain("exception"), "For failed messages, the description should contain the exception information");
+                Assert.That(entry.RelatedTo.Any(item => item == "/message/" + context.UniqueMessageId), Is.True, "Should contain the api url to retrieve additional details about the failed message");
+                Assert.That(entry.RelatedTo.Any(item => item == "/endpoint/" + context.EndpointNameOfReceivingEndpoint), Is.True, "Should contain the api url to retrieve additional details about the endpoint where the message failed");
+            });
         }
 
         [Test]
@@ -197,7 +209,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 .Done(c => c.SignalrEventReceived)
                 .Run();
 
-            Assert.IsNotNull(context.SignalrData);
+            Assert.That(context.SignalrData, Is.Not.Null);
         }
 
         [Test]
@@ -225,7 +237,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 .Done(c => searchResults.Count == 1)
                 .Run();
 
-            Assert.AreEqual(1, searchResults.Count, "Result count did not match");
+            Assert.That(searchResults.Count, Is.EqualTo(1), "Result count did not match");
         }
 
         [Test]
@@ -265,8 +277,8 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 })
                 .Run();
 
-            Assert.AreEqual(1, searchResults.Count, "Result count did not match");
-            Assert.IsTrue(searchResults[0].PhysicalAddress.StartsWith(searchEndpointName, StringComparison.InvariantCultureIgnoreCase));
+            Assert.That(searchResults.Count, Is.EqualTo(1), "Result count did not match");
+            Assert.That(searchResults[0].PhysicalAddress.StartsWith(searchEndpointName, StringComparison.InvariantCultureIgnoreCase), Is.True);
         }
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder

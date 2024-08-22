@@ -13,6 +13,6 @@ public static class RavenIndexAwaiter
 
     static void WaitForIndexing(this IDocumentStore store, int secondsToWait)
     {
-        Assert.True(SpinWait.SpinUntil(() => store.Maintenance.Send(new GetStatisticsOperation()).StaleIndexes.Length == 0, TimeSpan.FromSeconds(secondsToWait)));
+        Assert.That(SpinWait.SpinUntil(() => store.Maintenance.Send(new GetStatisticsOperation()).StaleIndexes.Length == 0, TimeSpan.FromSeconds(secondsToWait)), Is.True);
     }
 }

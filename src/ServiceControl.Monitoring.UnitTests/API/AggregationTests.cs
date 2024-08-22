@@ -61,7 +61,7 @@
 
             MonitoredEndpointDetails model = result;
 
-            Assert.AreEqual(5, model.Instances[0].Metrics["ProcessingTime"].Average);
+            Assert.That(model.Instances[0].Metrics["ProcessingTime"].Average, Is.EqualTo(5));
         }
 
         [Test]
@@ -93,9 +93,12 @@
             MonitoredEndpoint[] model = endpointMetricsApi.GetAllEndpointsMetrics();
             var item = model[0];
 
-            Assert.AreEqual(3, item.EndpointInstanceIds.Length, nameof(item.EndpointInstanceIds));
-            Assert.AreEqual(2, item.ConnectedCount, nameof(item.ConnectedCount));
-            Assert.AreEqual(1, item.DisconnectedCount, nameof(item.DisconnectedCount));
+            Assert.Multiple(() =>
+            {
+                Assert.That(item.EndpointInstanceIds, Has.Length.EqualTo(3), nameof(item.EndpointInstanceIds));
+                Assert.That(item.ConnectedCount, Is.EqualTo(2), nameof(item.ConnectedCount));
+                Assert.That(item.DisconnectedCount, Is.EqualTo(1), nameof(item.DisconnectedCount));
+            });
         }
     }
 }

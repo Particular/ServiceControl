@@ -15,8 +15,8 @@
         public Task Raise<T>(T domainEvent) where T : IDomainEvent
         {
             RaisedEvents.Add(domainEvent);
-            TestContext.WriteLine($"Raised DomainEvent {typeof(T).Name}:");
-            TestContext.WriteLine(JsonSerializer.Serialize(domainEvent, JsonOptions));
+            TestContext.Out.WriteLine($"Raised DomainEvent {typeof(T).Name}:");
+            TestContext.Out.WriteLine(JsonSerializer.Serialize(domainEvent, JsonOptions));
             return Task.CompletedTask;
         }
 

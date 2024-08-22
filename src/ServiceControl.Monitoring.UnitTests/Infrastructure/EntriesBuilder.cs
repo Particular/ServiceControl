@@ -15,7 +15,7 @@
 
             foreach (var kvp in sortedMeasurements)
             {
-                Assert.True(message.TryRecord(kvp.Key.Ticks, kvp.Value));
+                Assert.That(message.TryRecord(kvp.Key.Ticks, kvp.Value), Is.True);
             }
 
             return message.Entries;

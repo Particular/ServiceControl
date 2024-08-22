@@ -25,7 +25,7 @@
 
             var result = await customCheck.PerformCheck();
 
-            Assert.AreEqual(CheckResult.Pass, result);
+            Assert.That(result, Is.EqualTo(CheckResult.Pass));
         }
 
         [Test]
@@ -50,8 +50,11 @@
 
             var result = await customCheck.PerformCheck();
 
-            Assert.IsTrue(result.HasFailed);
-            StringAssert.StartsWith("One or more error messages have failed to import properly into ServiceControl and have been stored in the ServiceControl database.", result.FailureReason);
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.HasFailed, Is.True);
+                Assert.That(result.FailureReason, Does.StartWith("One or more error messages have failed to import properly into ServiceControl and have been stored in the ServiceControl database."));
+            });
         }
     }
 }

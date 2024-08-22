@@ -20,8 +20,11 @@ class BrokerMetadataTests : PersistenceTestBase
 
         //Assert
         Assert.That(retrievedBrokerMetadata, Is.Not.Null);
-        Assert.That(retrievedBrokerMetadata.ScopeType, Is.EqualTo(expectedBrokerMetadata.ScopeType));
-        Assert.That(retrievedBrokerMetadata.Data, Is.EquivalentTo(expectedBrokerMetadata.Data));
+        Assert.Multiple(() =>
+        {
+            Assert.That(retrievedBrokerMetadata.ScopeType, Is.EqualTo(expectedBrokerMetadata.ScopeType));
+            Assert.That(retrievedBrokerMetadata.Data, Is.EquivalentTo(expectedBrokerMetadata.Data));
+        });
     }
 
     [Test]
@@ -38,7 +41,10 @@ class BrokerMetadataTests : PersistenceTestBase
 
         // Assert
         Assert.That(retrievedBrokerMetadata, Is.Not.Null);
-        Assert.That(retrievedBrokerMetadata.ScopeType, Is.EqualTo(expectedBrokerMetadata.ScopeType));
-        Assert.That(retrievedBrokerMetadata.Data, Is.EquivalentTo(expectedBrokerMetadata.Data));
+        Assert.Multiple(() =>
+        {
+            Assert.That(retrievedBrokerMetadata.ScopeType, Is.EqualTo(expectedBrokerMetadata.ScopeType));
+            Assert.That(retrievedBrokerMetadata.Data, Is.EquivalentTo(expectedBrokerMetadata.Data));
+        });
     }
 }

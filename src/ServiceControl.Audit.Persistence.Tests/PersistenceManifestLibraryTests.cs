@@ -18,7 +18,7 @@
         {
             var persistenceManifest = PersistenceManifestLibrary.Find(persistenceName);
 
-            Assert.AreEqual(persistenceName, persistenceManifest.Name);
+            Assert.That(persistenceManifest.Name, Is.EqualTo(persistenceName));
         }
 
         [Test]
@@ -26,7 +26,7 @@
         {
             var persistenceManifest = PersistenceManifestLibrary.Find(persistenceType);
 
-            Assert.AreEqual(persistenceType, persistenceManifest.TypeName);
+            Assert.That(persistenceManifest.TypeName, Is.EqualTo(persistenceType));
         }
 
         [Test]
@@ -43,8 +43,8 @@
         {
             var persistenceManifest = PersistenceManifestLibrary.Find(persistenceAlias);
 
-            Assert.IsNotNull(persistenceManifest);
-            Assert.AreEqual(persistenceAlias, persistenceManifest.Aliases[0]);
+            Assert.That(persistenceManifest, Is.Not.Null);
+            Assert.That(persistenceManifest.Aliases[0], Is.EqualTo(persistenceAlias));
         }
 
         [Test]

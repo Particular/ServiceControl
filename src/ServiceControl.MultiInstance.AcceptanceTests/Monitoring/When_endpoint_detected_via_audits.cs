@@ -49,8 +49,8 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(response.First());
-            Assert.IsTrue(response.First().MonitorHeartbeat);
+            Assert.That(response.First(), Is.Not.Null);
+            Assert.That(response.First().MonitorHeartbeat, Is.True);
         }
 
         public class Sender : EndpointConfigurationBuilder

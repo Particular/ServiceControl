@@ -37,7 +37,7 @@
                 .Run();
 
             var command = context.SentMarkMessageFailureResolvedByRetriesCommands.Single();
-            Assert.AreEqual(failedMessageId, command.FailedMessageId);
+            Assert.That(command.FailedMessageId, Is.EqualTo(failedMessageId));
         }
 
         public class Receiver : EndpointConfigurationBuilder

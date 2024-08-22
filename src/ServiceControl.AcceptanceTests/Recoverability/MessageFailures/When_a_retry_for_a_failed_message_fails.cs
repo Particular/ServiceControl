@@ -42,7 +42,7 @@
                 .Done()
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.AreEqual(FailedMessageStatus.Unresolved, result.Result.Status);
+            Assert.That(result.Result.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
         }
 
         [Test]
@@ -80,7 +80,7 @@
                 .Done()
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.AreEqual(FailedMessageStatus.Resolved, result.Result.Status);
+            Assert.That(result.Result.Status, Is.EqualTo(FailedMessageStatus.Resolved));
         }
 
         Task<SingleResult<FailedMessage>> CheckProcessingAttemptsIs(MyContext ctx, int count) => GetFailedMessage(ctx, f => f.ProcessingAttempts.Count == count && f.Status == FailedMessageStatus.Unresolved);

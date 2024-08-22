@@ -81,8 +81,11 @@
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.AreEqual(FailedMessageStatus.Archived, messageToBeArchived.Status, "Non retried message should be archived");
-            Assert.AreEqual(FailedMessageStatus.Resolved, messageToBeRetriedAsPartOfGroupRetry.Status, "Retried Message should not be set to Archived when group is retried");
+            Assert.Multiple(() =>
+            {
+                Assert.That(messageToBeArchived.Status, Is.EqualTo(FailedMessageStatus.Archived), "Non retried message should be archived");
+                Assert.That(messageToBeRetriedAsPartOfGroupRetry.Status, Is.EqualTo(FailedMessageStatus.Resolved), "Retried Message should not be set to Archived when group is retried");
+            });
         }
 
         public class Receiver : EndpointConfigurationBuilder

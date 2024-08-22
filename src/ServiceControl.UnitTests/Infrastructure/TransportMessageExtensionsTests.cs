@@ -16,7 +16,7 @@
                 {Headers.MessageId, Guid.Empty.ToString()}
             };
             var exception = Assert.Throws<Exception>(() => { headers.ProcessingEndpointName(); });
-            Assert.AreEqual("No processing endpoint could be determined for message (00000000-0000-0000-0000-000000000000)", exception.Message);
+            Assert.That(exception.Message, Is.EqualTo("No processing endpoint could be determined for message (00000000-0000-0000-0000-000000000000)"));
         }
 
         [Test]
@@ -28,7 +28,7 @@
                 {Headers.EnclosedMessageTypes, "TheMessageType"}
             };
             var exception = Assert.Throws<Exception>(() => { headers.ProcessingEndpointName(); });
-            Assert.AreEqual("No processing endpoint could be determined for message (00000000-0000-0000-0000-000000000000) with EnclosedMessageTypes (TheMessageType)", exception.Message);
+            Assert.That(exception.Message, Is.EqualTo("No processing endpoint could be determined for message (00000000-0000-0000-0000-000000000000) with EnclosedMessageTypes (TheMessageType)"));
         }
 
         [Test]
@@ -38,7 +38,7 @@
             {
                 {Headers.ProcessingEndpoint, "TheEndpoint"}
             };
-            Assert.AreEqual("TheEndpoint", headers.ProcessingEndpointName());
+            Assert.That(headers.ProcessingEndpointName(), Is.EqualTo("TheEndpoint"));
         }
 
         [Test]
@@ -48,7 +48,7 @@
             {
                 {"NServiceBus.FailedQ", "TheEndpoint"}
             };
-            Assert.AreEqual("TheEndpoint", headers.ProcessingEndpointName());
+            Assert.That(headers.ProcessingEndpointName(), Is.EqualTo("TheEndpoint"));
         }
 
         [Test]
@@ -58,7 +58,7 @@
             {
                 [Headers.ReplyToAddress] = "TheEndpoint"
             };
-            Assert.AreEqual("TheEndpoint", headers.ProcessingEndpointName());
+            Assert.That(headers.ProcessingEndpointName(), Is.EqualTo("TheEndpoint"));
         }
     }
 }

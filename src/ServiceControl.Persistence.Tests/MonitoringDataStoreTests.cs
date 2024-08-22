@@ -20,7 +20,7 @@
             CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
 
-            Assert.AreEqual(1, endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host));
+            Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host), Is.EqualTo(1));
         }
 
         [Test]
@@ -34,7 +34,7 @@
             CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
 
-            Assert.AreEqual(1, endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host));
+            Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host), Is.EqualTo(1));
         }
 
         [Test]
@@ -48,7 +48,7 @@
             CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
 
-            Assert.AreEqual(1, endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host));
+            Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host), Is.EqualTo(1));
         }
 
         [Test]
@@ -63,7 +63,7 @@
             CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
 
-            Assert.AreEqual(2, endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host || w.HostDisplayName == endpoint2.Host));
+            Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host || w.HostDisplayName == endpoint2.Host), Is.EqualTo(2));
         }
 
         [Test]
@@ -78,7 +78,7 @@
             CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
 
-            Assert.AreEqual(2, endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host || w.HostDisplayName == endpoint2.Host));
+            Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host || w.HostDisplayName == endpoint2.Host), Is.EqualTo(2));
         }
 
         [Test]
@@ -90,14 +90,14 @@
 
             CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
-            Assert.IsFalse(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id));
+            Assert.That(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id), Is.False);
 
             await MonitoringDataStore.UpdateEndpointMonitoring(endpoint1, true);
             endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents());
 
             CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
-            Assert.IsTrue(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id));
+            Assert.That(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id), Is.True);
         }
 
 
@@ -110,7 +110,7 @@
 
             CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
-            Assert.AreEqual(1, endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host));
+            Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host), Is.EqualTo(1));
 
             await MonitoringDataStore.Delete(endpointInstanceMonitoring.GetEndpoints()[0].Id);
 
@@ -118,7 +118,7 @@
 
             CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
-            Assert.AreEqual(0, endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host));
+            Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host), Is.EqualTo(0));
         }
 
         [Test]
@@ -141,13 +141,16 @@
 
             var knownEndpoints = await MonitoringDataStore.GetAllKnownEndpoints();
 
-            Assert.AreEqual(1, knownEndpoints.Count);
+            Assert.That(knownEndpoints, Has.Count.EqualTo(1));
             var fromStorage = knownEndpoints[0];
 
-            Assert.AreEqual(knownEndpoint.EndpointDetails.Host, fromStorage.EndpointDetails.Host, "EndpointDetails.Host should match");
-            Assert.AreEqual(knownEndpoint.EndpointDetails.HostId, fromStorage.EndpointDetails.HostId, "EndpointDetails.HostId should match");
-            Assert.AreEqual(knownEndpoint.EndpointDetails.Name, fromStorage.EndpointDetails.Name, "EndpointDetails.Name should match");
-            Assert.AreEqual(knownEndpoint.Monitored, fromStorage.Monitored, "Monitored should match");
+            Assert.Multiple(() =>
+            {
+                Assert.That(fromStorage.EndpointDetails.Host, Is.EqualTo(knownEndpoint.EndpointDetails.Host), "EndpointDetails.Host should match");
+                Assert.That(fromStorage.EndpointDetails.HostId, Is.EqualTo(knownEndpoint.EndpointDetails.HostId), "EndpointDetails.HostId should match");
+                Assert.That(fromStorage.EndpointDetails.Name, Is.EqualTo(knownEndpoint.EndpointDetails.Name), "EndpointDetails.Name should match");
+                Assert.That(fromStorage.Monitored, Is.EqualTo(knownEndpoint.Monitored), "Monitored should match");
+            });
         }
     }
 }

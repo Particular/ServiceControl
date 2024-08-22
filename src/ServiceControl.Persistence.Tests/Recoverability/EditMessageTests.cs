@@ -35,7 +35,7 @@
             var message = CreateEditMessage("some-id");
             await handler.Handle(message, new TestableMessageHandlerContext());
 
-            Assert.IsEmpty(dispatcher.DispatchedMessages);
+            Assert.That(dispatcher.DispatchedMessages, Is.Empty);
         }
 
         [Test]
@@ -55,10 +55,13 @@
             var editFailedMessagesManager = await ErrorMessageDataStore.CreateEditFailedMessageManager();
             var editOperation = await editFailedMessagesManager.GetCurrentEditingMessageId(failedMessageId);
 
-            Assert.AreEqual(status, failedMessage.Status);
-            Assert.IsNull(editOperation);
+            Assert.Multiple(() =>
+            {
+                Assert.That(failedMessage.Status, Is.EqualTo(status));
+                Assert.That(editOperation, Is.Null);
 
-            Assert.IsEmpty(dispatcher.DispatchedMessages);
+                Assert.That(dispatcher.DispatchedMessages, Is.Empty);
+            });
         }
 
         [Test]
@@ -86,11 +89,14 @@
                 var failedMessage = await editFailedMessagesManagerAssert.GetFailedMessage(failedMessageId);
                 var editId = await editFailedMessagesManagerAssert.GetCurrentEditingMessageId(failedMessageId);
 
-                Assert.AreEqual(previousEdit, editId);
-                Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status);
+                Assert.Multiple(() =>
+                {
+                    Assert.That(editId, Is.EqualTo(previousEdit));
+                    Assert.That(failedMessage.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
+                });
             }
 
-            Assert.IsEmpty(dispatcher.DispatchedMessages);
+            Assert.That(dispatcher.DispatchedMessages, Is.Empty);
         }
 
         [Test]
@@ -106,21 +112,27 @@
             await handler.Handle(message, handlerContent);
 
             var dispatchedMessage = dispatcher.DispatchedMessages.Single();
-            Assert.AreEqual(
-                failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint,
-                dispatchedMessage.Item1.Destination);
-            Assert.AreEqual(newBodyContent, dispatchedMessage.Item1.Message.Body.ToArray());
-            Assert.AreEqual("someValue", dispatchedMessage.Item1.Message.Headers["someKey"]);
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                            dispatchedMessage.Item1.Destination,
+                            Is.EqualTo(failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint));
+                Assert.That(dispatchedMessage.Item1.Message.Body.ToArray(), Is.EqualTo(newBodyContent));
+                Assert.That(dispatchedMessage.Item1.Message.Headers["someKey"], Is.EqualTo("someValue"));
+            });
 
             using (var x = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {
                 var failedMessage2 = await x.GetFailedMessage(failedMessage.UniqueMessageId);
-                Assert.IsNotNull(failedMessage2, "Edited failed message");
+                Assert.That(failedMessage2, Is.Not.Null, "Edited failed message");
 
                 var editId = await x.GetCurrentEditingMessageId(failedMessage2.UniqueMessageId);
 
-                Assert.AreEqual(FailedMessageStatus.Resolved, failedMessage2.Status, "Failed message status");
-                Assert.AreEqual(handlerContent.MessageId, editId, "MessageId");
+                Assert.Multiple(() =>
+                {
+                    Assert.That(failedMessage2.Status, Is.EqualTo(FailedMessageStatus.Resolved), "Failed message status");
+                    Assert.That(editId, Is.EqualTo(handlerContent.MessageId), "MessageId");
+                });
             }
         }
 
@@ -135,7 +147,7 @@
             await handler.Handle(message, handlerContext);
             await handler.Handle(message, handlerContext);
 
-            Assert.AreEqual(2, dispatcher.DispatchedMessages.Count, "Dispatched message count");
+            Assert.That(dispatcher.DispatchedMessages, Has.Count.EqualTo(2), "Dispatched message count");
         }
 
         [Test]
@@ -149,7 +161,7 @@
 
             await handler.Handle(message, handlerContent);
 
-            Assert.AreSame(dispatcher.DispatchedMessages.Single().Item2, transportTransaction);
+            Assert.That(transportTransaction, Is.SameAs(dispatcher.DispatchedMessages.Single().Item2));
         }
 
         [Test]
@@ -170,7 +182,7 @@
             await handler.Handle(message, new TestableInvokeHandlerContext());
 
             var sentMessage = dispatcher.DispatchedMessages.Single().Item1;
-            Assert.AreEqual(redirectAddress, sentMessage.Destination);
+            Assert.That(sentMessage.Destination, Is.EqualTo(redirectAddress));
         }
 
         [Test]
@@ -182,9 +194,9 @@
             await handler.Handle(message, new TestableInvokeHandlerContext());
 
             var sentMessage = dispatcher.DispatchedMessages.Single();
-            Assert.AreEqual(
-                messageFailure.Id,
-                "FailedMessages/" + sentMessage.Item1.Message.Headers["ServiceControl.EditOf"]);
+            Assert.That(
+                "FailedMessages/" + sentMessage.Item1.Message.Headers["ServiceControl.EditOf"],
+                Is.EqualTo(messageFailure.Id));
         }
 
         [Test]
@@ -196,9 +208,9 @@
             await handler.Handle(message, new TestableInvokeHandlerContext());
 
             var sentMessage = dispatcher.DispatchedMessages.Single();
-            Assert.AreNotEqual(
-                messageFailure.ProcessingAttempts.Last().MessageId,
-                sentMessage.Item1.Message.MessageId);
+            Assert.That(
+                sentMessage.Item1.Message.MessageId,
+                Is.Not.EqualTo(messageFailure.ProcessingAttempts.Last().MessageId));
         }
 
         static EditAndSend CreateEditMessage(string failedMessageId, byte[] newBodyContent = null, Dictionary<string, string> newHeaders = null)

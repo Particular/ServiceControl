@@ -64,13 +64,13 @@
             var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
             var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
-            Assert.IsNotNull(sagaDetailsIndexDefinition);
+            Assert.That(sagaDetailsIndexDefinition, Is.Not.Null);
 
             await Persistence.RavenDB.DatabaseSetup.DeleteLegacySagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
 
             sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
-            Assert.IsNull(sagaDetailsIndexDefinition);
+            Assert.That(sagaDetailsIndexDefinition, Is.Null);
         }
 
         [Test]
@@ -81,7 +81,7 @@
             var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
             var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
-            Assert.IsNotNull(sagaDetailsIndexDefinition);
+            Assert.That(sagaDetailsIndexDefinition, Is.Not.Null);
         }
 
         [Test]
@@ -105,7 +105,7 @@
                 var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
                 var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
-                Assert.IsTrue(sagaDetailsIndexDefinition.Reduce.Contains("Take(50000)"), "The SagaDetails index definition does not contain a .Take(50000) to limit the number of saga state changes that are reduced by the map/reduce");
+                Assert.That(sagaDetailsIndexDefinition.Reduce, Does.Contain("Take(50000)"), "The SagaDetails index definition does not contain a .Take(50000) to limit the number of saga state changes that are reduced by the map/reduce");
             }
         }
 

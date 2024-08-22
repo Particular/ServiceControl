@@ -35,11 +35,14 @@ class ThroughputCollector_Report_Masking_Tests : ThroughputCollectorTestFixture
 
         // Assert
         Assert.That(report, Is.Not.Null);
-        Assert.That(report.ReportData.TotalQueues, Is.EqualTo(3), $"Invalid TotalQueues on report");
-        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint1"), Is.Null, $"QueueName not masked on report");
-        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "REDACTED1"), Is.Not.Null, $"QueueName not masked on report");
-        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint2"), Is.Not.Null, $"QueueName Endpoint2 not found on report");
-        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint3"), Is.Not.Null, $"QueueName Endpoint2 not found on report");
+        Assert.Multiple(() =>
+        {
+            Assert.That(report.ReportData.TotalQueues, Is.EqualTo(3), $"Invalid TotalQueues on report");
+            Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint1"), Is.Null, $"QueueName not masked on report");
+            Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "REDACTED1"), Is.Not.Null, $"QueueName not masked on report");
+            Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint2"), Is.Not.Null, $"QueueName Endpoint2 not found on report");
+            Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint3"), Is.Not.Null, $"QueueName Endpoint2 not found on report");
+        });
     }
 
     [Test]
@@ -57,10 +60,13 @@ class ThroughputCollector_Report_Masking_Tests : ThroughputCollectorTestFixture
 
         // Assert
         Assert.That(report, Is.Not.Null);
-        Assert.That(report.ReportData.TotalQueues, Is.EqualTo(3), $"Invalid TotalQueues on report");
-        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName.Contains("REDACTED")), Is.Null, $"QueueNames should not be masked on report");
-        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint1"), Is.Not.Null, $"QueueName Endpoint1 not found on report");
-        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint2"), Is.Not.Null, $"QueueName Endpoint2 not found on report");
-        Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint3"), Is.Not.Null, $"QueueName Endpoint2 not found on report");
+        Assert.Multiple(() =>
+        {
+            Assert.That(report.ReportData.TotalQueues, Is.EqualTo(3), $"Invalid TotalQueues on report");
+            Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName.Contains("REDACTED")), Is.Null, $"QueueNames should not be masked on report");
+            Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint1"), Is.Not.Null, $"QueueName Endpoint1 not found on report");
+            Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint2"), Is.Not.Null, $"QueueName Endpoint2 not found on report");
+            Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint3"), Is.Not.Null, $"QueueName Endpoint2 not found on report");
+        });
     }
 }

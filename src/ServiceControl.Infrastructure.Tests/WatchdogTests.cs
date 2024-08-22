@@ -54,7 +54,7 @@
 
             await dog.Stop();
 
-            Assert.AreEqual("Simulated", lastFailure);
+            Assert.That(lastFailure, Is.EqualTo("Simulated"));
         }
 
         [Test]
@@ -117,7 +117,7 @@
 
                 if (runAttempts == 3)
                 {
-                    Assert.AreEqual("Simulated", lastFailure);
+                    Assert.That(lastFailure, Is.EqualTo("Simulated"));
                     throw new Exception("Simulated");
                 }
 
@@ -132,8 +132,8 @@
             await dog.Stop();
 
             //Make sure failure is cleared
-            Assert.IsNull(lastFailure);
-            Assert.AreEqual(4, runAttempts);
+            Assert.That(lastFailure, Is.Null);
+            Assert.That(runAttempts, Is.EqualTo(4));
         }
 
         [Test]
@@ -148,7 +148,7 @@
 
             await onStartupFailureCalled.Task;
 
-            Assert.AreEqual("Simulated", lastFailure);
+            Assert.That(lastFailure, Is.EqualTo("Simulated"));
         }
     }
 }

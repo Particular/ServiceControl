@@ -17,6 +17,7 @@
     <PackageReference Include="NServiceBus.AcceptanceTesting" />
     <PackageReference Include="NServiceBus.Persistence.NonDurable" />
     <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit.Analyzers" />
     <PackageReference Include="NUnit3TestAdapter" />
   </ItemGroup>
 

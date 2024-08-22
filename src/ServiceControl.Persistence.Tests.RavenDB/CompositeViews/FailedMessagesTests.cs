@@ -54,9 +54,9 @@
                     if (!stats.IsStale)
                     {
                         Console.Out.WriteLine("Checking result");
-                        Assert.AreEqual(1, results.Count);
+                        Assert.That(results, Has.Count.EqualTo(1));
 
-                        Assert.AreEqual(null, results.First().TimeSent);
+                        Assert.That(results.First().TimeSent, Is.EqualTo(null));
                     }
                 }
 

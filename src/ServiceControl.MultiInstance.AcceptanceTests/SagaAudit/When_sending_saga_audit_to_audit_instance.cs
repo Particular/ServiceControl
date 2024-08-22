@@ -57,13 +57,16 @@
                 })
                 .Run();
 
-            Assert.NotNull(sagaHistory);
+            Assert.That(sagaHistory, Is.Not.Null);
 
-            Assert.AreEqual(context.SagaId, sagaHistory.SagaId);
-            Assert.AreEqual(typeof(SagaEndpoint.MySaga).FullName, sagaHistory.SagaType);
+            Assert.Multiple(() =>
+            {
+                Assert.That(sagaHistory.SagaId, Is.EqualTo(context.SagaId));
+                Assert.That(sagaHistory.SagaType, Is.EqualTo(typeof(SagaEndpoint.MySaga).FullName));
+            });
 
             var sagaStateChange = sagaHistory.Changes.First();
-            Assert.AreEqual("Send", sagaStateChange.InitiatingMessage.Intent);
+            Assert.That(sagaStateChange.InitiatingMessage.Intent, Is.EqualTo("Send"));
         }
 
         public class SagaEndpoint : EndpointConfigurationBuilder

@@ -40,9 +40,12 @@
                 .When_a_error_forwarding_is_on();
 
             nameof(viewModel.ErrorForwardingQueueName).Was_notified_of_change(changedProperties);
-            Assert.IsTrue(viewModel.ShowErrorForwardingQueue);
-            Assert.IsNotEmpty(viewModel.ErrorForwardingWarning);
-            Assert.AreEqual("error.log", viewModel.ErrorForwardingQueueName);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ShowErrorForwardingQueue, Is.True);
+                Assert.That(viewModel.ErrorForwardingWarning, Is.Not.Empty);
+                Assert.That(viewModel.ErrorForwardingQueueName, Is.EqualTo("error.log"));
+            });
         }
 
         [Test]
@@ -54,9 +57,12 @@
                 .Collect_changed_properties(changedProperties)
                 .When_a_error_forwarding_is_off();
 
-            Assert.IsFalse(viewModel.ShowErrorForwardingQueue);
-            Assert.IsNull(viewModel.ErrorForwardingWarning);
-            Assert.IsNull(viewModel.ErrorForwardingQueueName);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ShowErrorForwardingQueue, Is.False);
+                Assert.That(viewModel.ErrorForwardingWarning, Is.Null);
+                Assert.That(viewModel.ErrorForwardingQueueName, Is.Null);
+            });
         }
     }
 }

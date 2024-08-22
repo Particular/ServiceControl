@@ -17,10 +17,10 @@
         {
             var pagingHeaders = GetLinks(totalResults: 200, currentPage: 3, path: "test1/test2");
 
-            Assert.Contains("<test1/test2?page=4>; rel=\"next\"", pagingHeaders);
-            Assert.Contains("<test1/test2?page=4>; rel=\"last\"", pagingHeaders);
-            Assert.Contains("<test1/test2?page=2>; rel=\"prev\"", pagingHeaders);
-            Assert.Contains("<test1/test2?page=1>; rel=\"first\"", pagingHeaders);
+            Assert.That(pagingHeaders, Does.Contain("<test1/test2?page=4>; rel=\"next\""));
+            Assert.That(pagingHeaders, Does.Contain("<test1/test2?page=4>; rel=\"last\""));
+            Assert.That(pagingHeaders, Does.Contain("<test1/test2?page=2>; rel=\"prev\""));
+            Assert.That(pagingHeaders, Does.Contain("<test1/test2?page=1>; rel=\"first\""));
         }
 
         [Test]
@@ -28,8 +28,8 @@
         {
             var pagingHeaders = GetLinks(totalResults: 100, path: "test", queryParams: "token=abc&id=42");
 
-            Assert.Contains("<test?token=abc&id=42&page=2>; rel=\"next\"", pagingHeaders);
-            Assert.Contains("<test?token=abc&id=42&page=2>; rel=\"last\"", pagingHeaders);
+            Assert.That(pagingHeaders, Does.Contain("<test?token=abc&id=42&page=2>; rel=\"next\""));
+            Assert.That(pagingHeaders, Does.Contain("<test?token=abc&id=42&page=2>; rel=\"last\""));
         }
 
         [Test]
@@ -37,7 +37,7 @@
         {
             var pagingHeaders = GetLinks(totalResults: 51);
 
-            Assert.Contains("<?page=2>; rel=\"next\"", pagingHeaders);
+            Assert.That(pagingHeaders, Does.Contain("<?page=2>; rel=\"next\""));
         }
 
         [Test]
@@ -45,7 +45,7 @@
         {
             var pagingHeaders = GetLinks(totalResults: 50);
 
-            Assert.IsEmpty(pagingHeaders);
+            Assert.That(pagingHeaders, Is.Empty);
         }
 
         [Test]
@@ -53,7 +53,7 @@
         {
             var pagingHeaders = GetLinks(totalResults: 51, 150);
 
-            Assert.Contains("<?page=3>; rel=\"last\"", pagingHeaders);
+            Assert.That(pagingHeaders, Does.Contain("<?page=3>; rel=\"last\""));
         }
 
         [Test]
@@ -61,7 +61,7 @@
         {
             var pagingHeaders = GetLinks(totalResults: 49, 150);
 
-            Assert.IsEmpty(pagingHeaders);
+            Assert.That(pagingHeaders, Is.Empty);
         }
 
         [Test]
@@ -69,7 +69,7 @@
         {
             var pagingHeaders = GetLinks(totalResults: 120, currentPage: 3);
 
-            Assert.Contains("<?page=2>; rel=\"prev\"", pagingHeaders);
+            Assert.That(pagingHeaders, Does.Contain("<?page=2>; rel=\"prev\""));
         }
 
         [Test]
@@ -77,7 +77,7 @@
         {
             var pagingHeaders = GetLinks(totalResults: 51, currentPage: 1);
 
-            Assert.IsFalse(pagingHeaders.Any(link => link.Contains("rel=\"prev\"")));
+            Assert.That(pagingHeaders.Any(link => link.Contains("rel=\"prev\"")), Is.False);
         }
 
         [Test]
@@ -85,7 +85,7 @@
         {
             var pagingHeaders = GetLinks(totalResults: 200, currentPage: 4);
 
-            Assert.Contains("<?page=1>; rel=\"first\"", pagingHeaders);
+            Assert.That(pagingHeaders, Does.Contain("<?page=1>; rel=\"first\""));
         }
 
         [Test]
@@ -93,7 +93,7 @@
         {
             var pagingHeaders = GetLinks(totalResults: 200, currentPage: 1);
 
-            Assert.IsFalse(pagingHeaders.Any(link => link.Contains("rel=\"first\"")));
+            Assert.That(pagingHeaders.Any(link => link.Contains("rel=\"first\"")), Is.False);
         }
 
         [Test]
@@ -101,10 +101,10 @@
         {
             var pagingHeaders = GetLinks(totalResults: 300, currentPage: 2, resultsPerPage: 100);
 
-            Assert.Contains("<?per_page=100&page=3>; rel=\"next\"", pagingHeaders);
-            Assert.Contains("<?per_page=100&page=3>; rel=\"last\"", pagingHeaders);
-            Assert.Contains("<?per_page=100&page=1>; rel=\"prev\"", pagingHeaders);
-            Assert.Contains("<?per_page=100&page=1>; rel=\"first\"", pagingHeaders);
+            Assert.That(pagingHeaders, Does.Contain("<?per_page=100&page=3>; rel=\"next\""));
+            Assert.That(pagingHeaders, Does.Contain("<?per_page=100&page=3>; rel=\"last\""));
+            Assert.That(pagingHeaders, Does.Contain("<?per_page=100&page=1>; rel=\"prev\""));
+            Assert.That(pagingHeaders, Does.Contain("<?per_page=100&page=1>; rel=\"first\""));
         }
 
         static string[] GetLinks(

@@ -15,7 +15,7 @@
 
             var extractedFailedMessageRetryId = FailedMessageRetry.MakeDocumentId(FailedMessageIdGenerator.GetMessageIdFromDocumentId(failedMessageId));
 
-            Assert.AreEqual(FailedMessageRetry.MakeDocumentId(messageId), extractedFailedMessageRetryId);
+            Assert.That(extractedFailedMessageRetryId, Is.EqualTo(FailedMessageRetry.MakeDocumentId(messageId)));
         }
     }
 }

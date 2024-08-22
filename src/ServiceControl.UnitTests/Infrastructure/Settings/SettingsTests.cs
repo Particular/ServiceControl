@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.UnitTests.Infrastructure.Settings
 {
+    using System.Collections;
     using System.Collections.Generic;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -13,11 +14,9 @@
             var configValue = """[{"api_uri":"http://instance1"},{"api_uri":"http://instance2"}]""";
             var remoteInstances = Settings.ParseRemoteInstances(configValue);
 
-            CollectionAssert.AreEqual(remoteInstances, new[]
-            {
-                new RemoteInstanceSetting("http://instance1"),
-                new RemoteInstanceSetting("http://instance2")
-            }, new RemoteInstanceSettingComparer());
+            Assert.That(
+                new[] { new RemoteInstanceSetting("http://instance1"), new RemoteInstanceSetting("http://instance2") },
+                Is.EqualTo(remoteInstances).Using((IComparer<RemoteInstanceSetting>)new RemoteInstanceSettingComparer()));
         }
 
         class RemoteInstanceSettingComparer : Comparer<RemoteInstanceSetting>

@@ -43,7 +43,7 @@
                 })
                 .Run(TimeSpan.FromMinutes(1));
 
-            Assert.AreEqual("Originating Endpoint", context.ReplyHandledBy, "Reply handled by incorrect endpoint");
+            Assert.That(context.ReplyHandledBy, Is.EqualTo("Originating Endpoint"), "Reply handled by incorrect endpoint");
         }
 
         class OriginalMessage : IMessage

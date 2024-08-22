@@ -58,11 +58,11 @@
             {
                 if (context.Headers[Headers.MessageId] == testContext.MessageId && Interlocked.Increment(ref attempt) == 1)
                 {
-                    TestContext.WriteLine("Simulating message processing failure");
+                    TestContext.Out.WriteLine("Simulating message processing failure");
                     throw new InvalidOperationException("ID", null);
                 }
 
-                TestContext.WriteLine("Message processed correctly");
+                TestContext.Out.WriteLine("Message processed correctly");
             }
 
             int attempt;

@@ -38,8 +38,8 @@ class BrokerThroughputCollectorHostedServiceTests
         IEnumerable<string> sanitizedNames = endpoints.Select(endpoint => endpoint.SanitizedName);
         IEnumerable<string> queueNames = endpoints.Select(endpoint => endpoint.Id.Name);
 
-        CollectionAssert.AreEquivalent(new[] { "sales", "sales1", "marketing", "customer" }, sanitizedNames);
-        CollectionAssert.AreEquivalent(new[] { "sales@one", "sales@two", "marketing", "customer" }, queueNames);
+        Assert.That(sanitizedNames, Is.EquivalentTo(new[] { "sales", "sales1", "marketing", "customer" }));
+        Assert.That(queueNames, Is.EquivalentTo(new[] { "sales@one", "sales@two", "marketing", "customer" }));
     }
 
     [Test]
@@ -68,7 +68,7 @@ class BrokerThroughputCollectorHostedServiceTests
 
         foreach (var startDate in mockedBrokerThroughputQueryThatRecordsDate.StartDates)
         {
-            Assert.AreEqual(lastCollectionDate.AddDays(1), startDate);
+            Assert.That(startDate, Is.EqualTo(lastCollectionDate.AddDays(1)));
         }
     }
 
@@ -98,8 +98,11 @@ class BrokerThroughputCollectorHostedServiceTests
             } while (!token.IsCancellationRequested);
         });
 
-        Assert.Greater(mockedBrokerThroughputQueryThatThrowsExceptions.GetQueueNamesCalls, 1);
-        Assert.Greater(mockedBrokerThroughputQueryThatThrowsExceptions.GetGetThroughputPerDay, 1);
+        Assert.Multiple(() =>
+        {
+            Assert.That(mockedBrokerThroughputQueryThatThrowsExceptions.GetQueueNamesCalls, Is.GreaterThan(1));
+            Assert.That(mockedBrokerThroughputQueryThatThrowsExceptions.GetGetThroughputPerDay, Is.GreaterThan(1));
+        });
     }
 
     [Test]
@@ -119,7 +122,7 @@ class BrokerThroughputCollectorHostedServiceTests
         await Task.Delay(TimeSpan.FromSeconds(2), token);
         await brokerThroughputCollectorHostedService.StopAsync(token);
 
-        Assert.IsTrue(brokerThroughputCollectorHostedService.ExecuteTask?.IsCompletedSuccessfully);
+        Assert.That(brokerThroughputCollectorHostedService.ExecuteTask?.IsCompletedSuccessfully, Is.True);
     }
 
     class MockedBrokerThroughputQueryThatThrowsExceptions : IBrokerThroughputQuery

@@ -18,7 +18,7 @@
         [Test]
         public void HasResults()
         {
-            Assert.IsNotEmpty(Results.Results, "There should be results returned");
+            Assert.That(Results.Results, Is.Not.Empty, "There should be results returned");
         }
 
         [Test]
@@ -26,8 +26,8 @@
         {
             var resultingEtag = Results.QueryStats.ETag;
 
-            Assert.AreNotEqual(LocalETag, resultingEtag, "Resulting etag should not equal local etag");
-            Assert.AreNotEqual(RemoteETag, resultingEtag, "Resulting etag should not equal remote etag");
+            Assert.That(resultingEtag, Is.Not.EqualTo(LocalETag), "Resulting etag should not equal local etag");
+            Assert.That(resultingEtag, Is.Not.EqualTo(RemoteETag), "Resulting etag should not equal remote etag");
         }
 
         [Test]
@@ -35,7 +35,7 @@
         {
             var sumOfAllResults = LocalData().Count() + RemoteData().Count();
 
-            Assert.AreEqual(sumOfAllResults, Results.QueryStats.TotalCount);
+            Assert.That(Results.QueryStats.TotalCount, Is.EqualTo(sumOfAllResults));
         }
 
         [Test]
@@ -43,7 +43,7 @@
         {
             var highestInstanceCount = Math.Max(LocalData().Count(), RemoteData().Count());
 
-            Assert.AreEqual(highestInstanceCount, Results.QueryStats.HighestTotalCountOfAllTheInstances);
+            Assert.That(Results.QueryStats.HighestTotalCountOfAllTheInstances, Is.EqualTo(highestInstanceCount));
         }
     }
 }

@@ -66,8 +66,11 @@
                 })
                 .Run();
 
-            Assert.IsTrue(runResult.ErrorForwarded);
-            Assert.IsTrue(runResult.MessageFailedEventPublished);
+            Assert.Multiple(() =>
+            {
+                Assert.That(runResult.ErrorForwarded, Is.True);
+                Assert.That(runResult.MessageFailedEventPublished, Is.True);
+            });
         }
 
         class MessageFailedHandler(MyContext scenarioContext) : IDomainHandler<MessageFailed>
@@ -85,11 +88,11 @@
             {
                 if (!scenarioContext.FailedImport)
                 {
-                    TestContext.WriteLine("Simulating message processing failure");
+                    TestContext.Out.WriteLine("Simulating message processing failure");
                     throw new MessageDeserializationException("ID", null);
                 }
 
-                TestContext.WriteLine("Message processed correctly");
+                TestContext.Out.WriteLine("Message processed correctly");
             }
         }
 

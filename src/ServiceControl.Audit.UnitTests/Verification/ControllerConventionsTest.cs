@@ -13,9 +13,12 @@
         public void All_controllers_should_match_convention()
         {
             var allControllers = typeof(Settings).Assembly.GetTypes().Where(t => typeof(ControllerBase).IsAssignableFrom(t)).ToArray();
-            Assert.IsNotEmpty(allControllers);
-            Assert.IsTrue(allControllers.All(c => c.Name.EndsWith("Controller")));
-            Assert.IsTrue(allControllers.All(c => c.GetCustomAttributes<ApiControllerAttribute>().Any()));
+            Assert.That(allControllers, Is.Not.Empty);
+            Assert.Multiple(() =>
+            {
+                Assert.That(allControllers.All(c => c.Name.EndsWith("Controller")), Is.True);
+                Assert.That(allControllers.All(c => c.GetCustomAttributes<ApiControllerAttribute>().Any()), Is.True);
+            });
         }
     }
 }

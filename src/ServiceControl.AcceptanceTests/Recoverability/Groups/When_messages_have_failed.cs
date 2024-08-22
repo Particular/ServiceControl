@@ -68,27 +68,36 @@
                 })
                 .Run();
 
-            Assert.AreEqual(2, exceptionTypeAndStackTraceGroups.Count, "There should be 2 Exception Type and Stack Trace Groups");
-            Assert.AreEqual(2, messageTypeGroups.Count, "There should be 2 Message Type Groups");
+            Assert.Multiple(() =>
+            {
+                Assert.That(exceptionTypeAndStackTraceGroups.Count, Is.EqualTo(2), "There should be 2 Exception Type and Stack Trace Groups");
+                Assert.That(messageTypeGroups.Count, Is.EqualTo(2), "There should be 2 Message Type Groups");
+            });
 
             defaultGroups.ForEach(g => Console.WriteLine(JsonSerializer.Serialize(g)));
 
-            Assert.IsEmpty(exceptionTypeAndStackTraceGroups.Select(g => g.Id).Except(defaultGroups.Select(g => g.Id)), "/api/recoverability/groups did not retrieve Exception Type and Stack Trace Group");
+            Assert.Multiple(() =>
+            {
+                Assert.That(exceptionTypeAndStackTraceGroups.Select(g => g.Id).Except(defaultGroups.Select(g => g.Id)), Is.Empty, "/api/recoverability/groups did not retrieve Exception Type and Stack Trace Group");
 
-            Assert.Contains(DeterministicGuid.MakeId(MessageTypeFailureClassifier.Id, typeof(MyMessageA).FullName).ToString(), messageTypeGroups.Select(g => g.Id).ToArray());
-            Assert.Contains(DeterministicGuid.MakeId(MessageTypeFailureClassifier.Id, typeof(MyMessageB).FullName).ToString(), messageTypeGroups.Select(g => g.Id).ToArray());
+                Assert.That(messageTypeGroups.Select(g => g.Id).ToArray(), Does.Contain(DeterministicGuid.MakeId(MessageTypeFailureClassifier.Id, typeof(MyMessageA).FullName).ToString()));
+            });
+            Assert.Multiple(() =>
+            {
+                Assert.That(messageTypeGroups.Select(g => g.Id).ToArray(), Does.Contain(DeterministicGuid.MakeId(MessageTypeFailureClassifier.Id, typeof(MyMessageB).FullName).ToString()));
 
-            Assert.AreEqual(context.UniqueMessageIdA, failedMessageA.UniqueMessageId);
-            Assert.AreEqual(context.UniqueMessageIdB, failedMessageB.UniqueMessageId);
+                Assert.That(failedMessageA.UniqueMessageId, Is.EqualTo(context.UniqueMessageIdA));
+                Assert.That(failedMessageB.UniqueMessageId, Is.EqualTo(context.UniqueMessageIdB));
 
-            Assert.IsNotEmpty(failedMessageA.FailureGroups, "MyMessageA should have failure groups");
-            Assert.IsNotEmpty(failedMessageB.FailureGroups, "MyMessageB should have failure groups");
+                Assert.That(failedMessageA.FailureGroups, Is.Not.Empty, "MyMessageA should have failure groups");
+                Assert.That(failedMessageB.FailureGroups, Is.Not.Empty, "MyMessageB should have failure groups");
+            });
 
-            Assert.AreEqual(1, failedMessageA.FailureGroups.Count(g => g.Type == ExceptionTypeAndStackTraceFailureClassifier.Id), $"{ExceptionTypeAndStackTraceFailureClassifier.Id} FailureGroup was not created");
-            Assert.AreEqual(1, failedMessageA.FailureGroups.Count(g => g.Type == MessageTypeFailureClassifier.Id), $"{MessageTypeFailureClassifier.Id} FailureGroup was not created");
+            Assert.That(failedMessageA.FailureGroups.Count(g => g.Type == ExceptionTypeAndStackTraceFailureClassifier.Id), Is.EqualTo(1), $"{ExceptionTypeAndStackTraceFailureClassifier.Id} FailureGroup was not created");
+            Assert.That(failedMessageA.FailureGroups.Count(g => g.Type == MessageTypeFailureClassifier.Id), Is.EqualTo(1), $"{MessageTypeFailureClassifier.Id} FailureGroup was not created");
 
-            Assert.AreEqual(1, failedMessageB.FailureGroups.Count(g => g.Type == ExceptionTypeAndStackTraceFailureClassifier.Id), $"{ExceptionTypeAndStackTraceFailureClassifier.Id} FailureGroup was not created");
-            Assert.AreEqual(1, failedMessageB.FailureGroups.Count(g => g.Type == MessageTypeFailureClassifier.Id), $"{MessageTypeFailureClassifier.Id} FailureGroup was not created");
+            Assert.That(failedMessageB.FailureGroups.Count(g => g.Type == ExceptionTypeAndStackTraceFailureClassifier.Id), Is.EqualTo(1), $"{ExceptionTypeAndStackTraceFailureClassifier.Id} FailureGroup was not created");
+            Assert.That(failedMessageB.FailureGroups.Count(g => g.Type == MessageTypeFailureClassifier.Id), Is.EqualTo(1), $"{MessageTypeFailureClassifier.Id} FailureGroup was not created");
         }
 
         public class Receiver : EndpointConfigurationBuilder

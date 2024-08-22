@@ -78,14 +78,17 @@
             var fetchById = getIdToQuery(headers);
 
             var retrieved = await BodyStorage.TryFetch(fetchById);
-            Assert.IsNotNull(retrieved);
-            Assert.True(retrieved.HasResult);
-            Assert.AreEqual(contentType, retrieved.ContentType);
+            Assert.That(retrieved, Is.Not.Null);
+            Assert.Multiple(() =>
+            {
+                Assert.That(retrieved.HasResult, Is.True);
+                Assert.That(retrieved.ContentType, Is.EqualTo(contentType));
+            });
 
             var buffer = new byte[retrieved.BodySize];
             retrieved.Stream.Read(buffer, 0, retrieved.BodySize);
 
-            Assert.AreEqual(body, buffer);
+            Assert.That(buffer, Is.EqualTo(body));
         }
     }
 }

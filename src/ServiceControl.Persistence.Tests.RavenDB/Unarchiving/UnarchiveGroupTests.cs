@@ -58,7 +58,7 @@
             using (var session = DocumentStore.OpenSession())
             {
                 var loadedBatch = session.Load<UnarchiveBatch>(previousUnarchiveBatchId);
-                Assert.IsNull(loadedBatch);
+                Assert.That(loadedBatch, Is.Null);
             }
         }
 

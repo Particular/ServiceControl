@@ -12,7 +12,7 @@
         public void AvoidImproperDependencyOnEngineAssembly()
         {
             var srcPath = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "..", "..", "..", ".."));
-            StringAssert.EndsWith("src", srcPath);
+            Assert.That(srcPath, Does.EndWith("src"));
 
             var repoRoot = Path.GetFullPath(Path.Combine(srcPath, ".."));
 

@@ -24,12 +24,15 @@
 
             var endpoints = await DataStore.QueryKnownEndpoints();
 
-            Assert.That(endpoints.Results.Count, Is.EqualTo(1));
+            Assert.That(endpoints.Results, Has.Count.EqualTo(1));
             var endpoint = endpoints.Results[0];
-            Assert.That(endpoint.HostDisplayName, Is.EqualTo(ingestedEndpoint.Host));
-            Assert.That(endpoint.EndpointDetails.Host, Is.EqualTo(ingestedEndpoint.Host));
-            Assert.That(endpoint.EndpointDetails.HostId, Is.EqualTo(ingestedEndpoint.HostId));
-            Assert.That(endpoint.EndpointDetails.Name, Is.EqualTo(ingestedEndpoint.Name));
+            Assert.Multiple(() =>
+            {
+                Assert.That(endpoint.HostDisplayName, Is.EqualTo(ingestedEndpoint.Host));
+                Assert.That(endpoint.EndpointDetails.Host, Is.EqualTo(ingestedEndpoint.Host));
+                Assert.That(endpoint.EndpointDetails.HostId, Is.EqualTo(ingestedEndpoint.HostId));
+                Assert.That(endpoint.EndpointDetails.Name, Is.EqualTo(ingestedEndpoint.Name));
+            });
         }
 
         [Test]
@@ -47,8 +50,11 @@
 
             var queryResult = await DataStore.QueryKnownEndpoints();
 
-            Assert.That(queryResult.QueryStats.TotalCount, Is.EqualTo(200));
-            Assert.That(queryResult.Results.Count, Is.EqualTo(200));
+            Assert.Multiple(() =>
+            {
+                Assert.That(queryResult.QueryStats.TotalCount, Is.EqualTo(200));
+                Assert.That(queryResult.Results, Has.Count.EqualTo(200));
+            });
         }
 
         async Task IngestKnownEndpoints(params KnownEndpoint[] knownEndpoints)

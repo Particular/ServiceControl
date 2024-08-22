@@ -28,7 +28,7 @@
                 Status = HighMessageStatus
             };
 
-            Assert.AreEqual(compareResult, comparer.Compare(lower, higher), "Should sort messages the other way around");
+            Assert.That(comparer.Compare(lower, higher), Is.EqualTo(compareResult), "Should sort messages the other way around");
         }
 
         [Test]
@@ -49,7 +49,7 @@
                 MessageId = HighMessageId
             };
 
-            Assert.AreEqual(compareResult, comparer.Compare(lower, higher), "Should sort messages the other way around");
+            Assert.That(comparer.Compare(lower, higher), Is.EqualTo(compareResult), "Should sort messages the other way around");
         }
 
         [Test]
@@ -70,7 +70,7 @@
                 MessageType = HighMessageType
             };
 
-            Assert.AreEqual(compareResult, comparer.Compare(lower, higher), "Should sort messages the other way around");
+            Assert.That(comparer.Compare(lower, higher), Is.EqualTo(compareResult), "Should sort messages the other way around");
         }
 
         [Test]
@@ -91,7 +91,7 @@
                 TimeSent = HighMessageSent
             };
 
-            Assert.AreEqual(compareResult, comparer.Compare(lower, higher), "Should sort messages the other way around");
+            Assert.That(comparer.Compare(lower, higher), Is.EqualTo(compareResult), "Should sort messages the other way around");
         }
 
         [Test]
@@ -112,7 +112,7 @@
                 ProcessingTime = HighProcessingTime
             };
 
-            Assert.AreEqual(compareResult, comparer.Compare(lower, higher), "Should sort messages the other way around");
+            Assert.That(comparer.Compare(lower, higher), Is.EqualTo(compareResult), "Should sort messages the other way around");
         }
 
         [Test]
@@ -143,7 +143,7 @@
                 TimeSent = HighMessageSent
             };
 
-            Assert.AreEqual(compareResult, comparer.Compare(lower, higher), "Should sort messages the other way around");
+            Assert.That(comparer.Compare(lower, higher), Is.EqualTo(compareResult), "Should sort messages the other way around");
         }
 
         IComparer<MessagesView> GetComparerFromRequest(string sort, string direction) => MessageViewComparer.FromSortInfo(new SortInfo(sort, direction));

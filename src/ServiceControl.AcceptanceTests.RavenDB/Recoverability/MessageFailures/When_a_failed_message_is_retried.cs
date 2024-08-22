@@ -61,7 +61,7 @@
                 })
                 .Run();
 
-            Assert.AreEqual(failedMessageRetries.Count, 0, "FailedMessageRetries not removed");
+            Assert.That(failedMessageRetries.Count, Is.EqualTo(0), "FailedMessageRetries not removed");
         }
 
         [Test]
@@ -102,7 +102,7 @@
                 })
                 .Run();
 
-            Assert.AreEqual(failedMessageRetries.Count, 0, "FailedMessageRetries not removed");
+            Assert.That(failedMessageRetries.Count, Is.EqualTo(0), "FailedMessageRetries not removed");
         }
 
         [Test]
@@ -143,7 +143,7 @@
                 })
                 .Run();
 
-            Assert.IsEmpty(retryHistory.UnacknowledgedOperations, "Unucknowledged retry operation not removed");
+            Assert.That(retryHistory.UnacknowledgedOperations, Is.Empty, "Unucknowledged retry operation not removed");
         }
 
         [Test]
@@ -189,7 +189,7 @@
                 })
                 .Run();
 
-            Assert.AreEqual(failedMessageRetries.Count, 0, "FailedMessageRetries not removed");
+            Assert.That(failedMessageRetries.Count, Is.EqualTo(0), "FailedMessageRetries not removed");
         }
 
         public class FailingEndpoint : EndpointConfigurationBuilder

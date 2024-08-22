@@ -50,7 +50,7 @@
                 })
                 .Run();
 
-            Assert.AreEqual(failedMessage.Status, FailedMessageStatus.RetryIssued, "Status was not set to RetryIssued");
+            Assert.That(failedMessage.Status, Is.EqualTo(FailedMessageStatus.RetryIssued), "Status was not set to RetryIssued");
         }
 
         public class FailingEndpoint : EndpointConfigurationBuilder

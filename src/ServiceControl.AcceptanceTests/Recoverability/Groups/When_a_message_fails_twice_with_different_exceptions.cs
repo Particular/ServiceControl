@@ -54,24 +54,30 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
                 })
                 .Run(TimeSpan.FromMinutes(3));
 
-            Assert.IsNotNull(originalMessage, "Original message was not received");
-            Assert.IsNotNull(retriedMessage, "Retried message was not received");
+            Assert.Multiple(() =>
+            {
+                Assert.That(originalMessage, Is.Not.Null, "Original message was not received");
+                Assert.That(retriedMessage, Is.Not.Null, "Retried message was not received");
+            });
 
-            Assert.IsNotNull(originalMessage.FailureGroups, "The original message has no failure groups");
-            Assert.IsNotNull(retriedMessage.FailureGroups, "The retried message has no failure groups");
+            Assert.That(originalMessage.FailureGroups, Is.Not.Null, "The original message has no failure groups");
+            Assert.That(retriedMessage.FailureGroups, Is.Not.Null, "The retried message has no failure groups");
 
             var originalExceptionAndStackTraceFailureGroupIds = originalMessage.FailureGroups.Where(x => x.Type == ExceptionTypeAndStackTraceFailureClassifier.Id).Select(x => x.Id).ToArray();
             var retriedExceptionAndStackTraceFailureGroupIds = retriedMessage.FailureGroups.Where(x => x.Type == ExceptionTypeAndStackTraceFailureClassifier.Id).Select(x => x.Id).ToArray();
 
-            Assert.True(originalExceptionAndStackTraceFailureGroupIds.Any(), "The original message was not classified");
-            Assert.True(retriedExceptionAndStackTraceFailureGroupIds.Any(), "The retried message was not classified");
+            Assert.Multiple(() =>
+            {
+                Assert.That(originalExceptionAndStackTraceFailureGroupIds.Any(), Is.True, "The original message was not classified");
+                Assert.That(retriedExceptionAndStackTraceFailureGroupIds.Any(), Is.True, "The retried message was not classified");
 
-            Assert.AreEqual(originalMessage.FailureGroups.Single(x => x.Type == MessageTypeFailureClassifier.Id).Id, retriedMessage.FailureGroups.Single(x => x.Type == MessageTypeFailureClassifier.Id).Id, $"{MessageTypeFailureClassifier.Id} FailureGroup Ids changed");
+                Assert.That(retriedMessage.FailureGroups.Single(x => x.Type == MessageTypeFailureClassifier.Id).Id, Is.EqualTo(originalMessage.FailureGroups.Single(x => x.Type == MessageTypeFailureClassifier.Id).Id), $"{MessageTypeFailureClassifier.Id} FailureGroup Ids changed");
+            });
 
             foreach (var failureId in originalExceptionAndStackTraceFailureGroupIds)
             {
                 Console.WriteLine($"failureId: {failureId}");
-                Assert.False(retriedExceptionAndStackTraceFailureGroupIds.Contains(failureId), "Failure Group {0} is still set on retried message", failureId);
+                Assert.That(retriedExceptionAndStackTraceFailureGroupIds, Does.Not.Contain(failureId), $"Failure Group {failureId} is still set on retried message");
             }
         }
 

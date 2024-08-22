@@ -30,9 +30,12 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.That(instanceNamesProvided); // Provided because the convention default auto-fills them on instantiation
+            Assert.Multiple(() =>
+            {
+                Assert.That(instanceNamesProvided); // Provided because the convention default auto-fills them on instantiation
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)));
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)), Is.Empty);
+            });
         }
 
         [Test]
@@ -57,9 +60,12 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsTrue(instanceNamesProvided, "Instance names were not provided.");
+            Assert.Multiple(() =>
+            {
+                Assert.That(instanceNamesProvided, Is.True, "Instance names were not provided.");
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)));
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)), Is.Empty);
+            });
         }
 
         [Test]
@@ -73,9 +79,12 @@
                 ConventionName = "Something"
             };
 
-            Assert.AreEqual($"Particular.{viewModel.ConventionName}", viewModel.ErrorInstanceName);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ErrorInstanceName, Is.EqualTo($"Particular.{viewModel.ConventionName}"));
 
-            Assert.AreEqual($"Particular.{viewModel.ConventionName}.Audit", viewModel.AuditInstanceName);
+                Assert.That(viewModel.AuditInstanceName, Is.EqualTo($"Particular.{viewModel.ConventionName}.Audit"));
+            });
         }
 
         #endregion
@@ -98,7 +107,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.SelectedTransport));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
 
         }
 
@@ -117,7 +126,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
 
         [TestTheseTransports("AmazonSQS", "AzureServiceBus", "SQLServer", "RabbitMQ")]
@@ -139,7 +148,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
 
         }
 
@@ -163,7 +172,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditInstanceName));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
 
         [Test]
@@ -180,7 +189,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditInstanceName));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
 
         }
 
@@ -198,7 +207,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditInstanceName));
 
-            Assert.IsEmpty(errors);
+            Assert.That(errors, Is.Empty);
         }
 
         #endregion
@@ -215,11 +224,14 @@
             var selectedAccount = viewModel.AuditServiceAccount;
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditServiceAccount));
-            //by default the add instance will always have a value of "LocalSystem"(even if you manually set everything to false or empty)
+            Assert.Multiple(() =>
+            {
+                //by default the add instance will always have a value of "LocalSystem"(even if you manually set everything to false or empty)
 
-            Assert.AreEqual("LocalSystem", selectedAccount);
+                Assert.That(selectedAccount, Is.EqualTo("LocalSystem"));
 
-            Assert.IsEmpty(errors);
+                Assert.That(errors, Is.Empty);
+            });
 
         }
 
@@ -239,7 +251,7 @@
 
             var errorServiceAccount = notifyErrorInfo.GetErrors(nameof(viewModel.AuditServiceAccount));
 
-            Assert.IsNotEmpty(errorServiceAccount);
+            Assert.That(errorServiceAccount, Is.Not.Empty);
 
         }
         #endregion
@@ -258,7 +270,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)), Is.Empty);
         }
 
         [Test]
@@ -275,7 +287,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)), Is.Empty);
         }
 
         [Test]
@@ -290,7 +302,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)), Is.Not.Empty);
         }
 
         [Test]
@@ -307,7 +319,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)), Is.Not.Empty);
         }
 
         [TestCase("192.168.1.1")]
@@ -325,7 +337,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)), Is.Empty);
         }
 
         #endregion
@@ -346,7 +358,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditPortNumber));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
 
         [Test]
@@ -363,7 +375,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditPortNumber));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
 
         [Test]
@@ -384,7 +396,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditPortNumber));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
 
         [Test]
@@ -404,7 +416,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditPortNumber));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
 
         #endregion
@@ -426,7 +438,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabaseMaintenancePortNumber));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
 
         [Test]
@@ -443,7 +455,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabaseMaintenancePortNumber));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
 
         }
 
@@ -466,7 +478,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabaseMaintenancePortNumber));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
 
         [Test]
@@ -487,7 +499,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabaseMaintenancePortNumber));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
 
         #endregion
@@ -506,7 +518,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)), Is.Not.Empty);
         }
 
         [Test]
@@ -523,7 +535,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)), Is.Not.Empty);
         }
 
         [Test]
@@ -539,7 +551,7 @@
             viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditDestinationPath));
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)), Is.Empty);
 
         }
 
@@ -561,7 +573,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditDestinationPath));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
 
         }
 
@@ -581,7 +593,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)), Is.Not.Empty);
         }
 
         #endregion
@@ -602,7 +614,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditLogPath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditLogPath)), Is.Not.Empty);
         }
 
         [Test]
@@ -619,7 +631,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditLogPath));
 
-            Assert.IsEmpty(errors);
+            Assert.That(errors, Is.Empty);
         }
 
         [TestCase(@"<")]
@@ -640,7 +652,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditLogPath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditLogPath)), Is.Not.Empty);
         }
 
         #endregion
@@ -659,7 +671,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)), Is.Not.Empty);
         }
 
         [Test]
@@ -674,7 +686,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)), Is.Empty);
         }
 
         [TestCase(@"<")]
@@ -693,7 +705,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)), Is.Not.Empty);
         }
 
         [Test]
@@ -711,7 +723,7 @@
             };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)), Is.Not.Empty);
         }
 
         #endregion
@@ -730,7 +742,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditQueueName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditQueueName)), Is.Not.Empty);
         }
 
         [Test]
@@ -747,7 +759,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditQueueName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditQueueName)), Is.Not.Empty);
         }
 
         #endregion
@@ -774,7 +786,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditForwardingQueueName));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
 
         [Test]
@@ -792,7 +804,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditForwardingQueueName));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
 
         [Test]
@@ -813,7 +825,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditForwardingQueueName));
 
-            Assert.IsEmpty(errors);
+            Assert.That(errors, Is.Empty);
         }
 
         [Test]
@@ -834,7 +846,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditForwardingQueueName));
 
-            Assert.IsEmpty(errors);
+            Assert.That(errors, Is.Empty);
         }
 
         public INotifyDataErrorInfo GetNotifyErrorInfo(object vm) => vm as INotifyDataErrorInfo;

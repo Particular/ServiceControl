@@ -20,15 +20,15 @@
             monitor.RecordHeartbeat(monitoredEndpoint, lastHeartbeat);
             await monitor.CheckEndpoints(lastHeartbeat);
 
-            Assert.IsTrue(monitor.HasEndpoint(monitoredEndpoint.UniqueId), "Monitored Endpoint should be recorded");
+            Assert.That(monitor.HasEndpoint(monitoredEndpoint.UniqueId), Is.True, "Monitored Endpoint should be recorded");
 
             monitor.RemoveEndpoint(monitoredEndpoint.UniqueId);
 
-            Assert.IsFalse(monitor.HasEndpoint(monitoredEndpoint.UniqueId), "Monitored Endpoint should be removed");
+            Assert.That(monitor.HasEndpoint(monitoredEndpoint.UniqueId), Is.False, "Monitored Endpoint should be removed");
 
             await monitor.CheckEndpoints(lastHeartbeat);
 
-            Assert.IsFalse(monitor.HasEndpoint(monitoredEndpoint.UniqueId), "Monitored Endpoint should not be added back");
+            Assert.That(monitor.HasEndpoint(monitoredEndpoint.UniqueId), Is.False, "Monitored Endpoint should not be added back");
         }
 
         class FakeDomainEvents : IDomainEvents

@@ -66,18 +66,24 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(exceptionTypeAndStackTraceGroups, "Exception Type And Stack Trace Group should be created");
-            Assert.IsNotNull(messageTypeGroups, "Message Type Group should be created");
-            Assert.IsNotNull(firstFailure, "The first failure message should be created");
-            Assert.IsNotNull(secondFailure, "The second failure message should be created");
+            Assert.Multiple(() =>
+            {
+                Assert.That(exceptionTypeAndStackTraceGroups, Is.Not.Null, "Exception Type And Stack Trace Group should be created");
+                Assert.That(messageTypeGroups, Is.Not.Null, "Message Type Group should be created");
+                Assert.That(firstFailure, Is.Not.Null, "The first failure message should be created");
+                Assert.That(secondFailure, Is.Not.Null, "The second failure message should be created");
+            });
 
-            Assert.AreEqual(1, exceptionTypeAndStackTraceGroups.Count, "There should only be one Exception Type And Stack Trace Group");
-            Assert.AreEqual(1, messageTypeGroups.Count, "There should only be one Message Type Group");
+            Assert.That(exceptionTypeAndStackTraceGroups.Count, Is.EqualTo(1), "There should only be one Exception Type And Stack Trace Group");
+            Assert.That(messageTypeGroups.Count, Is.EqualTo(1), "There should only be one Message Type Group");
 
             var failureGroup = exceptionTypeAndStackTraceGroups.First();
-            Assert.AreEqual(2, failureGroup.Count, "Exception Type And Stack Trace Group should have both messages in it");
+            Assert.Multiple(() =>
+            {
+                Assert.That(failureGroup.Count, Is.EqualTo(2), "Exception Type And Stack Trace Group should have both messages in it");
 
-            Assert.AreEqual(2, messageTypeGroups.First().Count, "Message Type Group should have both messages in it");
+                Assert.That(messageTypeGroups.First().Count, Is.EqualTo(2), "Message Type Group should have both messages in it");
+            });
 
             var failureTimes = firstFailure.ProcessingAttempts
                 .Union(secondFailure.ProcessingAttempts)
@@ -85,8 +91,11 @@
                 .Select(x => x.FailureDetails.TimeOfFailure)
                 .ToList();
 
-            Assert.AreEqual(failureTimes.Min(), failureGroup.First, "Failure Group should start when the earliest failure occurred");
-            Assert.AreEqual(failureTimes.Max(), failureGroup.Last, "Failure Group should end when the latest failure occurred");
+            Assert.Multiple(() =>
+            {
+                Assert.That(failureGroup.First, Is.EqualTo(failureTimes.Min()), "Failure Group should start when the earliest failure occurred");
+                Assert.That(failureGroup.Last, Is.EqualTo(failureTimes.Max()), "Failure Group should end when the latest failure occurred");
+            });
         }
 
         public class Receiver : EndpointConfigurationBuilder

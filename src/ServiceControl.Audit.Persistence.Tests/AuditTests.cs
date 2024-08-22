@@ -32,7 +32,7 @@
 
             var queryResult = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"));
 
-            Assert.That(queryResult.Results.Count, Is.EqualTo(1));
+            Assert.That(queryResult.Results, Has.Count.EqualTo(1));
             Assert.That(queryResult.Results[0].MessageId, Is.EqualTo("MyMessageId"));
         }
 
@@ -60,7 +60,7 @@
             var queryResult = await DataStore.QueryMessagesByConversationId(conversationId, new PagingInfo(),
                 new SortInfo("message_id", "asc"));
 
-            Assert.That(queryResult.Results.Count, Is.EqualTo(2));
+            Assert.That(queryResult.Results, Has.Count.EqualTo(2));
         }
 
         [Test]
@@ -75,7 +75,7 @@
             var queryResult = await DataStore.QueryMessages("MyMessageType", new PagingInfo(),
                 new SortInfo("message_id", "asc"));
 
-            Assert.That(queryResult.Results.Count, Is.EqualTo(2));
+            Assert.That(queryResult.Results, Has.Count.EqualTo(2));
         }
         [Test]
         public async Task Can_roundtrip_message_body()
@@ -96,18 +96,24 @@
             var retrievedMessage = await DataStore.GetMessageBody(bodyId);
 
             Assert.That(retrievedMessage, Is.Not.Null);
-            Assert.That(retrievedMessage.Found, Is.True);
-            Assert.That(retrievedMessage.HasContent, Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(retrievedMessage.Found, Is.True);
+                Assert.That(retrievedMessage.HasContent, Is.True);
 
-            Assert.That(retrievedMessage.ContentLength, Is.EqualTo(body.Length));
-            Assert.That(retrievedMessage.ETag, Is.Not.Null.Or.Empty);
-            Assert.That(retrievedMessage.StreamContent, Is.Not.Null);
-            Assert.That(retrievedMessage.ContentType, Is.EqualTo(expectedContentType));
+                Assert.That(retrievedMessage.ContentLength, Is.EqualTo(body.Length));
+                Assert.That(retrievedMessage.ETag, Is.Not.Null.Or.Empty);
+                Assert.That(retrievedMessage.StreamContent, Is.Not.Null);
+                Assert.That(retrievedMessage.ContentType, Is.EqualTo(expectedContentType));
+            });
 
             var resultBody = new byte[body.Length];
             var readBytes = await retrievedMessage.StreamContent.ReadAsync(resultBody, 0, body.Length);
-            Assert.That(readBytes, Is.EqualTo(body.Length));
-            Assert.That(resultBody, Is.EqualTo(body));
+            Assert.Multiple(() =>
+            {
+                Assert.That(readBytes, Is.EqualTo(body.Length));
+                Assert.That(resultBody, Is.EqualTo(body));
+            });
         }
 
         [Test]
@@ -128,8 +134,11 @@
             var retrievedMessage = await DataStore.GetMessageBody(bodyId);
 
             Assert.That(retrievedMessage, Is.Not.Null);
-            Assert.That(retrievedMessage.Found, Is.True);
-            Assert.That(retrievedMessage.HasContent, Is.False);
+            Assert.Multiple(() =>
+            {
+                Assert.That(retrievedMessage.Found, Is.True);
+                Assert.That(retrievedMessage.HasContent, Is.False);
+            });
 
         }
 

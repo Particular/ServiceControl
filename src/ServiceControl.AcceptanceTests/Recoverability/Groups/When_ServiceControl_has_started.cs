@@ -23,11 +23,11 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(classifiers, "classifiers is null");
-            Assert.IsNotEmpty(classifiers, "No classifiers retrieved");
-            Assert.Contains(ExceptionTypeAndStackTraceFailureClassifier.Id, classifiers, "ExceptionTypeAndStackTraceFailureClassifier was not found");
-            Assert.Contains(MessageTypeFailureClassifier.Id, classifiers, "MessageTypeFailureClassifier was not found");
-            Assert.Contains(AddressOfFailingEndpointClassifier.Id, classifiers, "AddressOfFailingEndpointClassifier was not found");
+            Assert.That(classifiers, Is.Not.Null, "classifiers is null");
+            Assert.That(classifiers, Is.Not.Empty, "No classifiers retrieved");
+            Assert.That(classifiers, Does.Contain(ExceptionTypeAndStackTraceFailureClassifier.Id), "ExceptionTypeAndStackTraceFailureClassifier was not found");
+            Assert.That(classifiers, Does.Contain(MessageTypeFailureClassifier.Id), "MessageTypeFailureClassifier was not found");
+            Assert.That(classifiers, Does.Contain(AddressOfFailingEndpointClassifier.Id), "AddressOfFailingEndpointClassifier was not found");
         }
 
         class Context : ScenarioContext

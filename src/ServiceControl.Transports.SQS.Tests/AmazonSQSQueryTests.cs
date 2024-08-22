@@ -50,8 +50,8 @@ class AmazonSQSQueryTests : TransportTestFixture
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
-        Assert.IsFalse(success);
-        Assert.AreEqual("The security token included in the request is invalid.", errors.Single());
+        Assert.That(success, Is.False);
+        Assert.That(errors.Single(), Is.EqualTo("The security token included in the request is invalid."));
         Approver.Verify(diagnostics);
     }
 
@@ -71,7 +71,7 @@ class AmazonSQSQueryTests : TransportTestFixture
             await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.IsFalse(success);
-        Assert.AreEqual("Invalid region endpoint provided", errors.Single());
+        Assert.That(errors.Single(), Is.EqualTo("Invalid region endpoint provided"));
         Approver.Verify(diagnostics);
     }
 
@@ -142,6 +142,6 @@ class AmazonSQSQueryTests : TransportTestFixture
             total += queueThroughput.TotalThroughput;
         }
 
-        Assert.AreEqual(numMessagesToIngest, total);
+        Assert.That(total, Is.EqualTo(numMessagesToIngest));
     }
 }

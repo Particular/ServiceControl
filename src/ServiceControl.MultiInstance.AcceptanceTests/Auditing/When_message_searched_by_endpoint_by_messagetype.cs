@@ -42,7 +42,7 @@
 
             var remote1Message = response.SingleOrDefault(msg => msg.MessageId == context.Remote1MessageId);
 
-            Assert.NotNull(remote1Message, "Remote1 message not found");
+            Assert.That(remote1Message, Is.Not.Null, "Remote1 message not found");
             Assert.AreEqual(expectedRemote1InstanceId, remote1Message.InstanceId, "Remote1 instance id mismatch");
         }
 

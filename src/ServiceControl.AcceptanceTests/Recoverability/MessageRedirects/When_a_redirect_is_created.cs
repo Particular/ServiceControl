@@ -33,11 +33,14 @@
                     return result;
                 }).Run();
 
-            Assert.AreEqual(1, response.Count, "Expected 1 redirect to be created");
-            Assert.AreEqual(DeterministicGuid.MakeId(redirect.fromphysicaladdress), response[0].message_redirect_id, "Message Redirect Id mismatch");
-            Assert.AreEqual(redirect.fromphysicaladdress, response[0].from_physical_address, "From physical address mismatch");
-            Assert.AreEqual(redirect.tophysicaladdress, response[0].to_physical_address, "To physical address mismatch");
-            Assert.Greater(response[0].last_modified, DateTime.MinValue, "Last modified was not set");
+            Assert.That(response.Count, Is.EqualTo(1), "Expected 1 redirect to be created");
+            Assert.Multiple(() =>
+            {
+                Assert.That(response[0].message_redirect_id, Is.EqualTo(DeterministicGuid.MakeId(redirect.fromphysicaladdress)), "Message Redirect Id mismatch");
+                Assert.That(response[0].from_physical_address, Is.EqualTo(redirect.fromphysicaladdress), "From physical address mismatch");
+                Assert.That(response[0].to_physical_address, Is.EqualTo(redirect.tophysicaladdress), "To physical address mismatch");
+                Assert.That(response[0].last_modified, Is.GreaterThan(DateTime.MinValue), "Last modified was not set");
+            });
         }
 
         [Test]
@@ -118,7 +121,7 @@
                     return result;
                 }).Run();
 
-            Assert.AreEqual(1, response.Count, "Expected only 1 redirect to be created");
+            Assert.That(response.Count, Is.EqualTo(1), "Expected only 1 redirect to be created");
         }
 
 

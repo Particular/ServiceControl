@@ -46,15 +46,18 @@
                 })
                 .Run();
 
-            CollectionAssert.IsNotEmpty(emails);
+            Assert.That(emails, Is.Not.Empty);
 
             var emailText = await File.ReadAllLinesAsync(emails[0]);
 
-            Assert.AreEqual("X-Sender: YouServiceControl@particular.net", emailText[0]);
-            Assert.AreEqual("X-Receiver: WhoeverMightBeConcerned@particular.net", emailText[1]);
-            Assert.AreEqual("From: YouServiceControl@particular.net", emailText[3]);
-            Assert.AreEqual("To: WhoeverMightBeConcerned@particular.net", emailText[4]);
-            Assert.AreEqual("Subject: [Particular.ServiceControl] health check failed", emailText[6]);
+            Assert.Multiple(() =>
+            {
+                Assert.That(emailText[0], Is.EqualTo("X-Sender: YouServiceControl@particular.net"));
+                Assert.That(emailText[1], Is.EqualTo("X-Receiver: WhoeverMightBeConcerned@particular.net"));
+                Assert.That(emailText[3], Is.EqualTo("From: YouServiceControl@particular.net"));
+                Assert.That(emailText[4], Is.EqualTo("To: WhoeverMightBeConcerned@particular.net"));
+                Assert.That(emailText[6], Is.EqualTo("Subject: [Particular.ServiceControl] health check failed"));
+            });
         }
 
         class SetupNotificationSettings(IErrorMessageDataStore errorMessageDataStore) : IHostedService

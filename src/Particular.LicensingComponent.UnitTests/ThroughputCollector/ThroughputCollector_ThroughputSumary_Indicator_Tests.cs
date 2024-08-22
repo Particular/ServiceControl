@@ -40,7 +40,7 @@ class ThroughputCollector_ThroughputSumary_Indicator_Tests : ThroughputCollector
 
         // Assert
         Assert.That(summary, Is.Not.Null);
-        Assert.That(summary.Count, Is.EqualTo(1));
+        Assert.That(summary, Has.Count.EqualTo(1));
 
         Assert.That(summary[0].IsKnownEndpoint, Is.True, $"Incorrect IsKnownEndpoint recorded for {summary[0].Name}");
     }

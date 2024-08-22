@@ -22,7 +22,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
                 })
                 .Run();
 
-            Assert.AreEqual(0, response.Count, "Expected 0 redirects to be created");
+            Assert.That(response, Is.Empty, "Expected 0 redirects to be created");
         }
 
         public class Context : ScenarioContext

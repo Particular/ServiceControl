@@ -27,7 +27,7 @@
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 1);
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
 
-            Assert.AreEqual(RetryState.Preparing, status.RetryState);
+            Assert.That(status.RetryState, Is.EqualTo(RetryState.Preparing));
         }
 
         [Test]
@@ -45,7 +45,7 @@
             CompleteDatabaseOperation();
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
-            Assert.True(status.Failed);
+            Assert.That(status.Failed, Is.True);
         }
 
         [Test]
@@ -76,7 +76,7 @@
             await processor.ProcessBatches();
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
-            Assert.AreEqual(2001, status.TotalNumberOfMessages);
+            Assert.That(status.TotalNumberOfMessages, Is.EqualTo(2001));
         }
 
         [Test]
@@ -96,7 +96,7 @@
             await processor.ProcessBatches();
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
-            Assert.AreEqual(RetryState.Completed, status.RetryState);
+            Assert.That(status.RetryState, Is.EqualTo(RetryState.Completed));
         }
 
         [Test]
@@ -139,10 +139,13 @@
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
 
-            Assert.AreEqual(RetryState.Completed, status.RetryState);
-            Assert.AreEqual(3, status.NumberOfMessagesPrepared);
-            Assert.AreEqual(2, status.NumberOfMessagesForwarded);
-            Assert.AreEqual(1, status.NumberOfMessagesSkipped);
+            Assert.Multiple(() =>
+            {
+                Assert.That(status.RetryState, Is.EqualTo(RetryState.Completed));
+                Assert.That(status.NumberOfMessagesPrepared, Is.EqualTo(3));
+                Assert.That(status.NumberOfMessagesForwarded, Is.EqualTo(2));
+                Assert.That(status.NumberOfMessagesSkipped, Is.EqualTo(1));
+            });
         }
 
         [Test]
@@ -165,7 +168,7 @@
             await processor.ProcessBatches();
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
-            Assert.AreEqual(RetryState.Forwarding, status.RetryState);
+            Assert.That(status.RetryState, Is.EqualTo(RetryState.Forwarding));
         }
 
         Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(RetryingManager retryManager, string groupId, bool progressToStaged, int numberOfMessages)

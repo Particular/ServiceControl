@@ -17,7 +17,7 @@
         [Test]
         public void When_no_endpoint_instance_reports_stale()
         {
-            Assert.IsTrue(tracker.IsStale(A1));
+            Assert.That(tracker.IsStale(A1), Is.True);
         }
 
         [Test]
@@ -26,7 +26,7 @@
             var now = DateTime.UtcNow;
 
             tracker.Record(A1, now);
-            Assert.IsFalse(tracker.IsStale(A1));
+            Assert.That(tracker.IsStale(A1), Is.False);
         }
 
         [Test]
@@ -37,7 +37,7 @@
                 .Subtract(TimeSpan.FromSeconds(1));
 
             tracker.Record(A1, now);
-            Assert.IsTrue(tracker.IsStale(A1));
+            Assert.That(tracker.IsStale(A1), Is.True);
         }
 
         [Test]
@@ -49,7 +49,7 @@
 
             tracker.Record(A1, now);
             tracker.Record(A1, DateTime.UtcNow);
-            Assert.IsFalse(tracker.IsStale(A1));
+            Assert.That(tracker.IsStale(A1), Is.False);
         }
 
         EndpointInstanceActivityTracker tracker;

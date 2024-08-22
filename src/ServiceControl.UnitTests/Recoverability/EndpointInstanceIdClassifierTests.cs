@@ -16,7 +16,7 @@
             var classifier = new EndpointInstanceClassifier();
             var classification = classifier.ClassifyFailure(new ClassifiableMessageDetails());
 
-            Assert.IsNull(classification);
+            Assert.That(classification, Is.Null);
         }
 
         [Test]
@@ -37,7 +37,7 @@
 
             var classification = classifier.ClassifyFailure(new ClassifiableMessageDetails(null, null, failure));
 
-            Assert.AreEqual(id, classification);
+            Assert.That(classification, Is.EqualTo(id));
         }
     }
 }

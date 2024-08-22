@@ -45,7 +45,7 @@
                 })
                 .Run();
 
-            Assert.AreEqual(MessageStatus.ResolvedSuccessfully, auditedMessage.Status);
+            Assert.That(auditedMessage.Status, Is.EqualTo(MessageStatus.ResolvedSuccessfully));
         }
 
         public class Receiver : EndpointConfigurationBuilder

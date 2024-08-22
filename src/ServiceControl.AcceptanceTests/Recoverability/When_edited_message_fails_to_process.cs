@@ -70,13 +70,16 @@
                 })
                 .Run();
 
-            Assert.AreNotEqual(context.EditedMessageFailure.Id, context.OriginalMessageFailure.Id);
-            Assert.AreNotEqual(context.EditedMessageFailure.UniqueMessageId, context.OriginalMessageFailure.UniqueMessageId);
-            Assert.AreEqual(FailedMessageStatus.Resolved, context.OriginalMessageFailure.Status);
-            Assert.AreEqual(FailedMessageStatus.Unresolved, context.EditedMessageFailure.Status);
-            Assert.AreEqual(
-                context.OriginalMessageFailure.Id,
-                "FailedMessages/" + context.EditedMessageFailure.ProcessingAttempts.Last().Headers["ServiceControl.EditOf"]);
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.OriginalMessageFailure.Id, Is.Not.EqualTo(context.EditedMessageFailure.Id));
+                Assert.That(context.OriginalMessageFailure.UniqueMessageId, Is.Not.EqualTo(context.EditedMessageFailure.UniqueMessageId));
+                Assert.That(context.OriginalMessageFailure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
+                Assert.That(context.EditedMessageFailure.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
+                Assert.That(
+                    "FailedMessages/" + context.EditedMessageFailure.ProcessingAttempts.Last().Headers["ServiceControl.EditOf"],
+                    Is.EqualTo(context.OriginalMessageFailure.Id));
+            });
         }
 
         class EditMessageFailureContext : ScenarioContext

@@ -55,12 +55,15 @@
                 })
                 .Run();
 
-            Assert.IsFalse(criticalErrorExecuted);
-            Assert.NotNull(failure);
+            Assert.Multiple(() =>
+            {
+                Assert.That(criticalErrorExecuted, Is.False);
+                Assert.That(failure, Is.Not.Null);
+            });
 
             var attempts = failure.ProcessingAttempts;
-            Assert.AreEqual(2, attempts.Count);
-            CollectionAssert.AreEquivalent(context.FailureTimes, attempts.Select(a => a.AttemptedAt));
+            Assert.That(attempts, Has.Count.EqualTo(2));
+            Assert.That(attempts.Select(a => a.AttemptedAt), Is.EquivalentTo(context.FailureTimes));
         }
 
         class CounterEnricher(MyContext testContext) : IEnrichImportedErrorMessages

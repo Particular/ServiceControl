@@ -30,8 +30,11 @@
                 })
                 .Run();
 
-            Assert.IsTrue(endpoint.Monitored);
-            Assert.IsTrue(endpoint.IsSendingHeartbeats);
+            Assert.Multiple(() =>
+            {
+                Assert.That(endpoint.Monitored, Is.True);
+                Assert.That(endpoint.IsSendingHeartbeats, Is.True);
+            });
         }
 
         [Test]
@@ -51,7 +54,7 @@
                 })
                 .Run();
 
-            Assert.True(endpoint.Monitored, "An endpoint discovered from heartbeats should be monitored");
+            Assert.That(endpoint.Monitored, Is.True, "An endpoint discovered from heartbeats should be monitored");
         }
 
         public class MyContext : ScenarioContext;

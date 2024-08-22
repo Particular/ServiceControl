@@ -34,7 +34,7 @@
                 })
                 .Run();
 
-            CollectionAssert.DoesNotContain(HeadersThatShouldBeRemoved, context.Headers.Keys);
+            Assert.That(HeadersThatShouldBeRemoved, Has.No.Member(context.Headers.Keys));
         }
 
         [Theory]
@@ -69,7 +69,7 @@
                 })
                 .Run();
 
-            CollectionAssert.AreEqual(context.BodyToSend, context.BodyReceived);
+            Assert.That(context.BodyReceived, Is.EqualTo(context.BodyToSend).AsCollection);
         }
 
         static readonly List<string> HeadersThatShouldBeRemoved =

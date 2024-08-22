@@ -25,8 +25,11 @@
             var container = builder.Build();
 
             var viewModel = container.Resolve<TargetViewModel>();
-            Assert.IsTrue(viewModel.FirstAttachmentActivated, "First Attachment should have been attached");
-            Assert.IsTrue(viewModel.SecondAttachmentActivated, "Second Attachment should have been attached");
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.FirstAttachmentActivated, Is.True, "First Attachment should have been attached");
+                Assert.That(viewModel.SecondAttachmentActivated, Is.True, "Second Attachment should have been attached");
+            });
         }
 
         [Test]
@@ -39,7 +42,7 @@
             var container = builder.Build();
 
             var viewModel = container.Resolve<ViewModelWithoutSuffix>();
-            Assert.IsFalse(viewModel.AttachmentActivated, "Attachment should not be activated when the target type name does not have a ViewModel suffix");
+            Assert.That(viewModel.AttachmentActivated, Is.False, "Attachment should not be activated when the target type name does not have a ViewModel suffix");
         }
 
         [Test]
@@ -52,7 +55,7 @@
             var container = builder.Build();
 
             var viewModel = container.Resolve<HasBadAttachmentViewModel>();
-            Assert.IsFalse(viewModel.AttachmentActivated, "Attachment should not be activated when it is missing the Attachment suffix");
+            Assert.That(viewModel.AttachmentActivated, Is.False, "Attachment should not be activated when it is missing the Attachment suffix");
         }
     }
 

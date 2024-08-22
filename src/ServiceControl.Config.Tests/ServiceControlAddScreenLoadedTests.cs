@@ -17,9 +17,12 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsTrue(viewModel.InstallErrorInstance);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.InstallErrorInstance, Is.True);
 
-            Assert.IsTrue(viewModel.InstallAuditInstance);
+                Assert.That(viewModel.InstallAuditInstance, Is.True);
+            });
         }
 
         [Test]
@@ -27,9 +30,12 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsNotEmpty(viewModel.Transports);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.Transports, Is.Not.Empty);
 
-            Assert.IsNull(viewModel.SelectedTransport);
+                Assert.That(viewModel.SelectedTransport, Is.Null);
+            });
         }
 
         [Test]
@@ -37,11 +43,14 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsFalse(viewModel.ShowConnectionString);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ShowConnectionString, Is.False);
 
-            Assert.IsNull(viewModel.ConnectionString);
+                Assert.That(viewModel.ConnectionString, Is.Null);
 
-            Assert.IsNull(viewModel.SampleConnectionString);
+                Assert.That(viewModel.SampleConnectionString, Is.Null);
+            });
         }
 
         [Test]
@@ -49,7 +58,7 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsNotEmpty(viewModel.ErrorForwardingOptions);
+            Assert.That(viewModel.ErrorForwardingOptions, Is.Not.Empty);
         }
 
         [Test]
@@ -57,7 +66,7 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsNotEmpty(viewModel.ErrorEnableFullTextSearchOnBodiesOptions);
+            Assert.That(viewModel.ErrorEnableFullTextSearchOnBodiesOptions, Is.Not.Empty);
         }
 
         [Test]
@@ -65,29 +74,32 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.AreEqual("LocalSystem", viewModel.ErrorServiceAccount);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ErrorServiceAccount, Is.EqualTo("LocalSystem"));
 
-            Assert.IsTrue(viewModel.ErrorUseSystemAccount);
+                Assert.That(viewModel.ErrorUseSystemAccount, Is.True);
 
-            Assert.IsFalse(viewModel.ErrorUseServiceAccount);
+                Assert.That(viewModel.ErrorUseServiceAccount, Is.False);
 
-            Assert.IsFalse(viewModel.ErrorUseProvidedAccount);
+                Assert.That(viewModel.ErrorUseProvidedAccount, Is.False);
 
-            Assert.IsFalse(viewModel.ErrorPasswordEnabled);
+                Assert.That(viewModel.ErrorPasswordEnabled, Is.False);
 
-            Assert.IsEmpty(viewModel.ErrorPassword);
+                Assert.That(viewModel.ErrorPassword, Is.Empty);
 
-            Assert.AreEqual("LocalSystem", viewModel.AuditServiceAccount);
+                Assert.That(viewModel.AuditServiceAccount, Is.EqualTo("LocalSystem"));
 
-            Assert.IsTrue(viewModel.AuditUseSystemAccount);
+                Assert.That(viewModel.AuditUseSystemAccount, Is.True);
 
-            Assert.IsFalse(viewModel.AuditUseServiceAccount);
+                Assert.That(viewModel.AuditUseServiceAccount, Is.False);
 
-            Assert.IsFalse(viewModel.AuditUseProvidedAccount);
+                Assert.That(viewModel.AuditUseProvidedAccount, Is.False);
 
-            Assert.IsFalse(viewModel.AuditPasswordEnabled);
+                Assert.That(viewModel.AuditPasswordEnabled, Is.False);
 
-            Assert.IsEmpty(viewModel.AuditPassword);
+                Assert.That(viewModel.AuditPassword, Is.Empty);
+            });
         }
 
         [Test]
@@ -95,13 +107,16 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.AreEqual("localhost", viewModel.ErrorHostName);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ErrorHostName, Is.EqualTo("localhost"));
 
-            Assert.IsEmpty(viewModel.ErrorHostNameWarning);
+                Assert.That(viewModel.ErrorHostNameWarning, Is.Empty);
 
-            Assert.AreEqual("localhost", viewModel.AuditHostName);
+                Assert.That(viewModel.AuditHostName, Is.EqualTo("localhost"));
 
-            Assert.IsEmpty(viewModel.AuditHostNameWarning);
+                Assert.That(viewModel.AuditHostNameWarning, Is.Empty);
+            });
         }
 
         [Test]
@@ -109,19 +124,22 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.AreEqual("33333", viewModel.ErrorPortNumber);
+            Assert.That(viewModel.ErrorPortNumber, Is.EqualTo("33333"));
 
             var errorInfo = (INotifyDataErrorInfo)viewModel;
 
             var errorPortNumberErrors = errorInfo.GetErrors(nameof(viewModel.ErrorPortNumber));
 
-            Assert.IsEmpty(errorPortNumberErrors);
+            Assert.Multiple(() =>
+            {
+                Assert.That(errorPortNumberErrors, Is.Empty);
 
-            Assert.AreEqual("44444", viewModel.AuditPortNumber);
+                Assert.That(viewModel.AuditPortNumber, Is.EqualTo("44444"));
+            });
 
             var auditPortNumberErrors = errorInfo.GetErrors(nameof(viewModel.AuditPortNumber));
 
-            Assert.IsEmpty(auditPortNumberErrors);
+            Assert.That(auditPortNumberErrors, Is.Empty);
         }
 
         [Test]
@@ -129,19 +147,22 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.AreEqual("33334", viewModel.ErrorDatabaseMaintenancePortNumber);
+            Assert.That(viewModel.ErrorDatabaseMaintenancePortNumber, Is.EqualTo("33334"));
 
             var errorInfo = (INotifyDataErrorInfo)viewModel;
 
             var errorPortNumberErrors = errorInfo.GetErrors(nameof(viewModel.ErrorDatabaseMaintenancePortNumber));
 
-            Assert.IsEmpty(errorPortNumberErrors);
+            Assert.Multiple(() =>
+            {
+                Assert.That(errorPortNumberErrors, Is.Empty);
 
-            Assert.AreEqual("44445", viewModel.AuditDatabaseMaintenancePortNumber);
+                Assert.That(viewModel.AuditDatabaseMaintenancePortNumber, Is.EqualTo("44445"));
+            });
 
             var auditPortNumberErrors = errorInfo.GetErrors(nameof(viewModel.AuditDatabaseMaintenancePortNumber));
 
-            Assert.IsEmpty(auditPortNumberErrors);
+            Assert.That(auditPortNumberErrors, Is.Empty);
         }
 
 
@@ -152,13 +173,16 @@
 
             var errorInfo = (INotifyDataErrorInfo)viewModel;
 
-            Assert.That(viewModel.ErrorDestinationPath, Is.EqualTo($@"{programX86Path}\Particular Software\Particular.ServiceControl"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ErrorDestinationPath, Is.EqualTo($@"{programX86Path}\Particular Software\Particular.ServiceControl"));
 
-            Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.ErrorDestinationPath)));
+                Assert.That(errorInfo.GetErrors(nameof(viewModel.ErrorDestinationPath)), Is.Empty);
 
-            Assert.That(viewModel.AuditDestinationPath, Is.EqualTo($@"{programX86Path}\Particular Software\Particular.ServiceControl.Audit"));
+                Assert.That(viewModel.AuditDestinationPath, Is.EqualTo($@"{programX86Path}\Particular Software\Particular.ServiceControl.Audit"));
 
-            Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)));
+                Assert.That(errorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)), Is.Empty);
+            });
         }
 
         [Test]
@@ -168,13 +192,16 @@
 
             var errorInfo = (INotifyDataErrorInfo)viewModel;
 
-            Assert.That(viewModel.ErrorLogPath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl\Logs"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ErrorLogPath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl\Logs"));
 
-            Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.ErrorLogPath)));
+                Assert.That(errorInfo.GetErrors(nameof(viewModel.ErrorLogPath)), Is.Empty);
 
-            Assert.That(viewModel.AuditLogPath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl.Audit\Logs"));
+                Assert.That(viewModel.AuditLogPath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl.Audit\Logs"));
 
-            Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.AuditLogPath)));
+                Assert.That(errorInfo.GetErrors(nameof(viewModel.AuditLogPath)), Is.Empty);
+            });
         }
 
 
@@ -185,13 +212,16 @@
 
             var errorInfo = (INotifyDataErrorInfo)viewModel;
 
-            Assert.That(viewModel.ErrorDatabasePath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl\DB"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ErrorDatabasePath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl\DB"));
 
-            Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.ErrorDatabasePath)));
+                Assert.That(errorInfo.GetErrors(nameof(viewModel.ErrorDatabasePath)), Is.Empty);
 
-            Assert.That(viewModel.AuditDatabasePath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl.Audit\DB"));
+                Assert.That(viewModel.AuditDatabasePath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl.Audit\DB"));
 
-            Assert.IsEmpty(errorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)));
+                Assert.That(errorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)), Is.Empty);
+            });
         }
 
         [Test]
@@ -199,21 +229,27 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.AreEqual(TimeSpanUnits.Days, viewModel.ErrorRetentionUnits);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ErrorRetentionUnits, Is.EqualTo(TimeSpanUnits.Days));
 
-            Assert.AreEqual(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI, viewModel.ErrorRetention);
+                Assert.That(viewModel.ErrorRetention, Is.EqualTo(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI));
+            });
 
-            Assert.GreaterOrEqual(viewModel.ErrorRetention, viewModel.MinimumErrorRetentionPeriod);
+            Assert.That(viewModel.ErrorRetention, Is.GreaterThanOrEqualTo(viewModel.MinimumErrorRetentionPeriod));
 
-            Assert.LessOrEqual(viewModel.ErrorRetention, viewModel.MaximumErrorRetentionPeriod);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ErrorRetention, Is.LessThanOrEqualTo(viewModel.MaximumErrorRetentionPeriod));
 
-            Assert.AreEqual(TimeSpanUnits.Days, viewModel.AuditRetentionUnits);
+                Assert.That(viewModel.AuditRetentionUnits, Is.EqualTo(TimeSpanUnits.Days));
 
-            Assert.AreEqual(SettingConstants.AuditRetentionPeriodDefaultInDaysForUI, viewModel.AuditRetention);
+                Assert.That(viewModel.AuditRetention, Is.EqualTo(SettingConstants.AuditRetentionPeriodDefaultInDaysForUI));
+            });
 
-            Assert.GreaterOrEqual(viewModel.AuditRetention, viewModel.MinimumErrorRetentionPeriod);
+            Assert.That(viewModel.AuditRetention, Is.GreaterThanOrEqualTo(viewModel.MinimumErrorRetentionPeriod));
 
-            Assert.LessOrEqual(viewModel.AuditRetention, viewModel.MaximumErrorRetentionPeriod);
+            Assert.That(viewModel.AuditRetention, Is.LessThanOrEqualTo(viewModel.MaximumErrorRetentionPeriod));
         }
 
         [Test]
@@ -221,13 +257,16 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsNotEmpty(viewModel.ErrorQueueName);
+            Assert.That(viewModel.ErrorQueueName, Is.Not.Empty);
 
-            Assert.AreEqual("error", viewModel.ErrorQueueName);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ErrorQueueName, Is.EqualTo("error"));
 
-            Assert.IsNotEmpty(viewModel.AuditQueueName);
+                Assert.That(viewModel.AuditQueueName, Is.Not.Empty);
+            });
 
-            Assert.AreEqual("audit", viewModel.AuditQueueName);
+            Assert.That(viewModel.AuditQueueName, Is.EqualTo("audit"));
         }
 
         [Test]
@@ -235,19 +274,22 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsNotEmpty(viewModel.ErrorForwardingOptions);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ErrorForwardingOptions, Is.Not.Empty);
 
-            Assert.AreEqual(false, viewModel.ErrorForwarding.Value);
+                Assert.That(viewModel.ErrorForwarding.Value, Is.EqualTo(false));
 
-            Assert.IsNull(viewModel.ErrorForwardingQueueName);
+                Assert.That(viewModel.ErrorForwardingQueueName, Is.Null);
 
-            Assert.IsFalse(viewModel.ShowErrorForwardingQueue);
+                Assert.That(viewModel.ShowErrorForwardingQueue, Is.False);
 
-            Assert.IsNotEmpty(viewModel.AuditForwardingOptions);
+                Assert.That(viewModel.AuditForwardingOptions, Is.Not.Empty);
 
-            Assert.AreEqual(false, viewModel.AuditForwarding.Value);
+                Assert.That(viewModel.AuditForwarding.Value, Is.EqualTo(false));
 
-            Assert.IsFalse(viewModel.ShowAuditForwardingQueue);
+                Assert.That(viewModel.ShowAuditForwardingQueue, Is.False);
+            });
         }
 
         [Test]
@@ -255,13 +297,16 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.IsNotEmpty(viewModel.ErrorEnableFullTextSearchOnBodiesOptions);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ErrorEnableFullTextSearchOnBodiesOptions, Is.Not.Empty);
 
-            Assert.AreEqual(true, viewModel.ErrorEnableFullTextSearchOnBodies.Value);
+                Assert.That(viewModel.ErrorEnableFullTextSearchOnBodies.Value, Is.EqualTo(true));
 
-            Assert.IsNotEmpty(viewModel.AuditEnableFullTextSearchOnBodiesOptions);
+                Assert.That(viewModel.AuditEnableFullTextSearchOnBodiesOptions, Is.Not.Empty);
 
-            Assert.AreEqual(true, viewModel.AuditEnableFullTextSearchOnBodies.Value);
+                Assert.That(viewModel.AuditEnableFullTextSearchOnBodies.Value, Is.EqualTo(true));
+            });
         }
     }
 }

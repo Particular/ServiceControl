@@ -13,14 +13,20 @@
 
             message.TryRecord(3, 4);
 
-            Assert.AreEqual(1, message.Length);
-            Assert.AreEqual(3, message.Entries[0].DateTicks);
-            Assert.AreEqual(4, message.Entries[0].Value);
+            Assert.That(message.Length, Is.EqualTo(1));
+            Assert.Multiple(() =>
+            {
+                Assert.That(message.Entries[0].DateTicks, Is.EqualTo(3));
+                Assert.That(message.Entries[0].Value, Is.EqualTo(4));
+            });
 
             pool.Release(message);
-            Assert.AreEqual(0, message.Length);
-            Assert.AreEqual(0, message.Entries[0].DateTicks);
-            Assert.AreEqual(0, message.Entries[0].Value);
+            Assert.That(message.Length, Is.EqualTo(0));
+            Assert.Multiple(() =>
+            {
+                Assert.That(message.Entries[0].DateTicks, Is.EqualTo(0));
+                Assert.That(message.Entries[0].Value, Is.EqualTo(0));
+            });
         }
     }
 }

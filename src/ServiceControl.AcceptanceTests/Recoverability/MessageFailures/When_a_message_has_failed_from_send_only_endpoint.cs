@@ -31,8 +31,8 @@
                     return result;
                 })
                 .Run();
-            Assert.IsNotNull(failure);
-            Assert.IsTrue(failure.ReceivingEndpoint.Name.Contains("SomeEndpoint"), $"The sending endpoint should be SomeEndpoint and not {failure.ReceivingEndpoint.Name}");
+            Assert.That(failure, Is.Not.Null);
+            Assert.That(failure.ReceivingEndpoint.Name, Does.Contain("SomeEndpoint"), $"The sending endpoint should be SomeEndpoint and not {failure.ReceivingEndpoint.Name}");
         }
 
         [Test]
@@ -52,8 +52,8 @@
                     return result;
                 })
                 .Run();
-            Assert.IsNotNull(failure);
-            Assert.IsTrue(failure.ReceivingEndpoint.Name.Contains("SomeEndpoint"), $"The sending endpoint should be SomeEndpoint and not {failure.ReceivingEndpoint.Name}");
+            Assert.That(failure, Is.Not.Null);
+            Assert.That(failure.ReceivingEndpoint.Name, Does.Contain("SomeEndpoint"), $"The sending endpoint should be SomeEndpoint and not {failure.ReceivingEndpoint.Name}");
         }
 
         public class SendOnlyEndpoint : EndpointConfigurationBuilder

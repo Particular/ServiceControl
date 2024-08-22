@@ -25,7 +25,7 @@ namespace Tests
             foreach (var deploymentUnit in deploymentPackage.DeploymentUnits)
             {
                 Assert.False(string.IsNullOrEmpty(deploymentUnit.Category), "All deployment units should have a category");
-                CollectionAssert.IsNotEmpty(deploymentUnit.Files, "All deployment units should have assemblies");
+                Assert.That(deploymentUnit.Files, Is.Not.Empty, "All deployment units should have assemblies");
             }
         }
 
@@ -43,7 +43,7 @@ namespace Tests
                 }
             }
 
-            CollectionAssert.IsEmpty(detectedMismatches, $"Component assembly version mismatch detected");
+            Assert.That(detectedMismatches, Is.Empty, $"Component assembly version mismatch detected");
         }
 
         IEnumerable<string> GetAssemblyMismatches(DeploymentPackage.DeploymentUnit leftDeploymentUnit, DeploymentPackage.DeploymentUnit rightDeploymentUnit)
@@ -93,7 +93,7 @@ namespace Tests
                 .Where(u => u.Category == "Transports")
                 .Select(u => u.Name);
 
-            CollectionAssert.AreEquivalent(allTransports, bundledTransports, $"Expected transports folder to contain {string.Join(",", allTransports)}");
+            Assert.That(bundledTransports, Is.EquivalentTo(allTransports), $"Expected transports folder to contain {string.Join(",", allTransports)}");
         }
 
         readonly DeploymentPackage deploymentPackage;

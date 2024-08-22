@@ -50,8 +50,11 @@ class ThroughputCollector_Report_Dates_Tests : ThroughputCollectorTestFixture
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(3));
 
-        Assert.That(report.ReportData.StartTime, Is.EqualTo(minDateInReport), $"Incorrect StartTime for report");
-        Assert.That(report.ReportData.EndTime, Is.EqualTo(reportEndDate), $"Incorrect StartTime for report");
-        Assert.That(report.ReportData.ReportDuration, Is.EqualTo(reportEndDate - minDateInReport), $"Incorrect ReportDuration for report");
+        Assert.Multiple(() =>
+        {
+            Assert.That(report.ReportData.StartTime, Is.EqualTo(minDateInReport), $"Incorrect StartTime for report");
+            Assert.That(report.ReportData.EndTime, Is.EqualTo(reportEndDate), $"Incorrect StartTime for report");
+            Assert.That(report.ReportData.ReportDuration, Is.EqualTo(reportEndDate - minDateInReport), $"Incorrect ReportDuration for report");
+        });
     }
 }

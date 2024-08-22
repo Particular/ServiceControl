@@ -26,7 +26,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.InstanceName));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
 
         [Test]
@@ -42,7 +42,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.InstanceName));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
 
         }
         #endregion
@@ -63,9 +63,12 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceAccount));
 
-            Assert.AreEqual("LocalSystem", selectedAccount);
+            Assert.Multiple(() =>
+            {
+                Assert.That(selectedAccount, Is.EqualTo("LocalSystem"));
 
-            Assert.IsEmpty(errors);
+                Assert.That(errors, Is.Empty);
+            });
         }
 
         //if custom user account is selected, then account name  are required fields
@@ -84,7 +87,7 @@
 
             var errorServiceAccount = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceAccount));
 
-            Assert.IsNotEmpty(errorServiceAccount);
+            Assert.That(errorServiceAccount, Is.Not.Empty);
 
         }
 
@@ -103,7 +106,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)), Is.Not.Empty);
 
         }
 
@@ -120,7 +123,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)), Is.Not.Empty);
         }
 
         [TestCase("192.168.1.1")]
@@ -137,7 +140,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)), Is.Empty);
         }
 
         #endregion
@@ -159,7 +162,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.PortNumber));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
         [Test]
         public void Port_cannot_be_null_when_adding_monitoring_instance()
@@ -177,7 +180,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.PortNumber));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
 
         }
         [Test]
@@ -194,7 +197,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.PortNumber));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
 
         }
 
@@ -215,7 +218,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.PortNumber));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
         #endregion
 
@@ -234,7 +237,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.DestinationPath));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
 
         [Test]
@@ -250,7 +253,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.DestinationPath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.DestinationPath)), Is.Not.Empty);
         }
 
         [TestCase(@"<")]
@@ -270,7 +273,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.DestinationPath));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
 
         }
 
@@ -286,7 +289,7 @@
             };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.DestinationPath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.DestinationPath)), Is.Not.Empty);
         }
         #endregion
 
@@ -305,7 +308,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.LogPath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.LogPath)), Is.Not.Empty);
         }
 
         [TestCase(@"<")]
@@ -323,7 +326,7 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.LogPath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.LogPath)), Is.Not.Empty);
 
         }
 
@@ -339,7 +342,7 @@
             };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.LogPath)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.LogPath)), Is.Not.Empty);
         }
         #endregion
 
@@ -360,7 +363,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.SelectedTransport));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
 
 
@@ -379,7 +382,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
 
         [TestTheseTransports("AmazonSQS", "AzureServiceBus", "SQLServer", "RabbitMQ")]
@@ -399,7 +402,7 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
 
-            Assert.IsNotEmpty(errors);
+            Assert.That(errors, Is.Not.Empty);
         }
         #endregion
 
@@ -414,7 +417,7 @@
             };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorQueueName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorQueueName)), Is.Not.Empty);
         }
 
         [Test]
@@ -429,7 +432,7 @@
             viewModel.NotifyOfPropertyChange(nameof(viewModel.ErrorQueueName));
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorQueueName)));
+            Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorQueueName)), Is.Not.Empty);
         }
         #endregion
 

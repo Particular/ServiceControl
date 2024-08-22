@@ -31,8 +31,8 @@
                 })
                 .Run();
 
-            Assert.AreEqual(1, endpoints.Length);
-            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, endpoints.First().Name);
+            Assert.That(endpoints.Length, Is.EqualTo(1));
+            Assert.That(endpoints.First().Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
         }
 
         [Test]
@@ -53,7 +53,7 @@
                 })
                 .Run();
 
-            Assert.IsFalse(endpoint.Monitored, "Endpoint detected through error ingestion should not be monitored");
+            Assert.That(endpoint.Monitored, Is.False, "Endpoint detected through error ingestion should not be monitored");
         }
 
         public class Receiver : EndpointConfigurationBuilder

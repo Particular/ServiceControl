@@ -63,10 +63,13 @@
                 })
                 .Run();
 
-            Assert.AreEqual("StarWars rocks", context.EditedMessageProperty);
-            Assert.AreNotEqual(context.OriginalMessageId, context.EditedMessageId);
-            Assert.AreEqual(FailedMessageStatus.Resolved, context.OriginalMessageFailure.Status);
-            CollectionAssert.DoesNotContain(context.EditedMessageHeaders, "NServiceBus.ExceptionInfo.StackTrace");
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.EditedMessageProperty, Is.EqualTo("StarWars rocks"));
+                Assert.That(context.EditedMessageId, Is.Not.EqualTo(context.OriginalMessageId));
+                Assert.That(context.OriginalMessageFailure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
+            });
+            Assert.That(context.EditedMessageHeaders, Has.No.Member("NServiceBus.ExceptionInfo.StackTrace"));
         }
 
         class EditedMessageReceiver : EndpointConfigurationBuilder

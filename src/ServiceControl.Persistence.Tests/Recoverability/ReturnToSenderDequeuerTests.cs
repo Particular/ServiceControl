@@ -49,7 +49,7 @@
 
             await new ReturnToSender(null).HandleMessage(message, sender, "error");
 
-            Assert.IsFalse(sender.Message.Headers.ContainsKey("ServiceControl.Retry.StagingId"));
+            Assert.That(sender.Message.Headers.ContainsKey("ServiceControl.Retry.StagingId"), Is.False);
         }
 
         [Test]
@@ -68,7 +68,7 @@
 
             await new ReturnToSender(new FakeErrorMessageDataStore()).HandleMessage(message, sender, "error");
 
-            Assert.AreEqual("MessageBodyId", Encoding.UTF8.GetString(sender.Message.Body.ToArray()));
+            Assert.That(Encoding.UTF8.GetString(sender.Message.Body.ToArray()), Is.EqualTo("MessageBodyId"));
         }
 
         [Test]
@@ -86,8 +86,11 @@
 
             await new ReturnToSender(null).HandleMessage(message, sender, "error");
 
-            Assert.AreEqual("Proxy", sender.Destination);
-            Assert.AreEqual("TargetEndpoint", sender.Message.Headers["ServiceControl.TargetEndpointAddress"]);
+            Assert.Multiple(() =>
+            {
+                Assert.That(sender.Destination, Is.EqualTo("Proxy"));
+                Assert.That(sender.Message.Headers["ServiceControl.TargetEndpointAddress"], Is.EqualTo("TargetEndpoint"));
+            });
         }
 
         [Test]
@@ -104,8 +107,11 @@
 
             await new ReturnToSender(null).HandleMessage(message, sender, "error");
 
-            Assert.AreEqual("TargetEndpoint", sender.Destination);
-            Assert.IsFalse(sender.Message.Headers.ContainsKey("ServiceControl.TargetEndpointAddress"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(sender.Destination, Is.EqualTo("TargetEndpoint"));
+                Assert.That(sender.Message.Headers.ContainsKey("ServiceControl.TargetEndpointAddress"), Is.False);
+            });
         }
 
         [Test]
@@ -130,8 +136,11 @@
                 //Intentionally empty catch
             }
 
-            Assert.IsTrue(message.Headers.ContainsKey("ServiceControl.TargetEndpointAddress"));
-            Assert.IsTrue(message.Headers.ContainsKey("ServiceControl.Retry.Attempt.MessageId"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(message.Headers.ContainsKey("ServiceControl.TargetEndpointAddress"), Is.True);
+                Assert.That(message.Headers.ContainsKey("ServiceControl.Retry.Attempt.MessageId"), Is.True);
+            });
         }
 
         class FaultySender : IMessageDispatcher

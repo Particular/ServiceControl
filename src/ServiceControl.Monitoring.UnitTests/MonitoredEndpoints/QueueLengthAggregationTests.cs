@@ -35,8 +35,11 @@
 
             var values = Aggregator.ToRoundedSumOfBreakdownAverages(intervals, HistoryPeriod.FromMinutes(5));
 
-            Assert.AreEqual(Math.Round((3d / 4d) + (5d / 6d)), values.Points[0]);
-            Assert.AreEqual(Math.Round(2d / 3d), values.Points[1]);
+            Assert.Multiple(() =>
+            {
+                Assert.That(values.Points[0], Is.EqualTo(Math.Round((3d / 4d) + (5d / 6d))));
+                Assert.That(values.Points[1], Is.EqualTo(Math.Round(2d / 3d)));
+            });
         }
 
         [Test]
@@ -62,7 +65,7 @@
 
             var values = Aggregator.ToRoundedSumOfBreakdownAverages(intervals, HistoryPeriod.FromMinutes(5));
 
-            Assert.AreEqual(Math.Round((3d / 1d) + (41d / 5d)), values.Average);
+            Assert.That(values.Average, Is.EqualTo(Math.Round((3d / 1d) + (41d / 5d))));
         }
 
         [Test]
@@ -93,7 +96,7 @@
 
             var values = Aggregator.ToRoundedSumOfBreakdownAverages(intervals, HistoryPeriod.FromMinutes(5));
 
-            Assert.AreEqual(3, values.Points.Length);
+            Assert.That(values.Points, Has.Length.EqualTo(3));
         }
 
         DateTime now = DateTime.UtcNow;

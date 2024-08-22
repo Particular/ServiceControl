@@ -24,7 +24,7 @@
                 SubmitAttempted = true
             };
 
-            Assert.AreEqual(expected, viewModel.InstanceName);
+            Assert.That(viewModel.InstanceName, Is.EqualTo(expected));
         }
     }
 }

@@ -38,7 +38,7 @@
                 })
                 .Run();
 
-            Assert.AreEqual(endpointName, endpoint?.Name);
+            Assert.That(endpoint?.Name, Is.EqualTo(endpointName));
         }
 
         public class Sender : EndpointConfigurationBuilder

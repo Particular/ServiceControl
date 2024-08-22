@@ -57,17 +57,17 @@
             }
         }
 
-        [TestCaseSource("SupportedConnectionStrings")]
+        [TestCaseSource(nameof(SupportedConnectionStrings))]
         public void VerifySupported(string connectionString, ConnectionSettings expected)
         {
             var actual = ConnectionStringParser.Parse(connectionString);
 
-            Assert.AreEqual(JsonSerializer.Serialize(expected), JsonSerializer.Serialize(actual));
+            Assert.That(JsonSerializer.Serialize(actual), Is.EqualTo(JsonSerializer.Serialize(expected)));
 
             //needed since System.Text.Json doesn't handle polymorphic properties
-            Assert.AreEqual(
-                JsonSerializer.Serialize(expected.AuthenticationMethod, expected.AuthenticationMethod.GetType()),
-                JsonSerializer.Serialize(actual.AuthenticationMethod, actual.AuthenticationMethod.GetType()));
+            Assert.That(
+                JsonSerializer.Serialize(actual.AuthenticationMethod, actual.AuthenticationMethod.GetType()),
+                Is.EqualTo(JsonSerializer.Serialize(expected.AuthenticationMethod, expected.AuthenticationMethod.GetType())));
 
 
             //needed since System.Text.Json doesn't handle polymorphic properties
@@ -75,12 +75,12 @@
             {
                 var actualAuthentication = actual.AuthenticationMethod as TokenCredentialAuthentication;
 
-                Assert.NotNull(actualAuthentication);
-                Assert.IsInstanceOf(expectedAuthentication.Credential.GetType(), actualAuthentication.Credential);
+                Assert.That(actualAuthentication, Is.Not.Null);
+                Assert.That(actualAuthentication.Credential, Is.InstanceOf(expectedAuthentication.Credential.GetType()));
             }
         }
 
-        [TestCaseSource("NotSupportedConnectionStrings")]
+        [TestCaseSource(nameof(NotSupportedConnectionStrings))]
         public void VerifyNotSupported(string connectionString)
         {
             Assert.Throws<Exception>(() => ConnectionStringParser.Parse(connectionString));

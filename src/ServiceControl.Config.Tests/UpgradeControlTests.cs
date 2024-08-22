@@ -16,7 +16,7 @@
 
             var releaseDetails = await VersionCheckerHelper.GetLatestRelease(current);
 
-            Assert.IsNotNull(releaseDetails, "Failed to get a release details");
+            Assert.That(releaseDetails, Is.Not.Null, "Failed to get a release details");
             Assert.That(releaseDetails.Version, Is.GreaterThanOrEqualTo(current), "Got a lower version than current");
         }
     }

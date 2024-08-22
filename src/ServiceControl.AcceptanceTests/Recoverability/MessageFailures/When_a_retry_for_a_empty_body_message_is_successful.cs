@@ -43,7 +43,7 @@
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
+            Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
         }
 
         async Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c, Predicate<FailedMessage> condition = null)

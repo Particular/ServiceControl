@@ -25,15 +25,15 @@
 
             var events = container.Resolve<FakeEventAggregator>();
 
-            Assert.IsEmpty(events.Subscribers, "There should be no handlers until they are resolved");
+            Assert.That(events.Subscribers, Is.Empty, "There should be no handlers until they are resolved");
 
             var handler = container.Resolve<FakeEventHandler>();
 
-            Assert.Contains(handler, events.Subscribers, "Items should be subscribed on activation");
+            Assert.That(events.Subscribers, Does.Contain(handler), "Items should be subscribed on activation");
 
             var nonHandler = container.Resolve<FakeNonEventHandler>();
 
-            Assert.False(events.Subscribers.Contains(nonHandler), "Non-handlers should not be subscribed on activation");
+            Assert.That(events.Subscribers, Does.Not.Contain(nonHandler), "Non-handlers should not be subscribed on activation");
         }
 
         class FakeEvent { }

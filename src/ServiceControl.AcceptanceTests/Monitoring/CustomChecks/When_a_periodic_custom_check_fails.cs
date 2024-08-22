@@ -38,9 +38,12 @@
                 })
                 .Run();
 
-            Assert.AreEqual(Severity.Error, entry.Severity, "Failed custom checks should be treated as error");
-            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/customcheck/MyCustomCheckId"));
-            Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith($"/endpoint/{Conventions.EndpointNamingConvention(typeof(WithCustomCheck))}")));
+            Assert.Multiple(() =>
+            {
+                Assert.That(entry.Severity, Is.EqualTo(Severity.Error), "Failed custom checks should be treated as error");
+                Assert.That(entry.RelatedTo.Any(item => item == "/customcheck/MyCustomCheckId"), Is.True);
+                Assert.That(entry.RelatedTo.Any(item => item.StartsWith($"/endpoint/{Conventions.EndpointNamingConvention(typeof(WithCustomCheck))}")), Is.True);
+            });
         }
 
         [Test]
@@ -56,7 +59,7 @@
                 .Done(c => c.SignalrEventReceived)
                 .Run();
 
-            Assert.IsNotNull(context.SignalrData);
+            Assert.That(context.SignalrData, Is.Not.Null);
         }
 
         public class MyContext : ScenarioContext

@@ -30,7 +30,7 @@
                 .Done(c => c.SignalrEventReceived)
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.True(context.SignalrData.IndexOf("\"severity\":\"error\",") > 0, "Couldn't find severity error in signalr data");
+            Assert.That(context.SignalrData.IndexOf("\"severity\":\"error\","), Is.GreaterThan(0), "Couldn't find severity error in signalr data");
         }
 
         public class MyContext : ScenarioContext

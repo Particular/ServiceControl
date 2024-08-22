@@ -28,7 +28,7 @@
 
             viewModel.ServiceControl.DatabasePath = "NewValue";
 
-            Assert.IsTrue(propertyNotified, "Changes to DatabasePath did not notify ServiceControlAddViewModel");
+            Assert.That(propertyNotified, Is.True, "Changes to DatabasePath did not notify ServiceControlAddViewModel");
         }
 
         [Test]
@@ -47,7 +47,7 @@
 
             viewModel.ServiceControl.LogPath = "NewValue";
 
-            Assert.IsTrue(propertyNotified, "Changes to LogPath did not notify ServiceControlAddViewModel");
+            Assert.That(propertyNotified, Is.True, "Changes to LogPath did not notify ServiceControlAddViewModel");
         }
 
         [Test]
@@ -66,7 +66,7 @@
 
             viewModel.ServiceControl.DestinationPath = "NewValue";
 
-            Assert.IsTrue(propertyNotified, "Changes to DestinationPath did not notify ServiceControlAddViewModel");
+            Assert.That(propertyNotified, Is.True, "Changes to DestinationPath did not notify ServiceControlAddViewModel");
         }
 
         [Test]
@@ -85,7 +85,7 @@
 
             viewModel.ServiceControlAudit.DatabasePath = "NewValue";
 
-            Assert.IsTrue(propertyNotified, "Changes to DatabasePath did not notify ServiceControlAddViewModel");
+            Assert.That(propertyNotified, Is.True, "Changes to DatabasePath did not notify ServiceControlAddViewModel");
         }
 
         [Test]
@@ -104,7 +104,7 @@
 
             viewModel.ServiceControlAudit.LogPath = "NewValue";
 
-            Assert.IsTrue(propertyNotified, "Changes to LogPath did not notify ServiceControlAddViewModel");
+            Assert.That(propertyNotified, Is.True, "Changes to LogPath did not notify ServiceControlAddViewModel");
         }
 
         [Test]
@@ -123,7 +123,7 @@
 
             viewModel.ServiceControlAudit.DestinationPath = "NewValue";
 
-            Assert.IsTrue(propertyNotified, "Changes to DestinationPath did not notify ServiceControlAddViewModel");
+            Assert.That(propertyNotified, Is.True, "Changes to DestinationPath did not notify ServiceControlAddViewModel");
         }
     }
 }

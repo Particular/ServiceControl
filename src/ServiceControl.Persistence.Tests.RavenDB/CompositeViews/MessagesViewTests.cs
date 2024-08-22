@@ -49,8 +49,8 @@
                     .Where(x => !x.IsSystemMessage)
                     .OfType<ProcessedMessage>()
                     .ToList();
-                Assert.AreEqual(1, results.Count);
-                Assert.AreNotEqual("1", results.Single().Id);
+                Assert.That(results, Has.Count.EqualTo(1));
+                Assert.That(results.Single().Id, Is.Not.EqualTo("1"));
             }
         }
 
@@ -97,14 +97,14 @@
                     .ProjectInto<ProcessedMessage>() //https://ravendb.net/docs/article-page/4.2/csharp/migration/client-api/session/querying/basics#projectfromindexfieldsinto
                     .First();
 
-                Assert.AreEqual("1", firstByCriticalTime.Id);
+                Assert.That(firstByCriticalTime.Id, Is.EqualTo("1"));
 
                 var firstByCriticalTimeDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.CriticalTime)
                     .Where(x => x.CriticalTime.HasValue)
                     .ProjectInto<ProcessedMessage>()
                     .First();
-                Assert.AreEqual("2", firstByCriticalTimeDescription.Id);
+                Assert.That(firstByCriticalTimeDescription.Id, Is.EqualTo("2"));
             }
         }
 
@@ -142,13 +142,13 @@
                     .OrderBy(x => x.TimeSent)
                     .ProjectInto<ProcessedMessage>()
                     .First();
-                Assert.AreEqual("3", firstByTimeSent.Id);
+                Assert.That(firstByTimeSent.Id, Is.EqualTo("3"));
 
                 var firstByTimeSentDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.TimeSent)
                     .ProjectInto<ProcessedMessage>()
                     .First();
-                Assert.AreEqual("1", firstByTimeSentDescription.Id);
+                Assert.That(firstByTimeSentDescription.Id, Is.EqualTo("1"));
             }
         }
 
@@ -194,8 +194,11 @@
 
                 var messagesWithNoTimestamp = await query.TransformToMessageView().ToArrayAsync();
 
-                Assert.AreEqual(null, messagesWithNoTimestamp[0].TimeSent);
-                Assert.AreEqual(null, messagesWithNoTimestamp[1].TimeSent);
+                Assert.Multiple(() =>
+                {
+                    Assert.That(messagesWithNoTimestamp[0].TimeSent, Is.EqualTo(null));
+                    Assert.That(messagesWithNoTimestamp[1].TimeSent, Is.EqualTo(null));
+                });
             }
         }
 
@@ -240,7 +243,7 @@
 
                 var message = result.Single();
 
-                Assert.AreEqual(expecteMessageStatus, message.Status);
+                Assert.That(message.Status, Is.EqualTo(expecteMessageStatus));
             }
         }
 
@@ -283,7 +286,7 @@
 
                 var message = result.Single();
 
-                Assert.AreEqual(MessageStatus.RepeatedFailure, message.Status);
+                Assert.That(message.Status, Is.EqualTo(MessageStatus.RepeatedFailure));
             }
         }
     }

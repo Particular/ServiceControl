@@ -17,7 +17,7 @@
 
             var actual = JsonSerializer.Serialize(messages, SerializerOptions.Default);
 
-            Assert.AreEqual(expected, actual);
+            Assert.That(actual, Is.EqualTo(expected));
         }
 
         DTO CreateMessages() =>

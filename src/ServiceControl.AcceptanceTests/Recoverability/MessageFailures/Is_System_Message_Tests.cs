@@ -33,8 +33,8 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(failure);
-            Assert.IsFalse(failure.IsSystemMessage);
+            Assert.That(failure, Is.Not.Null);
+            Assert.That(failure.IsSystemMessage, Is.False);
         }
 
         [Test]
@@ -55,8 +55,8 @@
                     return result;
                 })
                 .Run();
-            Assert.IsNotNull(failure);
-            Assert.IsTrue(failure.IsSystemMessage);
+            Assert.That(failure, Is.Not.Null);
+            Assert.That(failure.IsSystemMessage, Is.True);
         }
 
         [Test]
@@ -78,8 +78,8 @@
                     return result;
                 })
                 .Run();
-            Assert.IsNotNull(failure);
-            Assert.IsTrue(failure.IsSystemMessage);
+            Assert.That(failure, Is.Not.Null);
+            Assert.That(failure.IsSystemMessage, Is.True);
         }
 
         [Test]
@@ -102,8 +102,8 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(failure);
-            Assert.IsTrue(failure.IsSystemMessage);
+            Assert.That(failure, Is.Not.Null);
+            Assert.That(failure.IsSystemMessage, Is.True);
         }
 
         [Test]
@@ -124,8 +124,8 @@
                     return result;
                 })
                 .Run();
-            Assert.IsNotNull(failure);
-            Assert.IsFalse(failure.IsSystemMessage);
+            Assert.That(failure, Is.Not.Null);
+            Assert.That(failure.IsSystemMessage, Is.False);
         }
 
         public class ServerEndpoint : EndpointConfigurationBuilder

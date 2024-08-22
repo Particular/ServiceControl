@@ -22,8 +22,11 @@ class AuditServiceMetadataTests : PersistenceTestBase
 
         //Assert
         Assert.That(retrievedAuditServiceMetadata, Is.Not.Null);
-        Assert.That(retrievedAuditServiceMetadata.Transports, Is.EquivalentTo(expectedAuditServiceMetadata.Transports));
-        Assert.That(retrievedAuditServiceMetadata.Versions, Is.EquivalentTo(expectedAuditServiceMetadata.Versions));
+        Assert.Multiple(() =>
+        {
+            Assert.That(retrievedAuditServiceMetadata.Transports, Is.EquivalentTo(expectedAuditServiceMetadata.Transports));
+            Assert.That(retrievedAuditServiceMetadata.Versions, Is.EquivalentTo(expectedAuditServiceMetadata.Versions));
+        });
     }
 
     [Test]
@@ -44,7 +47,10 @@ class AuditServiceMetadataTests : PersistenceTestBase
 
         // Assert
         Assert.That(retrievedAuditServiceMetadata, Is.Not.Null);
-        Assert.That(retrievedAuditServiceMetadata.Transports, Is.EquivalentTo(expectedAuditServiceMetadata.Transports));
-        Assert.That(retrievedAuditServiceMetadata.Versions, Is.EquivalentTo(expectedAuditServiceMetadata.Versions));
+        Assert.Multiple(() =>
+        {
+            Assert.That(retrievedAuditServiceMetadata.Transports, Is.EquivalentTo(expectedAuditServiceMetadata.Transports));
+            Assert.That(retrievedAuditServiceMetadata.Versions, Is.EquivalentTo(expectedAuditServiceMetadata.Versions));
+        });
     }
 }

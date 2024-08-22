@@ -32,7 +32,7 @@
                 .Done(c => c.AcknowledgementSent)
                 .Run();
 
-            Assert.IsTrue(context.AcknowledgementSent);
+            Assert.That(context.AcknowledgementSent, Is.True);
         }
 
         public class Context : ScenarioContext
