@@ -9,15 +9,16 @@
     },
     "Setup ServiceControl.Monitoring": {
       "commandName": "Project",
+      "commandLineArgs": "--setup",
       "launchBrowser": false,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "commandLineArgs": "--setup"
+      }
     },
-    "Integrated Setup": {
+    "Setup and Run ServiceControl.Monitoring": {
       "commandName": "Project",
       "commandLineArgs": "--setup-and-run",
+      "launchBrowser": false,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

@@ -13,8 +13,9 @@
 
         public static Task Run()
         {
-            // Contains DLL if executed as `dotnet PATH`, which args passed to Main() do not
+            // Using GetCommandLineArgs instead of the args passed into Main because GetCommandLineArgs provides the entry assembly path
             var args = Environment.GetCommandLineArgs().ToList();
+
             if (!args.Contains(SetupAndRunCmd))
             {
                 return Task.CompletedTask;
@@ -29,7 +30,7 @@
             }
 
             var processPath = Environment.ProcessPath;
-            var commandLine = Environment.CommandLine.Replace(SetupAndRunCmd, SetupCmd);
+
             if (!Path.GetFileNameWithoutExtension(processPath).Equals("dotnet", StringComparison.OrdinalIgnoreCase))
             {
                 args.RemoveAt(0);
