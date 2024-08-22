@@ -16,7 +16,7 @@ The following is the most basic way to create ServiceControl containers using [D
 
 ```shell
 # WARNING: A single database container should not be shared between multiple instances in production scenarios.
-docker run -d -p 8080:8080 particular/servicecontrol-ravendb:latest-x64
+docker run -d -p 8080:8080 particular/servicecontrol-ravendb:latest
 
 # Run with setup entry point to create message queues, then exit and remove the container
 docker run -e TransportType=RabbitMQ.QuorumConventionalRouting -e ConnectionString='host=host.docker.internal' -e RavenDB_ConnectionString='http://host.docker.internal:8080' --rm particular/servicecontrol:latest --setup
@@ -53,7 +53,7 @@ The latest release within a minor version will be tagged with `{major}.{minor}` 
 
 The `servicecontrol`, `servicecontrol-audit`, and `servicecontrol-monitoring` images are multi-arch images based on the `mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled-composite` base image supporting `linux/arm64` and `linux/amd64`.
 
-The `servicecontrol-ravendb` image is based on versions of the [`ravendb/ravendb`](https://hub.docker.com/r/ravendb/ravendb) image, and have separate tags for `-x64`, `-arm64v8`.
+The `servicecontrol-ravendb` image is multi-arch image based on the [`ravendb/ravendb`](https://hub.docker.com/r/ravendb/ravendb) base image supporting `linux/arm64` and `linux/amd64`.
 
 ## Authors
 
