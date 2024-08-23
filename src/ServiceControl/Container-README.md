@@ -8,7 +8,7 @@ The `particular/servicecontrol` image is part of the Particular Service Platform
 | [`particular/servicecontrol-audit`](https://hub.docker.com/r/particular/servicecontrol-audit) | [Instance Documentation](https://docs.particular.net/servicecontrol/audit-instances/)<br/>[Container Documentation](https://docs.particular.net/servicecontrol/audit-instances/deployment/containers) | The audit instance, which stores audit data, and can be scaled out to multiple audit instances |
 | [`particular/servicecontrol-monitoring`](https://hub.docker.com/r/particular/servicecontrol-monitoring) | [Instance Documentation](https://docs.particular.net/servicecontrol/monitoring-instances/)<br/>[Container Documentation](https://docs.particular.net/servicecontrol/monitoring-instances/deployment/containers) | The monitoring instance, which tracks runtime information like throughput, queue length, and other metrics |
 | [`particular/servicecontrol-ravendb`](https://hub.docker.com/r/particular/servicecontrol-ravendb) | [Container Documentation](https://docs.particular.net/servicecontrol/ravendb/containers) | The database used by the error/audit instances |
-| [`particular/servicepulse`](https://hub.docker.com/r/particular/servicecontrol-ravendb) | [App Documentation](https://docs.particular.net/servicepulse/)<br/>[Container Documentation](https://docs.particular.net/servicepulse/containerization/) | The web application that provides a front end for recoverability and monitoring features |
+| [`particular/servicepulse`](https://hub.docker.com/r/particular/servicepulse) | [App Documentation](https://docs.particular.net/servicepulse/)<br/>[Container Documentation](https://docs.particular.net/servicepulse/containerization/) | The web application that provides a front end for recoverability and monitoring features |
 
 ## Usage
 
@@ -19,7 +19,7 @@ docker run -d --name servicecontrol -p 33333:33333 \
     -e TRANSPORTTYPE=RabbitMQ.QuorumConventionalRouting \
     -e CONNECTIONSTRING="host=rabbitmq" \
     -e RAVENDB_CONNECTIONSTRING="http://servicecontrol-db:8080" \
-    -e REMOTEINSTANCES='[{"api_uri":"http://audit:44444/api"}]'
+    -e REMOTEINSTANCES='[{"api_uri":"http://audit:44444/api"}]' \
     particular/servicecontrol:latest --setup-and-run
 ```
 
@@ -47,9 +47,7 @@ The latest release within a minor version will be tagged with `{major}.{minor}` 
 
 ## Image architecture
 
-The `servicecontrol`, `servicecontrol-audit`, and `servicecontrol-monitoring` images are multi-arch images based on the `mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled-composite` base image supporting `linux/arm64` and `linux/amd64`.
-
-The `servicecontrol-ravendb` image is a multi-arch image based on the [`ravendb/ravendb`](https://hub.docker.com/r/ravendb/ravendb) base image supporting `linux/arm64` and `linux/amd64`.
+This image is a multi-arch image based on the [`mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled-composite`](https://mcr.microsoft.com/en-us/product/dotnet/aspnet/about) base image supporting `linux/arm64` and `linux/amd64`.
 
 ## Authors
 
