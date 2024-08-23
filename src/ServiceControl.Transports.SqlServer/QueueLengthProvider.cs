@@ -99,7 +99,7 @@
 
         async Task UpdateChunk(SqlConnection connection, KeyValuePair<SqlTable, int>[] chunk, CancellationToken cancellationToken)
         {
-            var query = string.Join(Environment.NewLine, chunk.Select(c => BuildQueueLengthQuery(c.Key)));
+            var query = string.Join(Environment.NewLine, chunk.Select(c => c.Key.LengthQuery));
 
             await using var command = new SqlCommand(query, connection);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -120,32 +120,6 @@
 
                 await reader.NextResultAsync(cancellationToken);
             }
-        }
-
-        static string BuildQueueLengthQuery(SqlTable t)
-        {
-            //HINT: The query approximates queue length value based on max and min
-            //      of RowVersion IDENTITY(1,1) column. There are couple of scenarios
-            //      that might lead to the approximation being off. More details here:
-            //      https://docs.microsoft.com/en-us/sql/t-sql/statements/create-table-transact-sql-identity-property?view=sql-server-ver15#remarks
-            //
-            //      Min and Max values return NULL when no rows are found.
-            if (t.QuotedCatalog == null)
-            {
-                return $"""
-                        IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{t.UnquotedSchema}' AND TABLE_NAME = '{t.UnquotedName}'))
-                          SELECT isnull(cast(max([RowVersion]) - min([RowVersion]) + 1 AS int), 0) FROM {t.QuotedSchema}.{t.QuotedName} WITH (nolock)
-                        ELSE
-                          SELECT -1;
-                        """;
-            }
-
-            return $"""
-                    IF (EXISTS (SELECT TABLE_NAME FROM {t.QuotedCatalog}.INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{t.UnquotedSchema}' AND TABLE_NAME = '{t.UnquotedName}'))
-                      SELECT isnull(cast(max([RowVersion]) - min([RowVersion]) + 1 AS int), 0) FROM {t.QuotedCatalog}.{t.QuotedSchema}.{t.QuotedName} WITH (nolock)
-                    ELSE
-                      SELECT -1;
-                    """;
         }
 
         readonly ConcurrentDictionary<EndpointToQueueMapping, SqlTable> tableNames = new ConcurrentDictionary<EndpointToQueueMapping, SqlTable>();
