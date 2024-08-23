@@ -1,4 +1,4 @@
-# Particular Software ServiceControl
+# Particular Software ServiceControl Monitoring
 
 The `particular/servicecontrol-monitoring` image is part of the Particular Service Platform, which includes the following images:
 

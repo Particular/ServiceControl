@@ -1,6 +1,6 @@
 # Particular Software ServiceControl RavenDB
 
-This image is part of the Particular Service Platform, which includes the following images:
+The `particular/servicecontrol-ravendb` image is part of the Particular Service Platform, which includes the following images:
 
 | Image Name | Documentation | Purpose |
 |------------|---------------|---------|
