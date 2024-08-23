@@ -45,7 +45,7 @@
     <PackageVersion Include="NServiceBus.Metrics" Version="3.1.0" />
     <PackageVersion Include="NServiceBus.Metrics.ServiceControl" Version="3.0.6" />
     <PackageVersion Include="NServiceBus.Metrics.ServiceControl.Msmq" Version="3.0.1" />
-    <PackageVersion Include="NServiceBus.RabbitMQ" Version="7.0.5" />
+    <PackageVersion Include="NServiceBus.RabbitMQ" Version="7.0.7" />
     <PackageVersion Include="NServiceBus.SagaAudit" Version="3.0.1" />
     <PackageVersion Include="NServiceBus.Testing" Version="7.4.2" />
     <PackageVersion Include="NServiceBus.Transport.AzureServiceBus" Version="2.0.6" />
