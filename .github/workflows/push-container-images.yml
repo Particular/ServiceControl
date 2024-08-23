@@ -52,7 +52,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: particular/servicecontrol
-          readme-filepath: ./Container-README.md
+          readme-filepath: ./src/ServiceControl/Container-README.md
       - name: Update Docker Hub Description - Audit
         if: ${{ steps.validate.outputs.latest == 'true' }}
         uses: peter-evans/dockerhub-description@v4.0.0
@@ -60,7 +60,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: particular/servicecontrol-audit
-          readme-filepath: ./Container-README.md
+          readme-filepath: ./src/ServiceControl.Audit/Container-README.md
       - name: Update Docker Hub Description - Monitoring
         if: ${{ steps.validate.outputs.latest == 'true' }}
         uses: peter-evans/dockerhub-description@v4.0.0
@@ -68,7 +68,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: particular/servicecontrol-monitoring
-          readme-filepath: ./Container-README.md
+          readme-filepath: ./src/ServiceControl.Monitoring/Container-README.md
       - name: Update Docker Hub Description - RavenDB
         if: ${{ steps.validate.outputs.latest == 'true' }}
         uses: peter-evans/dockerhub-description@v4.0.0
