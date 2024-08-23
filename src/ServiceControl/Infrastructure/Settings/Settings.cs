@@ -64,7 +64,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             RemoteInstances = GetRemoteInstances().ToArray();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
-
+            TrackInstancesInitialValue = SettingsReader.Read(SettingsRootNamespace, "TrackInstancesInitialValue", true);
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
 
@@ -167,6 +167,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public TimeSpan EventsRetentionPeriod { get; }
 
         public string InstanceName { get; init; } = DEFAULT_INSTANCE_NAME;
+        public bool TrackInstancesInitialValue { get; }
 
         public string TransportConnectionString { get; set; }
         public TimeSpan ProcessRetryBatchesFrequency { get; set; }

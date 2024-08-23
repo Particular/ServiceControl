@@ -188,6 +188,7 @@ namespace ServiceControl.RavenDB
 
             var startupMessage = $@"
 -------------------------------------------------------------
+Database Url:                       {configuration.ServerUrl}
 Database Path:                      {configuration.DbPath}
 Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)}
 Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
