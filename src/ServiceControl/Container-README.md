@@ -1,6 +1,6 @@
-# Particular Software ServiceControl RavenDB
+# Particular Software ServiceControl
 
-The `particular/servicecontrol-ravendb` image is part of the Particular Service Platform, which includes the following images:
+The `particular/servicecontrol` image is part of the Particular Service Platform, which includes the following images:
 
 | Image Name | Documentation | Purpose |
 |------------|---------------|---------|
@@ -10,23 +10,20 @@ The `particular/servicecontrol-ravendb` image is part of the Particular Service 
 | [`particular/servicecontrol-ravendb`](https://hub.docker.com/r/particular/servicecontrol-ravendb) | [Container Documentation](https://docs.particular.net/servicecontrol/ravendb/containers) | The database used by the error/audit instances |
 | [`particular/servicepulse`](https://hub.docker.com/r/particular/servicepulse) | [App Documentation](https://docs.particular.net/servicepulse/)<br/>[Container Documentation](https://docs.particular.net/servicepulse/containerization/) | The web application that provides a front end for recoverability and monitoring features |
 
-This image is the database used by the [`particular/servicecontrol`](https://hub.docker.com/r/particular/servicecontrol) and [`particular/servicecontrol-audit`](https://hub.docker.com/r/particular/servicecontrol-audit) images, based on the official [RavenDB image](https://hub.docker.com/r/ravendb/ravendb).
-
-The purpose of this image is to provide version parity between ServiceControl and database containers. Users can be sure that a given version of the `servicecontrol` and `servicecontrol-audit` container images have been tested with and are known to work with the matching version of `servicecontrol-ravendb`.
-
 ## Usage
 
-This is the most basic way to start the container using `docker run`:
+The following is the most basic way to create ServiceControl containers using [Docker](https://www.docker.com/), assuming a RabbitMQ message broker also hosted in a Docker container using default `guest`/`guest` credentials:
 
 ```shell
-docker run -d --name servicecontrol-db \
-    -v <DATA_DIRECTORY>:/opt/RavenDB/Server/RavenData \
-    particular/servicecontrol-ravendb:latest
+docker run -d --name servicecontrol -p 33333:33333 \
+    -e TRANSPORTTYPE=RabbitMQ.QuorumConventionalRouting \
+    -e CONNECTIONSTRING="host=rabbitmq" \
+    -e RAVENDB_CONNECTIONSTRING="http://servicecontrol-db:8080" \
+    -e REMOTEINSTANCES='[{"api_uri":"http://audit:44444/api"}]' \
+    particular/servicecontrol:latest --setup-and-run
 ```
 
-For all other usage information see the [official container documentation](https://docs.particular.net/servicecontrol/ravendb/containers).
-
-_**IMPORTANT:**  A single database container should not be shared between multiple ServiceControl instances in production scenarios._
+For all other usage information see the [official container documentation](https://docs.particular.net/servicecontrol/servicecontrol-instances/deployment/containers).
 
 ## Image tagging
 
@@ -50,4 +47,12 @@ The latest release within a minor version will be tagged with `{major}.{minor}` 
 
 ## Image architecture
 
-This image is a multi-arch image based on the [`ravendb/ravendb`](https://hub.docker.com/r/ravendb/ravendb) base image supporting `linux/arm64` and `linux/amd64`.
+This image is a multi-arch image based on the [`mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled-composite`](https://mcr.microsoft.com/en-us/product/dotnet/aspnet/about) base image supporting `linux/arm64` and `linux/amd64`.
+
+## Authors
+
+This software, including this container image, is built and maintained by the team at Particular Software. See also the list of contributors who participated in this project.
+
+## License
+
+This project is licensed under the Reciprocal Public License 1.5 (RPL1.5) and commercial licenses are available - see the [source repository license file](https://github.com/Particular/ServiceControl/blob/master/LICENSE.md) for more information.
