@@ -9,11 +9,19 @@
     },
     "Setup ServiceControl": {
       "commandName": "Project",
+      "commandLineArgs": "--setup",
       "launchBrowser": false,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "commandLineArgs": "--setup"
+      }
+    },
+    "Setup and Run ServiceControl": {
+      "commandName": "Project",
+      "commandLineArgs": "--setup-and-run",
+      "launchBrowser": false,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
     }
   }
 }
