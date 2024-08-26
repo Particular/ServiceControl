@@ -71,7 +71,7 @@
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
     <PackageVersion Include="System.Management" Version="7.0.2" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
-    <PackageVersion Include="System.Text.Json" Version="7.0.3" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.4" />
     <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
     <PackageVersion Include="Windows7APICodePack-Shell" Version="1.1.0" />
