@@ -11,7 +11,7 @@ footer {
   background-color: #fff;
   position: fixed;
   bottom: 0;
-  border: 1px solid #ddd;
+  border-top: 1px solid #ddd;
   box-shadow: 0px -10px 16px #f2f6f7;
   padding-top: 7px;
   z-index: 999; /* this needs to fight with vue-highlight-code which forces z-index to 700 */
@@ -40,6 +40,10 @@ footer span.newscversion {
 footer span.monitoring-connected,
 footer span.monitoring-connected span {
   padding-right: 0;
+}
+
+.footer .container {
+  width: 100%;
 }
 
 footer span {
@@ -98,4 +102,10 @@ footer a:hover {
   .connectivity-status .secondary {
     display: inline-block;
   }
+}
+
+.trialLicenseBar {
+  background-color: darkred;
+  color: white;
+  font-weight: bold;
 }
