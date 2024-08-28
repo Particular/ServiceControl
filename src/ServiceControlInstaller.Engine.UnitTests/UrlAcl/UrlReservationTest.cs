@@ -13,9 +13,12 @@
         public void GetAllResults()
         {
             var reservations = UrlReservation.GetAll();
-            Assert.That(reservations.Count > 0, Is.True, "No UrlAcls found");
-            Assert.That(reservations.All(p => !string.IsNullOrWhiteSpace(p.Url)), Is.True, "UrlAcls found with empty URLs");
-            Assert.That(reservations.All(p => p.Users.Count > 0), Is.True, "UrlAcls found with empty delegations");
+            Assert.Multiple(() =>
+            {
+                Assert.That(reservations.Count > 0, Is.True, "No UrlAcls found");
+                Assert.That(reservations.All(p => !string.IsNullOrWhiteSpace(p.Url)), Is.True, "UrlAcls found with empty URLs");
+                Assert.That(reservations.All(p => p.Users.Count > 0), Is.True, "UrlAcls found with empty delegations");
+            });
 
             foreach (var x in reservations)
             {
@@ -67,8 +70,11 @@
             reservation2.Create();
 
             var actual = UrlReservation.GetAll().First(p => p.Url == reservation.Url);
-            Assert.That(actual.Users.Count == 1, Is.True, "user count is incorrect");
-            Assert.That(actual.Users.Contains(account.Value, StringComparer.OrdinalIgnoreCase), Is.True, "wrong user found");
+            Assert.Multiple(() =>
+            {
+                Assert.That(actual.Users.Count == 1, Is.True, "user count is incorrect");
+                Assert.That(actual.Users.Contains(account.Value, StringComparer.OrdinalIgnoreCase), Is.True, "wrong user found");
+            });
         }
 
         [Test]
@@ -96,33 +102,48 @@
         public void CheckPatternMatching()
         {
             var testUrl = new UrlReservation("http://localhost/");
-            Assert.That(testUrl.HTTPS, Is.False);
-            Assert.That(testUrl.HostName == "localhost", Is.True);
-            Assert.That(testUrl.Port == 80, Is.True);
-            Assert.That(testUrl.VirtualDirectory == string.Empty, Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(testUrl.HTTPS, Is.False);
+                Assert.That(testUrl.HostName == "localhost", Is.True);
+                Assert.That(testUrl.Port == 80, Is.True);
+                Assert.That(testUrl.VirtualDirectory == string.Empty, Is.True);
+            });
 
             testUrl = new UrlReservation("https://localhost:8000/");
-            Assert.That(testUrl.HTTPS, Is.True);
-            Assert.That(testUrl.HostName == "localhost", Is.True);
-            Assert.That(testUrl.Port == 8000, Is.True);
-            Assert.That(testUrl.VirtualDirectory == string.Empty, Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(testUrl.HTTPS, Is.True);
+                Assert.That(testUrl.HostName == "localhost", Is.True);
+                Assert.That(testUrl.Port == 8000, Is.True);
+                Assert.That(testUrl.VirtualDirectory == string.Empty, Is.True);
+            });
 
             testUrl = new UrlReservation("https://localhost:8000/foo/api/");
-            Assert.That(testUrl.HTTPS, Is.True);
-            Assert.That(testUrl.HostName == "localhost", Is.True);
-            Assert.That(testUrl.Port == 8000, Is.True);
-            Assert.That(testUrl.VirtualDirectory == "foo/api", Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(testUrl.HTTPS, Is.True);
+                Assert.That(testUrl.HostName == "localhost", Is.True);
+                Assert.That(testUrl.Port == 8000, Is.True);
+                Assert.That(testUrl.VirtualDirectory == "foo/api", Is.True);
+            });
 
             testUrl = new UrlReservation("https://localhost/foo/api/");
-            Assert.That(testUrl.HTTPS, Is.True);
-            Assert.That(testUrl.HostName == "localhost", Is.True);
-            Assert.That(testUrl.Port == 443, Is.True);
-            Assert.That(testUrl.VirtualDirectory == "foo/api", Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(testUrl.HTTPS, Is.True);
+                Assert.That(testUrl.HostName == "localhost", Is.True);
+                Assert.That(testUrl.Port == 443, Is.True);
+                Assert.That(testUrl.VirtualDirectory == "foo/api", Is.True);
+            });
 
             testUrl = new UrlReservation("https://[::1]:10253/");
-            Assert.That(testUrl.HTTPS, Is.True);
-            Assert.That(testUrl.HostName == "[::1]", Is.True);
-            Assert.That(testUrl.Port == 10253, Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(testUrl.HTTPS, Is.True);
+                Assert.That(testUrl.HostName == "[::1]", Is.True);
+                Assert.That(testUrl.Port == 10253, Is.True);
+            });
 
             Assert.Throws<ArgumentException>(() => new UrlReservation("https://localhost:8000/foo/api"), "UrlAcl is invalid without trailing /");
         }
