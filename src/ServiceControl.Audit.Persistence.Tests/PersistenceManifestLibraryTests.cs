@@ -35,7 +35,7 @@
             var fakePersistenceType = "My.fake.persistence, fakeTransportAssembly";
             var persistenceManifest = PersistenceManifestLibrary.Find(fakePersistenceType);
 
-            Assert.IsNull(persistenceManifest);
+            Assert.That(persistenceManifest, Is.Null);
         }
 
         [Test]
@@ -59,15 +59,15 @@
                 var assemblyFile = Path.Combine(definition.Location, assemblyName + ".dll");
                 var assembly = Assembly.LoadFrom(assemblyFile);
 
-                Assert.IsNotNull(assembly, $"Could not load assembly {assemblyName}");
+                Assert.That(assembly, Is.Not.Null, $"Could not load assembly {assemblyName}");
 
                 var fullName = definition.TypeName.Split(',').FirstOrDefault();
                 var foundType = assembly.GetType(fullName);
 
-                Assert.IsNotNull(foundType, $"Persistence type {definition.TypeName} not found in assembly {assemblyName}");
+                Assert.That(foundType, Is.Not.Null, $"Persistence type {definition.TypeName} not found in assembly {assemblyName}");
             }
 
-            Assert.NotZero(count, "No persistence manifests found.");
+            Assert.That(count, Is.Not.Zero, "No persistence manifests found.");
         }
     }
 }

@@ -34,7 +34,7 @@
 
             instance.UpgradeFiles(zipResourceName);
 
-            FileAssert.Exists(configFile);
+            Assert.That(configFile, Does.Exist);
 
             var upgradedConfigContents = File.ReadAllText(configFile);
 
@@ -63,8 +63,8 @@
             instance.RemoveLogsFolder();
             instance.RemoveDataBaseFolder();
 
-            Assert.False(Directory.Exists(LogPath));
-            Assert.False(Directory.Exists(DbPath));
+            Assert.That(Directory.Exists(LogPath), Is.False);
+            Assert.That(Directory.Exists(DbPath), Is.False);
         }
 
         class FakeWindowsServiceController : IWindowsServiceController

@@ -46,7 +46,7 @@
 
             var allMessagesProcessed = await onMessagesProcessed.Task;
 
-            Assert.True(allMessagesProcessed);
+            Assert.That(allMessagesProcessed, Is.True);
         }
 
         [Test]
@@ -71,7 +71,7 @@
 
             var onErrorWasCalled = await onErrorCalled.Task;
 
-            Assert.True(onErrorWasCalled);
+            Assert.That(onErrorWasCalled, Is.True);
         }
     }
 }

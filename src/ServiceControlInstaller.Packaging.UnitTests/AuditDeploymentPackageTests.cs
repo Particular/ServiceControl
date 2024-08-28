@@ -26,8 +26,8 @@ namespace Tests
 
             foreach (var persister in persisters)
             {
-                Assert.IsFalse(persister.Files.Any(f => f.Name.EndsWith(".config")), $"{persister.Name} contains a config file");
-                Assert.IsTrue(persister.Files.Any(f => f.Name == "persistence.manifest"), $"{persister.Name} doesn't contain a persistence.manifest file");
+                Assert.That(persister.Files.Any(f => f.Name.EndsWith(".config")), Is.False, $"{persister.Name} contains a config file");
+                Assert.That(persister.Files.Any(f => f.Name == "persistence.manifest"), Is.True, $"{persister.Name} doesn't contain a persistence.manifest file");
             }
         }
 
@@ -37,8 +37,11 @@ namespace Tests
             var inPersisterPath = Path.Combine(deploymentPackage.Directory.FullName, "Persisters", "RavenDB", "RavenDBServer");
             var separateAssetPath = Path.GetFullPath(Path.Combine(deploymentPackage.Directory.FullName, "..", "RavenDBServer"));
 
-            DirectoryAssert.DoesNotExist(inPersisterPath, "RavenDBServer should not be bundled inside the persister");
-            DirectoryAssert.Exists(separateAssetPath, "RavenDBServer should be bundled as its own resource");
+            Assert.Multiple(() =>
+            {
+                Assert.That(inPersisterPath, Does.Not.Exist, "RavenDBServer should not be bundled inside the persister");
+                Assert.That(separateAssetPath, Does.Exist, "RavenDBServer should be bundled as its own resource");
+            });
         }
 
         readonly DeploymentPackage deploymentPackage;

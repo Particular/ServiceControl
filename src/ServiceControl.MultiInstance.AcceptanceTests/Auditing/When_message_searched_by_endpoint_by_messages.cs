@@ -40,7 +40,7 @@
             var remote1Message = response.SingleOrDefault(msg => msg.MessageId == context.Remote1MessageId);
 
             Assert.That(remote1Message, Is.Not.Null, "Remote1 message not found");
-            Assert.AreEqual(expectedRemote1InstanceId, remote1Message.InstanceId, "Remote1 instance id mismatch");
+            Assert.That(expectedRemote1InstanceId, Is.EqualTo(remote1Message.InstanceId), "Remote1 instance id mismatch");
         }
 
         public class Sender : EndpointConfigurationBuilder

@@ -103,20 +103,20 @@
             msmqTestInstance.Port = 33338;
             msmqTestInstance.DatabaseMaintenancePort = 33339;
             await installer.Update(msmqTestInstance, true).ConfigureAwait(false);
-            Assert.IsTrue(msmqTestInstance.Service.Status == ServiceControllerStatus.Running, "Update URL change failed");
+            Assert.That(msmqTestInstance.Service.Status, Is.EqualTo(ServiceControllerStatus.Running), "Update URL change failed");
 
             logger.Info("Changing LogPath");
             msmqTestInstance = InstanceFinder.ServiceControlInstances().First(p => p.Name.Equals("Test.ServiceControl.MSMQ", StringComparison.OrdinalIgnoreCase));
             msmqTestInstance.LogPath = Path.Combine(Path.GetTempPath(), "testloggingchange");
             await installer.Update(msmqTestInstance, true).ConfigureAwait(false);
-            Assert.IsTrue(msmqTestInstance.Service.Status == ServiceControllerStatus.Running, "Update Logging changed failed");
+            Assert.That(msmqTestInstance.Service.Status, Is.EqualTo(ServiceControllerStatus.Running), "Update Logging changed failed");
 
             logger.Info("Updating Queue paths");
             msmqTestInstance = InstanceFinder.ServiceControlInstances().First(p => p.Name.Equals("Test.ServiceControl.MSMQ", StringComparison.OrdinalIgnoreCase));
             msmqTestInstance.AuditQueue = "alternateAudit";
             msmqTestInstance.ErrorQueue = "alternateError";
             await installer.Update(msmqTestInstance, true).ConfigureAwait(false);
-            Assert.IsTrue(msmqTestInstance.Service.Status == ServiceControllerStatus.Running, "Update Queues changed failed");
+            Assert.That(msmqTestInstance.Service.Status, Is.EqualTo(ServiceControllerStatus.Running), "Update Queues changed failed");
         }
 
         void RemoveAltMSMQQueues()

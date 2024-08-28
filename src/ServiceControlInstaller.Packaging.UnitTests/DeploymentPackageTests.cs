@@ -19,12 +19,12 @@ namespace Tests
         {
             var rootDirectory = deploymentPackage.Directory;
 
-            DirectoryAssert.Exists($"{rootDirectory.FullName}", $"Expected a {rootDirectory.Name} folder");
-            DirectoryAssert.Exists($"{rootDirectory.FullName}/Transports", $"Expected a Transports subfolder in the {rootDirectory.Name} folder");
+            Assert.That($"{rootDirectory.FullName}", Does.Exist, $"Expected a {rootDirectory.Name} folder");
+            Assert.That($"{rootDirectory.FullName}/Transports", Does.Exist, $"Expected a Transports subfolder in the {rootDirectory.Name} folder");
 
             foreach (var deploymentUnit in deploymentPackage.DeploymentUnits)
             {
-                Assert.False(string.IsNullOrEmpty(deploymentUnit.Category), "All deployment units should have a category");
+                Assert.That(string.IsNullOrEmpty(deploymentUnit.Category), Is.False, "All deployment units should have a category");
                 Assert.That(deploymentUnit.Files, Is.Not.Empty, "All deployment units should have assemblies");
             }
         }

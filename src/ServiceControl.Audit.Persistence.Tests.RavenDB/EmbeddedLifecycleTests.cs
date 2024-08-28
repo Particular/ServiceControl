@@ -37,8 +37,11 @@
         {
             await DataStore.QueryKnownEndpoints();
 
-            DirectoryAssert.Exists(dbPath);
-            DirectoryAssert.Exists(logPath);
+            Assert.Multiple(() =>
+            {
+                Assert.That(dbPath, Does.Exist);
+                Assert.That(logPath, Does.Exist);
+            });
         }
     }
 }

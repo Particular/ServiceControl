@@ -47,7 +47,7 @@ class RabbitMQQueryTests : TransportTestFixture
         query.Initialize(new ReadOnlyDictionary<string, string>(dictionary));
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
-        Assert.IsFalse(success);
+        Assert.That(success, Is.False);
         Approver.Verify(diagnostics,
             s => Regex.Replace(s, "defaulted to using \"\\w*\" username", "defaulted to using \"xxxxx\" username",
                 RegexOptions.Multiline));
@@ -61,7 +61,7 @@ class RabbitMQQueryTests : TransportTestFixture
         query.Initialize(ReadOnlyDictionary<string, string>.Empty);
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
-        Assert.IsTrue(success);
+        Assert.That(success, Is.True);
         Approver.Verify(diagnostics,
             s =>
             {
@@ -92,7 +92,7 @@ class RabbitMQQueryTests : TransportTestFixture
         }
 
         IBrokerQueue queue = queueNames.Find(name => name.QueueName == transportSettings.EndpointName);
-        Assert.IsNotNull(queue);
+        Assert.That(queue, Is.Not.Null);
 
         long total = 0L;
         const int numMessagesToIngest = 15;
@@ -124,6 +124,6 @@ class RabbitMQQueryTests : TransportTestFixture
         await runScenarioAndAdvanceTime.WaitAsync(token);
 
         // Asserting that we have one message per hour during 24 hours, the first snapshot is not counted hence the 23 assertion. 
-        Assert.Greater(total, numMessagesToIngest);
+        Assert.That(total, Is.GreaterThan(numMessagesToIngest));
     }
 }

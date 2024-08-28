@@ -198,7 +198,7 @@
             }
 
             bool allMessagesProcessed = await onMessagesProcessed.Task;
-            Assert.True(allMessagesProcessed);
+            Assert.That(allMessagesProcessed, Is.True);
 
             if (queueIngestor != null)
             {
