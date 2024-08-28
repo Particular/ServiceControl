@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Contracts;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using Particular.Approvals;
@@ -13,6 +14,8 @@ using Particular.LicensingComponent.AuditThroughput;
 using Particular.LicensingComponent.UnitTests.Infrastructure;
 using ServiceControl.Api;
 using ServiceControl.Api.Contracts;
+using AuditCount = ServiceControl.Api.Contracts.AuditCount;
+using Endpoint = ServiceControl.Api.Contracts.Endpoint;
 
 [TestFixture]
 class AuditQuery_Tests : ThroughputCollectorTestFixture
@@ -32,14 +35,15 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
 
         //Act
         var endpoints = await auditQuery.GetKnownEndpoints(default);
+        var serviceControlEndpoints = endpoints.ToList();
 
         //Assert
-        Assert.That(endpoints, Is.Not.Null, "Endpoints should be found");
-        Assert.That(endpoints.Count, Is.EqualTo(2), "Invalid number of on known endpoints");
+        Assert.That(serviceControlEndpoints, Is.Not.Null, "Endpoints should be found");
+        Assert.That(serviceControlEndpoints.Count, Is.EqualTo(2), "Invalid number of on known endpoints");
         Assert.Multiple(() =>
         {
-            Assert.That(endpoints.Any(a => a.Name == "Endpoint1"), Is.True, "Should have found Endpoint1");
-            Assert.That(endpoints.Any(a => a.Name == "Endpoint2"), Is.True, "Should have found Endpoint2");
+            Assert.That(serviceControlEndpoints.Any(a => a.Name == "Endpoint1"), Is.True, "Should have found Endpoint1");
+            Assert.That(serviceControlEndpoints.Any(a => a.Name == "Endpoint2"), Is.True, "Should have found Endpoint2");
         });
     }
 
@@ -62,9 +66,13 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
             Assert.That(remotes[0].Retention, Is.EqualTo(new TimeSpan(7, 0, 0, 0)), "Invalid Retention on remote");
             Assert.That(remotes[0].Queues, Is.Not.Null, "Queues should be reported on remote");
         });
+
         Assert.That(remotes[0].Queues, Has.Count.EqualTo(2), "Invalid number of queues reported on remote");
-        Assert.That(remotes[0].Queues, Does.Contain("audit"), "Should have foind audit queue");
-        Assert.That(remotes[0].Queues, Does.Contain("audit.log"), "Should have found audit.log queue");
+        Assert.Multiple(() =>
+        {
+            Assert.That(remotes[0].Queues, Does.Contain("audit"), "Should have foind audit queue");
+            Assert.That(remotes[0].Queues, Does.Contain("audit.log"), "Should have found audit.log queue");
+        });
     }
 
     [Test]

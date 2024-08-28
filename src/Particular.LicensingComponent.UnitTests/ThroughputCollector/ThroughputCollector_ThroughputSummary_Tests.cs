@@ -131,9 +131,9 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
 
         Assert.Multiple(() =>
         {
-            Assert.That(summary.FirstOrDefault(w => w.Name == "Endpoint1").MaxDailyThroughput, Is.EqualTo(65), $"Incorrect MaxDailyThroughput recorded for Endpoint1");
-            Assert.That(summary.FirstOrDefault(w => w.Name == "Endpoint2").MaxDailyThroughput, Is.EqualTo(65), $"Incorrect MaxDailyThroughput recorded for Endpoint2");
-            Assert.That(summary.FirstOrDefault(w => w.Name == "Endpoint3").MaxDailyThroughput, Is.EqualTo(57), $"Incorrect MaxDailyThroughput recorded for Endpoint3");
+            Assert.That(summary.First(w => w.Name == "Endpoint1").MaxDailyThroughput, Is.EqualTo(65), $"Incorrect MaxDailyThroughput recorded for Endpoint1");
+            Assert.That(summary.First(w => w.Name == "Endpoint2").MaxDailyThroughput, Is.EqualTo(65), $"Incorrect MaxDailyThroughput recorded for Endpoint2");
+            Assert.That(summary.First(w => w.Name == "Endpoint3").MaxDailyThroughput, Is.EqualTo(57), $"Incorrect MaxDailyThroughput recorded for Endpoint3");
         });
     }
 

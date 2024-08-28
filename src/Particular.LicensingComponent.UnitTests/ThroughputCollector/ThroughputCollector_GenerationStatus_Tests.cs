@@ -27,9 +27,9 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
         // Act
         var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
 
+        // Assert
         Assert.Multiple(() =>
         {
-            // Assert
             Assert.That(reportGenerationState.ReportCanBeGenerated, Is.True);
             Assert.That(reportGenerationState.Reason, Is.EqualTo(""));
         });
@@ -47,9 +47,9 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
         // Act
         var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
 
+        // Assert
         Assert.Multiple(() =>
         {
-            // Assert
             Assert.That(reportGenerationState.ReportCanBeGenerated, Is.True);
             Assert.That(reportGenerationState.Reason, Is.EqualTo(""));
         });
@@ -68,9 +68,9 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
         // Act
         var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
 
+        // Assert
         Assert.Multiple(() =>
         {
-            // Assert
             Assert.That(reportGenerationState.ReportCanBeGenerated, Is.False);
             Assert.That(reportGenerationState.Reason, Does.Contain("one day"), "Report generation failure reason does not contain 'one day'");
         });
@@ -89,9 +89,9 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
         // Act
         var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
 
+        // Assert
         Assert.Multiple(() =>
         {
-            // Assert
             Assert.That(reportGenerationState.ReportCanBeGenerated, Is.False);
             Assert.That(reportGenerationState.Reason, Does.Contain("one day"), "Report generation failure reason does not contain 'one day'");
         });

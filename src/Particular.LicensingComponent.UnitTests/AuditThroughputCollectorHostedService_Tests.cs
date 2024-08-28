@@ -191,22 +191,15 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         Assert.Multiple(() =>
         {
             Assert.That(foundEndpoint.Id.Name, Is.EqualTo(endpointName), $"Expected name to be {endpointName}");
-
             Assert.That(foundEndpointThroughput, Is.Not.Null, "Expected endpoint throughput");
         });
-        Assert.Multiple(() =>
-        {
-            Assert.That(foundEndpointThroughput.ContainsKey(endpointName), Is.True,
-                    $"Expected throughput for {endpointName}");
+        Assert.That(foundEndpointThroughput.ContainsKey(endpointName), Is.True, $"Expected throughput for {endpointName}");
 
-            Assert.That(throughputData.Length, Is.EqualTo(1), $"Expected 1 throughput data for {endpointName}");
-        });
+        Assert.That(throughputData.Length, Is.EqualTo(1), $"Expected 1 throughput data for {endpointName}");
         Assert.Multiple(() =>
         {
-            Assert.That(throughputData[0].ContainsKey(throughputDate), Is.True,
-                    $"Expected throughput for {throughputDate}");
-            Assert.That(throughputData[0][throughputDate], Is.EqualTo(throughputCount),
-                $"Expected throughput for {throughputDate} to be {throughputCount}");
+            Assert.That(throughputData[0].ContainsKey(throughputDate), Is.True, $"Expected throughput for {throughputDate}");
+            Assert.That(throughputData[0][throughputDate], Is.EqualTo(throughputCount), $"Expected throughput for {throughputDate} to be {throughputCount}");
         });
     }
 
