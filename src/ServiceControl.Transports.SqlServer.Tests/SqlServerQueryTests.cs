@@ -68,7 +68,7 @@ class SqlServerQueryTests : TransportTestFixture
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
-        Assert.IsFalse(success);
+        Assert.That(success, Is.False);
         Assert.That(errors.Single(), Does.StartWith("Cannot open database \"not_here\""));
         Approver.Verify(diagnostics,
             s => Regex.Replace(s, "^Login failed for user .*$", "Login failed for user.", RegexOptions.Multiline));
@@ -86,7 +86,7 @@ class SqlServerQueryTests : TransportTestFixture
         query.Initialize(new ReadOnlyDictionary<string, string>(dictionary));
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
-        Assert.IsTrue(success);
+        Assert.That(success, Is.True);
         Approver.Verify(diagnostics);
     }
 
@@ -112,7 +112,7 @@ class SqlServerQueryTests : TransportTestFixture
         }
 
         IBrokerQueue queue = queueNames.Find(name => ((BrokerQueueTable)name).Name == transportSettings.EndpointName);
-        Assert.IsNotNull(queue);
+        Assert.That(queue, Is.Not.Null);
 
         long total = 0L;
         using var reset = new ManualResetEventSlim();

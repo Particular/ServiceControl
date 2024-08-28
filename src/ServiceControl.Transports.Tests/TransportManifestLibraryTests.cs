@@ -21,7 +21,7 @@
         {
             var transportManifest = TransportManifestLibrary.Find(transportName);
 
-            Assert.IsNotNull(transportManifest);
+            Assert.That(transportManifest, Is.Not.Null);
             Assert.That(transportManifest.Name, Is.EqualTo(transportName));
         }
 
@@ -30,7 +30,7 @@
         {
             var transportManifest = TransportManifestLibrary.Find(transportType);
 
-            Assert.IsNotNull(transportManifest);
+            Assert.That(transportManifest, Is.Not.Null);
             Assert.That(transportManifest.TypeName, Is.EqualTo(transportType));
         }
 
@@ -39,7 +39,7 @@
         {
             var transportManifest = TransportManifestLibrary.Find(transportAlias);
 
-            Assert.IsNotNull(transportManifest);
+            Assert.That(transportManifest, Is.Not.Null);
             Assert.That(transportManifest.Aliases[0], Is.EqualTo(transportAlias));
         }
 
@@ -49,7 +49,7 @@
             var fakeTransportType = "My.fake.transport, fakeTransportAssembly";
             var transportManifest = TransportManifestLibrary.Find(fakeTransportType);
 
-            Assert.IsNull(transportManifest);
+            Assert.That(transportManifest, Is.Null);
         }
 
         [Test]
@@ -69,11 +69,11 @@
                 var assemblyFile = Path.Combine(definition.Location, assemblyName + ".dll");
 
                 var assembly = metadataLoadContext.LoadFromAssemblyPath(assemblyFile);
-                Assert.IsNotNull(assembly, $"Could not load assembly {assemblyName}");
+                Assert.That(assembly, Is.Not.Null, $"Could not load assembly {assemblyName}");
 
                 var typeFullName = definition.TypeName.Split(',').FirstOrDefault();
                 var foundType = assembly.GetType(typeFullName);
-                Assert.IsNotNull(foundType, $"Transport type {definition.TypeName} not found in assembly {assemblyName}");
+                Assert.That(foundType, Is.Not.Null, $"Transport type {definition.TypeName} not found in assembly {assemblyName}");
             }
 
             foundTransportNames.Sort();

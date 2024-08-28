@@ -13,8 +13,8 @@
         public void KnownServiceFoundByExe()
         {
             var allServiceHostInstances = WindowsServiceController.FindInstancesByExe(@"svchost.exe").ToList();
-            Assert.IsTrue(allServiceHostInstances.Count > 0);
-            Assert.IsTrue(allServiceHostInstances.All(p => File.Exists(p.ExePath)));
+            Assert.That(allServiceHostInstances.Count, Is.GreaterThan(0));
+            Assert.That(allServiceHostInstances.All(p => File.Exists(p.ExePath)), Is.True);
         }
 
         [Test]

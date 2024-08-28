@@ -5,6 +5,7 @@ namespace Tests
     using System.IO;
     using System.Linq;
     using NUnit.Framework;
+    using NUnit.Framework.Legacy;
 
     [TestFixtureSource(typeof(DeploymentPackage), nameof(DeploymentPackage.All))]
     public class DeploymentPackageTests
@@ -24,7 +25,7 @@ namespace Tests
 
             foreach (var deploymentUnit in deploymentPackage.DeploymentUnits)
             {
-                Assert.False(string.IsNullOrEmpty(deploymentUnit.Category), "All deployment units should have a category");
+                Assert.That(string.IsNullOrEmpty(deploymentUnit.Category), Is.False, "All deployment units should have a category");
                 Assert.That(deploymentUnit.Files, Is.Not.Empty, "All deployment units should have assemblies");
             }
         }

@@ -3,6 +3,7 @@ namespace Tests
     using System.IO;
     using System.Linq;
     using NUnit.Framework;
+    using NUnit.Framework.Legacy;
 
     [TestFixture]
     public class AuditDeploymentPackageTests
@@ -26,8 +27,8 @@ namespace Tests
 
             foreach (var persister in persisters)
             {
-                Assert.IsFalse(persister.Files.Any(f => f.Name.EndsWith(".config")), $"{persister.Name} contains a config file");
-                Assert.IsTrue(persister.Files.Any(f => f.Name == "persistence.manifest"), $"{persister.Name} doesn't contain a persistence.manifest file");
+                Assert.That(persister.Files.Any(f => f.Name.EndsWith(".config")), Is.False, $"{persister.Name} contains a config file");
+                Assert.That(persister.Files.Any(f => f.Name == "persistence.manifest"), Is.True, $"{persister.Name} doesn't contain a persistence.manifest file");
             }
         }
 

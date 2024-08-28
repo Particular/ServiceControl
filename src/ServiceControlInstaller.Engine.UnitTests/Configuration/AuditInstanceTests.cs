@@ -4,6 +4,7 @@
     using System.IO;
     using System.ServiceProcess;
     using NUnit.Framework;
+    using NUnit.Framework.Legacy;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Services;
 
@@ -63,8 +64,8 @@
             instance.RemoveLogsFolder();
             instance.RemoveDataBaseFolder();
 
-            Assert.False(Directory.Exists(LogPath));
-            Assert.False(Directory.Exists(DbPath));
+            Assert.That(Directory.Exists(LogPath), Is.False);
+            Assert.That(Directory.Exists(DbPath), Is.False);
         }
 
         class FakeWindowsServiceController : IWindowsServiceController

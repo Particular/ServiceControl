@@ -22,10 +22,10 @@
             var adminAccount = adminGroup?.Members.FirstOrDefault(p => (p.Context.ContextType == ContextType.Machine) && p.Sid.IsWellKnown(WellKnownSidType.AccountAdministratorSid));
             if (adminAccount != null)
             {
-                Assert.IsFalse(UserAccount.ParseAccountName(adminAccount.Name).CheckPassword($"XXX{Guid.NewGuid():B}"), "Test for Local Admin account should have been false");
+                Assert.That(UserAccount.ParseAccountName(adminAccount.Name).CheckPassword($"XXX{Guid.NewGuid():B}"), Is.False, "Test for Local Admin account should have been false");
             }
 
-            Assert.IsTrue(UserAccount.ParseAccountName("System").CheckPassword(null), "Test for LocalSystem should have been true");
+            Assert.That(UserAccount.ParseAccountName("System").CheckPassword(null), Is.True, "Test for LocalSystem should have been true");
             Assert.Throws<IdentityNotMappedException>(() => UserAccount.ParseAccountName(@"NT Authority\NotAValidAccount").CheckPassword(null), "Test for Invalid System Account should throw IdentityNotMappedException");
             Assert.Throws<IdentityNotMappedException>(() => UserAccount.ParseAccountName("missingaccount").CheckPassword("foo"), "Test for Missing Account should should throw IdentityNotMappedException");
             Assert.Throws<IdentityNotMappedException>(() => UserAccount.ParseAccountName(@"UnknownDomain\AUser").CheckPassword("foo"), "Test for unknown domain should throw IdentityNotMappedException");
@@ -47,7 +47,7 @@
 
             var account = UserAccount.ParseAccountName(accountName);
 
-            Assert.IsTrue(account.CheckPassword(""), "Service account passwords must be blank.");
+            Assert.That(account.CheckPassword(""), Is.True, "Service account passwords must be blank.");
             Assert.Throws<EngineValidationException>(() => account.CheckPassword("MySecret!"), "Service account password cannot have a value and must be blank");
         }
     }

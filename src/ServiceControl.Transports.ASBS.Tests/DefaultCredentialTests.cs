@@ -34,7 +34,7 @@
                 .Done(c => c.EndpointsStarted)
                 .Run();
 
-            Assert.IsTrue(ctx.EndpointsStarted);
+            Assert.That(ctx.EndpointsStarted, Is.True);
         }
 
         public class Context : ScenarioContext

@@ -42,17 +42,17 @@
             var expectedMasterInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[ServiceControlInstanceName].RootUrl);
             var expectedAuditInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[ServiceControlAuditInstanceName].RootUrl);
 
-            Assert.AreNotEqual(expectedMasterInstanceId, expectedAuditInstanceId);
+            Assert.That(expectedMasterInstanceId, Is.Not.EqualTo(expectedAuditInstanceId));
 
             var sentMessage = response.SingleOrDefault(msg => msg.MessageId == context.SentMessageId);
 
             Assert.That(sentMessage, Is.Not.Null, "Sent message not found");
-            Assert.AreEqual(expectedAuditInstanceId, sentMessage.InstanceId, "Audit instance id mismatch");
+            Assert.That(expectedAuditInstanceId, Is.EqualTo(sentMessage.InstanceId), "Audit instance id mismatch");
 
             var sentLocalMessage = response.SingleOrDefault(msg => msg.MessageId == context.SentLocalMessageId);
 
             Assert.That(sentLocalMessage, Is.Not.Null, "Sent local message not found");
-            Assert.AreEqual(expectedAuditInstanceId, sentLocalMessage.InstanceId, "Audit instance id mismatch");
+            Assert.That(expectedAuditInstanceId, Is.EqualTo(sentLocalMessage.InstanceId), "Audit instance id mismatch");
         }
 
         public class Sender : EndpointConfigurationBuilder

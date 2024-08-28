@@ -70,7 +70,7 @@ class AmazonSQSQueryTests : TransportTestFixture
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
-        Assert.IsFalse(success);
+        Assert.That(success, Is.False);
         Assert.That(errors.Single(), Is.EqualTo("Invalid region endpoint provided"));
         Approver.Verify(diagnostics);
     }
@@ -90,7 +90,7 @@ class AmazonSQSQueryTests : TransportTestFixture
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
         Approver.Verify(diagnostics);
-        Assert.IsFalse(success);
+        Assert.That(success, Is.False);
     }
 
     [Test]
@@ -131,7 +131,7 @@ class AmazonSQSQueryTests : TransportTestFixture
         }
 
         IBrokerQueue queue = queueNames.Find(name => name.QueueName == $"{connectionString.QueueNamePrefix}{transportSettings.EndpointName}");
-        Assert.IsNotNull(queue);
+        Assert.That(queue, Is.Not.Null);
 
         long total = 0L;
 

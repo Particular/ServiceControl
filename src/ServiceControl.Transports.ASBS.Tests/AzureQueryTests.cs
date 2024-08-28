@@ -70,7 +70,7 @@ class AzureQueryTests : TransportTestFixture
         query.Initialize(new ReadOnlyDictionary<string, string>(dictionary));
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
-        Assert.IsTrue(success);
+        Assert.That(success, Is.True);
         Approver.Verify(diagnostics, s =>
         {
             s = s.Replace(dictionary[AzureQuery.AzureServiceBusSettings.TenantId], "xxxxx");
@@ -140,7 +140,7 @@ class AzureQueryTests : TransportTestFixture
         (bool success, List<string> errors, string diagnostics) =
             await query.TestConnection(cancellationTokenSource.Token);
 
-        Assert.IsFalse(success);
+        Assert.That(success, Is.False);
         Assert.That(errors.Single(), Does.StartWith("ClientSecretCredential authentication failed"));
         Approver.Verify(diagnostics, s =>
         {
@@ -162,7 +162,7 @@ class AzureQueryTests : TransportTestFixture
         query.Initialize(new ReadOnlyDictionary<string, string>(dictionary));
         (bool success, List<string> errors, _) = await query.TestConnection(cancellationTokenSource.Token);
 
-        Assert.IsFalse(success);
+        Assert.That(success, Is.False);
         Assert.That(errors.Single(), Does.StartWith("ClientSecretCredential authentication failed"));
     }
 
@@ -188,7 +188,7 @@ class AzureQueryTests : TransportTestFixture
         }
 
         IBrokerQueue queue = queueNames.Find(name => name.QueueName == transportSettings.EndpointName);
-        Assert.IsNotNull(queue);
+        Assert.That(queue, Is.Not.Null);
 
         long total = 0L;
 

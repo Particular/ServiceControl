@@ -56,9 +56,9 @@
             {
                 FileUtils.UnzipToSubdirectory(zipStream, workingFolder.FullName);
             }
-            Assert.True(workingFolder.GetDirectories().Count() == 3, "Should include all directories");
-            Assert.True(workingFolder.GetFiles("*.txt", SearchOption.TopDirectoryOnly).Count() == 0, "Should have no files extracted to the root install path");
-            Assert.True(workingFolder.GetFiles("*.txt", SearchOption.AllDirectories).Count() == 6, "Should include all 3 root and subfolder files");
+            Assert.That(workingFolder.GetDirectories().Count, Is.EqualTo(3), "Should include all directories");
+            Assert.That(workingFolder.GetFiles("*.txt", SearchOption.TopDirectoryOnly).Length, Is.EqualTo(0), "Should have no files extracted to the root install path");
+            Assert.That(workingFolder.GetFiles("*.txt", SearchOption.AllDirectories).Length, Is.EqualTo(6), "Should include all 3 root and subfolder files");
         }
 
         [TearDown]

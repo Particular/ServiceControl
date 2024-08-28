@@ -4,6 +4,7 @@
     using System.IO;
     using System.Threading.Tasks;
     using NUnit.Framework;
+    using NUnit.Framework.Legacy;
     using ServiceControl.Audit.Persistence.RavenDB;
     using TestHelper;
 
