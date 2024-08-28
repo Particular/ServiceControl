@@ -139,8 +139,12 @@
                 Assert.That(nonEmptyIntervals, Has.Length.EqualTo(3));
                 Assert.That(timings[0].TotalMeasurements, Is.EqualTo(4));
             });
-            Assert.That(nonEmptyIntervals.Select(i => i.TotalValue), Is.EqualTo(new double[] { 4, 1, 1 }).AsCollection);
-            Assert.That(nonEmptyIntervals.Select(i => i.TotalMeasurements), Is.EqualTo(new double[] { 2, 1, 1 }).AsCollection);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(nonEmptyIntervals.Select(i => i.TotalValue), Is.EqualTo(new double[] { 4, 1, 1 }).AsCollection);
+                Assert.That(nonEmptyIntervals.Select(i => i.TotalMeasurements), Is.EqualTo(new double[] { 2, 1, 1 }).AsCollection);
+            });
         }
 
         [Test]
