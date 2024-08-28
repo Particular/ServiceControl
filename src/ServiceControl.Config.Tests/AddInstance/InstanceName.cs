@@ -23,7 +23,6 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.AuditInstanceName, Is.EqualTo(expectedAuditInstanceServiceName));
-
                 Assert.That(viewModel.ErrorInstanceName, Is.EqualTo(expectedErrorInstanceServiceName));
             });
         }

@@ -33,7 +33,6 @@
             Assert.Multiple(() =>
             {
                 Assert.That(instanceNamesProvided); // Provided because the convention default auto-fills them on instantiation
-
                 Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)), Is.Empty);
             });
         }
@@ -65,7 +64,6 @@
             Assert.Multiple(() =>
             {
                 Assert.That(instanceNamesProvided, Is.True, "Instance names were not provided.");
-
                 Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)), Is.Empty);
             });
         }
@@ -83,7 +81,6 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.ErrorInstanceName, Is.EqualTo($"Particular.{viewModel.ConventionName}"));
-
                 Assert.That(viewModel.AuditInstanceName, Is.EqualTo($"Particular.{viewModel.ConventionName}.Audit"));
             });
         }
@@ -230,7 +227,6 @@
             Assert.Multiple(() =>
             {
                 Assert.That(selectedAccount, Is.EqualTo("LocalSystem"));
-
                 Assert.That(errors, Is.Empty);
             });
         }

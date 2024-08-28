@@ -40,6 +40,7 @@
                 .When_a_error_forwarding_is_on();
 
             nameof(viewModel.ErrorForwardingQueueName).Was_notified_of_change(changedProperties);
+
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.ShowErrorForwardingQueue, Is.True);
