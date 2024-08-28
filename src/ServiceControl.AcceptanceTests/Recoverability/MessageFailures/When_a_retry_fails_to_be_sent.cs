@@ -67,8 +67,12 @@
                 Assert.That(decomissionedFailure, Is.Not.Null);
                 Assert.That(successfullyRetried, Is.Not.Null);
             });
-            Assert.That(decomissionedFailure.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
-            Assert.That(successfullyRetried.Status, Is.EqualTo(FailedMessageStatus.Resolved));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(decomissionedFailure.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
+                Assert.That(successfullyRetried.Status, Is.EqualTo(FailedMessageStatus.Resolved));
+            });
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder

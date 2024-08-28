@@ -76,28 +76,31 @@
 
             defaultGroups.ForEach(g => Console.WriteLine(JsonSerializer.Serialize(g)));
 
+            Assert.That(exceptionTypeAndStackTraceGroups.Select(g => g.Id).Except(defaultGroups.Select(g => g.Id)), Is.Empty, "/api/recoverability/groups did not retrieve Exception Type and Stack Trace Group");
+
             Assert.Multiple(() =>
             {
-                Assert.That(exceptionTypeAndStackTraceGroups.Select(g => g.Id).Except(defaultGroups.Select(g => g.Id)), Is.Empty, "/api/recoverability/groups did not retrieve Exception Type and Stack Trace Group");
-
                 Assert.That(messageTypeGroups.Select(g => g.Id).ToArray(), Does.Contain(DeterministicGuid.MakeId(MessageTypeFailureClassifier.Id, typeof(MyMessageA).FullName).ToString()));
+                Assert.That(failedMessageA.UniqueMessageId, Is.EqualTo(context.UniqueMessageIdA));
+                Assert.That(failedMessageA.FailureGroups, Is.Not.Empty, "MyMessageA should have failure groups");
             });
+            Assert.Multiple(() =>
+            {
+                Assert.That(failedMessageA.FailureGroups.Count(g => g.Type == ExceptionTypeAndStackTraceFailureClassifier.Id), Is.EqualTo(1), $"{ExceptionTypeAndStackTraceFailureClassifier.Id} FailureGroup was not created");
+                Assert.That(failedMessageA.FailureGroups.Count(g => g.Type == MessageTypeFailureClassifier.Id), Is.EqualTo(1), $"{MessageTypeFailureClassifier.Id} FailureGroup was not created");
+            });
+
             Assert.Multiple(() =>
             {
                 Assert.That(messageTypeGroups.Select(g => g.Id).ToArray(), Does.Contain(DeterministicGuid.MakeId(MessageTypeFailureClassifier.Id, typeof(MyMessageB).FullName).ToString()));
-
-                Assert.That(failedMessageA.UniqueMessageId, Is.EqualTo(context.UniqueMessageIdA));
                 Assert.That(failedMessageB.UniqueMessageId, Is.EqualTo(context.UniqueMessageIdB));
-
-                Assert.That(failedMessageA.FailureGroups, Is.Not.Empty, "MyMessageA should have failure groups");
                 Assert.That(failedMessageB.FailureGroups, Is.Not.Empty, "MyMessageB should have failure groups");
             });
-
-            Assert.That(failedMessageA.FailureGroups.Count(g => g.Type == ExceptionTypeAndStackTraceFailureClassifier.Id), Is.EqualTo(1), $"{ExceptionTypeAndStackTraceFailureClassifier.Id} FailureGroup was not created");
-            Assert.That(failedMessageA.FailureGroups.Count(g => g.Type == MessageTypeFailureClassifier.Id), Is.EqualTo(1), $"{MessageTypeFailureClassifier.Id} FailureGroup was not created");
-
-            Assert.That(failedMessageB.FailureGroups.Count(g => g.Type == ExceptionTypeAndStackTraceFailureClassifier.Id), Is.EqualTo(1), $"{ExceptionTypeAndStackTraceFailureClassifier.Id} FailureGroup was not created");
-            Assert.That(failedMessageB.FailureGroups.Count(g => g.Type == MessageTypeFailureClassifier.Id), Is.EqualTo(1), $"{MessageTypeFailureClassifier.Id} FailureGroup was not created");
+            Assert.Multiple(() =>
+            {
+                Assert.That(failedMessageB.FailureGroups.Count(g => g.Type == ExceptionTypeAndStackTraceFailureClassifier.Id), Is.EqualTo(1), $"{ExceptionTypeAndStackTraceFailureClassifier.Id} FailureGroup was not created");
+                Assert.That(failedMessageB.FailureGroups.Count(g => g.Type == MessageTypeFailureClassifier.Id), Is.EqualTo(1), $"{MessageTypeFailureClassifier.Id} FailureGroup was not created");
+            });
         }
 
         public class Receiver : EndpointConfigurationBuilder

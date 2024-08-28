@@ -79,9 +79,7 @@
             Assert.Multiple(() =>
             {
                 Assert.That(bodyAsString, Does.Contain(Payload), bodyAsString);
-
                 Assert.That(failedMessage.BodySize, Is.EqualTo(body.Length));
-
                 Assert.That(failedMessage.Headers.Any(h => h.Key == Headers.MessageId), Is.True);
             });
         }

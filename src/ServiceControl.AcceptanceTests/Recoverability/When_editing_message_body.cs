@@ -68,8 +68,8 @@
                 Assert.That(context.EditedMessageProperty, Is.EqualTo("StarWars rocks"));
                 Assert.That(context.EditedMessageId, Is.Not.EqualTo(context.OriginalMessageId));
                 Assert.That(context.OriginalMessageFailure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
+                Assert.That(context.EditedMessageHeaders, Has.No.Member("NServiceBus.ExceptionInfo.StackTrace"));
             });
-            Assert.That(context.EditedMessageHeaders, Has.No.Member("NServiceBus.ExceptionInfo.StackTrace"));
         }
 
         class EditedMessageReceiver : EndpointConfigurationBuilder
