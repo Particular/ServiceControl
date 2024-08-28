@@ -2,9 +2,7 @@ footer {
   color: #bcc6c2;
   font-size: 14px;
   font-weight: normal;
-  height: 35px;
   margin-top: 100px;
-  padding: 5px 0;
   text-align: left;
   text-align: center;
   width: 100%;
@@ -62,7 +60,6 @@ footer a:hover {
 
 @media (max-width: 1550px) {
   footer {
-    height: 29px;
     font-size: 12px;
   }
 }
