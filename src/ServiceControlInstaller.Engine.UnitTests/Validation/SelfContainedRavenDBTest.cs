@@ -3,7 +3,6 @@
     using System;
     using System.IO;
     using NUnit.Framework;
-    using NUnit.Framework.Legacy;
 
     [TestFixture]
     class SelfContainedRavenDBTest
@@ -20,10 +19,13 @@
             var systemCollections = Path.Combine(ravenServerPath, "System.Collections.dll");
             var aspNetCoreHttp = Path.Combine(ravenServerPath, "Microsoft.AspNetCore.Http.dll");
 
-            FileAssert.Exists(ravenStudio); // No matter what
-            Assert.That(Directory.Exists(runtimes), Is.EqualTo(isLocal));  // Only in local development
-            Assert.That(File.Exists(systemCollections), Is.EqualTo(isCI)); // Only on CI
-            Assert.That(File.Exists(aspNetCoreHttp), Is.EqualTo(isCI));    // Only on CI
+            Assert.Multiple(() =>
+            {
+                Assert.That(ravenStudio, Does.Exist); // No matter what
+                Assert.That(Directory.Exists(runtimes), Is.EqualTo(isLocal));  // Only in local development
+                Assert.That(File.Exists(systemCollections), Is.EqualTo(isCI)); // Only on CI
+                Assert.That(File.Exists(aspNetCoreHttp), Is.EqualTo(isCI));    // Only on CI
+            });
         }
     }
 }

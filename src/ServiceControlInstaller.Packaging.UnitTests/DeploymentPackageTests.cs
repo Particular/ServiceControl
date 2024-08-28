@@ -5,7 +5,6 @@ namespace Tests
     using System.IO;
     using System.Linq;
     using NUnit.Framework;
-    using NUnit.Framework.Legacy;
 
     [TestFixtureSource(typeof(DeploymentPackage), nameof(DeploymentPackage.All))]
     public class DeploymentPackageTests
@@ -20,8 +19,8 @@ namespace Tests
         {
             var rootDirectory = deploymentPackage.Directory;
 
-            DirectoryAssert.Exists($"{rootDirectory.FullName}", $"Expected a {rootDirectory.Name} folder");
-            DirectoryAssert.Exists($"{rootDirectory.FullName}/Transports", $"Expected a Transports subfolder in the {rootDirectory.Name} folder");
+            Assert.That($"{rootDirectory.FullName}", Does.Exist, $"Expected a {rootDirectory.Name} folder");
+            Assert.That($"{rootDirectory.FullName}/Transports", Does.Exist, $"Expected a Transports subfolder in the {rootDirectory.Name} folder");
 
             foreach (var deploymentUnit in deploymentPackage.DeploymentUnits)
             {

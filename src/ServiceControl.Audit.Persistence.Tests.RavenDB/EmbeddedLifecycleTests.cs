@@ -4,7 +4,6 @@
     using System.IO;
     using System.Threading.Tasks;
     using NUnit.Framework;
-    using NUnit.Framework.Legacy;
     using ServiceControl.Audit.Persistence.RavenDB;
     using TestHelper;
 
@@ -38,8 +37,11 @@
         {
             await DataStore.QueryKnownEndpoints();
 
-            DirectoryAssert.Exists(dbPath);
-            DirectoryAssert.Exists(logPath);
+            Assert.Multiple(() =>
+            {
+                Assert.That(dbPath, Does.Exist);
+                Assert.That(logPath, Does.Exist);
+            });
         }
     }
 }

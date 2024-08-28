@@ -4,7 +4,6 @@
     using System.IO;
     using System.ServiceProcess;
     using NUnit.Framework;
-    using NUnit.Framework.Legacy;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Services;
 
@@ -35,7 +34,7 @@
 
             instance.UpgradeFiles(zipResourceName);
 
-            FileAssert.Exists(configFile);
+            Assert.That(configFile, Does.Exist);
 
             var upgradedConfigContents = File.ReadAllText(configFile);
 

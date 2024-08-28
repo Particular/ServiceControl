@@ -3,7 +3,6 @@ namespace Tests
     using System.IO;
     using System.Linq;
     using NUnit.Framework;
-    using NUnit.Framework.Legacy;
 
     [TestFixture]
     public class AuditDeploymentPackageTests
@@ -38,8 +37,11 @@ namespace Tests
             var inPersisterPath = Path.Combine(deploymentPackage.Directory.FullName, "Persisters", "RavenDB", "RavenDBServer");
             var separateAssetPath = Path.GetFullPath(Path.Combine(deploymentPackage.Directory.FullName, "..", "RavenDBServer"));
 
-            DirectoryAssert.DoesNotExist(inPersisterPath, "RavenDBServer should not be bundled inside the persister");
-            DirectoryAssert.Exists(separateAssetPath, "RavenDBServer should be bundled as its own resource");
+            Assert.Multiple(() =>
+            {
+                Assert.That(inPersisterPath, Does.Not.Exist, "RavenDBServer should not be bundled inside the persister");
+                Assert.That(separateAssetPath, Does.Exist, "RavenDBServer should be bundled as its own resource");
+            });
         }
 
         readonly DeploymentPackage deploymentPackage;
