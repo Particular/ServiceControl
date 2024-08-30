@@ -11,14 +11,14 @@
         const string SetupAndRunCmd = "--setup-and-run";
         const string SetupCmd = "--setup";
 
-        public static async Task Run()
+        public static async Task<int> Run()
         {
             // Using GetCommandLineArgs instead of the args passed into Main because GetCommandLineArgs provides the entry assembly path
             var args = Environment.GetCommandLineArgs().ToList();
 
             if (!args.Contains(SetupAndRunCmd))
             {
-                return;
+                return 0;
             }
 
             for (var i = 0; i < args.Count; i++)
@@ -54,10 +54,7 @@
 
             await process.WaitForExitAsync().ConfigureAwait(false);
 
-            if (process.ExitCode != 0)
-            {
-                Environment.Exit(process.ExitCode);
-            }
+            return process.ExitCode;
         }
     }
 }
