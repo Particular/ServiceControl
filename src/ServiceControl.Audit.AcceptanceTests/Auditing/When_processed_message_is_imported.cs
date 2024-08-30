@@ -70,8 +70,8 @@
                 Assert.That(auditedMessage.TimeSent, Is.Not.EqualTo(DateTime.MinValue), "Time sent should be correctly set");
                 Assert.That(auditedMessage.ProcessedAt, Is.Not.EqualTo(DateTime.MinValue), "Processed At should be correctly set");
 
-                Assert.That(auditedMessage.ProcessingTime, Is.LessThan(TimeSpan.Zero), "Processing time should be calculated");
-                Assert.That(auditedMessage.CriticalTime, Is.LessThan(TimeSpan.Zero), "Critical time should be calculated");
+                Assert.That(auditedMessage.ProcessingTime, Is.GreaterThan(TimeSpan.Zero), "Processing time should be calculated");
+                Assert.That(auditedMessage.CriticalTime, Is.GreaterThan(TimeSpan.Zero), "Critical time should be calculated");
 
                 Assert.That(auditedMessage.MessageIntent, Is.EqualTo(MessageIntent.Send), "Message intent should be set");
             });
