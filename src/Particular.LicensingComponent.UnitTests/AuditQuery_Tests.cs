@@ -34,16 +34,15 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         var auditQuery = new AuditQuery(NullLogger<AuditQuery>.Instance, new EndpointsApi_ReturningTwoEndpoints(), new FakeAuditCountApi(), new FakeConfigurationApi());
 
         //Act
-        var endpoints = await auditQuery.GetKnownEndpoints(default);
-        var serviceControlEndpoints = endpoints.ToList();
+        var endpoints = (await auditQuery.GetKnownEndpoints(default)).ToList();
 
         //Assert
-        Assert.That(serviceControlEndpoints, Is.Not.Null, "Endpoints should be found");
-        Assert.That(serviceControlEndpoints.Count, Is.EqualTo(2), "Invalid number of on known endpoints");
+        Assert.That(endpoints, Is.Not.Null, "Endpoints should be found");
+        Assert.That(endpoints.Count, Is.EqualTo(2), "Invalid number of on known endpoints");
         Assert.Multiple(() =>
         {
-            Assert.That(serviceControlEndpoints.Any(a => a.Name == "Endpoint1"), Is.True, "Should have found Endpoint1");
-            Assert.That(serviceControlEndpoints.Any(a => a.Name == "Endpoint2"), Is.True, "Should have found Endpoint2");
+            Assert.That(endpoints.Any(a => a.Name == "Endpoint1"), Is.True, "Should have found Endpoint1");
+            Assert.That(endpoints.Any(a => a.Name == "Endpoint2"), Is.True, "Should have found Endpoint2");
         });
     }
 
