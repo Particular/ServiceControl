@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@tinyhttp/content-disposition": "^2.2.1",
-    "@vue-flow/core": "^1.40.1",
+    "@vue-flow/core": "^1.41.0",
     "@wdns/vue-code-block": "^2.3.3",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
