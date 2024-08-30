@@ -8,7 +8,12 @@ using ServiceControl.Monitoring;
 AppDomain.CurrentDomain.UnhandledException += (s, e) => LogManager.GetLogger(typeof(Program)).Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
 
 // Hack: See https://github.com/Particular/ServiceControl/issues/4392
-await IntegratedSetup.Run();
+var exitCode = await IntegratedSetup.Run();
+
+if (exitCode != 0)
+{
+    return exitCode;
+}
 
 ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
@@ -20,3 +25,5 @@ LoggingConfigurator.ConfigureLogging(loggingSettings);
 var settings = new Settings(loggingSettings: loggingSettings);
 
 await new CommandRunner(arguments.Command).Execute(arguments, settings);
+
+return 0;
