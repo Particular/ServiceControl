@@ -66,7 +66,6 @@
             Assert.Multiple(() =>
             {
                 Assert.That(selectedAccount, Is.EqualTo("LocalSystem"));
-
                 Assert.That(errors, Is.Empty);
             });
         }

@@ -23,8 +23,8 @@
             builder.RegisterType<TargetViewModel>();
 
             var container = builder.Build();
-
             var viewModel = container.Resolve<TargetViewModel>();
+
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.FirstAttachmentActivated, Is.True, "First Attachment should have been attached");

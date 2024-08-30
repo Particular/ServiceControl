@@ -62,8 +62,11 @@
             });
 
             var attempts = failure.ProcessingAttempts;
-            Assert.That(attempts, Has.Count.EqualTo(2));
-            Assert.That(attempts.Select(a => a.AttemptedAt), Is.EquivalentTo(context.FailureTimes));
+            Assert.Multiple(() =>
+            {
+                Assert.That(attempts, Has.Count.EqualTo(2));
+                Assert.That(attempts.Select(a => a.AttemptedAt), Is.EquivalentTo(context.FailureTimes));
+            });
         }
 
         class CounterEnricher(MyContext testContext) : IEnrichImportedErrorMessages

@@ -3,8 +3,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using Particular.LicensingComponent.Contracts;
-using Particular.LicensingComponent.UnitTests.Infrastructure;
+using Contracts;
+using Infrastructure;
 
 [TestFixture]
 class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollectorTestFixture
@@ -32,9 +32,9 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentInformation, Is.Not.Null, $"Environment information missing from the report");
-        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
         Assert.Multiple(() =>
         {
+            Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
             Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.AuditEnabled.ToString()), Is.True, $"AuditEnabled missing from Environment data");
             Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData[EnvironmentDataType.AuditEnabled.ToString()], Is.EqualTo("False"), $"AuditEnabled should be False");
         });
@@ -63,9 +63,9 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentInformation, Is.Not.Null, $"Environment information missing from the report");
-        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
         Assert.Multiple(() =>
         {
+            Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
             Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.AuditEnabled.ToString()), Is.True, $"AuditEnabled missing from Environment data");
             Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData[EnvironmentDataType.AuditEnabled.ToString()], Is.EqualTo("True"), $"AuditEnabled should be True");
         });
@@ -87,9 +87,9 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentInformation, Is.Not.Null, $"Environment information missing from the report");
-        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
         Assert.Multiple(() =>
         {
+            Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
             Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.MonitoringEnabled.ToString()), Is.True, $"MonitoringEnabled missing from Environment data");
             Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData[EnvironmentDataType.MonitoringEnabled.ToString()], Is.EqualTo("False"), $"MonitoringEnabled should be False");
         });
@@ -118,9 +118,9 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentInformation, Is.Not.Null, $"Environment information missing from the report");
-        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
         Assert.Multiple(() =>
         {
+            Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
             Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.MonitoringEnabled.ToString()), Is.True, $"MonitoringEnabled missing from Environment data");
             Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData[EnvironmentDataType.MonitoringEnabled.ToString()], Is.EqualTo("True"), $"MonitoringEnabled should be True");
         });
@@ -150,9 +150,9 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.EnvironmentInformation, Is.Not.Null, $"Environment information missing from the report");
-        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
         Assert.Multiple(() =>
         {
+            Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
             Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.ServicePulseVersion.ToString()), Is.True, $"ServicePulseVersion missing from Environment data");
             Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData[EnvironmentDataType.ServicePulseVersion.ToString()], Is.EqualTo(spVersion), $"ServicePulseVersion should be {spVersion}");
         });
@@ -181,19 +181,18 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
 
         // Assert
         Assert.That(report, Is.Not.Null);
+
         Assert.That(report.ReportData.EnvironmentInformation, Is.Not.Null, $"Environment information missing from the report");
         Assert.Multiple(() =>
         {
             Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData, Is.Not.Null, $"Environment data missing from the report");
-            Assert.That(report.ReportData.ScopeType, Is.Not.Null, $"Missing ScopeType from report");
-        });
-        Assert.Multiple(() =>
-        {
-            Assert.That(report.ReportData.ScopeType, Is.EqualTo(expectedScopeType), $"Invalid ScopeType on report");
             Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.ContainsKey(EnvironmentDataType.BrokerVersion.ToString()), Is.True, $"Missing EnvironmentData.Version from report");
             Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData[EnvironmentDataType.BrokerVersion.ToString()], Is.EqualTo(expectedBrokerVersion), $"Incorrect EnvironmentData.Version on report");
             Assert.That(report.ReportData.EnvironmentInformation.AuditServicesData.Versions, Is.EquivalentTo(expectedAuditVersionSummary), $"Invalid AuditInstance version summary on report");
             Assert.That(report.ReportData.EnvironmentInformation.AuditServicesData.Transports, Is.EquivalentTo(expectedAuditTransportSummary), $"Invalid AuditInstance transport summary on report");
         });
+
+        Assert.That(report.ReportData.ScopeType, Is.Not.Null, $"Missing ScopeType from report");
+        Assert.That(report.ReportData.ScopeType, Is.EqualTo(expectedScopeType), $"Invalid ScopeType on report");
     }
 }

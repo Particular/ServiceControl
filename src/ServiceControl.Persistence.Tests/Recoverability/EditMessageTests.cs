@@ -59,7 +59,6 @@
             {
                 Assert.That(failedMessage.Status, Is.EqualTo(status));
                 Assert.That(editOperation, Is.Null);
-
                 Assert.That(dispatcher.DispatchedMessages, Is.Empty);
             });
         }

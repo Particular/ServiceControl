@@ -42,7 +42,6 @@
             Assert.Multiple(() =>
             {
                 Assert.That(queryResultBeforeExpiration.Results[0].MessageId, Is.EqualTo("MyMessageId"));
-
                 Assert.That(queryResultAfterExpiration.Results.Count, Is.EqualTo(0));
             });
         }
@@ -73,7 +72,6 @@
             Assert.Multiple(() =>
             {
                 Assert.That(queryResultBeforeExpiration.Results[0].EndpointDetails.Name, Is.EqualTo("Wazowsky"));
-
                 Assert.That(queryResultAfterExpiration.Results.Count, Is.EqualTo(0));
             });
         }

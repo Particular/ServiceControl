@@ -141,10 +141,13 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
 
         Assert.Multiple(() =>
         {
-            Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint1").Throughput, Is.EqualTo(55), $"Incorrect Throughput recorded for Endpoint1");
-            Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint2").Throughput, Is.EqualTo(65), $"Incorrect Throughput recorded for Endpoint2");
-            Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint3").Throughput, Is.EqualTo(75), $"Incorrect Throughput recorded for Endpoint3");
+            Assert.That(report.ReportData.Queues.First(w => w.QueueName == "Endpoint1").Throughput, Is.EqualTo(55), $"Incorrect Throughput recorded for Endpoint1");
+            Assert.That(report.ReportData.Queues.First(w => w.QueueName == "Endpoint2").Throughput, Is.EqualTo(65), $"Incorrect Throughput recorded for Endpoint2");
+            Assert.That(report.ReportData.Queues.First(w => w.QueueName == "Endpoint3").Throughput, Is.EqualTo(75), $"Incorrect Throughput recorded for Endpoint3");
+        });
 
+        Assert.Multiple(() =>
+        {
             Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(195), $"Incorrect TotalThroughput recorded");
             Assert.That(report.ReportData.TotalQueues, Is.EqualTo(3), $"Incorrect TotalQueues recorded");
         });
@@ -176,12 +179,15 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
 
         Assert.Multiple(() =>
         {
-            Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint1").Throughput, Is.EqualTo(65), $"Incorrect Throughput recorded for Endpoint1");
-            Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint2").Throughput, Is.EqualTo(65), $"Incorrect Throughput recorded for Endpoint2");
-            Assert.That(report.ReportData.Queues.FirstOrDefault(w => w.QueueName == "Endpoint3").Throughput, Is.EqualTo(57), $"Incorrect Throughput recorded for Endpoint3");
+            Assert.That(report.ReportData.Queues.First(w => w.QueueName == "Endpoint1").Throughput, Is.EqualTo(65), $"Incorrect Throughput recorded for Endpoint1");
+            Assert.That(report.ReportData.Queues.First(w => w.QueueName == "Endpoint2").Throughput, Is.EqualTo(65), $"Incorrect Throughput recorded for Endpoint2");
+            Assert.That(report.ReportData.Queues.First(w => w.QueueName == "Endpoint3").Throughput, Is.EqualTo(57), $"Incorrect Throughput recorded for Endpoint3");
+        });
 
+        Assert.Multiple(() =>
+        {
             Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(187), $"Incorrect TotalThroughput recorded");
-            Assert.That(report.ReportData.TotalQueues, Is.EqualTo(3), $"Incorrect TotalQueues recorde");
+            Assert.That(report.ReportData.TotalQueues, Is.EqualTo(3), $"Incorrect TotalQueues recorded");
         });
     }
 

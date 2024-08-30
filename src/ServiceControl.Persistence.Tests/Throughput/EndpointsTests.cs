@@ -68,8 +68,14 @@ class EndpointsTests : PersistenceTestBase
             Assert.That(foundEndpoint.Id.ThroughputSource, Is.EqualTo(endpoint1.Id.ThroughputSource));
             Assert.That(throughput, Contains.Key(endpoint1.SanitizedName));
         });
-        Assert.That(throughput[endpoint1.SanitizedName].Count, Is.EqualTo(1), "Should be only a single ThroughputData returned");
-        Assert.That(throughput[endpoint1.SanitizedName].Single(), Has.Count.EqualTo(2), "Should be two days of throughput data");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(throughput[endpoint1.SanitizedName].Count, Is.EqualTo(1),
+                "Should be only a single ThroughputData returned");
+            Assert.That(throughput[endpoint1.SanitizedName].Single(), Has.Count.EqualTo(2),
+                "Should be two days of throughput data");
+        });
     }
 
     [Test]
@@ -161,12 +167,9 @@ class EndpointsTests : PersistenceTestBase
         var foundEndpointMonitoring = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Monitoring, default);
 
         Assert.That(foundEndpointAudit, Is.Not.Null);
-        Assert.Multiple(() =>
-        {
-            Assert.That(foundEndpointAudit.UserIndicator, Is.EqualTo(userIndicator));
+        Assert.That(foundEndpointAudit.UserIndicator, Is.EqualTo(userIndicator));
 
-            Assert.That(foundEndpointMonitoring, Is.Not.Null);
-        });
+        Assert.That(foundEndpointMonitoring, Is.Not.Null);
         Assert.That(foundEndpointMonitoring.UserIndicator, Is.EqualTo(userIndicator));
     }
 

@@ -42,7 +42,6 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.ErrorHostName, Is.EqualTo("localhost"));
-
                 Assert.That(viewModel.ErrorHostNameWarning, Is.Empty);
             });
         }

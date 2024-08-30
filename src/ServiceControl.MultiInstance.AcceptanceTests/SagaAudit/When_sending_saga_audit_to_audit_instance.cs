@@ -58,7 +58,6 @@
                 .Run();
 
             Assert.That(sagaHistory, Is.Not.Null);
-
             Assert.Multiple(() =>
             {
                 Assert.That(sagaHistory.SagaId, Is.EqualTo(context.SagaId));

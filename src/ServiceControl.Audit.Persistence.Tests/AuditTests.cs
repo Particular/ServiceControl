@@ -100,7 +100,6 @@
             {
                 Assert.That(retrievedMessage.Found, Is.True);
                 Assert.That(retrievedMessage.HasContent, Is.True);
-
                 Assert.That(retrievedMessage.ContentLength, Is.EqualTo(body.Length));
                 Assert.That(retrievedMessage.ETag, Is.Not.Null.Or.Empty);
                 Assert.That(retrievedMessage.StreamContent, Is.Not.Null);

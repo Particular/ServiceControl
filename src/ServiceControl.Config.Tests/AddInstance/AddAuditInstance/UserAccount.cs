@@ -67,15 +67,10 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.AuditUseSystemAccount, Is.True);
-
                 Assert.That(viewModel.AuditUseServiceAccount, Is.False);
-
                 Assert.That(viewModel.AuditUseProvidedAccount, Is.False);
-
                 Assert.That(viewModel.AuditPasswordEnabled, Is.False);
-
                 Assert.That(viewModel.AuditPassword, Is.Empty);
-
                 Assert.That(viewModel.AuditServiceAccount, Is.EqualTo("LocalSystem"));
             });
         }
@@ -90,15 +85,10 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.AuditUseSystemAccount, Is.True);
-
                 Assert.That(viewModel.AuditUseServiceAccount, Is.False);
-
                 Assert.That(viewModel.AuditUseProvidedAccount, Is.False);
-
                 Assert.That(viewModel.AuditPasswordEnabled, Is.False);
-
                 Assert.That(viewModel.AuditPassword, Is.Empty);
-
                 Assert.That(viewModel.AuditServiceAccount, Is.EqualTo("LocalSystem"));
             });
 
@@ -114,15 +104,10 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.AuditUseSystemAccount, Is.False);
-
                 Assert.That(viewModel.AuditUseServiceAccount, Is.True);
-
                 Assert.That(viewModel.AuditUseProvidedAccount, Is.False);
-
                 Assert.That(viewModel.AuditPasswordEnabled, Is.False);
-
                 Assert.That(viewModel.AuditPassword, Is.Empty);
-
                 Assert.That(viewModel.AuditServiceAccount, Is.EqualTo("LocalService"));
             });
         }
@@ -144,15 +129,10 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.AuditUseSystemAccount, Is.False);
-
                 Assert.That(viewModel.AuditUseServiceAccount, Is.False);
-
                 Assert.That(viewModel.AuditUseProvidedAccount, Is.True);
-
                 Assert.That(viewModel.AuditServiceAccount, Is.Null);
-
                 Assert.That(viewModel.AuditPasswordEnabled, Is.True);
-
                 Assert.That(viewModel.AuditPassword, Is.Null);
             });
         }
@@ -178,15 +158,10 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.AuditUseSystemAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditUseSystemAccount)));
-
                 Assert.That(viewModel.AuditUseServiceAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditUseServiceAccount)));
-
                 Assert.That(viewModel.AuditUseProvidedAccount, Is.True, () => string.Format(ShouldBeTrue, nameof(viewModel.AuditUseProvidedAccount)));
-
                 Assert.That(viewModel.AuditPasswordEnabled, Is.True, () => string.Format(ShouldBeTrue, nameof(viewModel.AuditPasswordEnabled)));
-
                 Assert.That(viewModel.AuditServiceAccount, Is.EqualTo(userAccount));
-
                 Assert.That(viewModel.AuditPassword, Is.EqualTo(userPassword));
             });
         }
@@ -216,15 +191,10 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.AuditUseSystemAccount, Is.True, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditUseSystemAccount)));
-
                 Assert.That(viewModel.AuditUseServiceAccount, Is.False, () => string.Format(ShouldBeTrue, nameof(viewModel.AuditUseServiceAccount)));
-
                 Assert.That(viewModel.AuditUseProvidedAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditUseProvidedAccount)));
-
                 Assert.That(viewModel.AuditPasswordEnabled, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditPasswordEnabled)));
-
                 Assert.That(viewModel.AuditServiceAccount, Is.EqualTo("LocalSystem"));
-
                 Assert.That(viewModel.AuditPassword, Is.Empty);
             });
         }
@@ -255,15 +225,10 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.AuditUseSystemAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditUseSystemAccount)));
-
                 Assert.That(viewModel.AuditUseServiceAccount, Is.True, () => string.Format(ShouldBeTrue, nameof(viewModel.AuditUseServiceAccount)));
-
                 Assert.That(viewModel.AuditUseProvidedAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditUseProvidedAccount)));
-
                 Assert.That(viewModel.AuditPasswordEnabled, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.AuditPasswordEnabled)));
-
                 Assert.That(viewModel.AuditServiceAccount, Is.EqualTo("LocalService"));
-
                 Assert.That(viewModel.AuditPassword, Is.Empty);
             });
         }

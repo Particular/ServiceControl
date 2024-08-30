@@ -166,7 +166,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             Assert.Multiple(() =>
             {
                 Assert.That(failure.Id, Is.EqualTo(context.UniqueMessageId), "The unique id should be returned");
-
                 Assert.That(failure.Status, Is.EqualTo(MessageStatus.Failed), "Status of new messages should be failed");
                 Assert.That(failure.SendingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
                 Assert.That(failure.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));

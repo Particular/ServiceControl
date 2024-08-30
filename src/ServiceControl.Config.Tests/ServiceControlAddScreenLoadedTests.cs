@@ -20,7 +20,6 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.InstallErrorInstance, Is.True);
-
                 Assert.That(viewModel.InstallAuditInstance, Is.True);
             });
         }
@@ -33,7 +32,6 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.Transports, Is.Not.Empty);
-
                 Assert.That(viewModel.SelectedTransport, Is.Null);
             });
         }
@@ -46,9 +44,7 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.ShowConnectionString, Is.False);
-
                 Assert.That(viewModel.ConnectionString, Is.Null);
-
                 Assert.That(viewModel.SampleConnectionString, Is.Null);
             });
         }
@@ -77,27 +73,20 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.ErrorServiceAccount, Is.EqualTo("LocalSystem"));
-
                 Assert.That(viewModel.ErrorUseSystemAccount, Is.True);
-
                 Assert.That(viewModel.ErrorUseServiceAccount, Is.False);
-
                 Assert.That(viewModel.ErrorUseProvidedAccount, Is.False);
-
                 Assert.That(viewModel.ErrorPasswordEnabled, Is.False);
-
                 Assert.That(viewModel.ErrorPassword, Is.Empty);
+            });
 
+            Assert.Multiple(() =>
+            {
                 Assert.That(viewModel.AuditServiceAccount, Is.EqualTo("LocalSystem"));
-
                 Assert.That(viewModel.AuditUseSystemAccount, Is.True);
-
                 Assert.That(viewModel.AuditUseServiceAccount, Is.False);
-
                 Assert.That(viewModel.AuditUseProvidedAccount, Is.False);
-
                 Assert.That(viewModel.AuditPasswordEnabled, Is.False);
-
                 Assert.That(viewModel.AuditPassword, Is.Empty);
             });
         }
@@ -110,11 +99,8 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.ErrorHostName, Is.EqualTo("localhost"));
-
                 Assert.That(viewModel.ErrorHostNameWarning, Is.Empty);
-
                 Assert.That(viewModel.AuditHostName, Is.EqualTo("localhost"));
-
                 Assert.That(viewModel.AuditHostNameWarning, Is.Empty);
             });
         }
@@ -133,7 +119,6 @@
             Assert.Multiple(() =>
             {
                 Assert.That(errorPortNumberErrors, Is.Empty);
-
                 Assert.That(viewModel.AuditPortNumber, Is.EqualTo("44444"));
             });
 
@@ -156,7 +141,6 @@
             Assert.Multiple(() =>
             {
                 Assert.That(errorPortNumberErrors, Is.Empty);
-
                 Assert.That(viewModel.AuditDatabaseMaintenancePortNumber, Is.EqualTo("44445"));
             });
 
@@ -176,11 +160,8 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.ErrorDestinationPath, Is.EqualTo($@"{programX86Path}\Particular Software\Particular.ServiceControl"));
-
                 Assert.That(errorInfo.GetErrors(nameof(viewModel.ErrorDestinationPath)), Is.Empty);
-
                 Assert.That(viewModel.AuditDestinationPath, Is.EqualTo($@"{programX86Path}\Particular Software\Particular.ServiceControl.Audit"));
-
                 Assert.That(errorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)), Is.Empty);
             });
         }
@@ -195,11 +176,8 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.ErrorLogPath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl\Logs"));
-
                 Assert.That(errorInfo.GetErrors(nameof(viewModel.ErrorLogPath)), Is.Empty);
-
                 Assert.That(viewModel.AuditLogPath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl.Audit\Logs"));
-
                 Assert.That(errorInfo.GetErrors(nameof(viewModel.AuditLogPath)), Is.Empty);
             });
         }
@@ -215,11 +193,8 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.ErrorDatabasePath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl\DB"));
-
                 Assert.That(errorInfo.GetErrors(nameof(viewModel.ErrorDatabasePath)), Is.Empty);
-
                 Assert.That(viewModel.AuditDatabasePath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl.Audit\DB"));
-
                 Assert.That(errorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)), Is.Empty);
             });
         }
@@ -232,24 +207,18 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.ErrorRetentionUnits, Is.EqualTo(TimeSpanUnits.Days));
-
                 Assert.That(viewModel.ErrorRetention, Is.EqualTo(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI));
+                Assert.That(viewModel.ErrorRetention, Is.GreaterThanOrEqualTo(viewModel.MinimumErrorRetentionPeriod));
+                Assert.That(viewModel.ErrorRetention, Is.LessThanOrEqualTo(viewModel.MaximumErrorRetentionPeriod));
             });
-
-            Assert.That(viewModel.ErrorRetention, Is.GreaterThanOrEqualTo(viewModel.MinimumErrorRetentionPeriod));
 
             Assert.Multiple(() =>
             {
-                Assert.That(viewModel.ErrorRetention, Is.LessThanOrEqualTo(viewModel.MaximumErrorRetentionPeriod));
-
                 Assert.That(viewModel.AuditRetentionUnits, Is.EqualTo(TimeSpanUnits.Days));
-
                 Assert.That(viewModel.AuditRetention, Is.EqualTo(SettingConstants.AuditRetentionPeriodDefaultInDaysForUI));
+                Assert.That(viewModel.AuditRetention, Is.GreaterThanOrEqualTo(viewModel.MinimumErrorRetentionPeriod));
+                Assert.That(viewModel.AuditRetention, Is.LessThanOrEqualTo(viewModel.MaximumErrorRetentionPeriod));
             });
-
-            Assert.That(viewModel.AuditRetention, Is.GreaterThanOrEqualTo(viewModel.MinimumErrorRetentionPeriod));
-
-            Assert.That(viewModel.AuditRetention, Is.LessThanOrEqualTo(viewModel.MaximumErrorRetentionPeriod));
         }
 
         [Test]
@@ -257,16 +226,17 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.That(viewModel.ErrorQueueName, Is.Not.Empty);
+            Assert.Multiple(() =>
+            {
+                Assert.That(viewModel.ErrorQueueName, Is.Not.Empty);
+                Assert.That(viewModel.ErrorQueueName, Is.EqualTo("error"));
+            });
 
             Assert.Multiple(() =>
             {
-                Assert.That(viewModel.ErrorQueueName, Is.EqualTo("error"));
-
                 Assert.That(viewModel.AuditQueueName, Is.Not.Empty);
+                Assert.That(viewModel.AuditQueueName, Is.EqualTo("audit"));
             });
-
-            Assert.That(viewModel.AuditQueueName, Is.EqualTo("audit"));
         }
 
         [Test]
@@ -277,17 +247,15 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.ErrorForwardingOptions, Is.Not.Empty);
-
                 Assert.That(viewModel.ErrorForwarding.Value, Is.EqualTo(false));
-
                 Assert.That(viewModel.ErrorForwardingQueueName, Is.Null);
-
                 Assert.That(viewModel.ShowErrorForwardingQueue, Is.False);
+            });
 
+            Assert.Multiple(() =>
+            {
                 Assert.That(viewModel.AuditForwardingOptions, Is.Not.Empty);
-
                 Assert.That(viewModel.AuditForwarding.Value, Is.EqualTo(false));
-
                 Assert.That(viewModel.ShowAuditForwardingQueue, Is.False);
             });
         }
@@ -300,11 +268,12 @@
             Assert.Multiple(() =>
             {
                 Assert.That(viewModel.ErrorEnableFullTextSearchOnBodiesOptions, Is.Not.Empty);
-
                 Assert.That(viewModel.ErrorEnableFullTextSearchOnBodies.Value, Is.EqualTo(true));
+            });
 
+            Assert.Multiple(() =>
+            {
                 Assert.That(viewModel.AuditEnableFullTextSearchOnBodiesOptions, Is.Not.Empty);
-
                 Assert.That(viewModel.AuditEnableFullTextSearchOnBodies.Value, Is.EqualTo(true));
             });
         }

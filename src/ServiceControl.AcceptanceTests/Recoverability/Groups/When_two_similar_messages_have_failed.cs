@@ -74,14 +74,16 @@
                 Assert.That(secondFailure, Is.Not.Null, "The second failure message should be created");
             });
 
-            Assert.That(exceptionTypeAndStackTraceGroups.Count, Is.EqualTo(1), "There should only be one Exception Type And Stack Trace Group");
-            Assert.That(messageTypeGroups.Count, Is.EqualTo(1), "There should only be one Message Type Group");
+            Assert.Multiple(() =>
+            {
+                Assert.That(exceptionTypeAndStackTraceGroups.Count, Is.EqualTo(1), "There should only be one Exception Type And Stack Trace Group");
+                Assert.That(messageTypeGroups.Count, Is.EqualTo(1), "There should only be one Message Type Group");
+            });
 
             var failureGroup = exceptionTypeAndStackTraceGroups.First();
             Assert.Multiple(() =>
             {
                 Assert.That(failureGroup.Count, Is.EqualTo(2), "Exception Type And Stack Trace Group should have both messages in it");
-
                 Assert.That(messageTypeGroups.First().Count, Is.EqualTo(2), "Message Type Group should have both messages in it");
             });
 
