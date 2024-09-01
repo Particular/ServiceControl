@@ -17,8 +17,8 @@ using Azure.Monitor.Query.Models;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.ServiceBus;
+using BrokerThroughput;
 using Microsoft.Extensions.Logging;
-using ServiceControl.Transports.BrokerThroughput;
 
 public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings)
     : BrokerThroughputQuery(logger, "AzureServiceBus")
@@ -33,9 +33,10 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         ConnectionSettings? connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
         bool usingManagedIdentity =
             connectionSettings.AuthenticationMethod is TokenCredentialAuthentication;
+        Uri? managementUrlParsed = null;
         if (settings.TryGetValue(AzureServiceBusSettings.ManagementUrl, out string? managementUrl))
         {
-            if (!Uri.TryCreate(managementUrl, UriKind.Absolute, out _))
+            if (!Uri.TryCreate(managementUrl, UriKind.Absolute, out managementUrlParsed))
             {
                 InitialiseErrors.Add("Management url configuration is invalid");
             }
@@ -149,31 +150,27 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
         ArmEnvironment GetEnvironment()
         {
-            if (managementUrl == null)
+            if (managementUrlParsed == null)
             {
                 return ArmEnvironment.AzurePublicCloud;
             }
 
-            if (managementUrl.Equals(ArmEnvironment.AzurePublicCloud.Endpoint.ToString(),
-                    StringComparison.CurrentCultureIgnoreCase))
+            if (managementUrlParsed == ArmEnvironment.AzurePublicCloud.Endpoint)
             {
                 return ArmEnvironment.AzurePublicCloud;
             }
 
-            if (managementUrl.Equals(ArmEnvironment.AzureChina.Endpoint.ToString(),
-                    StringComparison.CurrentCultureIgnoreCase))
+            if (managementUrlParsed == ArmEnvironment.AzureChina.Endpoint)
             {
                 return ArmEnvironment.AzureChina;
             }
 
-            if (managementUrl.Equals(ArmEnvironment.AzureGermany.Endpoint.ToString(),
-                    StringComparison.CurrentCultureIgnoreCase))
+            if (managementUrlParsed == ArmEnvironment.AzureGermany.Endpoint)
             {
                 return ArmEnvironment.AzureGermany;
             }
 
-            if (managementUrl.Equals(ArmEnvironment.AzureGovernment.Endpoint.ToString(),
-                    StringComparison.CurrentCultureIgnoreCase))
+            if (managementUrlParsed == ArmEnvironment.AzureGovernment.Endpoint)
             {
                 return ArmEnvironment.AzureGovernment;
             }
