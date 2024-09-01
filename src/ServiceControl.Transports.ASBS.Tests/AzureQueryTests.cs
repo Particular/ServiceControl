@@ -14,7 +14,7 @@ using NUnit.Framework;
 using Particular.Approvals;
 using Transports;
 using Transports.ASBS;
-using ServiceControl.Transports.BrokerThroughput;
+using Transports.BrokerThroughput;
 
 [TestFixture]
 class AzureQueryTests : TransportTestFixture
@@ -67,6 +67,28 @@ class AzureQueryTests : TransportTestFixture
 
         string serviceBusName = query.ExtractServiceBusName();
         Dictionary<string, string> dictionary = GetSettings();
+        query.Initialize(new ReadOnlyDictionary<string, string>(dictionary));
+        (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
+
+        Assert.That(success, Is.True);
+        Approver.Verify(diagnostics, s =>
+        {
+            s = s.Replace(dictionary[AzureQuery.AzureServiceBusSettings.TenantId], "xxxxx");
+            s = s.Replace(dictionary[AzureQuery.AzureServiceBusSettings.SubscriptionId], "xxxxx");
+            s = s.Replace(dictionary[AzureQuery.AzureServiceBusSettings.ClientId], "xxxxx");
+            s = s.Replace(serviceBusName, "xxxxx");
+            return s;
+        });
+    }
+
+    [Test]
+    public async Task TestConnectionWithMissingLastSlashInManagementUrl()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        string serviceBusName = query.ExtractServiceBusName();
+        Dictionary<string, string> dictionary = GetSettings();
+        dictionary[AzureQuery.AzureServiceBusSettings.ManagementUrl] = "https://management.azure.com";
         query.Initialize(new ReadOnlyDictionary<string, string>(dictionary));
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
