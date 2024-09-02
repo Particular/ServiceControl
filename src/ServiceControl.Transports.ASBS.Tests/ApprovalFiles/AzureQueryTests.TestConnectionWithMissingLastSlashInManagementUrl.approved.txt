@@ -1,0 +1,9 @@
+Connection test to AzureServiceBus was successful
+
+Connection settings used:
+ServiceBus name not set, defaulted to "xxxxx"
+SubscriptionId set
+TenantId set
+ClientId set
+Client secret set
+Management Url set to "https://management.azure.com"
