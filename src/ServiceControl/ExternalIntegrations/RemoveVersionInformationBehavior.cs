@@ -35,7 +35,7 @@
             return qualifiedName;
         }
 
-        const string ContractsAssemblyIdentifier = "ServiceControl.Contracts, Version=4.0.0.0, Culture=neutral, PublicKeyToken=6f2d506f609d9f4d";
-        const string VersionPart = ", Version=4.0.0.0, Culture=neutral, PublicKeyToken=6f2d506f609d9f4d";
+        const string ContractsAssemblyIdentifier = "ServiceControl.Contracts, Version=5.0.0.0, Culture=neutral, PublicKeyToken=6f2d506f609d9f4d";
+        const string VersionPart = ", Version=5.0.0.0, Culture=neutral, PublicKeyToken=6f2d506f609d9f4d";
     }
 }
