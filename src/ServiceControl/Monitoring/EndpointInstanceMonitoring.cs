@@ -8,11 +8,16 @@ namespace ServiceControl.Monitoring
     using Contracts.EndpointControl;
     using Contracts.HeartbeatMonitoring;
     using Infrastructure.DomainEvents;
-    using ServiceControl.Operations;
-    using ServiceControl.Persistence;
+    using Operations;
+    using Persistence;
 
     class EndpointInstanceMonitoring : IEndpointInstanceMonitoring
     {
+        readonly IDomainEvents domainEvents;
+        readonly ConcurrentDictionary<Guid, EndpointInstanceMonitor> endpoints = new();
+        readonly ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor> heartbeats = new();
+        EndpointMonitoringStats previousStats;
+
         public EndpointInstanceMonitoring(IDomainEvents domainEvents)
         {
             this.domainEvents = domainEvents;
@@ -115,6 +120,7 @@ namespace ServiceControl.Monitoring
             {
                 var view = endpoint.GetView();
                 view.IsSendingHeartbeats = heartbeatLookup[endpoint.Id].Any(x => x.IsSendingHeartbeats());
+                view.IsNotSendingHeartbeats = heartbeatLookup[endpoint.Id].Any(x => x.IsNotSendingHeartbeats());
                 list.Add(view);
             }
 
@@ -125,11 +131,6 @@ namespace ServiceControl.Monitoring
         {
             return endpoints.Values.Select(endpoint => endpoint.GetKnownView()).ToList();
         }
-
-        IDomainEvents domainEvents;
-        ConcurrentDictionary<Guid, EndpointInstanceMonitor> endpoints = new ConcurrentDictionary<Guid, EndpointInstanceMonitor>();
-        ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor> heartbeats = new ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor>();
-        EndpointMonitoringStats previousStats;
 
         public void RemoveEndpoint(Guid endpointId)
         {

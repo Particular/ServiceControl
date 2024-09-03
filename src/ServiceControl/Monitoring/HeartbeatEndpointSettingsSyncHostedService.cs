@@ -10,22 +10,16 @@ using Microsoft.Extensions.Logging;
 using Persistence;
 using ServiceBus.Management.Infrastructure.Settings;
 
-class HeartbeatEndpointSettingsSyncHostedService : BackgroundService
+public class HeartbeatEndpointSettingsSyncHostedService(
+    IMonitoringDataStore monitoringDataStore,
+    IEndpointSettingsStore endpointSettingsStore,
+    IEndpointInstanceMonitoring endpointInstanceMonitoring,
+    Settings settings,
+    TimeProvider timeProvider,
+    ILogger<HeartbeatEndpointSettingsSyncHostedService> logger)
+    : BackgroundService
 {
-    readonly IMonitoringDataStore monitor;
-    readonly IEndpointSettingsStore store;
-    readonly Settings settings;
-    readonly ILogger<HeartbeatEndpointSettingsSyncHostedService> logger;
-    static TimeSpan DelayStart { get; } = TimeSpan.FromSeconds(20);
-
-    public HeartbeatEndpointSettingsSyncHostedService(IMonitoringDataStore monitor, IEndpointSettingsStore store,
-        Settings settings, ILogger<HeartbeatEndpointSettingsSyncHostedService> logger)
-    {
-        this.monitor = monitor;
-        this.store = store;
-        this.settings = settings;
-        this.logger = logger;
-    }
+    public TimeSpan DelayStart { get; set; } = TimeSpan.FromSeconds(20);
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
@@ -33,9 +27,9 @@ class HeartbeatEndpointSettingsSyncHostedService : BackgroundService
 
         try
         {
-            await Task.Delay(DelayStart, cancellationToken);
+            await Task.Delay(DelayStart, timeProvider, cancellationToken);
 
-            using PeriodicTimer timer = new(TimeSpan.FromHours(6));
+            using PeriodicTimer timer = new(TimeSpan.FromHours(6), timeProvider);
 
             do
             {
@@ -58,46 +52,74 @@ class HeartbeatEndpointSettingsSyncHostedService : BackgroundService
 
     async Task PerformSync(CancellationToken cancellationToken)
     {
-        var monitorEndpoints = (await monitor.GetAllKnownEndpoints()).Select(endpoint => endpoint.EndpointDetails.Name).Distinct().ToHashSet();
+        var monitorEndpoints = (await monitoringDataStore.GetAllKnownEndpoints())
+            .Select(endpoint => endpoint.EndpointDetails.Name).Distinct().ToHashSet();
 
-        IAsyncEnumerator<EndpointSettings> enumerator =
-            store.GetAllEndpointSettings().GetAsyncEnumerator(cancellationToken);
+        await InitialiseSettings(monitorEndpoints, cancellationToken);
 
+        await PurgeMonitoringDataThatDoesNotNeedToBeTracked(cancellationToken);
+    }
+
+    async Task PurgeMonitoringDataThatDoesNotNeedToBeTracked(CancellationToken cancellationToken)
+    {
+        ILookup<string, Guid> monitorEndpointsLookup = endpointInstanceMonitoring.GetEndpoints()
+            .Where(view => view.IsNotSendingHeartbeats)
+            .ToLookup(view => view.Name, view => view.Id);
+        await foreach (EndpointSettings endpointSetting in endpointSettingsStore.GetAllEndpointSettings()
+                           .WithCancellation(cancellationToken))
+        {
+            if (!endpointSetting.TrackInstances)
+            {
+                if (monitorEndpointsLookup.Contains(endpointSetting.Name))
+                {
+                    foreach (Guid endpointId in monitorEndpointsLookup[endpointSetting.Name])
+                    {
+                        endpointInstanceMonitoring.RemoveEndpoint(endpointId);
+                        await monitoringDataStore.Delete(endpointId);
+                    }
+                }
+            }
+        }
+    }
+
+    async Task InitialiseSettings(HashSet<string> monitorEndpoints, CancellationToken cancellationToken)
+    {
         bool hasDefault = false;
         bool userSetTrackInstances = settings.TrackInstancesInitialValue;
-        var names = new List<string>();
+        HashSet<string> settingsNames = [];
 
-        // First we delete any endpoints data that no longer exists
-        while (await enumerator.MoveNextAsync())
+        // Delete any endpoints data that no longer exists
+        await foreach (EndpointSettings endpointSetting in endpointSettingsStore.GetAllEndpointSettings()
+                           .WithCancellation(cancellationToken))
         {
-            if (enumerator.Current.Name == string.Empty)
+            if (endpointSetting.Name == string.Empty)
             {
                 hasDefault = true;
-                userSetTrackInstances = enumerator.Current.TrackInstances;
+                userSetTrackInstances = endpointSetting.TrackInstances;
                 continue;
             }
 
-            if (!monitorEndpoints.Contains(enumerator.Current.Name))
+            if (!monitorEndpoints.Contains(endpointSetting.Name))
             {
-                await store.Delete(enumerator.Current.Name, cancellationToken);
+                await endpointSettingsStore.Delete(endpointSetting.Name, cancellationToken);
             }
 
-            names.Add(enumerator.Current.Name);
+            settingsNames.Add(endpointSetting.Name);
         }
 
-        // Second we check to see if the default setting is store in the db, otherwise we set it
+        // We set the default if not previously set
         if (!hasDefault)
         {
-            await store.UpdateEndpointSettings(
+            await endpointSettingsStore.UpdateEndpointSettings(
                 new EndpointSettings { Name = string.Empty, TrackInstances = userSetTrackInstances },
                 cancellationToken);
         }
 
-        // Last we initialise all endpoint settings for the ones missing in db
-        foreach (string monitorEndpointsKey in monitorEndpoints)
+        // Initialise settings for any missing endpoint
+        foreach (string name in monitorEndpoints.Except(settingsNames))
         {
-            await store.UpdateEndpointSettings(
-                new EndpointSettings { Name = monitorEndpointsKey, TrackInstances = userSetTrackInstances },
+            await endpointSettingsStore.UpdateEndpointSettings(
+                new EndpointSettings { Name = name, TrackInstances = userSetTrackInstances },
                 cancellationToken);
         }
     }

@@ -167,7 +167,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public TimeSpan EventsRetentionPeriod { get; }
 
         public string InstanceName { get; init; } = DEFAULT_INSTANCE_NAME;
-        public bool TrackInstancesInitialValue { get; }
+        public bool TrackInstancesInitialValue { get; set; }
 
         public string TransportConnectionString { get; set; }
         public TimeSpan ProcessRetryBatchesFrequency { get; set; }

@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence
 {
     using System;
+    using System.Text.Json.Serialization;
 
     public class EndpointsView
     {
@@ -11,5 +12,6 @@ namespace ServiceControl.Persistence
         public bool MonitorHeartbeat { get; set; }
         public HeartbeatInformation HeartbeatInformation { get; set; }
         public bool IsSendingHeartbeats { get; set; }
+        [JsonIgnore] public bool IsNotSendingHeartbeats { get; set; }
     }
 }

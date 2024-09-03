@@ -47,6 +47,7 @@ namespace ServiceControl.Monitoring
         }
 
         public bool IsSendingHeartbeats() => heartbeat?.Status == HeartbeatStatus.Alive;
+        public bool IsNotSendingHeartbeats() => heartbeat?.Status == HeartbeatStatus.Dead;
         volatile RecordedHeartbeat heartbeat = new RecordedHeartbeat(HeartbeatStatus.Unknown, null);
     }
 }
