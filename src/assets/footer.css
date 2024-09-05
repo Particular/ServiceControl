@@ -102,7 +102,6 @@ footer a:hover {
 }
 
 .trialLicenseBar {
-  background-color: darkred;
+  background-color: firebrick;
   color: white;
-  font-weight: bold;
 }
