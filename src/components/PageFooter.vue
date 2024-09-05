@@ -65,7 +65,9 @@ const scMonitoringAddressTooltip = computed(() => {
       </div>
       <template v-if="licenseStatus.isTrialLicense">
         <div class="row trialLicenseBar">
-          <div>{{ license.license_type }} license, non-production use only</div>
+          <div>
+            <RouterLink :to="routeLinks.configuration.license.link">{{ license.license_type }} license</RouterLink>, non-production use only
+          </div>
         </div>
       </template>
     </div>
