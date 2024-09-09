@@ -2,9 +2,9 @@
   transport:
     image: busybox:latest
     restart: unless-stopped
-    command: echo running && sleep 500
+    command: ["/bin/sh", "-c", "echo running && sleep 500"]
     healthcheck:
-      test: exit 0
+      test: ["CMD", "/bin/sh", "-c", "exit 0"]
       interval: 30s
       timeout: 10s
       start_period: 30s

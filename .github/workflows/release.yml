@@ -390,14 +390,19 @@ jobs:
       - name: Query running containers'
         shell: pwsh
         run: |
+          docker ps
+
           $return = 0
           $lines = (docker ps | Measure-Object -Line).Lines
 
           # Should be 1 for headers + 1 for transport + 1 for DB + 3 instances = 6
-          if ($lines -ne 6) {
+          if ($lines -eq 6) {
+            echo "Found correct number of running containers"
+          } else {
             echo "Wrong number of running instances"
             $return = 1
           }
 
+          cd src/compose-test
           docker compose down
           exit $return
