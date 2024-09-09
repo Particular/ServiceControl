@@ -8,6 +8,6 @@
       test: rabbitmq-diagnostics -q ping
       interval: 30s
       timeout: 10s
-      start_period: 30s
-      start_interval: 5s
+      start_period: 40s
+      start_interval: 15s
       retries: 3

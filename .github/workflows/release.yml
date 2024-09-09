@@ -404,6 +404,8 @@ jobs:
             }
             sleep 1
           }
+      - name: Inspect transport container
+        run: docker inspect service-platform-transport-1
       - name: Primary instance logs
         run: docker logs service-platform-servicecontrol-1
       - name: Error instance logs
