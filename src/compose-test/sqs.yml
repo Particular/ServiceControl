@@ -1,0 +1,11 @@
+  transport:
+    image: localstack/localstack:3
+    ports:
+      - '4566-4597:4566-4597'
+      - "8000:5000"
+    restart: unless-stopped
+    environment:
+      - SERVICES=sns,sqs,iam,s3,cloudwatch
+      - DEBUG=1
+      - EDGE_PORT=4566
+      - DISABLE_CORS_CHECKS=1
