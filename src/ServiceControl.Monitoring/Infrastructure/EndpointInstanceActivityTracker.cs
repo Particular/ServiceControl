@@ -6,9 +6,11 @@
 
     public class EndpointInstanceActivityTracker
     {
-        public EndpointInstanceActivityTracker(Setting settings)
+        public EndpointInstanceActivityTracker(Setting settings, TimeProvider timeProvider)
         {
+            this.timeProvider = timeProvider;
             StalenessThreshold = settings.EndpointUptimeGracePeriod;
+            ExpiredThreshold = TimeSpan.FromMinutes(HistoryPeriod.LargestHistoryPeriod) + StalenessThreshold;
         }
 
         public void Record(EndpointInstanceId instanceId, DateTime utcNow)
@@ -25,14 +27,27 @@
         {
             if (endpointsInstances.TryGetValue(endpointInstance, out var lastActivityTime))
             {
-                var age = DateTime.UtcNow - lastActivityTime;
+                TimeSpan age = timeProvider.GetUtcNow().UtcDateTime - lastActivityTime;
                 return age > StalenessThreshold;
             }
 
             return true;
         }
 
+        public bool IsExpired(EndpointInstanceId endpointInstance)
+        {
+            if (endpointsInstances.TryGetValue(endpointInstance, out DateTime lastActivityTime))
+            {
+                TimeSpan age = timeProvider.GetUtcNow().UtcDateTime - lastActivityTime;
+                return age > ExpiredThreshold;
+            }
+
+            return true;
+        }
+
+        internal readonly TimeSpan ExpiredThreshold;
         internal readonly TimeSpan StalenessThreshold;
-        ConcurrentDictionary<EndpointInstanceId, DateTime> endpointsInstances = new ConcurrentDictionary<EndpointInstanceId, DateTime>();
+        readonly TimeProvider timeProvider;
+        readonly ConcurrentDictionary<EndpointInstanceId, DateTime> endpointsInstances = new();
     }
 }

@@ -27,7 +27,7 @@
             queueLengthStore = new QueueLengthStore();
 
             var settings = new Settings { EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5) };
-            activityTracker = new EndpointInstanceActivityTracker(settings);
+            activityTracker = new EndpointInstanceActivityTracker(settings, TimeProvider.System);
 
             messageTypeRegistry = new MessageTypeRegistry();
 
