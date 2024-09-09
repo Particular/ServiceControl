@@ -25,7 +25,7 @@ public class SqlServerQuery(
         {
             logger.LogInformation("Using ConnectionString used by instance");
 
-            connectionString = transportSettings.ConnectionString;
+            connectionString = transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out string _, out string _);
 
             Diagnostics.AppendLine("ConnectionString not set, defaulted to using ConnectionString used by instance");
         }
