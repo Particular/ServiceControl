@@ -12,8 +12,8 @@ using Persistence.Recoverability;
 using Recoverability;
 using ServiceControl.CustomChecks;
 using ServiceControl.Infrastructure.RavenDB.Subscriptions;
-using ServiceControl.Persistence.RavenDB.Throughput;
 using ServiceControl.Recoverability;
+using Throughput;
 using UnitOfWork;
 using IPersistence = IPersistence;
 using PersistenceSettings = PersistenceSettings;
@@ -64,19 +64,7 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
         services.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
         services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
-
-        services.AddSingleton<IArchiveMessages, MessageArchiver>();
-        services.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
-        services.AddSingleton<IErrorMessageDataStore, ErrorMessagesDataStore>();
-        services.AddSingleton<IEventLogDataStore, EventLogDataStore>();
-        services.AddSingleton<IFailedErrorImportDataStore, FailedErrorImportDataStore>();
-        services.AddSingleton<IGroupsDataStore, GroupsDataStore>();
-        services.AddSingleton<IMessageRedirectsDataStore, MessageRedirectsDataStore>();
-        services.AddSingleton<IMonitoringDataStore, RavenMonitoringDataStore>();
-        services.AddSingleton<IQueueAddressStore, QueueAddressStore>();
-        services.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
-        services.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
-        services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
+        services.AddSingleton<IEndpointSettingsStore, EndpointSettingsStore>();
     }
 
     public void AddInstaller(IServiceCollection services)

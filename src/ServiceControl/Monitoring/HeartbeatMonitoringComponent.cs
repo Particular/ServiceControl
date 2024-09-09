@@ -8,9 +8,9 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
+    using Persistence;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Persistence;
     using Transports;
 
     class HeartbeatMonitoringComponent : ServiceControlComponent
@@ -18,6 +18,8 @@
         public override void Configure(Settings settings, ITransportCustomization transportCustomization, IHostApplicationBuilder hostBuilder)
         {
             hostBuilder.Services.AddHostedService<HeartbeatMonitoringHostedService>();
+            hostBuilder.Services.AddHostedService<HeartbeatEndpointSettingsSyncHostedService>();
+
             hostBuilder.Services.AddSingleton<IEndpointInstanceMonitoring, EndpointInstanceMonitoring>();
 
             hostBuilder.Services.AddDomainEventHandler<MonitoringDataPersister>();
