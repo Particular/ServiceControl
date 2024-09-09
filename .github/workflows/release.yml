@@ -374,6 +374,7 @@ jobs:
           echo 'TRANSPORTTYPE=${{ matrix.transport }}' >> .env
           echo 'CONNECTIONSTRING=${{ matrix.connection-string || env.ConnectionString }}' >> .env
           cat .env
+          echo ''
           echo '--------------------'
 
           echo 'Adding ${{matrix.name}} transport configuration to compose.yml'
@@ -381,22 +382,39 @@ jobs:
           echo '' >> compose.yml
           cat ${{ matrix.name }}.yml >> compose.yml
           cat compose.yml
+          echo ''
           echo '--------------------'
 
           echo 'Starting services...'
           docker compose up -d
-          echo 'Docker compose complete, waiting 10s'
-          sleep 10
-      - name: Query running containers'
+          echo 'Docker compose complete'
+
+          echo "Waiting up to 30 seconds for containers to become healthy"
+          for ($i=0; $i -le 30; $i++) {
+            $numHealthy = (docker ps -f health=healthy | Measure-Object -Line).Lines - 1
+            echo "Currently $numHealthy healthy containers"
+            if ($numHealthy -eq 5) {
+                break;
+            }
+            sleep 1
+          }
+      - name: Primary instance logs
+        run: docker logs service-platform-servicecontrol-1
+      - name: Error instance logs
+        run: docker logs service-platform-servicecontrol-audit-1
+      - name: Monitoring instance logs
+        run: docker logs service-platform-servicecontrol-monitoring-1
+      - name: Query running containers
         shell: pwsh
         run: |
-          docker ps
+          docker ps --all
 
           $return = 0
-          $lines = (docker ps | Measure-Object -Line).Lines
+          # Subtract 1 for headers
+          $numHealthy = (docker ps -f health=healthy | Measure-Object -Line).Lines - 1
 
-          # Should be 1 for headers + 1 for transport + 1 for DB + 3 instances = 6
-          if ($lines -eq 6) {
+          # Should be 1 for transport + 1 for DB + 3 instances = 5
+          if ($lines -eq 5) {
             echo "Found correct number of running containers"
           } else {
             echo "Wrong number of running instances"
