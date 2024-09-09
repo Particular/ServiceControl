@@ -1,0 +1,13 @@
+  transport:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - "1433:1433"
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: ServiceControl1!
+      MSSQL_PID: Developer
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-C", "-Usa", "-PServiceControl1!", "-Q", "select 1"]
+      interval: 1s
+      retries: 20
