@@ -293,19 +293,19 @@ jobs:
           docker manifest push ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}
   container-test:
     if: ${{ github.actor != 'dependabot[bot]' }}
+    name: container-test-${{ matrix.name}}
     needs: [ 'containers', 'db-containers' ]
     runs-on: ubuntu-22.04
-    name: container-test
     defaults:
       run:
         shell: bash
     strategy:
       matrix:
         include:
-          - name: RabbitMQ
+          - name: rabbit
             transport: RabbitMQ.QuorumConventionalRouting
             connection-string: 'host=transport'
-          - name: SqlServer
+          - name: mssql
             transport: SQLServer
             connection-string: 'Server=transport;Database=master;User=sa;Password=ServiceControl1!;Encrypt=False;'
     steps:
@@ -346,7 +346,7 @@ jobs:
         run: |
           echo 'Creating .env file'
           cd src/compose-test
-          echo 'SERVICECONTROL_TAG=${{ env.MinVerVersion }}' > .env
+          echo 'SERVICECONTROL_TAG=${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}' > .env
           echo 'TRANSPORTTYPE=${{ matrix.transport }}' >> .env
           echo 'CONNECTIONSTRING=${{ matrix.connection-string || env.ConnectionString }}' >> .env
           cat .env
