@@ -300,6 +300,7 @@ jobs:
       run:
         shell: bash
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: rabbit
@@ -308,6 +309,10 @@ jobs:
           - name: mssql
             transport: SQLServer
             connection-string: 'Server=transport;Database=master;User=sa;Password=ServiceControl1!;Encrypt=False;'
+          - name: asb
+            transport: NetStandardAzureServiceBus
+          - name: asq
+            transport: AzureStorageQueues
     steps:
       - name: Check for secrets
         env:
@@ -341,6 +346,25 @@ jobs:
           version: ${{ env.MinVerVersion }}
       - name: Log in to GitHub container registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Azure Login
+        if: ${{ matrix.name == 'asb' || matrix.name == 'asq' }}
+        uses: azure/login@v2.1.1
+        with:
+          creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+      - name: Setup Azure Service Bus
+        if: ${{ matrix.name == 'asb' }}
+        uses: Particular/setup-azureservicebus-action@v2.0.0
+        with:
+          connection-string-name: ConnectionString
+          azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+          tag: ServiceControlContainerTest
+      - name: Setup Azure Storage
+        if: ${{ matrix.name == 'asq' }}
+        uses: Particular/setup-azurestorage-action@v2.0.0
+        with:
+          connection-string-name: ConnectionString
+          azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+          tag: ServiceControlContainerTest
       - name: Run Docker Compose
         shell: bash
         run: |
@@ -361,6 +385,7 @@ jobs:
 
           echo 'Starting services...'
           docker compose up -d
+          echo 'Docker compose complete, waiting 10s'
           sleep 10
       - name: Query running containers'
         shell: pwsh
@@ -371,7 +396,7 @@ jobs:
           # Should be 1 for headers + 1 for transport + 1 for DB + 3 instances = 6
           if ($lines -ne 6) {
             echo "Wrong number of running instances"
-            return = 1
+            $return = 1
           }
 
           docker compose down

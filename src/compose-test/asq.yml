@@ -1,0 +1,12 @@
+  # Fake container for transports that don't need it
+  transport:
+    image: busybox:latest
+    restart: unless-stopped
+    command: echo running && sleep 500
+    healthcheck:
+      test: exit 0
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      start_interval: 5s
+      retries: 3
