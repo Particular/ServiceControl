@@ -313,6 +313,9 @@ jobs:
             transport: NetStandardAzureServiceBus
           - name: asq
             transport: AzureStorageQueue
+          - name: sqs
+            transport: AmazonSQS
+            connection-string: 'AccessKeyId=demo;SecretAccessKey=demo;Region=us-east-1'
     steps:
       - name: Check for secrets
         env:
@@ -372,7 +375,8 @@ jobs:
           cd src/compose-test
           echo 'SERVICECONTROL_TAG=${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}' > .env
           echo 'TRANSPORTTYPE=${{ matrix.transport }}' >> .env
-          echo 'CONNECTIONSTRING=${{ matrix.connection-string || env.ConnectionString }}' >> .env
+          echo 'CONNECTIONSTRING="${{ matrix.connection-string || env.ConnectionString }}"' >> .env
+          echo 'AWS_ENDPOINT_URL=http://localhost:4566' >> .env
           cat .env
           echo ''
           echo '--------------------'
