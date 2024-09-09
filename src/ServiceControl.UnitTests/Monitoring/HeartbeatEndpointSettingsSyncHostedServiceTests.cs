@@ -97,7 +97,7 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
     }
 
     [Test]
-    public async Task Should_not_set_the_default_if_already_exist_already()
+    public async Task Should_not_set_the_default_if_already_exists()
     {
         using var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
         CancellationToken token = tokenSource.Token;
