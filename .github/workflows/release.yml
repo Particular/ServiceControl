@@ -312,7 +312,7 @@ jobs:
           - name: asb
             transport: NetStandardAzureServiceBus
           - name: asq
-            transport: AzureStorageQueues
+            transport: AzureStorageQueue
     steps:
       - name: Check for secrets
         env:
@@ -416,10 +416,8 @@ jobs:
           $numHealthy = (docker ps -f health=healthy | Measure-Object -Line).Lines - 1
 
           # Should be 1 for transport + 1 for DB + 3 instances = 5
-          if ($lines -eq 5) {
-            echo "Found correct number of running containers"
-          } else {
-            echo "Wrong number of running instances"
+          echo "Found $numHealthy healthy containers out of 5"
+          if ($numHealthy -ne 5) {
             $return = 1
           }
 
