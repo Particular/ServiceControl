@@ -388,9 +388,11 @@ jobs:
           echo 'Starting services...'
           docker compose up -d
           echo 'Docker compose complete'
-
-          echo "Waiting up to 30 seconds for containers to become healthy"
-          for ($i=0; $i -le 30; $i++) {
+      - name: Wait for container health
+        shell: pwsh
+        run: |
+          echo "Waiting up to 60 seconds for containers to become healthy"
+          for ($i=0; $i -le 60; $i++) {
             $numHealthy = (docker ps -f health=healthy | Measure-Object -Line).Lines - 1
             echo "Currently $numHealthy healthy containers"
             if ($numHealthy -eq 5) {
