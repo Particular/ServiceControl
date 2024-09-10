@@ -204,7 +204,7 @@ jobs:
         run: |
           cd src/compose-test
           echo 'Starting services...'
-          docker compose up -f compose.yml -f ${{ matrix.transport-compose-file || 'fake-transport-container.yml' }} up -d
+          docker compose -f compose.yml -f ${{ matrix.transport-compose-file || 'fake-transport-container.yml' }} up -d
           echo 'Docker compose complete'
       - name: Wait for container health
         shell: pwsh
