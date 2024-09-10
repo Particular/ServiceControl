@@ -223,7 +223,7 @@ async function save() {
       <tr>
         <th scope="col">{{ props.columnTitle }}</th>
         <th scope="col" class="text-end formatThroughputColumn">Maximum daily throughput</th>
-        <th scope="col">Endpoint Type <i class="fa fa-info-circle info" v-tooltip title="Pick the most correct option" /></th>
+        <th scope="col">Endpoint Type <i class="fa fa-info-circle text-primary" v-tippy="'Pick the most correct option'" /></th>
       </tr>
     </thead>
     <tbody>
@@ -265,9 +265,6 @@ async function save() {
 }
 .text-search {
   width: 130px;
-}
-.info {
-  color: dodgerblue;
 }
 .endpointType {
   width: 340px;

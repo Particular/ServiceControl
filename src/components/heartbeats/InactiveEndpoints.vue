@@ -22,7 +22,7 @@ const { inactiveEndpoints, filteredInactiveEndpoints, selectedDisplay } = storeT
                     <p class="lead">
                       {{ store.endpointDisplayName(endpoint) }}
                       <a class="remove-item" v-if="selectedDisplay === DisplayType.Instances" @click="store.deleteEndpoint(endpoint)">
-                        <i class="fa fa-trash" v-tooltip :title="`Remove endpoint from list`" />
+                        <i class="fa fa-trash" v-tippy="`Remove endpoint from list`" />
                       </a>
                     </p>
                     <p>latest heartbeat received <time-since :date-utc="endpoint.heartbeat_information?.last_report_at" /></p>

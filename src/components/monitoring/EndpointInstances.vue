@@ -64,28 +64,28 @@ onMounted(async () => {
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div role="columnheader" aria-label="throughput" class="col-xs-12 no-side-padding" v-tooltip :title="`Throughput: The number of messages per second successfully processed by a receiving endpoint.`">
+            <div role="columnheader" aria-label="throughput" class="col-xs-12 no-side-padding" v-tippy="`Throughput: The number of messages per second successfully processed by a receiving endpoint.`">
               Throughput <span class="table-header-unit">(msgs/s)</span>
             </div>
           </div>
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div role="columnheader" aria-label="scheduled-retires" class="col-xs-12 no-side-padding" v-tooltip :title="`Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).`">
+            <div role="columnheader" aria-label="scheduled-retires" class="col-xs-12 no-side-padding" v-tippy="`Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).`">
               Scheduled retries <span class="table-header-unit">(msgs/s)</span>
             </div>
           </div>
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div role="columnheader" aria-label="processing-time" class="col-xs-12 no-side-padding" v-tooltip :title="`Processing time: The time taken for a receiving endpoint to successfully process a message.`">
+            <div role="columnheader" aria-label="processing-time" class="col-xs-12 no-side-padding" v-tippy="`Processing time: The time taken for a receiving endpoint to successfully process a message.`">
               Processing Time <span class="table-header-unit">(t)</span>
             </div>
           </div>
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div role="columnheader" aria-label="critical-time" class="col-xs-12 no-side-padding" v-tooltip :title="`Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.`">
+            <div role="columnheader" aria-label="critical-time" class="col-xs-12 no-side-padding" v-tippy="`Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.`">
               Critical Time <span class="table-header-unit">(t)</span>
             </div>
           </div>
@@ -101,20 +101,20 @@ onMounted(async () => {
               <div role="row" :aria-label="instance.name" class="row">
                 <div role="cell" aria-label="instance-name" class="col-xs-4 col-xl-8 endpoint-name">
                   <div class="box-header with-status">
-                    <div role="instance-name" aria-label="instance-name" class="no-side-padding lead righ-side-ellipsis" v-tooltip :title="instance.name">
+                    <div role="instance-name" aria-label="instance-name" class="no-side-padding lead righ-side-ellipsis" v-tippy="instance.name">
                       {{ instance.name }}
                     </div>
                     <div class="no-side-padding endpoint-status">
                       <span role="status" aria-label="negative-critical-time-warning" class="warning" v-if="parseFloat(formatGraphDuration(instance.metrics.criticalTime).value) < 0">
-                        <i class="fa pa-warning" v-tooltip :title="`Warning: instance currently has negative critical time, possibly because of a clock drift.`"></i>
+                        <i class="fa pa-warning" v-tippy="`Warning: instance currently has negative critical time, possibly because of a clock drift.`"></i>
                       </span>
                       <span role="status" aria-label="disconnected-warning" class="warning" v-if="instance.isScMonitoringDisconnected">
-                        <i class="fa pa-monitoring-lost endpoint-details" v-tooltip :title="`Unable to connect to monitoring server`"></i>
+                        <i class="fa pa-monitoring-lost endpoint-details" v-tippy="`Unable to connect to monitoring server`"></i>
                       </span>
                       <span role="status" aria-label="stale-warning" class="warning" v-if="instance.isStale">
-                        <i class="fa pa-endpoint-lost endpoint-details" v-tooltip :title="`Unable to connect to instance`"></i>
+                        <i class="fa pa-endpoint-lost endpoint-details" v-tippy="`Unable to connect to instance`"></i>
                       </span>
-                      <span role="status" aria-label="error-count-warning" class="warning" v-if="instance.errorCount" v-tooltip :title="instance.errorCount + ` failed messages associated with this endpoint. Click to see list.`">
+                      <span role="status" aria-label="error-count-warning" class="warning" v-if="instance.errorCount" v-tippy="instance.errorCount + ` failed messages associated with this endpoint. Click to see list.`">
                         <RouterLink :to="routeLinks.failedMessage.group.link(instance.serviceControlId)" v-if="instance.errorCount" class="warning cursorpointer">
                           <i class="fa fa-envelope"></i>
                           <span aria-label="error-count" class="badge badge-important cursorpointer"> {{ instance.errorCount }}</span>
@@ -129,8 +129,8 @@ onMounted(async () => {
                       <SmallGraph :type="'throughput'" :isdurationgraph="false" :plotdata="instance.metrics.throughput" :minimumyaxis="smallGraphsMinimumYAxis.throughput" :metricsuffix="'MSGS/S'" />
                       <span class="no-side-padding sparkline-value">
                         {{ instance.isStale == true || instance.isScMonitoringDisconnected == true ? "" : formatGraphDecimal(instance.metrics.throughput) }}
-                        <strong v-if="instance.isStale && !instance.isScMonitoringDisconnected" v-tooltip :title="`No metrics received or instance is not configured to send metrics`">?</strong>
-                        <strong v-if="instance.isScMonitoringDisconnected" v-tooltip :title="`Unable to connect to monitoring server`">?</strong>
+                        <strong v-if="instance.isStale && !instance.isScMonitoringDisconnected" v-tippy="`No metrics received or instance is not configured to send metrics`">?</strong>
+                        <strong v-if="instance.isScMonitoringDisconnected" v-tippy="`Unable to connect to monitoring server`">?</strong>
                       </span>
                     </div>
                   </div>
@@ -141,8 +141,8 @@ onMounted(async () => {
                       <SmallGraph :type="'retries'" :isdurationgraph="false" :plotdata="instance.metrics.retries" :minimumyaxis="smallGraphsMinimumYAxis.retries" :metricsuffix="'MSGS/S'" />
                       <span class="no-side-padding sparkline-value">
                         {{ instance.isStale == true || instance.isScMonitoringDisconnected == true ? "" : formatGraphDecimal(instance.metrics.retries) }}
-                        <strong v-if="instance.isStale && !instance.isScMonitoringDisconnected" v-tooltip :title="`No metrics received or instance is not configured to send metrics`">?</strong>
-                        <strong v-if="instance.isScMonitoringDisconnected" v-tooltip :title="`Unable to connect to monitoring server`">?</strong>
+                        <strong v-if="instance.isStale && !instance.isScMonitoringDisconnected" v-tippy="`No metrics received or instance is not configured to send metrics`">?</strong>
+                        <strong v-if="instance.isScMonitoringDisconnected" v-tippy="`Unable to connect to monitoring server`">?</strong>
                       </span>
                     </div>
                   </div>
@@ -153,8 +153,8 @@ onMounted(async () => {
                       <SmallGraph :type="'processing-time'" :isdurationgraph="true" :plotdata="instance.metrics.processingTime" :minimumyaxis="smallGraphsMinimumYAxis.processingTime" />
                       <span class="no-side-padding sparkline-value">
                         {{ instance.isStale == true || instance.isScMonitoringDisconnected == true ? "" : formatGraphDuration(instance.metrics.processingTime).value }}
-                        <strong v-if="instance.isStale && !instance.isScMonitoringDisconnected" v-tooltip :title="`No metrics received or instance is not configured to send metrics`">?</strong>
-                        <strong v-if="instance.isScMonitoringDisconnected" v-tooltip :title="`Unable to connect to monitoring server`">?</strong>
+                        <strong v-if="instance.isStale && !instance.isScMonitoringDisconnected" v-tippy="`No metrics received or instance is not configured to send metrics`">?</strong>
+                        <strong v-if="instance.isScMonitoringDisconnected" v-tippy="`Unable to connect to monitoring server`">?</strong>
                         <span v-if="!instance.isStale && !instance.isScMonitoringDisconnected" class="unit">
                           {{ formatGraphDuration(instance.metrics.processingTime).unit }}
                         </span>
@@ -168,8 +168,8 @@ onMounted(async () => {
                       <SmallGraph :type="'critical-time'" :isdurationgraph="true" :plotdata="instance.metrics.criticalTime" :minimumyaxis="smallGraphsMinimumYAxis.criticalTime" />
                       <span class="no-side-padding sparkline-value" :class="{ negative: parseFloat(formatGraphDuration(instance.metrics.criticalTime).value) < 0 }">
                         {{ instance.isStale == true || instance.isScMonitoringDisconnected == true ? "" : formatGraphDuration(instance.metrics.criticalTime).value }}
-                        <strong v-if="instance.isStale && !instance.isScMonitoringDisconnected" v-tooltip :title="`No metrics received or instance is not configured to send metrics`">?</strong>
-                        <strong v-if="instance.isScMonitoringDisconnected" v-tooltip :title="`Unable to connect to monitoring server`">?</strong>
+                        <strong v-if="instance.isStale && !instance.isScMonitoringDisconnected" v-tippy="`No metrics received or instance is not configured to send metrics`">?</strong>
+                        <strong v-if="instance.isScMonitoringDisconnected" v-tippy="`Unable to connect to monitoring server`">?</strong>
                         <span v-if="!instance.isStale && !instance.isScMonitoringDisconnected" class="unit">
                           {{ formatGraphDuration(instance.metrics.criticalTime).unit }}
                         </span>
@@ -181,7 +181,7 @@ onMounted(async () => {
                 <!--remove endpoint-->
                 <div class="col-xs-2 col-xl-1 no-side-padding">
                   <a v-if="isRemovingEndpointEnabled && instance.isStale" class="remove-endpoint" @click="removeEndpoint(endpointName, instance)">
-                    <i class="fa fa-trash" v-tooltip :title="`Remove endpoint`"></i>
+                    <i class="fa fa-trash" v-tippy="`Remove endpoint`"></i>
                   </a>
                 </div>
               </div>

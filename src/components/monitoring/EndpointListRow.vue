@@ -43,26 +43,26 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
   <div role="gridcell" :aria-label="columnName.ENDPOINTNAME" class="table-first-col endpoint-name name-overview">
     <div class="box-header with-status">
       <div :aria-label="shortName" class="no-side-padding lead righ-side-ellipsis endpoint-details-link">
-        <RouterLink aria-label="details-link" :to="routeLinks.monitoring.endpointDetails.link(endpoint.name, historyPeriod.pVal)" class="cursorpointer" v-tooltip :title="endpoint.name">
+        <RouterLink aria-label="details-link" :to="routeLinks.monitoring.endpointDetails.link(endpoint.name, historyPeriod.pVal)" class="cursorpointer" v-tippy="endpoint.name">
           {{ shortName }}
         </RouterLink>
       </div>
-      <span aria-label="instances-connected-total" class="endpoint-count" v-if="endpoint.connectedCount || endpoint.disconnectedCount" v-tooltip title="Endpoint instance(s): (connected/total)">
+      <span aria-label="instances-connected-total" class="endpoint-count" v-if="endpoint.connectedCount || endpoint.disconnectedCount" v-tippy="'Endpoint instance(s): (connected/total)'">
         ({{ endpoint.connectedCount }}/{{ endpoint.connectedCount + endpoint.disconnectedCount }})</span
       >
       <div class="no-side-padding endpoint-status">
         <span role="status" class="warning" v-if="endpoint.metrics != null && parseFloat(criticalTimeGraphDuration.value) < 0">
-          <i class="fa pa-warning" v-tooltip title="Warning: endpoint currently has negative critical time, possibly because of a clock drift."></i>
+          <i class="fa pa-warning" v-tippy="'Warning: endpoint currently has negative critical time, possibly because of a clock drift.'"></i>
         </span>
         <span role="status" class="warning" v-if="endpoint.isScMonitoringDisconnected">
-          <i class="fa pa-monitoring-lost endpoints-overview" v-tooltip title="Unable to connect to monitoring server"></i>
+          <i class="fa pa-monitoring-lost endpoints-overview" v-tippy="'Unable to connect to monitoring server'"></i>
         </span>
-        <span role="status" class="warning" v-if="(endpoint.isStale && !supportsEndpointCount) || !endpoint.connectedCount" v-tooltip title="No data received from any instance">
+        <span role="status" class="warning" v-if="(endpoint.isStale && !supportsEndpointCount) || !endpoint.connectedCount" v-tippy="'No data received from any instance'">
           <RouterLink :to="routeLinks.monitoring.endpointDetails.link(endpoint.name, historyPeriod.pVal, 'instancesBreakdown')" class="cursorpointer">
             <i role="img" aria-label="endpoint-no-data" class="fa pa-endpoint-lost endpoints-overview" />
           </RouterLink>
         </span>
-        <span role="status" class="warning" v-if="endpoint.errorCount" v-tooltip :title="endpoint.errorCount + ` failed messages associated with this endpoint. Click to see list.`">
+        <span role="status" class="warning" v-if="endpoint.errorCount" v-tippy="endpoint.errorCount + ` failed messages associated with this endpoint. Click to see list.`">
           <RouterLink :to="routeLinks.failedMessage.group.link(endpoint.serviceControlId)" v-if="endpoint.errorCount" class="warning cursorpointer">
             <i class="fa fa-envelope"></i>
             <span class="badge badge-important ng-binding cursorpointer">{{ endpoint.errorCount }}</span>
@@ -88,8 +88,8 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
       </div>
       <div role="text" aria-label="sparkline" class="no-side-padding sparkline-value">
         {{ endpoint.isStale == true || endpoint.isScMonitoringDisconnected == true ? "" : formatGraphDecimal(endpoint.metrics.queueLength, 0) }}
-        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tooltip title="No metrics received or endpoint is not configured to send metrics">?</strong>
-        <strong v-if="endpoint.isScMonitoringDisconnected" v-tooltip title="Unable to connect to monitoring server">?</strong>
+        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tippy="'No metrics received or endpoint is not configured to send metrics'">?</strong>
+        <strong v-if="endpoint.isScMonitoringDisconnected" v-tippy="'Unable to connect to monitoring server'">?</strong>
       </div>
     </div>
   </div>
@@ -110,8 +110,8 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
       </div>
       <div role="text" aria-label="sparkline" class="no-side-padding sparkline-value">
         {{ endpoint.isStale == true || endpoint.isScMonitoringDisconnected == true ? "" : formatGraphDecimal(endpoint.metrics.throughput, 2) }}
-        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tooltip title="No metrics received or endpoint is not configured to send metrics">?</strong>
-        <strong v-if="endpoint.isScMonitoringDisconnected" v-tooltip title="Unable to connect to monitoring server">?</strong>
+        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tippy="'No metrics received or endpoint is not configured to send metrics'">?</strong>
+        <strong v-if="endpoint.isScMonitoringDisconnected" v-tippy="'Unable to connect to monitoring server'">?</strong>
       </div>
     </div>
   </div>
@@ -132,8 +132,8 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
       </div>
       <div role="text" aria-label="sparkline" class="no-side-padding sparkline-value">
         {{ endpoint.isStale == true || endpoint.isScMonitoringDisconnected == true ? "" : formatGraphDecimal(endpoint.metrics.retries, 2) }}
-        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tooltip title="No metrics received or endpoint is not configured to send metrics">?</strong>
-        <strong v-if="endpoint.isScMonitoringDisconnected" v-tooltip title="Unable to connect to monitoring server">?</strong>
+        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tippy="'No metrics received or endpoint is not configured to send metrics'">?</strong>
+        <strong v-if="endpoint.isScMonitoringDisconnected" v-tippy="'Unable to connect to monitoring server'">?</strong>
       </div>
     </div>
   </div>
@@ -145,8 +145,8 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
       </div>
       <div role="text" aria-label="sparkline" class="no-side-padding sparkline-value">
         {{ endpoint.isStale == true || endpoint.isScMonitoringDisconnected == true ? "" : processingTimeGraphDuration.value }}
-        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tooltip title="No metrics received or endpoint is not configured to send metrics">?</strong>
-        <strong v-if="endpoint.isScMonitoringDisconnected" v-tooltip title="Unable to connect to monitoring server">?</strong>
+        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tippy="'No metrics received or endpoint is not configured to send metrics'">?</strong>
+        <strong v-if="endpoint.isScMonitoringDisconnected" v-tippy="'Unable to connect to monitoring server'">?</strong>
         <span v-if="!endpoint.isStale && !endpoint.isScMonitoringDisconnected"> {{ processingTimeGraphDuration.unit }}</span>
       </div>
     </div>

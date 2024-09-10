@@ -52,28 +52,28 @@ const paginatedMessageTypes = computed(() => {
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div role="columnheader" aria-label="throughput" class="col-xs-12 no-side-padding" v-tooltip :title="`Throughput: The number of messages per second successfully processed by a receiving endpoint.`">
+            <div role="columnheader" aria-label="throughput" class="col-xs-12 no-side-padding" v-tippy="`Throughput: The number of messages per second successfully processed by a receiving endpoint.`">
               Throughput <span class="table-header-unit">(msgs/s)</span>
             </div>
           </div>
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div role="columnheader" aria-label="scheduled-retires" class="col-xs-12 no-side-padding" v-tooltip :title="`Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).`">
+            <div role="columnheader" aria-label="scheduled-retires" class="col-xs-12 no-side-padding" v-tippy="`Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).`">
               Scheduled retries <span class="table-header-unit">(msgs/s)</span>
             </div>
           </div>
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div role="columnheader" aria-label="processing-time" class="col-xs-12 no-side-padding" v-tooltip :title="`Processing time: The time taken for a receiving endpoint to successfully process a message.`">
+            <div role="columnheader" aria-label="processing-time" class="col-xs-12 no-side-padding" v-tippy="`Processing time: The time taken for a receiving endpoint to successfully process a message.`">
               Processing Time <span class="table-header-unit">(t)</span>
             </div>
           </div>
         </div>
         <div class="col-xs-2 col-xl-1 no-side-padding">
           <div class="row box-header">
-            <div role="columnheader" aria-label="critical-time" class="col-xs-12 no-side-padding" v-tooltip :title="`Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.`">
+            <div role="columnheader" aria-label="critical-time" class="col-xs-12 no-side-padding" v-tippy="`Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.`">
               Critical Time <span class="table-header-unit">(t)</span>
             </div>
           </div>
@@ -96,10 +96,10 @@ const paginatedMessageTypes = computed(() => {
                     </div>
                     <div class="no-side-padding endpoint-status message-type-status">
                       <span class="warning" v-if="messageType.metrics != null && parseFloat(formatGraphDuration(messageType.metrics.criticalTime).value) < 0">
-                        <i class="fa pa-warning" v-tooltip :title="`Warning: message type currently has negative critical time, possibly because of a clock drift.`"></i>
+                        <i class="fa pa-warning" v-tippy="`Warning: message type currently has negative critical time, possibly because of a clock drift.`"></i>
                       </span>
                       <span class="warning" v-if="endpoint.isScMonitoringDisconnected">
-                        <i class="fa pa-monitoring-lost endpoint-details" v-tooltip :title="`Unable to connect to monitoring server`"></i>
+                        <i class="fa pa-monitoring-lost endpoint-details" v-tippy="`Unable to connect to monitoring server`"></i>
                       </span>
                     </div>
                   </div>
@@ -120,8 +120,8 @@ const paginatedMessageTypes = computed(() => {
                       <SmallGraph :type="'throughput'" :isdurationgraph="false" :plotdata="messageType.metrics.throughput" :minimumyaxis="smallGraphsMinimumYAxis.throughput" :metricsuffix="'MSGS/S'" />
                       <span class="no-side-padding sparkline-value">
                         {{ endpoint.isStale == true || endpoint.isScMonitoringDisconnected == true ? "" : formatGraphDecimal(messageType.metrics.throughput, 2) }}
-                        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tooltip :title="`No metrics received or endpoint is not configured to send metrics`">?</strong>
-                        <strong v-if="endpoint.isScMonitoringDisconnected" v-tooltip :title="`Unable to connect to monitoring server`">?</strong>
+                        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tippy="`No metrics received or endpoint is not configured to send metrics`">?</strong>
+                        <strong v-if="endpoint.isScMonitoringDisconnected" v-tippy="`Unable to connect to monitoring server`">?</strong>
                       </span>
                     </div>
                   </div>
@@ -132,8 +132,8 @@ const paginatedMessageTypes = computed(() => {
                       <SmallGraph :type="'retries'" :isdurationgraph="false" :plotdata="messageType.metrics.retries" :minimumyaxis="smallGraphsMinimumYAxis.retries" :metricsuffix="'MSGS/S'" />
                       <span class="no-side-padding sparkline-value">
                         {{ endpoint.isStale == true || endpoint.isScMonitoringDisconnected == true ? "" : formatGraphDecimal(messageType.metrics.retries, 2) }}
-                        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tooltip :title="`No metrics received or endpoint is not configured to send metrics`">?</strong>
-                        <strong v-if="endpoint.isScMonitoringDisconnected" v-tooltip :title="`Unable to connect to monitoring server`">?</strong>
+                        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tippy="`No metrics received or endpoint is not configured to send metrics`">?</strong>
+                        <strong v-if="endpoint.isScMonitoringDisconnected" v-tippy="`Unable to connect to monitoring server`">?</strong>
                       </span>
                     </div>
                   </div>
@@ -144,8 +144,8 @@ const paginatedMessageTypes = computed(() => {
                       <SmallGraph :type="'processing-time'" :isdurationgraph="true" :plotdata="messageType.metrics.processingTime" :minimumyaxis="smallGraphsMinimumYAxis.processingTime" />
                       <span class="no-side-padding sparkline-value">
                         {{ endpoint.isStale == true || endpoint.isScMonitoringDisconnected == true ? "" : formatGraphDuration(messageType.metrics.processingTime).value }}
-                        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tooltip :title="`No metrics received or endpoint is not configured to send metrics`">?</strong>
-                        <strong v-if="endpoint.isScMonitoringDisconnected" v-tooltip :title="`Unable to connect to monitoring server`">?</strong>
+                        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tippy="`No metrics received or endpoint is not configured to send metrics`">?</strong>
+                        <strong v-if="endpoint.isScMonitoringDisconnected" v-tippy="`Unable to connect to monitoring server`">?</strong>
                         <span v-if="!endpoint.isStale && !endpoint.isScMonitoringDisconnected" class="unit">
                           {{ formatGraphDuration(messageType.metrics.processingTime).unit }}
                         </span>
@@ -159,8 +159,8 @@ const paginatedMessageTypes = computed(() => {
                       <SmallGraph :type="'critical-time'" :isdurationgraph="true" :plotdata="messageType.metrics.criticalTime" :minimumyaxis="smallGraphsMinimumYAxis.criticalTime" />
                       <span class="no-side-padding sparkline-value" :class="{ negative: parseFloat(formatGraphDuration(messageType.metrics.criticalTime).value) < 0 }">
                         {{ endpoint.isStale == true || endpoint.isScMonitoringDisconnected == true ? "" : formatGraphDuration(messageType.metrics.criticalTime).value }}
-                        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tooltip :title="`No metrics received or endpoint is not configured to send metrics`">?</strong>
-                        <strong v-if="endpoint.isScMonitoringDisconnected" v-tooltip :title="`Unable to connect to monitoring server`">?</strong>
+                        <strong v-if="endpoint.isStale && !endpoint.isScMonitoringDisconnected" v-tippy="`No metrics received or endpoint is not configured to send metrics`">?</strong>
+                        <strong v-if="endpoint.isScMonitoringDisconnected" v-tippy="`Unable to connect to monitoring server`">?</strong>
                         <span v-if="!endpoint.isStale && !endpoint.isScMonitoringDisconnected" class="unit">
                           {{ formatGraphDuration(messageType.metrics.criticalTime).unit }}
                         </span>

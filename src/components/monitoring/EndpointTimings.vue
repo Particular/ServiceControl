@@ -32,7 +32,7 @@ const averageCriticalTime = computed(() => useFormatTime(endpoint.value.digest.m
     <div class="no-side-padding graph-values">
       <div aria-label="processing-time-values" class="no-side-padding processing-time-values">
         <div aria-label="metric-header">
-          <span class="metric-digest-header" v-tooltip :title="`Processing time: The time taken for a receiving endpoint to successfully process a message.`"> Processing Time </span>
+          <span class="metric-digest-header" v-tippy="`Processing time: The time taken for a receiving endpoint to successfully process a message.`"> Processing Time </span>
         </div>
         <div aria-label="metric-current-value" class="metric-digest-value current">
           <div v-if="!endpoint.isStale && !endpoint.isScMonitoringDisconnected">
@@ -52,7 +52,7 @@ const averageCriticalTime = computed(() => useFormatTime(endpoint.value.digest.m
 
       <div aria-label="critical-time-values" class="no-side-padding critical-time-values">
         <div aria-label="metric-header">
-          <span class="metric-digest-header" v-tooltip :title="`Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.`"> Critical Time </span>
+          <span class="metric-digest-header" v-tippy="`Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.`"> Critical Time </span>
         </div>
         <div aria-label="metric-current-value" class="metric-digest-value current">
           <div v-if="!endpoint.isStale && !endpoint.isScMonitoringDisconnected">

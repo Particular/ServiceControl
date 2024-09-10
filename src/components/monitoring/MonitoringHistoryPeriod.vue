@@ -29,8 +29,7 @@ watch(
       v-for="period in allPeriods"
       :key="period.pVal"
       :aria-label="period.pVal.toString()"
-      v-tooltip
-      :title="period.refreshIntervalText"
+      v-tippy="period.refreshIntervalText"
       :class="{ active: period.pVal === selectedPeriod.pVal, notselected: period.pVal !== selectedPeriod.pVal }"
       :aria-selected="period.pVal === selectedPeriod.pVal"
     >

@@ -24,7 +24,7 @@ const endpoint = defineModel<ExtendedEndpointDetails>({
     <div class="no-side-padding graph-values">
       <div aria-label="queue-length-values" class="queue-length-values">
         <div aria-label="metric-header">
-          <span class="metric-digest-header" v-tooltip :title="`Queue length: The number of messages waiting to be processed in the input queue(s) of the endpoint.`"> Queue Length </span>
+          <span class="metric-digest-header" v-tippy="`Queue length: The number of messages waiting to be processed in the input queue(s) of the endpoint.`"> Queue Length </span>
         </div>
         <div aria-label="metric-current-value" class="metric-digest-value current">
           <div v-if="!endpoint.isStale && !endpoint.isScMonitoringDisconnected">

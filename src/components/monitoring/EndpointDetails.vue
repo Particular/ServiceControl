@@ -89,20 +89,20 @@ onMounted(() => {
         <!--Header-->
         <div class="monitoring-head">
           <div class="endpoint-title no-side-padding list-section">
-            <h1 aria-label="endpoint-title" aria-level="1" class="righ-side-ellipsis" v-tooltip :title="endpointName">
+            <h1 aria-label="endpoint-title" aria-level="1" class="righ-side-ellipsis" v-tippy="endpointName">
               {{ endpointName }}
             </h1>
             <div class="endpoint-status">
               <span role="status" aria-label="negative-critical-time-warning" class="warning" v-if="negativeCriticalTimeIsPresent">
-                <i class="fa pa-warning" v-tooltip :title="`Warning: endpoint currently has negative critical time, possibly because of a clock drift.`"></i>
+                <i class="fa pa-warning" v-tippy="`Warning: endpoint currently has negative critical time, possibly because of a clock drift.`"></i>
               </span>
               <span role="status" aria-label="stale-warning" v-if="endpoint.isStale" class="warning">
-                <i class="fa pa-endpoint-lost endpoint-details" v-tooltip :title="`Unable to connect to endpoint`"></i>
+                <i class="fa pa-endpoint-lost endpoint-details" v-tippy="`Unable to connect to endpoint`"></i>
               </span>
               <span role="status" aria-label="disconnected-warning" class="warning" v-if="endpoint.isScMonitoringDisconnected">
-                <i class="fa pa-monitoring-lost endpoint-details" v-tooltip :title="`Unable to connect to monitoring server`"></i>
+                <i class="fa pa-monitoring-lost endpoint-details" v-tippy="`Unable to connect to monitoring server`"></i>
               </span>
-              <span role="status" aria-label="error-count-warning" class="warning" v-if="endpoint.errorCount" v-tooltip :title="endpoint.errorCount + ` failed messages associated with this endpoint. Click to see list.`">
+              <span role="status" aria-label="error-count-warning" class="warning" v-if="endpoint.errorCount" v-tippy="endpoint.errorCount + ` failed messages associated with this endpoint. Click to see list.`">
                 <RouterLink :to="routeLinks.failedMessage.group.link(endpoint.serviceControlId)" v-if="endpoint.errorCount" class="warning cursorpointer">
                   <i class="fa fa-envelope"></i>
                   <span aria-label="error-count" class="badge badge-important ng-binding cursorpointer"> {{ endpoint.errorCount }}</span>

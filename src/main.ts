@@ -3,6 +3,7 @@ import { mount } from "./mount";
 import "vue-toastification/dist/index.css";
 import "vue3-simple-typeahead/dist/vue3-simple-typeahead.css"; //Optional default CSS
 import "./assets/main.css";
+import "tippy.js/dist/tippy.css";
 
 async function conditionallyEnableMocking() {
   if (process.env.NODE_ENV !== "dev-mocks") {
