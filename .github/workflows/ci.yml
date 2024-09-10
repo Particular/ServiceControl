@@ -142,16 +142,23 @@ jobs:
           - name: rabbit
             transport: RabbitMQ.QuorumConventionalRouting
             connection-string: 'host=transport'
+            transport-compose-file: rabbit.yml
           - name: mssql
             transport: SQLServer
             connection-string: 'Server=transport;Database=master;User=sa;Password=ServiceControl1!;Encrypt=False;'
+            transport-compose-file: mssql.yml
           - name: asb
             transport: NetStandardAzureServiceBus
+            transport-compose-file: rabbit.yml
           - name: asq
             transport: AzureStorageQueue
           - name: sqs
             transport: AmazonSQS
             connection-string: 'AccessKeyId=demo;SecretAccessKey=demo;Region=us-east-1'
+            transport-compose-file: sqs.yml
+    env:
+      CONNECTIONSTRING: ${{ matrix.connection-string }}
+      TRANSPORTTYPE: ${{ matrix.transport }}
     steps:
       - name: Check for secrets
         env:
@@ -180,39 +187,24 @@ jobs:
         if: ${{ matrix.name == 'asb' }}
         uses: Particular/setup-azureservicebus-action@v2.0.0
         with:
-          connection-string-name: ConnectionString
+          connection-string-name: CONNECTIONSTRING
           azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControlContainerTest
       - name: Setup Azure Storage
         if: ${{ matrix.name == 'asq' }}
         uses: Particular/setup-azurestorage-action@v2.0.0
         with:
-          connection-string-name: ConnectionString
+          connection-string-name: CONNECTIONSTRING
           azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControlContainerTest
       - name: Run Docker Compose
         shell: bash
+        env:
+          SERVICECONTROL_TAG: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
         run: |
-          echo 'Creating .env file'
           cd src/compose-test
-          echo 'SERVICECONTROL_TAG=${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}' > .env
-          echo 'TRANSPORTTYPE=${{ matrix.transport }}' >> .env
-          echo 'CONNECTIONSTRING="${{ matrix.connection-string || env.ConnectionString }}"' >> .env
-          echo 'AWS_ENDPOINT_URL=http://transport:4566' >> .env
-          cat .env
-          echo ''
-          echo '--------------------'
-
-          echo 'Adding ${{matrix.name}} transport configuration to compose.yml'
-          echo '' >> compose.yml
-          echo '' >> compose.yml
-          cat ${{ matrix.name }}.yml >> compose.yml
-          cat compose.yml
-          echo ''
-          echo '--------------------'
-
           echo 'Starting services...'
-          docker compose up -d
+          docker compose up -f compose.yml -f ${{ matrix.transport-compose-file || 'fake-transport-container.yml' }} up -d
           echo 'Docker compose complete'
       - name: Wait for container health
         shell: pwsh
