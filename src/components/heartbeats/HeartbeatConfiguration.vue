@@ -33,7 +33,7 @@ const sortedEndpoints = computed<Endpoint[]>(() =>
             <div class="col-sm-12 no-side-padding">
               <div class="row">
                 <div class="col-sm-2 col-lg-1">
-                  <OnOffSwitch :id="endpoint.id" @toggle="store.toggleEndpointMonitor(endpoint)" v-model="endpoint.monitor_heartbeat" />
+                  <OnOffSwitch :id="endpoint.id" @toggle="store.toggleEndpointMonitor(endpoint)" :value="endpoint.monitor_heartbeat" />
                 </div>
                 <div class="col-sm-10 col-lg-11">
                   <div class="row box-header">
