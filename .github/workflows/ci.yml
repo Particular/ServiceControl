@@ -114,6 +114,10 @@ jobs:
           PARTICULARSOFTWARE_LICENSE: ${{ secrets.LICENSETEXT }}
           AZURE_ACI_CREDENTIALS: ${{ secrets.AZURE_ACI_CREDENTIALS }}
 
+  windows-installer:
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    uses: ./.github/workflows/build-windows.yml
+    secrets: inherit
   containers:
     if: ${{ github.actor != 'dependabot[bot]' }}
     uses: ./.github/workflows/build-containers.yml

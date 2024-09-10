@@ -1,9 +1,6 @@
 name: Release
 on:
   push:
-    branches:
-      - master
-      - release-*
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
       - '[0-9]+.[0-9]+.[0-9]+-*'
@@ -12,134 +9,10 @@ on:
 env:
   DOTNET_NOLOGO: true
 jobs:
-  windows:
+  windows-installer:
     if: ${{ github.actor != 'dependabot[bot]' }}
-    runs-on: windows-2022
-    steps:
-      - name: Check for secrets
-        env:
-          SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
-        shell: pwsh
-        run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
-      - name: Checkout
-        uses: actions/checkout@v4.1.7
-        with:
-          fetch-depth: 0
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4.0.1
-        with:
-          dotnet-version: 8.0.x
-      - name: Download RavenDB Server
-        shell: pwsh
-        run: ./tools/download-ravendb-server.ps1
-      - name: Build
-        run: dotnet build src --configuration Release -graph --property:WindowsSelfContained=true
-      - name: Validate build version
-        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
-        uses: ./.github/actions/validate-version
-        with:
-          version: ${{ env.MinVerVersion }}
-      - name: Build ServiceControl Management
-        run: dotnet publish src\ServiceControl.Config\ServiceControl.Config.csproj --no-build --output assets --property:WindowsSelfContained=true
-      - name: Create PowerShell module catalog
-        run: New-FileCatalog -Path deploy\PowerShellModules\Particular.ServiceControl.Management -CatalogFilePath deploy\PowerShellModules\Particular.ServiceControl.Management\Particular.ServiceControl.Management.cat -CatalogVersion 2.0
-      - name: Install AzureSignTool
-        run: dotnet tool install --global azuresigntool
-      - name: Sign ServiceControl Management EXE
-        run: |
-          AzureSignTool sign `
-          --file-digest sha256 `
-          --timestamp-rfc3161 http://timestamp.digicert.com `
-          --azure-key-vault-url https://particularcodesigning.vault.azure.net `
-          --azure-key-vault-client-id ${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }} `
-          --azure-key-vault-tenant-id ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }} `
-          --azure-key-vault-client-secret ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }} `
-          --azure-key-vault-certificate ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }} `
-          assets\Particular.ServiceControl.exe
-      - name: Rename ServiceControl Management EXE
-        run: Rename-Item -Path assets\Particular.ServiceControl.exe -NewName "Particular.ServiceControl-${{ env.MinVerVersion }}.exe"
-        shell: pwsh
-      - name: Sign PowerShell module
-        run: |
-          AzureSignTool sign `
-          --file-digest sha256 `
-          --timestamp-rfc3161 http://timestamp.digicert.com `
-          --azure-key-vault-url https://particularcodesigning.vault.azure.net `
-          --azure-key-vault-client-id ${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }} `
-          --azure-key-vault-tenant-id ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }} `
-          --azure-key-vault-client-secret ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }} `
-          --azure-key-vault-certificate ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }} `
-          deploy\PowerShellModules\Particular.ServiceControl.Management\Particular.ServiceControl.Management.cat
-      - name: Zip PowerShell module
-        run: |
-          New-Item assets\PowerShellModules -ItemType Directory
-          Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
-      - name: Publish assets
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: assets
-          path: assets/*
-          retention-days: 1
-      - name: Publish zips
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: zips
-          path: zip/*
-          retention-days: 1
-      - name: Build PlatformSample package
-        run: |
-          Remove-Item deploy\Particular.ServiceControl* -recurse
-          dotnet clean src --configuration Release --property:WindowsSelfContained=true
-          dotnet build src\Particular.PlatformSample.ServiceControl\Particular.PlatformSample.ServiceControl.csproj --configuration Release -graph
-        shell: pwsh
-      - name: Sign NuGet packages
-        uses: Particular/sign-nuget-packages-action@v1.0.0
-        with:
-          client-id: ${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }}
-          client-secret: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
-          certificate-name: ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}
-      - name: Publish NuGet packages
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: nugets
-          path: nugets/*
-          retention-days: 1
-      - name : Verify release artifact counts
-        shell: pwsh
-        run: |
-          $assetsCount = (Get-ChildItem -Recurse -File assets).Count
-          $nugetsCount =  (Get-ChildItem -Recurse -File nugets).Count
-          $zipCount = (Get-ChildItem -Recurse -File zip).Count
-
-          $expectedAssetsCount = 2 # SCMU & PowerShell module
-          $expectedNugetsCount = 1 # PlatformSample
-          $expectedZipCount = 5    # ServiceControl, Audit, & Monitoring + Transports & RavenDBServer
-
-          if ($assetsCount -ne $expectedAssetsCount)
-          {
-              Write-Host Assets: Expected $expectedAssetsCount but found $assetsCount
-              exit -1
-          }
-
-          if ($nugetsCount -ne $expectedNugetsCount)
-          {
-              Write-Host Nugets: Expected $expectedNugetsCount but found $nugetsCount
-              exit -1
-          }
-
-          if ($expectedZipCount -ne $zipCount)
-          {
-              Write-Host Zips: Expected $expectedZipCount but found $zipCount
-              exit -1
-          }
-      - name: Deploy
-        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
-        # Does not follow standard practice of targeting explicit versions because configuration is tightly coupled to Octopus Deploy configuration
-        uses: Particular/push-octopus-package-action@main
-        with:
-          octopus-deploy-api-key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
-
+    uses: ./.github/workflows/build-windows.yml
+    secrets: inherit
   containers:
     if: ${{ github.actor != 'dependabot[bot]' }}
     uses: ./.github/workflows/build-containers.yml
