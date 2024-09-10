@@ -1,3 +1,4 @@
+services:
   transport:
     image: localstack/localstack:3
     ports:

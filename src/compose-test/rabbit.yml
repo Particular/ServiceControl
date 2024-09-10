@@ -1,3 +1,4 @@
+services:
   transport:
     image: rabbitmq:3-management
     ports:

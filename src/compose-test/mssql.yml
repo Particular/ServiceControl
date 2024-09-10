@@ -1,3 +1,4 @@
+services:
   transport:
     image: mcr.microsoft.com/mssql/server:2022-latest
     ports:

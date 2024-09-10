@@ -1,3 +1,4 @@
+services:
   # Fake container for transports that don't need it
   transport:
     image: busybox:latest
