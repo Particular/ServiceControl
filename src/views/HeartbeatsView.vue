@@ -1,70 +1,70 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
-import { licenseStatus } from "../composables/serviceLicense";
-import { connectionState } from "../composables/serviceServiceControl";
-import LicenseExpired from "../components/LicenseExpired.vue";
 import routeLinks from "@/router/routeLinks";
 import isRouteSelected from "@/composables/isRouteSelected";
 import { DisplayType, sortOptions, useHeartbeatsStore } from "@/stores/HeartbeatsStore";
 import { storeToRefs } from "pinia";
 import OrderBy from "@/components/OrderBy.vue";
+import LicenseNotExpired from "@/components/LicenseNotExpired.vue";
+import ServiceControlAvailable from "@/components/ServiceControlAvailable.vue";
 
 const store = useHeartbeatsStore();
 const { inactiveEndpoints, activeEndpoints, selectedDisplay, filterString } = storeToRefs(store);
 </script>
 
 <template>
-  <LicenseExpired />
-  <template v-if="!licenseStatus.isExpired">
-    <div class="container">
-      <div class="row">
-        <div class="col-12">
-          <h1>Endpoint Heartbeats</h1>
+  <LicenseNotExpired>
+    <ServiceControlAvailable>
+      <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <h1>Endpoint Heartbeats</h1>
+          </div>
         </div>
-      </div>
-      <div class="row">
-        <div class="col-sm-12">
-          <div class="tabs">
-            <div>
-              <!--Inactive Endpoints-->
-              <h5 :class="{ active: isRouteSelected(routeLinks.heartbeats.inactive.link), disabled: !connectionState.connected && !connectionState.connectedRecently }">
-                <RouterLink :to="routeLinks.heartbeats.inactive.link"> Inactive Endpoints ({{ inactiveEndpoints.length }}) </RouterLink>
-              </h5>
+        <div class="row">
+          <div class="col-sm-12">
+            <div class="tabs">
+              <div>
+                <!--Inactive Endpoints-->
+                <h5 :class="{ active: isRouteSelected(routeLinks.heartbeats.inactive.link) }">
+                  <RouterLink :to="routeLinks.heartbeats.inactive.link"> Inactive Endpoints ({{ inactiveEndpoints.length }}) </RouterLink>
+                </h5>
 
-              <!--Active Endpoints-->
-              <h5 v-if="!licenseStatus.isExpired" :class="{ active: isRouteSelected(routeLinks.heartbeats.active.link), disabled: !connectionState.connected && !connectionState.connectedRecently }">
-                <RouterLink :to="routeLinks.heartbeats.active.link"> Active Endpoints ({{ activeEndpoints.length }}) </RouterLink>
-              </h5>
+                <!--Active Endpoints-->
+                <h5 :class="{ active: isRouteSelected(routeLinks.heartbeats.active.link) }">
+                  <RouterLink :to="routeLinks.heartbeats.active.link"> Active Endpoints ({{ activeEndpoints.length }}) </RouterLink>
+                </h5>
 
-              <!--Configuration-->
-              <h5 v-if="!licenseStatus.isExpired" :class="{ active: isRouteSelected(routeLinks.heartbeats.configuration.link), disabled: !connectionState.connected && !connectionState.connectedRecently }">
-                <RouterLink :to="routeLinks.heartbeats.configuration.link"> Configuration </RouterLink>
-              </h5>
-            </div>
-            <div class="filter-group">
-              <div class="msg-group-menu dropdown" v-if="!isRouteSelected(routeLinks.heartbeats.configuration.link)">
-                <label class="control-label">Display:</label>
-                <button type="button" class="btn btn-default dropdown-toggle sp-btn-menu" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  {{ selectedDisplay }}
-                  <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                  <li v-for="displayType in DisplayType" :key="displayType">
-                    <a @click.prevent="store.setSelectedDisplay(displayType)">{{ displayType }}</a>
-                  </li>
-                </ul>
+                <!--Configuration-->
+                <h5 :class="{ active: isRouteSelected(routeLinks.heartbeats.configuration.link) }">
+                  <RouterLink :to="routeLinks.heartbeats.configuration.link"> Configuration </RouterLink>
+                </h5>
               </div>
-              <OrderBy @sort-updated="store.setSelectedSort" :sort-options="sortOptions" />
-              <div class="filter-input">
-                <input type="text" placeholder="Filter by name..." aria-label="filter by name" class="form-control-static filter-input" v-model="filterString" />
+              <div class="filter-group">
+                <div class="msg-group-menu dropdown" v-if="!isRouteSelected(routeLinks.heartbeats.configuration.link)">
+                  <label class="control-label">Display:</label>
+                  <button type="button" class="btn btn-default dropdown-toggle sp-btn-menu" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {{ selectedDisplay }}
+                    <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li v-for="displayType in DisplayType" :key="displayType">
+                      <a @click.prevent="store.setSelectedDisplay(displayType)">{{ displayType }}</a>
+                    </li>
+                  </ul>
+                </div>
+                <OrderBy @sort-updated="store.setSelectedSort" :sort-options="sortOptions" />
+                <div class="filter-input">
+                  <input type="text" placeholder="Filter by name..." aria-label="filter by name" class="form-control-static filter-input" v-model="filterString" />
+                </div>
               </div>
             </div>
           </div>
         </div>
+        <RouterView />
       </div>
-      <RouterView />
-    </div>
-  </template>
+    </ServiceControlAvailable>
+  </LicenseNotExpired>
 </template>
 
 <style scoped>
