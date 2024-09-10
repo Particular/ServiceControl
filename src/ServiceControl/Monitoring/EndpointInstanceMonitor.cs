@@ -117,11 +117,11 @@ namespace ServiceControl.Monitoring
                 Monitored = Monitored,
                 MonitorHeartbeat = Monitored,
 
-                HeartbeatInformation = new HeartbeatInformation
+                HeartbeatInformation = lastSeen.HasValue ? new HeartbeatInformation
                 {
                     ReportedStatus = status == HeartbeatStatus.Alive ? HeartbeatMonitoringStatus.Beating : HeartbeatMonitoringStatus.Dead,
                     LastReportAt = lastSeen ?? DateTime.MinValue
-                }
+                } : null
             };
         }
 
