@@ -4,7 +4,7 @@ import moment from "moment";
 
 const emptyDate = "0001-01-01T00:00:00";
 
-const props = withDefaults(defineProps<{ dateUtc?: string }>(), { dateUtc: emptyDate });
+const props = withDefaults(defineProps<{ dateUtc?: string; defaultTextOnFailure?: string }>(), { dateUtc: emptyDate, defaultTextOnFailure: "n/a" });
 
 let interval: number | undefined = undefined;
 
@@ -17,8 +17,7 @@ function updateText() {
     text.value = m.fromNow();
     title.value = m.local().format("LLLL") + " (local)\n" + m.utc().format("LLLL") + " (UTC)";
   } else {
-    text.value = "n/a";
-    title.value = "n/a";
+    text.value = title.value = props.defaultTextOnFailure;
   }
 }
 
