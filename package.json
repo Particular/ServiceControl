@@ -59,7 +59,7 @@
     "eslint-plugin-vue": "^9.27.0",
     "flush-promises": "^1.0.2",
     "jsdom": "^24.1.1",
-    "msw": "^2.3.5",
+    "msw": "^2.4.4",
     "prettier": "^3.3.3",
     "typescript": "^5.5.4",
     "vite": "^5.4.3",
