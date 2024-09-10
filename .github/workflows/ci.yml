@@ -119,7 +119,7 @@ jobs:
     uses: ./.github/workflows/build-containers.yml
   db-containers:
     if: ${{ github.actor != 'dependabot[bot]' }}
-    uses: ./github/workflows/build-db-container.yml
+    uses: ./.github/workflows/build-db-container.yml
 
   container-test:
     if: ${{ github.actor != 'dependabot[bot]' }}
