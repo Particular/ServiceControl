@@ -1,9 +1,9 @@
 on:
   workflow_call:
 jobs:
-  db-containers:
+  db-container:
     runs-on: ubuntu-22.04
-    name: db-containers
+    name: db-container
     defaults:
       run:
         shell: bash

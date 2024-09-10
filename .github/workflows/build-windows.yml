@@ -1,7 +1,7 @@
 on:
   workflow_call:
 jobs:
-  windows:
+  build:
     if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: windows-2022
     steps:

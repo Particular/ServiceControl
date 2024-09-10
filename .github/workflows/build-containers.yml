@@ -3,7 +3,7 @@ on:
 jobs:
   containers:
     runs-on: ubuntu-22.04
-    name: container-${{ matrix.name }}
+    name: ${{ matrix.name }}
     defaults:
       run:
         shell: bash

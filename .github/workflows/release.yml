@@ -7,7 +7,7 @@ on:
 env:
   DOTNET_NOLOGO: true
 jobs:
-  windows-installer:
+  windows-installers:
     if: ${{ github.actor != 'dependabot[bot]' }}
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
