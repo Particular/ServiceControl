@@ -57,6 +57,7 @@ function toggleSort() {
   max-width: 100%;
   display: flex;
   flex-wrap: wrap;
+  align-items: end;
 }
 
 .column-header-button span {
