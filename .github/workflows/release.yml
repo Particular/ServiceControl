@@ -142,5 +142,5 @@ jobs:
 
   containers:
     uses: ./.github/workflows/build-containers.yml
-  db-containers:
+  db-container:
     uses: ./.github/workflows/build-db-container.yml
