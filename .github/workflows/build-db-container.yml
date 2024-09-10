@@ -2,7 +2,6 @@ on:
   workflow_call:
 jobs:
   db-containers:
-    if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-22.04
     name: db-containers
     defaults:

@@ -141,6 +141,10 @@ jobs:
           octopus-deploy-api-key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
 
   containers:
+    if: ${{ github.actor != 'dependabot[bot]' }}
     uses: ./.github/workflows/build-containers.yml
+    secrets: inherit
   db-container:
+    if: ${{ github.actor != 'dependabot[bot]' }}
     uses: ./.github/workflows/build-db-container.yml
+    secrets: inherit
