@@ -1,74 +1,32 @@
 <script setup lang="ts" generic="T">
-import { onMounted, onUnmounted, ref, watch } from "vue";
-import { useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
+import { ref, computed, watch } from "vue";
 import ItemsPerPage from "@/components/ItemsPerPage.vue";
 import PaginationStrip from "@/components/PaginationStrip.vue";
-import type DataViewPageModel from "./DataViewPageModel";
 
 const props = withDefaults(
   defineProps<{
-    apiUrl: string;
+    data: T[];
     itemsPerPageOptions?: number[];
     itemsPerPage?: number;
-    autoRefreshSeconds: number;
     showPagination?: boolean;
     showItemsPerPage?: boolean;
   }>(),
   { itemsPerPageOptions: () => [20, 35, 50, 75], itemsPerPage: 50, showPagination: true, showItemsPerPage: false }
 );
 
-let refreshTimer: number | undefined;
-const viewModel = defineModel<DataViewPageModel<T>>({ required: true });
-
 const pageNumber = ref(1);
 const itemsPerPage = ref(props.itemsPerPage);
+const pageData = computed(() => props.data.slice((pageNumber.value - 1) * itemsPerPage.value, Math.min(pageNumber.value * itemsPerPage.value, props.data.length)));
 
-watch(
-  () => props.autoRefreshSeconds,
-  () => {
-    stopRefreshTimer();
-    startRefreshTimer();
-  }
-);
+const emit = defineEmits<{ itemsPerPageChanged: [value: number] }>();
 
-watch(itemsPerPage, () => loadData());
-watch(pageNumber, () => loadData());
-
-async function loadData() {
-  const [response, data] = await useTypedFetchFromServiceControl<T[]>(`${props.apiUrl}?page=${pageNumber.value}&per_page=${itemsPerPage.value}`);
-  if (response.ok) {
-    viewModel.value.totalCount = parseInt(response.headers.get("Total-Count") ?? "0");
-    viewModel.value.data = data;
-  }
-}
-
-function startRefreshTimer() {
-  if (props.autoRefreshSeconds) {
-    refreshTimer = window.setInterval(() => {
-      loadData();
-    }, props.autoRefreshSeconds * 1000);
-  }
-}
-
-function stopRefreshTimer() {
-  window.clearInterval(refreshTimer);
-}
-
-onMounted(() => {
-  startRefreshTimer();
-  loadData();
-});
-
-onUnmounted(() => {
-  stopRefreshTimer();
-});
+watch(itemsPerPage, () => emit("itemsPerPageChanged", itemsPerPage.value));
 </script>
 
 <template>
-  <slot name="data"></slot>
+  <slot name="data" :pageData="pageData" />
   <div class="row">
     <ItemsPerPage v-if="showItemsPerPage" v-model="itemsPerPage" :options="itemsPerPageOptions" />
-    <PaginationStrip v-if="showPagination" v-model="pageNumber" :totalCount="viewModel.totalCount" :itemsPerPage="itemsPerPage" />
+    <PaginationStrip v-if="showPagination" v-model="pageNumber" :totalCount="data.length" :itemsPerPage="itemsPerPage" />
   </div>
-  <slot name="footer"></slot>
 </template>

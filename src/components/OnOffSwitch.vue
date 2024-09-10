@@ -1,15 +1,15 @@
 <script setup lang="ts">
 defineProps<{
   id: string;
+  value: boolean | null;
 }>();
 
-const model = defineModel<boolean | null>({ required: true });
 const emit = defineEmits<{ toggle: [] }>();
 </script>
 
 <template>
   <div class="onoffswitch">
-    <input type="checkbox" :id="`onoffswitch${id}`" :name="`onoffswitch${id}`" class="onoffswitch-checkbox" @click="emit('toggle')" v-model="model" />
+    <input type="checkbox" :id="`onoffswitch${id}`" :name="`onoffswitch${id}`" class="onoffswitch-checkbox" @click="emit('toggle')" :checked="value ?? false" />
     <label class="onoffswitch-label" :for="`onoffswitch${id}`">
       <span class="onoffswitch-inner"></span>
       <span class="onoffswitch-switch"></span>

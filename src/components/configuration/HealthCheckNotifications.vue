@@ -115,7 +115,7 @@ onMounted(async () => {
                 <div class="col-12 no-side-padding">
                   <div class="row">
                     <div class="col-1">
-                      <OnOffSwitch id="emailNotifications" @toggle="toggleEmailNotifications" v-model="emailNotifications.enabled" />
+                      <OnOffSwitch id="emailNotifications" @toggle="toggleEmailNotifications" :value="emailNotifications.enabled" />
                       <div>
                         <span class="connection-test connection-failed">
                           <template v-if="emailToggleSuccessful === false"> <i class="fa fa-exclamation-triangle"></i> Update failed </template>
