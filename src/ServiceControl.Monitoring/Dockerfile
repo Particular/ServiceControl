@@ -9,7 +9,7 @@ RUN dotnet build src/ServiceControl.Monitoring/ServiceControl.Monitoring.csproj 
 RUN dotnet publish src/HealthCheckApp/HealthCheckApp.csproj --arch $TARGETARCH --output /healthcheck
 
 # Runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled-composite
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled-composite-extra
 ARG VERSION
 WORKDIR /app
 
