@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import DataView from "@/components/DataView.vue";
+import DataView from "@/components/AutoRefreshDataView.vue";
 import EventLogItem from "@/components/EventLogItem.vue";
 import type EventLogItemType from "@/resources/EventLogItem";
 import { ref } from "vue";

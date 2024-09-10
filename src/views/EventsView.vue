@@ -2,7 +2,7 @@
 import { licenseStatus } from "@/composables/serviceLicense";
 import { connectionState } from "@/composables/serviceServiceControl";
 import LicenseExpired from "@/components/LicenseExpired.vue";
-import DataView from "@/components/DataView.vue";
+import DataView from "@/components/AutoRefreshDataView.vue";
 import EventLogItem from "@/components/EventLogItem.vue";
 import ServiceControlNotAvailable from "@/components/ServiceControlNotAvailable.vue";
 import type EventLogItemType from "@/resources/EventLogItem";
