@@ -143,25 +143,25 @@ jobs:
           - name: rabbit
             transport: RabbitMQ.QuorumConventionalRouting
             connection-string: 'host=transport'
-            compose-file: rabbit.yml
+            compose-cmd: docker compose -f servicecontrol.yml -f rabbit.yml up -d
             expected-healthy-containers: 5
           - name: mssql
             transport: SQLServer
             connection-string: 'Server=transport;Database=master;User=sa;Password=ServiceControl1!;Encrypt=False;'
-            compose-file: mssql.yml
+            compose-cmd: docker compose -f servicecontrol.yml -f mssql.yml up -d
             expected-healthy-containers: 5
           - name: asb
             transport: NetStandardAzureServiceBus
-            compose-file: servicecontrol.yml
+            compose-cmd: docker compose -f servicecontrol.yml up -d
             expected-healthy-containers: 4
           - name: asq
             transport: AzureStorageQueue
-            compose-file: servicecontrol.yml
+            compose-cmd: docker compose -f servicecontrol.yml up -d
             expected-healthy-containers: 4
           - name: sqs
             transport: AmazonSQS
             connection-string: 'AccessKeyId=demo;SecretAccessKey=demo;Region=us-east-1'
-            compose-file: sqs.yml
+            compose-cmd: docker compose -f servicecontrol.yml -f sqs.yml up -d
             expected-healthy-containers: 5
     env:
       CONNECTIONSTRING: ${{ matrix.connection-string }}
@@ -206,7 +206,7 @@ jobs:
         run: |
           cd src/compose-test
           echo 'Starting services...'
-          docker compose -f ${{ matrix.compose-file }} up -d
+          ${{ matrix.compose-cmd }}
           echo 'Docker compose complete'
       - name: Evaluate container health
         id: evaluate
@@ -216,7 +216,7 @@ jobs:
           $numHealthy = 0
           for ($i=0; $i -le 20; $i++) {
             $numHealthy = (docker ps -f health=healthy --format json | ConvertFrom-Json).Count
-            echo "Currently $numHealthy healthy containers out of ${{matrix.expected-healthy-containers}} expected
+            echo "Currently $numHealthy healthy containers out of ${{matrix.expected-healthy-containers}} expected"
             if ($numHealthy -eq 5) {
                 break;
             }
