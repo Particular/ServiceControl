@@ -120,7 +120,7 @@ namespace ServiceControl.Monitoring
                 HeartbeatInformation = lastSeen.HasValue ? new HeartbeatInformation
                 {
                     ReportedStatus = status == HeartbeatStatus.Alive ? HeartbeatMonitoringStatus.Beating : HeartbeatMonitoringStatus.Dead,
-                    LastReportAt = lastSeen ?? DateTime.MinValue
+                    LastReportAt = lastSeen
                 } : null
             };
         }
