@@ -1,6 +1,3 @@
-include:
-  - servicecontrol.yml
-
 services:
   servicecontrol:
     depends_on:
