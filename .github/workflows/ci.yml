@@ -143,23 +143,25 @@ jobs:
           - name: rabbit
             transport: RabbitMQ.QuorumConventionalRouting
             connection-string: 'host=transport'
-            transport-compose-file: rabbit.yml
+            compose-file: rabbit.yml
             expected-healthy-containers: 5
           - name: mssql
             transport: SQLServer
             connection-string: 'Server=transport;Database=master;User=sa;Password=ServiceControl1!;Encrypt=False;'
-            transport-compose-file: mssql.yml
+            compose-file: mssql.yml
             expected-healthy-containers: 5
           - name: asb
             transport: NetStandardAzureServiceBus
+            compose-file: servicecontrol.yml
             expected-healthy-containers: 4
           - name: asq
             transport: AzureStorageQueue
+            compose-file: servicecontrol.yml
             expected-healthy-containers: 4
           - name: sqs
             transport: AmazonSQS
             connection-string: 'AccessKeyId=demo;SecretAccessKey=demo;Region=us-east-1'
-            transport-compose-file: sqs.yml
+            compose-file: sqs.yml
             expected-healthy-containers: 5
     env:
       CONNECTIONSTRING: ${{ matrix.connection-string }}
@@ -204,13 +206,7 @@ jobs:
         run: |
           cd src/compose-test
           echo 'Starting services...'
-          $transportComposeFile = '${{ matrix.transport-compose-file }}'
-          if ($transportComposeFile) {
-            # See https://docs.docker.com/compose/multiple-compose-files/merge/
-            docker compose -f compose.yml -f $transportComposeFile up -d
-          } else {
-            docker compose -f compose.yml up -d
-          }
+          docker compose -f ${{ matrix.compose-file }} up -d
           echo 'Docker compose complete'
       - name: Evaluate container health
         id: evaluate

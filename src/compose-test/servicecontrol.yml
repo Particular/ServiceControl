@@ -13,8 +13,6 @@ services:
     depends_on:
       servicecontrol-db:
         condition: service_healthy
-      transport:
-        condition: service_healthy
 
   # WARNING: A single database container should not be shared between multiple ServiceControl instances in production scenarios.
   servicecontrol-db:
@@ -36,8 +34,6 @@ services:
     depends_on:
       servicecontrol-db:
         condition: service_healthy
-      transport:
-        condition: service_healthy
 
   servicecontrol-monitoring:
     image: ghcr.io/particular/servicecontrol-monitoring:${SERVICECONTROL_TAG}
@@ -45,6 +41,3 @@ services:
     command: --setup-and-run
     ports:
       - "33633:33633"
-    depends_on:
-      transport:
-        condition: service_healthy

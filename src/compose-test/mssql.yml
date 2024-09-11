@@ -1,5 +1,21 @@
+include:
+  - servicecontrol.yml
+
 services:
-  transport:
+  servicecontrol:
+    depends_on:
+      mssql:
+        condition: service_healthy
+  servicecontrol-audit:
+    depends_on:
+      mssql:
+        condition: service_healthy
+  servicecontrol-monitoring:
+    depends_on:
+      mssql:
+        condition: service_healthy
+
+  mssql:
     image: mcr.microsoft.com/mssql/server:2022-latest
     ports:
       - "1433:1433"

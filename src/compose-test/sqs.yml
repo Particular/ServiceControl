@@ -1,5 +1,21 @@
+include:
+  - servicecontrol.yml
+
 services:
-  transport:
+  servicecontrol:
+    depends_on:
+      localstack:
+        condition: service_healthy
+  servicecontrol-audit:
+    depends_on:
+      localstack:
+        condition: service_healthy
+  servicecontrol-monitoring:
+    depends_on:
+      localstack:
+        condition: service_healthy
+
+  localstack:
     image: localstack/localstack:3
     ports:
       - '4566-4597:4566-4597'

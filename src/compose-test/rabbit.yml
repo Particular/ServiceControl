@@ -1,5 +1,21 @@
+include:
+  - servicecontrol.yml
+
 services:
-  transport:
+  servicecontrol:
+    depends_on:
+      rabbit:
+        condition: service_healthy
+  servicecontrol-audit:
+    depends_on:
+      rabbit:
+        condition: service_healthy
+  servicecontrol-monitoring:
+    depends_on:
+      rabbit:
+        condition: service_healthy
+
+  rabbit:
     image: rabbitmq:3-management
     ports:
       - "5672:5672"
