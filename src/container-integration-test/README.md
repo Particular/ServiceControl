@@ -1,4 +1,4 @@
-# Docker Compose integration test
+# Container integration test
 
 The files in this directory are part of a test meant to test that all containers will run successfully for each transport. This is meant to detect issues that may stem from incompatibility between the application code, base image, and message transport. The test only ensures that the containers run and report as healthy within an allowable startup time. No further ServiceControl functionality is verified.
 
