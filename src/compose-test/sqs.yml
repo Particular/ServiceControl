@@ -1,16 +1,4 @@
 services:
-  servicecontrol:
-    depends_on:
-      localstack:
-        condition: service_healthy
-  servicecontrol-audit:
-    depends_on:
-      localstack:
-        condition: service_healthy
-  servicecontrol-monitoring:
-    depends_on:
-      localstack:
-        condition: service_healthy
 
   localstack:
     image: localstack/localstack:3
@@ -23,3 +11,17 @@ services:
       - DEBUG=1
       - EDGE_PORT=4566
       - DISABLE_CORS_CHECKS=1
+
+  # Add service health dependencies to ServiceControl instances
+  servicecontrol:
+    depends_on:
+      localstack:
+        condition: service_healthy
+  servicecontrol-audit:
+    depends_on:
+      localstack:
+        condition: service_healthy
+  servicecontrol-monitoring:
+    depends_on:
+      localstack:
+        condition: service_healthy

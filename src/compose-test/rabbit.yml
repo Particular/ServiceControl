@@ -1,16 +1,4 @@
 services:
-  servicecontrol:
-    depends_on:
-      rabbit:
-        condition: service_healthy
-  servicecontrol-audit:
-    depends_on:
-      rabbit:
-        condition: service_healthy
-  servicecontrol-monitoring:
-    depends_on:
-      rabbit:
-        condition: service_healthy
 
   rabbit:
     image: rabbitmq:3-management
@@ -25,3 +13,17 @@ services:
       start_period: 40s
       start_interval: 15s
       retries: 3
+
+  # Add service health dependencies to ServiceControl instances
+  servicecontrol:
+    depends_on:
+      rabbit:
+        condition: service_healthy
+  servicecontrol-audit:
+    depends_on:
+      rabbit:
+        condition: service_healthy
+  servicecontrol-monitoring:
+    depends_on:
+      rabbit:
+        condition: service_healthy

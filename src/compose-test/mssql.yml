@@ -1,16 +1,4 @@
 services:
-  servicecontrol:
-    depends_on:
-      mssql:
-        condition: service_healthy
-  servicecontrol-audit:
-    depends_on:
-      mssql:
-        condition: service_healthy
-  servicecontrol-monitoring:
-    depends_on:
-      mssql:
-        condition: service_healthy
 
   mssql:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -25,3 +13,17 @@ services:
       test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-C", "-Usa", "-PServiceControl1!", "-Q", "select 1"]
       interval: 1s
       retries: 20
+
+  # Add service health dependencies to ServiceControl instances
+  servicecontrol:
+    depends_on:
+      mssql:
+        condition: service_healthy
+  servicecontrol-audit:
+    depends_on:
+      mssql:
+        condition: service_healthy
+  servicecontrol-monitoring:
+    depends_on:
+      mssql:
+        condition: service_healthy
