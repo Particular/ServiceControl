@@ -127,6 +127,7 @@ jobs:
     uses: ./.github/workflows/build-db-container.yml
     secrets: inherit
 
+  # See /src/compose-test/README.md
   container-test:
     if: ${{ github.actor != 'dependabot[bot]' }}
     name: container-test-${{ matrix.name}}
@@ -143,19 +144,23 @@ jobs:
             transport: RabbitMQ.QuorumConventionalRouting
             connection-string: 'host=transport'
             transport-compose-file: rabbit.yml
+            expected-healthy-containers: 5
           - name: mssql
             transport: SQLServer
             connection-string: 'Server=transport;Database=master;User=sa;Password=ServiceControl1!;Encrypt=False;'
             transport-compose-file: mssql.yml
+            expected-healthy-containers: 5
           - name: asb
             transport: NetStandardAzureServiceBus
-            transport-compose-file: rabbit.yml
+            expected-healthy-containers: 4
           - name: asq
             transport: AzureStorageQueue
+            expected-healthy-containers: 4
           - name: sqs
             transport: AmazonSQS
             connection-string: 'AccessKeyId=demo;SecretAccessKey=demo;Region=us-east-1'
             transport-compose-file: sqs.yml
+            expected-healthy-containers: 5
     env:
       CONNECTIONSTRING: ${{ matrix.connection-string }}
       TRANSPORTTYPE: ${{ matrix.transport }}
@@ -171,11 +176,6 @@ jobs:
           fetch-depth: 0
       - name: Run MinVer
         uses: Particular/run-minver-action@v1.0.0
-      - name: Validate build version
-        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
-        uses: ./.github/actions/validate-version
-        with:
-          version: ${{ env.MinVerVersion }}
       - name: Log in to GitHub container registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Azure Login
@@ -198,49 +198,48 @@ jobs:
           azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControlContainerTest
       - name: Run Docker Compose
-        shell: bash
+        shell: pwsh
         env:
           SERVICECONTROL_TAG: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
         run: |
           cd src/compose-test
           echo 'Starting services...'
-          docker compose -f compose.yml -f ${{ matrix.transport-compose-file || 'fake-transport-container.yml' }} up -d
+          $transportComposeFile = '${{ matrix.transport-compose-file }}'
+          if ($transportComposeFile) {
+            # See https://docs.docker.com/compose/multiple-compose-files/merge/
+            docker compose -f compose.yml -f $transportComposeFile up -d
+          } else {
+            docker compose -f compose.yml up -d
+          }
           echo 'Docker compose complete'
-      - name: Wait for container health
+      - name: Evaluate container health
+        id: evaluate
         shell: pwsh
         run: |
           echo "Waiting up to 60 seconds for containers to become healthy"
-          for ($i=0; $i -le 60; $i++) {
-            $numHealthy = (docker ps -f health=healthy | Measure-Object -Line).Lines - 1
-            echo "Currently $numHealthy healthy containers"
+          $numHealthy = 0
+          for ($i=0; $i -le 20; $i++) {
+            $numHealthy = (docker ps -f health=healthy --format json | ConvertFrom-Json).Count
+            echo "Currently $numHealthy healthy containers out of ${{matrix.expected-healthy-containers}} expected
             if ($numHealthy -eq 5) {
                 break;
             }
-            sleep 1
+            sleep 5
           }
-      - name: Inspect transport container
-        run: docker inspect service-platform-transport-1
-      - name: Primary instance logs
+          Write-Output "healthy-containers=$numHealthy" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+      - name: Dump Docker container list
+        run: docker ps --all
+      - name: Dump Primary instance logs
         run: docker logs service-platform-servicecontrol-1
-      - name: Error instance logs
+      - name: Dump Audit instance logs
         run: docker logs service-platform-servicecontrol-audit-1
-      - name: Monitoring instance logs
+      - name: Dump Monitoring instance logs
         run: docker logs service-platform-servicecontrol-monitoring-1
-      - name: Query running containers
+      - name: Return status
         shell: pwsh
         run: |
-          docker ps --all
-
-          $return = 0
-          # Subtract 1 for headers
-          $numHealthy = (docker ps -f health=healthy | Measure-Object -Line).Lines - 1
-
-          # Should be 1 for transport + 1 for DB + 3 instances = 5
-          echo "Found $numHealthy healthy containers out of 5"
-          if ($numHealthy -ne 5) {
-            $return = 1
+          $numHealthy = ${{ steps.evaluate.outputs.healthy-containers }}
+          echo "Found $numHealthy healthy containers out of ${{matrix.expected-healthy-containers}} expected"
+          if ($numHealthy -ne ${{matrix.expected-healthy-containers}}) {
+            exit 1
           }
-
-          cd src/compose-test
-          docker compose down
-          exit $return
