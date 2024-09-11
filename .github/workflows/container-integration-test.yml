@@ -14,12 +14,12 @@ jobs:
         include:
           - name: rabbit
             transport: RabbitMQ.QuorumConventionalRouting
-            connection-string: 'host=transport'
+            connection-string: 'host=rabbit'
             compose-cmd: docker compose -f servicecontrol.yml -f rabbit.yml up -d
             expected-healthy-containers: 5
           - name: mssql
             transport: SQLServer
-            connection-string: 'Server=transport;Database=master;User=sa;Password=ServiceControl1!;Encrypt=False;'
+            connection-string: 'Server=mssql;Database=master;User=sa;Password=ServiceControl1!;Encrypt=False;'
             compose-cmd: docker compose -f servicecontrol.yml -f mssql.yml up -d
             expected-healthy-containers: 5
           - name: asb
@@ -84,12 +84,12 @@ jobs:
         id: evaluate
         shell: pwsh
         run: |
-          echo "Waiting up to 60 seconds for containers to become healthy"
+          echo "Waiting for containers to become healthy"
           $numHealthy = 0
           for ($i=0; $i -le 20; $i++) {
             $numHealthy = (docker ps -f health=healthy --format json | ConvertFrom-Json).Count
             echo "Currently $numHealthy healthy containers out of ${{matrix.expected-healthy-containers}} expected"
-            if ($numHealthy -eq 5) {
+            if ($numHealthy -eq ${{matrix.expected-healthy-containers}}) {
                 break;
             }
             sleep 5
