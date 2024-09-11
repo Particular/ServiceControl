@@ -129,6 +129,6 @@ jobs:
   # See /src/compose-test/README.md
   container-test:
     if: ${{ github.actor != 'dependabot[bot]' }}
-    name: container-test
     needs: [ 'containers', 'db-container' ]
     uses: ./.github/workflows/container-integration-test.yml
+    secrets: inherit
