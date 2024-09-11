@@ -126,7 +126,7 @@ jobs:
     if: ${{ github.actor != 'dependabot[bot]' }}
     uses: ./.github/workflows/build-db-container.yml
     secrets: inherit
-  # See /src/compose-test/README.md
+  # See /src/container-integration-test/README.md
   container-test:
     if: ${{ github.actor != 'dependabot[bot]' }}
     needs: [ 'containers', 'db-container' ]

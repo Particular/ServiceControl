@@ -1,4 +1,4 @@
-# See /src/compose-test/README.md
+# See /src/container-integration-test/README.md
 on:
   workflow_call:
 jobs:
@@ -76,7 +76,7 @@ jobs:
         env:
           SERVICECONTROL_TAG: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
         run: |
-          cd src/compose-test
+          cd src/container-integration-test
           echo 'Starting services...'
           ${{ matrix.compose-cmd }}
           echo 'Docker compose complete'
