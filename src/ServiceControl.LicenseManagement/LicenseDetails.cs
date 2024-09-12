@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.LicenseManagement
 {
     using System;
+    using System.Collections.Generic;
     using Particular.Licensing;
 
     public class LicenseDetails
@@ -24,6 +25,17 @@
         public bool WarnUserUpgradeProtectionIsExpiring { get; private init; }
         public bool WarnUserUpgradeProtectionHasExpired { get; private init; }
         public string Status { get; private init; }
+
+        public static LicenseDetails TrialFromStartDate(DateOnly startDate)
+        {
+            return FromLicense(new License
+            {
+                LicenseType = "Trial",
+                ExpirationDate = startDate.AddDays(14).ToDateTime(TimeOnly.MinValue),
+                IsExtendedTrial = false,
+                ValidApplications = new List<string> { "All" }
+            });
+        }
 
         internal static LicenseDetails FromLicense(License license)
         {
