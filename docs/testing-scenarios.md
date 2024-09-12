@@ -20,8 +20,8 @@ A long (though not exhaustive) list, although not every change will merit runnin
    - Run `check-fail 1` and verify in [ServicePulse->Custom Checks] that a warning appeared
    - Run `check-pass 1` and verify in [ServicePulse->Custom Checks] that the warning is gone
 - [ ] Test heartbeats
-   - With the tool running verify in [ServicePulse->Heartbeats->Active Endpoints] that `Endpoints0` to `Endpoints5` and `Sender` endpoints are reported
-   - Run `stop 1` and verify in [ServicePulse->Heartbeats->Active Endpoints] that `Endpoint1` has moved to [IntactiveEndpoints]
+   - With the tool running verify in [ServicePulse->Heartbeats->Healthy Endpoints] that `Endpoints0` to `Endpoints5` and `Sender` endpoints are reported
+   - Run `stop 1` and verify in [ServicePulse->Heartbeats->Healthy Endpoints] that `Endpoint1` has moved to [UnhealthyEndpoints]
 - [ ] Recoverability
    - [ ] Retry single message 
       - Run `throw 1` and `send 1 1` commands
