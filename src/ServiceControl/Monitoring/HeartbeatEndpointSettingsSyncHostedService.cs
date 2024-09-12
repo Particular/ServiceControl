@@ -35,6 +35,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
             {
                 try
                 {
+                    logger.LogInformation($"Performing sync for {nameof(HeartbeatEndpointSettingsSyncHostedService)}");
                     await PerformSync(cancellationToken);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
@@ -72,10 +73,13 @@ public class HeartbeatEndpointSettingsSyncHostedService(
             {
                 if (monitorEndpointsLookup.Contains(endpointSetting.Name))
                 {
-                    foreach (Guid endpointId in monitorEndpointsLookup[endpointSetting.Name])
+                    // We leave one dead instance behind, so that in ServicePulse we still display the endpoint as unhealthy, and is up to the user to manually delete it.
+                    // Otherwise, we would delete all dead instances and it could be that the endpoint should be alive but all instances are down and then we display nothing in ServicePulse which is no good!
+                    foreach (Guid endpointId in monitorEndpointsLookup[endpointSetting.Name].SkipLast(1))
                     {
                         endpointInstanceMonitoring.RemoveEndpoint(endpointId);
                         await monitoringDataStore.Delete(endpointId);
+                        logger.LogInformation($"Removed endpoint '{endpointSetting.Name}' from monitoring data.");
                     }
                 }
             }
@@ -102,6 +106,8 @@ public class HeartbeatEndpointSettingsSyncHostedService(
             if (!monitorEndpoints.Contains(endpointSetting.Name))
             {
                 await endpointSettingsStore.Delete(endpointSetting.Name, cancellationToken);
+                logger.LogInformation(
+                    $"Removed EndpointTracking setting for '{endpointSetting.Name}' endpoint, since this endpoint is no longer monitored.");
             }
 
             settingsNames.Add(endpointSetting.Name);
@@ -113,6 +119,8 @@ public class HeartbeatEndpointSettingsSyncHostedService(
             await endpointSettingsStore.UpdateEndpointSettings(
                 new EndpointSettings { Name = string.Empty, TrackInstances = userSetTrackInstances },
                 cancellationToken);
+            logger.LogInformation(
+                $"Initialized default value of EndpointTracking to {(userSetTrackInstances ? "tracking" : "not tracking")}.");
         }
 
         // Initialise settings for any missing endpoint
@@ -121,6 +129,8 @@ public class HeartbeatEndpointSettingsSyncHostedService(
             await endpointSettingsStore.UpdateEndpointSettings(
                 new EndpointSettings { Name = name, TrackInstances = userSetTrackInstances },
                 cancellationToken);
+            logger.LogInformation(
+                $"Initialized '{name}' value of EndpointTracking to {(userSetTrackInstances ? "tracking" : "not tracking")}.");
         }
     }
 }
