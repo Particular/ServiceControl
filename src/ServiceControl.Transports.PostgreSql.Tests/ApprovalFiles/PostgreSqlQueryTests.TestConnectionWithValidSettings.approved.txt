@@ -1,0 +1,4 @@
+Connection test to PostgreSql was successful
+
+Connection settings used:
+ConnectionString set

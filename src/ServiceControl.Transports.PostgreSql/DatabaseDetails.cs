@@ -34,7 +34,7 @@
         {
             try
             {
-                return GetSqlVersion(cancellationToken);
+                return GetPostgreSqlVersion(cancellationToken);
             }
             catch (NpgsqlException ex) when (IsConnectionOrLoginIssue(ex))
             {
@@ -67,11 +67,11 @@
             };
         }
 
-        async Task<string> GetSqlVersion(CancellationToken cancellationToken)
+        async Task<string> GetPostgreSqlVersion(CancellationToken cancellationToken)
         {
             await using var conn = await OpenConnectionAsync(cancellationToken);
             await using var cmd = conn.CreateCommand();
-            cmd.CommandText = "select @@VERSION"; //TODO postgres
+            cmd.CommandText = "SELECT version()";
 
             return (string)await cmd.ExecuteScalarAsync(cancellationToken);
         }
