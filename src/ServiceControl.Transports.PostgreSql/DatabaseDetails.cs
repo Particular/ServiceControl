@@ -6,7 +6,7 @@
     using System.Threading.Tasks;
     using Npgsql;
 
-    public class DatabaseDetails
+    class DatabaseDetails
     {
         readonly string connectionString;
 
@@ -19,7 +19,6 @@
                 var builder = new NpgsqlConnectionStringBuilder
                 {
                     ConnectionString = connectionString
-                    //TrustServerCertificate = true
                 };
                 DatabaseName = builder.Database;
                 this.connectionString = builder.ToString();
@@ -88,7 +87,7 @@
             {
                 var schema = reader.GetString(0);
                 var name = reader.GetString(1);
-                tables.Add(new BrokerQueueTable(this, schema, name));
+                tables.Add(new BrokerQueueTable(this, new QueueAddress(name, schema)));
             }
 
             return tables;
@@ -101,7 +100,7 @@
 
             await using var conn = await OpenConnectionAsync(cancellationToken);
             await using var cmd = conn.CreateCommand();
-            cmd.CommandText = $"select IDENT_CURRENT('{table.FullName}')"; //TODO postgres
+            cmd.CommandText = $"select currval('{table.SequenceName}');";
             var value = await cmd.ExecuteScalarAsync(cancellationToken);
 
             if (value is decimal decimalValue) // That's the return type of IDENT_CURRENT
@@ -120,29 +119,26 @@
         }
 
 
-        //TODO postgres
-
         /// <summary>
         /// Query works by finidng all the columns in any table that *could* be from an NServiceBus
-        /// queue table, grouping by schema+name, and then using the HAVING COUNT(*) = 8 clause
-        /// to ensure that all 8 columns are represented. Delay tables, for example, will match
+        /// queue table, grouping by schema+name, and then using the HAVING COUNT(*) = 5 clause
+        /// to ensure that all 5 columns are represented. Delay tables, for example, will match
         /// on 3 of the columns (Headers, Body, RowVersion) and many user tables might have an
         /// Id column, but the HAVING clause filters these out.
         /// </summary>        /// 
-        const string GetQueueListCommandText = @"SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
+        const string GetQueueListCommandText = @"
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
 SELECT C.TABLE_SCHEMA as TableSchema, C.TABLE_NAME as TableName
-FROM [INFORMATION_SCHEMA].[COLUMNS] C
+FROM information_schema.columns C
 WHERE
-    (C.COLUMN_NAME = 'Id' AND C.DATA_TYPE = 'uniqueidentifier') OR
-    (C.COLUMN_NAME = 'CorrelationId' AND C.DATA_TYPE = 'varchar') OR
-    (C.COLUMN_NAME = 'ReplyToAddress' AND C.DATA_TYPE = 'varchar') OR
-    (C.COLUMN_NAME = 'Recoverable' AND C.DATA_TYPE = 'bit') OR
-    (C.COLUMN_NAME = 'Expires' AND C.DATA_TYPE = 'datetime') OR
-    (C.COLUMN_NAME = 'Headers') OR
-    (C.COLUMN_NAME = 'Body' AND C.DATA_TYPE = 'varbinary') OR
-    (C.COLUMN_NAME = 'RowVersion' AND C.DATA_TYPE = 'bigint')
+    (C.COLUMN_NAME = 'id' AND C.DATA_TYPE = 'uuid') OR
+    (C.COLUMN_NAME = 'expires' AND C.DATA_TYPE = 'timestamp without time zone') OR
+    (C.COLUMN_NAME = 'headers' AND C.DATA_TYPE = 'text') OR
+    (C.COLUMN_NAME = 'body' AND C.DATA_TYPE = 'bytea') OR
+    (C.COLUMN_NAME = 'seq' AND C.DATA_TYPE = 'integer')
 GROUP BY C.TABLE_SCHEMA, C.TABLE_NAME
-HAVING COUNT(*) = 8";
+HAVING COUNT(*) = 5
+";
     }
 }

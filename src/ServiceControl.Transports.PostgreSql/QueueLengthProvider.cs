@@ -16,11 +16,13 @@
             connectionString = ConnectionString
                 .RemoveCustomConnectionStringParts(out var customSchema, out _);
 
-            defaultSchema = customSchema ?? "dbo";
+            defaultSchema = customSchema ?? "public";
         }
         public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
-            var sqlTable = PostgreSqlTable.Parse(queueToTrack.InputQueue, defaultSchema);
+            var parsedAddress = QueueAddress.Parse(queueToTrack.InputQueue);
+
+            var sqlTable = new PostgreSqlTable(parsedAddress.Table, parsedAddress.Schema ?? defaultSchema);
 
             tableNames.AddOrUpdate(queueToTrack, _ => sqlTable, (_, currentSqlTable) =>
             {

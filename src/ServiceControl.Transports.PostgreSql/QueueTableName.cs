@@ -3,20 +3,14 @@ namespace ServiceControl.Transports.PostgreSql;
 
 using System.Collections.Generic;
 using ServiceControl.Transports.BrokerThroughput;
-public class BrokerQueueTable(DatabaseDetails databaseDetails, string tableSchema, string tableName)
+class BrokerQueueTable(DatabaseDetails databaseDetails, QueueAddress queueAddress)
     : IBrokerQueue
 {
     public DatabaseDetails DatabaseDetails { get; } = databaseDetails;
-    public string Schema { get; } = tableSchema;
-    public string Name { get; } = tableName;
-
-    public string FullName => $"[{Schema}].[{Name}]";
-
-    public string QueueName => $"[{DatabaseDetails.DatabaseName}].{FullName}";
-    public string SanitizedName => Name;
-    public string? Scope { get; set; }
+    public QueueAddress QueueAddress { get; } = queueAddress;
+    public string SequenceName => $"{QueueAddress.Table}_seq_seq";
+    public string QueueName => QueueAddress.QualifiedTableName;
+    public string SanitizedName => QueueAddress.Table;
+    public string? Scope => $"[{DatabaseDetails.DatabaseName}].[{QueueAddress.Schema}]";
     public List<string> EndpointIndicators { get; } = [];
-
-    public string DatabaseNameAndSchema => $"[{DatabaseDetails.DatabaseName}].[{Schema}]";
-
 }

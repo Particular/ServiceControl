@@ -10,17 +10,15 @@
             ArgumentException.ThrowIfNullOrWhiteSpace(table);
             Table = SafeUnquote(table);
             Schema = SafeUnquote(schemaName);
+            QualifiedTableName = $"{PostgreSqlNameHelper.Quote(Schema)}.{PostgreSqlNameHelper.Quote(Table)}";
         }
 
         public string Table { get; }
         public string Schema { get; }
+        public string QualifiedTableName { get; }
 
         public static QueueAddress Parse(string address)
         {
-            /*
-             * The address format is two quoted identifiers joined by the @ character e.g. "table"@"schema".
-             * 
-             */
             var index = 0;
             var quoteCount = 0;
             while (index < address.Length)
