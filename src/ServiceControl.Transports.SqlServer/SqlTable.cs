@@ -6,10 +6,10 @@ namespace ServiceControl.Transports.SqlServer
     {
         SqlTable(string name, string schema, string? catalog)
         {
-            var unquotedSchema = SqlNameHelper.Unquote(schema);
-            var unquotedName = SqlNameHelper.Unquote(name);
-            var quotedName = SqlNameHelper.Quote(name);
-            var quotedSchema = SqlNameHelper.Quote(schema);
+            var unquotedSchema = NameHelper.Unquote(schema);
+            var unquotedName = NameHelper.Unquote(name);
+            var quotedName = NameHelper.Quote(name);
+            var quotedSchema = NameHelper.Quote(schema);
             //HINT: The query approximates queue length value based on max and min
             //      of RowVersion IDENTITY(1,1) column. There are couple of scenarios
             //      that might lead to the approximation being off. More details here:
@@ -29,7 +29,7 @@ namespace ServiceControl.Transports.SqlServer
             }
             else
             {
-                var quotedCatalog = SqlNameHelper.Quote(catalog);
+                var quotedCatalog = NameHelper.Quote(catalog);
                 _fullTableName = $"{quotedCatalog}.{quotedSchema}.{quotedName}";
 
                 LengthQuery = $"""

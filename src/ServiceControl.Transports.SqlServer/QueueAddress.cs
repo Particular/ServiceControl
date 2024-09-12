@@ -101,12 +101,12 @@
 
         static string Quote(string name)
         {
-            return NameHelper.Quote(name);
+            return SqlServerNameHelper.Quote(name);
         }
 
         static string SafeUnquote(string name)
         {
-            var result = NameHelper.Unquote(name);
+            var result = SqlServerNameHelper.Unquote(name);
             return string.IsNullOrWhiteSpace(result)
                 ? null
                 : result;
