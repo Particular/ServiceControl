@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FilterInput from "../FilterInput.vue";
 import GroupBy from "./MonitoringGroupBy.vue";
 import PeriodSelector from "./MonitoringHistoryPeriod.vue";
 import { useMonitoringStore } from "@/stores/MonitoringStore";
@@ -10,9 +11,7 @@ const monitoringStore = useMonitoringStore();
   <div class="filter-group filter-monitoring">
     <PeriodSelector />
     <GroupBy />
-    <div role="search" aria-label="filter" class="filter-input">
-      <input type="text" placeholder="Filter by name..." aria-label="filter by name" class="form-control-static filter-input" v-model="monitoringStore.filterString" />
-    </div>
+    <FilterInput v-model="monitoringStore.filterString" />
   </div>
 </template>
 

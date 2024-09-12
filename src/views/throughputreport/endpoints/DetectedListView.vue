@@ -10,6 +10,7 @@ import { DataSource } from "@/views/throughputreport/endpoints/dataSource";
 import { userIndicatorMapper } from "./userIndicatorMapper";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import { useShowToast } from "@/composables/toast";
+import ResultsCount from "@/components/ResultsCount.vue";
 
 enum NameFilterType {
   beginsWith = "Begins with",
@@ -190,9 +191,7 @@ async function save() {
     <tbody>
       <tr>
         <td class="col" colspan="2">
-          <div class="col format-showing-results">
-            <div>Showing {{ filteredData.length }} of {{ data.length }} result(s)</div>
-          </div>
+          <ResultsCount :displayed="filteredData.length" :total="data.length" />
         </td>
         <td class="col" style="width: 350px; padding-left: 0">
           <div class="dropdown">
@@ -249,10 +248,6 @@ async function save() {
 <style scoped>
 .formatThroughputColumn {
   padding-right: 20px;
-}
-.format-showing-results {
-  display: flex;
-  align-items: flex-end;
 }
 .format-text {
   font-weight: unset;

@@ -1,151 +1,194 @@
-import { useDeleteFromServiceControl, usePatchToServiceControl, useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
+import { usePatchToServiceControl, useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, ref, watch } from "vue";
 import useAutoRefresh from "@/composables/autoRefresh";
-import { Endpoint, EndpointStatus } from "@/resources/Heartbeat";
+import { EndpointStatus, LogicalEndpoint } from "@/resources/Heartbeat";
 import moment from "moment";
-import SortOptions, { SortDirection } from "@/resources/SortOptions";
-import { getSortFunction } from "@/components/OrderBy.vue";
-import { useCookies } from "vue3-cookies";
-import { useShowToast } from "@/composables/toast";
-import { TYPE } from "vue-toastification";
+import { SortDirection } from "@/resources/SortOptions";
+import getSortFunction from "@/components/getSortFunction";
+import { EndpointsView } from "@/resources/EndpointView";
+import endpointSettingsClient from "@/components/heartbeats/endpointSettingsClient";
+import type { SortInfo } from "@/components/SortInfo";
+import type { GroupPropertyType } from "@/resources/SortOptions";
+import { EndpointSettings } from "@/resources/EndpointSettings";
 
-export enum DisplayType {
-  Instances = "Endpoint Instances",
-  Logical = "Logical Endpoints",
+export enum ColumnNames {
+  Name = "name",
+  InstancesDown = "instancesDown",
+  InstancesTotal = "instancesTotal",
+  LastHeartbeat = "latestHeartbeat",
+  Muted = "muted",
+  Tracked = "instancesTracked",
+  TrackToggle = "toggleInstancesTracked",
 }
 
-function mapEndpointsToLogical(endpoints: Endpoint[]) {
-  const logicalNames = [...new Set(endpoints.map((endpoint) => endpoint.name))];
-  return logicalNames.map((endpointName) => {
-    const logicalList = endpoints.filter((endpoint) => endpoint.name === endpointName);
-    const aliveList = logicalList.filter((endpoint) => endpoint.monitor_heartbeat && endpoint.heartbeat_information && endpoint.heartbeat_information.reported_status === EndpointStatus.Alive);
-
-    var aliveCount = aliveList.length;
-    var downCount = logicalList.filter((endpoint) => endpoint.monitor_heartbeat).length - aliveCount;
-
-    return {
-      name: endpointName,
-      aliveCount: aliveCount,
-      downCount: downCount,
-      heartbeat_information: {
-        reported_status: aliveCount > 0 ? EndpointStatus.Alive : EndpointStatus.Dead,
-        last_report_at: logicalList.reduce((previousMax: Endpoint | null, endpoint: Endpoint) => {
-          if (endpoint.heartbeat_information) {
-            if (previousMax) {
-              return moment.utc(endpoint.heartbeat_information.last_report_at) > moment.utc(previousMax.heartbeat_information!.last_report_at) ? endpoint : previousMax;
-            }
-            return endpoint;
-          }
-          return previousMax;
-        }, null)?.heartbeat_information?.last_report_at,
-      },
-      monitor_heartbeat: logicalList.some((endpoint) => endpoint.monitor_heartbeat),
-    } as Endpoint;
-  });
+export enum MutedType {
+  None = 0,
+  Some = 1,
+  All = 2,
 }
 
-export const sortOptions: SortOptions<Endpoint>[] = [
-  {
-    description: "Name",
-    selector: (group) => group.name,
-    icon: "bi-sort-alpha-",
-  },
-  {
-    description: "Latest heartbeat",
-    selector: (group) => group.heartbeat_information?.last_report_at ?? "",
-    icon: "bi-sort-",
-  },
-];
+const columnSortings = new Map<string, (endpoint: LogicalEndpoint) => GroupPropertyType>([
+  [ColumnNames.Name, (endpoint) => endpoint.name],
+  [ColumnNames.InstancesDown, (endpoint) => endpoint.alive_count - endpoint.down_count],
+  [ColumnNames.InstancesTotal, (endpoint) => endpoint.alive_count + endpoint.down_count],
+  [ColumnNames.LastHeartbeat, (endpoint) => moment.utc(endpoint.heartbeat_information?.last_report_at ?? "1975-01-01T00:00:00")],
+  [
+    ColumnNames.Muted,
+    (endpoint) => {
+      switch (endpoint.muted_count) {
+        case 0:
+          return MutedType.None;
+        case endpoint.alive_count + endpoint.down_count:
+          return MutedType.All;
+        default:
+          return MutedType.Some;
+      }
+    },
+  ],
+  [ColumnNames.Tracked, (endpoint) => endpoint.track_instances],
+  [ColumnNames.TrackToggle, (endpoint) => endpoint.track_instances],
+]);
 
 export const useHeartbeatsStore = defineStore("HeartbeatsStore", () => {
-  const cookies = useCookies().cookies;
+  const sortByInstances = ref<SortInfo>({
+    property: ColumnNames.Name,
+    isAscending: true,
+  });
 
-  const selectedDisplay = ref(cookies.get("heartbeats_display_type") ?? DisplayType.Instances);
-  const selectedSort = ref<SortOptions<Endpoint>>(sortOptions[0]);
-  const filterString = ref("");
-  const endpoints = ref<Endpoint[]>([]);
-  const sortedEndpoints = computed<Endpoint[]>(() =>
-    (selectedDisplay.value === DisplayType.Instances ? [...endpoints.value] : mapEndpointsToLogical(endpoints.value)).sort(selectedSort.value.sort ?? getSortFunction(sortOptions[0].selector, SortDirection.Ascending))
+  const defaultTrackingInstancesValue = ref(endpointSettingsClient.defaultEndpointSettingsValue().track_instances);
+  const endpointFilterString = ref("");
+  const itemsPerPage = ref(20);
+  const endpointInstances = ref<EndpointsView[]>([]);
+  const settings = ref<EndpointSettings[]>([]);
+  const sortedEndpoints = computed<LogicalEndpoint[]>(() =>
+    mapEndpointsToLogical(endpointInstances.value, settings.value).sort(getSortFunction(columnSortings.get(sortByInstances.value.property), sortByInstances.value.isAscending ? SortDirection.Ascending : SortDirection.Descending))
   );
-  const activeEndpoints = computed<Endpoint[]>(() => sortedEndpoints.value.filter((endpoint) => endpoint.monitor_heartbeat && endpoint.heartbeat_information && endpoint.heartbeat_information.reported_status === EndpointStatus.Alive));
-  const filteredActiveEndpoints = computed<Endpoint[]>(() => activeEndpoints.value.filter((endpoint) => !filterString.value || endpoint.name.toLowerCase().includes(filterString.value.toLowerCase())));
-  const inactiveEndpoints = computed<Endpoint[]>(() => sortedEndpoints.value.filter((endpoint) => endpoint.monitor_heartbeat && (!endpoint.heartbeat_information || endpoint.heartbeat_information.reported_status !== EndpointStatus.Alive)));
-  const filteredInactiveEndpoints = computed<Endpoint[]>(() => inactiveEndpoints.value.filter((endpoint) => !filterString.value || endpoint.name.toLowerCase().includes(filterString.value.toLowerCase())));
-  const failedHeartbeatsCount = computed(() => inactiveEndpoints.value.length);
+  const filteredEndpoints = computed<LogicalEndpoint[]>(() => sortedEndpoints.value.filter((endpoint) => !endpointFilterString.value || endpoint.name.toLowerCase().includes(endpointFilterString.value.toLowerCase())));
+  const healthyEndpoints = computed<LogicalEndpoint[]>(() =>
+    sortedEndpoints.value.filter(function (endpoint) {
+      return endpoint.monitor_heartbeat && endpoint.heartbeat_information?.reported_status === EndpointStatus.Alive && ((endpoint.track_instances && endpoint.down_count === 0) || (!endpoint.track_instances && endpoint.alive_count > 0));
+    })
+  );
+  const filteredHealthyEndpoints = computed<LogicalEndpoint[]>(() => healthyEndpoints.value.filter((endpoint) => !endpointFilterString.value || endpoint.name.toLowerCase().includes(endpointFilterString.value.toLowerCase())));
+  const unhealthyEndpoints = computed<LogicalEndpoint[]>(() =>
+    sortedEndpoints.value.filter(function (endpoint) {
+      return !endpoint.monitor_heartbeat || endpoint.heartbeat_information?.reported_status === EndpointStatus.Dead || (endpoint.track_instances && endpoint.down_count > 0) || (!endpoint.track_instances && endpoint.alive_count === 0);
+    })
+  );
+  const filteredUnhealthyEndpoints = computed<LogicalEndpoint[]>(() => unhealthyEndpoints.value.filter((endpoint) => !endpointFilterString.value || endpoint.name.toLowerCase().includes(endpointFilterString.value.toLowerCase())));
+  const failedHeartbeatsCount = computed(() => {
+    let counter = 0;
 
-  watch(filterString, (newValue) => {
-    setFilterString(newValue);
+    for (const logical of sortedEndpoints.value) {
+      const endpointInstancesThatAreNotMuted = endpointInstances.value.filter((instance) => instance.name === logical.name && instance.monitor_heartbeat);
+
+      if (logical.track_instances) {
+        if (endpointInstancesThatAreNotMuted.some((instance) => instance.heartbeat_information?.reported_status !== EndpointStatus.Alive)) {
+          counter++;
+        }
+      } else {
+        if (!endpointInstancesThatAreNotMuted.some((instance) => instance.heartbeat_information?.reported_status === EndpointStatus.Alive)) {
+          counter++;
+        }
+      }
+    }
+
+    return counter;
+  });
+  watch(endpointFilterString, (newValue) => {
+    setEndpointFilterString(newValue);
   });
 
   const dataRetriever = useAutoRefresh(async () => {
     try {
-      const [, data] = await useTypedFetchFromServiceControl<Endpoint[]>("endpoints");
-      endpoints.value = data;
+      const [[, data], data2] = await Promise.all([useTypedFetchFromServiceControl<EndpointsView[]>("endpoints"), endpointSettingsClient.endpointSettings()]);
+      endpointInstances.value = data;
+      settings.value = data2;
+      defaultTrackingInstancesValue.value = data2.find((value) => value.name === "")!.track_instances;
     } catch (e) {
-      endpoints.value = [];
+      endpointInstances.value = settings.value = [];
       throw e;
     }
   }, 5000);
 
-  function endpointDisplayName(endpoint: Endpoint) {
-    if (selectedDisplay.value === DisplayType.Logical) {
-      if (endpoint.aliveCount > 0) {
-        return `${endpoint.name} (${endpoint.aliveCount} instance${endpoint.aliveCount > 1 ? "s" : ""})`;
-      }
+  async function updateEndpointSettings(endpoints: Pick<LogicalEndpoint, "name" | "track_instances">[]) {
+    await Promise.all(endpoints.map((endpoint) => usePatchToServiceControl(`endpointssettings/${endpoint.name}`, { track_instances: !endpoint.track_instances })));
+    await refresh();
+  }
 
-      return `${endpoint.name} (0 out of ${endpoint.downCount} previous instance${endpoint.downCount > 1 ? "s" : ""} reporting)`;
+  function instanceDisplayText(endpoint: LogicalEndpoint) {
+    const total = endpoint.alive_count + endpoint.down_count;
+
+    if (endpoint.track_instances) {
+      return `${endpoint.alive_count}/${total}`;
+    } else {
+      return `${endpoint.alive_count}`;
     }
-
-    return `${endpoint.name}@${endpoint.host_display_name}`;
   }
 
-  function setSelectedDisplay(displayType: DisplayType) {
-    cookies.set("heartbeats_display_type", displayType);
-    selectedDisplay.value = displayType;
+  function setEndpointFilterString(filter: string) {
+    endpointFilterString.value = filter;
   }
 
-  function setSelectedSort(sort: SortOptions<Endpoint>) {
-    //sort value is set/retrieved from cookies in the OrderBy control
-    selectedSort.value = sort;
+  function setItemsPerPage(value: number) {
+    itemsPerPage.value = value;
   }
 
-  function setFilterString(filter: string) {
-    filterString.value = filter;
+  function mapEndpointsToLogical(endpoints: EndpointsView[], settings: EndpointSettings[]): LogicalEndpoint[] {
+    const logicalNames = [...new Set(endpoints.map((endpoint) => endpoint.name))];
+
+    return logicalNames.map((endpointName) => {
+      const endpointInstances = endpoints.filter((endpoint) => endpoint.name === endpointName);
+      const aliveList = endpointInstances.filter((endpoint) => endpoint.heartbeat_information && endpoint.heartbeat_information.reported_status === EndpointStatus.Alive);
+
+      const aliveCount = aliveList.length;
+      const downCount = endpointInstances.length - aliveCount;
+
+      return {
+        id: endpointName, //need this to be consistent between data refreshes for UI purposes, so using name rather than an id from one of the instances
+        name: endpointName,
+        alive_count: aliveCount,
+        down_count: downCount,
+        muted_count: endpointInstances.filter((endpoint) => !endpoint.monitor_heartbeat).length,
+        track_instances: settings.find((value) => value.name === endpointName)?.track_instances ?? defaultTrackingInstancesValue.value,
+        heartbeat_information: {
+          reported_status: aliveCount > 0 ? EndpointStatus.Alive : EndpointStatus.Dead,
+          last_report_at: endpointInstances.reduce((previousMax: EndpointsView | null, endpoint: EndpointsView) => {
+            if (endpoint.heartbeat_information) {
+              if (previousMax) {
+                return moment.utc(endpoint.heartbeat_information.last_report_at) > moment.utc(previousMax.heartbeat_information!.last_report_at) ? endpoint : previousMax;
+              }
+              return endpoint;
+            }
+            return previousMax;
+          }, null)?.heartbeat_information?.last_report_at,
+        },
+        monitor_heartbeat: endpointInstances.every((endpoint) => endpoint.monitor_heartbeat),
+      } as LogicalEndpoint;
+    });
   }
 
-  async function deleteEndpoint(endpoint: Endpoint) {
-    async function performDelete() {
-      useShowToast(TYPE.INFO, "Info", "Removing Endpoint");
-      await useDeleteFromServiceControl(`endpoints/${endpoint.id}`);
-      endpoints.value = endpoints.value.filter((ep) => ep.id !== endpoint.id);
-      useShowToast(TYPE.SUCCESS, "Success", "Endpoint removed");
-    }
-    await dataRetriever.executeAndResetTimer(performDelete);
-  }
-
-  function toggleEndpointMonitor(endpoint: Endpoint) {
-    usePatchToServiceControl(`endpoints/${endpoint.id}`, { monitor_heartbeat: !endpoint.monitor_heartbeat });
-  }
-
-  dataRetriever.executeAndResetTimer();
+  const refresh = dataRetriever.executeAndResetTimer;
+  const _ = refresh();
 
   return {
-    endpoints,
-    activeEndpoints,
-    filteredActiveEndpoints,
-    inactiveEndpoints,
-    filteredInactiveEndpoints,
+    refresh,
+    defaultTrackingInstancesValue,
+    updateEndpointSettings,
+    sortedEndpoints,
+    filteredEndpoints,
+    endpointInstances,
+    healthyEndpoints,
+    filteredHealthyEndpoints,
+    unhealthyEndpoints,
+    filteredUnhealthyEndpoints,
     failedHeartbeatsCount,
-    endpointDisplayName,
-    selectedDisplay,
-    setSelectedDisplay,
-    selectedSort,
-    setSelectedSort,
-    filterString,
-    setFilterString,
-    deleteEndpoint,
-    toggleEndpointMonitor,
+    instanceDisplayText,
+    sortByInstances,
+    endpointFilterString,
+    itemsPerPage,
+    setItemsPerPage,
   };
 });
 

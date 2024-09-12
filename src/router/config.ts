@@ -25,20 +25,25 @@ const config: RouteItem[] = [
     title: "Dashboard",
   },
   {
+    path: routeLinks.heartbeats.instances.template,
+    component: () => import("@/components/heartbeats/EndpointInstances.vue"),
+    title: "Endpoint Instances",
+  },
+  {
     path: routeLinks.heartbeats.root,
     component: HeartbeatsView,
     title: "Heartbeats",
-    redirect: routeLinks.heartbeats.inactive.link,
+    redirect: routeLinks.heartbeats.unhealthy.link,
     children: [
       {
-        title: "Inactive Endpoints",
-        path: routeLinks.heartbeats.inactive.link,
-        component: () => import("@/components/heartbeats/InactiveEndpoints.vue"),
+        title: "Unhealthy Endpoints",
+        path: routeLinks.heartbeats.unhealthy.link,
+        component: () => import("@/components/heartbeats/UnhealthyEndpoints.vue"),
       },
       {
-        title: "Active Endpoints",
-        path: routeLinks.heartbeats.active.link,
-        component: () => import("@/components/heartbeats/ActiveEndpoints.vue"),
+        title: "Healthy Endpoints",
+        path: routeLinks.heartbeats.healthy.link,
+        component: () => import("@/components/heartbeats/HealthyEndpoints.vue"),
       },
       {
         title: "Heartbeat Configuration",
@@ -136,9 +141,9 @@ const config: RouteItem[] = [
             title: "Detected Broker Queues",
             path: routeLinks.throughput.endpoints.detectedBrokerQueues.template,
             component: () => import("@/views/throughputreport/endpoints/DetectedBrokerQueuesView.vue"),
-          }
-        ]
-      }
+          },
+        ],
+      },
     ],
   },
   {
@@ -192,8 +197,8 @@ const config: RouteItem[] = [
             title: "Diagnostics",
             path: routeLinks.throughput.setup.diagnostics.template,
             component: () => import("@/views/throughputreport/setup/DiagnosticsView.vue"),
-          }
-        ]
+          },
+        ],
       },
     ],
   },

@@ -22,7 +22,7 @@ export async function useGetAllMonitoredEndpoints(historyPeriod = 1) {
   let endpoints: Endpoint[] = [];
   if (!useIsMonitoringDisabled() && !monitoringConnectionState.unableToConnect) {
     try {
-      const [_, data] = await useTypedFetchFromMonitoring<Endpoint[]>(`${`monitored-endpoints`}?history=${historyPeriod}`);
+      const [_, data] = await useTypedFetchFromMonitoring<Endpoint[]>(`monitored-endpoints?history=${historyPeriod}`);
       endpoints = data ?? [];
       await addEndpointsFromScSubscription(endpoints);
     } catch (error) {

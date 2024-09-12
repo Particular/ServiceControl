@@ -1,18 +1,13 @@
-import { heartbeatEndpointTemplate } from "../mocks/heartbeat-endpoint-template";
 import { SetupFactoryOptions } from "../driver";
+import { EndpointsView } from "@/resources/EndpointView";
 
-export const heartbeatsEndpointsNamed =
-  (endpointNames: string[]) =>
+export const hasHeartbeatsEndpoints =
+  (endpoints: EndpointsView[]) =>
   ({ driver }: SetupFactoryOptions) => {
-    const response = endpointNames.map((name) => {
-      return { ...heartbeatEndpointTemplate, name: name };
+    driver.mockEndpoint(`${window.defaultConfig.service_control_url}endpoints`, {
+      body: endpoints,
     });
-
-    const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
-    driver.mockEndpoint(`${serviceControlInstanceUrl}endpoints`, {
-      body: response,
-    });
-    return response;
+    return endpoints;
   };
 
-export const hasNoHeartbeatsEndpoints = heartbeatsEndpointsNamed([]);
+export const hasNoHeartbeatsEndpoints = hasHeartbeatsEndpoints([]);

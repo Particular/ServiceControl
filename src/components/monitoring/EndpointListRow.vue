@@ -18,6 +18,7 @@ import { useMonitoringStore } from "../../stores/MonitoringStore";
 import { storeToRefs } from "pinia";
 import type { GroupedEndpoint, Endpoint } from "@/resources/MonitoringEndpoint";
 import routeLinks from "@/router/routeLinks";
+import { Tippy } from "vue-tippy";
 
 const settings = defineProps<{
   endpoint: GroupedEndpoint | Endpoint;
@@ -43,9 +44,14 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
   <div role="gridcell" :aria-label="columnName.ENDPOINTNAME" class="table-first-col endpoint-name name-overview">
     <div class="box-header with-status">
       <div :aria-label="shortName" class="no-side-padding lead righ-side-ellipsis endpoint-details-link">
-        <RouterLink aria-label="details-link" :to="routeLinks.monitoring.endpointDetails.link(endpoint.name, historyPeriod.pVal)" class="cursorpointer" v-tippy="endpoint.name">
-          {{ shortName }}
-        </RouterLink>
+        <tippy :aria-label="endpoint.name" :delay="[700, 0]">
+          <template #content>
+            <p :style="{ overflowWrap: 'break-word' }">{{ endpoint.name }}</p>
+          </template>
+          <RouterLink class="cursorpointer hackToPreventSafariFromShowingTooltip" aria-label="details-link" :to="routeLinks.monitoring.endpointDetails.link(endpoint.name, historyPeriod.pVal)">
+            {{ shortName }}
+          </RouterLink>
+        </tippy>
       </div>
       <span aria-label="instances-connected-total" class="endpoint-count" v-if="endpoint.connectedCount || endpoint.disconnectedCount" v-tippy="'Endpoint instance(s): (connected/total)'">
         ({{ endpoint.connectedCount }}/{{ endpoint.connectedCount + endpoint.disconnectedCount }})</span
@@ -171,6 +177,11 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
 @import "../list.css";
 @import "./monitoring.css";
 @import "./endpoint.css";
+
+.hackToPreventSafariFromShowingTooltip::after {
+  content: "";
+  display: block;
+}
 
 .lead.endpoint-details-link.righ-side-ellipsis {
   color: #00729c;

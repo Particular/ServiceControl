@@ -1,8 +1,5 @@
 import * as precondition from ".";
 import { SetupFactoryOptions } from "../driver";
-import EndpointThroughputSummary from "@/resources/EndpointThroughputSummary";
-import ReportGenerationState from "@/resources/ReportGenerationState";
-import ConnectionTestResults, { ConnectionSettingsTestResult } from "@/resources/ConnectionTestResults";
 
 export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptions) => {
   //Service control requests minimum setup. Todo: encapsulate for reuse.
@@ -34,9 +31,6 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
   //http://localhost:33333/api/eventlogitems
   await driver.setUp(precondition.hasEventLogItems);
 
-  //http://localhost:33333/api/heartbeats/stats
-  await driver.setUp(precondition.hasFiveActiveOneFailingHeartbeats);
-
   //http://localhost:33333/api/recoverability/groups/Endpoint%20Name
   await driver.setUp(precondition.hasRecoverabilityGroups);
 
@@ -52,7 +46,7 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
   //http://localhost:33333/recoverability/groups/Endpoint%20Name?classifierFilter=${name} -  the classifierFilter is ignored, this is a default handler for the route.
   await driver.setUp(precondition.endpointRecoverabilityByNameDefaultHandler);
 
-  //OPTIONS VERB agaisnt monitoring instance http://localhost:33633/ - this is used for enabling deleting an instance from the endpoint details page - instances panel
+  //OPTIONS VERB against monitoring instance http://localhost:33633/ - this is used for enabling deleting an instance from the endpoint details page - instances panel
   await driver.setUp(precondition.serviceControlMonitoringOptions);
 
   //http://localhost:33333/api/configuration default handler
@@ -81,4 +75,6 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
 
   //Default handler for /api/licensing/settings/test
   await driver.setUp(precondition.hasLicensingSettingTest());
+
+  await driver.setUp(precondition.hasEndpointSettings([]));
 };

@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import ConditionalRender from "@/components/ConditionalRender.vue";
-import isThroughputSupported, { minimumSCVersionForThroughput } from "@/views/throughputreport/isThroughputSupported";
+import isEndpointSettingsSupported, { minimumSCVersionForEndpointSettings } from "@/components/heartbeats/isEndpointSettingsSupported";
 </script>
 
 <template>
-  <ConditionalRender :supported="isThroughputSupported">
+  <ConditionalRender :supported="isEndpointSettingsSupported">
     <template #unsupported>
       <div class="container not-supported">
         <div class="row">
           <div class="col-sm-12">
             <div class="text-center message">
               <p>
-                The minimum version of ServiceControl required to enable the Usage feature is
-                <span> {{ minimumSCVersionForThroughput }} </span>.
+                The minimum version of ServiceControl required to enable configuring tracking of endpoints is
+                <span> {{ minimumSCVersionForEndpointSettings }} </span>.
               </p>
               <div>
                 <a class="btn btn-default btn-primary" href="https://particular.net/downloads" target="_blank">Update ServiceControl to latest version</a>

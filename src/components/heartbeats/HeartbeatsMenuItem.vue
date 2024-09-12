@@ -2,15 +2,16 @@
 import { RouterLink } from "vue-router";
 import routeLinks from "@/router/routeLinks";
 import { useHeartbeatsStore } from "@/stores/HeartbeatsStore";
+import { storeToRefs } from "pinia";
 
-const store = useHeartbeatsStore();
+const { failedHeartbeatsCount } = storeToRefs(useHeartbeatsStore());
 </script>
 
 <template>
   <RouterLink :to="routeLinks.heartbeats.root">
     <i class="fa fa-heartbeat icon-white" title="Heartbeats"></i>
     <span class="navbar-label">Heartbeats</span>
-    <span v-if="store.failedHeartbeatsCount > 0" class="badge badge-important">{{ store.failedHeartbeatsCount }}</span>
+    <span v-if="failedHeartbeatsCount > 0" class="badge badge-important">{{ failedHeartbeatsCount }}</span>
   </RouterLink>
 </template>
 

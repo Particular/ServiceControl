@@ -1,0 +1,29 @@
+.not-supported {
+  font-size: 1rem;
+}
+
+.not-supported div:has(> .message) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.not-supported .message {
+  margin-top: 2em;
+  max-width: 30em;
+  line-height: 1.6em;
+}
+
+.not-supported .message h1 {
+  font-size: 1.9em;
+}
+
+.not-supported .message ul {
+  padding-left: 0;
+  text-align: left;
+  margin-bottom: 1.9rem;
+}
+
+.not-supported .message .btn {
+  font-size: 1rem;
+}

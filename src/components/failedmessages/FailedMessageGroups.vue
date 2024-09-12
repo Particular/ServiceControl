@@ -8,9 +8,10 @@ import LicenseExpired from "../../components/LicenseExpired.vue";
 import ServiceControlNotAvailable from "../ServiceControlNotAvailable.vue";
 import LastTenOperations from "../failedmessages/LastTenOperations.vue";
 import MessageGroupList, { IMessageGroupList } from "../failedmessages/MessageGroupList.vue";
-import OrderBy, { getSortFunction } from "@/components/OrderBy.vue";
+import OrderBy from "@/components/OrderBy.vue";
 import SortOptions, { SortDirection } from "@/resources/SortOptions";
 import GroupOperation from "@/resources/GroupOperation";
+import getSortFunction from "@/components/getSortFunction";
 
 const selectedClassifier = ref<string>("");
 const classifiers = ref<string[]>([]);

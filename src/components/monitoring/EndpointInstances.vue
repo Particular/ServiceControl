@@ -112,9 +112,9 @@ onMounted(async () => {
                         <i class="fa pa-monitoring-lost endpoint-details" v-tippy="`Unable to connect to monitoring server`"></i>
                       </span>
                       <span role="status" aria-label="stale-warning" class="warning" v-if="instance.isStale">
-                        <i class="fa pa-endpoint-lost endpoint-details" v-tippy="`Unable to connect to instance`"></i>
+                        <i class="fa pa-endpoint-lost endpoint-details" v-tippy="`Not receiving metrics from this instance. Instance will be removed automatically.`"></i>
                       </span>
-                      <span role="status" aria-label="error-count-warning" class="warning" v-if="instance.errorCount" v-tippy="instance.errorCount + ` failed messages associated with this endpoint. Click to see list.`">
+                      <span role="status" aria-label="error-count-warning" class="warning" v-if="instance.errorCount" v-tippy="`${instance.errorCount} failed messages associated with this endpoint. Click to see list.`">
                         <RouterLink :to="routeLinks.failedMessage.group.link(instance.serviceControlId)" v-if="instance.errorCount" class="warning cursorpointer">
                           <i class="fa fa-envelope"></i>
                           <span aria-label="error-count" class="badge badge-important cursorpointer"> {{ instance.errorCount }}</span>

@@ -1,4 +1,6 @@
-export type GroupPropertyType = string | number | Date;
+import type { Moment } from "moment";
+
+export type GroupPropertyType = string | number | Date | Moment | boolean;
 
 export default interface SortOptions<T> {
   description: string;

@@ -1,21 +1,8 @@
-<script lang="ts">
-export function getSortFunction<T>(selector: SortOptions<T>["selector"], dir: SortDirection) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  if (!selector) return (firstElement: T, secondElement: T) => 0;
-  return (firstElement: T, secondElement: T) => {
-    if (dir === SortDirection.Ascending) {
-      return selector(firstElement) < selector(secondElement) ? -1 : 1;
-    } else {
-      return selector(firstElement) < selector(secondElement) ? 1 : -1;
-    }
-  };
-}
-</script>
-
 <script setup generic="T" lang="ts">
 import { onMounted, ref } from "vue";
 import { useCookies } from "vue3-cookies";
 import SortOptions, { SortDirection } from "@/resources/SortOptions";
+import getSortFunction from "@/components/getSortFunction";
 
 const emit = defineEmits<{
   sortUpdated: [option: SortOptions<T>];
