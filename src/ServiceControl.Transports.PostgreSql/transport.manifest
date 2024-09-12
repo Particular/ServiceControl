@@ -1,0 +1,13 @@
+﻿{
+  "Definitions": [
+    {
+      "Name": "PostgreSQL",
+      "DisplayName": "PostgreSQL",
+      "AssemblyName": "ServiceControl.Transports.PostgreSql",
+      "TypeName": "ServiceControl.Transports.PostgreSql.PostgreSqlTransportCustomization, ServiceControl.Transports.PostgreSql",
+      "SampleConnectionString": "Data Source=<SQLInstance>;Initial Catalog=nservicebus;Integrated Security=True;Queue Schema=myschema;Subscriptions Table=tablename@schema@catalog",
+      "AvailableInSCMU": true,
+      "Help": "Specify optional 'Queue Schema' to override the default schema. Specify optional 'Subscriptions Table' to override the default subscriptions table location. When integrated authentication is specified in the PostgreSql connection string the the current installing user is used to create the required SQL tables structure not the service account."     
+    }
+  ]
+}

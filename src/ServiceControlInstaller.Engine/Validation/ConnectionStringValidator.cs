@@ -5,7 +5,7 @@
     using System.Linq;
     using Accounts;
     using Microsoft.Data.SqlClient;
-
+    //TODO postgres
     class ConnectionStringValidator
     {
         ConnectionStringValidator(string connectionString, string serviceAccount)

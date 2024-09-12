@@ -108,7 +108,7 @@
 
         }
 
-        [TestTheseTransports("AmazonSQS", "AzureServiceBus", "SQLServer", "RabbitMQ")]
+        [TestTheseTransports("AmazonSQS", "AzureServiceBus", "SQLServer", "RabbitMQ", "PostgreSQL")]
         public void Transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_adding_audit_instance(string transportInfoName)
         {
             var viewModel = new ServiceControlAddViewModel
@@ -126,7 +126,7 @@
             Assert.That(errors, Is.Not.Empty);
         }
 
-        [TestTheseTransports("AmazonSQS", "AzureServiceBus", "SQLServer", "RabbitMQ")]
+        [TestTheseTransports("AmazonSQS", "AzureServiceBus", "SQLServer", "RabbitMQ", "PostgreSQL")]
         public void
             Transport_connection_string_cannot_be_null_if_sample_connection_string_is_present_when_adding_audit_instance(
                 string transportInfoName)

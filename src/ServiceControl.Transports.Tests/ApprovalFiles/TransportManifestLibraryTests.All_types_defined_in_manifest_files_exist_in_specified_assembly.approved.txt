@@ -11,5 +11,6 @@
   "RabbitMQ.DirectRouting",
   "RabbitMQ.QuorumConventionalRouting",
   "RabbitMQ.QuorumDirectRouting",
-  "SQLServer"
+  "SQLServer",
+  "PostgreSQL"
 ]
