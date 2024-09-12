@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace ServiceControl.Transports.SqlServer
+﻿namespace ServiceControl.Transports.SqlServer
 {
     static class SqlServerNameHelper
     {
