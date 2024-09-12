@@ -134,16 +134,18 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         const string endpointName1 = "Sales";
         Guid instanceA = DeterministicGuid.MakeId(endpointName1, "A");
         Guid instanceB = DeterministicGuid.MakeId(endpointName1, "B");
+        Guid instanceC = DeterministicGuid.MakeId(endpointName1, "C");
         var mockMonitoringDataStore = new MockMonitoringDataStore(
             [new KnownEndpoint { EndpointDetails = new EndpointDetails { Name = endpointName1 } }]);
         var mockEndpointInstanceMonitoring = new MockEndpointInstanceMonitoring([
-            new EndpointsView { IsNotSendingHeartbeats = true, Name = endpointName1, Id = instanceA },
-            new EndpointsView { IsNotSendingHeartbeats = true, Name = endpointName1, Id = instanceB },
+            new EndpointsView { IsSendingHeartbeats = false, Name = endpointName1, Id = instanceA },
+            new EndpointsView { IsSendingHeartbeats = false, Name = endpointName1, Id = instanceB },
+            new EndpointsView { IsSendingHeartbeats = false, Name = endpointName1, Id = instanceC },
             new EndpointsView
             {
-                IsNotSendingHeartbeats = false,
+                IsSendingHeartbeats = true,
                 Name = endpointName1,
-                Id = DeterministicGuid.MakeId(endpointName1, "C")
+                Id = DeterministicGuid.MakeId(endpointName1, "D")
             }
         ]);
         var service = new HeartbeatEndpointSettingsSyncHostedService(
@@ -177,10 +179,10 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         var mockMonitoringDataStore = new MockMonitoringDataStore(
             [new KnownEndpoint { EndpointDetails = new EndpointDetails { Name = endpointName1 } }]);
         var mockEndpointInstanceMonitoring = new MockEndpointInstanceMonitoring([
-            new EndpointsView { IsNotSendingHeartbeats = true, Name = endpointName1, Id = instanceA },
+            new EndpointsView { IsSendingHeartbeats = false, Name = endpointName1, Id = instanceA },
             new EndpointsView
             {
-                IsNotSendingHeartbeats = false,
+                IsSendingHeartbeats = true,
                 Name = endpointName1,
                 Id = DeterministicGuid.MakeId(endpointName1, "B")
             }
