@@ -63,8 +63,9 @@ public class HeartbeatEndpointSettingsSyncHostedService(
 
     async Task PurgeMonitoringDataThatDoesNotNeedToBeTracked(CancellationToken cancellationToken)
     {
-        ILookup<string, Guid> monitorEndpointsLookup = endpointInstanceMonitoring.GetEndpoints()
-            .Where(view => view.IsNotSendingHeartbeats)
+        EndpointsView[] endpointsViews = endpointInstanceMonitoring.GetEndpoints();
+        ILookup<string, Guid> monitorEndpointsLookup = endpointsViews
+            .Where(view => !view.IsSendingHeartbeats)
             .ToLookup(view => view.Name, view => view.Id);
         await foreach (EndpointSettings endpointSetting in endpointSettingsStore.GetAllEndpointSettings()
                            .WithCancellation(cancellationToken))
