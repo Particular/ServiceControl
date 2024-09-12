@@ -1,0 +1,29 @@
+services:
+
+  rabbit:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      start_interval: 15s
+      retries: 3
+
+  # Add service health dependencies to ServiceControl instances
+  servicecontrol:
+    depends_on:
+      rabbit:
+        condition: service_healthy
+  servicecontrol-audit:
+    depends_on:
+      rabbit:
+        condition: service_healthy
+  servicecontrol-monitoring:
+    depends_on:
+      rabbit:
+        condition: service_healthy
