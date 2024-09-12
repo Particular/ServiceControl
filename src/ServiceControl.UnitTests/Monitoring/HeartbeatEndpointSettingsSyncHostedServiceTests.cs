@@ -138,12 +138,12 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         var mockMonitoringDataStore = new MockMonitoringDataStore(
             [new KnownEndpoint { EndpointDetails = new EndpointDetails { Name = endpointName1 } }]);
         var mockEndpointInstanceMonitoring = new MockEndpointInstanceMonitoring([
-            new EndpointsView { IsNotSendingHeartbeats = true, Name = endpointName1, Id = instanceA },
-            new EndpointsView { IsNotSendingHeartbeats = true, Name = endpointName1, Id = instanceB },
-            new EndpointsView { IsNotSendingHeartbeats = true, Name = endpointName1, Id = instanceC },
+            new EndpointsView { IsSendingHeartbeats = false, Name = endpointName1, Id = instanceA },
+            new EndpointsView { IsSendingHeartbeats = false, Name = endpointName1, Id = instanceB },
+            new EndpointsView { IsSendingHeartbeats = false, Name = endpointName1, Id = instanceC },
             new EndpointsView
             {
-                IsNotSendingHeartbeats = false,
+                IsSendingHeartbeats = true,
                 Name = endpointName1,
                 Id = DeterministicGuid.MakeId(endpointName1, "D")
             }
@@ -179,10 +179,10 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         var mockMonitoringDataStore = new MockMonitoringDataStore(
             [new KnownEndpoint { EndpointDetails = new EndpointDetails { Name = endpointName1 } }]);
         var mockEndpointInstanceMonitoring = new MockEndpointInstanceMonitoring([
-            new EndpointsView { IsNotSendingHeartbeats = true, Name = endpointName1, Id = instanceA },
+            new EndpointsView { IsSendingHeartbeats = false, Name = endpointName1, Id = instanceA },
             new EndpointsView
             {
-                IsNotSendingHeartbeats = false,
+                IsSendingHeartbeats = true,
                 Name = endpointName1,
                 Id = DeterministicGuid.MakeId(endpointName1, "B")
             }
