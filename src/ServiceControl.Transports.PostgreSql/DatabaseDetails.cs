@@ -6,7 +6,7 @@
     using System.Threading.Tasks;
     using Npgsql;
 
-    class DatabaseDetails
+    public class DatabaseDetails
     {
         readonly string connectionString;
 

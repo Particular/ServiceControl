@@ -90,7 +90,7 @@ class PostgreSqlQueryTests : TransportTestFixture
             queueNames.Add(queueName);
         }
 
-        IBrokerQueue queue = queueNames.Find(name => ((BrokerQueueTable)name).Name == transportSettings.EndpointName);
+        IBrokerQueue queue = queueNames.Find(name => ((BrokerQueueTable)name).QueueName == transportSettings.EndpointName);
         Assert.That(queue, Is.Not.Null);
 
         long total = 0L;

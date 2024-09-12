@@ -3,7 +3,7 @@
     using System;
 
     // NOTE: Copied from the SQL Transport
-    class QueueAddress
+    public class QueueAddress
     {
         public QueueAddress(string table, string schemaName)
         {

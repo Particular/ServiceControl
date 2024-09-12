@@ -3,7 +3,7 @@ namespace ServiceControl.Transports.PostgreSql;
 
 using System.Collections.Generic;
 using ServiceControl.Transports.BrokerThroughput;
-class BrokerQueueTable(DatabaseDetails databaseDetails, QueueAddress queueAddress)
+public class BrokerQueueTable(DatabaseDetails databaseDetails, QueueAddress queueAddress)
     : IBrokerQueue
 {
     public DatabaseDetails DatabaseDetails { get; } = databaseDetails;
