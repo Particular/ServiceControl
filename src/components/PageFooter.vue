@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { connectionState, environment, monitoringConnectionState, newVersions } from "../composables/serviceServiceControl";
 import { monitoringUrl, serviceControlUrl } from "../composables/serviceServiceControlUrls";
 import { license, licenseStatus } from "../composables/serviceLicense";
+import { LicenseStatus } from "@/resources/LicenseInfo";
 import routeLinks from "@/router/routeLinks";
 
 const isMonitoringEnabled = computed(() => {
@@ -63,7 +64,7 @@ const scMonitoringAddressTooltip = computed(() => {
           </template>
         </div>
       </div>
-      <template v-if="licenseStatus.isTrialLicense">
+      <template v-if="license.license_status !== LicenseStatus.Unavailable && licenseStatus.isTrialLicense">
         <div class="row trialLicenseBar">
           <div role="status" aria-label="trial license bar information">
             <RouterLink :to="routeLinks.configuration.license.link">{{ license.license_type }} license</RouterLink>, non-production use only
