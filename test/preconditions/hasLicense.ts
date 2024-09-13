@@ -43,7 +43,7 @@ const createLicenseMockedResponse =
         edition: "Enterprise",
         expiration_date: "",
         upgrade_protection_expiration: "2050-01-01T00:00:00.0000000Z",
-        license_type: "Commercial",
+        license_type: status == LicenseStatus.ValidWithExpiringTrial || status == LicenseStatus.InvalidDueToExpiredTrial ?  "Trial": "Subscription",
         instance_name: "Particular.ServiceControl",
         trial_license: status === LicenseStatus.ValidWithExpiringTrial || status === LicenseStatus.InvalidDueToExpiredTrial,
         license_status: status,
