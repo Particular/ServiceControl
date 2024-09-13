@@ -29,7 +29,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageVersion Include="Mindscape.Raygun4Net.NetCore" Version="11.1.0" />
-    <PackageVersion Include="NLog.Extensions.Logging" Version="5.3.12" />
+    <PackageVersion Include="NLog.Extensions.Logging" Version="5.3.13" />
     <PackageVersion Include="NServiceBus" Version="9.2.2" />
     <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="9.2.2" />
     <PackageVersion Include="NServiceBus.AmazonSQS" Version="7.0.1" />
