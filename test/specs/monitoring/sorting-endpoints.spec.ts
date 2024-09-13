@@ -119,25 +119,22 @@ describe("FEATURE: Endpoint sorting", () => {
       }
     });
 
-    test("EXAMPLE: Sort up and down arrow images should alternate visibility only on the column where the title was clicked", async ({ driver }) => {
-      //Arrange
-      await driver.setUp(precondition.serviceControlWithMonitoring);
-      await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));
+    Object.values(columnName).forEach((column) => {
+      test(`EXAMPLE: Sort up and down arrow images should alternate visibility only on the column "${column.toUpperCase()}"`, async ({ driver }) => {
+        //Arrange
+        await driver.setUp(precondition.serviceControlWithMonitoring);
+        await driver.setUp(precondition.monitoredEndpointsNamed(["Universe.Solarsystem.Earth.Endpoint1", "Universe.Solarsystem.Earth.Endpoint2", "Universe.Solarsystem.Earth.Endpoint3"]));
 
-      //Act
-      await driver.goTo("monitoring");
+        //Act
+        await driver.goTo("monitoring");
 
-      //retrieve the endpoint names as a way to ensure the monitoring page finished rendering the endpoint list
-      await endpointsNames();
+        //retrieve the endpoint names as a way to ensure the monitoring page finished rendering the endpoint list
+        await endpointsNames();
 
-      //Assert sorting of Endpoint name first since it sorts in ascending order by default, while all the the other columns sort in descending order by default
-      assertSortImageState(columnName.ENDPOINTNAME, "up");
-      await sortEndpointsBy({ column: columnName.ENDPOINTNAME }); // Act: Click the column title once for descending
-      assertSortImageState(columnName.ENDPOINTNAME, "down");
+        //Assert sorting of Endpoint name first since it sorts in ascending order by default, while all the the other columns sort in descending order by default
+        assertSortImageState(columnName.ENDPOINTNAME, "up");        
 
-      //Assert for the rest of the columns
-      for (const column of Object.values(columnName).filter((col) => col !== columnName.ENDPOINTNAME)) {
-        await sortEndpointsBy({ column }); // Click the column title once for descending
+        await sortEndpointsBy({ column }); // Click the column title being tested once for descending
         assertSortImageState(column, "down");
 
         for (const otherColumn of Object.values(columnName).filter((col) => col !== column)) {
@@ -150,7 +147,7 @@ describe("FEATURE: Endpoint sorting", () => {
         for (const otherColumn of Object.values(columnName).filter((col) => col !== column)) {
           assertSortImageState(otherColumn, null); // Assert that all other columns don't have sorting images
         }
-      }
+      });
     });
   });
 
