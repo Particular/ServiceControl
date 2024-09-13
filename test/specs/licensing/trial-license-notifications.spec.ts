@@ -1,8 +1,7 @@
-import { screen, within } from "@testing-library/vue";
+import { screen, waitFor } from "@testing-library/vue";
 import { expect } from "vitest";
 import { test, describe } from "../../drivers/vitest/driver";
 import * as precondition from "../../preconditions";
-import { fail } from "assert";
 
 describe("FEATURE: Trial license notifications", () => {
   describe("RULE: The user should know it is using a trial license at all times", () => {
@@ -36,15 +35,8 @@ describe("FEATURE: Trial license notifications", () => {
 
         await driver.goTo(viewname);
 
-        try {
-            await screen.findByRole("status", { name: /trial license bar information/i}) 
-        } catch (error) {
-            return;
-        }
-
-        fail("Trial license information must not be visible");
+        await waitFor(() => expect(screen.queryByRole("status", { name: /trial license bar information/i })).toBeNull());
       });
     });
   });
-
 });
