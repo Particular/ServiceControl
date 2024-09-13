@@ -2,7 +2,6 @@ import { screen, within } from "@testing-library/vue";
 import { expect } from "vitest";
 import { test, describe } from "../../drivers/vitest/driver";
 import * as precondition from "../../preconditions";
-import { waitFor } from "@testing-library/dom";
 import { fail } from "assert";
 
 describe("FEATURE: Trial license notifications", () => {
@@ -19,11 +18,8 @@ describe("FEATURE: Trial license notifications", () => {
 
         await driver.goTo(viewname);
 
-        waitFor(()=>expect(screen.queryByRole("status", { name: /trial license bar information/i})).toBeInTheDocument())
-
-        const licenseBarVisible =  await screen.findByRole("status", { name: /trial license bar information/i });
-
-        expect(licenseBarVisible).not.toBeNull();
+        expect(await screen.findByRole("status", { name: /trial license bar information/i})).toBeInTheDocument();
+       
       });
     });
   });
