@@ -120,7 +120,6 @@ namespace ServiceControl.Monitoring
             {
                 var view = endpoint.GetView();
                 view.IsSendingHeartbeats = heartbeatLookup[endpoint.Id].Any(x => x.IsSendingHeartbeats());
-                view.IsNotSendingHeartbeats = heartbeatLookup[endpoint.Id].Any(x => x.IsNotSendingHeartbeats());
                 list.Add(view);
             }
 
