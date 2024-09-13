@@ -21,7 +21,7 @@ A long (though not exhaustive) list, although not every change will merit runnin
    - Run `check-pass 1` and verify in [ServicePulse->Custom Checks] that the warning is gone
 - [ ] Test heartbeats
    - With the tool running verify in [ServicePulse->Heartbeats->Healthy Endpoints] that `Endpoints0` to `Endpoints5` and `Sender` endpoints are reported
-   - Run `stop 1` and verify in [ServicePulse->Heartbeats->Healthy Endpoints] that `Endpoint1` has moved to [UnhealthyEndpoints]
+   - Run `stop 1` and verify in [ServicePulse->Heartbeats->Healthy Endpoints] that `Endpoint1` has moved to [Unhealthy Endpoints]
 - [ ] Recoverability
    - [ ] Retry single message 
       - Run `throw 1` and `send 1 1` commands
