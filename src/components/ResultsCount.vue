@@ -15,6 +15,6 @@ defineProps<{
 .format-showing-results {
   display: flex;
   align-items: flex-end;
-  color: gray;
+  font-style: italic;
 }
 </style>

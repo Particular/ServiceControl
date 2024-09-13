@@ -3,6 +3,7 @@ import NoData from "../NoData.vue";
 import { ColumnNames, useHeartbeatsStore } from "@/stores/HeartbeatsStore";
 import { storeToRefs } from "pinia";
 import HeartbeatsList from "./HeartbeatsList.vue";
+import ResultsCount from "../ResultsCount.vue";
 
 const store = useHeartbeatsStore();
 const { healthyEndpoints, filteredHealthyEndpoints } = storeToRefs(store);

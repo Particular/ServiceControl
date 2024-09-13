@@ -12,7 +12,9 @@ const props = defineProps<{
           <div class="row box-header">
             <div class="col-sm-12">
               <p class="lead hard-wrap">{{ props.message }}</p>
-              <p>&nbsp;</p>
+              <slot>
+                <p>&nbsp;</p>
+              </slot>
             </div>
           </div>
         </div>

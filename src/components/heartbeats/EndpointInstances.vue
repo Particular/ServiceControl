@@ -26,12 +26,13 @@ enum Operation {
 }
 
 const route = useRoute();
+const router = useRouter();
 const endpointName = route.params.endpointName.toString();
 const store = useHeartbeatInstancesStore();
 const { filteredInstances, sortedInstances, instanceFilterString, sortByInstances } = storeToRefs(store);
 const endpointSettings = ref<EndpointSettings[]>([endpointSettingsClient.defaultEndpointSettingsValue()]);
 const backLink = ref<string>(routeLinks.heartbeats.root);
-const filterInstances = (data: EndpointsView[]) =>
+const filterToValidInstances = (data: EndpointsView[]) =>
   data
     .filter((instance) => instance.name === endpointName)
     .filter((instance) => {
@@ -42,8 +43,8 @@ const filterInstances = (data: EndpointsView[]) =>
 
       return true;
     });
-const instances = computed(() => filterInstances(filteredInstances.value));
-const totalInstances = computed(() => filterInstances(sortedInstances.value));
+const filteredValidInstances = computed(() => filterToValidInstances(filteredInstances.value));
+const totalValidInstances = computed(() => filterToValidInstances(sortedInstances.value));
 const showBulkWarningDialog = ref(false);
 const dialogWarningOperation = ref(Operation.Mute);
 
@@ -68,7 +69,9 @@ async function proceedWarningDialog() {
   showBulkWarningDialog.value = false;
 
   try {
-    await store.toggleEndpointMonitor(instances.value.filter((instance) => (dialogWarningOperation.value === Operation.Unmute && !instance.monitor_heartbeat) || (dialogWarningOperation.value === Operation.Mute && instance.monitor_heartbeat)));
+    await store.toggleEndpointMonitor(
+      filteredValidInstances.value.filter((instance) => (dialogWarningOperation.value === Operation.Unmute && !instance.monitor_heartbeat) || (dialogWarningOperation.value === Operation.Mute && instance.monitor_heartbeat))
+    );
     useShowToast(TYPE.SUCCESS, `All endpoint instances ${dialogWarningOperation.value}`, "", false, { timeout: 1000 });
   } catch {
     useShowToast(TYPE.ERROR, "Save failed", "", false, { timeout: 3000 });
@@ -79,6 +82,16 @@ async function deleteInstance(instance: EndpointsView) {
   try {
     await store.deleteEndpointInstance(instance);
     useShowToast(TYPE.SUCCESS, "Endpoint instance deleted", "", false, { timeout: 1000 });
+  } catch {
+    useShowToast(TYPE.ERROR, "Delete failed", "", false, { timeout: 3000 });
+  }
+}
+
+async function deleteAllInstances() {
+  try {
+    await Promise.all(sortedInstances.value.filter((instance) => instance.name === endpointName).map((instance) => store.deleteEndpointInstance(instance)));
+    useShowToast(TYPE.SUCCESS, "Endpoint deleted", "", false, { timeout: 1000 });
+    await router.replace(backLink.value);
   } catch {
     useShowToast(TYPE.ERROR, "Delete failed", "", false, { timeout: 3000 });
   }
@@ -99,7 +112,7 @@ async function toggleAlerts(instance: EndpointsView) {
     <ConfirmDialog
       v-if="showBulkWarningDialog"
       heading="Proceed with bulk operation"
-      :body="`Are you sure you want to ${dialogWarningOperation} ${instances.length} endpoint instance(s)?`"
+      :body="`Are you sure you want to ${dialogWarningOperation} ${filteredValidInstances.length} endpoint instance(s)?`"
       @cancel="cancelWarningDialog"
       @confirm="proceedWarningDialog"
     />
@@ -119,19 +132,19 @@ async function toggleAlerts(instance: EndpointsView) {
     <div class="row filters">
       <div class="col-sm-12">
         <span class="buttonsContainer">
-          <button type="button" class="btn btn-warning btn-sm" :disabled="instances.length === 0" @click="showBulkOperationWarningDialog(Operation.Mute)">
+          <button type="button" class="btn btn-warning btn-sm" :disabled="filteredValidInstances.length === 0" @click="showBulkOperationWarningDialog(Operation.Mute)">
             <i
               :class="{
-                'text-black': instances.length > 0,
+                'text-black': filteredValidInstances.length > 0,
               }"
               class="fa fa-bell-slash"
             />
             Mute Alerts on All
           </button>
-          <button type="button" class="btn btn-default btn-sm" :disabled="instances.length === 0" @click="showBulkOperationWarningDialog(Operation.Unmute)">
+          <button type="button" class="btn btn-default btn-sm" :disabled="filteredValidInstances.length === 0" @click="showBulkOperationWarningDialog(Operation.Unmute)">
             <i
               :class="{
-                'text-black': instances.length > 0,
+                'text-black': filteredValidInstances.length > 0,
               }"
               class="fa fa-bell"
             />
@@ -141,7 +154,7 @@ async function toggleAlerts(instance: EndpointsView) {
       </div>
     </div>
     <div class="row">
-      <ResultsCount :displayed="instances.length" :total="totalInstances.length" />
+      <ResultsCount :displayed="filteredValidInstances.length" :total="totalValidInstances.length" />
     </div>
     <section role="table" aria-label="endpoint-instances">
       <!--Table headings-->
@@ -180,9 +193,15 @@ async function toggleAlerts(instance: EndpointsView) {
           </div>
         </div>
       </div>
-      <no-data v-if="instances.length === 0" message="No endpoint instances found. For untracked endpoints, disconnected instances are automatically pruned."></no-data>
+      <no-data v-if="filteredValidInstances.length === 0" message="No endpoint instances found. For untracked endpoints, disconnected instances are automatically pruned.">
+        <div v-if="totalValidInstances.length === 0" class="delete-all">
+          <span>You may</span>
+          <button type="button" @click="deleteAllInstances()" class="btn btn-danger btn-sm"><i class="fa fa-trash text-white" /> Delete</button>
+          <span>this endpoint</span>
+        </div>
+      </no-data>
       <!--Table rows-->
-      <DataView :data="instances" :show-items-per-page="true" :items-per-page="20">
+      <DataView :data="filteredValidInstances" :show-items-per-page="true" :items-per-page="20">
         <template #data="{ pageData }">
           <div role="rowgroup" aria-label="endpoints">
             <div role="row" :aria-label="instance.name" class="row grid-row" v-for="instance in pageData" :key="instance.id">
@@ -246,5 +265,11 @@ async function toggleAlerts(instance: EndpointsView) {
   border: #8c8c8c 1px solid;
   border-radius: 3px;
   padding: 0.4em;
+}
+
+.delete-all {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
 }
 </style>
