@@ -37,6 +37,7 @@ describe("FEATURE: Trial license notifications", () => {
 
         await driver.goTo(viewname);
 
+        //This has to use waitFor because of shared state between test runs. See issue documented issue and proposed solution https://github.com/Particular/ServicePulse/issues/1905
         await waitFor(() => expect(screen.queryByRole("status", { name: /trial license bar information/i })).toBeNull());
       });
     });
