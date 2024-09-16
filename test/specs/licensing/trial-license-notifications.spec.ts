@@ -5,7 +5,7 @@ import * as precondition from "../../preconditions";
 import { getTrialBar } from "./questions/trialLicenseBar";
 
 describe("FEATURE: Trial license notifications", () => {
-  describe("RULE: The user should know they is using a trial license at all times", () => {
+  describe("RULE: The user should know they are using a trial license at all times", () => {
     [
         { viewname: "dashboard"},
         { viewname: "configuration"},
