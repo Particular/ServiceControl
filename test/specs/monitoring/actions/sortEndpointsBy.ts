@@ -1,4 +1,4 @@
-import UserEvent from '@testing-library/user-event';
+import UserEvent from "@testing-library/user-event";
 import { endpointSortingColumnWithName } from "../questions/endpointSortingColumnWithName";
 import { columnName } from "@/components/monitoring/EndpointListRow.vue";
 

@@ -131,8 +131,8 @@ describe("FEATURE: Endpoint sorting", () => {
         //retrieve the endpoint names as a way to ensure the monitoring page finished rendering the endpoint list
         await endpointsNames();
 
-        //Assert sorting of Endpoint name first since it sorts in ascending order by default, while all the the other columns sort in descending order by default
-        assertSortImageState(columnName.ENDPOINTNAME, "up");        
+        //Assert sorting of Endpoint name first since it sorts in ascending order by default, while all the other columns sort in descending order by default
+        assertSortImageState(columnName.ENDPOINTNAME, "up");
 
         await sortEndpointsBy({ column }); // Click the column title being tested once for descending
         assertSortImageState(column, "down");

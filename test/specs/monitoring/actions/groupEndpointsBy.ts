@@ -1,4 +1,4 @@
-import UserEvent from '@testing-library/user-event';
+import UserEvent from "@testing-library/user-event";
 import { groupingOptionWithName } from "../questions/groupingOptionWithName";
 import { openGroupingOptions } from "./openGroupingOptions";
 

@@ -52,5 +52,5 @@ export enum NServiceBusHeaders {
   DiagnosticsTraceState = "tracestate",
   DiagnosticsBaggage = "baggage",
   DataBusConfigContentType = "NServiceBus.DataBusConfig.ContentType",
-  ExceptionInfoExceptionType = "NServiceBus.ExceptionInfo.ExceptionType"
+  ExceptionInfoExceptionType = "NServiceBus.ExceptionInfo.ExceptionType",
 }
