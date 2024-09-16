@@ -5,7 +5,8 @@
     using System.Linq;
     using Accounts;
     using Microsoft.Data.SqlClient;
-    //TODO postgres
+    using Npgsql;
+
     class ConnectionStringValidator
     {
         ConnectionStringValidator(string connectionString, string serviceAccount)
@@ -21,6 +22,10 @@
             {
                 validator.CheckMsSqlConnectionString();
             }
+            else if (instance.TransportPackage.Name == "PostgreSQL")
+            {
+                validator.CheckPostgreSqlConnectString();
+            }
         }
 
         public static void Validate(IServiceControlInstance instance)
@@ -30,6 +35,10 @@
             {
                 validator.CheckMsSqlConnectionString();
             }
+            else if (instance.TransportPackage.Name == "PostgreSQL")
+            {
+                validator.CheckPostgreSqlConnectString();
+            }
         }
 
         public static void Validate(IMonitoringInstance instance)
@@ -38,6 +47,10 @@
             if (instance.TransportPackage.Name == "SQLServer")
             {
                 validator.CheckMsSqlConnectionString();
+            }
+            else if (instance.TransportPackage.Name == "PostgreSQL")
+            {
+                validator.CheckPostgreSqlConnectString();
             }
         }
 
@@ -93,6 +106,42 @@
             catch (SqlException sqlEx)
             {
                 throw new EngineValidationException($"SQL connection failed - {sqlEx.Message}");
+            }
+        }
+
+        //TODO postgres - do we actually look at the 'Subscriptions Table' custom key anywhere? 
+        void CheckPostgreSqlConnectString()
+        {
+            string[] customKeys = { "Queue Schema", "Subscriptions Table" };
+
+            try
+            {
+                //Check  validity of connection string. This will throw if invalid
+                var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+
+                //The NSB PostgreSQL Transport can have custom key/value pairs in the connection string
+                // that won't make sense to PostgreSQL. Remove these from the string we want to validate.
+                foreach (var customKey in customKeys)
+                {
+                    if (builder.ContainsKey(customKey))
+                    {
+                        builder.Remove(customKey);
+                    }
+                }
+
+                //Attempt to connect to DB
+                using (var s = new NpgsqlConnection(builder.ConnectionString))
+                {
+                    s.Open();
+                }
+            }
+            catch (ArgumentException argumentException)
+            {
+                throw new EngineValidationException($"Connection String is invalid - {argumentException.Message}");
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new EngineValidationException($"PostgreSQL connection failed - {sqlEx.Message}");
             }
         }
 
