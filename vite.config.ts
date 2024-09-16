@@ -33,7 +33,7 @@ export default defineConfig({
   },
   plugins: [
     vue(),
-    checker({ overlay: { initialIsOpen: "error" }, vueTsc: { tsconfigPath: "tsconfig.app.json" }, eslint: { lintCommand: "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --ignore-path .gitignore" } }),
+    checker({ overlay: { initialIsOpen: "error" }, vueTsc: { tsconfigPath: "tsconfig.app.json" }, eslint: { lintCommand: "eslint .", useFlatConfig: true } }),
     {
       name: "app-constants-js-cache-busting",
       transformIndexHtml(html) {
