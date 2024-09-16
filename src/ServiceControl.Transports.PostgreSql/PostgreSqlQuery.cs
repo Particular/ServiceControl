@@ -72,10 +72,6 @@ public class PostgreSqlQuery(
             tables.AddRange(await db.GetTables(cancellationToken));
         }
 
-        //TODO: Postgres why?
-        //var catalogCount = tables.Select(t => t.DatabaseDetails.DatabaseName).Distinct().Count();
-        //var schemaCount = tables.Select(t => $"{t.DatabaseDetails.DatabaseName}/{t.Schema}").Distinct().Count();
-
         ScopeType = "Catalog & Schema";
 
         foreach (var tableName in tables)
