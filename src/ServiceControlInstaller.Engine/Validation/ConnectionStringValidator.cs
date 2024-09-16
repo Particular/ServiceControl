@@ -109,7 +109,6 @@
             }
         }
 
-        //TODO postgres - do we actually look at the 'Subscriptions Table' custom key anywhere? 
         void CheckPostgreSqlConnectString()
         {
             string[] customKeys = { "Queue Schema", "Subscriptions Table" };
