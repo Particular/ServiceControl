@@ -39,7 +39,7 @@ describe("ThroughputStore tests", () => {
     expect(hasErrors.value).toBe(false);
   });
 
-  describe("when transport is a broker", async () => {
+  describe("when transport is a broker", () => {
     const transport = Transport.AmazonSQS;
 
     test("with broker connection test failure", async () => {
@@ -67,7 +67,7 @@ describe("ThroughputStore tests", () => {
     });
   });
 
-  describe("when transport is not a broker", async () => {
+  describe("when transport is not a broker", () => {
     const transport = Transport.MSMQ;
 
     test("with monitoring connection test failure", async () => {
@@ -86,7 +86,7 @@ describe("ThroughputStore tests", () => {
       expect(hasErrors.value).toBe(true);
     });
 
-    describe("with monitoring disabled", async () => {
+    describe("with monitoring disabled", () => {
       beforeEach(() => {
         disableMonitoring();
       });

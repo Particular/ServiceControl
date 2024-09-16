@@ -1,5 +1,3 @@
-import { hasLicensingSettingTest } from "./hasLicensingSettingTest";
-
 export * from "../preconditions/hasLicense";
 export { hasServiceControlMainInstance } from "../preconditions/hasServiceControlMainInstance";
 export { hasServiceControlMonitoringInstance } from "../preconditions/hasServiceControlMonitoringInstance";

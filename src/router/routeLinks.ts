@@ -46,10 +46,6 @@ const configurationLinks = (root: string) => {
 };
 
 const throughputLinks = (root: string) => {
-  function createLink(template: string) {
-    return { link: `${root}/${template}`, template: template };
-  }
-
   return {
     root: root,
     endpoints: throughputEndpointLinks(`${root}/endpoints`),

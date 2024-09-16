@@ -42,7 +42,8 @@ export const useMonitoringStore = defineStore("MonitoringStore", () => {
     filterString.value = filter ?? route.query.filter?.toString() ?? "";
 
     if (filterString.value === "") {
-      const { filter: _, ...withoutFilter } = route.query;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { filter, ...withoutFilter } = route.query;
       await router.replace({ query: withoutFilter }); // Update or add filter query parameter to url
     } else {
       await router.replace({ query: { ...route.query, filter: filterString.value } }); // Update or add filter query parameter to url
@@ -54,13 +55,21 @@ export const useMonitoringStore = defineStore("MonitoringStore", () => {
     endpointList.value = await MonitoringEndpoints.useGetAllMonitoredEndpoints(historyPeriodStore.historyPeriod.pVal);
     if (!endpointListIsEmpty.value) {
       updateGroupSegments();
-      endpointListIsGrouped.value ? updateGroupedEndpoints() : sortEndpointList();
+      if (endpointListIsGrouped.value) {
+        updateGroupedEndpoints();
+      } else {
+        sortEndpointList();
+      }
     }
   }
 
   function updateSelectedGrouping(groupSize: number) {
     grouping.value.selectedGrouping = groupSize;
-    groupSize === 0 ? sortEndpointList() : updateGroupedEndpoints();
+    if (groupSize === 0) {
+      sortEndpointList();
+    } else {
+      updateGroupedEndpoints();
+    }
   }
 
   function updateGroupSegments() {

@@ -7,7 +7,7 @@ const mockEndpoint = makeMockEndpoint({ mockServer: worker });
 const mockEndpointDynamic = makeMockEndpointDynamic({ mockServer: worker });
 
 const makeDriver = (): Driver => ({
-  async goTo() {
+  goTo() {
     throw new Error("Not implemented");
   },
   mockEndpoint,
@@ -41,7 +41,7 @@ const driver = makeDriver();
       withGroupId: "81dca64e-76fc-e1c3-11a2-3069f51c58c8",
       withMessageId: "40134401-bab9-41aa-9acb-b19c0066f22d",
       withContentType: "application/json",
-      withBody: {"Index":0,"Data":""},
+      withBody: { Index: 0, Data: "" },
     })
   );
 })();

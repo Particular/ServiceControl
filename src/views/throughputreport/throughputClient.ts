@@ -12,7 +12,7 @@ class ThroughputClient {
   constructor(readonly basePath: string) {}
 
   public async endpoints() {
-    const [_, data] = await useTypedFetchFromServiceControl<EndpointThroughputSummary[]>(`${this.basePath}/endpoints`);
+    const [, data] = await useTypedFetchFromServiceControl<EndpointThroughputSummary[]>(`${this.basePath}/endpoints`);
 
     return data;
   }

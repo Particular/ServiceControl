@@ -32,7 +32,7 @@ export function mount({ router }: { router: Router }) {
   app.use(router).use(Toast, toastOptions).use(SimpleTypeahead).use(VCodeBlock).use(createPinia()).use(VueTippy);
   app.mount(`#app`);
 
-  app.config.errorHandler = (err, instance, info) => {
+  app.config.errorHandler = (err, instance) => {
     console.error(instance, err);
   };
 

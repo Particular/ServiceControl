@@ -22,7 +22,7 @@ export async function useGetAllMonitoredEndpoints(historyPeriod = 1) {
   let endpoints: Endpoint[] = [];
   if (!useIsMonitoringDisabled() && !monitoringConnectionState.unableToConnect) {
     try {
-      const [_, data] = await useTypedFetchFromMonitoring<Endpoint[]>(`monitored-endpoints?history=${historyPeriod}`);
+      const [, data] = await useTypedFetchFromMonitoring<Endpoint[]>(`monitored-endpoints?history=${historyPeriod}`);
       endpoints = data ?? [];
       await addEndpointsFromScSubscription(endpoints);
     } catch (error) {
@@ -77,11 +77,13 @@ export function useGetEndpointDetails(endpointName: string, historyPeriod = 1) {
     refresh: async () => {
       if (!useIsMonitoringDisabled() && !monitoringConnectionState.unableToConnect) {
         try {
-          const [_, details] = await useTypedFetchFromMonitoring<EndpointDetails>(`${`monitored-endpoints`}/${endpointName}?history=${historyPeriod}`);
+          const [, details] = await useTypedFetchFromMonitoring<EndpointDetails>(`${`monitored-endpoints`}/${endpointName}?history=${historyPeriod}`);
           data.value = details!;
-        } catch (error: any) {
+        } catch (error) {
           console.error(error);
-          data.value = { error: error.message } as EndpointDetailsError;
+          if (error instanceof Error) {
+            data.value = { error: error.message } as EndpointDetailsError;
+          }
         }
       }
     },
@@ -93,7 +95,7 @@ export function useGetEndpointDetails(endpointName: string, historyPeriod = 1) {
  */
 export async function useGetDisconnectedEndpointCount() {
   try {
-    const [_, count] = await useTypedFetchFromMonitoring<number>(`${`monitored-endpoints`}/disconnected`);
+    const [, count] = await useTypedFetchFromMonitoring<number>(`${`monitored-endpoints`}/disconnected`);
     return count ?? 0;
   } catch (error) {
     console.error(error);

@@ -27,18 +27,14 @@ describe("FEATURE: Editing failed messages", () => {
     );
   });
 
-  describe("RULE: Only messages with with a content-type that is editable text should be allowed to be edited", () => {    
-    [
-      { contentType: "application/atom+xml" }, 
-      { contentType: "application/ld+json" }, 
-      { contentType: "application/vnd.masstransit+json" }
-    ].forEach(({ contentType }) => {
+  describe("RULE: Only messages with with a content-type that is editable text should be allowed to be edited", () => {
+    [{ contentType: "application/atom+xml" }, { contentType: "application/ld+json" }, { contentType: "application/vnd.masstransit+json" }].forEach(({ contentType }) => {
       test(`EXAMPLE: Editing a message with "${contentType}" content-type`, async ({ driver }) => {
         // Given a failed message is displayed in the Failed Messages list
         // And the message has a content-type of "${contentType}"
         await driver.setUp(precondition.serviceControlWithMonitoring);
         await driver.setUp(precondition.enableEditAndRetry);
-        
+
         await driver.setUp(
           precondition.hasFailedMessage({
             withGroupId: "81dca64e-76fc-e1c3-11a2-3069f51c58c8",
@@ -61,28 +57,30 @@ describe("FEATURE: Editing failed messages", () => {
 
     test(`EXAMPLE: Editing a message with a content-type not recognized as editable text`, async ({ driver }) => {
       // Given a failed message is displayed in the Failed Messages list
-        // And the message has a content-type of application/octet-stream
-        await driver.setUp(precondition.serviceControlWithMonitoring);
-        await driver.setUp(precondition.enableEditAndRetry);
+      // And the message has a content-type of application/octet-stream
+      await driver.setUp(precondition.serviceControlWithMonitoring);
+      await driver.setUp(precondition.enableEditAndRetry);
 
-        await driver.setUp(
-          precondition.hasFailedMessage({
-            withGroupId: "81dca64e-76fc-e1c3-11a2-3069f51c58c8",
-            withMessageId: "40134401-bab9-41aa-9acb-b19c0066f22d",
-            withContentType: "application/octet-stream",
-            withBody: { Index: 0, Data: "" },
-          })
-        );
+      await driver.setUp(
+        precondition.hasFailedMessage({
+          withGroupId: "81dca64e-76fc-e1c3-11a2-3069f51c58c8",
+          withMessageId: "40134401-bab9-41aa-9acb-b19c0066f22d",
+          withContentType: "application/octet-stream",
+          withBody: { Index: 0, Data: "" },
+        })
+      );
 
-        //When the user opens the message editor
-        await driver.goTo("failed-messages/message/81dca64e-76fc-e1c3-11a2-3069f51c58c8");
-        await openEditAndRetryEditor();
-        const messageEditor = await getEditAndRetryEditor();
-        await messageEditor.switchToMessageBodyTab();
+      //When the user opens the message editor
+      await driver.goTo("failed-messages/message/81dca64e-76fc-e1c3-11a2-3069f51c58c8");
+      await openEditAndRetryEditor();
+      const messageEditor = await getEditAndRetryEditor();
+      await messageEditor.switchToMessageBodyTab();
 
-        //Then The message body should NOT be editable
-        expect(messageEditor.bodyFieldIsDisabled()).toBeTruthy();        
-        expect(messageEditor.hasWarningMatchingText(/message body cannot be edited because content type "application\/octet\-stream" is not supported\. only messages with content types "application\/json" and "text\/xml" can be edited\./i)).toBeTruthy();        
+      //Then The message body should NOT be editable
+      expect(messageEditor.bodyFieldIsDisabled()).toBeTruthy();
+      expect(
+        messageEditor.hasWarningMatchingText(/message body cannot be edited because content type "application\/octet-stream" is not supported\. only messages with content types "application\/json" and "text\/xml" can be edited\./i)
+      ).toBeTruthy();
     });
   });
 });

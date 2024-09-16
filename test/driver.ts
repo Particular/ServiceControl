@@ -1,6 +1,7 @@
 type GoTo = (path: string) => Promise<void>;
 type DisposeApp = () => void;
 export type MockEndpointOptions = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   body: Record<string, any> | string | number | boolean | null | undefined;
   method?: "get" | "post" | "patch" | "put" | "delete" | "options";
   status?: number;
@@ -8,6 +9,7 @@ export type MockEndpointOptions = {
 };
 
 export type MockEndpointDynamicOptions = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   body: Record<string, any> | string | number | boolean | null | undefined;
   status?: number;
   headers?: { [key: string]: string };
@@ -19,7 +21,7 @@ type MockEndpointDynamic = (endpoint: string, callBack: (url: URL, params: { [ke
 export type SetupFactoryOptions = {
   driver: Driver;
 };
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SetupFactory = ({ driver }: SetupFactoryOptions) => any;
 
 type SetUp = <Factory extends SetupFactory>(factory: Factory) => Promise<ReturnType<Factory>>;

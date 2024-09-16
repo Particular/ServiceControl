@@ -110,7 +110,7 @@ export interface EndpointGroup {
 }
 
 export interface EndpointDetailsError {
-  error: any;
+  error?: string;
 }
 
 export function isError(obj: EndpointDetails | EndpointDetailsError): obj is EndpointDetailsError {

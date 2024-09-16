@@ -5,7 +5,7 @@ export async function getEditAndRetryEditor() {
 
   return {    
     async switchToMessageBodyTab() {
-      var tab = within(dialog).getByRole("tab", { name: /message body/i });
+      const tab = within(dialog).getByRole("tab", { name: /message body/i });
       await UserEvent.click(tab);
     },
 

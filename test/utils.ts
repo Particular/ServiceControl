@@ -13,8 +13,8 @@ export const mockEndpointDynamic = makeMockEndpointDynamic({ mockServer });
 
 export function makeDriverForTests(): Driver {
   return {
-    async goTo() {
-      throw "Not implemented";
+    goTo() {
+      throw new Error("Not implemented");
     },
     mockEndpoint,
     mockEndpointDynamic,
@@ -22,7 +22,7 @@ export function makeDriverForTests(): Driver {
       return factory({ driver: this });
     },
     disposeApp() {
-      throw "Not implemented";
+      throw new Error("Not implemented");
     },
   };
 }

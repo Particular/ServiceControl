@@ -30,17 +30,16 @@ export const hasEndpointMessageTypesNamed =
 
 export const hasEndpointInstancesNamed =
   (instanceNames: string[]) =>
-  async ({ driver }: SetupFactoryOptions) => {
+  ({ driver }: SetupFactoryOptions) => {
     const endpointDetails = structuredClone(monitoredEndpointDetails);
     endpointDetails.instances = [];
     endpointDetails.instances.push(...instanceNames.map((name) => ({ ...instanceForEndpoint, name: name })));
 
     const monitoringInstanceUrl = window.defaultConfig.monitoring_urls[0];
-    const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
 
     driver.mockEndpoint(`${monitoringInstanceUrl}monitored-endpoints/${endpointDetails.instances[0].name}`, {
       body: endpointDetails,
-    });    
+    });
 
     return endpointDetails;
   };

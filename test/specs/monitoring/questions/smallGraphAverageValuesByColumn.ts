@@ -17,6 +17,7 @@ export async function smallGraphAverageValuesByColumn({ column }: { column: colu
   for (const row of endpointRows) {
     const gridCell = within(row).getByRole("gridcell", { name: column });
     const graphImage = within(gridCell).getByRole("img", { name: column });
+    // eslint-disable-next-line no-await-in-loop
     await fireEvent.mouseOver(graphImage);
     const averageValueElement = within(graphImage).getByRole("text", { name: "average-value" });
 

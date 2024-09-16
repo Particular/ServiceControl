@@ -26,7 +26,7 @@ interface PaginationStripDSLAssertions {
 
 describe("Feature: Moving backwards through pages with a single button must be possible", () => {
   describe("Rule: The 'Previous' button is disabled when the first page is active", () => {
-    test("EXAMPLE: First page is active on the initial render", async () => {
+    test("EXAMPLE: First page is active on the initial render", () => {
       const component = renderPaginationStripWith({ records: 100, itemsPerPage: 10, selectedPage: 1 });
 
       component.assert.previousIsDisabled();
@@ -44,7 +44,7 @@ describe("Feature: Moving backwards through pages with a single button must be p
     });
   });
   describe("Rule: The 'Previous' button is enabled when the first page is not active", () => {
-    test("EXAMPLE: Second page is active on initial render", async () => {
+    test("EXAMPLE: Second page is active on initial render", () => {
       const component = renderPaginationStripWith({ records: 100, itemsPerPage: 10, selectedPage: 2 });
       component.assert.previousIsEnabled();
     });
@@ -64,7 +64,7 @@ describe("Feature: Moving backwards through pages with a single button must be p
 
 describe("Feature: Moving forward through pages with a single button must be possible", () => {
   describe("Rule: The 'Next' button is disabled when the last page is active", () => {
-    test("EXAMPLE: Last page is active on the initial render", async () => {
+    test("EXAMPLE: Last page is active on the initial render", () => {
       const component = renderPaginationStripWith({ records: 100, itemsPerPage: 10, selectedPage: 10 });
       component.assert.nextIsDisabled();
     });
@@ -81,7 +81,7 @@ describe("Feature: Moving forward through pages with a single button must be pos
     });
   });
   describe("Rule: The 'Next' button is enabled when the last page is not active", () => {
-    test("EXAMPLE: Penultimate page is active on initial render", async () => {
+    test("EXAMPLE: Penultimate page is active on initial render", () => {
       const component = renderPaginationStripWith({ records: 100, itemsPerPage: 10, selectedPage: 9 });
 
       component.assert.nextIsEnabled();
@@ -116,27 +116,27 @@ describe("Feature: Navigating to a specific page that is available must be possi
 
 describe("Feature: Jumping a number of pages forward or backward must be possible", () => {
   describe("Rule: Buttons for jumping pages back or forward are available only when enough pages ahead or back are available", () => {
-    test("EXAMPLE: Strip for 100 records with 10 items per page, allowing to jump pages by 2", async () => {
+    test("EXAMPLE: Strip for 100 records with 10 items per page, allowing to jump pages by 2", () => {
       const component = renderPaginationStripWith({ records: 100, itemsPerPage: 10, selectedPage: 1, allowToJumpPagesBy: 2 });
 
       component.assert.stripOfButtonsMatchesSequence("Previous,1,2,3,4,...,10,Next");
     });
 
-    test("EXAMPLE: Enough pages to jump forward and backward", async () => {
+    test("EXAMPLE: Enough pages to jump forward and backward", () => {
       const component = renderPaginationStripWith({ records: 500, itemsPerPage: 10, selectedPage: 10, allowToJumpPagesBy: 5 });
 
       component.assert.jumpPagesBackIsPresent();
       component.assert.jumpPagesForwardIsPresent();
     });
 
-    test("EXAMPLE: Enough pages to jump foward only", async () => {
+    test("EXAMPLE: Enough pages to jump foward only", () => {
       const component = renderPaginationStripWith({ records: 500, itemsPerPage: 10, selectedPage: 6, allowToJumpPagesBy: 5 });
 
       component.assert.jumpPagesBackIsPresent(false);
       component.assert.jumpPagesForwardIsPresent();
     });
 
-    test("EXAMPLE: Enough pages to jump back only", async () => {
+    test("EXAMPLE: Enough pages to jump back only", () => {
       const component = renderPaginationStripWith({ records: 500, itemsPerPage: 10, selectedPage: 50, allowToJumpPagesBy: 5 });
 
       component.assert.jumpPagesBackIsPresent();
@@ -144,7 +144,7 @@ describe("Feature: Jumping a number of pages forward or backward must be possibl
       component.assert.activePageIs("Page 50");
     });
 
-    test("EXAMPLE: Not enough pages to jump forward or backward", async () => {
+    test("EXAMPLE: Not enough pages to jump forward or backward", () => {
       const component = renderPaginationStripWith({ records: 100, itemsPerPage: 10, selectedPage: 1, allowToJumpPagesBy: 5 });
 
       component.assert.jumpPagesBackIsPresent(false);
@@ -208,7 +208,7 @@ function renderPaginationStripWith({ records, itemsPerPage, selectedPage, allowT
     },
   });
 
-  let dslAPI: PaginationStripDSL = {
+  const dslAPI: PaginationStripDSL = {
     clickPrevious: async function () {
       await userEvent.click(await screen.findByLabelText("Previous Page"));
     },
@@ -233,7 +233,7 @@ function renderPaginationStripWith({ records, itemsPerPage, selectedPage, allowT
         itemsPerPage: newNumberOfItemsPerPage,
         totalCount: records,
         pageBuffer: allowToJumpPagesBy,
-      });      
+      });
     },
     assert: {
       previousIsDisabled: function () {
@@ -254,7 +254,6 @@ function renderPaginationStripWith({ records, itemsPerPage, selectedPage, allowT
       jumpPagesBackIsPresent: function (truthy = true) {
         if (truthy) {
           expect(screen.queryByLabelText(`Back ${allowToJumpPagesBy}`)).toBeInTheDocument();
-        } else {
         }
       },
       jumpPagesForwardIsPresent: function (truthy = true) {
@@ -266,7 +265,7 @@ function renderPaginationStripWith({ records, itemsPerPage, selectedPage, allowT
       },
       stripOfButtonsMatchesSequence: function (sequence: string): void {
         const allButtons = screen.getAllByRole("button");
-        let generatedStripText = allButtons.map((v) => v.innerHTML).join(",");
+        const generatedStripText = allButtons.map((v) => v.innerHTML).join(",");
         expect(generatedStripText).toBe(sequence);
       },
     },

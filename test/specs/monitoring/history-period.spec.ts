@@ -1,12 +1,11 @@
 import { expect, vi } from "vitest";
 import { test, describe } from "../../drivers/vitest/driver";
-import { screen, waitFor } from "@testing-library/vue";
+import { waitFor } from "@testing-library/vue";
 import * as precondition from "../../preconditions";
 import { selectHistoryPeriod } from "./actions/selectHistoryPeriod";
 import { endpointSparklineValues } from "./questions/endpointSparklineValues";
 import { historyPeriodSelected } from "./questions/historyPeriodSelected";
 import { endpointDetailsLinks } from "./questions/endpointDetailLinks";
-import { endpointsNames } from "./questions/endpointsNames";
 
 describe("FEATURE: Endpoint history periods", () => {
   describe("RULE: History period should get and set the permalink history period query parameter", () => {

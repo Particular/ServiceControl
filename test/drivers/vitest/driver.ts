@@ -38,6 +38,7 @@ function makeDriver() {
 }
 
 const test = itVitest.extend<{ driver: Driver }>({
+  // eslint-disable-next-line no-empty-pattern, @typescript-eslint/no-explicit-any
   driver: async ({}, use: any) => {
     //Reset the mocked handlers before executing the test
     mockServer.resetHandlers();

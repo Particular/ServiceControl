@@ -54,6 +54,7 @@ function evaluateResponse(response: Response): SuccessResponse | ErrorResponse {
   return response.ok ? ({} as SuccessResponse) : ({ message: response.statusText } as ErrorResponse);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface SuccessResponse {}
 export interface ErrorResponse {
   message: string;

@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/vue";
+import { screen } from "@testing-library/vue";
 
 export function endpointGroupNames() {
   const groups = screen.queryAllByRole("group");

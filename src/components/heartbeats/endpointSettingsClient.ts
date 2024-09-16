@@ -6,7 +6,7 @@ import isEndpointSettingsSupported from "@/components/heartbeats/isEndpointSetti
 class EndpointSettingsClient {
   public async endpointSettings(): Promise<EndpointSettings[]> {
     if (isEndpointSettingsSupported.value) {
-      const [_, data] = await useTypedFetchFromServiceControl<EndpointSettings[]>(`endpointssettings`);
+      const [, data] = await useTypedFetchFromServiceControl<EndpointSettings[]>(`endpointssettings`);
       return data;
     }
 

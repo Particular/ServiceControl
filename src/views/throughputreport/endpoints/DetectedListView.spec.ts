@@ -88,7 +88,7 @@ describe("DetectedListView tests", () => {
     });
   });
 
-  describe("filtering scenarios", async () => {
+  describe("filtering scenarios", () => {
     function getFilterNameElement() {
       return screen.getByRole("searchbox", { name: /Filter by name/i }) as HTMLTextAreaElement;
     }
@@ -188,7 +188,7 @@ describe("DetectedListView tests", () => {
     });
   });
 
-  describe("sorting by", async () => {
+  describe("sorting by", () => {
     test("throughput", async () => {
       const tableName = "Special table";
       const dataLength = 5;
@@ -321,6 +321,7 @@ describe("DetectedListView tests", () => {
 
       for (const row of within(table).getAllByRole("row").slice(1)) {
         const dropdown = within(row).getByRole("combobox");
+        // eslint-disable-next-line no-await-in-loop
         await user.selectOptions(dropdown, UserIndicator.NServiceBusEndpoint);
       }
 

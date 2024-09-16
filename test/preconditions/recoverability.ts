@@ -128,7 +128,7 @@ export const enableEditAndRetry = ({ driver }: SetupFactoryOptions) => {
 };
 
 export const hasFailedMessage =
-  ({ withGroupId, withMessageId, withContentType, withBody }: { withGroupId: string; withMessageId: string; withContentType: string; withBody: Record<string, any> | string | number | boolean | null | undefined }) =>
+  ({ withGroupId, withMessageId, withContentType, withBody }: { withGroupId: string; withMessageId: string; withContentType: string; withBody: Record<string, string | number | boolean> | string | number | boolean | null | undefined }) =>
   ({ driver }: SetupFactoryOptions) => {
     const serviceControlUrl = window.defaultConfig.service_control_url;
 

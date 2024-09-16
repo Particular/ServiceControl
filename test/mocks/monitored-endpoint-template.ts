@@ -1,4 +1,3 @@
-import GroupOperation from "@/resources/GroupOperation";
 import { Endpoint, ExtendedEndpointInstance, EndpointMetrics, ExtendedEndpointDetails, MessageType } from "@/resources/MonitoringEndpoint";
 
 export const monitoredEndpointTemplate = <Endpoint>{

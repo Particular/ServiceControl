@@ -15,8 +15,8 @@ describe("FEATURE: EXPIRING license detection", () => {
 
       await driver.goTo("monitoring");
 
-      const notification = (await getAlertNotifications()).find(async (n) => {
-        n.textMatches(/your non\-production development license will expire soon\. to continue using the particular service platform you'll need to extend your license\./i);
+      const notification = (await getAlertNotifications()).find((n) => {
+        n.textMatches(/your non-production development license will expire soon\. to continue using the particular service platform you'll need to extend your license\./i);
       });
 
       expect(notification).not.toBeUndefined();
@@ -35,7 +35,7 @@ describe("FEATURE: EXPIRING license detection", () => {
 
         await driver.goTo("monitoring");
 
-        const notification = (await getAlertNotifications()).find(async (n) => {
+        const notification = (await getAlertNotifications()).find((n) => {
           n.textMatches(/once upgrade protection expires, you'll no longer have access to support or new product versions/i);
         });
 
@@ -47,8 +47,6 @@ describe("FEATURE: EXPIRING license detection", () => {
 });
 
 describe("FEATURE: EXPIRED license detection", () => {
-  const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
-
   //As of the moment of writing this test, license check is performed during the first load of the application only. No continuous check is performed.
   describe("RULE: Access to the monitoring endpoint list functionality should be blocked when a expired license is detected and a notification should be displayed", () => {
     test("EXAMPLE: Expired trial", async ({ driver }) => {
@@ -64,7 +62,7 @@ describe("FEATURE: EXPIRED license detection", () => {
       expect((await viewYourLicenseButton()).address).toBe("#/configuration/license");
 
       //Find all the toast notifications that popped up and check if there is a notification about the expired license with a link to the expected page
-      const notification = (await getAlertNotifications()).find(async (n) => {
+      const notification = (await getAlertNotifications()).find((n) => {
         n.textMatches(/your license has expired\. please contact particular software support at:/i);
       });
 
@@ -85,7 +83,7 @@ describe("FEATURE: EXPIRED license detection", () => {
       expect((await viewYourLicenseButton()).address).toBe("#/configuration/license");
 
       //Find all the toast notifications that popped up and check if there is a notification about the expired license with a link to the expected page
-      const notification = (await getAlertNotifications()).find(async (n) => {
+      const notification = (await getAlertNotifications()).find((n) => {
         n.textMatches(/your license has expired\. please contact particular software support at:/i);
       });
 
@@ -105,7 +103,7 @@ describe("FEATURE: EXPIRED license detection", () => {
       expect((await viewYourLicenseButton()).address).toBe("#/configuration/license");
 
       //Find all the toast notifications that popped up and check if there is a notification about the expired license with a link to the expected page
-      const notification = (await getAlertNotifications()).find(async (n) => {
+      const notification = (await getAlertNotifications()).find((n) => {
         n.textMatches(/your license has expired\. please contact particular software support at:/i);
       });
 

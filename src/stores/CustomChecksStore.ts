@@ -26,7 +26,7 @@ export const useCustomChecksStore = defineStore("CustomChecksStore", () => {
   watch(pageNumber, () => dataRetriever.executeAndResetTimer());
 
   async function dismissCustomCheck(id: string) {
-    dataRetriever.executeAndResetTimer(async () => {
+    await dataRetriever.executeAndResetTimer(async () => {
       // NOTE: If it takes more than the refresh interval for ServiceControl to delete the check it will reappear
       failedChecks.value = failedChecks.value.filter((x) => x.id !== id);
       failingCount.value--;

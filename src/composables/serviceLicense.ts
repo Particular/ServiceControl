@@ -1,10 +1,9 @@
-import { computed, type ComputedRef, reactive, type UnwrapNestedRefs, watch } from "vue";
+import { computed, type ComputedRef, reactive, type UnwrapNestedRefs } from "vue";
 import { useGetDayDiffFromToday } from "./formatter";
 import { useTypedFetchFromServiceControl } from "./serviceServiceControlUrls";
 import type LicenseInfo from "@/resources/LicenseInfo";
 import { LicenseStatus } from "@/resources/LicenseInfo";
 import { LicenseWarningLevel } from "@/composables/LicenseStatus";
-import { useRouter } from "vue-router";
 
 interface License extends LicenseInfo {
   licenseEdition: ComputedRef<string>;
@@ -56,9 +55,9 @@ const licenseStatus = reactive({
   warningLevel: LicenseWarningLevel.None,
 });
 
-function useLicense() {  
+function useLicense() {
   return { getOrUpdateLicenseStatus, license, licenseStatus };
-};
+}
 
 async function getOrUpdateLicenseStatus() {
   const lic = await getLicense();
@@ -141,7 +140,7 @@ function getUpgradeDaysLeft(license: UnwrapNestedRefs<License>) {
 
 async function getLicense() {
   try {
-    let [, data] = await useTypedFetchFromServiceControl<LicenseInfo>("license?refresh=true");
+    const [, data] = await useTypedFetchFromServiceControl<LicenseInfo>("license?refresh=true");
     return data;
   } catch (err) {
     console.log(err);

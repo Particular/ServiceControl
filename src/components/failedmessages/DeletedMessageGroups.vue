@@ -18,6 +18,7 @@ import { TYPE } from "vue-toastification";
 
 const statusesForRestoreOperation = ["restorestarted", "restoreprogressing", "restorefinalizing", "restorecompleted"] as const;
 type RestoreOperationStatus = (typeof statusesForRestoreOperation)[number];
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const otherStatuses = ["none", "working"] as const;
 type Status = RestoreOperationStatus | (typeof otherStatuses)[number];
 interface WorkflowState {
