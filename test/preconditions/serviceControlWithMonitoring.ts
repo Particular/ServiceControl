@@ -77,4 +77,10 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
   await driver.setUp(precondition.hasLicensingSettingTest());
 
   await driver.setUp(precondition.hasEndpointSettings([]));
+
+  //default handler for /api/redirects
+  await driver.setUp(precondition.redirectsDefaultHandler);
+
+  //default handler for /api/queues/addresses
+  await driver.setUp(precondition.knownQueuesDefaultHandler);
 };

@@ -19,3 +19,4 @@ export { hasLicensingReportAvailable } from "../preconditions/hasLicensingReport
 export { hasLicensingSettingTest } from "../preconditions/hasLicensingSettingTest";
 export { hasLicensingEndpoints } from "../preconditions/hasLicensingEndpoints";
 export { hasEndpointSettings } from "./hasEndpointSettings";
+export * from "./configuration";
