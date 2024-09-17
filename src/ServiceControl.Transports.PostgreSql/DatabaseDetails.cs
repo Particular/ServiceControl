@@ -100,10 +100,10 @@
 
             await using var conn = await OpenConnectionAsync(cancellationToken);
             await using var cmd = conn.CreateCommand();
-            cmd.CommandText = $"select currval('{table.SequenceName}');"; //TODO postgres - errors with: Npgsql.PostgresException (0x80004005): 55000: currval of sequence "audit_seq_seq" is not yet defined in this session
+            cmd.CommandText = $"select last_value from '{table.SequenceName}';";
             var value = await cmd.ExecuteScalarAsync(cancellationToken);
 
-            if (value is decimal decimalValue) // That's the return type of IDENT_CURRENT
+            if (value is decimal decimalValue)
             {
                 table.RowVersion = (long)decimalValue;
             }
