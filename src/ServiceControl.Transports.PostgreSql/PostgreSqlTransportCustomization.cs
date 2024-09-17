@@ -28,14 +28,12 @@
             TransportSettings transportSettings)
         {
             services.AddSingleton<IBrokerThroughputQuery, PostgreSqlQuery>();
-            transportSettings.ErrorQueue = ToTransportQualifiedQueueName(transportSettings.ErrorQueue);
         }
 
         protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
         {
             services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
-            transportSettings.ErrorQueue = ToTransportQualifiedQueueName(transportSettings.ErrorQueue);
         }
 
 
