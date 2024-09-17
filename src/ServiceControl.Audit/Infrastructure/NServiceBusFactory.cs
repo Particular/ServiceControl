@@ -44,7 +44,7 @@ namespace ServiceControl.Audit.Infrastructure
                 routing.RouteToEndpoint(typeof(RegisterNewEndpoint), serviceControlLogicalQueue);
                 routing.RouteToEndpoint(typeof(MarkMessageFailureResolvedByRetry), serviceControlLogicalQueue);
 
-                configuration.ReportCustomChecksTo(settings.ServiceControlQueueAddress);
+                configuration.ReportCustomChecksTo(transportCustomization.ToTransportQualifiedQueueName(settings.ServiceControlQueueAddress));
             }
 
             configuration.GetSettings().Set(settings.LoggingSettings);
