@@ -11,6 +11,7 @@ export default tseslint.config({
   languageOptions: { globals: globals.browser, ecmaVersion: "latest", parserOptions: { parser: tseslint.parser } },
   extends: [pluginJs.configs.recommended, ...tseslint.configs.recommended, ...pluginVue.configs["flat/essential"], pluginPromise.configs["flat/recommended"], eslintPluginPrettierRecommended],
   rules: {
+    "no-duplicate-imports": "error",
     "promise/prefer-await-to-then": "error",
     "require-await": "error",
     "no-await-in-loop": "warn",

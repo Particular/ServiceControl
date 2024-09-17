@@ -2,6 +2,7 @@
 import { useRouter } from "vue-router";
 import TimeSince from "../components/TimeSince.vue";
 import type EventLogItem from "@/resources/EventLogItem";
+// eslint-disable-next-line no-duplicate-imports
 import { Severity } from "@/resources/EventLogItem";
 import routeLinks from "@/router/routeLinks";
 

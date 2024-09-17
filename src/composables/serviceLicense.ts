@@ -2,6 +2,7 @@ import { computed, type ComputedRef, reactive, type UnwrapNestedRefs } from "vue
 import { useGetDayDiffFromToday } from "./formatter";
 import { useTypedFetchFromServiceControl } from "./serviceServiceControlUrls";
 import type LicenseInfo from "@/resources/LicenseInfo";
+// eslint-disable-next-line no-duplicate-imports
 import { LicenseStatus } from "@/resources/LicenseInfo";
 import { LicenseWarningLevel } from "@/composables/LicenseStatus";
 

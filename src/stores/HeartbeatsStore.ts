@@ -4,12 +4,11 @@ import { computed, ref, watch } from "vue";
 import useAutoRefresh from "@/composables/autoRefresh";
 import { EndpointStatus, LogicalEndpoint } from "@/resources/Heartbeat";
 import moment from "moment";
-import { SortDirection } from "@/resources/SortOptions";
+import { SortDirection, type GroupPropertyType } from "@/resources/SortOptions";
 import getSortFunction from "@/components/getSortFunction";
 import { EndpointsView } from "@/resources/EndpointView";
 import endpointSettingsClient from "@/components/heartbeats/endpointSettingsClient";
 import type { SortInfo } from "@/components/SortInfo";
-import type { GroupPropertyType } from "@/resources/SortOptions";
 import { EndpointSettings } from "@/resources/EndpointSettings";
 
 export enum ColumnNames {

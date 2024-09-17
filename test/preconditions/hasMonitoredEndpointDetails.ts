@@ -1,7 +1,6 @@
 import { EndpointDetails } from "@/resources/MonitoringEndpoint";
-import { monitoredEndpointDetails, instanceForEndpoint } from "../mocks/monitored-endpoint-template";
+import { monitoredEndpointDetails, instanceForEndpoint, messageTypeForEndpoint } from "../mocks/monitored-endpoint-template";
 import { SetupFactoryOptions } from "../driver";
-import { messageTypeForEndpoint } from "../mocks/monitored-endpoint-template";
 
 export const hasMonitoredEndpointDetails =
   (endpointDetails: EndpointDetails) =>

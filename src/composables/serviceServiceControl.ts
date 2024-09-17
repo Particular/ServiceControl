@@ -4,6 +4,7 @@ import { useServiceProductUrls } from "./serviceProductUrls";
 import { monitoringUrl, serviceControlUrl, useTypedFetchFromMonitoring, useTypedFetchFromServiceControl } from "./serviceServiceControlUrls";
 import type RootUrls from "@/resources/RootUrls";
 import type FailedMessage from "@/resources/FailedMessage";
+// eslint-disable-next-line no-duplicate-imports
 import { FailedMessageStatus } from "@/resources/FailedMessage";
 
 export const stats = reactive({

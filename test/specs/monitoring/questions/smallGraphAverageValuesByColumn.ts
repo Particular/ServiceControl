@@ -1,5 +1,4 @@
-import { screen, within } from "@testing-library/vue";
-import { fireEvent } from "@testing-library/vue";
+import { screen, within, fireEvent } from "@testing-library/vue";
 
 export enum columnName {
   ENDPOINTNAME = "name",
