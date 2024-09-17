@@ -170,6 +170,8 @@ export const useHeartbeatsStore = defineStore("HeartbeatsStore", () => {
   }
 
   const refresh = dataRetriever.executeAndResetTimer;
+
+  // eslint-disable-next-line promise/catch-or-return,promise/prefer-await-to-then,promise/valid-params
   refresh().then();
 
   return {
