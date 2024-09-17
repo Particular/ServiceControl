@@ -5,19 +5,19 @@
 
     class LicenseLicenseMetadataProvider(IRavenSessionProvider sessionProvider) : ILicenseLicenseMetadataProvider
     {
-        public async Task<LicenseMetadata> GetLicenseMetadata(CancellationToken cancellationToken)
+        public async Task<TrialMetadata> GetLicenseMetadata(CancellationToken cancellationToken)
         {
             using (var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken))
             {
-                return await session.LoadAsync<LicenseMetadata>(LicenseMetadata.LicenseMetadataId, cancellationToken);
+                return await session.LoadAsync<TrialMetadata>(TrialMetadata.TrialMetadataId, cancellationToken);
             }
         }
 
-        public async Task InsertLicenseMetadata(LicenseMetadata licenseMetadata, CancellationToken cancellationToken)
+        public async Task InsertLicenseMetadata(TrialMetadata licenseMetadata, CancellationToken cancellationToken)
         {
             using (var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken))
             {
-                await session.StoreAsync(licenseMetadata, LicenseMetadata.LicenseMetadataId, cancellationToken);
+                await session.StoreAsync(licenseMetadata, TrialMetadata.TrialMetadataId, cancellationToken);
                 await session.SaveChangesAsync(cancellationToken);
             }
         }

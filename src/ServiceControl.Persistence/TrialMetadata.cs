@@ -2,10 +2,10 @@
 {
     using System;
 
-    public class LicenseMetadata
+    public class TrialMetadata
     {
         public DateOnly TrialStartDate { get; set; }
 
-        public static string LicenseMetadataId = "metadata/origination";
+        public static string TrialMetadataId = "metadata/trialinformation";
     }
 }

@@ -18,13 +18,26 @@
             {
                 activeLicense.Refresh();
 
-                if (activeLicense.Details.IsTrialLicense)
+                if (activeLicense.Details.LicenseType.Equals("trial", StringComparison.OrdinalIgnoreCase))
                 {
                     var metadata = await licenseLicenseMetadataProvide.GetLicenseMetadata(cancellationToken);
-                    if (DateOnly.FromDateTime(activeLicense.Details.ExpirationDate ?? DateTime.MinValue) != metadata.TrialStartDate.AddDays(14))
+                    if (metadata == null)
                     {
-                        activeLicense.IsValid = false;
+                        metadata = new TrialMetadata
+                        {
+                            TrialStartDate = DateOnly.FromDateTime(activeLicense.Details.ExpirationDate.Value.AddDays(-14))
+                        };
+
+                        await licenseLicenseMetadataProvide.InsertLicenseMetadata(metadata, cancellationToken);
+                    }
+                    else if (DateOnly.FromDateTime(activeLicense.Details.ExpirationDate ?? DateTime.MinValue) != metadata.TrialStartDate.AddDays(14))
+                    {
                         activeLicense.Details = LicenseDetails.TrialFromStartDate(metadata.TrialStartDate);
+                    }
+                    else if (metadata.TrialStartDate >= DateOnly.FromDateTime(DateTime.Now))
+                    {
+                        // Someone has tampered with the date, set the license to expired
+                        activeLicense.Details = LicenseDetails.TrialFromStartDate(DateOnly.FromDateTime(DateTime.Now.AddDays(-15)));
                     }
                 }
 

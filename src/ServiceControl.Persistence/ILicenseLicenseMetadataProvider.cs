@@ -5,7 +5,7 @@
 
     public interface ILicenseLicenseMetadataProvider
     {
-        Task<LicenseMetadata> GetLicenseMetadata(CancellationToken cancellationToken);
-        Task InsertLicenseMetadata(LicenseMetadata licenseMetadata, CancellationToken cancellationToken);
+        Task<TrialMetadata> GetLicenseMetadata(CancellationToken cancellationToken);
+        Task InsertLicenseMetadata(TrialMetadata licenseMetadata, CancellationToken cancellationToken);
     }
 }

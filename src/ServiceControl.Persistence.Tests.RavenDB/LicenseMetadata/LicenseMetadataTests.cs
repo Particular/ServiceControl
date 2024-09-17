@@ -21,7 +21,7 @@
         {
             var licenseMetadataService = ServiceProvider.GetRequiredService<LicenseLicenseMetadataProvider>();
 
-            var metaData = new LicenseMetadata
+            var metaData = new TrialMetadata
             {
                 TrialStartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(14))
             };
