@@ -72,7 +72,17 @@
             return transport;
         }
 
-        protected override string ToTransportQualifiedQueueNameCore(string queueName) => $"public.{queueName}";
+        protected override string ToTransportQualifiedQueueNameCore(string queueName)
+        {
+            string Delimiter = "\"";
+            string EscapedDelimiter = Delimiter + Delimiter;
+            if (queueName.StartsWith(Delimiter) || queueName.EndsWith(Delimiter))
+            {
+                return queueName;
+            }
+
+            return Delimiter + queueName.Replace(Delimiter, EscapedDelimiter) + Delimiter;
+        }
 
         [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "<DisableDelayedDelivery>k__BackingField")]
         static extern ref bool DisableDelayedDelivery(PostgreSqlTransport transport);
