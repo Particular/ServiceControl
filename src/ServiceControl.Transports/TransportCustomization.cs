@@ -109,6 +109,8 @@ namespace ServiceControl.Transports
             endpointConfiguration.SendFailedMessagesTo(transportSettings.ErrorQueue);
         }
 
+        public virtual string ToTransportQualifiedQueueName(string queueName) => queueName;
+
         public virtual async Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues)
         {
             var transport = CreateTransport(transportSettings);
@@ -129,7 +131,7 @@ namespace ServiceControl.Transports
                     false,
                     transportSettings.ErrorQueue)};
 
-            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, additionalQueues.Union(new[] { transportSettings.ErrorQueue }).ToArray());
+            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, additionalQueues.Union([transportSettings.ErrorQueue]).Select(ToTransportQualifiedQueueName).ToArray());
             await transportInfrastructure.Shutdown();
         }
 

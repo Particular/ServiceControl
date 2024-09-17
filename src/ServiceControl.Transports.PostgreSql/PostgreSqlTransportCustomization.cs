@@ -72,6 +72,8 @@
             return transport;
         }
 
+        public override string ToTransportQualifiedQueueName(string queueName) => $"public.{queueName}";
+
         [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "<DisableDelayedDelivery>k__BackingField")]
         static extern ref bool DisableDelayedDelivery(PostgreSqlTransport transport);
 
