@@ -8,7 +8,7 @@ namespace ServiceControl.Transports.PostgreSql
         {
             //HINT: The query approximates queue length value based on max and min of the table sequence.
             fullTableName = $"\"{schema}\".\"{name}\"";
-            //TODO: Postgres should we add NOLOCK?
+            //NOTE: Postgres doesn't have NOLOCK since it utilises snapshot isolation by default
             LengthQuery = $$"""
                             SELECT CASE WHEN (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{{schema}}' AND TABLE_NAME = '{{name}}')) THEN
                               COALESCE(cast(max(seq) - min(seq) + 1 AS int), 0)
