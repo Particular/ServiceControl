@@ -29,11 +29,11 @@
             }
         }
 
-        public Task<string> TestConnection(CancellationToken cancellationToken)
+        public async Task<string> TestConnection(CancellationToken cancellationToken)
         {
             try
             {
-                return GetPostgreSqlVersion(cancellationToken);
+                return await GetPostgreSqlVersion(cancellationToken);
             }
             catch (NpgsqlException ex) when (IsConnectionOrLoginIssue(ex))
             {
@@ -43,7 +43,6 @@
 
         static bool IsConnectionOrLoginIssue(NpgsqlException x)
         {
-            //TODO postgres - any other errors?
             // Reference is here: https://www.postgresql.org/docs/current/errcodes-appendix.html
 
             return x.SqlState switch
