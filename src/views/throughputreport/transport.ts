@@ -7,4 +7,5 @@ export enum Transport {
   RabbitMQ = "RabbitMQ",
   SQLServer = "SqlTransport",
   AmazonSQS = "AmazonSQS",
+  PostgreSQL = "PostgreSql"
 }
