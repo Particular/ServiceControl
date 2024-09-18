@@ -24,7 +24,7 @@
                 }
             });
 
-            await Dispatcher.SendTestMessage(queueName, "some content");
+            await Dispatcher.SendTestMessage(queueName, "some content", configuration.TransportCustomization);
 
             var queueLengthEntry = await onQueueLengthEntryReceived.Task;
 
