@@ -50,7 +50,7 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
       case Transport.None:
       case Transport.MSMQ:
       case Transport.AzureStorageQueue:
-      case Transport.LearningTransport:        
+      case Transport.LearningTransport:
         return false;
       default:
         return true;
@@ -73,7 +73,7 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
       case Transport.AmazonSQS:
         return "Amazon SQS";
       case Transport.PostgreSQL:
-        return "PostgreSQL";  
+        return "PostgreSQL";
     }
   };
   const transportDocsLinkForInstructions = () => {
