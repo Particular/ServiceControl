@@ -73,7 +73,7 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
       case Transport.AmazonSQS:
         return "Amazon SQS";
       case Transport.PostgreSQL:
-          return "PostgreSQL";  
+        return "PostgreSQL";  
     }
   };
   const transportDocsLinkForInstructions = () => {
@@ -91,7 +91,7 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
       case Transport.AmazonSQS:
         return "https://docs.particular.net/servicepulse/usage-config#connection-setup-amazon-sqs";
       case Transport.PostgreSQL:
-          return "https://docs.particular.net/servicepulse/usage-config#connection-setup-postgresql";
+        return "https://docs.particular.net/servicepulse/usage-config#connection-setup-postgresql";
     }
   };
 
