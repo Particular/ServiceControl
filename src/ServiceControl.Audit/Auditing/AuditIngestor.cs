@@ -15,6 +15,7 @@
     using Recoverability;
     using SagaAudit;
     using ServiceControl.Infrastructure.Metrics;
+    using ServiceControl.Transports;
 
     public class AuditIngestor
     {
@@ -27,11 +28,13 @@
             EndpointInstanceMonitoring endpointInstanceMonitoring,
             IEnumerable<IEnrichImportedAuditMessages> auditEnrichers, // allows extending message enrichers with custom enrichers registered in the DI container
             IMessageSession messageSession,
-            Lazy<IMessageDispatcher> messageDispatcher
+            Lazy<IMessageDispatcher> messageDispatcher,
+            ITransportCustomization transportCustomization
         )
         {
             this.settings = settings;
             this.messageDispatcher = messageDispatcher;
+            this.transportCustomization = transportCustomization;
 
             var ingestedAuditMeter = metrics.GetCounter("Audit ingestion - ingested audit");
             var ingestedSagaAuditMeter = metrics.GetCounter("Audit ingestion - ingested saga audit");
@@ -69,7 +72,7 @@
                     {
                         log.Debug($"Forwarding {stored.Count} messages");
                     }
-                    await Forward(stored, settings.AuditLogQueue);
+                    await Forward(stored, transportCustomization.ToTransportQualifiedQueueName(settings.AuditLogQueue));
                     if (log.IsDebugEnabled)
                     {
                         log.Debug("Forwarded messages");
@@ -140,7 +143,7 @@
                     new TransportOperation(
                         new OutgoingMessage(Guid.Empty.ToString("N"),
                             [], Array.Empty<byte>()),
-                        new UnicastAddressTag(settings.AuditLogQueue)
+                        new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(settings.AuditLogQueue))
                     )
                 );
 
@@ -155,6 +158,7 @@
         readonly AuditPersister auditPersister;
         readonly Settings settings;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
+        readonly ITransportCustomization transportCustomization;
 
         static readonly ILog log = LogManager.GetLogger<AuditIngestor>();
     }

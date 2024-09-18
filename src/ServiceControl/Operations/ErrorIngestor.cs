@@ -14,6 +14,7 @@
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence.UnitOfWork;
+    using ServiceControl.Transports;
 
     public class ErrorIngestor
     {
@@ -25,10 +26,12 @@
             IDomainEvents domainEvents,
             IIngestionUnitOfWorkFactory unitOfWorkFactory,
             Lazy<IMessageDispatcher> messageDispatcher,
+            ITransportCustomization transportCustomization,
             Settings settings)
         {
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.messageDispatcher = messageDispatcher;
+            this.transportCustomization = transportCustomization;
             this.settings = settings;
 
             bulkInsertDurationMeter = metrics.GetMeter("Error ingestion - bulk insert duration", FrequencyInMilliseconds);
@@ -167,7 +170,7 @@
                 // Forwarded messages should last as long as possible
                 outgoingMessage.Headers.Remove(NServiceBus.Headers.TimeToBeReceived);
 
-                transportOperations[index] = new TransportOperation(outgoingMessage, new UnicastAddressTag(settings.ErrorLogQueue));
+                transportOperations[index] = new TransportOperation(outgoingMessage, new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(settings.ErrorLogQueue)));
                 index++;
             }
 
@@ -186,7 +189,7 @@
                     new TransportOperation(
                         new OutgoingMessage(Guid.Empty.ToString("N"),
                             [], Array.Empty<byte>()),
-                        new UnicastAddressTag(settings.ErrorLogQueue)
+                        new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(settings.ErrorLogQueue))
                     )
                 );
 
@@ -204,6 +207,7 @@
         readonly ErrorProcessor errorProcessor;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly RetryConfirmationProcessor retryConfirmationProcessor;
+        readonly ITransportCustomization transportCustomization;
         static readonly ILog Logger = LogManager.GetLogger<ErrorIngestor>();
     }
 }
