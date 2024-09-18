@@ -6,11 +6,7 @@ import { getTrialBar } from "./questions/trialLicenseBar";
 
 describe("FEATURE: Trial license notifications", () => {
   describe("RULE: The user should know they are using a trial license at all times", () => {
-    [
-        { viewname: "dashboard"},
-        { viewname: "configuration"},
-        { viewname: "monitoring"},
-    ].forEach(({ viewname }) => {
+    [{ viewname: "dashboard" }, { viewname: "configuration" }, { viewname: "monitoring" }].forEach(({ viewname }) => {
       test(`EXAMPLE: ${viewname}`, async ({ driver }) => {
         //Arrange
         await driver.setUp(precondition.serviceControlWithMonitoring);
@@ -19,17 +15,13 @@ describe("FEATURE: Trial license notifications", () => {
         await driver.goTo(viewname);
 
         const trialBar = await getTrialBar();
-        expect(trialBar.textMatches(/non-production use only/i)).toBeTruthy();        
+        expect(trialBar.textMatches(/non-production use only/i)).toBeTruthy();
         expect(trialBar.hasLinkWithCaption("Trial license").address).toBe("#/configuration/license");
       });
     });
   });
   describe("RULE: The user should not see trial license information for commercial licenses", () => {
-    [
-        { viewname: "configuration"},
-        { viewname: "dashboard"},
-        { viewname: "monitoring"},
-    ].forEach(({ viewname }) => {
+    [{ viewname: "configuration" }, { viewname: "dashboard" }, { viewname: "monitoring" }].forEach(({ viewname }) => {
       test(`EXAMPLE: ${viewname}`, async ({ driver }) => {
         //Arrange
         await driver.setUp(precondition.serviceControlWithMonitoring);
