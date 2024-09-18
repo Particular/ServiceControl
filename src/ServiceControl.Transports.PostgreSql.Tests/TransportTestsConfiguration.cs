@@ -26,6 +26,6 @@
 
         public Task Cleanup() => Task.CompletedTask;
 
-        static string ConnectionStringKey = "ServiceControl_TransportTests_PostgreSQL_ConnectionString";
+        static string ConnectionStringKey = "PostgreSqlTransportConnectionString";
     }
 }
