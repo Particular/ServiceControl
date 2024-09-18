@@ -103,9 +103,9 @@
             cmd.CommandText = $"select last_value from \"{table.SequenceName}\";";
             var value = await cmd.ExecuteScalarAsync(cancellationToken);
 
-            if (value is decimal decimalValue)
+            if (value is long longValue)
             {
-                table.RowVersion = (long)decimalValue;
+                table.RowVersion = longValue;
             }
 
             return table;
