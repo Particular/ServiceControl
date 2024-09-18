@@ -78,7 +78,7 @@ jobs:
         uses: Particular/setup-postgres-action@v1.0.0
         if: matrix.test-category == 'PostgreSql'
         with:          
-          connection-string-name: PostgreSqlTransportConnectionString
+          connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString
           tag: ServiceControl
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}  
