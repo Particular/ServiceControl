@@ -100,7 +100,7 @@
 
             await using var conn = await OpenConnectionAsync(cancellationToken);
             await using var cmd = conn.CreateCommand();
-            cmd.CommandText = $"select last_value from '{table.SequenceName}';";
+            cmd.CommandText = $"select last_value from \"{table.SequenceName}\";";
             var value = await cmd.ExecuteScalarAsync(cancellationToken);
 
             if (value is decimal decimalValue)

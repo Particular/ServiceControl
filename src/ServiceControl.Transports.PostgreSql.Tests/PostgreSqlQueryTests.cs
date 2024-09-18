@@ -13,6 +13,7 @@ using Particular.Approvals;
 using Transports;
 using Transports.PostgreSql;
 using ServiceControl.Transports.BrokerThroughput;
+using NServiceBus;
 
 [TestFixture]
 class PostgreSqlQueryTests : TransportTestFixture
@@ -90,7 +91,7 @@ class PostgreSqlQueryTests : TransportTestFixture
             queueNames.Add(queueName);
         }
 
-        IBrokerQueue queue = queueNames.Find(name => ((BrokerQueueTable)name).QueueName == transportSettings.EndpointName);
+        IBrokerQueue queue = queueNames.Find(name => ((BrokerQueueTable)name).SanitizedName == transportSettings.EndpointName);
         Assert.That(queue, Is.Not.Null);
 
         long total = 0L;
