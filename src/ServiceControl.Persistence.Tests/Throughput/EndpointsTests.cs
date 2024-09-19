@@ -148,7 +148,7 @@ class EndpointsTests : PersistenceTestBase
     }
 
     [Test]
-    public async Task Should_update_indicators_on_all_endpoint_sources()
+    public async Task Should_update_indicators_on_all_endpoint_sources_when_updated_based_on_sanitized_name()
     {
         // Arrange
         var userIndicator = "someIndicator";
@@ -165,6 +165,32 @@ class EndpointsTests : PersistenceTestBase
         // Assert
         var foundEndpointAudit = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Audit, default);
         var foundEndpointMonitoring = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Monitoring, default);
+
+        Assert.That(foundEndpointAudit, Is.Not.Null);
+        Assert.That(foundEndpointAudit.UserIndicator, Is.EqualTo(userIndicator));
+
+        Assert.That(foundEndpointMonitoring, Is.Not.Null);
+        Assert.That(foundEndpointMonitoring.UserIndicator, Is.EqualTo(userIndicator));
+    }
+
+    [Test]
+    public async Task Should_update_indicators_on_all_endpoint_sources_when_updated_based_on_endpoint_name()
+    {
+        // Arrange
+        var userIndicator = "someIndicator";
+
+        var endpointAudit = new Endpoint("Endpoint1", ThroughputSource.Audit) { SanitizedName = "Endpoint1" };
+        var endpointMonitoring = new Endpoint("\"public\".\"Endpoint1\"", ThroughputSource.Monitoring) { SanitizedName = "Endpoint1" };
+
+        await LicensingDataStore.SaveEndpoint(endpointAudit, default);
+        await LicensingDataStore.SaveEndpoint(endpointMonitoring, default);
+
+        // Act
+        await LicensingDataStore.UpdateUserIndicatorOnEndpoints([new UpdateUserIndicator { Name = "\"public\".\"Endpoint1\"", UserIndicator = userIndicator }], default);
+
+        // Assert
+        var foundEndpointAudit = await LicensingDataStore.GetEndpoint("Endpoint1", ThroughputSource.Audit, default);
+        var foundEndpointMonitoring = await LicensingDataStore.GetEndpoint("\"public\".\"Endpoint1\"", ThroughputSource.Monitoring, default);
 
         Assert.That(foundEndpointAudit, Is.Not.Null);
         Assert.That(foundEndpointAudit.UserIndicator, Is.EqualTo(userIndicator));
