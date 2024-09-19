@@ -10,14 +10,9 @@ using NServiceBus.Transport.PostgreSql;
 
 public class PostgreSqlTransportCustomization : TransportCustomization<PostgreSqlTransport>
 {
-    protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, PostgreSqlTransport transportDefinition, TransportSettings transportSettings)
-    {
+    protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, PostgreSqlTransport transportDefinition, TransportSettings transportSettings) =>
         transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
-        //var routing = new RoutingSettings(endpointConfiguration.GetSettings());
-        //routing.EnableMessageDrivenPubSubCompatibilityMode();
-    }
 
-    //Do not EnableMessageDrivenPubSubCompatibilityMode for send-only endpoint
     protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, PostgreSqlTransport transportDefinition, TransportSettings transportSettings) =>
         transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
@@ -33,7 +28,6 @@ public class PostgreSqlTransportCustomization : TransportCustomization<PostgreSq
         services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
         services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
     }
-
 
     protected override PostgreSqlTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
     {
