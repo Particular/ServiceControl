@@ -108,7 +108,7 @@ public class PostgreSqlQuery(
 
     public static class PostgreSqlSettings
     {
-        public static readonly string ConnectionString = "PostgreSql/ConnectionString";
+        public static readonly string ConnectionString = "PostgreSQL/ConnectionString";
 
         public static readonly string ConnectionStringDescription =
             "Database connection string that will provide at least read access to all queue tables.";
