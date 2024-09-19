@@ -26,12 +26,23 @@
         public bool WarnUserUpgradeProtectionHasExpired { get; private init; }
         public string Status { get; private init; }
 
-        public static LicenseDetails TrialFromStartDate(DateOnly startDate)
+        public static LicenseDetails TrialFromEndDate(DateOnly endDate)
         {
             return FromLicense(new License
             {
                 LicenseType = "Trial",
-                ExpirationDate = startDate.AddDays(14).ToDateTime(TimeOnly.MinValue),
+                ExpirationDate = endDate.ToDateTime(TimeOnly.MinValue),
+                IsExtendedTrial = false,
+                ValidApplications = new List<string> { "All" }
+            });
+        }
+
+        public static LicenseDetails TrialExpired()
+        {
+            return FromLicense(new License
+            {
+                LicenseType = "Trial",
+                ExpirationDate = DateTime.UtcNow.Date.AddDays(-1),
                 IsExtendedTrial = false,
                 ValidApplications = new List<string> { "All" }
             });
