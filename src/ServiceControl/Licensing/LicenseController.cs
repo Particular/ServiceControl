@@ -27,7 +27,8 @@
                 Status = activeLicense.IsValid ? "valid" : "invalid",
                 LicenseType = activeLicense.Details.LicenseType ?? string.Empty,
                 InstanceName = settings.InstanceName ?? string.Empty,
-                LicenseStatus = activeLicense.Details.Status
+                LicenseStatus = activeLicense.Details.Status,
+                ConnectedApplications = settings.ConnectedApplications.ToArray()
             };
 
             return licenseInfo;
@@ -52,6 +53,8 @@
             public string InstanceName { get; set; }
 
             public string LicenseStatus { get; set; }
+
+            public string[] ConnectedApplications { get; set; }
         }
     }
 }
