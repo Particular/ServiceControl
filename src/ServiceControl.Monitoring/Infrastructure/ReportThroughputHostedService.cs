@@ -9,8 +9,9 @@
     using NServiceBus.Metrics;
     using NServiceBus.Unicast.Queuing;
     using ServiceControl.Monitoring.Infrastructure.Api;
+    using ServiceControl.Transports;
 
-    class ReportThroughputHostedService(ILogger<ReportThroughputHostedService> logger, IMessageSession session, IEndpointMetricsApi endpointMetricsApi, Settings settings, TimeProvider timeProvider) : BackgroundService
+    class ReportThroughputHostedService(ILogger<ReportThroughputHostedService> logger, IMessageSession session, IEndpointMetricsApi endpointMetricsApi, Settings settings, TimeProvider timeProvider, ITransportCustomization transportCustomization) : BackgroundService
     {
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
@@ -64,7 +65,7 @@
                     throughputData.EndpointThroughputData[i] = new EndpointThroughputData { Name = endpointData[i].Name, Throughput = Convert.ToInt64(average * ReportSendingIntervalInMinutes * 60) };
                 }
 
-                await session.Send(settings.ServiceControlThroughputDataQueue, throughputData, cancellationToken);
+                await session.Send(transportCustomization.ToTransportQualifiedQueueName(settings.ServiceControlThroughputDataQueue), throughputData, cancellationToken);
             }
         }
 
