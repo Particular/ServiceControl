@@ -14,7 +14,7 @@
         public Task Configure()
         {
             TransportCustomization = new PostgreSqlTransportCustomization();
-            ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey) ?? @"User ID=user;Password=admin;Host=localhost;Port=54320;Database=sc-transport-tests;Pooling=true;Connection Lifetime=0;";
+            ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
 
             if (string.IsNullOrEmpty(ConnectionString))
             {
@@ -26,6 +26,6 @@
 
         public Task Cleanup() => Task.CompletedTask;
 
-        static string ConnectionStringKey = "ServiceControl_TransportTests_PostgreSQL_ConnectionString";
+        const string ConnectionStringKey = "ServiceControl_TransportTests_PostgreSQL_ConnectionString";
     }
 }

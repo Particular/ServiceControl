@@ -12,8 +12,7 @@ using NUnit.Framework;
 using Particular.Approvals;
 using Transports;
 using Transports.PostgreSql;
-using ServiceControl.Transports.BrokerThroughput;
-using NServiceBus;
+using Transports.BrokerThroughput;
 
 [TestFixture]
 class PostgreSqlQueryTests : TransportTestFixture
