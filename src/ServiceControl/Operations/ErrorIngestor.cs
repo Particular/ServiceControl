@@ -31,7 +31,6 @@
         {
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.messageDispatcher = messageDispatcher;
-            this.transportCustomization = transportCustomization;
             this.settings = settings;
 
             bulkInsertDurationMeter = metrics.GetMeter("Error ingestion - bulk insert duration", FrequencyInMilliseconds);
@@ -47,6 +46,7 @@
 
             errorProcessor = new ErrorProcessor(enrichers, failedMessageEnrichers.ToArray(), domainEvents, ingestedMeter);
             retryConfirmationProcessor = new RetryConfirmationProcessor(domainEvents);
+            logQueueAddress = new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(this.settings.ErrorLogQueue));
         }
 
         public async Task Ingest(List<MessageContext> contexts)
@@ -170,7 +170,7 @@
                 // Forwarded messages should last as long as possible
                 outgoingMessage.Headers.Remove(NServiceBus.Headers.TimeToBeReceived);
 
-                transportOperations[index] = new TransportOperation(outgoingMessage, new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(settings.ErrorLogQueue)));
+                transportOperations[index] = new TransportOperation(outgoingMessage, logQueueAddress);
                 index++;
             }
 
@@ -189,7 +189,7 @@
                     new TransportOperation(
                         new OutgoingMessage(Guid.Empty.ToString("N"),
                             [], Array.Empty<byte>()),
-                        new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(settings.ErrorLogQueue))
+                        logQueueAddress
                     )
                 );
 
@@ -207,7 +207,8 @@
         readonly ErrorProcessor errorProcessor;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly RetryConfirmationProcessor retryConfirmationProcessor;
-        readonly ITransportCustomization transportCustomization;
+        readonly UnicastAddressTag logQueueAddress;
+
         static readonly ILog Logger = LogManager.GetLogger<ErrorIngestor>();
     }
 }
