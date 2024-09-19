@@ -14,7 +14,7 @@ namespace ServiceControl.Transports.PostgreSql
                               COALESCE(cast(max(seq) - min(seq) + 1 AS int), 0)
                             ELSE
                               -1
-                            END AS Id FROM {{fullTableName}}
+                            END AS Id FROM {{fullTableName}};
                             """;
         }
 
