@@ -53,7 +53,11 @@
 
             foreach (var context in contexts)
             {
-                if (context.Headers.ContainsKey(RetryConfirmationProcessor.SuccessfulRetryHeader))
+                if (context.Headers.ContainsKey(ConnectedApplicationsTracker.ConnectedApplicationControlHeader))
+                {
+                    settings.ConnectedApplications.Add(context.Headers[ConnectedApplicationsTracker.ConnectedApplicationControlHeader]);
+                }
+                else if (context.Headers.ContainsKey(RetryConfirmationProcessor.SuccessfulRetryHeader))
                 {
                     retriedMessages.Add(context);
                 }
@@ -62,7 +66,6 @@
                     failedMessages.Add(context);
                 }
             }
-
 
             var storedFailed = await PersistFailedMessages(failedMessages, retriedMessages);
 
