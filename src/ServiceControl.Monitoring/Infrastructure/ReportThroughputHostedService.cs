@@ -17,6 +17,8 @@
         {
             logger.LogInformation($"Starting {nameof(ReportThroughputHostedService)}");
 
+            var serviceControlThroughputDataQueue = transportCustomization.ToTransportQualifiedQueueName(settings.ServiceControlThroughputDataQueue);
+
             try
             {
                 using PeriodicTimer timer = new(TimeSpan.FromMinutes(ReportSendingIntervalInMinutes), timeProvider);
@@ -25,7 +27,7 @@
                 {
                     try
                     {
-                        await ReportOnThroughput(cancellationToken);
+                        await ReportOnThroughput(serviceControlThroughputDataQueue, cancellationToken);
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {
@@ -46,18 +48,13 @@
             }
         }
 
-        async Task ReportOnThroughput(CancellationToken cancellationToken)
+        async Task ReportOnThroughput(string serviceControlThroughputDataQueue, CancellationToken cancellationToken)
         {
             var endpointData = endpointMetricsApi.GetAllEndpointsMetrics(ReportSendingIntervalInMinutes);
 
             if (endpointData.Length > 0)
             {
-                var throughputData = new RecordEndpointThroughputData
-                {
-                    EndDateTime = DateTime.UtcNow,
-                    StartDateTime = DateTime.UtcNow.AddMinutes(-ReportSendingIntervalInMinutes),
-                    EndpointThroughputData = new EndpointThroughputData[endpointData.Length]
-                };
+                var throughputData = new RecordEndpointThroughputData { EndDateTime = DateTime.UtcNow, StartDateTime = DateTime.UtcNow.AddMinutes(-ReportSendingIntervalInMinutes), EndpointThroughputData = new EndpointThroughputData[endpointData.Length] };
 
                 for (int i = 0; i < endpointData.Length; i++)
                 {
@@ -65,10 +62,10 @@
                     throughputData.EndpointThroughputData[i] = new EndpointThroughputData { Name = endpointData[i].Name, Throughput = Convert.ToInt64(average * ReportSendingIntervalInMinutes * 60) };
                 }
 
-                await session.Send(transportCustomization.ToTransportQualifiedQueueName(settings.ServiceControlThroughputDataQueue), throughputData, cancellationToken);
+                await session.Send(serviceControlThroughputDataQueue, throughputData, cancellationToken);
             }
         }
 
-        static int ReportSendingIntervalInMinutes = 5;
+        const int ReportSendingIntervalInMinutes = 5;
     }
 }
