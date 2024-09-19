@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-2022, ubuntu-22.04]
-        test-category: [ Default, SqlServer, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence, PostgreSql ]
+        test-category: [ Default, SqlServer, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence, PostgreSQL ]
         include:
           - os: windows-2022
             os-name: Windows
@@ -65,7 +65,7 @@ jobs:
         run: Import-Module ./deploy/PowerShellModules/Particular.ServiceControl.Management
       - name: Azure login
         uses: azure/login@v2.2.0
-        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ'
+        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ' || matrix.test-category == 'PostgreSQL'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
@@ -74,9 +74,9 @@ jobs:
         with:
           connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
           catalog: nservicebus
-      - name: Setup PostgreSql 15.x
+      - name: Setup PostgreSQL
         uses: Particular/setup-postgres-action@v1.0.0
-        if: matrix.test-category == 'PostgreSql'
+        if: matrix.test-category == 'PostgreSQL'
         with:          
           connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString
           tag: ServiceControl
