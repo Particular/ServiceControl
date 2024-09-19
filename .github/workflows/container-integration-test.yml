@@ -54,7 +54,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Azure Login
         if: ${{ matrix.name == 'asb' || matrix.name == 'asq' }}
-        uses: azure/login@v2.1.1
+        uses: azure/login@v2.2.0
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup Azure Service Bus
