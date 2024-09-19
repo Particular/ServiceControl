@@ -54,12 +54,21 @@
 
             if (endpointData.Length > 0)
             {
-                var throughputData = new RecordEndpointThroughputData { EndDateTime = DateTime.UtcNow, StartDateTime = DateTime.UtcNow.AddMinutes(-ReportSendingIntervalInMinutes), EndpointThroughputData = new EndpointThroughputData[endpointData.Length] };
+                var throughputData = new RecordEndpointThroughputData
+                {
+                    EndDateTime = DateTime.UtcNow,
+                    StartDateTime = DateTime.UtcNow.AddMinutes(-ReportSendingIntervalInMinutes),
+                    EndpointThroughputData = new EndpointThroughputData[endpointData.Length]
+                };
 
                 for (int i = 0; i < endpointData.Length; i++)
                 {
                     var average = endpointData[i].Metrics["Throughput"]?.Average ?? 0;
-                    throughputData.EndpointThroughputData[i] = new EndpointThroughputData { Name = endpointData[i].Name, Throughput = Convert.ToInt64(average * ReportSendingIntervalInMinutes * 60) };
+                    throughputData.EndpointThroughputData[i] = new EndpointThroughputData
+                    {
+                        Name = endpointData[i].Name,
+                        Throughput = Convert.ToInt64(average * ReportSendingIntervalInMinutes * 60)
+                    };
                 }
 
                 await session.Send(serviceControlThroughputDataQueue, throughputData, cancellationToken);
