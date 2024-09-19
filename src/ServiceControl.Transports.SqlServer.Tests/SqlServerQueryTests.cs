@@ -69,7 +69,7 @@ class SqlServerQueryTests : TransportTestFixture
             await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.That(success, Is.False);
-        Assert.That(errors.Single(), Does.StartWith("Cannot open database \"not_here\""));
+        Assert.That(errors.Single(), Does.StartWith("Could not connect to 'not_here'"));
         Approver.Verify(diagnostics,
             s => Regex.Replace(s, "^Login failed for user .*$", "Login failed for user.", RegexOptions.Multiline));
     }
