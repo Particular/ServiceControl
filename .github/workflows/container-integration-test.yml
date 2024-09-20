@@ -24,7 +24,7 @@ jobs:
             expected-healthy-containers: 5
           - name: postgresql
             transport: PostgreSQL
-            compose-cmd: docker compose -f servicecontrol.yml -f up -d
+            compose-cmd: docker compose -f servicecontrol.yml up -d
             expected-healthy-containers: 5
           - name: asb
             transport: NetStandardAzureServiceBus
