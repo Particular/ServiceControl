@@ -16,7 +16,7 @@ namespace ServiceControl.Recoverability
     {
         public ReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore dataStore, IDomainEvents domainEvents, ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings)
         {
-            InputAddress = settings.StagingQueue;
+            InputAddress = transportCustomization.ToTransportQualifiedQueueName(settings.StagingQueue);
             this.returnToSender = returnToSender;
             errorQueue = settings.ErrorQueue;
             this.transportCustomization = transportCustomization;
