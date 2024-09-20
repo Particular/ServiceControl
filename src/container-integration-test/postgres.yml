@@ -2,6 +2,7 @@ services:
 
   postgres:
     image: postgres
+    container_name: local_pgdb
     restart: always
     ports:
       - "5432:5432"
