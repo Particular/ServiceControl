@@ -16,13 +16,13 @@ services:
   # Add service health dependencies to ServiceControl instances
   servicecontrol:
     depends_on:
-      mssql:
+      postgres:
         condition: service_healthy
   servicecontrol-audit:
     depends_on:
-      mssql:
+      postgres:
         condition: service_healthy
   servicecontrol-monitoring:
     depends_on:
-      mssql:
+      postgres:
         condition: service_healthy
