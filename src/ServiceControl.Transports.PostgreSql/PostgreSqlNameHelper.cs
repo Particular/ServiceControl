@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.Transports.PostgreSql;
 
-static class PostgreSqlNameHelper
+public static class PostgreSqlNameHelper
 {
     const string Delimiter = "\"";
     static readonly string EscapedDelimiter = Delimiter + Delimiter;
