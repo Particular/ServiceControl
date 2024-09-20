@@ -22,6 +22,10 @@ jobs:
             connection-string: 'Server=mssql;Database=master;User=sa;Password=ServiceControl1!;Encrypt=False;'
             compose-cmd: docker compose -f servicecontrol.yml -f mssql.yml up -d
             expected-healthy-containers: 5
+          - name: postgresql
+            transport: PostgreSQL
+            compose-cmd: docker compose -f servicecontrol.yml -f up -d
+            expected-healthy-containers: 5
           - name: asb
             transport: NetStandardAzureServiceBus
             compose-cmd: docker compose -f servicecontrol.yml up -d
@@ -53,7 +57,7 @@ jobs:
       - name: Log in to GitHub container registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Azure Login
-        if: ${{ matrix.name == 'asb' || matrix.name == 'asq' }}
+        if: ${{ matrix.name == 'asb' || matrix.name == 'asq' || matrix.name == 'postgresql' }}
         uses: azure/login@v2.2.0
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
@@ -71,6 +75,14 @@ jobs:
           connection-string-name: CONNECTIONSTRING
           azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControlContainerTest
+      - name: Setup PostgreSQL
+        uses: Particular/setup-postgres-action@v1.0.0
+        if: matrix.name == 'postgresql'
+        with:          
+          connection-string-name: CONNECTIONSTRING
+          tag: ServiceControl
+          registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          registry-password: ${{ secrets.DOCKERHUB_TOKEN }}            
       - name: Run Docker Compose
         shell: pwsh
         env:
