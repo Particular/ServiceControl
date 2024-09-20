@@ -2,15 +2,12 @@ services:
 
   postgres:
     image: postgres
-    container_name: local_pgdb
     restart: always
     ports:
       - "5432:5432"
     environment:
       POSTGRES_USER: sc
       POSTGRES_PASSWORD: ServiceControl1!
-    volumes:
-      - local_pgdata:/var/lib/postgresql/data
     command: --max-prepared-transactions=105
 
   # Add service health dependencies to ServiceControl instances
