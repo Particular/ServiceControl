@@ -7,7 +7,6 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: ServiceControl1!
-    command: --max-prepared-transactions=100
     healthcheck:
       test: ["CMD-SHELL", "psql -U postgres -d postgres -c 'SELECT 1' || exit 1"]
       interval: 10s
