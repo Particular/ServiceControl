@@ -6,11 +6,10 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: sc
       POSTGRES_PASSWORD: ServiceControl1!
-    command: --max-prepared-transactions=105
+    command: --max-prepared-transactions=100
     healthcheck:
-      test: ["CMD-SHELL", "psql -U sc -d postgres -c 'SELECT 1' || exit 1"]
+      test: ["CMD-SHELL", "psql -U postgres -d postgres -c 'SELECT 1' || exit 1"]
       interval: 10s
       timeout: 3s
       retries: 3
