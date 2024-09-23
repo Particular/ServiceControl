@@ -24,7 +24,7 @@ jobs:
             expected-healthy-containers: 5
           - name: postgresql
             transport: PostgreSQL
-            connection-string: 'Host=postgres;Port=5432;Database=postgres;User ID=postgres;Password=ServiceControl1!;Max Pool Size=100;'
+            connection-string: 'Host=postgres;Port=5432;Database=postgres;User ID=postgres;Password=ServiceControl1!;Pooling=true;Connection Lifetime=0;'
             compose-cmd: docker compose -f servicecontrol.yml -f postgres.yml up -d
             expected-healthy-containers: 5
           - name: asb
