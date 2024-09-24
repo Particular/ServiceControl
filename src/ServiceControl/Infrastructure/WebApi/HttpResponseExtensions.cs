@@ -11,7 +11,7 @@ namespace ServiceControl.Infrastructure.WebApi
 
     static class HttpResponseExtensions
     {
-        public static void WithTotalCount(this HttpResponse response, int totalCount) => response.WithHeader("Total-Count", totalCount.ToString(CultureInfo.InvariantCulture));
+        public static void WithTotalCount(this HttpResponse response, long totalCount) => response.WithHeader("Total-Count", totalCount.ToString(CultureInfo.InvariantCulture));
 
         public static void WithEtag(this HttpResponse response, StringValues value) => response.Headers.ETag = value;
 
@@ -34,7 +34,7 @@ namespace ServiceControl.Infrastructure.WebApi
 
         static void WithHeader(this HttpResponse response, string header, StringValues value) => response.Headers.Append(header, value);
 
-        public static void WithPagingLinks(this HttpResponse response, PagingInfo pageInfo, int highestTotalCountOfAllInstances, int totalResults)
+        public static void WithPagingLinks(this HttpResponse response, PagingInfo pageInfo, long highestTotalCountOfAllInstances, long totalResults)
         {
             if (totalResults <= PagingInfo.DefaultPageSize)
             {
@@ -95,7 +95,7 @@ namespace ServiceControl.Infrastructure.WebApi
         }
 
         public static void WithPagingLinksAndTotalCount(this HttpResponse response,
-            PagingInfo pagingInfo, int totalCount, int highestTotalCountOfAllInstances = 1)
+            PagingInfo pagingInfo, long totalCount, long highestTotalCountOfAllInstances = 1)
         {
             response.WithTotalCount(totalCount);
             response.WithPagingLinks(pagingInfo, highestTotalCountOfAllInstances, totalCount);
