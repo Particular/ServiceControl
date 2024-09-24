@@ -18,10 +18,6 @@ namespace ServiceControl.Transports.SqlServer
 
         public static string Unquote(string quotedString)
         {
-            if (quotedString == null)
-            {
-                return null;
-            }
             if (!quotedString.StartsWith(prefix) || !quotedString.EndsWith(suffix))
             {
                 return quotedString;
