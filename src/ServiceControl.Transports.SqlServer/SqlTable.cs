@@ -7,6 +7,7 @@ namespace ServiceControl.Transports.SqlServer
         SqlTable(string name, string schema, string? catalog)
         {
             var unquotedSchema = SqlNameHelper.Unquote(schema);
+            var unquotedName = SqlNameHelper.Unquote(name);
             var quotedName = SqlNameHelper.Quote(name);
             var quotedSchema = SqlNameHelper.Quote(schema);
             //HINT: The query approximates queue length value based on max and min
@@ -20,7 +21,7 @@ namespace ServiceControl.Transports.SqlServer
                 _fullTableName = $"{quotedSchema}.{quotedName}";
 
                 LengthQuery = $"""
-                               IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{unquotedSchema}' AND TABLE_NAME = '{name}'))
+                               IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{unquotedSchema}' AND TABLE_NAME = '{unquotedName}'))
                                  SELECT isnull(cast(max([RowVersion]) - min([RowVersion]) + 1 AS int), 0) FROM {_fullTableName} WITH (nolock)
                                ELSE
                                  SELECT -1;
@@ -32,7 +33,7 @@ namespace ServiceControl.Transports.SqlServer
                 _fullTableName = $"{quotedCatalog}.{quotedSchema}.{quotedName}";
 
                 LengthQuery = $"""
-                               IF (EXISTS (SELECT TABLE_NAME FROM {quotedCatalog}.INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{unquotedSchema}' AND TABLE_NAME = '{name}'))
+                               IF (EXISTS (SELECT TABLE_NAME FROM {quotedCatalog}.INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{unquotedSchema}' AND TABLE_NAME = '{unquotedName}'))
                                  SELECT isnull(cast(max([RowVersion]) - min([RowVersion]) + 1 AS int), 0) FROM {_fullTableName} WITH (nolock)
                                ELSE
                                  SELECT -1;
