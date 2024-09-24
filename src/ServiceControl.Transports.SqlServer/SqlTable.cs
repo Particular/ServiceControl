@@ -1,12 +1,12 @@
 ﻿#nullable enable
 namespace ServiceControl.Transports.SqlServer
 {
-    using System.Linq;
 
     class SqlTable
     {
         SqlTable(string name, string schema, string? catalog)
         {
+            var unquotedSchema = SqlNameHelper.Unquote(schema);
             var quotedName = SqlNameHelper.Quote(name);
             var quotedSchema = SqlNameHelper.Quote(schema);
             //HINT: The query approximates queue length value based on max and min
@@ -20,7 +20,7 @@ namespace ServiceControl.Transports.SqlServer
                 _fullTableName = $"{quotedSchema}.{quotedName}";
 
                 LengthQuery = $"""
-                               IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{schema}' AND TABLE_NAME = '{name}'))
+                               IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{unquotedSchema}' AND TABLE_NAME = '{name}'))
                                  SELECT isnull(cast(max([RowVersion]) - min([RowVersion]) + 1 AS int), 0) FROM {_fullTableName} WITH (nolock)
                                ELSE
                                  SELECT -1;
@@ -32,7 +32,7 @@ namespace ServiceControl.Transports.SqlServer
                 _fullTableName = $"{quotedCatalog}.{quotedSchema}.{quotedName}";
 
                 LengthQuery = $"""
-                               IF (EXISTS (SELECT TABLE_NAME FROM {quotedCatalog}.INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{schema}' AND TABLE_NAME = '{name}'))
+                               IF (EXISTS (SELECT TABLE_NAME FROM {quotedCatalog}.INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{unquotedSchema}' AND TABLE_NAME = '{name}'))
                                  SELECT isnull(cast(max([RowVersion]) - min([RowVersion]) + 1 AS int), 0) FROM {_fullTableName} WITH (nolock)
                                ELSE
                                  SELECT -1;
@@ -51,9 +51,9 @@ namespace ServiceControl.Transports.SqlServer
             var parts = address.Split('@');
 
             return new SqlTable(
-                parts[0],
-                parts.Length > 1 ? parts[1] : defaultSchema,
-                parts.Length > 2 ? parts[2] : null
+                name: parts[0],
+                schema: parts.Length > 1 ? parts[1] : defaultSchema,
+                catalog: parts.Length > 2 ? parts[2] : null
             );
         }
 
