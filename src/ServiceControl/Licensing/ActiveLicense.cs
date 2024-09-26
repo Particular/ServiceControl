@@ -31,7 +31,7 @@
             Details = await EnsureTrialLicenseIsValid(Details, licenseLicenseMetadataProvider, cancellationToken);
         }
 
-        public static async Task<LicenseDetails> EnsureTrialLicenseIsValid(LicenseDetails licenseDetails, ILicenseLicenseMetadataProvider licenseLicenseMetadataProvider, CancellationToken cancellationToken)
+        internal static async Task<LicenseDetails> EnsureTrialLicenseIsValid(LicenseDetails licenseDetails, ILicenseLicenseMetadataProvider licenseLicenseMetadataProvider, CancellationToken cancellationToken)
         {
             if (licenseDetails.LicenseType.Equals("trial", StringComparison.OrdinalIgnoreCase))
             {
