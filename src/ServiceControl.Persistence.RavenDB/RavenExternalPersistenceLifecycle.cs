@@ -65,9 +65,6 @@ namespace ServiceControl.Persistence.RavenDB
 
                 var databaseSetup = new DatabaseSetup(settings, store);
                 await databaseSetup.Execute(cancellationToken).ConfigureAwait(false);
-
-                // Must go after the database setup, as database must exist
-                StartupChecks.EnsureSingleNodeTopology(store);
             }
             finally
             {
