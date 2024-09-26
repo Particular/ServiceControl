@@ -75,6 +75,10 @@ namespace ServiceControl.Recoverability.ExternalIntegration
             {
                 return (string)body;
             }
+            else if (last.MessageMetadata.TryGetValue("MsgFullText", out body))
+            {
+                return (string)body;
+            }
 
             return last.Body;
         }
