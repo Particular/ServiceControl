@@ -28,9 +28,9 @@
 
         public string[] Aliases { get; set; } = [];
 
-        public int? MaximumPrimaryConcurrencyLevel { get; set; }
-        public int? MaximumAuditConcurrencyLevel { get; set; }
-        public int? MaximumMonitoringConcurrencyLevel { get; set; }
+        public int? DefaultPrimaryMaximumConcurrencyLevel { get; set; }
+        public int? DefaultAuditMaximumConcurrencyLevel { get; set; }
+        public int? DefaultMonitoringMaximumConcurrencyLevel { get; set; }
 
         internal bool IsMatch(string transportType) =>
             string.Equals(TypeName, transportType, StringComparison.Ordinal) // Type names are case-sensitive
