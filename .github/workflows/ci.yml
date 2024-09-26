@@ -83,7 +83,7 @@ jobs:
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup Azure Service Bus
-        uses: Particular/setup-azureservicebus-action@v2.0.0
+        uses: Particular/setup-azureservicebus-action@main
         if: matrix.test-category == 'AzureServiceBus'
         with:
           connection-string-name: ServiceControl_TransportTests_ASBS_ConnectionString
