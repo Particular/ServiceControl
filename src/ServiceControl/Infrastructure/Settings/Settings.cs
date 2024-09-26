@@ -57,7 +57,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
 
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
-            MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", 10);
+            MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", TransportManifestLibrary.Find(TransportType).MaximumPrimaryConcurrencyLevel ?? 10);
             RetryHistoryDepth = SettingsReader.Read(SettingsRootNamespace, "RetryHistoryDepth", 10);
             AllowMessageEditing = SettingsReader.Read<bool>(SettingsRootNamespace, "AllowMessageEditing");
             NotificationsFilter = SettingsReader.Read<string>(SettingsRootNamespace, "NotificationsFilter");
