@@ -29,16 +29,17 @@ namespace ServiceControl.Persistence.RavenDB
 
         async Task CreateDatabase(string databaseName, CancellationToken cancellationToken)
         {
-            DatabaseRecordWithEtag dbRecord =
-                await documentStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName),
-                    cancellationToken);
+            var dbRecord = await documentStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), cancellationToken);
 
             if (dbRecord == null)
             {
                 try
                 {
-                    await documentStore.Maintenance.Server.SendAsync(
-                        new CreateDatabaseOperation(new DatabaseRecord(databaseName)), cancellationToken);
+                    var databaseRecord = new DatabaseRecord(databaseName);
+                    databaseRecord.Settings.Add("Indexing.Auto.SearchEngineType", "Corax");
+                    databaseRecord.Settings.Add("Indexing.Static.SearchEngineType", "Corax");
+
+                    await documentStore.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), cancellationToken);
                 }
                 catch (ConcurrencyException)
                 {

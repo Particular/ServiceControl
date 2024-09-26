@@ -147,7 +147,8 @@ namespace ServiceControl.RavenDB
                 Conventions = new DocumentConventions
                 {
                     SaveEnumsAsIntegers = true
-                }
+                },
+                SkipCreatingDatabase = true
             };
 
             if (configuration.FindClrType != null)

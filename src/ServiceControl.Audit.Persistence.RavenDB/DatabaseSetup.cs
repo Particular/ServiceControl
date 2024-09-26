@@ -5,11 +5,9 @@
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Indexes;
-    using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Operations.Expiration;
     using Raven.Client.Documents.Operations.Indexes;
     using Raven.Client.Exceptions;
-    using Raven.Client.Exceptions.Database;
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
     using ServiceControl.Audit.Persistence.RavenDB.Indexes;
@@ -19,22 +17,7 @@
     {
         public async Task Execute(IDocumentStore documentStore, CancellationToken cancellationToken)
         {
-            try
-            {
-                await documentStore.Maintenance.ForDatabase(configuration.Name).SendAsync(new GetStatisticsOperation(), cancellationToken);
-            }
-            catch (DatabaseDoesNotExistException)
-            {
-                try
-                {
-                    await documentStore.Maintenance.Server
-                        .SendAsync(new CreateDatabaseOperation(new DatabaseRecord(configuration.Name)), cancellationToken);
-                }
-                catch (ConcurrencyException)
-                {
-                    // The database was already created before calling CreateDatabaseOperation
-                }
-            }
+            await CreateDatabase(documentStore, configuration.Name, cancellationToken);
 
             var indexList = new List<AbstractIndexCreationTask> {
                 new FailedAuditImportIndex(),
@@ -51,8 +34,7 @@
             else
             {
                 indexList.Add(new MessagesViewIndex());
-                await documentStore.Maintenance
-                    .SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"), cancellationToken);
+                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"), cancellationToken);
             }
 
             await IndexCreation.CreateIndexesAsync(indexList, documentStore, null, null, cancellationToken);
@@ -64,6 +46,27 @@
             };
 
             await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
+        }
+
+        async Task CreateDatabase(IDocumentStore documentStore, string databaseName, CancellationToken cancellationToken)
+        {
+            var dbRecord = await documentStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), cancellationToken);
+
+            if (dbRecord == null)
+            {
+                try
+                {
+                    var databaseRecord = new DatabaseRecord(databaseName);
+                    databaseRecord.Settings.Add("Indexing.Auto.SearchEngineType", "Corax");
+                    databaseRecord.Settings.Add("Indexing.Static.SearchEngineType", "Corax");
+
+                    await documentStore.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), cancellationToken);
+                }
+                catch (ConcurrencyException)
+                {
+                    // The database was already created before calling CreateDatabaseOperation
+                }
+            }
         }
 
         public static async Task DeleteLegacySagaDetailsIndex(IDocumentStore documentStore, CancellationToken cancellationToken)
