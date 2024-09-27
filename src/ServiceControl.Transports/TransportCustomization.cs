@@ -23,6 +23,7 @@ namespace ServiceControl.Transports
         void AddTransportForMonitoring(IServiceCollection services, TransportSettings transportSettings);
 
         Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues);
+        string ToTransportQualifiedQueueName(string queueName);
 
         Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly);
     }
@@ -109,6 +110,10 @@ namespace ServiceControl.Transports
             endpointConfiguration.SendFailedMessagesTo(transportSettings.ErrorQueue);
         }
 
+        public string ToTransportQualifiedQueueName(string queueName) => ToTransportQualifiedQueueNameCore(queueName);
+
+        protected virtual string ToTransportQualifiedQueueNameCore(string queueName) => queueName;
+
         public virtual async Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues)
         {
             var transport = CreateTransport(transportSettings);
@@ -129,7 +134,7 @@ namespace ServiceControl.Transports
                     false,
                     transportSettings.ErrorQueue)};
 
-            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, additionalQueues.Union(new[] { transportSettings.ErrorQueue }).ToArray());
+            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, additionalQueues.Union([transportSettings.ErrorQueue]).Select(ToTransportQualifiedQueueNameCore).ToArray());
             await transportInfrastructure.Shutdown();
         }
 
@@ -160,7 +165,7 @@ namespace ServiceControl.Transports
                 receivers = [];
             }
 
-            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { transportSettings.ErrorQueue });
+            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { ToTransportQualifiedQueueNameCore(transportSettings.ErrorQueue) });
 
             if (createReceiver)
             {

@@ -98,7 +98,7 @@ public static class HostApplicationBuilderExtensions
         recoverability.Immediate(c => c.NumberOfRetries(3));
         recoverability.Delayed(c => c.NumberOfRetries(0));
 
-        config.SendFailedMessagesTo(settings.ErrorQueue);
+        config.SendFailedMessagesTo(transportCustomization.ToTransportQualifiedQueueName(settings.ErrorQueue));
 
         config.DisableFeature<AutoSubscribe>();
 

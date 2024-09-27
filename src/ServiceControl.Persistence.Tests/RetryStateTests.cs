@@ -1,9 +1,11 @@
 ﻿namespace ServiceControl.Persistence.Tests
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Transport;
     using NUnit.Framework;
@@ -14,6 +16,7 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence;
     using ServiceControl.Recoverability;
+    using ServiceControl.Transports;
 
     [NonParallelizable]
     class RetryStateTests : PersistenceTestBase
@@ -279,7 +282,7 @@
         class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
         {
             public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore store, IDomainEvents domainEvents, string endpointName)
-                : base(returnToSender, store, domainEvents, null, null, new Settings { InstanceName = endpointName })
+                : base(returnToSender, store, domainEvents, new TestTransportCustomization(), null, new Settings { InstanceName = endpointName })
             {
             }
 
@@ -287,6 +290,19 @@
             {
                 return Task.CompletedTask;
             }
+        }
+
+        public class TestTransportCustomization : ITransportCustomization
+        {
+            public void AddTransportForAudit(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
+            public void AddTransportForMonitoring(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
+            public void AddTransportForPrimary(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
+            public Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, NServiceBus.TransportTransactionMode preferredTransactionMode = NServiceBus.TransportTransactionMode.ReceiveOnly) => throw new NotImplementedException();
+            public void CustomizeAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
+            public void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
+            public void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
+            public Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues) => throw new NotImplementedException();
+            public string ToTransportQualifiedQueueName(string queueName) => queueName;
         }
 
         public class TestSender : IMessageDispatcher

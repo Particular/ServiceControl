@@ -56,6 +56,11 @@
     ]
   },
   {
+    "Name": "PostgreSQL",
+    "DisplayName": "PostgreSQL",
+    "Aliases": []
+  },
+  {
     "Name": "RabbitMQ.ClassicConventionalRouting",
     "DisplayName": "RabbitMQ - Conventional routing topology (classic queues)",
     "Aliases": [

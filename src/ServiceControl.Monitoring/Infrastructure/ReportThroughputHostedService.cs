@@ -9,12 +9,15 @@
     using NServiceBus.Metrics;
     using NServiceBus.Unicast.Queuing;
     using ServiceControl.Monitoring.Infrastructure.Api;
+    using ServiceControl.Transports;
 
-    class ReportThroughputHostedService(ILogger<ReportThroughputHostedService> logger, IMessageSession session, IEndpointMetricsApi endpointMetricsApi, Settings settings, TimeProvider timeProvider) : BackgroundService
+    class ReportThroughputHostedService(ILogger<ReportThroughputHostedService> logger, IMessageSession session, IEndpointMetricsApi endpointMetricsApi, Settings settings, TimeProvider timeProvider, ITransportCustomization transportCustomization) : BackgroundService
     {
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             logger.LogInformation($"Starting {nameof(ReportThroughputHostedService)}");
+
+            var serviceControlThroughputDataQueue = transportCustomization.ToTransportQualifiedQueueName(settings.ServiceControlThroughputDataQueue);
 
             try
             {
@@ -24,7 +27,7 @@
                 {
                     try
                     {
-                        await ReportOnThroughput(cancellationToken);
+                        await ReportOnThroughput(serviceControlThroughputDataQueue, cancellationToken);
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {
@@ -45,7 +48,7 @@
             }
         }
 
-        async Task ReportOnThroughput(CancellationToken cancellationToken)
+        async Task ReportOnThroughput(string serviceControlThroughputDataQueue, CancellationToken cancellationToken)
         {
             var endpointData = endpointMetricsApi.GetAllEndpointsMetrics(ReportSendingIntervalInMinutes);
 
@@ -61,13 +64,17 @@
                 for (int i = 0; i < endpointData.Length; i++)
                 {
                     var average = endpointData[i].Metrics["Throughput"]?.Average ?? 0;
-                    throughputData.EndpointThroughputData[i] = new EndpointThroughputData { Name = endpointData[i].Name, Throughput = Convert.ToInt64(average * ReportSendingIntervalInMinutes * 60) };
+                    throughputData.EndpointThroughputData[i] = new EndpointThroughputData
+                    {
+                        Name = endpointData[i].Name,
+                        Throughput = Convert.ToInt64(average * ReportSendingIntervalInMinutes * 60)
+                    };
                 }
 
-                await session.Send(settings.ServiceControlThroughputDataQueue, throughputData, cancellationToken);
+                await session.Send(serviceControlThroughputDataQueue, throughputData, cancellationToken);
             }
         }
 
-        static int ReportSendingIntervalInMinutes = 5;
+        const int ReportSendingIntervalInMinutes = 5;
     }
 }

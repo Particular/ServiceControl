@@ -117,7 +117,13 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
             //if there are multiple sources of throughput for the endpoint, update them all
             var existingEndpoints = GetAllConnectedEndpoints(e.Name);
 
-            existingEndpoints.ForEach(u => u.UserIndicator = e.UserIndicator);
+            existingEndpoints.ForEach(u =>
+            {
+                u.UserIndicator = e.UserIndicator;
+                //for ones that matched on endpoint name, update matching on sanitizedName
+                var sanitizedMAtchingEndpoints = GetAllConnectedEndpoints(u.SanitizedName);
+                sanitizedMAtchingEndpoints.ForEach(s => s.UserIndicator = e.UserIndicator);
+            });
         });
 
         await Task.CompletedTask;
@@ -138,7 +144,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
                 endpointThroughput.Value.Any(t => t.Key >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) && t.Key <= endDate)));
     }
 
-    List<Endpoint> GetAllConnectedEndpoints(string name) => endpoints.Where(w => w.SanitizedName == name).ToList();
+    List<Endpoint> GetAllConnectedEndpoints(string name) => endpoints.Where(w => w.SanitizedName == name || w.Id.Name == name).ToList();
 
     public Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken) => Task.FromResult(brokerMetadata);
 

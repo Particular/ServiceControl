@@ -194,7 +194,7 @@
 
             for (int i = 0; i < numMessagesToIngest; i++)
             {
-                await Dispatcher.SendTestMessage(queueName, $"message{i}");
+                await Dispatcher.SendTestMessage(queueName, $"message{i}", configuration.TransportCustomization);
             }
 
             bool allMessagesProcessed = await onMessagesProcessed.Task;

@@ -1,0 +1,28 @@
+services:
+
+  postgres:
+    image: postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: ServiceControl1!
+    healthcheck:
+      test: ["CMD-SHELL", "psql -U postgres -d postgres -c 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # Add service health dependencies to ServiceControl instances
+  servicecontrol:
+    depends_on:
+      postgres:
+        condition: service_healthy
+  servicecontrol-audit:
+    depends_on:
+      postgres:
+        condition: service_healthy
+  servicecontrol-monitoring:
+    depends_on:
+      postgres:
+        condition: service_healthy

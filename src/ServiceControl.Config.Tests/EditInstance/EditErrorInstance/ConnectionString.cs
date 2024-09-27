@@ -69,7 +69,7 @@
                 Assert.That(viewModel.SampleConnectionString, Is.Not.Empty);
             });
 
-            if (transportInfoName is "SQLServer" or "AmazonSQS" or "AzureStorageQueue")
+            if (transportInfoName is "SQLServer" or "AmazonSQS" or "AzureStorageQueue" or "PostgreSQL")
             {
                 Assert.That(viewModel.TransportWarning, Is.Not.Null);
                 Assert.That(viewModel.TransportWarning, Is.Not.Empty);

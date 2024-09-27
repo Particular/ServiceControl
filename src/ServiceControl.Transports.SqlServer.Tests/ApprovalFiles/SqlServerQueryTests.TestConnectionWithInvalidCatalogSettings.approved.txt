@@ -1,6 +1,5 @@
 Connection test to SqlTransport failed:
-Cannot open database "not_here" requested by the login. The login failed.
-Login failed for user.
+Could not connect to 'not_here' SQL Server database.
 
 Connection attempted with the following settings:
 ConnectionString set

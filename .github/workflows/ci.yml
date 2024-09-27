@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-2022, ubuntu-22.04]
-        test-category: [ Default, SqlServer, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence ]
+        test-category: [ Default, SqlServer, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence, PostgreSQL ]
         include:
           - os: windows-2022
             os-name: Windows
@@ -65,7 +65,7 @@ jobs:
         run: Import-Module ./deploy/PowerShellModules/Particular.ServiceControl.Management
       - name: Azure login
         uses: azure/login@v2.2.0
-        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ'
+        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ' || matrix.test-category == 'PostgreSQL'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
@@ -74,6 +74,14 @@ jobs:
         with:
           connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
           catalog: nservicebus
+      - name: Setup PostgreSQL
+        uses: Particular/setup-postgres-action@v1.0.0
+        if: matrix.test-category == 'PostgreSQL'
+        with:          
+          connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString
+          tag: ServiceControl
+          registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          registry-password: ${{ secrets.DOCKERHUB_TOKEN }}  
       - name: Setup RabbitMQ
         uses: Particular/setup-rabbitmq-action@v1.7.0
         if: matrix.test-category == 'RabbitMQ'

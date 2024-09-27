@@ -15,11 +15,10 @@
     using Recoverability;
     using SagaAudit;
     using ServiceControl.Infrastructure.Metrics;
+    using ServiceControl.Transports;
 
     public class AuditIngestor
     {
-        static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
-
         public AuditIngestor(
             Metrics metrics,
             Settings settings,
@@ -27,7 +26,8 @@
             EndpointInstanceMonitoring endpointInstanceMonitoring,
             IEnumerable<IEnrichImportedAuditMessages> auditEnrichers, // allows extending message enrichers with custom enrichers registered in the DI container
             IMessageSession messageSession,
-            Lazy<IMessageDispatcher> messageDispatcher
+            Lazy<IMessageDispatcher> messageDispatcher,
+            ITransportCustomization transportCustomization
         )
         {
             this.settings = settings;
@@ -49,14 +49,16 @@
                 new SagaRelationshipsEnricher()
             }.Concat(auditEnrichers).ToArray();
 
+            logQueueAddress = transportCustomization.ToTransportQualifiedQueueName(settings.AuditLogQueue);
+
             auditPersister = new AuditPersister(unitOfWorkFactory, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession, messageDispatcher);
         }
 
         public async Task Ingest(List<MessageContext> contexts)
         {
-            if (log.IsDebugEnabled)
+            if (Log.IsDebugEnabled)
             {
-                log.Debug($"Ingesting {contexts.Count} message contexts");
+                Log.Debug($"Ingesting {contexts.Count} message contexts");
             }
 
             var stored = await auditPersister.Persist(contexts);
@@ -65,14 +67,14 @@
             {
                 if (settings.ForwardAuditMessages)
                 {
-                    if (log.IsDebugEnabled)
+                    if (Log.IsDebugEnabled)
                     {
-                        log.Debug($"Forwarding {stored.Count} messages");
+                        Log.Debug($"Forwarding {stored.Count} messages");
                     }
-                    await Forward(stored, settings.AuditLogQueue);
-                    if (log.IsDebugEnabled)
+                    await Forward(stored, logQueueAddress);
+                    if (Log.IsDebugEnabled)
                     {
-                        log.Debug("Forwarded messages");
+                        Log.Debug("Forwarded messages");
                     }
                 }
 
@@ -83,9 +85,9 @@
             }
             catch (Exception e)
             {
-                if (log.IsWarnEnabled)
+                if (Log.IsWarnEnabled)
                 {
-                    log.Warn("Forwarding messages failed", e);
+                    Log.Warn("Forwarding messages failed", e);
                 }
 
                 // making sure to rethrow so that all messages get marked as failed
@@ -140,7 +142,7 @@
                     new TransportOperation(
                         new OutgoingMessage(Guid.Empty.ToString("N"),
                             [], Array.Empty<byte>()),
-                        new UnicastAddressTag(settings.AuditLogQueue)
+                        new UnicastAddressTag(logQueueAddress)
                     )
                 );
 
@@ -155,7 +157,9 @@
         readonly AuditPersister auditPersister;
         readonly Settings settings;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
+        readonly string logQueueAddress;
 
-        static readonly ILog log = LogManager.GetLogger<AuditIngestor>();
+        static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
+        static readonly ILog Log = LogManager.GetLogger<AuditIngestor>();
     }
 }

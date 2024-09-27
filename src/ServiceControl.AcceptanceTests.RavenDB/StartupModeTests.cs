@@ -24,11 +24,11 @@
             var transportIntegration = new ConfigureEndpointLearningTransport();
 
             settings = new Settings(
+                transportType: transportIntegration.TypeName,
                 forwardErrorMessages: false,
                 errorRetentionPeriod: TimeSpan.FromDays(1),
                 persisterType: "RavenDB")
             {
-                TransportType = transportIntegration.TypeName,
                 TransportConnectionString = transportIntegration.ConnectionString,
                 AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
             };

@@ -14,6 +14,7 @@
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence.UnitOfWork;
+    using ServiceControl.Transports;
 
     public class ErrorIngestor
     {
@@ -25,6 +26,7 @@
             IDomainEvents domainEvents,
             IIngestionUnitOfWorkFactory unitOfWorkFactory,
             Lazy<IMessageDispatcher> messageDispatcher,
+            ITransportCustomization transportCustomization,
             Settings settings)
         {
             this.unitOfWorkFactory = unitOfWorkFactory;
@@ -44,6 +46,7 @@
 
             errorProcessor = new ErrorProcessor(enrichers, failedMessageEnrichers.ToArray(), domainEvents, ingestedMeter);
             retryConfirmationProcessor = new RetryConfirmationProcessor(domainEvents);
+            logQueueAddress = new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(this.settings.ErrorLogQueue));
         }
 
         public async Task Ingest(List<MessageContext> contexts)
@@ -167,7 +170,7 @@
                 // Forwarded messages should last as long as possible
                 outgoingMessage.Headers.Remove(NServiceBus.Headers.TimeToBeReceived);
 
-                transportOperations[index] = new TransportOperation(outgoingMessage, new UnicastAddressTag(settings.ErrorLogQueue));
+                transportOperations[index] = new TransportOperation(outgoingMessage, logQueueAddress);
                 index++;
             }
 
@@ -186,7 +189,7 @@
                     new TransportOperation(
                         new OutgoingMessage(Guid.Empty.ToString("N"),
                             [], Array.Empty<byte>()),
-                        new UnicastAddressTag(settings.ErrorLogQueue)
+                        logQueueAddress
                     )
                 );
 
@@ -204,6 +207,8 @@
         readonly ErrorProcessor errorProcessor;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly RetryConfirmationProcessor retryConfirmationProcessor;
+        readonly UnicastAddressTag logQueueAddress;
+
         static readonly ILog Logger = LogManager.GetLogger<ErrorIngestor>();
     }
 }

@@ -5,6 +5,7 @@
   "LearningTransport",
   "MSMQ",
   "NetStandardAzureServiceBus",
+  "PostgreSQL",
   "RabbitMQ.ClassicConventionalRouting",
   "RabbitMQ.ClassicDirectRouting",
   "RabbitMQ.ConventionalRouting",

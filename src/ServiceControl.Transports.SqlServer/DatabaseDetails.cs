@@ -30,11 +30,11 @@
             }
         }
 
-        public Task<string> TestConnection(CancellationToken cancellationToken)
+        public async Task<string> TestConnection(CancellationToken cancellationToken)
         {
             try
             {
-                return GetSqlVersion(cancellationToken);
+                return await GetSqlVersion(cancellationToken);
             }
             catch (SqlException ex) when (IsConnectionOrLoginIssue(ex))
             {

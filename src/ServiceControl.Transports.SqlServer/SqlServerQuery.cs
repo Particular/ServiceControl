@@ -92,9 +92,6 @@ public class SqlServerQuery(
             tables.AddRange(await db.GetTables(cancellationToken));
         }
 
-        var catalogCount = tables.Select(t => t.DatabaseDetails.DatabaseName).Distinct().Count();
-        var schemaCount = tables.Select(t => $"{t.DatabaseDetails.DatabaseName}/{t.Schema}").Distinct().Count();
-
         ScopeType = "Catalog & Schema";
 
         foreach (var tableName in tables)

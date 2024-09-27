@@ -26,7 +26,7 @@
             retriesStore = new RetriesStore();
             queueLengthStore = new QueueLengthStore();
 
-            var settings = new Settings { EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5) };
+            var settings = new Settings(transportType: "Unknown") { EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5) };
             activityTracker = new EndpointInstanceActivityTracker(settings, TimeProvider.System);
 
             messageTypeRegistry = new MessageTypeRegistry();

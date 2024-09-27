@@ -186,14 +186,27 @@ class LicensingDataStore(
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
         var query = session.Query<EndpointDocument>()
-            .Where(document => document.SanitizedName.In(updates.Keys));
+            .Where(document => document.SanitizedName.In(updates.Keys) || document.EndpointId.Name.In(updates.Keys));
 
         var documents = await query.ToListAsync(cancellationToken);
         foreach (var document in documents)
         {
-            if (updates.TryGetValue(document.SanitizedName, out var newValue))
+            if (updates.TryGetValue(document.SanitizedName, out var newValueFromSanitizedName))
             {
-                document.UserIndicator = newValue;
+                document.UserIndicator = newValueFromSanitizedName;
+            }
+            else if (updates.TryGetValue(document.EndpointId.Name, out var newValueFromEndpoint))
+            {
+                document.UserIndicator = newValueFromEndpoint;
+                //update all that match this sanitized name
+                var sanitizedMatchingQuery = session.Query<EndpointDocument>()
+                    .Where(sanitizedDocument => sanitizedDocument.SanitizedName == document.SanitizedName && sanitizedDocument.EndpointId.Name != document.EndpointId.Name);
+                var sanitizedMatchingDocuments = await sanitizedMatchingQuery.ToListAsync(cancellationToken);
+
+                foreach (var matchingDocumentOnSanitizedName in sanitizedMatchingDocuments)
+                {
+                    matchingDocumentOnSanitizedName.UserIndicator = newValueFromEndpoint;
+                }
             }
         }
 

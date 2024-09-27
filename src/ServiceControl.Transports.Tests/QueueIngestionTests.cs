@@ -41,7 +41,7 @@
 
             for (int i = 0; i < numMessagesToIngest; i++)
             {
-                await Dispatcher.SendTestMessage(queueName, $"message{i}");
+                await Dispatcher.SendTestMessage(queueName, $"message{i}", configuration.TransportCustomization);
             }
 
             var allMessagesProcessed = await onMessagesProcessed.Task;
@@ -67,7 +67,7 @@
                     return Task.FromResult(ErrorHandleResult.Handled);
                 });
 
-            await Dispatcher.SendTestMessage(queueName, $"some failing message");
+            await Dispatcher.SendTestMessage(queueName, $"some failing message", configuration.TransportCustomization);
 
             var onErrorWasCalled = await onErrorCalled.Task;
 

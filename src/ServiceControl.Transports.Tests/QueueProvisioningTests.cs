@@ -16,10 +16,10 @@
 
             await ProvisionQueues(queueName, errorQueue, [additionalQueue1, additionalQueue2]);
 
-            Assert.DoesNotThrowAsync(async () => await Dispatcher.SendTestMessage(queueName, "some content"));
-            Assert.DoesNotThrowAsync(async () => await Dispatcher.SendTestMessage(errorQueue, "some content"));
-            Assert.DoesNotThrowAsync(async () => await Dispatcher.SendTestMessage(additionalQueue1, "some content"));
-            Assert.DoesNotThrowAsync(async () => await Dispatcher.SendTestMessage(additionalQueue2, "some content"));
+            Assert.DoesNotThrowAsync(async () => await Dispatcher.SendTestMessage(queueName, "some content", configuration.TransportCustomization));
+            Assert.DoesNotThrowAsync(async () => await Dispatcher.SendTestMessage(errorQueue, "some content", configuration.TransportCustomization));
+            Assert.DoesNotThrowAsync(async () => await Dispatcher.SendTestMessage(additionalQueue1, "some content", configuration.TransportCustomization));
+            Assert.DoesNotThrowAsync(async () => await Dispatcher.SendTestMessage(additionalQueue2, "some content", configuration.TransportCustomization));
         }
     }
 }
