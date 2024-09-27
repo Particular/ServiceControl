@@ -10,7 +10,7 @@
       "DefaultMonitoringMaximumConcurrencyLevel": 10,
       "SampleConnectionString": "Server=<ServerName>;Database=nservicebus;Port=5432;User Id=<Username>;Password=<Password>;Queue Schema=myschema;Subscriptions Table=schema.tablename",
       "AvailableInSCMU": true,
-      "Help": "Specify optional 'Queue Schema' to override the default schema. Specify optional 'Subscriptions Table' to override the default subscriptions table location. When integrated authentication is specified in the PostgreSql connection string the the current installing user is used to create the required SQL tables structure not the service account."
+      "Help": "Specify optional 'Queue Schema' to override the default schema. Specify optional 'Subscriptions Table' to override the default subscriptions table location."
     }
   ]
 }
