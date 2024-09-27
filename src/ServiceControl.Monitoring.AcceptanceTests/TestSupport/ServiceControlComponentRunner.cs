@@ -33,9 +33,8 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
         async Task InitializeServiceControl(ScenarioContext context)
         {
-            settings = new Settings
+            settings = new Settings(transportType: transportToUse.TypeName)
             {
-                TransportType = transportToUse.TypeName,
                 ConnectionString = transportToUse.ConnectionString,
                 HttpHostName = "localhost",
                 OnMessage = (id, headers, body, @continue) =>
