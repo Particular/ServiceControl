@@ -26,7 +26,6 @@
     <Audit>Particular.ServiceControl.Audit</Audit>
     <Monitoring>Particular.ServiceControl.Monitoring</Monitoring>
     <InstanceShared>InstanceShared</InstanceShared>
-    <Transports>Transports</Transports>
     <RavenDBServer>RavenDBServer</RavenDBServer>
   </PropertyGroup>
 
