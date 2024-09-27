@@ -12,14 +12,14 @@ namespace ServiceControl.Monitoring
 
     public class Settings
     {
-        public Settings(LoggingSettings loggingSettings = null)
+        public Settings(LoggingSettings loggingSettings = null, string transportType = null)
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file
             InstanceName = SettingsReader.Read(SettingsRootNamespace, "InstanceName", InstanceName);
 
-            TransportType = SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
+            TransportType = SettingsReader.Read(SettingsRootNamespace, "TransportType", transportType);
 
             ConnectionString = GetConnectionString();
             ErrorQueue = SettingsReader.Read(SettingsRootNamespace, "ErrorQueue", "error");

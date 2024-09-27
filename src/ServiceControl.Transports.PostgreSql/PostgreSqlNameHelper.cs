@@ -1,5 +1,7 @@
 ﻿namespace ServiceControl.Transports.PostgreSql;
 
+// NOTE: Copied from the SQL Transport
+
 public static class PostgreSqlNameHelper
 {
     const string Delimiter = "\"";

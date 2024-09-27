@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Transports.SqlServer
 {
+    // NOTE: Copied from the SQL Transport
     static class SqlServerNameHelper
     {
         const string prefix = "[";
