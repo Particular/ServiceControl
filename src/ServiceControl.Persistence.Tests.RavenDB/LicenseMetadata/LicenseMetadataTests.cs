@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.Tests.RavenDB.Operations
+﻿namespace ServiceControl.Persistence.Tests.RavenDB.LicenseMetadata
 {
     using System;
     using System.Threading;
