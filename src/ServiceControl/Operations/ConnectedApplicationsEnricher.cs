@@ -2,9 +2,9 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
 
-    class ConnectedApplicationsEnricher(Settings settings) : IEnrichImportedErrorMessages
+    class ConnectedApplicationsEnricher(IConnectedApplicationsDataStore connectedApplicationsDataStore) : IEnrichImportedErrorMessages
     {
         static List<string> MassTransitHeaders =
         [
@@ -18,7 +18,7 @@
             if (!alreadyAddedMassTransit && context.Headers.Any(incomingHeader => MassTransitHeaders.Contains(incomingHeader.Key)))
             {
                 alreadyAddedMassTransit = true;
-                settings.ConnectedApplications.Add("MassTransitConnector");
+                _ = connectedApplicationsDataStore.Add("MassTransitConnector");
             }
         }
 
