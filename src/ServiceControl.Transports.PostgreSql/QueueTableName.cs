@@ -9,7 +9,7 @@ public class BrokerQueueTable(DatabaseDetails databaseDetails, QueueAddress queu
     public DatabaseDetails DatabaseDetails { get; } = databaseDetails;
     public QueueAddress QueueAddress { get; } = queueAddress;
     public string SequenceName => $"{QueueAddress.Table}_seq_seq";
-    public string QueueName => QueueAddress.QualifiedTableName;
+    public string QueueName => $"{PostgreSqlNameHelper.Quote(DatabaseDetails.DatabaseName)}.{QueueAddress.QualifiedTableName}";
     public string SanitizedName => QueueAddress.Table;
     public string? Scope => $"[{DatabaseDetails.DatabaseName}].[{QueueAddress.Schema}]";
     public List<string> EndpointIndicators { get; } = [];

@@ -13,6 +13,7 @@ using Particular.Approvals;
 using Transports;
 using Transports.PostgreSql;
 using Transports.BrokerThroughput;
+using System.Text.RegularExpressions;
 
 [TestFixture]
 class PostgreSqlQueryTests : TransportTestFixture
@@ -51,6 +52,26 @@ class PostgreSqlQueryTests : TransportTestFixture
         Assert.That(success, Is.False);
         Assert.That(errors.Single(), Is.EqualTo("PostgreSQL Connection String could not be parsed."));
         Approver.Verify(diagnostics);
+    }
+
+    [Test]
+    public async Task TestConnectionWithInvalidCatalogSettings()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        var dictionary = new Dictionary<string, string>
+        {
+            { PostgreSqlQuery.PostgreSqlSettings.ConnectionString, configuration.ConnectionString },
+            { PostgreSqlQuery.PostgreSqlSettings.AdditionalCatalogs, "not_here" }
+        };
+        query.Initialize(new ReadOnlyDictionary<string, string>(dictionary));
+        (bool success, List<string> errors, string diagnostics) =
+            await query.TestConnection(cancellationTokenSource.Token);
+
+        Assert.That(success, Is.False);
+        Assert.That(errors.Single(), Does.StartWith("3D000: database \"not_here\" does not exist"));
+        Approver.Verify(diagnostics,
+            s => Regex.Replace(s, "^Login failed for user .*$", "Login failed for user.", RegexOptions.Multiline));
     }
 
     [Test]

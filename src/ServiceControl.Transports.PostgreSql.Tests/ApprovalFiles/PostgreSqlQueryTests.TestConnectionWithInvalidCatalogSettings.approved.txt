@@ -1,0 +1,6 @@
+Connection test to PostgreSql failed:
+3D000: database "not_here" does not exist
+
+Connection attempted with the following settings:
+ConnectionString set
+Additional catalogs set to "not_here"

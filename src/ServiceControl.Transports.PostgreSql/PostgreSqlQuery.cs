@@ -4,11 +4,13 @@ namespace ServiceControl.Transports.PostgreSql;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using BrokerThroughput;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 public class PostgreSqlQuery(
     ILogger<PostgreSqlQuery> logger,
@@ -32,7 +34,25 @@ public class PostgreSqlQuery(
             Diagnostics.AppendLine("ConnectionString set");
         }
 
-        databases.Add(new DatabaseDetails(connectionString));
+        if (!settings.TryGetValue(PostgreSqlSettings.AdditionalCatalogs, out string? catalogs))
+        {
+            databases.Add(new DatabaseDetails(connectionString));
+            Diagnostics.AppendLine("Additional catalogs not set");
+
+            return;
+        }
+
+        Diagnostics.AppendLine(
+            $"Additional catalogs set to {string.Join(", ", catalogs.Split([' ', ',']).Select(s => $"\"{s}\""))}");
+
+        var builder = new NpgsqlConnectionStringBuilder { ConnectionString = connectionString };
+
+        foreach (string catalog in catalogs.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries
+                                                                      | StringSplitOptions.TrimEntries))
+        {
+            builder.Database = catalog;
+            databases.Add(new DatabaseDetails(builder.ToString()));
+        }
     }
 
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,
@@ -82,7 +102,8 @@ public class PostgreSqlQuery(
 
     public override KeyDescriptionPair[] Settings =>
     [
-        new KeyDescriptionPair(PostgreSqlSettings.ConnectionString, PostgreSqlSettings.ConnectionStringDescription)
+        new KeyDescriptionPair(PostgreSqlSettings.ConnectionString, PostgreSqlSettings.ConnectionStringDescription),
+        new KeyDescriptionPair(PostgreSqlSettings.AdditionalCatalogs, PostgreSqlSettings.AdditionalCatalogsDescription)
     ];
 
     protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
@@ -112,5 +133,9 @@ public class PostgreSqlQuery(
 
         public static readonly string ConnectionStringDescription =
             "Database connection string that will provide at least read access to all queue tables.";
+        public static readonly string AdditionalCatalogs = "PostgreSQL/AdditionalCatalogs";
+
+        public static readonly string AdditionalCatalogsDescription =
+            "When additional databases on the same server also contain NServiceBus message queues, the AdditionalCatalogs setting specifies additional database catalogs to search. The tool replaces the Database parameter in the connection string with the additional catalog and queries all of them.";
     }
 }
