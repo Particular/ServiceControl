@@ -25,7 +25,7 @@
             using var session = await sessionProvider.OpenSession();
             var applications = await session.LoadAsync<ConnectedApplications>(StorageKey);
 
-            return applications.Applications;
+            return applications?.Applications;
         }
 
         class ConnectedApplications
