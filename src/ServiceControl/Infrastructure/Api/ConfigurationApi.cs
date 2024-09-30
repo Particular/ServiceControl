@@ -91,7 +91,7 @@ class ConfigurationApi(ActiveLicense license,
             }
         };
 
-        return Task.FromResult(content);
+        return content;
     }
 
     public async Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default)
