@@ -66,7 +66,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
             TrackInstancesInitialValue = SettingsReader.Read(SettingsRootNamespace, "TrackInstancesInitialValue", true);
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
-            ConnectedApplications = [];
         }
 
         [JsonIgnore]
@@ -180,8 +179,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         public bool DisableHealthChecks { get; set; }
-
-        public List<string> ConnectedApplications { get; set; }
 
         public string GetConnectionString()
         {
