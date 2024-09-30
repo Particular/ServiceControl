@@ -82,6 +82,10 @@ class ConfigurationApi(ActiveLicense license,
             Plugins = new
             {
                 settings.HeartbeatGracePeriod
+            },
+            ConnectedApplications = new
+            {
+                settings.ConnectedApplications
             }
         };
 
