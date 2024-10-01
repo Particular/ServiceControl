@@ -16,6 +16,10 @@ A video demo showing how to set it up is available on the Particular YouTube cha
 
 [![](https://img.youtube.com/vi/w3tYnj11dQ8/0.jpg)](https://www.youtube.com/watch?v=w3tYnj11dQ8)
 
+### Containers
+
+All containers are [created on each build and pushed](.github/workflows/push-container-images.yml) to the [GitHub container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry) where the various instance type can be [accessed by their names](/.github/workflows/push-container-images.yml#L33) and run locally.
+
 ### Infrastructure setup
 
 If the instance is executed for the first time, it must set up the required infrastructure. To do so, once the instance is configured to use the selected transport and persister, run it in setup mode. This can be done by using the `Setup {instance name}` launch profile that is defined in 
