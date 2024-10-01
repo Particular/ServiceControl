@@ -14,6 +14,6 @@
   "HttpPort": "9999",
   "EndpointUptimeGracePeriod": "00:00:40",
   "RootUrl": "http://localhost:9999/",
-  "MaximumConcurrencyLevel": 32,
+  "MaximumConcurrencyLevel": null,
   "ServiceControlThroughputDataQueue": "ServiceControl.ThroughputData"
 }
