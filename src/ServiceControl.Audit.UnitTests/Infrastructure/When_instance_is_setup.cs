@@ -66,8 +66,6 @@
         public void CustomizeAuditEndpoint(EndpointConfiguration endpointConfiguration,
             TransportSettings transportSettings) => throw new NotImplementedException();
 
-        public void CustomizeSettingsForType(TransportSettings transportSettings) => throw new NotImplementedException();
-
         public void AddTransportForAudit(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
 
         public void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration,

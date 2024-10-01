@@ -301,7 +301,6 @@
             public void CustomizeAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
             public void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
             public void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
-            public void CustomizeSettingsForType(TransportSettings transportSettings) => throw new NotImplementedException();
             public Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues) => throw new NotImplementedException();
             public string ToTransportQualifiedQueueName(string queueName) => queueName;
         }
