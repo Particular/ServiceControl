@@ -116,7 +116,6 @@
                 transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
                     inputEndpoint,
                     transportSettings,
-                    EndpointType.Audit,
                     OnMessage,
                     errorHandlingPolicy.OnError,
                     OnCriticalError,

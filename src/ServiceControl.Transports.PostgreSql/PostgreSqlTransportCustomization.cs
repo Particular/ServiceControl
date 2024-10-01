@@ -10,14 +10,26 @@ using NServiceBus.Transport.PostgreSql;
 
 public class PostgreSqlTransportCustomization : TransportCustomization<PostgreSqlTransport>
 {
-    protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, PostgreSqlTransport transportDefinition, TransportSettings transportSettings) =>
+    protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, PostgreSqlTransport transportDefinition, TransportSettings transportSettings)
+    {
         transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-    protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, PostgreSqlTransport transportDefinition, TransportSettings transportSettings) =>
+        transportSettings.MaxConcurrency ??= 10;
+    }
+
+    protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, PostgreSqlTransport transportDefinition, TransportSettings transportSettings)
+    {
         transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-    protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, PostgreSqlTransport transportDefinition, TransportSettings transportSettings) =>
+        transportSettings.MaxConcurrency ??= 10;
+    }
+
+    protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, PostgreSqlTransport transportDefinition, TransportSettings transportSettings)
+    {
         transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+
+        transportSettings.MaxConcurrency ??= 10;
+    }
 
     protected override void AddTransportForPrimaryCore(IServiceCollection services,
         TransportSettings transportSettings) =>
@@ -27,24 +39,6 @@ public class PostgreSqlTransportCustomization : TransportCustomization<PostgreSq
     {
         services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
         services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
-    }
-
-    protected override void CustomizeSettingsForType(TransportSettings transportSettings, EndpointType endpointType)
-    {
-        switch (endpointType)
-        {
-            case EndpointType.Primary:
-                transportSettings.MaxConcurrency ??= 10;
-                break;
-            case EndpointType.Audit:
-                transportSettings.MaxConcurrency ??= 10;
-                break;
-            case EndpointType.Monitoring:
-                transportSettings.MaxConcurrency ??= 10;
-                break;
-            default:
-                break;
-        }
     }
 
     protected override PostgreSqlTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)

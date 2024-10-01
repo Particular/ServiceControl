@@ -18,12 +18,6 @@ namespace ServiceControl.Transports
         public override bool Equals(object obj) { }
         public override int GetHashCode() { }
     }
-    public enum EndpointType
-    {
-        Primary = 0,
-        Audit = 1,
-        Monitoring = 2,
-    }
     public interface IProvideQueueLength : Microsoft.Extensions.Hosting.IHostedService
     {
         void TrackEndpointInputQueue(ServiceControl.Transports.EndpointToQueueMapping queueToTrack);
@@ -33,11 +27,11 @@ namespace ServiceControl.Transports
         void AddTransportForAudit(Microsoft.Extensions.DependencyInjection.IServiceCollection services, ServiceControl.Transports.TransportSettings transportSettings);
         void AddTransportForMonitoring(Microsoft.Extensions.DependencyInjection.IServiceCollection services, ServiceControl.Transports.TransportSettings transportSettings);
         void AddTransportForPrimary(Microsoft.Extensions.DependencyInjection.IServiceCollection services, ServiceControl.Transports.TransportSettings transportSettings);
-        System.Threading.Tasks.Task<NServiceBus.Transport.TransportInfrastructure> CreateTransportInfrastructure(string name, ServiceControl.Transports.TransportSettings transportSettings, ServiceControl.Transports.EndpointType endpointType, NServiceBus.Transport.OnMessage onMessage = null, NServiceBus.Transport.OnError onError = null, System.Func<string, System.Exception, System.Threading.Tasks.Task> onCriticalError = null, NServiceBus.TransportTransactionMode preferredTransactionMode = 1);
+        System.Threading.Tasks.Task<NServiceBus.Transport.TransportInfrastructure> CreateTransportInfrastructure(string name, ServiceControl.Transports.TransportSettings transportSettings, NServiceBus.Transport.OnMessage onMessage = null, NServiceBus.Transport.OnError onError = null, System.Func<string, System.Exception, System.Threading.Tasks.Task> onCriticalError = null, NServiceBus.TransportTransactionMode preferredTransactionMode = 1);
         void CustomizeAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
-        System.Threading.Tasks.Task ProvisionQueues(ServiceControl.Transports.TransportSettings transportSettings, ServiceControl.Transports.EndpointType endpointType, System.Collections.Generic.IEnumerable<string> additionalQueues);
+        System.Threading.Tasks.Task ProvisionQueues(ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues);
         string ToTransportQualifiedQueueName(string queueName);
     }
     public class QueueLengthEntry
@@ -58,15 +52,14 @@ namespace ServiceControl.Transports
         protected virtual void AddTransportForPrimaryCore(Microsoft.Extensions.DependencyInjection.IServiceCollection services, ServiceControl.Transports.TransportSettings transportSettings) { }
         protected void ConfigureDefaultEndpointSettings(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
         protected abstract TTransport CreateTransport(ServiceControl.Transports.TransportSettings transportSettings, NServiceBus.TransportTransactionMode preferredTransactionMode = 1);
-        public System.Threading.Tasks.Task<NServiceBus.Transport.TransportInfrastructure> CreateTransportInfrastructure(string name, ServiceControl.Transports.TransportSettings transportSettings, ServiceControl.Transports.EndpointType endpointType, NServiceBus.Transport.OnMessage onMessage = null, NServiceBus.Transport.OnError onError = null, System.Func<string, System.Exception, System.Threading.Tasks.Task> onCriticalError = null, NServiceBus.TransportTransactionMode preferredTransactionMode = 1) { }
+        public System.Threading.Tasks.Task<NServiceBus.Transport.TransportInfrastructure> CreateTransportInfrastructure(string name, ServiceControl.Transports.TransportSettings transportSettings, NServiceBus.Transport.OnMessage onMessage = null, NServiceBus.Transport.OnError onError = null, System.Func<string, System.Exception, System.Threading.Tasks.Task> onCriticalError = null, NServiceBus.TransportTransactionMode preferredTransactionMode = 1) { }
         public void CustomizeAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
         public void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
         public void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
-        protected virtual void CustomizeSettingsForType(ServiceControl.Transports.TransportSettings transportSettings, ServiceControl.Transports.EndpointType endpointType) { }
         protected abstract void CustomizeTransportForAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);
         protected abstract void CustomizeTransportForMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);
         protected abstract void CustomizeTransportForPrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);
-        public virtual System.Threading.Tasks.Task ProvisionQueues(ServiceControl.Transports.TransportSettings transportSettings, ServiceControl.Transports.EndpointType endpointType, System.Collections.Generic.IEnumerable<string> additionalQueues) { }
+        public virtual System.Threading.Tasks.Task ProvisionQueues(ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues) { }
         public string ToTransportQualifiedQueueName(string queueName) { }
         protected virtual string ToTransportQualifiedQueueNameCore(string queueName) { }
     }

@@ -297,12 +297,12 @@
             public void AddTransportForAudit(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
             public void AddTransportForMonitoring(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
             public void AddTransportForPrimary(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
-            public Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, EndpointType endpointType, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, NServiceBus.TransportTransactionMode preferredTransactionMode = NServiceBus.TransportTransactionMode.ReceiveOnly) => throw new NotImplementedException();
+            public Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, NServiceBus.TransportTransactionMode preferredTransactionMode = NServiceBus.TransportTransactionMode.ReceiveOnly) => throw new NotImplementedException();
             public void CustomizeAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
             public void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
             public void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
-            public void CustomizeSettingsForType(TransportSettings transportSettings, EndpointType endpointType) => throw new NotImplementedException();
-            public Task ProvisionQueues(TransportSettings transportSettings, EndpointType endpointType, IEnumerable<string> additionalQueues) => throw new NotImplementedException();
+            public void CustomizeSettingsForType(TransportSettings transportSettings) => throw new NotImplementedException();
+            public Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues) => throw new NotImplementedException();
             public string ToTransportQualifiedQueueName(string queueName) => queueName;
         }
 

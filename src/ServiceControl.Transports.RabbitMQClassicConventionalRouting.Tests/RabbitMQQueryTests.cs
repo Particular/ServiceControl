@@ -30,7 +30,7 @@ class RabbitMQQueryTests : TransportTestFixture
         };
         var query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, transportSettings);
         string[] additionalQueues = Enumerable.Range(1, 10).Select(i => $"myqueue{i}").ToArray();
-        await configuration.TransportCustomization.ProvisionQueues(transportSettings, EndpointType.Primary, additionalQueues);
+        await configuration.TransportCustomization.ProvisionQueues(transportSettings, additionalQueues);
 
         query.Initialize(ReadOnlyDictionary<string, string>.Empty);
 

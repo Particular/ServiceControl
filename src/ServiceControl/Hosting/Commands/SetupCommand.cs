@@ -43,7 +43,7 @@
                 transportSettings.RunCustomChecks = false;
                 var transportCustomization = TransportFactory.Create(transportSettings);
 
-                await transportCustomization.ProvisionQueues(transportSettings, EndpointType.Primary, componentSetupContext.Queues);
+                await transportCustomization.ProvisionQueues(transportSettings, componentSetupContext.Queues);
             }
 
             await host.StopAsync();

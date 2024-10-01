@@ -150,7 +150,6 @@
                 transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
                     errorQueue,
                     transportSettings,
-                    EndpointType.Primary,
                     OnMessage,
                     errorHandlingPolicy.OnError,
                     OnCriticalError,
