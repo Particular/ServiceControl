@@ -78,9 +78,6 @@ namespace ServiceControl.Transports
         public TransportManifestDefinition() { }
         public string[] Aliases { get; set; }
         public string AssemblyName { get; set; }
-        public int? DefaultAuditMaximumConcurrencyLevel { get; set; }
-        public int? DefaultMonitoringMaximumConcurrencyLevel { get; set; }
-        public int? DefaultPrimaryMaximumConcurrencyLevel { get; set; }
         public string DisplayName { get; set; }
         public string Location { get; set; }
         public string Name { get; set; }

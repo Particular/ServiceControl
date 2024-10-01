@@ -89,7 +89,11 @@ public static class HostApplicationBuilderExtensions
 
         config.GetSettings().Set(settings);
         config.SetDiagnosticsPath(settings.LoggingSettings.LogPath);
-        config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
+        if (!transportSettings.MaxConcurrency.HasValue)
+        {
+            throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
+        }
+        config.LimitMessageProcessingConcurrencyTo(transportSettings.MaxConcurrency.Value);
 
         config.UseSerialization<SystemJsonSerializer>();
         config.UsePersistence<NonDurablePersistence>();

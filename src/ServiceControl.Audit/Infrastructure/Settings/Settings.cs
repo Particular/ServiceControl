@@ -45,7 +45,7 @@
                 Port = SettingsReader.Read(SettingsRootNamespace, "Port", 44444);
             };
 
-            MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", TransportManifestLibrary.Find(TransportType)?.DefaultAuditMaximumConcurrencyLevel ?? 32);
+            MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
             ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
             EnableFullTextSearchOnBodies = SettingsReader.Read(SettingsRootNamespace, "EnableFullTextSearchOnBodies", true);
@@ -144,7 +144,7 @@
         public string InstanceName { get; init; } = DEFAULT_INSTANCE_NAME;
 
         public string TransportConnectionString { get; set; }
-        public int MaximumConcurrencyLevel { get; set; }
+        public int? MaximumConcurrencyLevel { get; set; }
         public string ServiceControlQueueAddress { get; set; }
 
         public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }

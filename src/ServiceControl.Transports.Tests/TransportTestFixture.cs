@@ -128,6 +128,7 @@
             transportInfrastructure = await configuration.TransportCustomization.CreateTransportInfrastructure(
                 queueName,
                 transportSettings,
+                EndpointType.Primary,
                 onMessage,
                 onError,
                 (_, __) =>
@@ -151,7 +152,7 @@
                 MaxConcurrency = 1
             };
 
-            return configuration.TransportCustomization.ProvisionQueues(transportSettings, additionalQueues);
+            return configuration.TransportCustomization.ProvisionQueues(transportSettings, EndpointType.Primary, additionalQueues);
         }
 
         protected Task CreateTestQueue(string queueName)
@@ -163,7 +164,7 @@
                 MaxConcurrency = 1
             };
 
-            return configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
+            return configuration.TransportCustomization.ProvisionQueues(transportSettings, EndpointType.Primary, []);
         }
 
         protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(60);
@@ -222,7 +223,7 @@
                 MaxConcurrency = 1
             };
 
-            return await configuration.TransportCustomization.CreateTransportInfrastructure("TransportTestDispatcher", transportSettings);
+            return await configuration.TransportCustomization.CreateTransportInfrastructure("TransportTestDispatcher", transportSettings, EndpointType.Primary);
         }
 
         string queueSuffix;

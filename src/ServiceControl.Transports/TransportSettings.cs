@@ -14,7 +14,7 @@
 
         public string EndpointName { get; set; }
 
-        public int MaxConcurrency { get; set; }
+        public int? MaxConcurrency { get; set; }
 
         public bool RunCustomChecks { get; set; }
 

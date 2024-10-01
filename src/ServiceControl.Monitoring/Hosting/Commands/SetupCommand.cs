@@ -17,7 +17,7 @@ namespace ServiceControl.Monitoring
             var transportSettings = settings.ToTransportSettings();
             transportSettings.ErrorQueue = settings.ErrorQueue;
             var transportCustomization = TransportFactory.Create(transportSettings);
-            return transportCustomization.ProvisionQueues(transportSettings, []);
+            return transportCustomization.ProvisionQueues(transportSettings, EndpointType.Monitoring, []);
         }
 
         static readonly ILog Logger = LogManager.GetLogger<SetupCommand>();

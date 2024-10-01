@@ -29,6 +29,24 @@ public class PostgreSqlTransportCustomization : TransportCustomization<PostgreSq
         services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
     }
 
+    protected override void CustomizeSettingsForType(TransportSettings transportSettings, EndpointType endpointType)
+    {
+        switch (endpointType)
+        {
+            case EndpointType.Primary:
+                transportSettings.MaxConcurrency ??= 10;
+                break;
+            case EndpointType.Audit:
+                transportSettings.MaxConcurrency ??= 10;
+                break;
+            case EndpointType.Monitoring:
+                transportSettings.MaxConcurrency ??= 10;
+                break;
+            default:
+                break;
+        }
+    }
+
     protected override PostgreSqlTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
     {
         var connectionString = transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out var customSchema, out var subscriptionsTableSetting);

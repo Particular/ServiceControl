@@ -66,6 +66,8 @@
         public void CustomizeAuditEndpoint(EndpointConfiguration endpointConfiguration,
             TransportSettings transportSettings) => throw new NotImplementedException();
 
+        public void CustomizeSettingsForType(TransportSettings transportSettings, EndpointType endpointType) => throw new NotImplementedException();
+
         public void AddTransportForAudit(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
 
         public void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration,
@@ -73,7 +75,7 @@
 
         public void AddTransportForMonitoring(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
 
-        public Task ProvisionQueues(TransportSettings transportSettings,
+        public Task ProvisionQueues(TransportSettings transportSettings, EndpointType endpointType,
             IEnumerable<string> additionalQueues)
         {
             QueuesCreated = new List<string>(additionalQueues)
@@ -84,8 +86,8 @@
             return Task.CompletedTask;
         }
 
-        public Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null,
-            OnError onError = null, Func<string, Exception, Task> onCriticalError = null,
+        public Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, EndpointType endpointType,
+            OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null,
             TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly) =>
             throw new NotImplementedException();
         public string ToTransportQualifiedQueueName(string queueName) => queueName;

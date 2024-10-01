@@ -11,6 +11,13 @@ namespace ServiceControl.Transports
     using NServiceBus.Features;
     using NServiceBus.Transport;
 
+    public enum EndpointType
+    {
+        Primary,
+        Audit,
+        Monitoring
+    }
+
     public interface ITransportCustomization
     {
         void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
@@ -22,10 +29,10 @@ namespace ServiceControl.Transports
         void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
         void AddTransportForMonitoring(IServiceCollection services, TransportSettings transportSettings);
 
-        Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues);
+        Task ProvisionQueues(TransportSettings transportSettings, EndpointType endpointType, IEnumerable<string> additionalQueues);
         string ToTransportQualifiedQueueName(string queueName);
 
-        Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly);
+        Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, EndpointType endpointType, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly);
     }
 
     public abstract class TransportCustomization<TTransport> : ITransportCustomization where TTransport : TransportDefinition
@@ -75,7 +82,7 @@ namespace ServiceControl.Transports
         public void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
-            var transport = CreateTransport(transportSettings);
+            var transport = CustomizeSettingsAndCreateTransport(transportSettings, EndpointType.Primary);
             endpointConfiguration.UseTransport(transport);
             CustomizeTransportForPrimaryEndpoint(endpointConfiguration, transport, transportSettings);
         }
@@ -83,7 +90,7 @@ namespace ServiceControl.Transports
         public void CustomizeAuditEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
-            var transport = CreateTransport(transportSettings);
+            var transport = CustomizeSettingsAndCreateTransport(transportSettings, EndpointType.Audit);
             endpointConfiguration.UseTransport(transport);
             CustomizeTransportForAuditEndpoint(endpointConfiguration, transport, transportSettings);
 
@@ -96,7 +103,7 @@ namespace ServiceControl.Transports
         public void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
-            var transport = CreateTransport(transportSettings);
+            var transport = CustomizeSettingsAndCreateTransport(transportSettings, EndpointType.Monitoring);
             endpointConfiguration.UseTransport(transport);
             CustomizeTransportForMonitoringEndpoint(endpointConfiguration, transport, transportSettings);
         }
@@ -114,9 +121,9 @@ namespace ServiceControl.Transports
 
         protected virtual string ToTransportQualifiedQueueNameCore(string queueName) => queueName;
 
-        public virtual async Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues)
+        public virtual async Task ProvisionQueues(TransportSettings transportSettings, EndpointType endpointType, IEnumerable<string> additionalQueues)
         {
-            var transport = CreateTransport(transportSettings);
+            var transport = CustomizeSettingsAndCreateTransport(transportSettings, endpointType);
 
             var hostSettings = new HostSettings(
                 transportSettings.EndpointName,
@@ -138,9 +145,9 @@ namespace ServiceControl.Transports
             await transportInfrastructure.Shutdown();
         }
 
-        public async Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
+        public async Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, EndpointType endpointType, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
-            var transport = CreateTransport(transportSettings, preferredTransactionMode);
+            var transport = CustomizeSettingsAndCreateTransport(transportSettings, endpointType, preferredTransactionMode);
 
             onCriticalError ??= (_, __) => Task.CompletedTask;
 
@@ -169,11 +176,40 @@ namespace ServiceControl.Transports
 
             if (createReceiver)
             {
+                if (!transportSettings.MaxConcurrency.HasValue)
+                {
+                    throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
+                }
+
                 var transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
-                await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
+                await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency.Value), onMessage, onError, CancellationToken.None);
             }
 
             return transportInfrastructure;
+        }
+
+        protected virtual void CustomizeSettingsForType(TransportSettings transportSettings, EndpointType endpointType)
+        {
+            switch (endpointType)
+            {
+                case EndpointType.Primary:
+                    transportSettings.MaxConcurrency ??= 10;
+                    break;
+                case EndpointType.Audit:
+                    transportSettings.MaxConcurrency ??= 32;
+                    break;
+                case EndpointType.Monitoring:
+                    transportSettings.MaxConcurrency ??= 32;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        TTransport CustomizeSettingsAndCreateTransport(TransportSettings transportSettings, EndpointType endpointType, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
+        {
+            CustomizeSettingsForType(transportSettings, endpointType);
+            return CreateTransport(transportSettings, preferredTransactionMode);
         }
 
         protected abstract TTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly);
