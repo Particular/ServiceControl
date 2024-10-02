@@ -35,3 +35,7 @@ Run ServiceControl full version and use the HTTP API to validate results. Learni
 ## Multi-instance tests
 
 Multi-instance tests validate the interaction between different ServiceControl instances. ServiceControl instances are run in-memory in the same process. LearningTransport is used for all tests.
+
+## Container tests
+
+Containers images generated for all builds are pushed to the [GitHub container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry). Once pushed all images are tested by [spinning them all up for each supported transport](/src/container-integration-test/).
