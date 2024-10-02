@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -105,49 +106,22 @@ public class RabbitMQQuery : BrokerThroughputQuery
         var url = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}";
 
         logger.LogDebug($"Querying {url}");
-        var node = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonNode>(url, token), cancellationToken);
-        queue.AckedMessages = GetAck();
+        var newReading = await pipeline.ExecuteAsync(async token => new RabbitMQBrokerQueueDetails(await httpClient!.GetFromJsonAsync<JsonElement>(url, token)), cancellationToken);
+        _ = queue.CalculateThroughputFrom(newReading);
 
         // looping for 24hrs, in 4 increments of 15 minutes
         for (var i = 0; i < 24 * 4; i++)
         {
-            bool throughputSent = false;
             await Task.Delay(TimeSpan.FromMinutes(15), timeProvider, cancellationToken);
             logger.LogDebug($"Querying {url}");
-            node = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonNode>(url, token), cancellationToken);
-            var newReading = GetAck();
-            if (newReading is not null)
-            {
-                if (newReading >= queue.AckedMessages)
-                {
-                    yield return new QueueThroughput
-                    {
-                        DateUTC = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
-                        TotalThroughput = newReading.Value - queue.AckedMessages.Value
-                    };
-                    throughputSent = true;
-                }
-                queue.AckedMessages = newReading;
-            }
+            newReading = await pipeline.ExecuteAsync(async token => new RabbitMQBrokerQueueDetails(await httpClient!.GetFromJsonAsync<JsonElement>(url, token)), cancellationToken);
 
-            if (!throughputSent)
+            var newTotalThroughput = queue.CalculateThroughputFrom(newReading);
+            yield return new QueueThroughput
             {
-                yield return new QueueThroughput
-                {
-                    DateUTC = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
-                    TotalThroughput = 0
-                };
-            }
-        }
-        yield break;
-
-        long? GetAck()
-        {
-            if (node!["message_stats"] is JsonObject stats && stats["ack"] is JsonValue val)
-            {
-                return val.GetValue<long>();
-            }
-            return null;
+                DateUTC = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
+                TotalThroughput = newTotalThroughput
+            };
         }
     }
 
