@@ -283,20 +283,25 @@ public class RabbitMQQuery : BrokerThroughputQuery
                         return (null, false);
                     }
 
-                    var queues = items.Select(item => new RabbitMQBrokerQueueDetails(item!)).ToArray();
-
-                    return (queues, pageCount > pageReturned);
+                    return (MaterializeQueueDetails(items), pageCount > pageReturned);
                 }
             // Older versions of RabbitMQ API did not have paging and returned the array of items directly
             case JsonArray arr:
                 {
-                    var queues = arr.Select(item => new RabbitMQBrokerQueueDetails(item!)).ToArray();
-
-                    return (queues, false);
+                    return (MaterializeQueueDetails(arr), false);
                 }
             default:
                 throw new Exception("Was not able to get list of queues from RabbitMQ broker.");
         }
+    }
+
+    static RabbitMQBrokerQueueDetails[] MaterializeQueueDetails(JsonArray items)
+    {
+        // It is not possible to directly operated on the JsonNode. When the JsonNode is a JObject
+        // and the indexer is access the internal dictionary is initialized which can cause key not found exceptions
+        // when the payload contains the same key multiple times (which happened in the past).
+        var queues = items.Select(item => new RabbitMQBrokerQueueDetails(item!.Deserialize<JsonElement>())).ToArray();
+        return queues;
     }
 
     public override KeyDescriptionPair[] Settings =>
