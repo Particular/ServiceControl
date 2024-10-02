@@ -34,23 +34,23 @@ public class PostgreSqlQuery(
             Diagnostics.AppendLine("ConnectionString set");
         }
 
-        if (!settings.TryGetValue(PostgreSqlSettings.AdditionalCatalogs, out string? catalogs))
+        if (!settings.TryGetValue(PostgreSqlSettings.AdditionalDatabases, out string? additionalDatabases))
         {
             databases.Add(new DatabaseDetails(connectionString));
-            Diagnostics.AppendLine("Additional catalogs not set");
+            Diagnostics.AppendLine("Additional databases not set");
 
             return;
         }
 
         Diagnostics.AppendLine(
-            $"Additional catalogs set to {string.Join(", ", catalogs.Split([' ', ',']).Select(s => $"\"{s}\""))}");
+            $"Additional databases set to {string.Join(", ", additionalDatabases.Split([' ', ',']).Select(s => $"\"{s}\""))}");
 
         var builder = new NpgsqlConnectionStringBuilder { ConnectionString = connectionString };
 
-        foreach (string catalog in catalogs.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries
+        foreach (string database in additionalDatabases.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries
                                                                       | StringSplitOptions.TrimEntries))
         {
-            builder.Database = catalog;
+            builder.Database = database;
             databases.Add(new DatabaseDetails(builder.ToString()));
         }
     }
@@ -103,7 +103,7 @@ public class PostgreSqlQuery(
     public override KeyDescriptionPair[] Settings =>
     [
         new KeyDescriptionPair(PostgreSqlSettings.ConnectionString, PostgreSqlSettings.ConnectionStringDescription),
-        new KeyDescriptionPair(PostgreSqlSettings.AdditionalCatalogs, PostgreSqlSettings.AdditionalCatalogsDescription)
+        new KeyDescriptionPair(PostgreSqlSettings.AdditionalDatabases, PostgreSqlSettings.AdditionalDatabasesDescription)
     ];
 
     protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
@@ -133,9 +133,9 @@ public class PostgreSqlQuery(
 
         public static readonly string ConnectionStringDescription =
             "Database connection string that will provide at least read access to all queue tables.";
-        public static readonly string AdditionalCatalogs = "PostgreSQL/AdditionalCatalogs";
+        public static readonly string AdditionalDatabases = "PostgreSQL/AdditionalDatabases";
 
-        public static readonly string AdditionalCatalogsDescription =
-            "When additional databases on the same server also contain NServiceBus message queues, the AdditionalCatalogs setting specifies additional database catalogs to search. The tool replaces the Database parameter in the connection string with the additional catalog and queries all of them.";
+        public static readonly string AdditionalDatabasesDescription =
+            "When additional databases on the same server also contain NServiceBus message queues, the AdditionalDatabases setting specifies additional databases to search. The tool replaces the Database parameter in the connection string with the additional databases and queries all of them.";
     }
 }
