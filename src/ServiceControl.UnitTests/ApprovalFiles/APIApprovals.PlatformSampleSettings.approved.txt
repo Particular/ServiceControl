@@ -39,7 +39,7 @@
   "TransportConnectionString": null,
   "ProcessRetryBatchesFrequency": "00:00:30",
   "TimeToRestartErrorIngestionAfterFailure": "00:01:00",
-  "MaximumConcurrencyLevel": 10,
+  "MaximumConcurrencyLevel": null,
   "RetryHistoryDepth": 10,
   "RemoteInstances": [],
   "DisableHealthChecks": false

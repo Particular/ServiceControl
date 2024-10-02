@@ -37,7 +37,7 @@ namespace ServiceControl.Monitoring
             }
 
             EndpointUptimeGracePeriod = TimeSpan.Parse(SettingsReader.Read(SettingsRootNamespace, "EndpointUptimeGracePeriod", "00:00:40"));
-            MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", TransportManifestLibrary.Find(TransportType)?.DefaultMonitoringMaximumConcurrencyLevel ?? 32);
+            MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
             ServiceControlThroughputDataQueue = SettingsReader.Read(SettingsRootNamespace, "ServiceControlThroughputDataQueue", "ServiceControl.ThroughputData");
 
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
@@ -64,7 +64,7 @@ namespace ServiceControl.Monitoring
 
         public string RootUrl => $"http://{HttpHostName}:{HttpPort}/";
 
-        public int MaximumConcurrencyLevel { get; set; }
+        public int? MaximumConcurrencyLevel { get; set; }
 
         public string ServiceControlThroughputDataQueue { get; set; }
 

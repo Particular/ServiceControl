@@ -76,29 +76,38 @@ namespace ServiceControl.Transports
         {
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
             var transport = CreateTransport(transportSettings);
-            endpointConfiguration.UseTransport(transport);
             CustomizeTransportForPrimaryEndpoint(endpointConfiguration, transport, transportSettings);
+
+            transportSettings.MaxConcurrency ??= 10;
+
+            endpointConfiguration.UseTransport(transport);
         }
 
         public void CustomizeAuditEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
             var transport = CreateTransport(transportSettings);
-            endpointConfiguration.UseTransport(transport);
             CustomizeTransportForAuditEndpoint(endpointConfiguration, transport, transportSettings);
+
+            transportSettings.MaxConcurrency ??= 32;
 
             endpointConfiguration.SendOnly();
 
             //DisablePublishing API is available only on TransportExtensions for transports that implement IMessageDrivenPubSub so we need to set settings directly
             endpointConfiguration.GetSettings().Set("NServiceBus.PublishSubscribe.EnablePublishing", false);
+
+            endpointConfiguration.UseTransport(transport);
         }
 
         public void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
             var transport = CreateTransport(transportSettings);
-            endpointConfiguration.UseTransport(transport);
             CustomizeTransportForMonitoringEndpoint(endpointConfiguration, transport, transportSettings);
+
+            transportSettings.MaxConcurrency ??= 32;
+
+            endpointConfiguration.UseTransport(transport);
         }
 
         protected void ConfigureDefaultEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
@@ -116,6 +125,9 @@ namespace ServiceControl.Transports
 
         public virtual async Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues)
         {
+            // For queue provisioning MaxConcurrency is not relevant. Settings it to 1 to avoid null checks
+            transportSettings.MaxConcurrency ??= 1;
+
             var transport = CreateTransport(transportSettings);
 
             var hostSettings = new HostSettings(
@@ -169,8 +181,13 @@ namespace ServiceControl.Transports
 
             if (createReceiver)
             {
+                if (!transportSettings.MaxConcurrency.HasValue)
+                {
+                    throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
+                }
+
                 var transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
-                await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
+                await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency.Value), onMessage, onError, CancellationToken.None);
             }
 
             return transportInfrastructure;

@@ -5,9 +5,6 @@
       "DisplayName": "PostgreSQL",
       "AssemblyName": "ServiceControl.Transports.PostgreSql",
       "TypeName": "ServiceControl.Transports.PostgreSql.PostgreSqlTransportCustomization, ServiceControl.Transports.PostgreSql",
-      "DefaultPrimaryMaximumConcurrencyLevel": 10,
-      "DefaultAuditMaximumConcurrencyLevel": 10,
-      "DefaultMonitoringMaximumConcurrencyLevel": 10,
       "SampleConnectionString": "Server=<ServerName>;Database=nservicebus;Port=5432;User Id=<Username>;Password=<Password>;Queue Schema=myschema;Subscriptions Table=schema.tablename",
       "AvailableInSCMU": true,
       "Help": "Specify optional 'Queue Schema' to override the default schema. Specify optional 'Subscriptions Table' to override the default subscriptions table location."

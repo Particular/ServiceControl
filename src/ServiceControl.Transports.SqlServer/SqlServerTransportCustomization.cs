@@ -16,14 +16,24 @@
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
             var routing = new RoutingSettings(endpointConfiguration.GetSettings());
             routing.EnableMessageDrivenPubSubCompatibilityMode();
+
+            transportSettings.MaxConcurrency ??= 10;
         }
 
         //Do not EnableMessageDrivenPubSubCompatibilityMode for send-only endpoint
-        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition, TransportSettings transportSettings) =>
+        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition, TransportSettings transportSettings)
+        {
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition, TransportSettings transportSettings) =>
+            transportSettings.MaxConcurrency ??= 10;
+        }
+
+        protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition, TransportSettings transportSettings)
+        {
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+
+            transportSettings.MaxConcurrency ??= 10;
+        }
 
         protected override void AddTransportForPrimaryCore(IServiceCollection services,
             TransportSettings transportSettings)

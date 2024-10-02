@@ -57,7 +57,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
 
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
-            MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", TransportManifestLibrary.Find(TransportType)?.DefaultPrimaryMaximumConcurrencyLevel ?? 10);
+            //TODO: is this overridden by SCMU??
+            MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
             RetryHistoryDepth = SettingsReader.Read(SettingsRootNamespace, "RetryHistoryDepth", 10);
             AllowMessageEditing = SettingsReader.Read<bool>(SettingsRootNamespace, "AllowMessageEditing");
             NotificationsFilter = SettingsReader.Read<string>(SettingsRootNamespace, "NotificationsFilter");
@@ -172,7 +173,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string TransportConnectionString { get; set; }
         public TimeSpan ProcessRetryBatchesFrequency { get; set; }
         public TimeSpan TimeToRestartErrorIngestionAfterFailure { get; set; }
-        public int MaximumConcurrencyLevel { get; set; }
+        public int? MaximumConcurrencyLevel { get; set; }
 
         public int RetryHistoryDepth { get; set; }
 

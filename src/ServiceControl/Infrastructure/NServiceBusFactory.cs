@@ -66,7 +66,11 @@ namespace ServiceBus.Management.Infrastructure
                 }
             });
 
-            configuration.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
+            if (!transportSettings.MaxConcurrency.HasValue)
+            {
+                throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
+            }
+            configuration.LimitMessageProcessingConcurrencyTo(transportSettings.MaxConcurrency.Value);
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 

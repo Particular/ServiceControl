@@ -44,7 +44,12 @@
             batchSizeMeter = metrics.GetMeter("Error ingestion - batch size");
             batchDurationMeter = metrics.GetMeter("Error ingestion - batch processing duration", FrequencyInMilliseconds);
 
-            channel = Channel.CreateBounded<MessageContext>(new BoundedChannelOptions(settings.MaximumConcurrencyLevel)
+            if (!transportSettings.MaxConcurrency.HasValue)
+            {
+                throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
+            }
+
+            channel = Channel.CreateBounded<MessageContext>(new BoundedChannelOptions(transportSettings.MaxConcurrency.Value)
             {
                 SingleReader = true,
                 SingleWriter = false,
@@ -74,7 +79,7 @@
 
         async Task Loop()
         {
-            var contexts = new List<MessageContext>(settings.MaximumConcurrencyLevel);
+            var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
 
             while (await channel.Reader.WaitToReadAsync())
             {
