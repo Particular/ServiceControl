@@ -23,20 +23,14 @@ namespace ServiceControl.Persistence.RavenDB
 
             await IndexCreation.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, null, null, cancellationToken);
 
-            var expirationConfig = new ExpirationConfiguration
-            {
-                Disabled = false,
-                DeleteFrequencyInSec = settings.ExpirationProcessTimerInSeconds
-            };
-
-            await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
+            await ConfigureExpiration(settings, cancellationToken);
         }
 
         async Task CreateDatabase(string databaseName, CancellationToken cancellationToken)
         {
             var dbRecord = await documentStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), cancellationToken);
 
-            if (dbRecord == null)
+            if (dbRecord is null)
             {
                 try
                 {
@@ -73,6 +67,17 @@ namespace ServiceControl.Persistence.RavenDB
                 await documentStore.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(databaseName, true), cancellationToken);
                 await documentStore.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(databaseName, false), cancellationToken);
             }
+        }
+
+        async Task ConfigureExpiration(RavenPersisterSettings settings, CancellationToken cancellationToken)
+        {
+            var expirationConfig = new ExpirationConfiguration
+            {
+                Disabled = false,
+                DeleteFrequencyInSec = settings.ExpirationProcessTimerInSeconds
+            };
+
+            await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
         }
     }
 }

@@ -22,40 +22,17 @@
             await CreateDatabase(documentStore, configuration.Name, cancellationToken);
             await UpdateDatabaseSettings(documentStore, configuration.Name, cancellationToken);
 
-            var indexList = new List<AbstractIndexCreationTask> {
-                new FailedAuditImportIndex(),
-                new SagaDetailsIndex()
-            };
-
             await DeleteLegacySagaDetailsIndex(documentStore, cancellationToken);
+            await CreateIndexes(documentStore, cancellationToken);
 
-            if (configuration.EnableFullTextSearch)
-            {
-                indexList.Add(new MessagesViewIndexWithFullTextSearch());
-                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"), cancellationToken);
-            }
-            else
-            {
-                indexList.Add(new MessagesViewIndex());
-                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"), cancellationToken);
-            }
-
-            await IndexCreation.CreateIndexesAsync(indexList, documentStore, null, null, cancellationToken);
-
-            var expirationConfig = new ExpirationConfiguration
-            {
-                Disabled = false,
-                DeleteFrequencyInSec = configuration.ExpirationProcessTimerInSeconds
-            };
-
-            await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
+            await ConfigureExpiration(documentStore, cancellationToken);
         }
 
         async Task CreateDatabase(IDocumentStore documentStore, string databaseName, CancellationToken cancellationToken)
         {
             var dbRecord = await documentStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), cancellationToken);
 
-            if (dbRecord == null)
+            if (dbRecord is null)
             {
                 try
                 {
@@ -108,6 +85,35 @@
             {
                 await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("SagaDetailsIndex"), cancellationToken);
             }
+        }
+
+        async Task CreateIndexes(IDocumentStore documentStore, CancellationToken cancellationToken)
+        {
+            List<AbstractIndexCreationTask> indexList = [new FailedAuditImportIndex(), new SagaDetailsIndex()];
+
+            if (configuration.EnableFullTextSearch)
+            {
+                indexList.Add(new MessagesViewIndexWithFullTextSearch());
+                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"), cancellationToken);
+            }
+            else
+            {
+                indexList.Add(new MessagesViewIndex());
+                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"), cancellationToken);
+            }
+
+            await IndexCreation.CreateIndexesAsync(indexList, documentStore, null, null, cancellationToken);
+        }
+
+        async Task ConfigureExpiration(IDocumentStore documentStore, CancellationToken cancellationToken)
+        {
+            var expirationConfig = new ExpirationConfiguration
+            {
+                Disabled = false,
+                DeleteFrequencyInSec = configuration.ExpirationProcessTimerInSeconds
+            };
+
+            await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
         }
     }
 }
