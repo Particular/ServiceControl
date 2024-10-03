@@ -1,7 +1,6 @@
 namespace ServiceControl.Transport.Tests;
 
 using System;
-using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -11,9 +10,10 @@ using Transports;
 using Transports.RabbitMQ;
 using System.Net.Http;
 using Particular.Approvals;
+using System.Collections.ObjectModel;
 
 [TestFixture]
-class RabbitMQQuery_ResponseParsing_Tests : TransportTestFixture
+class RabbitMQQuery_ResponseParsing_Tests
 {
     FakeTimeProvider provider;
     TransportSettings transportSettings;
@@ -27,7 +27,7 @@ class RabbitMQQuery_ResponseParsing_Tests : TransportTestFixture
         provider.SetUtcNow(DateTimeOffset.UtcNow);
         transportSettings = new TransportSettings
         {
-            ConnectionString = configuration.ConnectionString,
+            ConnectionString = "host=localhost;username=rabbitmq;password=rabbitmq",
             MaxConcurrency = 1,
             EndpointName = Guid.NewGuid().ToString("N")
         };
