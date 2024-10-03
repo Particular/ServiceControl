@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -10,6 +11,7 @@
     using Raven.Client.Exceptions;
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
+    using Raven.Client.ServerWide.Operations.Configuration;
     using ServiceControl.Audit.Persistence.RavenDB.Indexes;
     using ServiceControl.SagaAudit;
 
@@ -18,6 +20,7 @@
         public async Task Execute(IDocumentStore documentStore, CancellationToken cancellationToken)
         {
             await CreateDatabase(documentStore, configuration.Name, cancellationToken);
+            await UpdateDatabaseSettings(documentStore, configuration.Name, cancellationToken);
 
             var indexList = new List<AbstractIndexCreationTask> {
                 new FailedAuditImportIndex(),
@@ -66,6 +69,28 @@
                 {
                     // The database was already created before calling CreateDatabaseOperation
                 }
+            }
+        }
+
+        async Task UpdateDatabaseSettings(IDocumentStore documentStore, string databaseName, CancellationToken cancellationToken)
+        {
+            var dbRecord = await documentStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), cancellationToken);
+
+            if (dbRecord is null)
+            {
+                throw new InvalidOperationException($"Database '{databaseName}' does not exist.");
+            }
+
+            var updated = false;
+
+            updated |= dbRecord.Settings.TryAdd("Indexing.Auto.SearchEngineType", "Corax");
+            updated |= dbRecord.Settings.TryAdd("Indexing.Static.SearchEngineType", "Corax");
+
+            if (updated)
+            {
+                await documentStore.Maintenance.ForDatabase(databaseName).SendAsync(new PutDatabaseSettingsOperation(databaseName, dbRecord.Settings), cancellationToken);
+                await documentStore.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(databaseName, true), cancellationToken);
+                await documentStore.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(databaseName, false), cancellationToken);
             }
         }
 
