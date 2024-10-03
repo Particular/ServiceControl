@@ -32,12 +32,10 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     public RabbitMQQuery(ILogger<RabbitMQQuery> logger,
         TimeProvider timeProvider,
-        TransportSettings transportSettings,
-        HttpClient? customHttpClient = null) : base(logger, "RabbitMQ")
+        TransportSettings transportSettings) : base(logger, "RabbitMQ")
     {
         this.logger = logger;
         this.timeProvider = timeProvider;
-        httpClient = customHttpClient;
 
         connectionConfiguration = ConnectionConfiguration.Create(transportSettings.ConnectionString, string.Empty);
     }
@@ -91,14 +89,19 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
         if (InitialiseErrors.Count == 0)
         {
-            httpClient ??= new HttpClient(new SocketsHttpHandler
-            {
-                Credentials = defaultCredential,
-                PooledConnectionLifetime = TimeSpan.FromMinutes(2)
-            })
-            { BaseAddress = new Uri(apiUrl) };
+            // ideally we would use the HttpClientFactory but it would be a bit more involved to set that up
+            // so for now we are using a virtual method that can be overriden in tests
+            httpClient = CreateHttpClient(defaultCredential, apiUrl);
         }
     }
+
+    protected virtual HttpClient CreateHttpClient(NetworkCredential defaultCredential, string apiUrl) =>
+        new(new SocketsHttpHandler
+        {
+            Credentials = defaultCredential,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+        })
+        { BaseAddress = new Uri(apiUrl) };
 
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,
         DateOnly startDate,

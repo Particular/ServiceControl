@@ -11,6 +11,7 @@ using Transports.RabbitMQ;
 using System.Net.Http;
 using Particular.Approvals;
 using System.Collections.ObjectModel;
+using System.Net;
 
 [TestFixture]
 class RabbitMQQuery_ResponseParsing_Tests
@@ -21,7 +22,7 @@ class RabbitMQQuery_ResponseParsing_Tests
     RabbitMQQuery rabbitMQQuery;
 
     [SetUp]
-    public void Initialise()
+    public void SetUp()
     {
         provider = new();
         provider.SetUtcNow(DateTimeOffset.UtcNow);
@@ -34,7 +35,7 @@ class RabbitMQQuery_ResponseParsing_Tests
         httpHandler = new FakeHttpHandler();
         var httpClient = new HttpClient(httpHandler) { BaseAddress = new Uri("http://localhost:15672") };
 
-        rabbitMQQuery = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, transportSettings, httpClient);
+        rabbitMQQuery = new TestableRabbitMQQuery(provider, transportSettings, httpClient);
         rabbitMQQuery.Initialize(ReadOnlyDictionary<string, string>.Empty);
     }
 
@@ -125,6 +126,15 @@ class RabbitMQQuery_ResponseParsing_Tests
 
         var queues = (await rabbitMQQuery.GetPage(1, default)).Item1;
         Approver.Verify(queues);
+    }
+
+    sealed class TestableRabbitMQQuery(
+        TimeProvider timeProvider,
+        TransportSettings transportSettings,
+        HttpClient customHttpClient)
+        : RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, timeProvider, transportSettings)
+    {
+        protected override HttpClient CreateHttpClient(NetworkCredential defaultCredential, string apiUrl) => customHttpClient;
     }
 
     sealed class FakeHttpHandler : HttpClientHandler
