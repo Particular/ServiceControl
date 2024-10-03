@@ -1,9 +1,9 @@
-﻿namespace ServiceControl.Transports.PostgreSql.Tests
+﻿namespace ServiceControl.Transport.Tests
 {
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceControl.Transport.Tests;
+    using ServiceControl.Transports;
 
     [TestFixture]
     class RabbitMqTransportTests : TransportTestFixture
