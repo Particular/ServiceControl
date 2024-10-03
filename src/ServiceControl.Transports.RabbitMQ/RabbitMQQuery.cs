@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -88,14 +89,20 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
         if (InitialiseErrors.Count == 0)
         {
-            httpClient = new HttpClient(new SocketsHttpHandler
-            {
-                Credentials = defaultCredential,
-                PooledConnectionLifetime = TimeSpan.FromMinutes(2)
-            })
-            { BaseAddress = new Uri(apiUrl) };
+            // ideally we would use the HttpClientFactory, but it would be a bit more involved to set that up
+            // so for now we are using a virtual method that can be overriden in tests
+            // https://github.com/Particular/ServiceControl/issues/4493
+            httpClient = CreateHttpClient(defaultCredential, apiUrl);
         }
     }
+
+    protected virtual HttpClient CreateHttpClient(NetworkCredential defaultCredential, string apiUrl) =>
+        new(new SocketsHttpHandler
+        {
+            Credentials = defaultCredential,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+        })
+        { BaseAddress = new Uri(apiUrl) };
 
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,
         DateOnly startDate,
@@ -105,49 +112,22 @@ public class RabbitMQQuery : BrokerThroughputQuery
         var url = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}";
 
         logger.LogDebug($"Querying {url}");
-        var node = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonNode>(url, token), cancellationToken);
-        queue.AckedMessages = GetAck();
+        var newReading = await pipeline.ExecuteAsync(async token => new RabbitMQBrokerQueueDetails(await httpClient!.GetFromJsonAsync<JsonElement>(url, token)), cancellationToken);
+        _ = queue.CalculateThroughputFrom(newReading);
 
         // looping for 24hrs, in 4 increments of 15 minutes
         for (var i = 0; i < 24 * 4; i++)
         {
-            bool throughputSent = false;
             await Task.Delay(TimeSpan.FromMinutes(15), timeProvider, cancellationToken);
             logger.LogDebug($"Querying {url}");
-            node = await pipeline.ExecuteAsync(async token => await httpClient!.GetFromJsonAsync<JsonNode>(url, token), cancellationToken);
-            var newReading = GetAck();
-            if (newReading is not null)
-            {
-                if (newReading >= queue.AckedMessages)
-                {
-                    yield return new QueueThroughput
-                    {
-                        DateUTC = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
-                        TotalThroughput = newReading.Value - queue.AckedMessages.Value
-                    };
-                    throughputSent = true;
-                }
-                queue.AckedMessages = newReading;
-            }
+            newReading = await pipeline.ExecuteAsync(async token => new RabbitMQBrokerQueueDetails(await httpClient!.GetFromJsonAsync<JsonElement>(url, token)), cancellationToken);
 
-            if (!throughputSent)
+            var newTotalThroughput = queue.CalculateThroughputFrom(newReading);
+            yield return new QueueThroughput
             {
-                yield return new QueueThroughput
-                {
-                    DateUTC = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
-                    TotalThroughput = 0
-                };
-            }
-        }
-        yield break;
-
-        long? GetAck()
-        {
-            if (node!["message_stats"] is JsonObject stats && stats["ack"] is JsonValue val)
-            {
-                return val.GetValue<long>();
-            }
-            return null;
+                DateUTC = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
+                TotalThroughput = newTotalThroughput
+            };
         }
     }
 
@@ -266,7 +246,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
         }
     }
 
-    async Task<(RabbitMQBrokerQueueDetails[]?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
+    public async Task<(RabbitMQBrokerQueueDetails[]?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
     {
         var url = $"/api/queues/{HttpUtility.UrlEncode(connectionConfiguration.VirtualHost)}?page={page}&page_size=500&name=&use_regex=false&pagination=true";
 
@@ -283,20 +263,25 @@ public class RabbitMQQuery : BrokerThroughputQuery
                         return (null, false);
                     }
 
-                    var queues = items.Select(item => new RabbitMQBrokerQueueDetails(item!)).ToArray();
-
-                    return (queues, pageCount > pageReturned);
+                    return (MaterializeQueueDetails(items), pageCount > pageReturned);
                 }
             // Older versions of RabbitMQ API did not have paging and returned the array of items directly
             case JsonArray arr:
                 {
-                    var queues = arr.Select(item => new RabbitMQBrokerQueueDetails(item!)).ToArray();
-
-                    return (queues, false);
+                    return (MaterializeQueueDetails(arr), false);
                 }
             default:
                 throw new Exception("Was not able to get list of queues from RabbitMQ broker.");
         }
+    }
+
+    static RabbitMQBrokerQueueDetails[] MaterializeQueueDetails(JsonArray items)
+    {
+        // It is not possible to directly operated on the JsonNode. When the JsonNode is a JObject
+        // and the indexer is access the internal dictionary is initialized which can cause key not found exceptions
+        // when the payload contains the same key multiple times (which happened in the past).
+        var queues = items.Select(item => new RabbitMQBrokerQueueDetails(item!.Deserialize<JsonElement>())).ToArray();
+        return queues;
     }
 
     public override KeyDescriptionPair[] Settings =>

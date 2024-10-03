@@ -48,7 +48,10 @@
                 await transportInfrastructure.Shutdown();
             }
 
-            await dispatcherTransportInfrastructure.Shutdown();
+            if (dispatcherTransportInfrastructure != null)
+            {
+                await dispatcherTransportInfrastructure.Shutdown();
+            }
 
             if (configuration != null)
             {
