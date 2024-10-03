@@ -1,0 +1,23 @@
+[
+  {
+    "QueueName": "queue1",
+    "SanitizedName": "queue1",
+    "Scope": "vhost1",
+    "VHost": "vhost1",
+    "EndpointIndicators": []
+  },
+  {
+    "QueueName": "queue2",
+    "SanitizedName": "queue2",
+    "Scope": "vhost2",
+    "VHost": "vhost2",
+    "EndpointIndicators": []
+  },
+  {
+    "QueueName": "queue3",
+    "SanitizedName": "queue3",
+    "Scope": "vhost1",
+    "VHost": "vhost1",
+    "EndpointIndicators": []
+  }
+]

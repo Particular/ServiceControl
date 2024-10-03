@@ -22,6 +22,7 @@ using ServiceControl.Transports.BrokerThroughput;
 public class RabbitMQQuery : BrokerThroughputQuery
 {
     HttpClient? httpClient;
+    HttpClient? customHttpClient;
     readonly ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
         .AddRetry(new RetryStrategyOptions()) // Add retry using the default options
         .AddTimeout(TimeSpan.FromMinutes(2)) // Add timeout if it keeps failing
@@ -32,10 +33,12 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     public RabbitMQQuery(ILogger<RabbitMQQuery> logger,
         TimeProvider timeProvider,
-        TransportSettings transportSettings) : base(logger, "RabbitMQ")
+        TransportSettings transportSettings,
+        HttpClient? customHttpClient = null) : base(logger, "RabbitMQ")
     {
         this.logger = logger;
         this.timeProvider = timeProvider;
+        this.customHttpClient = customHttpClient;
 
         connectionConfiguration = ConnectionConfiguration.Create(transportSettings.ConnectionString, string.Empty);
     }
@@ -89,7 +92,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
         if (InitialiseErrors.Count == 0)
         {
-            httpClient = new HttpClient(new SocketsHttpHandler
+            httpClient = customHttpClient ?? new HttpClient(new SocketsHttpHandler
             {
                 Credentials = defaultCredential,
                 PooledConnectionLifetime = TimeSpan.FromMinutes(2)
@@ -240,7 +243,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
         }
     }
 
-    async Task<(RabbitMQBrokerQueueDetails[]?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
+    public async Task<(RabbitMQBrokerQueueDetails[]?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
     {
         var url = $"/api/queues/{HttpUtility.UrlEncode(connectionConfiguration.VirtualHost)}?page={page}&page_size=500&name=&use_regex=false&pagination=true";
 
