@@ -89,8 +89,9 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
         if (InitialiseErrors.Count == 0)
         {
-            // ideally we would use the HttpClientFactory but it would be a bit more involved to set that up
+            // ideally we would use the HttpClientFactory, but it would be a bit more involved to set that up
             // so for now we are using a virtual method that can be overriden in tests
+            // https://github.com/Particular/ServiceControl/issues/4493
             httpClient = CreateHttpClient(defaultCredential, apiUrl);
         }
     }
