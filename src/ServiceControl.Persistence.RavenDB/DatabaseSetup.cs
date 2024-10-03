@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.RavenDB
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
@@ -8,6 +9,7 @@ namespace ServiceControl.Persistence.RavenDB
     using Raven.Client.Exceptions;
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
+    using Raven.Client.ServerWide.Operations.Configuration;
 
     class DatabaseSetup(RavenPersisterSettings settings, IDocumentStore documentStore)
     {
@@ -15,6 +17,9 @@ namespace ServiceControl.Persistence.RavenDB
         {
             await CreateDatabase(settings.DatabaseName, cancellationToken);
             await CreateDatabase(settings.ThroughputDatabaseName, cancellationToken);
+
+            await UpdateDatabaseSettings(settings.DatabaseName, cancellationToken);
+            await UpdateDatabaseSettings(settings.ThroughputDatabaseName, cancellationToken);
 
             await IndexCreation.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, null, null, cancellationToken);
 
@@ -45,6 +50,28 @@ namespace ServiceControl.Persistence.RavenDB
                 {
                     // The database was already created before calling CreateDatabaseOperation
                 }
+            }
+        }
+
+        async Task UpdateDatabaseSettings(string databaseName, CancellationToken cancellationToken)
+        {
+            var dbRecord = await documentStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), cancellationToken);
+
+            if (dbRecord is null)
+            {
+                throw new InvalidOperationException($"Database '{databaseName}' does not exist.");
+            }
+
+            var updated = false;
+
+            updated |= dbRecord.Settings.TryAdd("Indexing.Auto.SearchEngineType", "Corax");
+            updated |= dbRecord.Settings.TryAdd("Indexing.Static.SearchEngineType", "Corax");
+
+            if (updated)
+            {
+                await documentStore.Maintenance.ForDatabase(databaseName).SendAsync(new PutDatabaseSettingsOperation(databaseName, dbRecord.Settings), cancellationToken);
+                await documentStore.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(databaseName, true), cancellationToken);
+                await documentStore.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(databaseName, false), cancellationToken);
             }
         }
     }
