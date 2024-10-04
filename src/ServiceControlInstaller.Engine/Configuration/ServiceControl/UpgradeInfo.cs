@@ -11,6 +11,8 @@
             new(2, 1, 5),
             new(3, 8, 4),
             new(4, 26, 0), // Introduced RavenDB5 audit persistence
+            new(4, 33, 0),
+            new(5, 11, 0),
         };
 
         public SemanticVersion[] UpgradePath { get; private init; }
