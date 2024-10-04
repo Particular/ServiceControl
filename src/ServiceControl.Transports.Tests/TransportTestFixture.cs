@@ -8,6 +8,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
+    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using NUnit.Framework;
@@ -223,6 +224,20 @@
             };
 
             return await configuration.TransportCustomization.CreateTransportInfrastructure("TransportTestDispatcher", transportSettings);
+        }
+
+        protected (TransportSettings transportSettings, EndpointConfiguration endpointConfiguration) SetupAndCustomizeInstance(Action<TransportSettings> customizeSettings, Action<ITransportCustomization, EndpointConfiguration, TransportSettings> customizeTransport)
+        {
+            var transportSettings = new TransportSettings
+            {
+                ConnectionString = configuration.ConnectionString,
+            };
+            customizeSettings(transportSettings);
+
+            var ec = new EndpointConfiguration("ConcurrencyTest");
+            customizeTransport(configuration.TransportCustomization, ec, transportSettings);
+
+            return (transportSettings, ec);
         }
 
         string queueSuffix;
