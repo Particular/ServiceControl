@@ -7,12 +7,12 @@
     using Transports;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    class ServiceControlMonitoringEndpointTests : FullEndpointTestFixture
+    partial class ServiceControlMonitoringEndpointTests : FullEndpointTestFixture
     {
         [Test]
         public async Task Should_configure_monitoring_endpoint()
         {
-            string endpointName = Conventions.EndpointNamingConvention(typeof(ServiceControlEndpoint));
+            string endpointName = Conventions.EndpointNamingConvention(typeof(ServiceControlMonitoringEndpoint));
             var transportSettings = new TransportSettings
             {
                 ConnectionString = configuration.ConnectionString,
@@ -23,7 +23,7 @@
             await configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
 
             var ctx = await Scenario.Define<Context>()
-                .WithEndpoint<ServiceControlEndpoint>(c => c.CustomConfig(ec =>
+                .WithEndpoint<ServiceControlMonitoringEndpoint>(c => c.CustomConfig(ec =>
                 {
                     configuration.TransportCustomization.CustomizeMonitoringEndpoint(ec, transportSettings);
                 }))
@@ -33,13 +33,42 @@
             Assert.That(ctx.EndpointsStarted, Is.True);
         }
 
-        public class Context : ScenarioContext
+        [TestCase(15)]
+        [TestCase(null)]
+        public async Task Should_set_max_concurrency(int? setConcurrency)
         {
+            var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(ServiceControlMonitoringEndpoint));
+            var transportSettings = new TransportSettings
+            {
+                ConnectionString = configuration.ConnectionString,
+                EndpointName = endpointName
+            };
+
+            await configuration.TransportCustomization.ProvisionQueues(new TransportSettings
+            {
+                ConnectionString = configuration.ConnectionString,
+                EndpointName = endpointName
+            }, []);
+
+            var ctx = await Scenario.Define<Context>()
+                .WithEndpoint<ServiceControlMonitoringEndpoint>(c => c.CustomConfig(ec =>
+                {
+                    configuration.TransportCustomization.CustomizeMonitoringEndpoint(ec, transportSettings);
+                }))
+                .Done(c => c.EndpointsStarted)
+                .Run();
+
+            Assert.That(ctx.EndpointsStarted, Is.True);
+            Assert.That(transportSettings.MaxConcurrency == (setConcurrency ?? GetTransportDefaultConcurrency()));
         }
 
-        public class ServiceControlEndpoint : EndpointConfigurationBuilder
+        private partial int GetTransportDefaultConcurrency();
+
+        public class Context : ScenarioContext;
+
+        public class ServiceControlMonitoringEndpoint : EndpointConfigurationBuilder
         {
-            public ServiceControlEndpoint()
+            public ServiceControlMonitoringEndpoint()
             {
                 EndpointSetup<BasicEndpointSetup>(c =>
                 {
