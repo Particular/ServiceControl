@@ -57,7 +57,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
 
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
-            //TODO: is this overridden by SCMU??
             MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
             RetryHistoryDepth = SettingsReader.Read(SettingsRootNamespace, "RetryHistoryDepth", 10);
             AllowMessageEditing = SettingsReader.Read<bool>(SettingsRootNamespace, "AllowMessageEditing");
