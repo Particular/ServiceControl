@@ -2,5 +2,5 @@ namespace ServiceControl.Transport.Tests;
 
 partial class ServiceControlAuditEndpointTests
 {
-    private static partial int GetTransportDefaultConcurrency() => 10;
+    private static partial int GetTransportDefaultConcurrency() => 32;
 }
