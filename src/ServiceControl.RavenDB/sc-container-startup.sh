@@ -9,14 +9,14 @@ if [[ -d "$LEGACY_PATH" ]]; then
   exit 1
 fi
 
-FILECOUNT = find $NEW_PATH \! -writable -print0 | grep -zc .
+FILECOUNT=$(find $NEW_PATH \! -writable -print0 | grep -zc .)
 
 if [[ $FILECOUNT -ne 0 ]]; then
   echo "RavenDB data is not writable by the ravendb user. See the upgrade guide for details on how to fix this."
   exit 1
 fi
 
-FILECOUNT = find $NEW_PATH \! -readable -print0 | grep -zc .
+FILECOUNT=$(find $NEW_PATH \! -readable -print0 | grep -zc .)
 
 if [[ $FILECOUNT -ne 0 ]]; then
   echo "RavenDB data is not readable by the ravendb user. See the upgrade guide for details on how to fix this."
