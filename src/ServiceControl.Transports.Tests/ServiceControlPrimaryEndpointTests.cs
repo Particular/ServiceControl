@@ -6,12 +6,12 @@
     using NUnit.Framework;
     using ServiceControl.Transports;
 
-    class ServiceControlEndpointTests : FullEndpointTestFixture
+    partial class ServiceControlPrimaryEndpointTests : FullEndpointTestFixture
     {
         [Test]
         public async Task Should_configure_endpoint()
         {
-            var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(ServiceControlEndpoint));
+            var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(ServiceControlPrimaryEndpoint));
             var transportSettings = new TransportSettings
             {
                 ConnectionString = configuration.ConnectionString,
@@ -22,7 +22,7 @@
             await configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
 
             var ctx = await Scenario.Define<Context>()
-                .WithEndpoint<ServiceControlEndpoint>(c => c.CustomConfig(ec =>
+                .WithEndpoint<ServiceControlPrimaryEndpoint>(c => c.CustomConfig(ec =>
                 {
                     configuration.TransportCustomization.CustomizePrimaryEndpoint(ec, transportSettings);
                 }))
@@ -34,20 +34,25 @@
 
         [TestCase(15)]
         [TestCase(null)]
-        public async Task Should_set_max_concurrency_for_ProvisionQueues(int? setConcurrency)
+        public async Task Should_set_max_concurrency(int? setConcurrency)
         {
-            var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(ServiceControlEndpoint));
+            var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(ServiceControlPrimaryEndpoint));
             var transportSettings = new TransportSettings
             {
                 ConnectionString = configuration.ConnectionString,
-                MaxConcurrency = setConcurrency,
-                EndpointName = endpointName
+                EndpointName = endpointName,
+                MaxConcurrency = setConcurrency
             };
 
-            await configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
+            //this shouldn't interfere in any way with the endpoint customisation
+            await configuration.TransportCustomization.ProvisionQueues(new TransportSettings
+            {
+                ConnectionString = configuration.ConnectionString,
+                EndpointName = endpointName
+            }, []);
 
             var ctx = await Scenario.Define<Context>()
-                .WithEndpoint<ServiceControlEndpoint>(c => c.CustomConfig(ec =>
+                .WithEndpoint<ServiceControlPrimaryEndpoint>(c => c.CustomConfig(ec =>
                 {
                     configuration.TransportCustomization.CustomizePrimaryEndpoint(ec, transportSettings);
                 }))
@@ -55,20 +60,17 @@
                 .Run();
 
             Assert.That(ctx.EndpointsStarted, Is.True);
-            Assert.That(transportSettings.MaxConcurrency == (setConcurrency ?? 1));
+            Assert.That(transportSettings.MaxConcurrency, Is.EqualTo(setConcurrency ?? GetTransportDefaultConcurrency()));
         }
 
-        public class Context : ScenarioContext
-        {
-        }
+        private static partial int GetTransportDefaultConcurrency();
 
-        public class ServiceControlEndpoint : EndpointConfigurationBuilder
+        public class Context : ScenarioContext;
+
+        public class ServiceControlPrimaryEndpoint : EndpointConfigurationBuilder
         {
-            public ServiceControlEndpoint() =>
-                EndpointSetup<BasicEndpointSetup>(c =>
-                {
-                    c.UsePersistence<NonDurablePersistence>();
-                });
+            public ServiceControlPrimaryEndpoint() =>
+                EndpointSetup<BasicEndpointSetup>(c => c.UsePersistence<NonDurablePersistence>());
         }
     }
 }
