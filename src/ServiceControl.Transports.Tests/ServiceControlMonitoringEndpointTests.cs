@@ -37,13 +37,15 @@
         [TestCase(null)]
         public async Task Should_set_max_concurrency(int? setConcurrency)
         {
-            var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(ServiceControlMonitoringEndpoint));
+            var endpointName = Conventions.EndpointNamingConvention(typeof(ServiceControlMonitoringEndpoint));
             var transportSettings = new TransportSettings
             {
                 ConnectionString = configuration.ConnectionString,
-                EndpointName = endpointName
+                EndpointName = endpointName,
+                MaxConcurrency = setConcurrency
             };
 
+            //this shouldn't interfere in any way with the endpoint customisation
             await configuration.TransportCustomization.ProvisionQueues(new TransportSettings
             {
                 ConnectionString = configuration.ConnectionString,
@@ -59,22 +61,17 @@
                 .Run();
 
             Assert.That(ctx.EndpointsStarted, Is.True);
-            Assert.That(transportSettings.MaxConcurrency == (setConcurrency ?? GetTransportDefaultConcurrency()));
+            Assert.That(transportSettings.MaxConcurrency, Is.EqualTo(setConcurrency ?? GetTransportDefaultConcurrency()));
         }
 
-        private partial int GetTransportDefaultConcurrency();
+        private static partial int GetTransportDefaultConcurrency();
 
         public class Context : ScenarioContext;
 
         public class ServiceControlMonitoringEndpoint : EndpointConfigurationBuilder
         {
-            public ServiceControlMonitoringEndpoint()
-            {
-                EndpointSetup<BasicEndpointSetup>(c =>
-                {
-                    c.UsePersistence<NonDurablePersistence>();
-                });
-            }
+            public ServiceControlMonitoringEndpoint() =>
+                EndpointSetup<BasicEndpointSetup>(c => c.UsePersistence<NonDurablePersistence>());
         }
     }
 }

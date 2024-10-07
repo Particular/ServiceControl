@@ -1,17 +1,17 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
     using System.Threading.Tasks;
-    using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceControl.Transports;
+    using Transports;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    partial class ServiceControlPrimaryEndpointTests : FullEndpointTestFixture
+    partial class ServiceControlAuditEndpointTests : FullEndpointTestFixture
     {
         [Test]
-        public async Task Should_configure_endpoint()
+        public async Task Should_configure_audit_endpoint()
         {
-            var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(ServiceControlPrimaryEndpoint));
+            string endpointName = Conventions.EndpointNamingConvention(typeof(ServiceControlAuditEndpoint));
             var transportSettings = new TransportSettings
             {
                 ConnectionString = configuration.ConnectionString,
@@ -22,9 +22,9 @@
             await configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
 
             var ctx = await Scenario.Define<Context>()
-                .WithEndpoint<ServiceControlPrimaryEndpoint>(c => c.CustomConfig(ec =>
+                .WithEndpoint<ServiceControlAuditEndpoint>(c => c.CustomConfig(ec =>
                 {
-                    configuration.TransportCustomization.CustomizePrimaryEndpoint(ec, transportSettings);
+                    configuration.TransportCustomization.CustomizeAuditEndpoint(ec, transportSettings);
                 }))
                 .Done(c => c.EndpointsStarted)
                 .Run();
@@ -36,7 +36,7 @@
         [TestCase(null)]
         public async Task Should_set_max_concurrency(int? setConcurrency)
         {
-            var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(ServiceControlPrimaryEndpoint));
+            var endpointName = Conventions.EndpointNamingConvention(typeof(ServiceControlAuditEndpoint));
             var transportSettings = new TransportSettings
             {
                 ConnectionString = configuration.ConnectionString,
@@ -52,9 +52,9 @@
             }, []);
 
             var ctx = await Scenario.Define<Context>()
-                .WithEndpoint<ServiceControlPrimaryEndpoint>(c => c.CustomConfig(ec =>
+                .WithEndpoint<ServiceControlAuditEndpoint>(c => c.CustomConfig(ec =>
                 {
-                    configuration.TransportCustomization.CustomizePrimaryEndpoint(ec, transportSettings);
+                    configuration.TransportCustomization.CustomizeAuditEndpoint(ec, transportSettings);
                 }))
                 .Done(c => c.EndpointsStarted)
                 .Run();
@@ -67,10 +67,10 @@
 
         public class Context : ScenarioContext;
 
-        public class ServiceControlPrimaryEndpoint : EndpointConfigurationBuilder
+        public class ServiceControlAuditEndpoint : EndpointConfigurationBuilder
         {
-            public ServiceControlPrimaryEndpoint() =>
-                EndpointSetup<BasicEndpointSetup>(c => c.UsePersistence<NonDurablePersistence>());
+            public ServiceControlAuditEndpoint() =>
+                EndpointSetup<BasicEndpointSetup>();
         }
     }
 }
