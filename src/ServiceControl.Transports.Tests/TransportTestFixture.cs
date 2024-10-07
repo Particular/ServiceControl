@@ -8,7 +8,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
-    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using NUnit.Framework;
