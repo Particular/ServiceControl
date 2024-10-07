@@ -4,7 +4,6 @@ A long (though not exhaustive) list, although not every change will merit runnin
 
 ## Instance management installation
 
-- [ ] Create a new instance of ServiceControl using the docker images
 - [ ] Upgrade an existing instance of ServiceControl to the version being released
 - [ ] Create a new instance of ServiceControl
 - [ ] Check with both localhost and a custom hostname
