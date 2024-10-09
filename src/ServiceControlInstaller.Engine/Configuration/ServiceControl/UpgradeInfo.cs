@@ -5,13 +5,12 @@
 
     public class UpgradeInfo
     {
-        static readonly SemanticVersion[] LatestMajors =
+        static readonly SemanticVersion[] LastVersionForEachMajor =
         {
             new(1, 48, 0),
             new(2, 1, 5),
             new(3, 8, 4),
-            new(4, 26, 0), // Introduced RavenDB5 audit persistence
-            new(4, 33, 0),
+            new(4, 33, 0), // Specifically needed so installed V4 SCMU can understand V5 instance details
             new(5, 11, 0),
         };
 
@@ -20,7 +19,7 @@
 
         public static UpgradeInfo GetUpgradePathFor(SemanticVersion current) //5.0.0 // 4.24.0
         {
-            var upgradePath = LatestMajors
+            var upgradePath = LastVersionForEachMajor
                 .Where(x => current.CompareTo(x, VersionComparison.Version) < 0)
                 .ToArray();
 
