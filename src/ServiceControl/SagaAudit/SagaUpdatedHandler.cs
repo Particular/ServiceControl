@@ -15,6 +15,8 @@
     {
         public async Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
         {
+            SagaAuditMisconfigurationCustomCheck.LogMisconfiguredMessage(context);
+
             if (auditQueueName is null || nextAuditQueueNameRefresh < DateTime.UtcNow)
             {
                 await RefreshAuditQueue();
