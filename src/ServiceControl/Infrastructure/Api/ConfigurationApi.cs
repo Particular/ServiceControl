@@ -12,9 +12,11 @@ using Particular.ServiceControl.Licensing;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Api;
 using ServiceControl.Api.Contracts;
+using ServiceControl.Persistence;
 
 class ConfigurationApi(ActiveLicense license,
     Settings settings,
+    IConnectedApplicationsDataStore connectedApplicationsDataStore,
     IHttpClientFactory httpClientFactory) : IConfigurationApi
 {
     public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken)
@@ -49,7 +51,7 @@ class ConfigurationApi(ActiveLicense license,
     }
 
 
-    public Task<object> GetConfig(CancellationToken cancellationToken)
+    public async Task<object> GetConfig(CancellationToken cancellationToken)
     {
         object content = new
         {
@@ -82,10 +84,14 @@ class ConfigurationApi(ActiveLicense license,
             Plugins = new
             {
                 settings.HeartbeatGracePeriod
+            },
+            ConnectedApplications = new
+            {
+                ConnectedApplications = await connectedApplicationsDataStore.GetConnectedApplications()
             }
         };
 
-        return Task.FromResult(content);
+        return content;
     }
 
     public async Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default)
