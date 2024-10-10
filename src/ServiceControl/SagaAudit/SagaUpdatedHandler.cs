@@ -25,8 +25,7 @@
                 throw new UnrecoverableException("Could not determine audit queue name to forward saga update message. This message can be replayed after the ServiceControl Audit remote instance is running and accessible.");
             }
 
-            // TODO Forward saga audit messages and warn in ServiceControl 5, remove in 6
-            log.WarnFormat("Configure the Saga Audit plugin to send messages to an audit instance. ServiceControl 6 will stop ingesting and forwarding Saga Audit to audit instances.");
+            log.ErrorFormat("Configure the Saga Audit plugin to send messages to an audit instance. Future versions of ServiceControl may stop ingesting and forwarding Saga Audit to audit instances.");
             await context.ForwardCurrentMessageTo(auditQueueName);
         }
 
