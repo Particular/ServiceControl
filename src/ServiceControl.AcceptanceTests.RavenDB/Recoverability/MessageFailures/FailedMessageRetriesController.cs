@@ -10,7 +10,7 @@
 
     public class FailedMessageRetriesCountReponse
     {
-        public int Count { get; set; }
+        public long Count { get; set; }
     }
 
     [ApiController]

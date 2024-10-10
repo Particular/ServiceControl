@@ -3,10 +3,10 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     public struct QueryStatsInfo
     {
         public readonly string ETag;
-        public readonly int TotalCount;
-        public readonly int HighestTotalCountOfAllTheInstances;
+        public readonly long TotalCount;
+        public readonly long HighestTotalCountOfAllTheInstances;
 
-        public QueryStatsInfo(string eTag, int totalCount, int? highestTotalCountOfAllTheInstances = null)
+        public QueryStatsInfo(string eTag, long totalCount, long? highestTotalCountOfAllTheInstances = null)
         {
             ETag = eTag;
             TotalCount = totalCount;
