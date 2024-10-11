@@ -28,7 +28,7 @@
             }
 
             var endpointName = context.MessageHeaders.TryGetValue(Headers.ReplyToAddress, out var val) ? val : "(Unknown Endpoint)";
-            log.ErrorFormat($"Received a saga audit message in the ServiceControl queue that should have been sent to the audit queue. This indicates that the enpdoint '{endpointName}' using the SagaAudit plugin is misconfigured and should be changed to audit saga changes to the system's audit queue. The message has been forwarded to the audit queue, but this may not be possible in a future version of ServiceControl.");
+            log.ErrorFormat($"Received a saga audit message in the ServiceControl queue that should have been sent to the audit queue. This indicates that the endpoint '{endpointName}' using the SagaAudit plugin is misconfigured and should be changed to use the system's audit queue instead. The message has been forwarded to the audit queue, but this may not be possible in a future version of ServiceControl.");
             await context.ForwardCurrentMessageTo(auditQueueName);
         }
 
