@@ -6,7 +6,7 @@
 
     class ConnectedApplicationsDataStore(IRavenSessionProvider sessionProvider) : IConnectedApplicationsDataStore
     {
-        public async Task Add(string connectedApplication)
+        public async Task AddIfNotExists(string connectedApplication)
         {
             using var session = await sessionProvider.OpenSession();
             var connectedApplications = await session.LoadAsync<ConnectedApplications>(StorageKey) ?? new ConnectedApplications();
@@ -30,7 +30,7 @@
 
         class ConnectedApplications
         {
-            public List<string> Applications { get; set; } = [];
+            public List<string> Applications { get; } = [];
         }
 
         const string StorageKey = "ConnectedApplications";

@@ -22,12 +22,27 @@
             var connectedApplication1 = "ServiceControl.Connector.MassTransit";
             var connectedApplication2 = "ServiceControl.Connector.Kafka";
 
-            await connectedApplicationsDataStore.Add(connectedApplication1).ConfigureAwait(false);
-            await connectedApplicationsDataStore.Add(connectedApplication2).ConfigureAwait(false);
+            await connectedApplicationsDataStore.AddIfNotExists(connectedApplication1).ConfigureAwait(false);
+            await connectedApplicationsDataStore.AddIfNotExists(connectedApplication2).ConfigureAwait(false);
 
             var result = await connectedApplicationsDataStore.GetConnectedApplications();
 
             Assert.That(result, Is.EqualTo(new[] { connectedApplication1, connectedApplication2 }).AsCollection);
+        }
+
+        [Test]
+        public async Task ConnectedApplication_are_deduplicated_when_saved()
+        {
+            var connectedApplicationsDataStore = ServiceProvider.GetRequiredService<ConnectedApplicationsDataStore>();
+
+            var connectedApplication = "ServiceControl.Connector.MassTransit";
+
+            await connectedApplicationsDataStore.AddIfNotExists(connectedApplication).ConfigureAwait(false);
+            await connectedApplicationsDataStore.AddIfNotExists(connectedApplication).ConfigureAwait(false);
+
+            var result = await connectedApplicationsDataStore.GetConnectedApplications();
+
+            Assert.That(result, Is.EqualTo(new[] { connectedApplication }).AsCollection);
         }
     }
 }
