@@ -13,24 +13,20 @@
         public LicenseMetadataTests() =>
             RegisterServices = services =>
             {
-                services.AddSingleton<LicenseLicenseMetadataProvider>();
+                services.AddSingleton<TrialLicenseMetadataProvider>();
             };
 
         [Test]
         public async Task LicenseMetadata_can_be_saved()
         {
-            var licenseMetadataService = ServiceProvider.GetRequiredService<LicenseLicenseMetadataProvider>();
+            var licenseMetadataService = ServiceProvider.GetRequiredService<TrialLicenseMetadataProvider>();
 
-            var metaData = new TrialMetadata
-            {
-                TrialStartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(14))
-            };
+            await licenseMetadataService.StoreTrialEndDate(
+                DateOnly.FromDateTime(DateTime.UtcNow.AddDays(14)), CancellationToken.None);
 
-            await licenseMetadataService.InsertLicenseMetadata(metaData, CancellationToken.None);
+            var trialStartDate = await licenseMetadataService.GetTrialEndDate(CancellationToken.None);
 
-            var result = await licenseMetadataService.GetLicenseMetadata(CancellationToken.None);
-
-            Assert.That(result.TrialStartDate, Is.EqualTo(metaData.TrialStartDate));
+            Assert.That(trialStartDate, Is.EqualTo(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(14))));
         }
     }
 }

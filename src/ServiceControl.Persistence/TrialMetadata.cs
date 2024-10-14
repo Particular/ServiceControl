@@ -4,7 +4,7 @@
 
     public class TrialMetadata
     {
-        public DateOnly TrialStartDate { get; set; }
+        public DateOnly TrialEndDate { get; set; }
 
         public static string TrialMetadataId = "metadata/trialinformation";
     }

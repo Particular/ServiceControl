@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.RavenDB;
+namespace ServiceControl.Persistence.RavenDB;
 
 using CustomChecks;
 using MessageFailures;
@@ -65,8 +65,7 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
         services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
         services.AddSingleton<IEndpointSettingsStore, EndpointSettingsStore>();
-
-        services.AddSingleton<ILicenseLicenseMetadataProvider, LicenseLicenseMetadataProvider>();
+        services.AddSingleton<ITrialLicenseMetadataProvider, TrialLicenseMetadataProvider>();
     }
 
     public void AddInstaller(IServiceCollection services)
