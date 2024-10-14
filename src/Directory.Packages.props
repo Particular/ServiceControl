@@ -46,13 +46,13 @@
     <PackageVersion Include="NServiceBus.Metrics.ServiceControl" Version="3.0.6" />
     <PackageVersion Include="NServiceBus.Metrics.ServiceControl.Msmq" Version="3.0.1" />
     <PackageVersion Include="NServiceBus.RabbitMQ" Version="7.0.7" />
+    <PackageVersion Include="NServiceBus.Raw" Version="3.2.5" />
     <PackageVersion Include="NServiceBus.SagaAudit" Version="3.0.1" />
     <PackageVersion Include="NServiceBus.Testing" Version="7.4.2" />
     <PackageVersion Include="NServiceBus.Transport.AzureServiceBus" Version="2.0.6" />
     <PackageVersion Include="NServiceBus.Transport.AzureStorageQueues" Version="10.0.4" />
     <PackageVersion Include="NServiceBus.Transport.Msmq" Version="1.2.4" />
     <PackageVersion Include="NServiceBus.Transport.SqlServer" Version="6.3.4" />
-    <PackageVersion Include="NServiceBus.Raw" Version="3.2.5" />
     <PackageVersion Include="NUnit" Version="3.13.3" />
     <PackageVersion Include="NUnit3TestAdapter" Version="4.5.0" />
     <PackageVersion Include="OwinHttpMessageHandler" Version="2.0.2" />
@@ -71,7 +71,7 @@
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
     <PackageVersion Include="System.Management" Version="7.0.2" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
-    <PackageVersion Include="System.Text.Json" Version="8.0.4" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
     <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
     <PackageVersion Include="Windows7APICodePack-Shell" Version="1.1.0" />
