@@ -28,7 +28,6 @@
                     }
 
                     var transportSettings = settings.ToTransportSettings();
-                    transportSettings.RunCustomChecks = false;
                     var transportCustomization = TransportFactory.Create(transportSettings);
 
                     await transportCustomization.ProvisionQueues(transportSettings, additionalQueues);
