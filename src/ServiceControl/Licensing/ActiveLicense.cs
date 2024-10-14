@@ -28,6 +28,9 @@
         {
             if (licenseDetails.LicenseType.Equals("trial", StringComparison.OrdinalIgnoreCase))
             {
+                //HINT: @hen dealing with trial license, we want to compare what is the end date stored in the files system
+                //      with the value stored in the database. These values must match. If they don't, the trial license has been tampered.
+
                 var trialEndDateInDb = await trialLicenseMetadataProvider.GetTrialEndDate(cancellationToken);
                 var trailEndDateInFile = DateOnly.FromDateTime(licenseDetails.ExpirationDate.Value);
 
