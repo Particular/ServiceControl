@@ -1,6 +1,7 @@
 namespace ServiceControl.Monitoring.Infrastructure
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -13,23 +14,20 @@ namespace ServiceControl.Monitoring.Infrastructure
 
         public void Record(BreakdownT breakdown)
         {
-            lock (@lock)
+            if (AddBreakdown(breakdown, breakdowns))
             {
-                if (AddBreakdown(breakdown, breakdowns))
-                {
-                    UpdateLookups();
-                }
+                UpdateLookups();
             }
         }
 
-        protected virtual bool AddBreakdown(BreakdownT breakdown, Dictionary<BreakdownT, BreakdownT> existingBreakdowns)
+        protected virtual bool AddBreakdown(BreakdownT breakdown, ConcurrentDictionary<BreakdownT, BreakdownT> existingBreakdowns)
         {
             if (existingBreakdowns.ContainsKey(breakdown))
             {
                 return false;
             }
 
-            existingBreakdowns.Add(breakdown, breakdown);
+            existingBreakdowns.TryAdd(breakdown, breakdown);
 
             return true;
         }
@@ -46,31 +44,27 @@ namespace ServiceControl.Monitoring.Infrastructure
                 return endpointBreakdowns;
             }
 
-            return Array.Empty<BreakdownT>();
+            return [];
         }
 
         public void RemoveBreakdowns(IEnumerable<BreakdownT> breakdownsToRemove)
         {
-            lock (@lock)
+            foreach (var breakdown in breakdownsToRemove)
             {
-                foreach (var breakdown in breakdownsToRemove)
-                {
-                    breakdowns.Remove(breakdown);
-                }
-                UpdateLookups();
+                breakdowns.Remove(breakdown, out _);
             }
+            UpdateLookups();
         }
 
         void UpdateLookups()
         {
-            lookup = breakdowns.Values
-                        .GroupBy(b => endpointNameExtractor(b))
-                        .ToDictionary(g => g.Key, g => g.Select(i => i).ToArray());
+            lookup = new ConcurrentDictionary<string, BreakdownT[]>(breakdowns.Values
+                .GroupBy(b => endpointNameExtractor(b))
+                .ToDictionary(g => g.Key, g => g.Select(i => i).ToArray()));
         }
 
-        Dictionary<BreakdownT, BreakdownT> breakdowns = [];
-        volatile Dictionary<string, BreakdownT[]> lookup = [];
-        object @lock = new object();
+        ConcurrentDictionary<BreakdownT, BreakdownT> breakdowns = [];
+        ConcurrentDictionary<string, BreakdownT[]> lookup = [];
 
         Func<BreakdownT, string> endpointNameExtractor;
     }
