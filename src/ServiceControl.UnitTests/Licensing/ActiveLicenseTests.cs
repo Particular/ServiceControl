@@ -60,7 +60,7 @@
             Assert.That(checkedDetails.HasLicenseExpired, Is.False);
         }
 
-        class FakeMetadataProvider: ITrialLicenseMetadataProvider
+        class FakeMetadataProvider : ITrialLicenseMetadataProvider
         {
             TrialMetadata metadata;
 
