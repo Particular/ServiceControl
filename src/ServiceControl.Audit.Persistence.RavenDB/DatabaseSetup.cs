@@ -22,7 +22,6 @@
             await CreateDatabase(documentStore, configuration.Name, cancellationToken);
             await UpdateDatabaseSettings(documentStore, configuration.Name, cancellationToken);
 
-            await DeleteLegacySagaDetailsIndex(documentStore, cancellationToken);
             await CreateIndexes(documentStore, cancellationToken);
 
             await ConfigureExpiration(documentStore, cancellationToken);
@@ -89,6 +88,8 @@
 
         async Task CreateIndexes(IDocumentStore documentStore, CancellationToken cancellationToken)
         {
+            await DeleteLegacySagaDetailsIndex(documentStore, cancellationToken);
+
             List<AbstractIndexCreationTask> indexList = [new FailedAuditImportIndex(), new SagaDetailsIndex()];
 
             if (configuration.EnableFullTextSearch)

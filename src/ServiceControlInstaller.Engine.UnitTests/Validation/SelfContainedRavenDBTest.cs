@@ -22,7 +22,7 @@
             Assert.Multiple(() =>
             {
                 Assert.That(ravenStudio, Does.Exist); // No matter what
-                Assert.That(Directory.Exists(ravenServerDll), Is.EqualTo(isLocal));  // Only in local development
+                Assert.That(File.Exists(ravenServerDll), Is.EqualTo(isLocal));  // Only in local development
                 Assert.That(File.Exists(ravenServerExe), Is.EqualTo(isCI)); // Only on CI
                 Assert.That(File.Exists(offlineOperationsUtility), Is.EqualTo(isCI));    // Only on CI
             });
