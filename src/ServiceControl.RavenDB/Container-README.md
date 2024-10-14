@@ -20,7 +20,8 @@ This is the most basic way to start the container using `docker run`:
 
 ```shell
 docker run -d --name servicecontrol-db \
-    -v <DATA_DIRECTORY>:/opt/RavenDB/Server/RavenData \
+    -v db-config:/etc/ravendb \
+    -v db-data:/var/lib/ravendb/data \
     particular/servicecontrol-ravendb:latest
 ```
 
