@@ -4,12 +4,11 @@
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
     using Particular.ServiceControl.Licensing;
-    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     [ApiController]
     [Route("api")]
-    public class LicenseController(ActiveLicense activeLicense, ITrialLicenseMetadataProvider licenseMetadataProvider, Settings settings) : ControllerBase
+    public class LicenseController(ActiveLicense activeLicense, Settings settings) : ControllerBase
     {
         [HttpGet]
         [Route("license")]
@@ -17,7 +16,7 @@
         {
             if (refresh)
             {
-                await activeLicense.Refresh(licenseMetadataProvider, cancellationToken);
+                await activeLicense.Refresh(cancellationToken);
             }
 
             var licenseInfo = new LicenseInfo

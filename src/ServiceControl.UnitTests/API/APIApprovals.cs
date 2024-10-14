@@ -31,7 +31,7 @@
             var controllerContext = new ControllerContext(actionContext);
 
             var controller = new RootController(new ConfigurationApi(
-                    new ActiveLicense { IsValid = true },
+                    new ActiveLicense(null) { IsValid = true },
                     new Settings(),
                     null
                 )

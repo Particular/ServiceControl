@@ -7,13 +7,13 @@
     using global::ServiceControl.Persistence;
     using NServiceBus.Logging;
 
-    public class ActiveLicense
+    public class ActiveLicense(ITrialLicenseMetadataProvider trialLicenseMetadataProvider)
     {
         public bool IsValid { get; set; }
 
         public LicenseDetails Details { get; set; }
 
-        public async Task Refresh(ITrialLicenseMetadataProvider trialLicenseMetadataProvider, CancellationToken cancellationToken)
+        public async Task Refresh(CancellationToken cancellationToken)
         {
             Logger.Debug("Refreshing ActiveLicense");
 
@@ -21,7 +21,7 @@
 
             IsValid = !detectedLicense.Details.HasLicenseExpired();
 
-            Details = await ValidateTrialLicense(Details, trialLicenseMetadataProvider, cancellationToken);
+            Details = await ValidateTrialLicense(detectedLicense.Details, trialLicenseMetadataProvider, cancellationToken);
         }
 
         internal static async Task<LicenseDetails> ValidateTrialLicense(LicenseDetails licenseDetails, ITrialLicenseMetadataProvider trialLicenseMetadataProvider, CancellationToken cancellationToken)
