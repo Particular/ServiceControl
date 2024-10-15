@@ -28,7 +28,7 @@
     "pinia": "^2.2.4",
     "vue": "^3.5.12",
     "vue-router": "^4.4.5",
-    "vue-tippy": "^6.4.4",
+    "vue-tippy": "^6.5.0",
     "vue-toastification": "^2.0.0-rc.5",
     "vue3-cookies": "^1.0.6",
     "vue3-simple-typeahead": "^1.0.11"
