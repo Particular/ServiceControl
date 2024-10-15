@@ -5,7 +5,7 @@
 
     public interface IConnectedApplicationsDataStore
     {
-        Task AddIfNotExists(string connectedApplication);
+        Task Add(string connectedApplication);
         Task<IList<string>> GetConnectedApplications();
     }
 }

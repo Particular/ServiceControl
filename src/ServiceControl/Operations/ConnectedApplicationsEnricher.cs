@@ -1,26 +1,21 @@
 ﻿namespace ServiceControl.Operations
 {
-    using System.Collections.Concurrent;
-    using Persistence;
+    using System.Linq;
+    using ServiceControl.Persistence;
 
     class ConnectedApplicationsEnricher(IConnectedApplicationsDataStore connectedApplicationsDataStore) : IEnrichImportedErrorMessages
     {
-        public static string ConnectedAppHeaderName = "ServiceControl.ConnectedApplication.Id";
+        static string MassTransitHeaderPrefix = "MT-";
 
         public void Enrich(ErrorEnricherContext context)
         {
-            var headers = context.Headers;
-
-            if (headers.TryGetValue(ConnectedAppHeaderName, out var connectedApplicationName))
+            if (!alreadyAddedMassTransit && context.Headers.Any(incomingHeader => incomingHeader.Key.StartsWith(MassTransitHeaderPrefix, System.StringComparison.InvariantCultureIgnoreCase)))
             {
-
-                if (connectedApplicationsCache.TryAdd(connectedApplicationName, true))
-                {
-                    _ = connectedApplicationsDataStore.AddIfNotExists(connectedApplicationName);
-                }
+                alreadyAddedMassTransit = true;
+                _ = connectedApplicationsDataStore.Add("MassTransitConnector");
             }
         }
 
-        ConcurrentDictionary<string, bool> connectedApplicationsCache = new();
+        static bool alreadyAddedMassTransit = false;
     }
 }
