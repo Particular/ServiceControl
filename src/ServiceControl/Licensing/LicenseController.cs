@@ -4,15 +4,16 @@
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
     using Particular.ServiceControl.Licensing;
+    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     [ApiController]
     [Route("api")]
-    public class LicenseController(ActiveLicense activeLicense, Settings settings) : ControllerBase
+    public class LicenseController(ActiveLicense activeLicense, Settings settings, IConnectedApplicationsDataStore connectedApplicationsStore) : ControllerBase
     {
         [HttpGet]
         [Route("license")]
-        public async Task<ActionResult<LicenseInfo>> License(bool refresh, CancellationToken cancellationToken)
+        public async Task<ActionResult<LicenseInfo>> License(bool refresh, string clientName, CancellationToken cancellationToken)
         {
             if (refresh)
             {
@@ -29,10 +30,20 @@
                 Status = activeLicense.IsValid ? "valid" : "invalid",
                 LicenseType = activeLicense.Details.LicenseType ?? string.Empty,
                 InstanceName = settings.InstanceName ?? string.Empty,
-                LicenseStatus = activeLicense.Details.Status
+                LicenseStatus = activeLicense.Details.Status,
+                LicenseExtensionUrl = $"http://particular.net/extend-your-trial?p={clientName}{await BuildConnectedApplicationsListPart()}"
             };
 
             return licenseInfo;
+        }
+
+        async Task<string> BuildConnectedApplicationsListPart()
+        {
+            var connectedApplications = await connectedApplicationsStore.GetConnectedApplications();
+
+            return connectedApplications != null 
+                ? $"&ca={string.Join(',', connectedApplications)}"
+                : string.Empty;
         }
 
         public class LicenseInfo
@@ -54,6 +65,8 @@
             public string InstanceName { get; set; }
 
             public string LicenseStatus { get; set; }
+
+            public string LicenseExtensionUrl { get; set; }
         }
     }
 }
