@@ -28,13 +28,13 @@
         }
 
         [Test]
-        public async Task Invalidates_license_if_end_date_in_file_and_db_are_different()
+        public async Task Invalidates_license_if_end_date_in_db_more_than_14_days()
         {
             var today = DateTime.UtcNow.Date;
-            var trialLicense = LicenseDetails.TrialFromEndDate(DateOnly.FromDateTime(today.AddDays(66)));
+            var trialLicense = LicenseDetails.TrialFromEndDate(DateOnly.MinValue);
             var metadataProvider = new FakeMetadataProvider(new TrialMetadata
             {
-                TrialEndDate = DateOnly.FromDateTime(today.AddDays(65))
+                TrialEndDate = DateOnly.FromDateTime(today.AddDays(15))
             });
 
             var checkedDetails = await ActiveLicense.ValidateTrialLicense(trialLicense, metadataProvider, CancellationToken.None);
@@ -44,11 +44,11 @@
         }
 
         [Test]
-        public async Task Accepts_license_if_end_date_in_file_and_db_match()
+        public async Task Accepts_license_base_on_the_db_value_only()
         {
             var today = DateTime.UtcNow.Date;
             var endDate = DateOnly.FromDateTime(today.AddDays(14));
-            var trialLicense = LicenseDetails.TrialFromEndDate(endDate);
+            var trialLicense = LicenseDetails.TrialFromEndDate(DateOnly.MinValue);
             var metadataProvider = new FakeMetadataProvider(new TrialMetadata
             {
                 TrialEndDate = endDate
