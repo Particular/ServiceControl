@@ -41,7 +41,7 @@
         {
             var connectedApplications = await connectedApplicationsStore.GetConnectedApplications();
 
-            return connectedApplications != null 
+            return connectedApplications != null
                 ? $"&ca={string.Join(',', connectedApplications)}"
                 : string.Empty;
         }
