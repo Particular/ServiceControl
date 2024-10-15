@@ -7,7 +7,7 @@
     using global::ServiceControl.Persistence;
     using NServiceBus.Logging;
 
-    public class ActiveLicense(ITrialLicenseMetadataProvider trialLicenseMetadataProvider)
+    public class ActiveLicense(ITrialLicenseDataProvider trialLicenseDataProvider)
     {
         public bool IsValid { get; set; }
 
@@ -19,12 +19,12 @@
 
             var detectedLicense = LicenseManager.FindLicense();
 
-            Details = await ValidateTrialLicense(detectedLicense.Details, trialLicenseMetadataProvider, cancellationToken);
+            Details = await ValidateTrialLicense(detectedLicense.Details, trialLicenseDataProvider, cancellationToken);
 
             IsValid = !Details.HasLicenseExpired();
         }
 
-        internal static async Task<LicenseDetails> ValidateTrialLicense(LicenseDetails licenseDetails, ITrialLicenseMetadataProvider trialLicenseMetadataProvider, CancellationToken cancellationToken)
+        internal static async Task<LicenseDetails> ValidateTrialLicense(LicenseDetails licenseDetails, ITrialLicenseDataProvider trialLicenseDataProvider, CancellationToken cancellationToken)
         {
             if (licenseDetails.LicenseType.Equals("trial", StringComparison.OrdinalIgnoreCase))
             {
@@ -32,7 +32,7 @@
                 //      The trial period starts when ServiceControl instance gets first connected
                 //      to the database. Re/creation of container for the main instance does not affect the trial.
 
-                var trialEndDateInDb = await trialLicenseMetadataProvider.GetTrialEndDate(cancellationToken);
+                var trialEndDateInDb = await trialLicenseDataProvider.GetTrialEndDate(cancellationToken);
 
                 //If the trial end date has not been stored in the database, store the value
                 if (trialEndDateInDb == null)
@@ -40,7 +40,7 @@
                     //Initialize with the default for trial license
                     trialEndDateInDb = DateOnly.FromDateTime(licenseDetails.ExpirationDate.Value);
 
-                    await trialLicenseMetadataProvider.StoreTrialEndDate(trialEndDateInDb.Value, cancellationToken);
+                    await trialLicenseDataProvider.StoreTrialEndDate(trialEndDateInDb.Value, cancellationToken);
                 }
 
                 //If the trial end date in db has been tampered, invalidate the license

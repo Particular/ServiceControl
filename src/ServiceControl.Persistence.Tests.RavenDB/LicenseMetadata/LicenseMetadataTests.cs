@@ -13,13 +13,13 @@
         public LicenseMetadataTests() =>
             RegisterServices = services =>
             {
-                services.AddSingleton<TrialLicenseMetadataProvider>();
+                services.AddSingleton<TrialLicenseDataProvider>();
             };
 
         [Test]
         public async Task LicenseMetadata_can_be_saved()
         {
-            var licenseMetadataService = ServiceProvider.GetRequiredService<TrialLicenseMetadataProvider>();
+            var licenseMetadataService = ServiceProvider.GetRequiredService<TrialLicenseDataProvider>();
 
             await licenseMetadataService.StoreTrialEndDate(
                 DateOnly.FromDateTime(DateTime.UtcNow.AddDays(14)), CancellationToken.None);

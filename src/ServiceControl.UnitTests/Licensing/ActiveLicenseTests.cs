@@ -16,7 +16,7 @@
         {
             var today = DateTime.UtcNow.Date;
             var trialLicense = LicenseDetails.TrialFromEndDate(DateOnly.FromDateTime(today.AddDays(6)));
-            var metadataProvider = new FakeMetadataProvider();
+            var metadataProvider = new FakeDataProvider();
 
             var checkedDetails = await ActiveLicense.ValidateTrialLicense(trialLicense, metadataProvider, CancellationToken.None);
             var trialEndDate = await metadataProvider.GetTrialEndDate(CancellationToken.None);
@@ -32,7 +32,7 @@
         {
             var today = DateTime.UtcNow.Date;
             var trialLicense = LicenseDetails.TrialFromEndDate(DateOnly.MinValue);
-            var metadataProvider = new FakeMetadataProvider(new TrialMetadata
+            var metadataProvider = new FakeDataProvider(new TrialMetadata
             {
                 TrialEndDate = DateOnly.FromDateTime(today.AddDays(15))
             });
@@ -49,7 +49,7 @@
             var today = DateTime.UtcNow.Date;
             var endDate = DateOnly.FromDateTime(today.AddDays(14));
             var trialLicense = LicenseDetails.TrialFromEndDate(DateOnly.MinValue);
-            var metadataProvider = new FakeMetadataProvider(new TrialMetadata
+            var metadataProvider = new FakeDataProvider(new TrialMetadata
             {
                 TrialEndDate = endDate
             });
@@ -60,15 +60,15 @@
             Assert.That(checkedDetails.HasLicenseExpired, Is.False);
         }
 
-        class FakeMetadataProvider : ITrialLicenseMetadataProvider
+        class FakeDataProvider : ITrialLicenseDataProvider
         {
             TrialMetadata metadata;
 
-            public FakeMetadataProvider() : this(null)
+            public FakeDataProvider() : this(null)
             {
             }
 
-            public FakeMetadataProvider(TrialMetadata metadata) => this.metadata = metadata;
+            public FakeDataProvider(TrialMetadata metadata) => this.metadata = metadata;
 
             public Task<DateOnly?> GetTrialEndDate(CancellationToken cancellationToken) => Task.FromResult(metadata?.TrialEndDate);
 

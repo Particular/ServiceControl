@@ -65,7 +65,7 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
         services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
         services.AddSingleton<IEndpointSettingsStore, EndpointSettingsStore>();
-        services.AddSingleton<ITrialLicenseMetadataProvider, TrialLicenseMetadataProvider>();
+        services.AddSingleton<ITrialLicenseDataProvider, TrialLicenseDataProvider>();
     }
 
     public void AddInstaller(IServiceCollection services)

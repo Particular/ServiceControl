@@ -4,7 +4,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    class TrialLicenseMetadataProvider(IRavenSessionProvider sessionProvider) : ITrialLicenseMetadataProvider
+    class TrialLicenseDataProvider(IRavenSessionProvider sessionProvider) : ITrialLicenseDataProvider
     {
         public async Task<DateOnly?> GetTrialEndDate(CancellationToken cancellationToken)
         {
