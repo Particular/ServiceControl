@@ -31,7 +31,7 @@
                 LicenseType = activeLicense.Details.LicenseType ?? string.Empty,
                 InstanceName = settings.InstanceName ?? string.Empty,
                 LicenseStatus = activeLicense.Details.Status,
-                LicenseExtensionUrl = $"http://particular.net/extend-your-trial?p={clientName}{await BuildConnectedApplicationsListPart()}"
+                LicenseExtensionUrl = $"https://particular.net/extend-your-trial?p={clientName}{await BuildConnectedApplicationsListPart()}"
             };
 
             return licenseInfo;
