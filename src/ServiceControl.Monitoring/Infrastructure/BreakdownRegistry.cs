@@ -1,77 +1,31 @@
 namespace ServiceControl.Monitoring.Infrastructure
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
 
-    public abstract class BreakdownRegistry<BreakdownT>
+    public abstract class BreakdownRegistry<TBreakdown>(Func<TBreakdown, string> endpointNameExtractor)
     {
-        protected BreakdownRegistry(Func<BreakdownT, string> endpointNameExtractor)
-        {
-            this.endpointNameExtractor = endpointNameExtractor;
-        }
+        public void Record(TBreakdown breakdown) => AddBreakdown(breakdown, breakdowns);
 
-        public void Record(BreakdownT breakdown)
+        protected virtual bool AddBreakdown(TBreakdown breakdown, ConcurrentDictionary<TBreakdown, TBreakdown> existingBreakdowns) => existingBreakdowns.TryAdd(breakdown, breakdown);
+
+        public IReadOnlyDictionary<string, TBreakdown[]> GetGroupedByEndpointName() =>
+            breakdowns.Values
+                .GroupBy(endpointNameExtractor)
+                .ToDictionary(g => g.Key, g => g.Select(i => i).ToArray());
+
+        public TBreakdown[] GetForEndpointName(string endpointName) => GetGroupedByEndpointName().TryGetValue(endpointName, out var endpointBreakdowns) ? endpointBreakdowns : [];
+
+        protected void RemoveBreakdowns(IEnumerable<TBreakdown> breakdownsToRemove)
         {
-            lock (@lock)
+            foreach (var breakdown in breakdownsToRemove)
             {
-                if (AddBreakdown(breakdown, breakdowns))
-                {
-                    UpdateLookups();
-                }
+                _ = breakdowns.Remove(breakdown, out _);
             }
         }
 
-        protected virtual bool AddBreakdown(BreakdownT breakdown, Dictionary<BreakdownT, BreakdownT> existingBreakdowns)
-        {
-            if (existingBreakdowns.ContainsKey(breakdown))
-            {
-                return false;
-            }
-
-            existingBreakdowns.Add(breakdown, breakdown);
-
-            return true;
-        }
-
-        public IReadOnlyDictionary<string, BreakdownT[]> GetGroupedByEndpointName()
-        {
-            return lookup;
-        }
-
-        public BreakdownT[] GetForEndpointName(string endpointName)
-        {
-            if (lookup.TryGetValue(endpointName, out var endpointBreakdowns))
-            {
-                return endpointBreakdowns;
-            }
-
-            return Array.Empty<BreakdownT>();
-        }
-
-        public void RemoveBreakdowns(IEnumerable<BreakdownT> breakdownsToRemove)
-        {
-            lock (@lock)
-            {
-                foreach (var breakdown in breakdownsToRemove)
-                {
-                    breakdowns.Remove(breakdown);
-                }
-                UpdateLookups();
-            }
-        }
-
-        void UpdateLookups()
-        {
-            lookup = breakdowns.Values
-                        .GroupBy(b => endpointNameExtractor(b))
-                        .ToDictionary(g => g.Key, g => g.Select(i => i).ToArray());
-        }
-
-        Dictionary<BreakdownT, BreakdownT> breakdowns = [];
-        volatile Dictionary<string, BreakdownT[]> lookup = [];
-        object @lock = new object();
-
-        Func<BreakdownT, string> endpointNameExtractor;
+        readonly ConcurrentDictionary<TBreakdown, TBreakdown> breakdowns = [];
     }
 }

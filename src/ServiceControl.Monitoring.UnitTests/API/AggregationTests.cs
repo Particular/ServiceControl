@@ -18,6 +18,8 @@
         EndpointInstanceActivityTracker activityTracker;
         IEndpointMetricsApi endpointMetricsApi;
 
+        MessageTypeRegistry messageTypeRegistry;
+
         [SetUp]
         public void Setup()
         {
@@ -25,8 +27,8 @@
             activityTracker = new EndpointInstanceActivityTracker(settings, TimeProvider.System);
             processingTimeStore = new ProcessingTimeStore();
             endpointRegistry = new EndpointRegistry();
+            messageTypeRegistry = new MessageTypeRegistry();
 
-            var messageTypeRegistry = new MessageTypeRegistry();
             var breakdownProviders = new IProvideBreakdown[]
             {
                 processingTimeStore,
@@ -47,20 +49,29 @@
             endpointRegistry.Record(instanceAId);
             endpointRegistry.Record(instanceBId);
 
+            messageTypeRegistry.Record(new EndpointMessageType(instanceAId.EndpointName, enclosedMessageTypes: "MessageA"));
+            messageTypeRegistry.Record(new EndpointMessageType(instanceBId.EndpointName, enclosedMessageTypes: "MessageA"));
+
             var period = HistoryPeriod.FromMinutes(EndpointMetricsApi.DefaultHistory);
             var now = DateTime.UtcNow.Subtract(new TimeSpan(period.IntervalSize.Ticks * period.DelayedIntervals));
 
             var dataA = new RawMessage.Entry { DateTicks = now.Ticks, Value = 5 };
             var dataB = new RawMessage.Entry { DateTicks = now.Ticks, Value = 10 };
 
-            processingTimeStore.Store([dataA], instanceAId, EndpointMessageType.Unknown(instanceAId.EndpointName));
-            processingTimeStore.Store([dataB], instanceBId, EndpointMessageType.Unknown(instanceBId.EndpointName));
+            processingTimeStore.Store([dataA], instanceAId, new EndpointMessageType(instanceAId.EndpointName, enclosedMessageTypes: "MessageA"));
+            processingTimeStore.Store([dataB], instanceBId, new EndpointMessageType(instanceBId.EndpointName, enclosedMessageTypes: "MessageA"));
 
-            var result = endpointMetricsApi.GetSingleEndpointMetrics(instanceAId.EndpointName);
+            var logicalEndpointAMetrics = endpointMetricsApi.GetSingleEndpointMetrics(instanceAId.EndpointName);
+            var logicalEndpointBMetrics = endpointMetricsApi.GetSingleEndpointMetrics(instanceBId.EndpointName);
 
-            var model = result;
+            Assert.Multiple(() =>
+            {
+                Assert.That(logicalEndpointAMetrics.Instances[0].Metrics["ProcessingTime"].Average, Is.EqualTo(5));
+                Assert.That(logicalEndpointBMetrics.Instances[0].Metrics["ProcessingTime"].Average, Is.EqualTo(10));
 
-            Assert.That(model.Instances[0].Metrics["ProcessingTime"].Average, Is.EqualTo(5));
+                Assert.That(logicalEndpointAMetrics.MessageTypes[0].Metrics["ProcessingTime"].Average, Is.EqualTo(5));
+                Assert.That(logicalEndpointBMetrics.MessageTypes[0].Metrics["ProcessingTime"].Average, Is.EqualTo(10));
+            });
         }
 
         [Test]

@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Monitoring.Infrastructure
 {
     using System;
-    using System.Collections.Generic;
+    using System.Collections.Concurrent;
     using System.Linq;
 
     public class EndpointRegistry : BreakdownRegistry<EndpointInstanceId>
@@ -10,7 +10,7 @@
         {
         }
 
-        protected override bool AddBreakdown(EndpointInstanceId newEndpointId, Dictionary<EndpointInstanceId, EndpointInstanceId> existingBreakdowns)
+        protected override bool AddBreakdown(EndpointInstanceId newEndpointId, ConcurrentDictionary<EndpointInstanceId, EndpointInstanceId> existingBreakdowns)
         {
             if (existingBreakdowns.TryGetValue(newEndpointId, out var existingInstanceId))
             {
@@ -19,7 +19,7 @@
                 return existingInstanceId.InstanceName != newEndpointId.InstanceName;
             }
 
-            existingBreakdowns.Add(newEndpointId, newEndpointId);
+            existingBreakdowns.TryAdd(newEndpointId, newEndpointId);
 
             return true;
         }
