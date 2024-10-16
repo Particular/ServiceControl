@@ -1,5 +1,7 @@
 ﻿namespace ServiceControl.Licensing
 {
+    using System.Threading;
+    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -10,11 +12,11 @@
     {
         [HttpGet]
         [Route("license")]
-        public ActionResult<LicenseInfo> License(bool refresh)
+        public async Task<ActionResult<LicenseInfo>> License(bool refresh, CancellationToken cancellationToken)
         {
             if (refresh)
             {
-                activeLicense.Refresh();
+                await activeLicense.Refresh(cancellationToken);
             }
 
             var licenseInfo = new LicenseInfo
