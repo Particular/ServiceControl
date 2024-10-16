@@ -4,8 +4,6 @@
     using System.Data.Common;
     using System.Linq;
     using Accounts;
-    using Microsoft.Data.SqlClient;
-    using Npgsql;
 
     class ConnectionStringValidator
     {
@@ -56,22 +54,10 @@
 
         void CheckMsSqlConnectionString()
         {
-            string[] customKeys = { "Queue Schema", "Subscriptions Table" };
-
             try
             {
                 //Check  validity of connection string. This will throw if invalid
                 var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
-
-                //The NSB SQL Transport can have custom key/value pairs in the connection string
-                // that won't make sense to SQL. Remove these from the string we want to validate.
-                foreach (var customKey in customKeys)
-                {
-                    if (builder.ContainsKey(customKey))
-                    {
-                        builder.Remove(customKey);
-                    }
-                }
 
                 //Check that localsystem is not used when integrated security is enabled
                 if (builder.ContainsKey("Integrated Security"))
@@ -92,55 +78,23 @@
                         }
                     }
                 }
-
-                //Attempt to connect to DB
-                using (var s = new SqlConnection(builder.ConnectionString))
-                {
-                    s.Open();
-                }
             }
             catch (ArgumentException argumentException)
             {
                 throw new EngineValidationException($"Connection String is invalid - {argumentException.Message}");
-            }
-            catch (SqlException sqlEx)
-            {
-                throw new EngineValidationException($"SQL connection failed - {sqlEx.Message}");
             }
         }
 
         void CheckPostgreSqlConnectString()
         {
-            string[] customKeys = { "Queue Schema", "Subscriptions Table" };
-
             try
             {
                 //Check  validity of connection string. This will throw if invalid
                 var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
-
-                //The NSB PostgreSQL Transport can have custom key/value pairs in the connection string
-                // that won't make sense to PostgreSQL. Remove these from the string we want to validate.
-                foreach (var customKey in customKeys)
-                {
-                    if (builder.ContainsKey(customKey))
-                    {
-                        builder.Remove(customKey);
-                    }
-                }
-
-                //Attempt to connect to DB
-                using (var s = new NpgsqlConnection(builder.ConnectionString))
-                {
-                    s.Open();
-                }
             }
             catch (ArgumentException argumentException)
             {
                 throw new EngineValidationException($"Connection String is invalid - {argumentException.Message}");
-            }
-            catch (SqlException sqlEx)
-            {
-                throw new EngineValidationException($"PostgreSQL connection failed - {sqlEx.Message}");
             }
         }
 
