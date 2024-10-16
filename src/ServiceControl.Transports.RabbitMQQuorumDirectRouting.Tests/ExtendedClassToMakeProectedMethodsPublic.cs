@@ -5,7 +5,7 @@ using ServiceControl.Transports.RabbitMQ;
 using ServiceControl.Transports;
 
 // Needed to call the protected methods of the TransportCustomization<T> class
-class ExtendedClassToMakeProtectedMethodsPublic : RabbitMQQuorumConventionalRoutingTransportCustomization
+class ExtendedClassToMakeProtectedMethodsPublic : RabbitMQQuorumDirectRoutingTransportCustomization
 {
     public RabbitMQTransport PublicCreateTrasport(TransportSettings transportSettings)
     {

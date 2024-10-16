@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -28,9 +28,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\ServiceControl.Transports.RabbitMQQuorumDirectRouting.Tests\cert.cer" Link="cert.cer" />
-    <None Include="..\ServiceControl.Transports.RabbitMQQuorumDirectRouting.Tests\passwordcert.pfx" Link="passwordcert.pfx" />
-    <None Include="..\ServiceControl.Transports.RabbitMQQuorumDirectRouting.Tests\CertificateTests.cs" Link="CertificateTests.cs" />
+    <None Update="cert.cer">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="passwordcert.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
