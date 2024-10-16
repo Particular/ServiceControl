@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Security.Cryptography.X509Certificates;
     using BrokerThroughput;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
@@ -22,7 +23,20 @@
                 throw new InvalidOperationException("Connection string not configured");
             }
 
+            var connectionString = transportSettings.ConnectionString;
+            X509Certificate2 clientCertificate = this.ExtractClientCertificate(ref connectionString);
+            if (clientCertificate != null)
+            {
+                // update the connection string with the removed cert properties as they're deprecated in the RabbitMQ API
+                transportSettings.ConnectionString = connectionString;
+            }
+
             var transport = new RabbitMQTransport(RoutingTopology.Conventional(queueType), transportSettings.ConnectionString, enableDelayedDelivery: false);
+            if (clientCertificate != null)
+            {
+                transport.ClientCertificate = clientCertificate;
+            }
+
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 
             return transport;
