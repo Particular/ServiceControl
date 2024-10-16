@@ -16,8 +16,6 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetZip" />
-    <PackageReference Include="Microsoft.Data.SqlClient" />
-    <PackageReference Include="Npgsql" />
     <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="System.DirectoryServices.AccountManagement" />
     <PackageReference Include="System.Management" />
