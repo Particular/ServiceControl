@@ -9,6 +9,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using Configuration.ServiceControl;
     using FileSystem;
     using Queues;
+    using ServiceControlInstaller.Engine.Validation;
     using Services;
 
     public class ServiceControlAuditInstance : ServiceControlBaseService, IServiceControlAuditInstance
@@ -128,6 +129,18 @@ namespace ServiceControlInstaller.Engine.Instances
                 yield return folderPath.StartsWith("~") //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
                     ? Path.Combine(InstallPath, folderPath.Remove(0, 1))
                     : folderPath;
+            }
+        }
+
+        protected override void ValidateConnectionString()
+        {
+            try
+            {
+                ConnectionStringValidator.Validate(this);
+            }
+            catch (EngineValidationException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
             }
         }
     }
