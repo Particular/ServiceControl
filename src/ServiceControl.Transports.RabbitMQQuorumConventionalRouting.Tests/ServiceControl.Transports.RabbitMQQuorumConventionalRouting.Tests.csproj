@@ -27,4 +27,10 @@
     <Compile Remove="..\ServiceControl.Transports.Tests\TestsFilter.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\ServiceControl.Transports.RabbitMQQuorumDirectRouting.Tests\cert.cer" Link="cert.cer" />
+    <None Include="..\ServiceControl.Transports.RabbitMQQuorumDirectRouting.Tests\passwordcert.pfx" Link="passwordcert.pfx" />
+    <None Include="..\ServiceControl.Transports.RabbitMQQuorumDirectRouting.Tests\CertificateTests.cs" Link="CertificateTests.cs" />
+  </ItemGroup>
+
 </Project>

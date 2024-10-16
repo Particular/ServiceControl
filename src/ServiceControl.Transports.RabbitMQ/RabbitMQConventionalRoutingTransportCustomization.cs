@@ -24,7 +24,7 @@
             }
 
             var connectionString = transportSettings.ConnectionString;
-            X509Certificate2 clientCertificate = this.ExtractClientCertificate(ref connectionString);
+            var clientCertificate = this.ExtractClientCertificate(ref connectionString);
             if (clientCertificate != null)
             {
                 // update the connection string with the removed cert properties as they're deprecated in the RabbitMQ API

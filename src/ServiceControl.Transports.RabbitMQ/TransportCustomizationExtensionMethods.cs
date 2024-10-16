@@ -18,8 +18,19 @@
                     .OfType<KeyValuePair<string, object>>()
                     .ToDictionary(pair => pair.Key, pair => pair.Value.ToString(), StringComparer.OrdinalIgnoreCase);
 
-                clientCertificate = new X509Certificate2(dictionary["certPath"]);
-                connectionString = string.Join(", ", dictionary.Select(kv => $"{kv.Key}={kv.Value}"));
+                if (dictionary.TryGetValue("certPassphrase", out var certPassphrase))
+                {
+                    clientCertificate = new X509Certificate2(dictionary["certPath"], certPassphrase);
+                }
+                else
+                {
+                    clientCertificate = new X509Certificate2(dictionary["certPath"]);
+                }
+
+                connectionString = string.Join(";", dictionary
+                    .Where(connectionPair => !connectionPair.Key.Equals("certPath", StringComparison.InvariantCultureIgnoreCase))
+                    .Where(connectionPair => !connectionPair.Key.Equals("certPassphrase", StringComparison.InvariantCultureIgnoreCase))
+                    .Select(connectionPair => $"{connectionPair.Key}={connectionPair.Value}"));
             }
 
             return clientCertificate;

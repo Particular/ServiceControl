@@ -1,36 +1,37 @@
-//namespace ServiceControl.Transport.Tests;
+namespace ServiceControl.Transport.Tests;
 
-//using System;
-//using System.Collections.Generic;
-//using System.Collections.ObjectModel;
-//using System.Text.RegularExpressions;
-//using System.Threading;
-//using System.Threading.Tasks;
-//using NUnit.Framework;
-//using Particular.Approvals;
-//using Transports.RabbitMQ;
-//using ServiceControl.Transports.BrokerThroughput;
-//using ServiceControl.Transports;
-//using NServiceBus;
+using NUnit.Framework;
+using ServiceControl.Transports;
+using System.IO;
 
-//[TestFixture]
-//class CertificateTests : TransportTestFixture
-//{
-//    [Test]
-//    public async Task Passing_CertPath_In_ConnectionString_Sets_The_ClientCertificate_Correctly()
-//    {
-//        var connectionString = "host=localhost;user=guest;pass=guest;certPath='c:\\certpathlocation\\cert.xml'";
-//        var transportSettings = new TransportSettings { ConnectionString = connectionString };
+[TestFixture]
+class CertificateTests
+{
+    [Test]
+    public void Passing_CertPath_In_ConnectionString_Sets_The_ClientCertificate_Correctly()
+    {
+        var certificateLocation = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "cert.cer");
 
-//        var endpointConfiguration = new EndpointConfiguration("Test");
-//        var customizer = new RabbitMQQuorumConventionalRoutingTransportCustomization();
-//        customizer.CustomizeAuditEndpoint(endpointConfiguration, transportSettings);
+        var connectionString = $"host=localhost;user=guest;pass=guest;certPath='{certificateLocation}'";
+        var transportSettings = new TransportSettings { ConnectionString = connectionString };
 
-//        Assert.That(endpointConfiguration)
+        var customizer = new ExtendedClassToMakeProtectedMethodsPublic();
+        var transport = customizer.PublicCreateTrasport(transportSettings);
 
-//        Assert.That(success, Is.False);
-//        Approver.Verify(diagnostics,
-//            s => Regex.Replace(s, "defaulted to using \"\\w*\" username", "defaulted to using \"xxxxx\" username",
-//                RegexOptions.Multiline));
-//    }
-//}
+        Assert.That(transport.ClientCertificate, Is.Not.Null);
+    }
+
+    [Test]
+    public void Passing_certPassphrase_In_ConnectionString_Sets_The_ClientCertificate_Correctly()
+    {
+        var certificateLocation = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "passwordcert.pfx");
+
+        var connectionString = $"host=localhost;user=guest;pass=guest;certPath='{certificateLocation}';certPassphrase='MyPassword';";
+        var transportSettings = new TransportSettings { ConnectionString = connectionString };
+
+        var customizer = new ExtendedClassToMakeProtectedMethodsPublic();
+        var transport = customizer.PublicCreateTrasport(transportSettings);
+
+        Assert.That(transport.ClientCertificate, Is.Not.Null);
+    }
+}
