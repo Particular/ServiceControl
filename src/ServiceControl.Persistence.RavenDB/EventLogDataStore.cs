@@ -15,7 +15,7 @@
             await session.SaveChangesAsync();
         }
 
-        public async Task<(IList<EventLogItem>, int, string)> GetEventLogItems(PagingInfo pagingInfo)
+        public async Task<(IList<EventLogItem>, long, string)> GetEventLogItems(PagingInfo pagingInfo)
         {
             using var session = await sessionProvider.OpenSession();
             var results = await session

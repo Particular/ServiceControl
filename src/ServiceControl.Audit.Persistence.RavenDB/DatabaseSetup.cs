@@ -1,17 +1,17 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Indexes;
-    using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Operations.Expiration;
     using Raven.Client.Documents.Operations.Indexes;
     using Raven.Client.Exceptions;
-    using Raven.Client.Exceptions.Database;
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
+    using Raven.Client.ServerWide.Operations.Configuration;
     using ServiceControl.Audit.Persistence.RavenDB.Indexes;
     using ServiceControl.SagaAudit;
 
@@ -19,51 +19,55 @@
     {
         public async Task Execute(IDocumentStore documentStore, CancellationToken cancellationToken)
         {
-            try
-            {
-                await documentStore.Maintenance.ForDatabase(configuration.Name).SendAsync(new GetStatisticsOperation(), cancellationToken);
-            }
-            catch (DatabaseDoesNotExistException)
+            await CreateDatabase(documentStore, configuration.Name, cancellationToken);
+            await UpdateDatabaseSettings(documentStore, configuration.Name, cancellationToken);
+
+            await CreateIndexes(documentStore, cancellationToken);
+
+            await ConfigureExpiration(documentStore, cancellationToken);
+        }
+
+        async Task CreateDatabase(IDocumentStore documentStore, string databaseName, CancellationToken cancellationToken)
+        {
+            var dbRecord = await documentStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), cancellationToken);
+
+            if (dbRecord is null)
             {
                 try
                 {
-                    await documentStore.Maintenance.Server
-                        .SendAsync(new CreateDatabaseOperation(new DatabaseRecord(configuration.Name)), cancellationToken);
+                    var databaseRecord = new DatabaseRecord(databaseName);
+                    databaseRecord.Settings.Add("Indexing.Auto.SearchEngineType", "Corax");
+                    databaseRecord.Settings.Add("Indexing.Static.SearchEngineType", "Corax");
+
+                    await documentStore.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), cancellationToken);
                 }
                 catch (ConcurrencyException)
                 {
                     // The database was already created before calling CreateDatabaseOperation
                 }
             }
+        }
 
-            var indexList = new List<AbstractIndexCreationTask> {
-                new FailedAuditImportIndex(),
-                new SagaDetailsIndex()
-            };
+        async Task UpdateDatabaseSettings(IDocumentStore documentStore, string databaseName, CancellationToken cancellationToken)
+        {
+            var dbRecord = await documentStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), cancellationToken);
 
-            await DeleteLegacySagaDetailsIndex(documentStore, cancellationToken);
-
-            if (configuration.EnableFullTextSearch)
+            if (dbRecord is null)
             {
-                indexList.Add(new MessagesViewIndexWithFullTextSearch());
-                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"), cancellationToken);
-            }
-            else
-            {
-                indexList.Add(new MessagesViewIndex());
-                await documentStore.Maintenance
-                    .SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"), cancellationToken);
+                throw new InvalidOperationException($"Database '{databaseName}' does not exist.");
             }
 
-            await IndexCreation.CreateIndexesAsync(indexList, documentStore, null, null, cancellationToken);
+            var updated = false;
 
-            var expirationConfig = new ExpirationConfiguration
+            updated |= dbRecord.Settings.TryAdd("Indexing.Auto.SearchEngineType", "Corax");
+            updated |= dbRecord.Settings.TryAdd("Indexing.Static.SearchEngineType", "Corax");
+
+            if (updated)
             {
-                Disabled = false,
-                DeleteFrequencyInSec = configuration.ExpirationProcessTimerInSeconds
-            };
-
-            await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
+                await documentStore.Maintenance.ForDatabase(databaseName).SendAsync(new PutDatabaseSettingsOperation(databaseName, dbRecord.Settings), cancellationToken);
+                await documentStore.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(databaseName, true), cancellationToken);
+                await documentStore.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(databaseName, false), cancellationToken);
+            }
         }
 
         public static async Task DeleteLegacySagaDetailsIndex(IDocumentStore documentStore, CancellationToken cancellationToken)
@@ -80,6 +84,37 @@
             {
                 await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("SagaDetailsIndex"), cancellationToken);
             }
+        }
+
+        async Task CreateIndexes(IDocumentStore documentStore, CancellationToken cancellationToken)
+        {
+            await DeleteLegacySagaDetailsIndex(documentStore, cancellationToken);
+
+            List<AbstractIndexCreationTask> indexList = [new FailedAuditImportIndex(), new SagaDetailsIndex()];
+
+            if (configuration.EnableFullTextSearch)
+            {
+                indexList.Add(new MessagesViewIndexWithFullTextSearch());
+                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"), cancellationToken);
+            }
+            else
+            {
+                indexList.Add(new MessagesViewIndex());
+                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"), cancellationToken);
+            }
+
+            await IndexCreation.CreateIndexesAsync(indexList, documentStore, null, null, cancellationToken);
+        }
+
+        async Task ConfigureExpiration(IDocumentStore documentStore, CancellationToken cancellationToken)
+        {
+            var expirationConfig = new ExpirationConfiguration
+            {
+                Disabled = false,
+                DeleteFrequencyInSec = configuration.ExpirationProcessTimerInSeconds
+            };
+
+            await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
         }
     }
 }

@@ -57,6 +57,11 @@ jobs:
         uses: Particular/run-minver-action@v1.0.0
       - name: Log in to GitHub container registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3.3.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Azure Login
         if: ${{ matrix.name == 'asb' || matrix.name == 'asq' }}
         uses: azure/login@v2.2.0
@@ -101,13 +106,20 @@ jobs:
           }
           Write-Output "healthy-containers=$numHealthy" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append
       - name: Dump Docker container list
+        if: ${{ always() }}
         run: docker ps --all
       - name: Dump Primary instance logs
+        if: ${{ always() }}
         run: docker logs service-platform-servicecontrol-1
       - name: Dump Audit instance logs
+        if: ${{ always() }}
         run: docker logs service-platform-servicecontrol-audit-1
       - name: Dump Monitoring instance logs
+        if: ${{ always() }}
         run: docker logs service-platform-servicecontrol-monitoring-1
+      - name: Dump Database logs
+        if: ${{ always() }}
+        run: docker logs service-platform-servicecontrol-db-1
       - name: Return status
         shell: pwsh
         run: |

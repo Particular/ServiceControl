@@ -20,8 +20,8 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./volumes/db-data:/opt/RavenDB/Server/RavenData
-      - ./volumes/db-config:/opt/RavenDB/config
+      - db-config:/etc/ravendb
+      - db-data:/var/lib/ravendb/data
 
   servicecontrol-audit:
     image: ghcr.io/particular/servicecontrol-audit:${SERVICECONTROL_TAG}
@@ -41,3 +41,7 @@ services:
     command: --setup-and-run
     ports:
       - "33633:33633"
+
+volumes:
+  db-config:
+  db-data:

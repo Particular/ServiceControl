@@ -57,17 +57,18 @@ namespace ServiceControl.RavenDB
             {
                 CommandLineArgs =
                 [
-                    $"--License.Path=\"{licenseFileNameAndServerDirectory.LicenseFileName}\"",
                     $"--Logs.Mode={databaseConfiguration.LogsMode}",
                     // HINT: If this is not set, then Raven will pick a default location relative to the server binaries
                     // See https://github.com/ravendb/ravendb/issues/15694
                     $"--Indexing.NuGetPackagesPath=\"{nugetPackagesPath}\""
                 ],
-                AcceptEula = true,
                 DataDirectory = databaseConfiguration.DbPath,
                 ServerUrl = databaseConfiguration.ServerUrl,
                 LogsPath = databaseConfiguration.LogPath
             };
+
+            serverOptions.Licensing.EulaAccepted = true;
+            serverOptions.Licensing.LicensePath = licenseFileNameAndServerDirectory.LicenseFileName;
 
             if (!string.IsNullOrWhiteSpace(licenseFileNameAndServerDirectory.ServerDirectory))
             {
@@ -146,7 +147,8 @@ namespace ServiceControl.RavenDB
                 Conventions = new DocumentConventions
                 {
                     SaveEnumsAsIntegers = true
-                }
+                },
+                SkipCreatingDatabase = true
             };
 
             if (configuration.FindClrType != null)
