@@ -15,6 +15,8 @@
     {
         public async Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
         {
+            SagaAuditMisconfigurationCustomCheck.LogMisconfiguredMessage(context);
+
             if (auditQueueName is null || nextAuditQueueNameRefresh < DateTime.UtcNow)
             {
                 await RefreshAuditQueue();
@@ -25,8 +27,8 @@
                 throw new UnrecoverableException("Could not determine audit queue name to forward saga update message. This message can be replayed after the ServiceControl Audit remote instance is running and accessible.");
             }
 
-            // TODO Forward saga audit messages and warn in ServiceControl 5, remove in 6
-            log.WarnFormat("Configure the Saga Audit plugin to send messages to an audit instance. ServiceControl 6 will stop ingesting and forwarding Saga Audit to audit instances.");
+            var endpointName = context.MessageHeaders.TryGetValue(Headers.ReplyToAddress, out var val) ? val : "(Unknown Endpoint)";
+            log.ErrorFormat($"Received a saga audit message in the ServiceControl queue that should have been sent to the audit queue. This indicates that the endpoint '{endpointName}' using the SagaAudit plugin is misconfigured and should be changed to use the system's audit queue instead. The message has been forwarded to the audit queue, but this may not be possible in a future version of ServiceControl.");
             await context.ForwardCurrentMessageTo(auditQueueName);
         }
 

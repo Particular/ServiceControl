@@ -7,6 +7,7 @@
     using NServiceBus.CustomChecks;
     using NServiceBus.Hosting;
     using Operations;
+    using SagaAudit;
     using ServiceBus.Management.Infrastructure.Settings;
 
     static class InternalCustomChecks
@@ -16,6 +17,7 @@
             var services = hostBuilder.Services;
             services.AddCustomCheck<CriticalErrorCustomCheck>();
             services.AddCustomCheck<CheckRemotes>();
+            services.AddCustomCheck<SagaAuditMisconfigurationCustomCheck>();
 
             services.AddHostedService(provider => new InternalCustomChecksHostedService(
                 provider.GetServices<ICustomCheck>().ToList(),
