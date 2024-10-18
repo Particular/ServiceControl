@@ -56,4 +56,8 @@
     <Resource Include="Resources\**\*.*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Config.Tests" />
+  </ItemGroup>
+
 </Project>

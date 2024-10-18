@@ -50,4 +50,11 @@
     <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.dll.config;nsb*.txt" DirExclude=".db;.logs" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.AcceptanceTests.RavenDB" />
+    <InternalsVisibleTo Include="ServiceControl.MultiInstance.AcceptanceTests" />
+    <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.RavenDB" />
+    <InternalsVisibleTo Include="ServiceControl.UnitTests" />
+  </ItemGroup>
+
 </Project>
