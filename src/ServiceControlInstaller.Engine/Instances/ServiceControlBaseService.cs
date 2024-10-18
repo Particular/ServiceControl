@@ -43,7 +43,7 @@ namespace ServiceControlInstaller.Engine.Instances
                     "*" or "+" => "localhost",
                     _ => HostName,
                 };
-                return $"http://{host}:{DatabaseMaintenancePort}/studio/index.html#databases/documents?&database=%3Csystem%3E";
+                return $"http://{host}:{DatabaseMaintenancePort}/studio/index.html#databases";
             }
         }
 
