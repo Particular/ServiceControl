@@ -49,4 +49,10 @@
     <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Audit.dll.config" DirExclude=".logs" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Audit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Audit.AcceptanceTests" />
+    <InternalsVisibleTo Include="ServiceControl.Audit.AcceptanceTests.RavenDB" />
+    <InternalsVisibleTo Include="ServiceControl.Audit.UnitTests" />
+  </ItemGroup>
+
 </Project>

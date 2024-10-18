@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="ServiceControl.Audit.AcceptanceTests.RavenDB" />
+    <InternalsVisibleTo Include="ServiceControl.Audit.Persistence.Tests.RavenDB" />
   </ItemGroup>
 
 </Project>

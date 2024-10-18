@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.Infrastructure
 {
     using System;
-    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
     using Contracts.EndpointControl;
@@ -55,11 +54,6 @@ namespace ServiceControl.Audit.Infrastructure
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
             configuration.DefineCriticalErrorAction(onCriticalError);
-
-            if (Environment.UserInteractive && Debugger.IsAttached)
-            {
-                configuration.EnableInstallers();
-            }
 
             configuration.Recoverability().AddUnrecoverableException<UnrecoverableException>();
 

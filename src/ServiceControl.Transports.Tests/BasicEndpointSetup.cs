@@ -14,8 +14,6 @@
         {
             var endpointConfiguration = new EndpointConfiguration(endpointCustomization.EndpointName);
 
-            // we don't use installers
-            //endpointConfiguration.EnableInstallers();
             endpointConfiguration.UseSerialization<SystemJsonSerializer>();
             endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
