@@ -77,7 +77,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
             var endpointSummary = new EndpointThroughputSummary
             {
                 //want to display the endpoint name to the user if it's different to the sanitized endpoint name
-                Name = endpointGroupPerQueue.FirstOrDefault(endpoint => string.Compare(endpoint.Id.Name, endpointGroupPerQueue.Key, false) != 0)?.Id.Name ?? endpointGroupPerQueue.Key,
+                Name = endpointGroupPerQueue.FirstOrDefault(endpoint => string.Equals(endpoint.Id.Name, endpointGroupPerQueue.Key, StringComparison.OrdinalIgnoreCase))?.Id.Name ?? endpointGroupPerQueue.Key,
                 UserIndicator = UserIndicator(endpointGroupPerQueue) ?? (isKnownEndpoint ? Contracts.UserIndicator.NServiceBusEndpoint.ToString() : string.Empty),
                 IsKnownEndpoint = isKnownEndpoint,
                 MaxDailyThroughput = data.Max()
