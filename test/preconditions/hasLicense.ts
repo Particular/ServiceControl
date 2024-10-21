@@ -1,6 +1,9 @@
 import { activeLicenseResponse } from "../mocks/license-response-template";
 import { SetupFactoryOptions } from "../driver";
 import LicenseInfo, { LicenseStatus } from "@/resources/LicenseInfo";
+import { useLicense } from "@/composables/serviceLicense";
+
+const { license } = useLicense();
 
 export const hasActiveLicense = ({ driver }: SetupFactoryOptions) => {
   const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
@@ -16,11 +19,11 @@ export enum LicenseType {
   UpgradeProtection,
 }
 
-export const hasExpiredLicense = (licenseType: LicenseType) => createLicenseMockedResponse(licenseType, false);
-export const hasExpiringLicense = (licenseType: LicenseType) => createLicenseMockedResponse(licenseType, true);
+export const hasExpiredLicense = (licenseType: LicenseType, licenseExtensionUrl: string = "https://particular.net/extend-your-trial?p=servicepulse") => createLicenseMockedResponse(licenseType, false, licenseExtensionUrl);
+export const hasExpiringLicense = (licenseType: LicenseType, licenseExtensionUrl: string = "https://particular.net/extend-your-trial?p=servicepulse") => createLicenseMockedResponse(licenseType, true, licenseExtensionUrl);
 
 const createLicenseMockedResponse =
-  (liceseType: LicenseType, expiring = false) =>
+  (liceseType: LicenseType, expiring = false, licenseExtensionUrl: string) =>
   ({ driver }: SetupFactoryOptions) => {
     const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
     let status: LicenseStatus;
@@ -37,6 +40,9 @@ const createLicenseMockedResponse =
         break;
     }
 
+    //We need to reset the global state to ensure the warning toast is always triggered by the value changing between multiple test runs. See documented issue and proposed solution https://github.com/Particular/ServicePulse/issues/1905
+    license.license_status = LicenseStatus.Unavailable;
+
     driver.mockEndpoint(`${serviceControlInstanceUrl}license`, {
       body: <LicenseInfo>{
         registered_to: "ACME Software",
@@ -47,6 +53,7 @@ const createLicenseMockedResponse =
         instance_name: "Particular.ServiceControl",
         trial_license: status === LicenseStatus.ValidWithExpiringTrial || status === LicenseStatus.InvalidDueToExpiredTrial,
         license_status: status,
+        license_extension_url: licenseExtensionUrl,
       },
     });
   };

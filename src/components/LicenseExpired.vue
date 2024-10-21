@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { licenseStatus } from "../composables/serviceLicense";
+import { licenseStatus, license } from "../composables/serviceLicense";
 import routeLinks from "@/router/routeLinks";
 </script>
 
@@ -18,7 +18,7 @@ import routeLinks from "@/router/routeLinks";
       <h1>License expired</h1>
       <p>To continue using the Particular Service Platform, please extend your license</p>
       <div class="action-toolbar">
-        <a class="btn btn-default btn-primary" href="https://particular.net/extend-your-trial?p=servicepulse" target="_blank">Extend your license <i class="fa fa-external-link"></i></a>
+        <a class="btn btn-default btn-primary" :href="license.license_extension_url" target="_blank">Extend your license <i class="fa fa-external-link"></i></a>
         <RouterLink class="btn btn-default btn-secondary" :to="routeLinks.configuration.license.link">View license details</RouterLink>
       </div>
     </div>

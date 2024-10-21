@@ -8,18 +8,20 @@ import { getAlertNotifications } from "./questions/alertNotifications";
 
 describe("FEATURE: EXPIRING license detection", () => {
   describe("RULE: The user should be alerted while using the monitoring endpoint list functionality about an EXPIRING license", () => {
-    test("EXAMPLE: Expiring trial", async ({ driver }) => {
-      //Arrange
-      await driver.setUp(precondition.serviceControlWithMonitoring);
-      await driver.setUp(precondition.hasExpiringLicense(precondition.LicenseType.Trial));
+    [{ licenseExtensionUrl: "https://particular.net/extend-your-trial?p=servicepulse" }, { licenseExtensionUrl: "http://custom-url?with-parts=value1" }].forEach(({ licenseExtensionUrl }) => {
+      test(`EXAMPLE: Expiring trial with ${licenseExtensionUrl} as license extension url `, async ({ driver }) => {
+        //Arrange
+        await driver.setUp(precondition.serviceControlWithMonitoring);
+        await driver.setUp(precondition.hasExpiringLicense(precondition.LicenseType.Trial, licenseExtensionUrl));
 
-      await driver.goTo("monitoring");
+        await driver.goTo("monitoring");
 
-      const notification = (await getAlertNotifications()).find((n) => n.textMatches(/your non-production development license will expire soon\. to continue using the particular service platform you'll need to extend your license\./i));
+        const notification = (await getAlertNotifications()).find((n) => n.textMatches(/your non-production development license will expire soon\. to continue using the particular service platform you'll need to extend your license\./i));
 
-      expect(notification).not.toBeUndefined();
-      expect(notification?.hasLink({ caption: "Extend your license", address: "http://particular.net/extend-your-trial?p=servicepulse" })).toBeTruthy();
-      expect(notification?.hasLink({ caption: "View license details", address: "#/configuration" })).toBeTruthy();
+        expect(notification).not.toBeUndefined();
+        expect(notification?.hasLink({ caption: "Extend your license", address: licenseExtensionUrl })).toBeTruthy();
+        expect(notification?.hasLink({ caption: "View license details", address: "#/configuration" })).toBeTruthy();
+      });
     });
 
     [

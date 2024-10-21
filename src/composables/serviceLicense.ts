@@ -23,6 +23,7 @@ const emptyLicense: License = {
   registered_to: "",
   status: "",
   license_status: LicenseStatus.Unavailable,
+  license_extension_url: "",
   licenseEdition: computed(() => {
     return license.license_type && license.edition ? ", " + license.edition : "";
   }),
@@ -54,6 +55,7 @@ const licenseStatus = reactive({
   subscriptionDaysLeft: "",
   trialDaysLeft: "",
   warningLevel: LicenseWarningLevel.None,
+  licenseExtensionUrl: "",
 });
 
 function useLicense() {
@@ -70,6 +72,7 @@ async function getOrUpdateLicenseStatus() {
   license.instance_name = lic.instance_name;
   license.registered_to = lic.registered_to;
   license.status = lic.status;
+  license.license_extension_url = lic.license_extension_url ?? "https://particular.net/extend-your-trial?p=servicepulse";
   license.upgrade_protection_expiration = lic.upgrade_protection_expiration;
 
   licenseStatus.isSubscriptionLicense = isSubscriptionLicense(license);
@@ -86,6 +89,7 @@ async function getOrUpdateLicenseStatus() {
   licenseStatus.trialDaysLeft = getTrialDaysLeft(license);
   licenseStatus.warningLevel = getLicenseWarningLevel(license.license_status);
   licenseStatus.isExpired = licenseStatus.isPlatformExpired || licenseStatus.isPlatformTrialExpired || licenseStatus.isInvalidDueToUpgradeProtectionExpired;
+  licenseStatus.licenseExtensionUrl = license.license_extension_url;
 }
 
 export { useLicense, license, licenseStatus };
@@ -141,7 +145,7 @@ function getUpgradeDaysLeft(license: UnwrapNestedRefs<License>) {
 
 async function getLicense() {
   try {
-    const [, data] = await useTypedFetchFromServiceControl<LicenseInfo>("license?refresh=true");
+    const [, data] = await useTypedFetchFromServiceControl<LicenseInfo>("license?refresh=true&clientName=servicepulse");
     return data;
   } catch (err) {
     console.log(err);

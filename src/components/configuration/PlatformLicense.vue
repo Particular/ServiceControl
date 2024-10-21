@@ -62,7 +62,7 @@ const loading = computed(() => {
                     </span>
                     <div class="license-expired-text" v-if="licenseStatus.isPlatformTrialExpired">Your license expired. To continue using the Particular Service Platform you'll need to extend your license.</div>
                     <div class="license-page-extend-trial" v-if="licenseStatus.isPlatformTrialExpiring && licenseStatus.isPlatformTrialExpired">
-                      <a class="btn btn-default btn-primary" href="https://particular.net/extend-your-trial?p=servicepulse" target="_blank">Extend your license&nbsp;&nbsp;<i class="fa fa-external-link"></i></a>
+                      <a class="btn btn-default btn-primary" :href="license.license_extension_url" target="_blank">Extend your license&nbsp;&nbsp;<i class="fa fa-external-link"></i></a>
                     </div>
                   </div>
                 </template>

@@ -7,6 +7,7 @@ export default interface LicenseInfo {
   instance_name: string;
   trial_license: boolean;
   license_status: LicenseStatus;
+  license_extension_url?: string;
   status: string;
 }
 

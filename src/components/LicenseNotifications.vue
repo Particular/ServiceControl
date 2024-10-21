@@ -8,6 +8,7 @@ import routeLinks from "@/router/routeLinks";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+const { license, getOrUpdateLicenseStatus } = useLicense();
 
 function displayWarningMessage(licenseStatus: LicenseStatus) {
   const configurationRootLink = router.resolve(routeLinks.configuration.root).href;
@@ -18,7 +19,7 @@ function displayWarningMessage(licenseStatus: LicenseStatus) {
       break;
     }
     case "ValidWithExpiringTrial": {
-      const trialExpiring = `<div><strong>Non-production development license expiring</strong><div>Your non-production development license will expire soon. To continue using the Particular Service Platform you'll need to extend your license.</div><a href="http://particular.net/extend-your-trial?p=servicepulse" class="btn btn-warning"><i class="fa fa-external-link-alt"></i> Extend your license</a><a href="${configurationRootLink}" class="btn btn-light">View license details</a></div>`;
+      const trialExpiring = `<div><strong>Non-production development license expiring</strong><div>Your non-production development license will expire soon. To continue using the Particular Service Platform you'll need to extend your license.</div><a href="${license.license_extension_url}" class="btn btn-warning"><i class="fa fa-external-link-alt"></i> Extend your license</a><a href="${configurationRootLink}" class="btn btn-light">View license details</a></div>`;
       useShowToast(TYPE.WARNING, "", trialExpiring, true);
       break;
     }
@@ -39,8 +40,6 @@ function displayWarningMessage(licenseStatus: LicenseStatus) {
       break;
   }
 }
-
-const { license, getOrUpdateLicenseStatus } = useLicense();
 
 watch(
   () => license.license_status,
