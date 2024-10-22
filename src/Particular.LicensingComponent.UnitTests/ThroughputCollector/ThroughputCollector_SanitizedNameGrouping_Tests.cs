@@ -27,7 +27,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
     {
         // Arrange
         await DataStore.CreateBuilder()
-            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker])
+            .AddEndpoint("endpoint1", sources: [ThroughputSource.Broker])
             .ConfigureEndpoint(endpoint => endpoint.SanitizedName = "endpoint1")
                 .WithThroughput(data: [50])
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Audit])
@@ -43,6 +43,8 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
         // Assert
         Assert.That(summary, Is.Not.Null);
         Assert.That(summary, Has.Count.EqualTo(1));
+        //should see 1 endpoint with both throughputs, and return 60 as the maximum one
+        Assert.That(summary.Sum(s => s.MaxDailyThroughput), Is.EqualTo(60));
     }
 
 
@@ -51,7 +53,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
     {
         // Arrange
         await DataStore.CreateBuilder()
-            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker])
+            .AddEndpoint("endpoint1", sources: [ThroughputSource.Broker])
             .ConfigureEndpoint(endpoint => endpoint.SanitizedName = "endpoint1")
                 .WithThroughput(data: [50])
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Audit])
@@ -67,6 +69,10 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(1));
+        //should see 1 endpoint with both throughputs, and return 60 as the maximum one
+        Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(60));
+        Assert.That(report.ReportData.Queues.FirstOrDefault(f => f.QueueName == "Endpoint1").DailyThroughputFromAudit.Sum(s => s.MessageCount), Is.EqualTo(60));
+        Assert.That(report.ReportData.Queues.FirstOrDefault(f => f.QueueName == "Endpoint1").DailyThroughputFromBroker.Sum(s => s.MessageCount), Is.EqualTo(50));
     }
 
     [Test]
@@ -74,7 +80,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
     {
         // Arrange
         await DataStore.CreateBuilder()
-            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker])
+            .AddEndpoint("endpoint1", sources: [ThroughputSource.Broker])
             .ConfigureEndpoint(endpoint => endpoint.SanitizedName = "endpoint1")
                 .WithThroughput(data: [50])
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Audit])
@@ -90,6 +96,8 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
         // Assert
         Assert.That(summary, Is.Not.Null);
         Assert.That(summary, Has.Count.EqualTo(2));
+        //two different endpoints hence total throughput is a sum of both of them
+        Assert.That(summary.Sum(s => s.MaxDailyThroughput), Is.EqualTo(110));
     }
 
 
@@ -98,7 +106,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
     {
         // Arrange
         await DataStore.CreateBuilder()
-            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker])
+            .AddEndpoint("endpoint1", sources: [ThroughputSource.Broker])
             .ConfigureEndpoint(endpoint => endpoint.SanitizedName = "endpoint1")
                 .WithThroughput(data: [50])
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Audit])
@@ -114,6 +122,8 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(2));
+        //two different endpoints hence total throughput is a sum of both of them
+        Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(110));
     }
 
     class BrokerThroughputQuery_WithLowerCaseSanitizedNameCleanse : IBrokerThroughputQuery
