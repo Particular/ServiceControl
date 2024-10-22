@@ -1,5 +1,8 @@
 ﻿namespace Particular.LicensingComponent;
 
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using AuditThroughput;
 using Contracts;
 using MonitoringThroughput;
@@ -59,28 +62,16 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
 
     public async Task<List<EndpointThroughputSummary>> GetThroughputSummary(CancellationToken cancellationToken)
     {
-        var endpoints = (await dataStore.GetAllEndpoints(false, cancellationToken)).ToList();
-        var queueNames = endpoints.Select(endpoint => endpoint.SanitizedName).Distinct().ToList();
-        var endpointThroughputPerQueue = await dataStore.GetEndpointThroughputByQueueName(queueNames, cancellationToken);
         var endpointSummaries = new List<EndpointThroughputSummary>();
 
-        //group endpoints by sanitized name - so to group throughput recorded from broker, audit and monitoring
-        foreach (var endpointGroupPerQueue in endpoints.GroupBy(g => CleanseSanitizedName(g.SanitizedName)))
+        await foreach (var endpointData in GetDistinctEndpointData(cancellationToken))
         {
-            var data = new List<ThroughputData>();
-            if (endpointThroughputPerQueue.TryGetValue(endpointGroupPerQueue.Key, out var tempData))
-            {
-                data.AddRange(tempData);
-            }
-
-            var isKnownEndpoint = IsKnownEndpoint(endpointGroupPerQueue);
             var endpointSummary = new EndpointThroughputSummary
             {
-                //want to display the endpoint name to the user if it's different to the sanitized endpoint name
-                Name = endpointGroupPerQueue.FirstOrDefault(endpoint => endpoint.Id.Name != endpoint.SanitizedName)?.Id.Name ?? endpointGroupPerQueue.Key,
-                UserIndicator = UserIndicator(endpointGroupPerQueue) ?? (isKnownEndpoint ? Contracts.UserIndicator.NServiceBusEndpoint.ToString() : string.Empty),
-                IsKnownEndpoint = isKnownEndpoint,
-                MaxDailyThroughput = data.Max()
+                Name = endpointData.Name,
+                UserIndicator = endpointData.UserIndicator ?? (endpointData.IsKnownEndpoint ? Contracts.UserIndicator.NServiceBusEndpoint.ToString() : string.Empty),
+                IsKnownEndpoint = endpointData.IsKnownEndpoint,
+                MaxDailyThroughput = endpointData.ThroughputData.Max()
             };
 
             endpointSummaries.Add(endpointSummary);
@@ -124,40 +115,25 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         var reportMasks = await dataStore.GetReportMasks(cancellationToken);
         CreateMasks(reportMasks.ToArray());
 
-        var endpoints = (await dataStore.GetAllEndpoints(false, cancellationToken)).ToArray();
-        var queueNames = endpoints.Select(endpoint => endpoint.SanitizedName).Distinct().ToList();
-        var endpointThroughputPerQueue = await dataStore.GetEndpointThroughputByQueueName(queueNames, cancellationToken);
         var queueThroughputs = new List<QueueThroughput>();
         List<string> ignoredQueueNames = [];
 
-        //group endpoints by sanitized name - so to group throughput recorded from broker, audit and monitoring
-        foreach (var endpointGroupPerQueue in endpoints.GroupBy(g => CleanseSanitizedName(g.SanitizedName)))
+        await foreach (var endpointData in GetDistinctEndpointData(cancellationToken))
         {
-            //want to display the endpoint name if it's different to the sanitized endpoint name
-            var endpointName = endpointGroupPerQueue.FirstOrDefault(endpoint => endpoint.Id.Name != endpoint.SanitizedName)?.Id.Name ?? endpointGroupPerQueue.Key;
-
-            if (!endpointThroughputPerQueue.TryGetValue(endpointGroupPerQueue.Key, out var data))
-            {
-                data = [];
-            }
-
-            var throughputData = data.ToList();
-
-            var userIndicator = UserIndicator(endpointGroupPerQueue) ?? null;
-            var notAnNsbEndpoint = userIndicator?.Equals(Contracts.UserIndicator.NotNServiceBusEndpoint.ToString(), StringComparison.OrdinalIgnoreCase) ?? false;
+            var notAnNsbEndpoint = endpointData.UserIndicator?.Equals(Contracts.UserIndicator.NotNServiceBusEndpoint.ToString(), StringComparison.OrdinalIgnoreCase) ?? false;
 
             //get all data that we have, including daily values
             var queueThroughput = new QueueThroughput
             {
-                QueueName = Mask(endpointName),
-                UserIndicator = userIndicator,
-                EndpointIndicators = EndpointIndicators(endpointGroupPerQueue) ?? [],
-                NoDataOrSendOnly = throughputData.Sum() == 0,
-                Scope = EndpointScope(endpointGroupPerQueue) ?? "",
-                Throughput = throughputData.Max(),
-                DailyThroughputFromAudit = throughputData.FromSource(ThroughputSource.Audit).Select(s => new DailyThroughput { DateUTC = s.DateUTC, MessageCount = s.MessageCount }).ToArray(),
-                DailyThroughputFromMonitoring = throughputData.FromSource(ThroughputSource.Monitoring).Select(s => new DailyThroughput { DateUTC = s.DateUTC, MessageCount = s.MessageCount }).ToArray(),
-                DailyThroughputFromBroker = notAnNsbEndpoint ? [] : throughputData.FromSource(ThroughputSource.Broker).Select(s => new DailyThroughput { DateUTC = s.DateUTC, MessageCount = s.MessageCount }).ToArray()
+                QueueName = Mask(endpointData.Name),
+                UserIndicator = endpointData.UserIndicator,
+                EndpointIndicators = endpointData.EndpointIndicators ?? [],
+                NoDataOrSendOnly = endpointData.ThroughputData.Sum() == 0,
+                Scope = endpointData.Scope ?? "",
+                Throughput = endpointData.ThroughputData.Max(),
+                DailyThroughputFromAudit = endpointData.ThroughputData.FromSource(ThroughputSource.Audit).Select(s => new DailyThroughput { DateUTC = s.DateUTC, MessageCount = s.MessageCount }).ToArray(),
+                DailyThroughputFromMonitoring = endpointData.ThroughputData.FromSource(ThroughputSource.Monitoring).Select(s => new DailyThroughput { DateUTC = s.DateUTC, MessageCount = s.MessageCount }).ToArray(),
+                DailyThroughputFromBroker = notAnNsbEndpoint ? [] : endpointData.ThroughputData.FromSource(ThroughputSource.Broker).Select(s => new DailyThroughput { DateUTC = s.DateUTC, MessageCount = s.MessageCount }).ToArray()
             };
 
             queueThroughputs.Add(queueThroughput);
@@ -199,8 +175,8 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
 
         report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.ServiceControlVersion.ToString()] = throughputSettings.ServiceControlVersion;
         report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.ServicePulseVersion.ToString()] = spVersion;
-        report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.AuditEnabled.ToString()] = endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Audit).ToString();
-        report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.MonitoringEnabled.ToString()] = endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Monitoring).ToString();
+        report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.AuditEnabled.ToString()] = systemHasAuditEnabled.ToString();
+        report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.MonitoringEnabled.ToString()] = systemHasMonitoringEnabled.ToString();
 
         var throughputReport = new SignedReport { ReportData = report, Signature = Signature.SignReport(report) };
         return throughputReport;
@@ -228,6 +204,57 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         }
     }
 
+    async IAsyncEnumerable<EndpointData> GetDistinctEndpointData([EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var endpoints = (await dataStore.GetAllEndpoints(false, cancellationToken)).ToArray();
+        var queueNames = endpoints.Select(endpoint => endpoint.SanitizedName).Distinct().ToList();
+        var endpointThroughputPerQueue = await dataStore.GetEndpointThroughputByQueueName(queueNames, cancellationToken);
+
+        systemHasAuditEnabled = endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Audit);
+        systemHasMonitoringEnabled = endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Monitoring);
+
+        //group endpoints by sanitized name - so to group throughput recorded from broker, audit and monitoring
+        //some brokers use lowercase only so we want to ensure that we are matching on what the user has setup via NSB in terms of nn endpoint name, and what is stored on the broker
+        foreach (var endpointGroupPerQueue in endpoints.GroupBy(g => CleanseSanitizedName(g.SanitizedName)))
+        {
+            //want to display the endpoint name if it's different to the sanitized endpoint name
+            var endpointName = endpointGroupPerQueue.FirstOrDefault(endpoint => !string.Equals(endpoint.Id.Name, endpointGroupPerQueue.Key, StringComparison.Ordinal))?.Id.Name ?? endpointGroupPerQueue.Key;
+
+            var throughputData = new List<ThroughputData>();
+            foreach (var endpointQueueName in endpointThroughputPerQueue.Keys.Where(k => CleanseSanitizedName(k) == endpointGroupPerQueue.Key))
+            {
+                if (endpointThroughputPerQueue.TryGetValue(endpointQueueName, out var tempData))
+                {
+                    throughputData.AddRange(tempData);
+                }
+            }
+
+            var userIndicator = UserIndicator(endpointGroupPerQueue) ?? null;
+
+            yield return new EndpointData(endpointName, throughputData, userIndicator, EndpointScope(endpointGroupPerQueue), EndpointIndicators(endpointGroupPerQueue), IsKnownEndpoint(endpointGroupPerQueue));
+        }
+    }
+
+    class EndpointData
+    {
+        internal EndpointData(string name, List<ThroughputData> throughputData, string? userIndicator, string? scope, string[]? endpointIndicators, bool isKnownEndpoint)
+        {
+            Name = name;
+            ThroughputData = throughputData;
+            UserIndicator = userIndicator;
+            Scope = scope;
+            EndpointIndicators = endpointIndicators;
+            IsKnownEndpoint = isKnownEndpoint;
+        }
+
+        internal string Name { get; }
+        internal List<ThroughputData> ThroughputData { get; }
+        internal string? UserIndicator { get; }
+        internal string? Scope { get; }
+        internal string[]? EndpointIndicators { get; }
+        internal bool IsKnownEndpoint { get; }
+    }
+
     string CleanseSanitizedName(string endpointName)
     {
         return throughputQuery == null ? endpointName : throughputQuery.SanitizedEndpointNameCleanser(endpointName);
@@ -241,4 +268,6 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
     string[]? EndpointIndicators(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.EndpointIndicators?.Any() == true)?.SelectMany(s => s.EndpointIndicators)?.Distinct()?.ToArray();
 
     readonly string transport = throughputQuery?.MessageTransport ?? throughputSettings.TransportType;
+    internal bool systemHasAuditEnabled;
+    internal bool systemHasMonitoringEnabled;
 }
