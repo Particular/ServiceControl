@@ -115,5 +115,7 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
 
     public virtual string SanitizeEndpointName(string endpointName) => endpointName;
 
+    //NOTE This was added after initial release to help with matching on sanitized name where the broker (azure) would auto lowercase all the names.
+    //If the logic was added to the SanitizeEndpointName function it would only apply to new records, and not historical data, so the report and endpoint groupings would be incorrect.
     public virtual string SanitizedEndpointNameCleanser(string endpointName) => endpointName;
 }

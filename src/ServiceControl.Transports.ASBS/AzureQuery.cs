@@ -209,7 +209,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        logger.LogInformation($"Gathering metrics for \"{brokerQueue}\" queue");
+        logger.LogInformation($"Gathering metrics for \"{brokerQueue.QueueName}\" queue");
 
         var endDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
         if (endDate < startDate)
