@@ -47,8 +47,8 @@
     <PackageVersion Include="NServiceBus.Transport.AzureServiceBus" Version="4.2.3" />
     <PackageVersion Include="NServiceBus.Transport.AzureStorageQueues" Version="13.0.1" />
     <PackageVersion Include="NServiceBus.Transport.Msmq.Sources" Version="3.0.1" />
-    <PackageVersion Include="NServiceBus.Transport.PostgreSql" Version="8.1.4" />
-    <PackageVersion Include="NServiceBus.Transport.SqlServer" Version="8.1.4" />
+    <PackageVersion Include="NServiceBus.Transport.SqlServer" Version="8.1.5" />
+    <PackageVersion Include="NServiceBus.Transport.PostgreSql" Version="8.1.5" />
     <PackageVersion Include="NuGet.Versioning" Version="6.11.1" />
     <PackageVersion Include="NUnit" Version="4.2.2" />
     <PackageVersion Include="NUnit.Analyzers" Version="4.3.0" />
