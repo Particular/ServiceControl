@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Monitoring.Infrastructure
 {
     using System;
-    using System.Collections.Generic;
+    using System.Collections.Concurrent;
     using Messaging;
 
     public class VariableHistoryIntervalStore<BreakdownT> : IProvideBreakdownBy<BreakdownT>
@@ -12,7 +12,7 @@
 
             foreach (var period in HistoryPeriod.All)
             {
-                histories.Add(period, new IntervalsStore<BreakdownT>(period.IntervalSize, period.NumberOfIntervals, period.DelayedIntervals));
+                histories.TryAdd(period, new IntervalsStore<BreakdownT>(period.IntervalSize, period.NumberOfIntervals, period.DelayedIntervals));
             }
         }
 
@@ -34,6 +34,6 @@
             }
         }
 
-        Dictionary<HistoryPeriod, IntervalsStore<BreakdownT>> histories;
+        ConcurrentDictionary<HistoryPeriod, IntervalsStore<BreakdownT>> histories;
     }
 }
