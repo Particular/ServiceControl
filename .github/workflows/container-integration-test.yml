@@ -37,7 +37,7 @@ jobs:
             expected-healthy-containers: 4
           - name: sqs
             transport: AmazonSQS
-            connection-string: 'AccessKeyId=demo;SecretAccessKey=demo;Region=us-east-1'
+            # No connection-string - should be able to load AWS info only from environment variables
             compose-cmd: docker compose -f servicecontrol.yml -f sqs.yml up -d
             expected-healthy-containers: 5
     env:
