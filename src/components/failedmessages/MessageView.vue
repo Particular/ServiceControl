@@ -403,7 +403,7 @@ onUnmounted(() => {
                 <span v-if="failedMessage.number_of_processing_attempts > 1" :title="'This message has already failed ' + failedMessage.number_of_processing_attempts + ' times'" class="label sidebar-label label-important metadata-label">
                   {{ failedMessage.number_of_processing_attempts - 1 }} Retry Failures
                 </span>
-                <span v-if="failedMessage.edited" tooltip="Message was edited" class="label sidebar-label label-info metadata-label">Edited</span>
+                <span v-if="failedMessage.edited" v-tippy="`Message was edited`" class="label sidebar-label label-info metadata-label">Edited</span>
                 <span v-if="failedMessage.edited" class="metadata metadata-link"><i class="fa fa-history"></i> <RouterLink :to="routeLinks.failedMessage.message.link(failedMessage.edit_of)">View previous version</RouterLink></span>
                 <span v-if="failedMessage.time_of_failure" class="metadata"><i class="fa fa-clock-o"></i> Failed: <time-since :date-utc="failedMessage.time_of_failure"></time-since></span>
                 <span class="metadata"><i class="fa pa-endpoint"></i> Endpoint: {{ failedMessage.receiving_endpoint?.name }}</span>

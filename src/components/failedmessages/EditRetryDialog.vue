@@ -216,7 +216,7 @@ onMounted(() => {
                       <div role="tabpanel" v-if="panel === 2 && !localMessage?.bodyUnavailable" style="height: calc(100% - 260px)">
                         <textarea aria-label="message body" class="form-control" :disabled="!localMessage?.isContentTypeSupported" v-model="localMessage.messageBody"></textarea>
                         <span class="empty-error" v-if="localMessage?.isBodyEmpty"><i class="fa fa-exclamation-triangle"></i> Message body cannot be empty</span>
-                        <span class="reset-body" v-if="localMessage?.isBodyChanged"><i class="fa fa-undo" uib-tooltip="Reset changes"></i> <a @click="resetBodyChanges()" href="javascript:void(0)">Reset changes</a></span>
+                        <span class="reset-body" v-if="localMessage?.isBodyChanged"><i class="fa fa-undo" v-tippy="`Reset changes`"></i> <a @click="resetBodyChanges()" href="javascript:void(0)">Reset changes</a></span>
                         <div class="alert alert-info" v-if="localMessage?.panel === 2 && localMessage.bodyUnavailable">{{ localMessage.bodyUnavailable }}</div>
                       </div>
                     </div>

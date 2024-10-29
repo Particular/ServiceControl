@@ -118,7 +118,7 @@ defineExpose<IMessageList>({
                 <span v-if="message.number_of_processing_attempts > 1" :title="`This message has already failed ${message.number_of_processing_attempts} times`" class="label sidebar-label label-important metadata-label"
                   >{{ message.number_of_processing_attempts === 10 ? "9+" : message.number_of_processing_attempts - 1 }} Retry Failures</span
                 >
-                <span v-if="message.restoreInProgress" tooltip="Message is being restored" class="label sidebar-label label-warning metadata-label metadata in-progress"><i class="bi-recycle"></i> Restore in progress</span>
+                <span v-if="message.restoreInProgress" v-tippy="`Message is being restored`" class="label sidebar-label label-warning metadata-label metadata in-progress"><i class="bi-recycle"></i> Restore in progress</span>
                 <span v-if="message.edited" :title="'Message was edited'" class="label sidebar-label label-info metadata-label">Edited</span>
 
                 <span class="metadata"><i class="fa fa-clock-o"></i> Failed: <time-since :dateUtc="message.time_of_failure"></time-since></span>
