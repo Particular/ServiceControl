@@ -67,7 +67,7 @@ function iconSubClasses(eventItem: EventLogItem) {
   <div class="row box box-event-item">
     <div class="col-12" @click="navigateToEvent(eventLogItem)">
       <div class="row">
-        <div class="col-1">
+        <div class="col-auto">
           <span class="fa-stack fa-lg">
             <i class="fa fa-stack-2x" :class="iconClasses(eventLogItem)" />
             <i v-if="eventLogItem.severity === Severity.Error || eventLogItem.category === 'MessageRedirects'" class="fa fa-o fa-stack-1x fa-inverse" :class="iconSubClasses(eventLogItem)" />
