@@ -1,9 +1,9 @@
 # Important changes here due to new ServiceControl development should also be made in the following locations:
-#   * /docs/test-ghcr-tag
+#   * /src/container-integration-test
 #   * https://github.com/Particular/PlatformContainerExamples/tree/main/docker-compose
 #   * https://github.com/ParticularLabs/AwsLoanBrokerSample/blob/main/docker-compose.yml
 
-name: service-platform
+name: servicecontrol-pr
 
 services:
   servicecontrol:
@@ -15,11 +15,13 @@ services:
       RAVENDB_CONNECTIONSTRING: http://servicecontrol-db:8080
       REMOTEINSTANCES: '[{"api_uri":"http://servicecontrol-audit:44444/api"}]'
     command: --setup-and-run
+    restart: unless-stopped
     depends_on:
       servicecontrol-db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
-  # WARNING: A single database container should not be shared between multiple ServiceControl instances in production scenarios.
   servicecontrol-db:
     image: ghcr.io/particular/servicecontrol-ravendb:${SERVICECONTROL_TAG}
     ports:
@@ -36,17 +38,57 @@ services:
     environment:
       RAVENDB_CONNECTIONSTRING: http://servicecontrol-db:8080
     command: --setup-and-run
+    restart: unless-stopped
     depends_on:
       servicecontrol-db:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
 
   servicecontrol-monitoring:
     image: ghcr.io/particular/servicecontrol-monitoring:${SERVICECONTROL_TAG}
     env_file: .env
+    restart: unless-stopped
     command: --setup-and-run
     ports:
       - "33633:33633"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  servicepulse:
+    image: particular/servicepulse:${SERVICEPULSE_TAG}
+    ports:
+      - "9090:9090"
+    environment:
+      SERVICECONTROL_URL: http://servicecontrol:33333
+      MONITORING_URL: http://servicecontrol-monitoring:33633
+    restart: unless-stopped
+    depends_on:
+      servicecontrol:
+        condition: service_healthy
+      servicecontrol-monitoring:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      start_interval: 10s
+      retries: 3
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
 
 volumes:
+  rabbitmq-data:
   db-config:
   db-data:
