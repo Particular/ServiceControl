@@ -98,7 +98,7 @@ defineExpose<IMessageList>({
     </div>
   </div>
   <div v-for="(message, index) in props.messages" class="row box repeat-item failed-message" :key="message.id">
-    <label class="check col-1" :for="`checkbox${message.id}`" @click="labelClicked($event, index)">
+    <label class="check col-auto" :for="`checkbox${message.id}`" @click="labelClicked($event, index)">
       <input type="checkbox" :disabled="message.retryInProgress || message.submittedForRetrial || message.deleteInProgress || message.restoreInProgress" class="checkbox" v-model="message.selected" :value="message.id" :id="`checkbox${message.id}`" />
     </label>
     <div class="col-11 failed-message-data">
@@ -170,13 +170,9 @@ pre {
   border-radius: 4px;
 }
 
-.check:hover,
-.failed-message-data:hover {
-  background-color: #edf6f7;
-}
-
 .failed-message:hover {
   border: 1px solid #00a3c4;
+  background-color: #edf6f7;
 }
 
 .repeat-item {

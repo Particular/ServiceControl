@@ -114,7 +114,7 @@ onMounted(async () => {
               <div class="row box box-no-click">
                 <div class="col-12 no-side-padding">
                   <div class="row">
-                    <div class="col-1">
+                    <div class="col-auto">
                       <OnOffSwitch id="emailNotifications" @toggle="toggleEmailNotifications" :value="emailNotifications.enabled" />
                       <div>
                         <span class="connection-test connection-failed">
