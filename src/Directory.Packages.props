@@ -31,8 +31,8 @@
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageVersion Include="Mindscape.Raygun4Net.NetCore" Version="11.1.0" />
     <PackageVersion Include="NLog.Extensions.Logging" Version="5.3.14" />
-    <PackageVersion Include="NServiceBus" Version="9.2.2" />
-    <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="9.2.2" />
+    <PackageVersion Include="NServiceBus" Version="9.2.3" />
+    <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="9.2.3" />
     <PackageVersion Include="NServiceBus.AmazonSQS" Version="7.0.1" />
     <PackageVersion Include="NServiceBus.CustomChecks" Version="5.0.0" />
     <PackageVersion Include="NServiceBus.Extensions.Hosting" Version="3.0.0" />
