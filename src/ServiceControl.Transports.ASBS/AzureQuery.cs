@@ -129,6 +129,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         client = new MetricsQueryClient(environment.Endpoint, clientCredentials,
             new MetricsQueryClientOptions
             {
+                Audience = environment.Audience,
                 Transport = new HttpClientTransport(
                     new HttpClient(new SocketsHttpHandler
                     {
