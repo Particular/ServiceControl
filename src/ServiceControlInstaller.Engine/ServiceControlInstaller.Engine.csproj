@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- Must stay net6.0 to support PowerShell 7.2 LTS -->
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <!-- Must stay net8.0 to support PowerShell 7.4 LTS -->
+    <TargetFramework>net8.0-windows</TargetFramework>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 

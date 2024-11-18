@@ -33,7 +33,7 @@
                 LicenseType = "Trial",
                 ExpirationDate = endDate.ToDateTime(TimeOnly.MinValue),
                 IsExtendedTrial = false,
-                ValidApplications = new List<string> { "All" }
+                ValidApplications = ["All"]
             });
         }
 
@@ -44,7 +44,7 @@
                 LicenseType = "Trial",
                 ExpirationDate = DateTime.UtcNow.Date.AddDays(-2), //HasLicenseDateExpired uses a grace period of 1 day
                 IsExtendedTrial = false,
-                ValidApplications = new List<string> { "All" }
+                ValidApplications = ["All"]
             });
         }
 

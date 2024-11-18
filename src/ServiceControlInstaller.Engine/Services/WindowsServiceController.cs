@@ -287,7 +287,7 @@
 
 
         static readonly string[] Win32ChangeErrorMessages =
-        {
+        [
             "The request was accepted",
             "The request is not supported",
             "Access Denied",
@@ -313,10 +313,10 @@
             "The account under which this service runs is either invalid or lacks the permissions to run the service",
             "The service exists in the database of services available from the system",
             "The service is currently paused in the system"
-        };
+        ];
 
         static readonly string[] Win32ServiceErrorMessages =
-        {
+        [
             "The request was accepted.",
             "The request is not supported.",
             "The user did not have the necessary access.",
@@ -342,6 +342,6 @@
             "The account under which this service runs is either invalid or lacks the permissions to run the service.",
             "The service exists in the database of services available from the system.",
             "The service is currently paused in the system."
-        };
+        ];
     }
 }

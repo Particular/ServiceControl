@@ -311,7 +311,7 @@
             return bytes;
         }
 
-        List<SecurityIdentifier> securityIdentifiers = new List<SecurityIdentifier>();
+        List<SecurityIdentifier> securityIdentifiers = [];
 
         const int GENERIC_EXECUTE = 536870912;
         static Regex urlPattern = new Regex(@"^(?<protocol>https?)://(?<hostname>([^/]*?))(:(?<port>\d{0,5}))?(/(?<virtual>[^:]*))?/$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
