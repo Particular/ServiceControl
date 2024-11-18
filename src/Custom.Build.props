@@ -25,6 +25,11 @@
     <InstanceName Include="Particular.ServiceControl.Monitoring" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- DotNetZip: No replacement in net4xx, only affects unzipping unknown zips, where ServiceControl only unzips known deployment artifacts -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-xhg6-9j5j-w4vf" />
+  </ItemGroup>
+
   <!-- workaround for https://github.com/microsoft/MSBuildSdks/issues/477 -->
   <PropertyGroup>
     <UseArtifactsOutput>false</UseArtifactsOutput>
