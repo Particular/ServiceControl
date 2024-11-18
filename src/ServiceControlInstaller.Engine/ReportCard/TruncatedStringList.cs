@@ -96,7 +96,7 @@
             }
         }
 
-        List<string> itemList = new List<string>();
+        List<string> itemList = [];
 
         int maxLength;
     }

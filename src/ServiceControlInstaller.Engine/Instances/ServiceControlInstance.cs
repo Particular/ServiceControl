@@ -26,7 +26,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public TimeSpan? AuditRetentionPeriod { get; set; }
 
-        public List<RemoteInstanceSetting> RemoteInstances { get; set; } = new List<RemoteInstanceSetting>();
+        public List<RemoteInstanceSetting> RemoteInstances { get; set; } = [];
 
         public PersistenceManifest PersistenceManifest { get; set; }
 
@@ -207,12 +207,12 @@ namespace ServiceControlInstaller.Engine.Instances
         protected override IEnumerable<string> GetPersistencePathsToCleanUp()
         {
             string[] keys =
-            {
+            [
                 "Raven/IndexStoragePath",
                 "Raven/CompiledIndexCacheDirectory",
                 "Raven/Esent/LogsPath",
                 ServiceControlSettings.DBPath.Name
-            };
+            ];
 
             var settings = AppConfig.Config.AppSettings.Settings;
             foreach (var key in keys)

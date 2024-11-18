@@ -21,7 +21,7 @@
 
         public string AutoMigrateTo { get; set; }
 
-        public string[] Aliases { get; set; } = Array.Empty<string>();
+        public string[] Aliases { get; set; } = [];
 
         public string ZipName
         {
@@ -65,6 +65,6 @@
 
     public class TransportManifest
     {
-        public TransportInfo[] Definitions { get; set; } = Array.Empty<TransportInfo>();
+        public TransportInfo[] Definitions { get; set; } = [];
     }
 }

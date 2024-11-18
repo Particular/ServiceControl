@@ -330,7 +330,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected virtual IEnumerable<string> GetPersistencePathsToCleanUp()
         {
-            return Enumerable.Empty<string>();
+            return [];
         }
 
         protected virtual void ValidateConnectionString()
