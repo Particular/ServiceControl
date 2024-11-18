@@ -17,7 +17,7 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4.1.0
         with:
-          dotnet-version: 8.0.x
+          global-json-file: global.json
       - name: dotnet info
         run: dotnet --info
       - name: Download RavenDB Server

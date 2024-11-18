@@ -38,7 +38,7 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4.1.0
         with:
-          dotnet-version: 8.0.x
+          global-json-file: global.json
       - name: Download RavenDB Server
         shell: pwsh
         run: ./tools/download-ravendb-server.ps1
