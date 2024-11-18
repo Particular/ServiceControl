@@ -25,7 +25,7 @@ Copyright = '© 2010-{{Date}} NServiceBus Ltd. All rights reserved'
 Description = 'ServiceControl Management'
 
 # Minimum version of the PowerShell engine required by this module
-PowerShellVersion = '7.2'
+PowerShellVersion = '7.4'
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''
