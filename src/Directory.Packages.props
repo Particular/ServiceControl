@@ -12,7 +12,6 @@
     <PackageVersion Include="Azure.ResourceManager.ServiceBus" Version="1.0.1" />
     <PackageVersion Include="ByteSize" Version="2.1.2" />
     <PackageVersion Include="Caliburn.Micro" Version="4.0.212" />
-    <PackageVersion Include="DotNetZip" Version="1.16.0" />
     <PackageVersion Include="FluentValidation" Version="11.10.0" />
     <PackageVersion Include="Fody" Version="6.8.2" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />

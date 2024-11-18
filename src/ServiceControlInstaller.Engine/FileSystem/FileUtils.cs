@@ -3,11 +3,11 @@ namespace ServiceControlInstaller.Engine.FileSystem
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.IO.Compression;
     using System.Linq;
     using System.Reflection;
     using System.Security.AccessControl;
     using System.Threading;
-    using Ionic.Zip;
 
     static class FileUtils
     {
@@ -147,8 +147,8 @@ namespace ServiceControlInstaller.Engine.FileSystem
 
         internal static void UnzipToSubdirectory(Stream zipStream, string targetPath)
         {
-            using var zip = ZipFile.Read(zipStream);
-            zip.ExtractAll(targetPath, ExtractExistingFileAction.OverwriteSilently);
+            using var zip = new ZipArchive(zipStream, ZipArchiveMode.Read, leaveOpen: false);
+            zip.ExtractToDirectory(targetPath, overwriteFiles: true);
         }
 
         static void RunWithRetries(Action action)
