@@ -7,7 +7,7 @@
     <PackageVersion Include="Autofac" Version="8.1.1" />
     <PackageVersion Include="AWSSDK.CloudWatch" Version="3.7.402" />
     <PackageVersion Include="AWSSDK.SecurityToken" Version="3.7.401.2" />
-    <PackageVersion Include="Azure.Identity" Version="1.12.1" />
+    <PackageVersion Include="Azure.Identity" Version="1.13.1" />
     <PackageVersion Include="Azure.Monitor.Query" Version="1.5.0" />
     <PackageVersion Include="Azure.ResourceManager.ServiceBus" Version="1.0.1" />
     <PackageVersion Include="ByteSize" Version="2.1.2" />
