@@ -48,7 +48,7 @@
     <PackageVersion Include="NServiceBus.Transport.PostgreSql" Version="8.1.6" />
     <PackageVersion Include="NuGet.Versioning" Version="6.12.1" />
     <PackageVersion Include="NUnit" Version="4.2.2" />
-    <PackageVersion Include="NUnit.Analyzers" Version="4.3.0" />
+    <PackageVersion Include="NUnit.Analyzers" Version="4.4.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="4.6.0" />
     <PackageVersion Include="Particular.Approvals" Version="2.0.0" />
     <PackageVersion Include="Particular.Licensing.Sources" Version="5.1.0" />
