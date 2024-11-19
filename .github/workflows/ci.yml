@@ -36,7 +36,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4.0.1
+        uses: actions/setup-dotnet@v4.1.0
         with:
           dotnet-version: 8.0.x
       - name: Download RavenDB Server
@@ -75,7 +75,7 @@ jobs:
           connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
           catalog: nservicebus
       - name: Setup PostgreSQL
-        uses: Particular/setup-postgres-action@v1.0.0
+        uses: Particular/setup-postgres-action@v1.0.1
         if: matrix.test-category == 'PostgreSQL'
         with:          
           connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString

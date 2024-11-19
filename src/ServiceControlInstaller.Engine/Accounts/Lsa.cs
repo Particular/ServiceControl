@@ -25,7 +25,7 @@
                 // the user has no privileges
                 if (win32ErrorCode == StatusObjectNameNotFound)
                 {
-                    return new string[0];
+                    return [];
                 }
 
                 HandleLsaResult(result);

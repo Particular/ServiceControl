@@ -12,12 +12,11 @@
   -->
 
   <PropertyGroup>
-    <!-- Must stay net6.0 to support PowerShell 7.2 LTS -->
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <!-- Must stay net8.0 to support PowerShell 7.4 LTS -->
+    <TargetFramework>net8.0-windows</TargetFramework>
 
     <!--Ensures that all project references are explicitly defined in this file -->
     <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
-    <LangVersion>12.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

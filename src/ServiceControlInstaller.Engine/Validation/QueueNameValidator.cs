@@ -9,8 +9,8 @@ namespace ServiceControlInstaller.Engine.Validation
     {
         QueueNameValidator()
         {
-            SCInstances = new List<IServiceControlInstance>();
-            AuditInstances = new List<IServiceControlAuditInstance>();
+            SCInstances = [];
+            AuditInstances = [];
         }
 
         internal QueueNameValidator(IServiceControlInstance instance) : this()
@@ -47,8 +47,8 @@ namespace ServiceControlInstaller.Engine.Validation
 
         void DetermineAuditQueueNames(IServiceControlAuditInstance instance)
         {
-            queues = new List<QueueInfo>
-            {
+            queues =
+            [
                 new QueueInfo
                 {
                     PropertyName = "AuditQueue",
@@ -56,7 +56,7 @@ namespace ServiceControlInstaller.Engine.Validation
                     QueueName = instance.AuditQueue,
                     QueueType = QueueType.Audit
                 }
-            };
+            ];
 
             if (instance.ForwardAuditMessages)
             {
@@ -72,8 +72,8 @@ namespace ServiceControlInstaller.Engine.Validation
 
         void DetermineServiceControlQueueNames(IServiceControlInstance instance)
         {
-            queues = new List<QueueInfo>
-            {
+            queues =
+            [
                 new QueueInfo
                 {
                     PropertyName = "ErrorQueue",
@@ -81,7 +81,7 @@ namespace ServiceControlInstaller.Engine.Validation
                     QueueName = instance.ErrorQueue,
                     QueueType = QueueType.Error
                 }
-            };
+            ];
 
             if (instance.ForwardErrorMessages)
             {

@@ -42,7 +42,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public override string DirectoryName => "ServiceControl";
 
-        public List<RemoteInstanceSetting> RemoteInstances { get; set; } = new List<RemoteInstanceSetting>();
+        public List<RemoteInstanceSetting> RemoteInstances { get; set; } = [];
 
         public void AddRemoteInstance(string apiUri)
         {

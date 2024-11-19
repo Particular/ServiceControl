@@ -132,7 +132,7 @@ class QueueLengthProvider : AbstractQueueLengthProvider
 
     static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
 
-    static readonly TimeSpan QueryDelayInterval = TimeSpan.FromSeconds(1);
+    static readonly TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
 
     const int QueryChunkSize = 10;
 }

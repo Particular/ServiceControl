@@ -3,11 +3,11 @@ namespace ServiceControlInstaller.Engine.FileSystem
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.IO.Compression;
     using System.Linq;
     using System.Reflection;
     using System.Security.AccessControl;
     using System.Threading;
-    using Ionic.Zip;
 
     static class FileUtils
     {
@@ -147,8 +147,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
 
         internal static void UnzipToSubdirectory(Stream zipStream, string targetPath)
         {
-            using var zip = ZipFile.Read(zipStream);
-            zip.ExtractAll(targetPath, ExtractExistingFileAction.OverwriteSilently);
+            ZipFile.ExtractToDirectory(zipStream, targetPath, overwriteFiles: true);
         }
 
         static void RunWithRetries(Action action)
@@ -165,7 +164,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
                 {
                     Debug.WriteLine($"ServiceControlInstaller.Engine.FileSystem.FileUtils::RunWithRetries Action failed, {attempts} attempts remaining. Reason: {ex.Message} ({ex.GetType().FullName})");
                     // Yes, Task.Delay would be better but would require all calls to be async
-                    // and in 99.9% this sleep will not hit 
+                    // and in 99.9% this sleep will not hit
                     Thread.Sleep(100);
                 }
             }

@@ -59,12 +59,12 @@
             get
             {
                 const string flagFileName = ".notconfigured";
-                return new[]
-                {
+                return
+                [
                     Path.Combine(InstallPath, flagFileName),
                     Path.Combine(DBPath, flagFileName),
                     Path.Combine(LogPath, flagFileName)
-                };
+                ];
             }
         }
 

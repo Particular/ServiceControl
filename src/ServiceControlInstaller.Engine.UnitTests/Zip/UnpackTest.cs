@@ -2,9 +2,9 @@
 {
     using System;
     using System.IO;
+    using System.IO.Compression;
     using System.Linq;
     using FileSystem;
-    using Ionic.Zip;
     using NUnit.Framework;
 
     [TestFixture]
@@ -38,11 +38,7 @@
                 }
             }
 
-            using (var zip = new ZipFile())
-            {
-                zip.AddDirectory(workingFolder.FullName, null);
-                zip.Save(zipFilePath);
-            }
+            ZipFile.CreateFromDirectory(workingFolder.FullName, zipFilePath);
 
             Console.WriteLine(zipFilePath);
         }

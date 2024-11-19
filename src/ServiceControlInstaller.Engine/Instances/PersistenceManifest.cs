@@ -15,11 +15,11 @@
 
         public bool IsSupported { get; set; } = true;
 
-        public Setting[] Settings { get; set; } = Array.Empty<Setting>();
+        public Setting[] Settings { get; set; } = [];
 
-        public string[] SettingsWithPathsToCleanup { get; set; } = Array.Empty<string>();
+        public string[] SettingsWithPathsToCleanup { get; set; } = [];
 
-        public string[] Aliases { get; set; } = Array.Empty<string>();
+        public string[] Aliases { get; set; } = [];
 
         internal bool IsMatch(string persistenceType) =>
             string.Equals(TypeName, persistenceType, StringComparison.Ordinal) // Type names are case-sensitive
