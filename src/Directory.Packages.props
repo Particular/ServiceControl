@@ -86,7 +86,7 @@
     <PackageVersion Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
   <ItemGroup>
-    <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.45" />
+    <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.48" />
     <GlobalPackageReference Include="Microsoft.Build.CopyOnWrite" Version="1.0.330" />
     <GlobalPackageReference Include="Particular.Packaging" Version="4.2.0" />
   </ItemGroup>
