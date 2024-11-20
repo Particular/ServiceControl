@@ -50,7 +50,7 @@
     <PackageVersion Include="NServiceBus.Transport.PostgreSql" Version="8.1.6" />
     <PackageVersion Include="NuGet.Versioning" Version="6.11.1" />
     <PackageVersion Include="NUnit" Version="4.2.2" />
-    <PackageVersion Include="NUnit.Analyzers" Version="4.3.0" />
+    <PackageVersion Include="NUnit.Analyzers" Version="4.4.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="4.6.0" />
     <PackageVersion Include="Particular.Approvals" Version="2.0.0" />
     <PackageVersion Include="Particular.Licensing.Sources" Version="5.1.0" />
@@ -85,8 +85,8 @@
     <PackageVersion Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
   <ItemGroup>
-    <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.43" />
-    <GlobalPackageReference Include="Microsoft.Build.CopyOnWrite" Version="1.0.322" />
+    <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.48" />
+    <GlobalPackageReference Include="Microsoft.Build.CopyOnWrite" Version="1.0.334" />
     <GlobalPackageReference Include="Particular.Packaging" Version="4.2.0" />
   </ItemGroup>
 </Project>
