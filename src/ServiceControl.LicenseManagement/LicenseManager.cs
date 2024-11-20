@@ -39,7 +39,7 @@
             {
                 var licenseText = NonBlockingReader.ReadAllTextWithoutLocking(licenseFile);
                 var machineLevelLicenseLocation = LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData);
-                new FilePathLicenseStore().StoreLicense(machineLevelLicenseLocation, licenseText);
+                FilePathLicenseStore.StoreLicense(machineLevelLicenseLocation, licenseText);
             }
             catch (Exception)
             {
