@@ -1,38 +1,31 @@
 ﻿namespace ServiceControl.Persistence.RavenDB
 {
-    using System.Collections.Generic;
-    using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Session;
+    using ServiceControl.Persistence.Infrastructure;
 
     class ConnectedApplicationsDataStore(IRavenSessionProvider sessionProvider) : IConnectedApplicationsDataStore
     {
-        public async Task Add(string connectedApplication)
+        public static string MakeDocumentId(string name) => $"{ConnectedApplication.CollectionName}/{DeterministicGuid.MakeId(name)}";
+
+        public async Task<ConnectedApplication[]> GetAllConnectedApplications()
         {
-            using var session = await sessionProvider.OpenSession();
-            var connectedApplications = await session.LoadAsync<ConnectedApplications>(StorageKey) ?? new ConnectedApplications();
-
-            if (!connectedApplications.Applications.Any(application => string.Equals(application, connectedApplication, System.StringComparison.InvariantCultureIgnoreCase)))
-            {
-                connectedApplications.Applications.Add(connectedApplication);
-            }
-
-            await session.StoreAsync(connectedApplications, StorageKey);
-            await session.SaveChangesAsync();
+            using IAsyncDocumentSession session = await sessionProvider.OpenSession();
+            return await session
+                .Query<ConnectedApplication, ConnectedApplicationIndex>()
+                .ToArrayAsync();
         }
 
-        public async Task<IList<string>> GetConnectedApplications()
+        public async Task UpdateConnectedApplication(ConnectedApplication connectedApplication, CancellationToken cancellationToken)
         {
-            using var session = await sessionProvider.OpenSession();
-            var applications = await session.LoadAsync<ConnectedApplications>(StorageKey);
+            string docId = MakeDocumentId(connectedApplication.Name);
 
-            return applications?.Applications;
+            using IAsyncDocumentSession session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+
+            await session.StoreAsync(connectedApplication, docId, cancellationToken);
+            await session.SaveChangesAsync(cancellationToken);
         }
-
-        class ConnectedApplications
-        {
-            public List<string> Applications { get; set; } = [];
-        }
-
-        const string StorageKey = "ConnectedApplications";
     }
 }

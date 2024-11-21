@@ -9,7 +9,7 @@
     {
         Task CheckEndpoints(DateTime threshold);
         Task DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt);
-        void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored);
+        void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored, bool supportsHeartbeats);
         Task DisableMonitoring(Guid id);
         Task EnableMonitoring(Guid id);
         Task EndpointDetected(EndpointDetails newEndpointDetails);

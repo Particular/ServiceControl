@@ -73,9 +73,9 @@ namespace ServiceControl.Monitoring
             });
         }
 
-        public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored)
+        public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored, bool supportsHeartbeats)
         {
-            var endpointInstanceId = new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
+            var endpointInstanceId = new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId, supportsHeartbeats);
             endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitored, domainEvents));
         }
 

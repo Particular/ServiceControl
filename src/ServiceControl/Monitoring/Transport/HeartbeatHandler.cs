@@ -14,7 +14,7 @@
 
         public Task Handle(EndpointHeartbeat message, IMessageHandlerContext context)
         {
-            var endpointInstanceId = new EndpointInstanceId(message.EndpointName, message.Host, message.HostId);
+            var endpointInstanceId = new EndpointInstanceId(message.EndpointName, message.Host, message.HostId, true);
 
             monitor.RecordHeartbeat(endpointInstanceId, message.ExecutedAt);
 

@@ -7,7 +7,7 @@ namespace ServiceControl.Monitoring
     {
         public static EndpointInstanceId ToInstanceId(this EndpointDetails endpointDetails)
         {
-            return new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
+            return new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId, true);
         }
     }
 }

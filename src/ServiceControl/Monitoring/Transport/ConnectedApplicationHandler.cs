@@ -2,16 +2,19 @@
 {
     using System.Threading.Tasks;
     using NServiceBus;
-    using ServiceControl.Monitoring;
     using ServiceControl.Persistence;
+    using ConnectedApplication = ConnectedApplication;
 
     public class ConnectedApplicationHandler(IConnectedApplicationsDataStore connectedApplicationsDataStore) : IHandleMessages<ConnectedApplication>
     {
-        public Task Handle(ConnectedApplication message, IMessageHandlerContext context)
+        public async Task Handle(ConnectedApplication message, IMessageHandlerContext context)
         {
-            _ = connectedApplicationsDataStore.Add(message.Application);
-
-            return Task.CompletedTask;
+            var connectedApplication = new Persistence.ConnectedApplication
+            {
+                Name = message.Application,
+                SupportsHeartbeats = message.SupportsHeartbeats
+            };
+            await connectedApplicationsDataStore.UpdateConnectedApplication(connectedApplication, context.CancellationToken);
         }
     }
 }

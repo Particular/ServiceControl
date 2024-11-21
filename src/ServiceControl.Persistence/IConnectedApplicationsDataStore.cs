@@ -1,11 +1,12 @@
 ﻿namespace ServiceControl.Persistence
 {
-    using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public interface IConnectedApplicationsDataStore
     {
-        Task Add(string connectedApplication);
-        Task<IList<string>> GetConnectedApplications();
+        Task<ConnectedApplication[]> GetAllConnectedApplications();
+
+        Task UpdateConnectedApplication(ConnectedApplication connectedApplication, CancellationToken token);
     }
 }

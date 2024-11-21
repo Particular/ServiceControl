@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Licensing
 {
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
@@ -39,10 +40,10 @@
 
         async Task<string> BuildConnectedApplicationsListPart()
         {
-            var connectedApplications = await connectedApplicationsStore.GetConnectedApplications();
+            var connectedApplications = await connectedApplicationsStore.GetAllConnectedApplications();
 
-            return connectedApplications != null
-                ? $"&ca={string.Join(',', connectedApplications)}"
+            return connectedApplications != null && connectedApplications.Length > 0
+                ? $"&ca={string.Join(',', connectedApplications.Select(ca => ca.Name))}"
                 : string.Empty;
         }
 

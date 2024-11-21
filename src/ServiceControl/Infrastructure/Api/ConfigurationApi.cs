@@ -85,10 +85,7 @@ class ConfigurationApi(ActiveLicense license,
             {
                 settings.HeartbeatGracePeriod
             },
-            ConnectedApplications = new
-            {
-                ConnectedApplications = await connectedApplicationsDataStore.GetConnectedApplications()
-            }
+            ConnectedApplications = await connectedApplicationsDataStore.GetAllConnectedApplications(),
         };
 
         return content;

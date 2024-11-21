@@ -116,6 +116,7 @@ namespace ServiceControl.Monitoring
                 HostDisplayName = Id.HostName,
                 Monitored = Monitored,
                 MonitorHeartbeat = Monitored,
+                SupportsHeartbeats = Id.SupportsHeartbeats,
 
                 HeartbeatInformation = lastSeen.HasValue ? new HeartbeatInformation
                 {

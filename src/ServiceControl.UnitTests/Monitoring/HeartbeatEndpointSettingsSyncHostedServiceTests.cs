@@ -211,7 +211,7 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         public Task DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt) =>
             throw new NotImplementedException();
 
-        public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored) =>
+        public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored, bool supportsHeartbeats) =>
             throw new NotImplementedException();
 
         public Task DisableMonitoring(Guid id) => throw new NotImplementedException();
