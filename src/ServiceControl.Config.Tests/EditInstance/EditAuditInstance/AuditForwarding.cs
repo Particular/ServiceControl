@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Config.Tests.EditInstance.EditAuditInstance
 {
-    using NUnit.Framework;
-    using ServiceControl.Config.UI.InstanceEdit;
     using System.Collections.Generic;
     using System.Linq;
+    using NUnit.Framework;
+    using ServiceControl.Config.UI.InstanceEdit;
     using static EditingAuditForwardingQueueExtensions;
 
     public static class EditingAuditForwardingQueueExtensions

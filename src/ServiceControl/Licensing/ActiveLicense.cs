@@ -1,8 +1,8 @@
 ﻿namespace Particular.ServiceControl.Licensing
 {
-    using System.Threading.Tasks;
-    using System.Threading;
     using System;
+    using System.Threading;
+    using System.Threading.Tasks;
     using global::ServiceControl.LicenseManagement;
     using global::ServiceControl.Persistence;
     using NServiceBus.Logging;

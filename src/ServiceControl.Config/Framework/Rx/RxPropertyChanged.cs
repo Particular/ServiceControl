@@ -3,8 +3,8 @@
     using System;
     using Caliburn.Micro;
     using ReactiveUI;
-    using PropertyChangingDoNotNotify = PropertyChanging.DoNotNotifyAttribute;
     using PropertyChangedDoNotNotify = PropertyChanged.DoNotNotifyAttribute;
+    using PropertyChangingDoNotNotify = PropertyChanging.DoNotNotifyAttribute;
 
     public class RxPropertyChanged : ReactiveObject, INotifyPropertyChangedEx
     {

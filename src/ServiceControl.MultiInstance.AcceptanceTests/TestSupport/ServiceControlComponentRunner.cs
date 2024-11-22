@@ -17,8 +17,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceBus.Management.Infrastructure.Settings;
-    using AuditInstanceSettings = ServiceControl.Audit.Infrastructure.Settings.Settings;
-    using AuditInstanceTestsSupport = ServiceControl.Audit.AcceptanceTests.TestSupport;
+    using AuditInstanceSettings = Audit.Infrastructure.Settings.Settings;
+    using AuditInstanceTestsSupport = Audit.AcceptanceTests.TestSupport;
     using EndpointConfiguration = NServiceBus.EndpointConfiguration;
     using PrimaryInstanceSettings = ServiceBus.Management.Infrastructure.Settings.Settings;
     using PrimaryInstanceTestsSupport = ServiceControl.AcceptanceTests.TestSupport;
@@ -28,8 +28,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         public ServiceControlComponentRunner(ITransportIntegration transportToUse,
             Action<EndpointConfiguration> customPrimaryEndpointConfiguration,
             Action<EndpointConfiguration> customAuditEndpointConfiguration,
-            Action<Settings> customServiceControlSettings,
-            Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings,
+            Action<PrimaryInstanceSettings> customServiceControlSettings,
+            Action<AuditInstanceSettings> customServiceControlAuditSettings,
             Action<IHostApplicationBuilder> primaryHostBuilderCustomization,
             Action<IHostApplicationBuilder> auditHostBuilderCustomization)
         {
@@ -148,11 +148,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         ITransportIntegration transportToUse;
         Action<EndpointConfiguration> customPrimaryEndpointConfiguration;
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
-        Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
+        Action<AuditInstanceSettings> customServiceControlAuditSettings;
         Action<IHostApplicationBuilder> primaryHostBuilderCustomization;
         Action<IHostApplicationBuilder> auditHostBuilderCustomization;
-        Action<Settings> customServiceControlSettings;
-        Audit.AcceptanceTests.TestSupport.ServiceControlComponentRunner auditInstanceComponentRunner;
+        Action<PrimaryInstanceSettings> customServiceControlSettings;
+        AuditInstanceTestsSupport.ServiceControlComponentRunner auditInstanceComponentRunner;
         PrimaryInstanceTestsSupport.ServiceControlComponentRunner primaryInstanceComponentRunner;
     }
 }

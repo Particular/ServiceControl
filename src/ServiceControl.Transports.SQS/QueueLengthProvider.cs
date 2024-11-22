@@ -1,12 +1,12 @@
 ﻿namespace ServiceControl.Transports.SQS
 {
     using System;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using System.Data.Common;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Data.Common;
+    using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
     using Amazon.Runtime;
     using Amazon.SQS;
     using NServiceBus.Logging;

@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Config.Tests.AddInstance.AddErrorInstance
 {
-    using NUnit.Framework;
-    using ServiceControl.Config.UI.InstanceAdd;
     using System.Collections.Generic;
     using System.Linq;
+    using NUnit.Framework;
+    using ServiceControl.Config.UI.InstanceAdd;
     using static AddingErrorForwardingQueueExtensions;
 
     public static class AddingErrorForwardingQueueExtensions

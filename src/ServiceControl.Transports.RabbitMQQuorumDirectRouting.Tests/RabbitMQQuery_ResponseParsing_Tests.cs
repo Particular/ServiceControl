@@ -1,17 +1,17 @@
 namespace ServiceControl.Transport.Tests;
 
 using System;
+using System.Collections.ObjectModel;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
+using Particular.Approvals;
 using Transports;
 using Transports.RabbitMQ;
-using System.Net.Http;
-using Particular.Approvals;
-using System.Collections.ObjectModel;
-using System.Net;
 
 [TestFixture]
 class RabbitMQQuery_ResponseParsing_Tests

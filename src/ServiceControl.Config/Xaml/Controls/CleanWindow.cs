@@ -50,13 +50,13 @@
 
         void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
-            var hwnd = ((HwndSource)HwndSource.FromVisual(this)).Handle;
+            var hwnd = ((HwndSource)PresentationSource.FromVisual(this)).Handle;
             UnsafeNativeMethods.ShowWindow(hwnd, ShowWindowCommands.Minimize);
         }
 
         void MaximizeButton_Click(object sender, RoutedEventArgs e)
         {
-            var hwnd = ((HwndSource)HwndSource.FromVisual(this)).Handle;
+            var hwnd = ((HwndSource)PresentationSource.FromVisual(this)).Handle;
             UnsafeNativeMethods.ShowWindow(hwnd, WindowState == WindowState.Normal ? ShowWindowCommands.Maximize : ShowWindowCommands.Normal);
         }
 

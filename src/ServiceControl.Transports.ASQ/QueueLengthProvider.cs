@@ -1,13 +1,13 @@
 ﻿namespace ServiceControl.Transports.ASQ
 {
     using System;
-    using System.Linq;
-    using System.Threading.Tasks;
     using System.Collections.Concurrent;
+    using System.Linq;
     using System.Threading;
-    using NServiceBus.Logging;
+    using System.Threading.Tasks;
     using Azure.Storage.Queues;
     using Azure.Storage.Queues.Models;
+    using NServiceBus.Logging;
 
     class QueueLengthProvider : AbstractQueueLengthProvider
     {

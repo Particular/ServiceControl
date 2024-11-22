@@ -21,7 +21,7 @@
                 root = Path.GetPathRoot(path);
                 return true;
             }
-            catch (System.ArgumentException)
+            catch (ArgumentException)
             {
                 root = string.Empty;
                 return false;

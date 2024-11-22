@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Monitoring.Infrastructure.Api
 {
     using System;
-    using ServiceControl.Monitoring.Http.Diagrams;
     using System.Collections.Generic;
+    using ServiceControl.Monitoring.Http.Diagrams;
 
     class MonitoredMetric<T>
     {

@@ -5,8 +5,8 @@
     using System.Linq;
     using System.Windows.Input;
     using Commands;
-    using Framework.Rx;
     using Extensions;
+    using Framework.Rx;
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Instances;
     using Validations = Validation.Validations;

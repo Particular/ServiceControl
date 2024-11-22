@@ -316,4 +316,3 @@ public class RabbitMQQuery : BrokerThroughputQuery
         public static readonly string PasswordDescription = "Password to access the RabbitMQ management interface";
     }
 }
-

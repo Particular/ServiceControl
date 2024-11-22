@@ -5,7 +5,6 @@
     using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
-    using Raven.Client.Documents;
     using RavenDB;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Persistence.Recoverability;

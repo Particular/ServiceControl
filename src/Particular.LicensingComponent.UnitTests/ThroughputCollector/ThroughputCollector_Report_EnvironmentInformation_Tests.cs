@@ -2,9 +2,9 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NUnit.Framework;
 using Contracts;
 using Infrastructure;
+using NUnit.Framework;
 
 [TestFixture]
 class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollectorTestFixture

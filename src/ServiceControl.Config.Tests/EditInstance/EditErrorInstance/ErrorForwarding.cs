@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Config.Tests.EditInstance.EditErrorInstance
 {
-    using NUnit.Framework;
-    using ServiceControl.Config.UI.InstanceEdit;
     using System.Collections.Generic;
     using System.Linq;
+    using NUnit.Framework;
+    using ServiceControl.Config.UI.InstanceEdit;
     using static EditingErrorForwardingQueueExtensions;
 
     public static class EditingErrorForwardingQueueExtensions

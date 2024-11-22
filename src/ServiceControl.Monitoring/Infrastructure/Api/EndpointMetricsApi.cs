@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.Monitoring.Infrastructure.Api
 {
-    using ServiceControl.Monitoring.Http.Diagrams;
-    using ServiceControl.Monitoring.QueueLength;
-    using ServiceControl.Monitoring.Timings;
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using ServiceControl.Monitoring.Http.Diagrams;
+    using ServiceControl.Monitoring.QueueLength;
+    using ServiceControl.Monitoring.Timings;
 
     public class EndpointMetricsApi(IEnumerable<IProvideBreakdown> breakdownProviders, EndpointRegistry endpointRegistry, EndpointInstanceActivityTracker activityTracker, MessageTypeRegistry messageTypeRegistry) : IEndpointMetricsApi
     {

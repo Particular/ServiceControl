@@ -1,17 +1,17 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 {
     using System;
-    using System.Threading.Tasks;
-    using AcceptanceTesting;
-    using NServiceBus;
-    using NServiceBus.AcceptanceTesting;
-    using ServiceBus.Management.Infrastructure.Settings;
-    using NUnit.Framework;
-    using Contracts;
-    using ServiceControl.MessageFailures;
     using System.Collections.Generic;
     using System.Text.Json;
+    using System.Threading.Tasks;
+    using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
+    using Contracts;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
+    using NUnit.Framework;
+    using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.MessageFailures;
 
     class When_a_failed_message_is_unarchived : ExternalIntegrationAcceptanceTest
     {

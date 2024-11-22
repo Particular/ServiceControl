@@ -11,9 +11,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 using Particular.Approvals;
+using ServiceControl.Transports.BrokerThroughput;
 using Transports;
 using Transports.SqlServer;
-using ServiceControl.Transports.BrokerThroughput;
 
 [TestFixture]
 class SqlServerQueryTests : TransportTestFixture

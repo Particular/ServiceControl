@@ -1,5 +1,11 @@
 ﻿namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
 {
+    using System;
+    using System.IO;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using AcceptanceTesting.EndpointTemplates;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Notifications;
@@ -9,12 +15,6 @@
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
-    using System;
-    using System.IO;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using AcceptanceTesting.EndpointTemplates;
 
     [TestFixture]
     class When_email_notifications_are_enabled : AcceptanceTest

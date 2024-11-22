@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
-using Contracts;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using Particular.Approvals;

@@ -7,8 +7,8 @@
     using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using ServiceBus.Management.Infrastructure.Settings;
     using NUnit.Framework;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts;
     using ServiceControl.MessageFailures;
 

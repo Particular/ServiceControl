@@ -3,9 +3,9 @@ namespace ServiceControl.Config.UI.InstanceEdit
     using System;
     using System.Collections.Generic;
     using System.Windows.Input;
+    using Extensions;
     using InstanceAdd;
     using PropertyChanged;
-    using Extensions;
     using ServiceControlInstaller.Engine.Instances;
     using Validar;
     using Xaml.Controls;

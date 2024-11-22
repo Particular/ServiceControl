@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using NServiceBus;
-    using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
     public class ProcessedMessage

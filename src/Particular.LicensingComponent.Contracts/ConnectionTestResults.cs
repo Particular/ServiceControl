@@ -12,4 +12,3 @@ public class ConnectionTestResults(
     public ConnectionSettingsTestResult MonitoringConnectionResult { get; } = monitoringConnectionResult;
     public ConnectionSettingsTestResult BrokerConnectionResult { get; } = brokerConnectionResult;
 }
-

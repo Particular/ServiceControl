@@ -47,7 +47,7 @@ namespace ServiceControl.UnitTests.Monitoring
             {
                 Assert.That(heartbeat.EndpointName, Is.EqualTo("Test"));
                 Assert.That(heartbeat.Host, Is.EqualTo("Machine"));
-                Assert.That(heartbeat.ExecutedAt, Is.EqualTo(new DateTime(2024, 6, 2, 12, 3, 41, 780, System.DateTimeKind.Utc)));
+                Assert.That(heartbeat.ExecutedAt, Is.EqualTo(new DateTime(2024, 6, 2, 12, 3, 41, 780, DateTimeKind.Utc)));
                 Assert.That(heartbeat.HostId, Is.EqualTo(new Guid("1865830e-71b0-dc6c-e146-62cdd0034e6e")));
             });
         }
@@ -70,7 +70,7 @@ namespace ServiceControl.UnitTests.Monitoring
             {
                 Assert.That(heartbeat.EndpointName, Is.EqualTo("Test"));
                 Assert.That(heartbeat.Host, Is.EqualTo("Machine"));
-                Assert.That(heartbeat.ExecutedAt, Is.EqualTo(new DateTime(2024, 6, 2, 12, 3, 41, 780, System.DateTimeKind.Utc)));
+                Assert.That(heartbeat.ExecutedAt, Is.EqualTo(new DateTime(2024, 6, 2, 12, 3, 41, 780, DateTimeKind.Utc)));
                 Assert.That(heartbeat.HostId, Is.EqualTo(new Guid("1865830e-71b0-dc6c-e146-62cdd0034e6e")));
             });
         }
@@ -100,7 +100,7 @@ namespace ServiceControl.UnitTests.Monitoring
             {
                 Assert.That(endpointStartup.HostId, Is.EqualTo(new Guid("3fa85f64-5717-4562-b3fc-2c963f66afa6")));
                 Assert.That(endpointStartup.Endpoint, Is.EqualTo("SampleEndpoint"));
-                Assert.That(endpointStartup.StartedAt, Is.EqualTo(new DateTime(2022, 12, 1, 12, 0, 0, 0, System.DateTimeKind.Utc)));
+                Assert.That(endpointStartup.StartedAt, Is.EqualTo(new DateTime(2022, 12, 1, 12, 0, 0, 0, DateTimeKind.Utc)));
                 Assert.That(endpointStartup.HostDisplayName, Is.EqualTo("SampleHostDisplayName"));
                 Assert.That(endpointStartup.Host, Is.EqualTo("SampleHost"));
             });
@@ -134,7 +134,7 @@ namespace ServiceControl.UnitTests.Monitoring
             {
                 Assert.That(endpointStartup.HostId, Is.EqualTo(new Guid("3fa85f64-5717-4562-b3fc-2c963f66afa6")));
                 Assert.That(endpointStartup.Endpoint, Is.EqualTo("SampleEndpoint"));
-                Assert.That(endpointStartup.StartedAt, Is.EqualTo(new DateTime(2022, 12, 1, 12, 0, 0, 0, System.DateTimeKind.Utc)));
+                Assert.That(endpointStartup.StartedAt, Is.EqualTo(new DateTime(2022, 12, 1, 12, 0, 0, 0, DateTimeKind.Utc)));
                 Assert.That(endpointStartup.HostDisplayName, Is.EqualTo("SampleHostDisplayName"));
                 Assert.That(endpointStartup.Host, Is.EqualTo("SampleHost"));
             });
@@ -161,8 +161,8 @@ namespace ServiceControl.UnitTests.Monitoring
             Assert.That(potentiallyMissingHeartbeats, Is.Not.Null);
             Assert.Multiple(() =>
             {
-                Assert.That(potentiallyMissingHeartbeats.DetectedAt, Is.EqualTo(new DateTime(2024, 6, 2, 12, 3, 41, 780, System.DateTimeKind.Utc)));
-                Assert.That(potentiallyMissingHeartbeats.LastHeartbeatAt, Is.EqualTo(new DateTime(2024, 6, 2, 12, 3, 38, 780, System.DateTimeKind.Utc)));
+                Assert.That(potentiallyMissingHeartbeats.DetectedAt, Is.EqualTo(new DateTime(2024, 6, 2, 12, 3, 41, 780, DateTimeKind.Utc)));
+                Assert.That(potentiallyMissingHeartbeats.LastHeartbeatAt, Is.EqualTo(new DateTime(2024, 6, 2, 12, 3, 38, 780, DateTimeKind.Utc)));
                 Assert.That(potentiallyMissingHeartbeats.EndpointInstanceId, Is.EqualTo(new Guid("1865830e-71b0-dc6c-e146-62cdd0034e6e")));
             });
         }
@@ -181,8 +181,8 @@ namespace ServiceControl.UnitTests.Monitoring
             Assert.That(potentiallyMissingHeartbeats, Is.Not.Null);
             Assert.Multiple(() =>
             {
-                Assert.That(potentiallyMissingHeartbeats.DetectedAt, Is.EqualTo(new DateTime(2024, 6, 2, 12, 3, 41, 780, System.DateTimeKind.Utc)));
-                Assert.That(potentiallyMissingHeartbeats.LastHeartbeatAt, Is.EqualTo(new DateTime(2024, 6, 2, 12, 3, 38, 780, System.DateTimeKind.Utc)));
+                Assert.That(potentiallyMissingHeartbeats.DetectedAt, Is.EqualTo(new DateTime(2024, 6, 2, 12, 3, 41, 780, DateTimeKind.Utc)));
+                Assert.That(potentiallyMissingHeartbeats.LastHeartbeatAt, Is.EqualTo(new DateTime(2024, 6, 2, 12, 3, 38, 780, DateTimeKind.Utc)));
                 Assert.That(potentiallyMissingHeartbeats.EndpointInstanceId, Is.EqualTo(new Guid("1865830e-71b0-dc6c-e146-62cdd0034e6e")));
             });
         }
