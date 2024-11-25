@@ -71,9 +71,9 @@
                 snsClient = new AmazonSimpleNotificationServiceClient();
             }
 
-#pragma warning disable NSBSQSEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.            
+#pragma warning disable NSBSQSEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             var transport = new SqsTransport(sqsClient, snsClient, enableDelayedDelivery: false);
-#pragma warning enalbe NSBSQSEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.            
+#pragma warning enable NSBSQSEXP0001
 
             if (!string.IsNullOrEmpty(builder.QueueNamePrefix))
             {
