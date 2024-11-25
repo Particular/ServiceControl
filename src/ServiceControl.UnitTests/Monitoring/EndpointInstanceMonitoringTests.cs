@@ -14,7 +14,7 @@
         {
             var monitor = new EndpointInstanceMonitoring(new FakeDomainEvents());
 
-            var monitoredEndpoint = new EndpointInstanceId("MonitoredEndpoint", "HostName", Guid.NewGuid());
+            var monitoredEndpoint = new EndpointInstanceId("MonitoredEndpoint", "HostName", Guid.NewGuid(), true);
             var lastHeartbeat = DateTime.UtcNow;
 
             monitor.RecordHeartbeat(monitoredEndpoint, lastHeartbeat);
