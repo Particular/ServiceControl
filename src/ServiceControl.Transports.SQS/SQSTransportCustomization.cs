@@ -73,7 +73,7 @@
 
 #pragma warning disable NSBSQSEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             var transport = new SqsTransport(sqsClient, snsClient, enableDelayedDelivery: false);
-#pragma warning enable NSBSQSEXP0001
+#pragma warning restore NSBSQSEXP0001
 
             if (!string.IsNullOrEmpty(builder.QueueNamePrefix))
             {
