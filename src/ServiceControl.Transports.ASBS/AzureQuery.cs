@@ -123,13 +123,25 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         }
         else
         {
-            clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
+            var options = new ClientSecretCredentialOptions { AuthorityHost = AzureAuthorityHosts.AzurePublicCloud };
+            if (environment == ArmEnvironment.AzureChina)
+            {
+                options.AuthorityHost = AzureAuthorityHosts.AzureChina;
+            }
+            if (environment == ArmEnvironment.AzureGermany)
+            {
+                // Microsoft Cloud Germany was closed on October 29th, 2021. so we default to the public cloud
+            }
+            if (environment == ArmEnvironment.AzureGovernment)
+            {
+                options.AuthorityHost = AzureAuthorityHosts.AzureGovernment;
+            }
+            clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret, options);
         }
 
         client = new MetricsQueryClient(environment.Endpoint, clientCredentials,
             new MetricsQueryClientOptions
             {
-                Audience = environment.Audience,
                 Transport = new HttpClientTransport(
                     new HttpClient(new SocketsHttpHandler
                     {
