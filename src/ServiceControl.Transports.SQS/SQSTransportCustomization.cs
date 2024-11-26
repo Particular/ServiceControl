@@ -71,7 +71,9 @@
                 snsClient = new AmazonSimpleNotificationServiceClient();
             }
 
-            var transport = new SqsTransport(sqsClient, snsClient);
+#pragma warning disable NSBSQSEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            var transport = new SqsTransport(sqsClient, snsClient, enableDelayedDelivery: false);
+#pragma warning restore NSBSQSEXP0001
 
             if (!string.IsNullOrEmpty(builder.QueueNamePrefix))
             {
@@ -109,13 +111,9 @@
             transport.DoNotWrapOutgoingMessages = builder.DoNotWrapOutgoingMessages;
 
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
-            DisableDelayedDelivery(transport) = true;
 
             return transport;
         }
-
-        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "<DisableDelayedDelivery>k__BackingField")]
-        static extern ref bool DisableDelayedDelivery(SqsTransport transport);
 
         static void
             PromoteEnvironmentVariableFromConnectionString(string value, string environmentVariableName) =>
