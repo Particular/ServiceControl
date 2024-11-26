@@ -23,8 +23,8 @@
             var connectedApplication1 = new ConnectedApplication { Name = "ServiceControl.Connector.MassTransit" };
             var connectedApplication2 = new ConnectedApplication { Name = "ServiceControl.Connector.Kafka" };
 
-            await connectedApplicationsDataStore.UpdateConnectedApplication(connectedApplication1, new System.Threading.CancellationToken()).ConfigureAwait(false);
-            await connectedApplicationsDataStore.UpdateConnectedApplication(connectedApplication2, new System.Threading.CancellationToken()).ConfigureAwait(false);
+            await connectedApplicationsDataStore.UpdateConnectedApplication(connectedApplication1, CancellationToken.None).ConfigureAwait(false);
+            await connectedApplicationsDataStore.UpdateConnectedApplication(connectedApplication2, CancellationToken.None).ConfigureAwait(false);
 
             var result = await connectedApplicationsDataStore.GetAllConnectedApplications();
 
