@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.Tests.RavenDB.ConnectedApplications
 {
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using NUnit.Framework;
