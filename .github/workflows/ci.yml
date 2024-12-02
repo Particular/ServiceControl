@@ -83,7 +83,7 @@ jobs:
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}  
       - name: Setup RabbitMQ
-        uses: Particular/setup-rabbitmq-action@v1.7.0
+        uses: Particular/setup-rabbitmq-action@v1.7.1
         if: matrix.test-category == 'RabbitMQ'
         with:
           connection-string-name: ServiceControl_TransportTests_RabbitMQ_ConnectionString
