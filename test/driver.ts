@@ -1,3 +1,5 @@
+import { type PathParams } from "msw";
+
 type GoTo = (path: string) => Promise<void>;
 type DisposeApp = () => void;
 export type MockEndpointOptions = {
@@ -16,7 +18,7 @@ export type MockEndpointDynamicOptions = {
 };
 
 type MockEndpoint = (path: string, options: MockEndpointOptions) => void;
-type MockEndpointDynamic = (endpoint: string, callBack: (url: URL, params: { [key: string]: string | readonly string[] }) => MockEndpointDynamicOptions) => void;
+type MockEndpointDynamic = (endpoint: string, callBack: (url: URL, params: PathParams) => MockEndpointDynamicOptions) => void;
 
 export type SetupFactoryOptions = {
   driver: Driver;

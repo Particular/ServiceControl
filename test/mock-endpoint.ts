@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse, type PathParams } from "msw";
 import type { SetupWorker } from "msw/browser";
 import { SetupServer } from "msw/node";
 import { MockEndpointDynamicOptions, MockEndpointOptions } from "./driver";
@@ -11,7 +11,7 @@ export const makeMockEndpoint =
 
 export const makeMockEndpointDynamic =
   ({ mockServer }: { mockServer: SetupServer | SetupWorker }) =>
-  (endpoint: string, callBack: (url: URL, params: { [key: string]: string | readonly string[] }) => MockEndpointDynamicOptions) => {
+  (endpoint: string, callBack: (url: URL, params: PathParams) => MockEndpointDynamicOptions) => {
     mockServer.use(
       http.get(endpoint, ({ request, params }) => {
         const url = new URL(request.url.toString());
