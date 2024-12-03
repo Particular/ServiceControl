@@ -129,15 +129,23 @@ async function retrySelected() {
   selectedMessages.forEach((m) => (m.retryInProgress = true));
 }
 
-//TODO: this function doesn't work correctly, since any commas in the exception trace breaks the CSV.
 //Not attempting to use explicit types correctly since this will need to change eventually anyway
 function exportSelected() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function toCSV(array: any[]) {
+    const delimiter = ",";
     const keys = Object.keys(array[0]);
-    let result = keys.join("\t") + "\n";
+    let result = keys.join(delimiter) + "\n";
     array.forEach((obj) => {
-      result += keys.map((k) => obj[k]).join(",") + "\n";
+      result +=
+        keys
+          .map((k) => {
+            let v = String(obj[k]);
+            v = v.replaceAll('"', '""'); // Escape all double quotes
+            if (v.search(/([",\n])/g) >= 0) v = `"${v}"`; // Quote all values to deal with CR characters
+            return v;
+          })
+          .join(delimiter) + "\n";
     });
 
     return result;
