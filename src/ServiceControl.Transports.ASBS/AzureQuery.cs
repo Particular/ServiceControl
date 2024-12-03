@@ -99,11 +99,11 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             Diagnostics.AppendLine("Client secret set");
         }
 
-        ArmEnvironment environment = GetEnvironment();
+        (ArmEnvironment armEnvironment, MetricsQueryAudience metricsQueryAudience) environment = GetEnvironment();
 
         if (managementUrl == null)
         {
-            Diagnostics.AppendLine($"Management Url not set, defaulted to \"{environment.Endpoint}\"");
+            Diagnostics.AppendLine($"Management Url not set, defaulted to \"{environment.armEnvironment.Endpoint}\"");
         }
         else
         {
@@ -123,25 +123,13 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         }
         else
         {
-            var options = new ClientSecretCredentialOptions { AuthorityHost = AzureAuthorityHosts.AzurePublicCloud };
-            if (environment == ArmEnvironment.AzureChina)
-            {
-                options.AuthorityHost = AzureAuthorityHosts.AzureChina;
-            }
-            if (environment == ArmEnvironment.AzureGermany)
-            {
-                // Microsoft Cloud Germany was closed on October 29th, 2021. so we default to the public cloud
-            }
-            if (environment == ArmEnvironment.AzureGovernment)
-            {
-                options.AuthorityHost = AzureAuthorityHosts.AzureGovernment;
-            }
-            clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret, options);
+            clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
         }
 
-        client = new MetricsQueryClient(environment.Endpoint, clientCredentials,
+        client = new MetricsQueryClient(environment.armEnvironment.Endpoint, clientCredentials,
             new MetricsQueryClientOptions
             {
+                Audience = environment.metricsQueryAudience,
                 Transport = new HttpClientTransport(
                     new HttpClient(new SocketsHttpHandler
                     {
@@ -151,7 +139,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         armClient = new ArmClient(clientCredentials, subscriptionId,
             new ArmClientOptions
             {
-                Environment = environment,
+                Environment = environment.armEnvironment,
                 Transport = new HttpClientTransport(
                     new HttpClient(new SocketsHttpHandler
                     {
@@ -161,31 +149,31 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
         return;
 
-        ArmEnvironment GetEnvironment()
+        (ArmEnvironment armEnvironment, MetricsQueryAudience metricsQueryAudience) GetEnvironment()
         {
             if (managementUrlParsed == null)
             {
-                return ArmEnvironment.AzurePublicCloud;
+                return (ArmEnvironment.AzurePublicCloud, MetricsQueryAudience.AzurePublicCloud);
             }
 
             if (managementUrlParsed == ArmEnvironment.AzurePublicCloud.Endpoint)
             {
-                return ArmEnvironment.AzurePublicCloud;
+                return (ArmEnvironment.AzurePublicCloud, MetricsQueryAudience.AzurePublicCloud);
             }
 
             if (managementUrlParsed == ArmEnvironment.AzureChina.Endpoint)
             {
-                return ArmEnvironment.AzureChina;
+                return (ArmEnvironment.AzureChina, MetricsQueryAudience.AzureChina);
             }
 
             if (managementUrlParsed == ArmEnvironment.AzureGermany.Endpoint)
             {
-                return ArmEnvironment.AzureGermany;
+                return (ArmEnvironment.AzureGermany, MetricsQueryAudience.AzurePublicCloud);
             }
 
             if (managementUrlParsed == ArmEnvironment.AzureGovernment.Endpoint)
             {
-                return ArmEnvironment.AzureGovernment;
+                return (ArmEnvironment.AzureGovernment, MetricsQueryAudience.AzureGovernment);
             }
 
             string options = string.Join(", ",
@@ -196,7 +184,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
                 }.Select(armEnvironment => $"\"{armEnvironment.Endpoint}\""));
             InitialiseErrors.Add($"Management url configuration is invalid, available options are {options}");
 
-            return ArmEnvironment.AzurePublicCloud;
+            return (ArmEnvironment.AzurePublicCloud, MetricsQueryAudience.AzurePublicCloud);
         }
     }
 
