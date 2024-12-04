@@ -7,10 +7,10 @@
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
-    using ServiceControl.Persistence.Infrastructure;
-    using ServiceControl.Persistence.Tests.RavenDB.ObjectExtensions;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Persistence.Tests.RavenDB;
+    using ServiceControl.Persistence.Tests.RavenDB.ObjectExtensions;
 
     [TestFixture]
     class ErrorMessageDataStoreTests : RavenPersistenceTestBase

@@ -3,13 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
 using Particular.LicensingComponent.UnitTests.Infrastructure;
 using ServiceControl.Transports.BrokerThroughput;
-using System.Linq;
 
 [TestFixture]
 class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestFixture

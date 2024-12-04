@@ -1,6 +1,5 @@
 ﻿namespace Particular.LicensingComponent.UnitTests;
 
-using System.Linq;
 using System.Threading.Tasks;
 using Contracts;
 using Infrastructure;

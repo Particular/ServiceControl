@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.Infrastructure.Api
 {
-    using ServiceControl.Api;
-    using ServiceControl.Api.Contracts;
-    using ServiceControl.Persistence;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using ServiceControl.Api;
+    using ServiceControl.Api.Contracts;
+    using ServiceControl.Persistence;
 
     class EndpointsApi(IEndpointInstanceMonitoring monitoring) : IEndpointsApi
     {

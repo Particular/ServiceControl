@@ -11,8 +11,8 @@ using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 using Particular.Approvals;
 using Transports;
-using Transports.PostgreSql;
 using Transports.BrokerThroughput;
+using Transports.PostgreSql;
 
 [TestFixture]
 class PostgreSqlQueryTests : TransportTestFixture

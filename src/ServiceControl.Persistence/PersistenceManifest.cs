@@ -110,4 +110,3 @@
         static readonly ILog logger = LogManager.GetLogger(typeof(PersistenceManifestLibrary));
     }
 }
-

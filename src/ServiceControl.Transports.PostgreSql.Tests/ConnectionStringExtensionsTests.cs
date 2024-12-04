@@ -1,7 +1,7 @@
 namespace ServiceControl.Transport.Tests;
 
-using Transports.PostgreSql;
 using NUnit.Framework;
+using Transports.PostgreSql;
 
 [TestFixture]
 class ConnectionStringExtensionsTests : TransportTestFixture

@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Persistence
 {
     using System.Linq;
-    using ServiceControl.Contracts.CustomChecks;
     using Raven.Client.Documents.Indexes;
+    using ServiceControl.Contracts.CustomChecks;
 
     class CustomChecksIndex : AbstractIndexCreationTask<CustomCheck>
     {

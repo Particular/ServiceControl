@@ -2,8 +2,8 @@
 {
     using System.Collections.Generic;
     using NUnit.Framework;
-    using UI.InstanceEdit;
     using ServiceControlInstaller.Engine.Instances;
+    using UI.InstanceEdit;
     using static ServiceControlEditErrorViewModelExtensions;
 
     public static class ServiceControlInstanceExtensions

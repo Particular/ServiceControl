@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.LicenseManagement
 {
     using System;
-    using System.Collections.Generic;
     using Particular.Licensing;
 
     public class LicenseDetails

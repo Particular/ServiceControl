@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.Monitoring.Licensing
 {
-    using global::ServiceControl.LicenseManagement;
+    using ServiceControl.LicenseManagement;
     using NServiceBus.Logging;
 
     public class ActiveLicense

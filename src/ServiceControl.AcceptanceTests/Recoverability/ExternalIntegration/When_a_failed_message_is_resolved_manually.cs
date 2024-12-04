@@ -1,16 +1,16 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
+    using Contracts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using ServiceBus.Management.Infrastructure.Settings;
     using NUnit.Framework;
-    using Contracts;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.MessageFailures;
-    using System.Collections.Generic;
-    using AcceptanceTesting.EndpointTemplates;
     using JsonSerializer = System.Text.Json.JsonSerializer;
 
     class When_a_failed_message_is_resolved_manually : ExternalIntegrationAcceptanceTest

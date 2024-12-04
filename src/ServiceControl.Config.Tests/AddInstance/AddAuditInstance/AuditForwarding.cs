@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Config.Tests.AddInstance.AddAuditInstance
 {
-    using NUnit.Framework;
-    using ServiceControl.Config.UI.InstanceAdd;
     using System.Collections.Generic;
     using System.Linq;
+    using NUnit.Framework;
+    using ServiceControl.Config.UI.InstanceAdd;
     using static AddingAuditForwardingQueueExtensions;
 
     public static class AddingAuditForwardingQueueExtensions
