@@ -7,12 +7,12 @@
     using System.Runtime.Versioning;
     using System.Threading;
     using System.Threading.Tasks;
+    using Configuration;
+    using Infrastructure;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
+    using Persistence;
     using ServiceBus.Management.Infrastructure.Installers;
-    using ServiceControl.Configuration;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Persistence;
 
     class ErrorIngestionFaultPolicy
     {
@@ -79,12 +79,12 @@
             if (!AppEnvironment.RunningInContainer)
             {
                 // Write to Log Path
-                var filePath = Path.Combine(logPath, $"{failure.Id}.txt");
+                string filePath = Path.Combine(logPath, $"{failure.Id.Replace("/", "_")}.txt");
                 await File.WriteAllTextAsync(filePath, failure.ExceptionInfo, cancellationToken);
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    WriteToEventLog("A message import has failed. A log file has been written to " + filePath);
+                    WriteToEventLog($"A message import has failed. A log file has been written to {filePath}");
                 }
             }
         }
