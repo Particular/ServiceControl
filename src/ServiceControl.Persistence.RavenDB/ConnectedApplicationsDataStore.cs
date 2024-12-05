@@ -4,12 +4,9 @@
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Session;
-    using ServiceControl.Persistence.Infrastructure;
 
     class ConnectedApplicationsDataStore(IRavenSessionProvider sessionProvider) : IConnectedApplicationsDataStore
     {
-        public static string MakeDocumentId(string name) => $"{ConnectedApplication.CollectionName}/{DeterministicGuid.MakeId(name)}";
-
         public async Task<ConnectedApplication[]> GetAllConnectedApplications()
         {
             using IAsyncDocumentSession session = await sessionProvider.OpenSession();
@@ -20,7 +17,7 @@
 
         public async Task UpdateConnectedApplication(ConnectedApplication connectedApplication, CancellationToken cancellationToken)
         {
-            string docId = MakeDocumentId(connectedApplication.Name);
+            string docId = ConnectedApplication.MakeDocumentId(connectedApplication.Name);
 
             using IAsyncDocumentSession session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 

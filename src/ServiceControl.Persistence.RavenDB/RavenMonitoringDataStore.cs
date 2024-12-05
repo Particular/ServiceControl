@@ -96,7 +96,7 @@
                 endpointInstanceMonitoring.DetectEndpointFromPersistentStore(
                     endpoint.EndpointDetails,
                     endpoint.Monitored,
-                    connectedApplications.SingleOrDefault(ca => ConnectedApplicationsDataStore.MakeDocumentId(ca.Name) == endpoint.EndpointDetails.ConnectedApplicationId)?.SupportsHeartbeats ?? true
+                    connectedApplications.SingleOrDefault(ca => ConnectedApplication.MakeDocumentId(ca.Name) == endpoint.EndpointDetails.ConnectedApplicationId)?.SupportsHeartbeats ?? true
                 );
             }
         }

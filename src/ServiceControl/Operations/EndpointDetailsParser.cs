@@ -41,7 +41,8 @@ namespace ServiceControl.Contracts.Operations
             var endpoint = new EndpointDetails();
 
             DictionaryExtensions.CheckIfKeyExists(Headers.HostId, headers, s => endpoint.HostId = Guid.Parse(s));
-            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ConnectedApplication", headers, s => endpoint.ConnectedApplicationId = $"{ConnectedApplication.CollectionName}/{DeterministicGuid.MakeId(s)}");
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ConnectedApplication", headers,
+                s => endpoint.ConnectedApplicationId = ConnectedApplication.MakeDocumentId(s));
 
             if (headers.TryGetValue(Headers.HostDisplayName, out var hostDisplayNameHeader))
             {
@@ -79,7 +80,7 @@ namespace ServiceControl.Contracts.Operations
                 }
 
                 // If we've been now able to get the endpoint details, return the new info.
-                if (!string.IsNullOrEmpty(endpoint.Name) && !string.IsNullOrEmpty(endpoint.Host))
+                if (!string.IsNullOrEmpty(endpoint.Name))
                 {
                     return endpoint;
                 }
