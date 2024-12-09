@@ -142,25 +142,17 @@ namespace ServiceControl.Recoverability
                     Log.DebugFormat($"Waiting for forwarder for batch {forwardingBatchId} to finish.");
                 }
 
-                try
-                {
-                    Log.Debug("Awaiting syncEvent.Task.");
-                    _ = await syncEvent.Task;
-                    Log.Debug("Awaiting syncEvent.Task.");
+               Log.Debug("Awaiting syncEvent.Task");
+               _ = await syncEvent.Task;
+               Log.Debug("syncEvent.Task completed");
 
-                    Log.Debug("Disposing registration.");
-                    registration?.Dispose();
-                    Log.Debug("Registration disposed");
+               Log.Debug("Disposing registration.");
+               registration?.Dispose();
+               Log.Debug("Registration disposed");
 
-                    Log.Debug("Stopping message receiver.");
-                    await messageReceiver.StopReceive(cancellationToken);
-                    Log.Debug("Message receiver stopped.");
-                }
-                catch (Exception ex)
-                {
-                    Log.Error("An error occurred while stopping the transport receiver.", ex);
-                    throw;
-                }
+               Log.Debug("Stopping message receiver");
+               await messageReceiver.StopReceive(cancellationToken);
+               Log.Debug("Message receiver stopped");     
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} finished forwarding all messages.");
 
