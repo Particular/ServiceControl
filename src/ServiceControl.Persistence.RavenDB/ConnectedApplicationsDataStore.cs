@@ -11,7 +11,7 @@
         {
             using IAsyncDocumentSession session = await sessionProvider.OpenSession();
             return await session
-                .Query<ConnectedApplication, ConnectedApplicationIndex>()
+                .Query<ConnectedApplication>()
                 .ToArrayAsync();
         }
 
