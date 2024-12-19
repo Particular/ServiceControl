@@ -10,6 +10,8 @@ ServiceControl, ServiceControl.Audit, and ServiceControl.Monitoring can be run/d
 
 - Edit the `app.config` file of the instance type that needs to be run/debugged to select which transport and persistence to use.
   - The configuration file contains commented settings for each supported transport and persistence. It also provides some guidance on additional required settings for specific persisters.
+  - ServiceControl works with a RavenDB persistence
+  - ServiceControl.Audit can work with RavenDB or an InMemory persistence
 - Run or debug the project as usual
 
 A video demo showing how to set it up is available on the Particular YouTube channel:
@@ -26,10 +28,6 @@ It's also possible to [locally test containers built from PRs in GitHub Containe
 
 If the instance is executed for the first time, it must set up the required infrastructure. To do so, once the instance is configured to use the selected transport and persister, run it in setup mode. This can be done by using the `Setup {instance name}` launch profile that is defined in 
 the `launchSettings.json` file of each instance. When started in setup mode, the instance will start as usual, execute the setup process, and exit. At this point the instance can be run normally by using the non-setup launch profile. 
-
-### Run Instances on Learning transport
-
-To help with local testing, the Learning transport has been added to the list of available transports when setting up a new instance in SCMU. For it to become available, an environment variable `ServiceControl_IncludeLearningTransport` needs to be created with a value of `true`.
 
 ## Secrets
 
