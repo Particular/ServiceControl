@@ -58,6 +58,6 @@ jobs:
               --annotation "index:org.opencontainers.image.source=https://github.com/${{ github.repository }}/tree/${{ github.sha }}" \
               --annotation "index:org.opencontainers.image.url=https://hub.docker.com/r/particular/${{ matrix.name }}" \
               --annotation "index:org.opencontainers.image.documentation=https://docs.particular.net/servicecontrol/" \
-              --annotation "index:org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:8.0" \
+              --annotation "index:org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled-composite-extra" \
               --platform linux/arm64,linux/amd64 .
           docker buildx imagetools inspect ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }}
