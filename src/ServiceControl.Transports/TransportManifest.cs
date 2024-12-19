@@ -108,5 +108,3 @@
         static readonly ILog logger = LogManager.GetLogger(typeof(TransportManifestLibrary));
     }
 }
-
-

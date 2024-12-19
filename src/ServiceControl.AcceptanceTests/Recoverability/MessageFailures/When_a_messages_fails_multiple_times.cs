@@ -1,16 +1,16 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability
 {
-    using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Routing;
-    using NServiceBus.Transport;
-    using NServiceBus;
-    using NUnit.Framework;
-    using ServiceControl.AcceptanceTesting;
-    using System.Collections.Generic;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting.EndpointTemplates;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
+    using NUnit.Framework;
+    using ServiceControl.AcceptanceTesting;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 

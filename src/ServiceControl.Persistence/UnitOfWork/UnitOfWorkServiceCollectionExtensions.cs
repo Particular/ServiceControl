@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Persistence.UnitOfWork
 {
-    using Microsoft.Extensions.DependencyInjection;
     using System;
+    using Microsoft.Extensions.DependencyInjection;
 
     public static class UnitOfWorkServiceCollectionExtensions
     {

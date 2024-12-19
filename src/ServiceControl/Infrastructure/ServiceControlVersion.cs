@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure
 {
-    using ServiceControl.Infrastructure.WebApi;
     using System.Reflection;
+    using ServiceControl.Infrastructure.WebApi;
 
     public class ServiceControlVersion
     {

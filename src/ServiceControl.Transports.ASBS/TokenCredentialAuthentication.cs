@@ -4,7 +4,6 @@
     using Azure.Identity;
     using Azure.Messaging.ServiceBus.Administration;
     using NServiceBus;
-    using NServiceBus.Transport;
 
     public class TokenCredentialAuthentication : AuthenticationMethod
     {

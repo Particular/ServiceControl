@@ -10,9 +10,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 using Particular.Approvals;
+using ServiceControl.Transports.BrokerThroughput;
 using Transports;
 using Transports.RabbitMQ;
-using ServiceControl.Transports.BrokerThroughput;
 
 [TestFixture]
 class RabbitMQQueryTests : TransportTestFixture

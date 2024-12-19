@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Transports.RabbitMQ
 {
-    using NServiceBus;
     using System;
     using System.Data.Common;
+    using NServiceBus;
 
     static class TransportConfigurationExtensions
     {
