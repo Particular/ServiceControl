@@ -75,7 +75,7 @@ jobs:
           connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
           catalog: nservicebus
       - name: Setup PostgreSQL
-        uses: Particular/setup-postgres-action@v1.0.1
+        uses: Particular/setup-postgres-action@v1.0.2
         if: matrix.test-category == 'PostgreSQL'
         with:          
           connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString
@@ -83,7 +83,7 @@ jobs:
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}  
       - name: Setup RabbitMQ
-        uses: Particular/setup-rabbitmq-action@v1.7.0
+        uses: Particular/setup-rabbitmq-action@v1.7.1
         if: matrix.test-category == 'RabbitMQ'
         with:
           connection-string-name: ServiceControl_TransportTests_RabbitMQ_ConnectionString
