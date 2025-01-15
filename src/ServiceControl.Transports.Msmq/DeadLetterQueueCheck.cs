@@ -75,7 +75,7 @@
 
         static string MessagesInDeadLetterQueue(float currentValue)
         {
-            return $"{currentValue} messages in the Dead Letter Queue on {Environment.MachineName}. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular using support@particular.net if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.";
+            return $"{currentValue} messages in the Dead Letter Queue on {Environment.MachineName}. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.";
         }
 
         static string CounterMightBeLocalized(string categoryName, string counterName, string counterInstanceName)
