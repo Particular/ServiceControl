@@ -5,7 +5,6 @@ namespace ServiceControl.Contracts.Operations
     using Infrastructure;
     using NServiceBus;
     using ServiceControl.Operations;
-    using ServiceControl.Persistence;
 
     class EndpointDetailsParser
     {
@@ -40,9 +39,10 @@ namespace ServiceControl.Contracts.Operations
         {
             var endpoint = new EndpointDetails();
 
-            DictionaryExtensions.CheckIfKeyExists(Headers.HostId, headers, s => endpoint.HostId = Guid.Parse(s));
-            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ConnectedApplication", headers,
-                s => endpoint.ConnectedApplicationId = ConnectedApplication.MakeDocumentId(s));
+            if (headers.TryGetValue(Headers.HostId, out var hostIdHeader))
+            {
+                endpoint.HostId = Guid.Parse(hostIdHeader);
+            }
 
             if (headers.TryGetValue(Headers.HostDisplayName, out var hostDisplayNameHeader))
             {
@@ -80,7 +80,7 @@ namespace ServiceControl.Contracts.Operations
                 }
 
                 // If we've been now able to get the endpoint details, return the new info.
-                if (!string.IsNullOrEmpty(endpoint.Name))
+                if (!string.IsNullOrEmpty(endpoint.Name) && !string.IsNullOrEmpty(endpoint.Host))
                 {
                     return endpoint;
                 }

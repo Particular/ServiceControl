@@ -10,7 +10,6 @@ namespace ServiceControl.Persistence
         public bool Monitored { get; set; }
         public bool MonitorHeartbeat { get; set; }
         public HeartbeatInformation HeartbeatInformation { get; set; }
-        public bool SupportsHeartbeats { get; set; }
         public bool IsSendingHeartbeats { get; set; }
     }
 }

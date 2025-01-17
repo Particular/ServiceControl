@@ -5,7 +5,6 @@ namespace ServiceControl.Monitoring
     using Contracts.HeartbeatMonitoring;
     using EndpointControl.Contracts;
     using Infrastructure.DomainEvents;
-    using NLog.Fluent;
     using NServiceBus.Logging;
     using ServiceControl.Operations;
     using ServiceControl.Persistence;
@@ -116,7 +115,6 @@ namespace ServiceControl.Monitoring
                 HostDisplayName = Id.HostName,
                 Monitored = Monitored,
                 MonitorHeartbeat = Monitored,
-                SupportsHeartbeats = Id.SupportsHeartbeats,
 
                 HeartbeatInformation = lastSeen.HasValue ? new HeartbeatInformation
                 {

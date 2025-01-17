@@ -5,13 +5,12 @@ namespace ServiceControl.Persistence
 
     public class EndpointInstanceId : IEquatable<EndpointInstanceId>
     {
-        public EndpointInstanceId(string logicalName, string hostName, Guid hostGuid, bool supportsHeartbeats)
+        public EndpointInstanceId(string logicalName, string hostName, Guid hostGuid)
         {
             LogicalName = logicalName;
             HostName = hostName;
             HostGuid = hostGuid;
             UniqueId = DeterministicGuid.MakeId(LogicalName, HostGuid.ToString());
-            SupportsHeartbeats = supportsHeartbeats;
         }
 
         public Guid UniqueId { get; }

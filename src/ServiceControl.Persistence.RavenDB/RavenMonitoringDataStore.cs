@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using ServiceControl.Operations;
@@ -87,17 +86,12 @@
         {
             using var session = await sessionProvider.OpenSession();
             await using var endpointsEnumerator = await session.Advanced.StreamAsync(session.Query<KnownEndpoint, KnownEndpointIndex>());
-            var connectedApplications = await session.Advanced.LoadStartingWithAsync<ConnectedApplication>(ConnectedApplication.CollectionName, pageSize: 1024);
 
             while (await endpointsEnumerator.MoveNextAsync())
             {
                 var endpoint = endpointsEnumerator.Current.Document;
 
-                endpointInstanceMonitoring.DetectEndpointFromPersistentStore(
-                    endpoint.EndpointDetails,
-                    endpoint.Monitored,
-                    connectedApplications.SingleOrDefault(ca => ConnectedApplication.MakeDocumentId(ca.Name) == endpoint.EndpointDetails.ConnectedApplicationId)?.SupportsHeartbeats ?? true
-                );
+                endpointInstanceMonitoring.DetectEndpointFromPersistentStore(endpoint.EndpointDetails, endpoint.Monitored);
             }
         }
 

@@ -33,7 +33,6 @@
             var controller = new RootController(new ConfigurationApi(
                     new ActiveLicense(null) { IsValid = true },
                     new Settings(),
-                    null,
                     null
                 )
             )

@@ -11,8 +11,6 @@ namespace ServiceControl.Operations
 
         public string Host { get; set; }
 
-        public string ConnectedApplicationId { get; set; }
-
         public Guid GetDeterministicId() => DeterministicGuid.MakeId(Name, HostId.ToString());
     }
 }

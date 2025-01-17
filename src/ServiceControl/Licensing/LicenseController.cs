@@ -1,16 +1,14 @@
 ﻿namespace ServiceControl.Licensing
 {
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
     using Particular.ServiceControl.Licensing;
-    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     [ApiController]
     [Route("api")]
-    public class LicenseController(ActiveLicense activeLicense, Settings settings, IConnectedApplicationsDataStore connectedApplicationsStore) : ControllerBase
+    public class LicenseController(ActiveLicense activeLicense, Settings settings) : ControllerBase
     {
         [HttpGet]
         [Route("license")]
@@ -32,19 +30,10 @@
                 LicenseType = activeLicense.Details.LicenseType ?? string.Empty,
                 InstanceName = settings.InstanceName ?? string.Empty,
                 LicenseStatus = activeLicense.Details.Status,
-                LicenseExtensionUrl = $"https://particular.net/extend-your-trial?p={clientName}{await BuildConnectedApplicationsListPart()}"
+                LicenseExtensionUrl = $"https://particular.net/extend-your-trial?p={clientName}"
             };
 
             return licenseInfo;
-        }
-
-        async Task<string> BuildConnectedApplicationsListPart()
-        {
-            var connectedApplications = await connectedApplicationsStore.GetAllConnectedApplications();
-
-            return connectedApplications != null && connectedApplications.Length > 0
-                ? $"&ca={string.Join(',', connectedApplications.Select(ca => ca.Name))}"
-                : string.Empty;
         }
 
         public class LicenseInfo
