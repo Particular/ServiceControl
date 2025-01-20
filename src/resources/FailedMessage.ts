@@ -62,6 +62,6 @@ export interface ExceptionDetails {
 export enum FailedMessageStatus {
   Unresolved = "unresolved",
   Resolved = "resolved",
-  RetryIssued = "retryissued",
+  RetryIssued = "retryIssued",
   Archived = "archived",
 }
