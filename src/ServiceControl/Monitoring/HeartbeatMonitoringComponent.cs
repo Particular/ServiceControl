@@ -4,6 +4,7 @@
     using EndpointControl.Handlers;
     using EventLog;
     using ExternalIntegrations;
+    using HeartbeatMonitoring;
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -21,6 +22,7 @@
             hostBuilder.Services.AddHostedService<HeartbeatEndpointSettingsSyncHostedService>();
 
             hostBuilder.Services.AddSingleton<IEndpointInstanceMonitoring, EndpointInstanceMonitoring>();
+            hostBuilder.Services.AddSingleton<MassTransitConnectorHeartbeatStatus>();
 
             hostBuilder.Services.AddDomainEventHandler<MonitoringDataPersister>();
 
