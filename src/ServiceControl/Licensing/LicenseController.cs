@@ -33,7 +33,7 @@
                 LicenseStatus = activeLicense.Details.Status,
                 LicenseExtensionUrl = connectorHeartbeatStatus.LastHeartbeat == null
                     ? $"https://particular.net/extend-your-trial?p={clientName}"
-                    : $"https://particular.net/extend-your-connector-trial?p={clientName}"
+                    : $"https://particular.net/license/mt?p={clientName}&t={(activeLicense.Details.IsTrialLicense ? 0 : 1)}"
             };
 
             return licenseInfo;
