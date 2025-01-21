@@ -3,12 +3,13 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
+    using Monitoring.HeartbeatMonitoring;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
 
     [ApiController]
     [Route("api")]
-    public class LicenseController(ActiveLicense activeLicense, Settings settings) : ControllerBase
+    public class LicenseController(ActiveLicense activeLicense, Settings settings, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus) : ControllerBase
     {
         [HttpGet]
         [Route("license")]
@@ -30,7 +31,9 @@
                 LicenseType = activeLicense.Details.LicenseType ?? string.Empty,
                 InstanceName = settings.InstanceName ?? string.Empty,
                 LicenseStatus = activeLicense.Details.Status,
-                LicenseExtensionUrl = $"https://particular.net/extend-your-trial?p={clientName}"
+                LicenseExtensionUrl = connectorHeartbeatStatus.LastHeartbeat == null
+                    ? $"https://particular.net/extend-your-trial?p={clientName}"
+                    : $"https://particular.net/extend-your-connector-trial?p={clientName}"
             };
 
             return licenseInfo;
