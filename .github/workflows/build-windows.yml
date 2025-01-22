@@ -18,8 +18,6 @@ jobs:
         uses: actions/setup-dotnet@v4.1.0
         with:
           dotnet-version: 8.0.x
-      - name: dotnet info
-        run: dotnet --info
       - name: Download RavenDB Server
         shell: pwsh
         run: ./tools/download-ravendb-server.ps1
