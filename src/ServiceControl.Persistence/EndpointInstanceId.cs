@@ -49,6 +49,5 @@ namespace ServiceControl.Persistence
         public readonly string LogicalName;
         public readonly string HostName;
         public readonly Guid HostGuid;
-        public readonly bool SupportsHeartbeats;
     }
 }
