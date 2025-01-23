@@ -66,8 +66,8 @@
             {
                 Assert.That(context.EditedMessageId, Is.Not.EqualTo(context.OriginalMessageId));
                 Assert.That(context.OriginalMessageFailure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
-                Assert.That(context.EditedMessageHeaders["AcceptanceTest.NewHeader"], Is.EqualTo("42").AsCollection);
-                Assert.That(context.EditedMessageHeaders["ServiceControl.EditOf"], Is.EqualTo(context.UniqueMessageId).AsCollection);
+                Assert.That(context.EditedMessageHeaders["AcceptanceTest.NewHeader"], Is.EqualTo("42"));
+                Assert.That(context.EditedMessageHeaders["ServiceControl.EditOf"], Is.EqualTo(context.UniqueMessageId));
             });
         }
 
