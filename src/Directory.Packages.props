@@ -32,7 +32,7 @@
     <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="9.2.3" />
     <PackageVersion Include="NServiceBus.AmazonSQS" Version="7.1.1" />
     <PackageVersion Include="NServiceBus.CustomChecks" Version="5.0.1" />
-    <PackageVersion Include="NServiceBus.Extensions.Hosting" Version="3.0.0" />
+    <PackageVersion Include="NServiceBus.Extensions.Hosting" Version="3.0.1" />
     <PackageVersion Include="NServiceBus.Extensions.Logging" Version="3.0.1" />
     <PackageVersion Include="NServiceBus.Heartbeat" Version="5.0.0" />
     <PackageVersion Include="NServiceBus.Metrics" Version="5.0.0" />
