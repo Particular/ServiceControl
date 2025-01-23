@@ -40,7 +40,7 @@
     <PackageVersion Include="NServiceBus.Persistence.NonDurable" Version="2.0.0" />
     <PackageVersion Include="NServiceBus.RabbitMQ" Version="9.2.0" />
     <PackageVersion Include="NServiceBus.SagaAudit" Version="5.0.1" />
-    <PackageVersion Include="NServiceBus.Testing" Version="9.0.0" />
+    <PackageVersion Include="NServiceBus.Testing" Version="9.0.1" />
     <PackageVersion Include="NServiceBus.Transport.AzureServiceBus" Version="4.2.4" />
     <PackageVersion Include="NServiceBus.Transport.AzureStorageQueues" Version="13.0.1" />
     <PackageVersion Include="NServiceBus.Transport.Msmq.Sources" Version="3.0.1" />
