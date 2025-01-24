@@ -158,6 +158,11 @@ const config: RouteItem[] = [
         component: () => import("@/components/configuration/PlatformLicense.vue"),
       },
       {
+        title: "MassTransit Connector",
+        path: routeLinks.configuration.massTransitConnector.template,
+        component: () => import("@/components/configuration/MassTransitConnector.vue"),
+      },
+      {
         title: "Health Check Notifications",
         path: routeLinks.configuration.healthCheckNotifications.template,
         component: () => import("@/components/configuration/HealthCheckNotifications.vue"),

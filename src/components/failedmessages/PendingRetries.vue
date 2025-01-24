@@ -16,6 +16,7 @@ import SortOptions, { SortDirection } from "@/resources/SortOptions";
 import QueueAddress from "@/resources/QueueAddress";
 import { TYPE } from "vue-toastification";
 import GroupOperation from "@/resources/GroupOperation";
+import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnected";
 
 let refreshInterval: number | undefined;
 let sortMethod: SortOptions<GroupOperation> | undefined;
@@ -49,6 +50,7 @@ const sortOptions: SortOptions<GroupOperation>[] = [
   },
 ];
 const periodOptions = ["All Pending Retries", "Retried in the last 2 Hours", "Retried in the last 1 Day", "Retried in the last 7 Days"];
+const isMassTransitConnected = useIsMassTransitConnected();
 
 watch(pageNumber, () => loadPendingRetryMessages());
 
@@ -245,6 +247,9 @@ onMounted(() => {
               <a href="https://docs.particular.net/nservicebus/operations/auditing" target="_blank">message auditing</a>
               <i class="fa fa-external-link fake-link"></i>
             </div>
+          </div>
+          <div class="col-12" v-if="isMassTransitConnected">
+            <div class="alert alert-info">MassTransit endpoints currently do not report when a pending retry has succeeded, and therefore any messages associated with those endpoints will need to be manually marked as resolved.</div>
           </div>
         </div>
         <div class="row">

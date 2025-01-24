@@ -12,11 +12,13 @@ import ConfirmDialog from "../ConfirmDialog.vue";
 import FlowDiagram from "./FlowDiagram.vue";
 import EditRetryDialog from "./EditRetryDialog.vue";
 import routeLinks from "@/router/routeLinks";
-import Configuration, { EditAndRetryConfig } from "@/resources/Configuration";
+import { EditAndRetryConfig } from "@/resources/Configuration";
 import { TYPE } from "vue-toastification";
 import { ExtendedFailedMessage, FailedMessageError, FailedMessageStatus, isError } from "@/resources/FailedMessage";
 import Message from "@/resources/Message";
 import { NServiceBusHeaders } from "@/resources/Header";
+import { useConfiguration } from "@/composables/configuration";
+import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnected";
 import { parse, stringify } from "lossless-json";
 
 let refreshInterval: number | undefined;
@@ -24,7 +26,6 @@ let pollingFaster = false;
 const panel = ref<number>(1);
 const route = useRoute();
 const failedMessage = ref<ExtendedFailedMessage | FailedMessageError>();
-const configuration = ref<Configuration>();
 const editAndRetryConfiguration = ref<EditAndRetryConfig>();
 
 const id = computed(() => route.params.id as string);
@@ -34,6 +35,9 @@ const showDeleteConfirm = ref(false);
 const showRestoreConfirm = ref(false);
 const showRetryConfirm = ref(false);
 const showEditRetryModal = ref(false);
+
+const configuration = useConfiguration();
+const isMassTransitConnected = useIsMassTransitConnected();
 
 async function loadFailedMessage() {
   try {
@@ -69,12 +73,6 @@ async function loadFailedMessage() {
     console.log(err);
     return;
   }
-}
-
-async function getConfiguration() {
-  const response = await useFetchFromServiceControl("configuration");
-  configuration.value = await response.json();
-  return getEditAndRetryConfig();
 }
 
 async function getEditAndRetryConfig() {
@@ -365,7 +363,7 @@ function changeRefreshInterval(milliseconds: number) {
 onMounted(async () => {
   togglePanel(1);
 
-  await getConfiguration();
+  await getEditAndRetryConfig();
   startRefreshInterval();
   loadFailedMessage();
 });
@@ -407,8 +405,8 @@ onUnmounted(() => {
                 <span v-if="failedMessage.edited" v-tippy="`Message was edited`" class="label sidebar-label label-info metadata-label">Edited</span>
                 <span v-if="failedMessage.edited" class="metadata metadata-link"><i class="fa fa-history"></i> <RouterLink :to="routeLinks.failedMessage.message.link(failedMessage.edit_of)">View previous version</RouterLink></span>
                 <span v-if="failedMessage.time_of_failure" class="metadata"><i class="fa fa-clock-o"></i> Failed: <time-since :date-utc="failedMessage.time_of_failure"></time-since></span>
-                <span class="metadata"><i class="fa pa-endpoint"></i> Endpoint: {{ failedMessage.receiving_endpoint?.name }}</span>
-                <span class="metadata"><i class="fa fa-laptop"></i> Machine: {{ failedMessage.receiving_endpoint?.host }}</span>
+                <span class="metadata"><i class="fa pa-endpoint"></i> Endpoint: {{ failedMessage.receiving_endpoint.name }}</span>
+                <span class="metadata"><i class="fa fa-laptop"></i> Machine: {{ failedMessage.receiving_endpoint.host }}</span>
                 <span v-if="failedMessage.redirect" class="metadata"><i class="fa pa-redirect-source pa-redirect-small"></i> Redirect: {{ failedMessage.redirect }}</span>
               </div>
               <div class="metadata group-message-count message-metadata" v-if="failedMessage.archived">
@@ -427,7 +425,9 @@ onUnmounted(() => {
                 <button type="button" class="btn btn-default" v-if="failedMessage.isEditAndRetryEnabled" :disabled="failedMessage.retried || failedMessage.archived || failedMessage.resolved" @click="showEditAndRetryModal()">
                   <i class="fa fa-pencil"></i> Edit & retry
                 </button>
-                <button type="button" class="btn btn-default" @click="debugInServiceInsight()" title="Browse this message in ServiceInsight, if installed"><img src="@/assets/si-icon.svg" /> View in ServiceInsight</button>
+                <button v-if="!isMassTransitConnected" type="button" class="btn btn-default" @click="debugInServiceInsight()" title="Browse this message in ServiceInsight, if installed">
+                  <img src="@/assets/si-icon.svg" /> View in ServiceInsight
+                </button>
                 <button type="button" class="btn btn-default" @click="exportMessage()"><i class="fa fa-download"></i> Export message</button>
               </div>
             </div>
@@ -438,7 +438,7 @@ onUnmounted(() => {
                 <h5 :class="{ active: panel === 1 }" class="nav-item" @click="togglePanel(1)"><a href="javascript:void(0)">Stacktrace</a></h5>
                 <h5 :class="{ active: panel === 2 }" class="nav-item" @click="togglePanel(2)"><a href="javascript:void(0)">Headers</a></h5>
                 <h5 :class="{ active: panel === 3 }" class="nav-item" @click="togglePanel(3)"><a href="javascript:void(0)">Message body</a></h5>
-                <h5 :class="{ active: panel === 4 }" class="nav-item" @click="togglePanel(4)"><a href="javascript:void(0)">Flow Diagram</a></h5>
+                <h5 v-if="!isMassTransitConnected" :class="{ active: panel === 4 }" class="nav-item" @click="togglePanel(4)"><a href="javascript:void(0)">Flow Diagram</a></h5>
               </div>
               <pre v-if="panel === 0">{{ failedMessage.exception?.message }}</pre>
               <pre v-if="panel === 1">{{ failedMessage.exception?.stack_trace }}</pre>
@@ -551,5 +551,15 @@ button img {
   top: 1px;
   height: 14px;
   width: 14px;
+}
+
+.pa-endpoint {
+  position: relative;
+  top: 3px;
+  background-image: url("@/assets/endpoint.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 15px;
+  width: 15px;
 }
 </style>

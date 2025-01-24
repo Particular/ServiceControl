@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnected";
 import MonitoringFilter from "./MonitoringFilter.vue";
+
+const isMassTransitConnected = useIsMassTransitConnected();
 </script>
 
 <template>
@@ -9,6 +12,9 @@ import MonitoringFilter from "./MonitoringFilter.vue";
     </div>
     <div class="col-sm-8 no-side-padding toolbar-menus">
       <MonitoringFilter />
+    </div>
+    <div class="col-12" v-if="isMassTransitConnected">
+      <div class="alert alert-info">MassTransit endpoints are currently not supported by monitoring functionality and will not show in this view.</div>
     </div>
   </div>
 </template>

@@ -66,6 +66,9 @@ function preventIfDisabled(e: Event) {
             <exclamation-mark :type="WarningLevel.Danger" v-if="hasErrors" />
           </h5>
           <template v-if="!licenseStatus.isExpired">
+            <h5 :class="{ active: isRouteSelected(routeLinks.configuration.massTransitConnector.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item">
+              <RouterLink :to="routeLinks.configuration.massTransitConnector.link">MassTransit Connector</RouterLink>
+            </h5>
             <h5 :class="{ active: isRouteSelected(routeLinks.configuration.healthCheckNotifications.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item">
               <RouterLink :to="routeLinks.configuration.healthCheckNotifications.link">Health Check Notifications</RouterLink>
             </h5>

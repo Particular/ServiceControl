@@ -3,7 +3,6 @@ import { useTypedFetchFromMonitoring, useIsMonitoringDisabled } from "./serviceS
 import { monitoringConnectionState } from "./serviceServiceControl";
 import { useGetExceptionGroups } from "./serviceMessageGroup";
 import { type Endpoint, type GroupedEndpoint, type EndpointGroup, type EndpointDetails, type EndpointDetailsError } from "@/resources/MonitoringEndpoint";
-import { emptyEndpointMetrics } from "@/components/monitoring/endpoints";
 
 /**
  * @returns the max number of segments in a array of endpoint object names
@@ -110,31 +109,15 @@ async function addEndpointsFromScSubscription(endpoints: Endpoint[]) {
   if (exceptionGroups.length > 0) {
     //sort the exceptionGroups array by name - case sensitive
     exceptionGroups.sort((a, b) => (a.title > b.title ? 1 : a.title < b.title ? -1 : 0)); //desc
-    exceptionGroups.forEach((failedMessageEndpoint) => {
-      if (failedMessageEndpoint.operation_status === "ArchiveCompleted") {
-        return;
-      }
-      const index = endpoints.findIndex(function (item) {
-        return item.name === failedMessageEndpoint.title;
+    exceptionGroups
+      .filter((exceptionGroup) => exceptionGroup.operation_status !== "ArchiveCompleted")
+      .forEach((exceptionGroup) => {
+        const monitoredEndpoint = endpoints.find((item) => item.name === exceptionGroup.title);
+        if (monitoredEndpoint) {
+          monitoredEndpoint.serviceControlId = exceptionGroup.id;
+          monitoredEndpoint.errorCount = exceptionGroup.count;
+        }
       });
-      if (index >= 0) {
-        endpoints[index].serviceControlId = failedMessageEndpoint.id;
-        endpoints[index].errorCount = failedMessageEndpoint.count;
-      } else {
-        const metricsToAdd = emptyEndpointMetrics();
-        endpoints.push({
-          name: failedMessageEndpoint.title,
-          isStale: false,
-          endpointInstanceIds: [],
-          disconnectedCount: 0,
-          connectedCount: 0,
-          errorCount: failedMessageEndpoint.count,
-          serviceControlId: failedMessageEndpoint.id,
-          isScMonitoringDisconnected: true,
-          metrics: metricsToAdd,
-        });
-      }
-    });
   }
 }
 

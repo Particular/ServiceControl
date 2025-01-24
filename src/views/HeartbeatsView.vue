@@ -7,9 +7,12 @@ import { storeToRefs } from "pinia";
 import ServiceControlAvailable from "@/components/ServiceControlAvailable.vue";
 import LicenseNotExpired from "@/components/LicenseNotExpired.vue";
 import FilterInput from "@/components/FilterInput.vue";
+import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnected";
 
 const store = useHeartbeatsStore();
 const { unhealthyEndpoints, healthyEndpoints, endpointFilterString } = storeToRefs(store);
+
+const isMassTransitConnected = useIsMassTransitConnected();
 </script>
 
 <template>
@@ -19,6 +22,9 @@ const { unhealthyEndpoints, healthyEndpoints, endpointFilterString } = storeToRe
         <div class="row">
           <div class="col-12">
             <h1>Endpoint Heartbeats</h1>
+          </div>
+          <div class="col-12" v-if="isMassTransitConnected">
+            <div class="alert alert-info">MassTransit endpoints are currently not supported by heartbeat functionality and will not show in this view.</div>
           </div>
         </div>
         <div class="row">

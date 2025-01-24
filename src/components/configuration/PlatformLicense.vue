@@ -6,6 +6,8 @@ import { connectionState } from "@/composables/serviceServiceControl";
 import BusyIndicator from "../BusyIndicator.vue";
 import ExclamationMark from "./../../components/ExclamationMark.vue";
 import convertToWarningLevel from "@/components/configuration/convertToWarningLevel";
+import { useConfiguration } from "@/composables/configuration";
+import { typeText } from "@/resources/LicenseInfo";
 
 // This is needed because the ConfigurationView.vue routerView expects this event.
 // The event is only actually emitted on the RetryRedirects.vue component
@@ -18,6 +20,8 @@ defineEmits<{
 const loading = computed(() => {
   return !license;
 });
+
+const configuration = useConfiguration();
 </script>
 
 <template>
@@ -31,7 +35,7 @@ const loading = computed(() => {
           <div class="box">
             <div class="row">
               <div class="license-info">
-                <div><b>Platform license type:</b> {{ license.license_type }}{{ license.licenseEdition }}</div>
+                <div><b>Platform license type:</b> {{ typeText(license, configuration) }}{{ license.licenseEdition }}</div>
 
                 <template v-if="licenseStatus.isSubscriptionLicense">
                   <div>

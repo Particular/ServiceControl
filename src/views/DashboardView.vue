@@ -22,13 +22,13 @@ import FailedMessagesDashboardItem from "@/components/failedmessages/FailedMessa
             <div class="row box system-status">
               <div class="col-12">
                 <div class="row">
-                  <div class="col-4">
+                  <div class="system-status-item">
                     <HeartbeatsDashboardItem />
                   </div>
-                  <div class="col-4">
+                  <div class="system-status-item">
                     <FailedMessagesDashboardItem />
                   </div>
-                  <div class="col-4">
+                  <div class="system-status-item">
                     <CustomChecksDashboardItem />
                   </div>
                 </div>
@@ -47,5 +47,13 @@ import FailedMessagesDashboardItem from "@/components/failedmessages/FailedMessa
   background-color: #fff;
   border-color: #eee !important;
   cursor: default;
+}
+
+.system-status .row {
+  display: flex;
+}
+
+.system-status-item {
+  flex: 1;
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeMount, onMounted, onUnmounted, ref, watch } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import { licenseStatus } from "../../composables/serviceLicense";
 import { connectionState } from "../../composables/serviceServiceControl";
 import { usePatchToServiceControl, useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
@@ -13,14 +13,13 @@ import ConfirmDialog from "../ConfirmDialog.vue";
 import PaginationStrip from "../../components/PaginationStrip.vue";
 import moment from "moment";
 import { ExtendedFailedMessage } from "@/resources/FailedMessage";
-import Configuration from "@/resources/Configuration";
 import { TYPE } from "vue-toastification";
 import FailureGroup from "@/resources/FailureGroup";
+import { useConfiguration } from "@/composables/configuration";
 
 let pollingFaster = false;
 let refreshInterval: number | undefined;
 const perPage = 50;
-const configuration = ref<Configuration | null>(null);
 
 const route = useRoute();
 const groupId = ref<string>(route.params.groupId as string);
@@ -36,6 +35,7 @@ const messageList = ref<IMessageList | undefined>();
 const messages = ref<ExtendedFailedMessage[]>([]);
 
 watch(pageNumber, () => loadMessages());
+const configuration = useConfiguration();
 
 function loadMessages() {
   let startDate = new Date(0);
@@ -162,11 +162,6 @@ function periodChanged(period: PeriodOption) {
   loadMessages();
 }
 
-async function getConfiguration() {
-  const [, data] = await useTypedFetchFromServiceControl<Configuration>("configuration");
-  configuration.value = data;
-}
-
 function isRestoreInProgress() {
   return messages.value.some((message) => message.restoreInProgress);
 }
@@ -194,10 +189,6 @@ function changeRefreshInterval(milliseconds: number) {
 onBeforeRouteLeave(() => {
   groupId.value = "";
   groupName.value = "";
-});
-
-onBeforeMount(() => {
-  getConfiguration();
 });
 
 onUnmounted(() => {

@@ -24,8 +24,30 @@ const props = defineProps<{
   configuration: EditAndRetryConfig;
 }>();
 
-const panel = ref();
-const localMessage = ref();
+interface LocalMessageState {
+  isBodyChanged: boolean;
+  isBodyEmpty: boolean;
+  isContentTypeSupported: boolean;
+  bodyContentType: string | undefined;
+  bodyUnavailable: boolean;
+  isEvent: boolean;
+  retried: boolean;
+  headers: HeaderWithEditing[];
+  messageBody: string;
+}
+
+const panel = ref(0);
+const localMessage = ref<LocalMessageState>({
+  isBodyChanged: false,
+  isBodyEmpty: false,
+  isContentTypeSupported: false,
+  bodyContentType: undefined,
+  bodyUnavailable: true,
+  isEvent: false,
+  retried: false,
+  headers: [],
+  messageBody: "",
+});
 let origMessageBody: string;
 
 const showEditAndRetryConfirmation = ref(false);
@@ -79,10 +101,12 @@ function findHeadersByKey(key: string) {
 
 function getContentType() {
   const header = findHeadersByKey("NServiceBus.ContentType");
-  return header.value;
+  return header?.value;
 }
 
-function isContentTypeSupported(contentType: string) {
+function isContentTypeSupported(contentType: string | undefined) {
+  if (contentType === undefined) return false;
+
   if (contentType.startsWith("text/")) return true;
 
   const charsetUtf8 = "; charset=utf-8";
@@ -106,7 +130,7 @@ function isContentTypeSupported(contentType: string) {
 
 function getMessageIntent() {
   const intent = findHeadersByKey("NServiceBus.MessageIntent");
-  return intent.value;
+  return intent?.value;
 }
 
 function removeHeadersMarkedAsRemoved() {
@@ -127,7 +151,17 @@ async function retryEditedMessage() {
 
 function initializeMessageBodyAndHeaders() {
   origMessageBody = props.message.messageBody;
-  localMessage.value = props.message;
+  localMessage.value = {
+    isBodyChanged: false,
+    isBodyEmpty: false,
+    isContentTypeSupported: false,
+    bodyContentType: undefined,
+    bodyUnavailable: props.message.bodyUnavailable,
+    isEvent: false,
+    retried: props.message.retried,
+    headers: props.message.headers.map((header: Header) => ({ ...header })) as HeaderWithEditing[],
+    messageBody: props.message.messageBody,
+  };
   localMessage.value.isBodyEmpty = false;
   localMessage.value.isBodyChanged = false;
 
@@ -136,7 +170,7 @@ function initializeMessageBodyAndHeaders() {
   localMessage.value.isContentTypeSupported = isContentTypeSupported(contentType);
 
   const messageIntent = getMessageIntent();
-  localMessage.value.isEvent = messageIntent.value === "Publish";
+  localMessage.value.isEvent = messageIntent === "Publish";
 
   for (let index = 0; index < props.message.headers.length; index++) {
     const header: HeaderWithEditing = props.message.headers[index] as HeaderWithEditing;
@@ -191,15 +225,15 @@ onMounted(() => {
                   </div>
                   <div class="row msg-editor-content">
                     <div class="col-sm-12 no-side-padding">
-                      <div class="alert alert-warning" v-if="localMessage?.isEvent">
+                      <div class="alert alert-warning" v-if="localMessage.isEvent">
                         <div class="col-sm-12">
                           <i class="fa fa-exclamation-circle"></i> This message is an event. If it was already successfully handled by other subscribers, editing it now has the risk of changing the semantic meaning of the event and may result in
                           altering the system behavior.
                         </div>
                       </div>
-                      <div class="alert alert-warning" v-if="!localMessage?.isContentTypeSupported || localMessage?.bodyUnavailable">
+                      <div class="alert alert-warning" v-if="!localMessage.isContentTypeSupported || localMessage.bodyUnavailable">
                         <div role="status" aria-label="cannot edit message body" class="col-sm-12">
-                          <i class="fa fa-exclamation-circle"></i> Message body cannot be edited because content type "{{ localMessage?.bodyContentType }}" is not supported. Only messages with content types "application/json" and "text/xml" can be
+                          <i class="fa fa-exclamation-circle"></i> Message body cannot be edited because content type "{{ localMessage.bodyContentType }}" is not supported. Only messages with content types "application/json" and "text/xml" can be
                           edited.
                         </div>
                       </div>
@@ -208,16 +242,16 @@ onMounted(() => {
                       </div>
                       <table role="tabpanel" class="table" v-if="panel === 1">
                         <tbody>
-                          <tr class="interactiveList" v-for="header in localMessage?.headers" :key="header.key">
+                          <tr class="interactiveList" v-for="header in localMessage.headers" :key="header.key">
                             <MessageHeader :header="header"></MessageHeader>
                           </tr>
                         </tbody>
                       </table>
-                      <div role="tabpanel" v-if="panel === 2 && !localMessage?.bodyUnavailable" style="height: calc(100% - 260px)">
-                        <textarea aria-label="message body" class="form-control" :disabled="!localMessage?.isContentTypeSupported" v-model="localMessage.messageBody"></textarea>
-                        <span class="empty-error" v-if="localMessage?.isBodyEmpty"><i class="fa fa-exclamation-triangle"></i> Message body cannot be empty</span>
-                        <span class="reset-body" v-if="localMessage?.isBodyChanged"><i class="fa fa-undo" v-tippy="`Reset changes`"></i> <a @click="resetBodyChanges()" href="javascript:void(0)">Reset changes</a></span>
-                        <div class="alert alert-info" v-if="localMessage?.panel === 2 && localMessage.bodyUnavailable">{{ localMessage.bodyUnavailable }}</div>
+                      <div role="tabpanel" v-if="panel === 2 && !localMessage.bodyUnavailable" style="height: calc(100% - 260px)">
+                        <textarea aria-label="message body" class="form-control" :disabled="!localMessage.isContentTypeSupported" v-model="localMessage.messageBody"></textarea>
+                        <span class="empty-error" v-if="localMessage.isBodyEmpty"><i class="fa fa-exclamation-triangle"></i> Message body cannot be empty</span>
+                        <span class="reset-body" v-if="localMessage.isBodyChanged"><i class="fa fa-undo" v-tippy="`Reset changes`"></i> <a @click="resetBodyChanges()" href="javascript:void(0)">Reset changes</a></span>
+                        <div class="alert alert-info" v-if="panel === 2 && localMessage.bodyUnavailable">{{ localMessage.bodyUnavailable }}</div>
                       </div>
                     </div>
                   </div>
@@ -226,7 +260,7 @@ onMounted(() => {
             </div>
             <div class="modal-footer" v-if="!showEditAndRetryConfirmation && !showCancelConfirmation">
               <button class="btn btn-default" @click="confirmCancel()">Cancel</button>
-              <button class="btn btn-primary" :disabled="localMessage?.isBodyEmpty || localMessage?.bodyUnavailable" @click="confirmEditAndRetry()">Retry</button>
+              <button class="btn btn-primary" :disabled="localMessage.isBodyEmpty || localMessage.bodyUnavailable" @click="confirmEditAndRetry()">Retry</button>
             </div>
             <div class="modal-footer cancel-confirmation" v-if="showCancelConfirmation">
               <div>Are you sure you want to cancel? Any changes you made will be lost.</div>

@@ -1,3 +1,5 @@
+import Configuration from "./Configuration";
+
 export default interface LicenseInfo {
   registered_to: string;
   edition: string;
@@ -9,6 +11,12 @@ export default interface LicenseInfo {
   license_status: LicenseStatus;
   license_extension_url?: string;
   status: string;
+}
+
+export function typeText(license: LicenseInfo, configuration: Configuration | null) {
+  if (license.trial_license && configuration?.mass_transit_connector) {
+    return "Early Access";
+  }
 }
 
 export enum LicenseStatus {

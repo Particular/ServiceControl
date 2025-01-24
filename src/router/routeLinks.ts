@@ -8,7 +8,7 @@ const heartbeatLinks = (root: string) => {
     unhealthy: createLink("unhealthy"),
     healthy: createLink("healthy"),
     configuration: createLink("configuration"),
-    instances: { link: (endpointName: string) => `${root}/instances/${endpointName}`, template: "/heartbeats/instances/:endpointName" },
+    instances: { link: (endpointName: string) => `${root}/instances/${encodeURIComponent(endpointName)}`, template: "/heartbeats/instances/:endpointName" },
   };
 };
 
@@ -38,6 +38,7 @@ const configurationLinks = (root: string) => {
   return {
     root,
     license: createLink("license"),
+    massTransitConnector: createLink("mass-transit-connector"),
     healthCheckNotifications: createLink("health-check-notifications"),
     retryRedirects: createLink("retry-redirects"),
     connections: createLink("connections"),
@@ -81,7 +82,10 @@ const throughputEndpointLinks = (root: string) => {
 const monitoringLinks = (root: string) => {
   return {
     root,
-    endpointDetails: { link: (endpointName: string, historyPeriod: number, tab?: string) => `${root}/endpoint/${endpointName}?historyPeriod=${historyPeriod}${(tab && `&tab=${tab}`) ?? ""}`, template: "/monitoring/endpoint/:endpointName" },
+    endpointDetails: {
+      link: (endpointName: string, historyPeriod: number, tab?: string) => `${root}/endpoint/${encodeURIComponent(endpointName)}?historyPeriod=${historyPeriod}${(tab && `&tab=${tab}`) ?? ""}`,
+      template: "/monitoring/endpoint/:endpointName",
+    },
   };
 };
 

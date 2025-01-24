@@ -6,9 +6,12 @@ import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import routeLinks from "@/router/routeLinks";
 import { useRouter } from "vue-router";
+import { useConfiguration } from "@/composables/configuration";
 
 const router = useRouter();
 const { license, getOrUpdateLicenseStatus } = useLicense();
+
+const configuration = useConfiguration();
 
 function displayWarningMessage(licenseStatus: LicenseStatus) {
   const configurationRootLink = router.resolve(routeLinks.configuration.root).href;
@@ -19,7 +22,9 @@ function displayWarningMessage(licenseStatus: LicenseStatus) {
       break;
     }
     case "ValidWithExpiringTrial": {
-      const trialExpiring = `<div><strong>Non-production development license expiring</strong><div>Your non-production development license will expire soon. To continue using the Particular Service Platform you'll need to extend your license.</div><a href="${license.license_extension_url}" class="btn btn-warning"><i class="fa fa-external-link-alt"></i> Extend your license</a><a href="${configurationRootLink}" class="btn btn-light">View license details</a></div>`;
+      const trialExpiring = configuration.value?.mass_transit_connector
+        ? `<div><strong>Early Access license expiring</strong><div>Your Early Access license will expire soon. To continue using the Particular Service Platform you'll need to extend your license.</div><a href="${license.license_extension_url}" class="btn btn-warning"><i class="fa fa-external-link-alt"></i> Extend your license</a><a href="${configurationRootLink}" class="btn btn-light">View license details</a></div>`
+        : `<div><strong>Non-production development license expiring</strong><div>Your non-production development license will expire soon. To continue using the Particular Service Platform you'll need to extend your license.</div><a href="${license.license_extension_url}" class="btn btn-warning"><i class="fa fa-external-link-alt"></i> Extend your license</a><a href="${configurationRootLink}" class="btn btn-light">View license details</a></div>`;
       useShowToast(TYPE.WARNING, "", trialExpiring, true);
       break;
     }

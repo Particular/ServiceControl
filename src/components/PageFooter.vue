@@ -5,6 +5,7 @@ import { monitoringUrl, serviceControlUrl } from "../composables/serviceServiceC
 import { license, licenseStatus } from "../composables/serviceLicense";
 import { LicenseStatus } from "@/resources/LicenseInfo";
 import routeLinks from "@/router/routeLinks";
+import { useConfiguration } from "@/composables/configuration";
 
 const isMonitoringEnabled = computed(() => {
   return monitoringUrl.value !== "!" && monitoringUrl.value !== "" && monitoringUrl.value !== null && monitoringUrl.value !== undefined;
@@ -17,6 +18,8 @@ const scAddressTooltip = computed(() => {
 const scMonitoringAddressTooltip = computed(() => {
   return `Monitoring URL ${monitoringUrl.value}`;
 });
+
+const configuration = useConfiguration();
 </script>
 
 <template>
@@ -64,7 +67,7 @@ const scMonitoringAddressTooltip = computed(() => {
           </template>
         </div>
       </div>
-      <template v-if="license.license_status !== LicenseStatus.Unavailable && licenseStatus.isTrialLicense">
+      <template v-if="license.license_status !== LicenseStatus.Unavailable && !configuration?.mass_transit_connector && licenseStatus.isTrialLicense">
         <div class="row trialLicenseBar">
           <div role="status" aria-label="trial license bar information">
             <RouterLink :to="routeLinks.configuration.license.link">{{ license.license_type }} license</RouterLink>, non-production use only
