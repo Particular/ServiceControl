@@ -67,7 +67,14 @@
             var outgoingMessage = BuildMessage(message);
             // mark the new message with a link to the original message id
             outgoingMessage.Headers.Add("ServiceControl.EditOf", message.FailedMessageId);
+            outgoingMessage.Headers["ServiceControl.Retry.AcknowledgementQueue"] = "";
             var address = ApplyRedirect(attempt.FailureDetails.AddressOfFailingEndpoint, redirects);
+
+            if (outgoingMessage.Headers.TryGetValue("ServiceControl.RetryTo", out var retryTo))
+            {
+                outgoingMessage.Headers["ServiceControl.TargetEndpointAddress"] = address;
+                address = retryTo;
+            }
             await DispatchEditedMessage(outgoingMessage, address, context);
         }
 
