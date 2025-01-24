@@ -1,8 +1,8 @@
 ﻿namespace Particular.ServiceControl.Licensing
 {
-    using System.Threading.Tasks;
-    using System.Threading;
     using System;
+    using System.Threading;
+    using System.Threading.Tasks;
     using global::ServiceControl.LicenseManagement;
     using global::ServiceControl.Persistence;
     using NServiceBus.Logging;
@@ -10,6 +10,7 @@
     public class ActiveLicense(ITrialLicenseDataProvider trialLicenseDataProvider)
     {
         public bool IsValid { get; set; }
+        public bool IsEvaluation { get; set; }
 
         public LicenseDetails Details { get; set; }
 
@@ -22,6 +23,8 @@
             Details = await ValidateTrialLicense(detectedLicense.Details, trialLicenseDataProvider, cancellationToken);
 
             IsValid = !Details.HasLicenseExpired();
+
+            IsEvaluation = detectedLicense.IsEvaluationLicense;
         }
 
         internal static async Task<LicenseDetails> ValidateTrialLicense(LicenseDetails licenseDetails, ITrialLicenseDataProvider trialLicenseDataProvider, CancellationToken cancellationToken)

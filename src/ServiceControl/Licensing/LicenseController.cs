@@ -3,13 +3,13 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
+    using Monitoring.HeartbeatMonitoring;
     using Particular.ServiceControl.Licensing;
-    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     [ApiController]
     [Route("api")]
-    public class LicenseController(ActiveLicense activeLicense, Settings settings, IConnectedApplicationsDataStore connectedApplicationsStore) : ControllerBase
+    public class LicenseController(ActiveLicense activeLicense, Settings settings, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus) : ControllerBase
     {
         [HttpGet]
         [Route("license")]
@@ -31,19 +31,12 @@
                 LicenseType = activeLicense.Details.LicenseType ?? string.Empty,
                 InstanceName = settings.InstanceName ?? string.Empty,
                 LicenseStatus = activeLicense.Details.Status,
-                LicenseExtensionUrl = $"https://particular.net/extend-your-trial?p={clientName}{await BuildConnectedApplicationsListPart()}"
+                LicenseExtensionUrl = connectorHeartbeatStatus.LastHeartbeat == null
+                    ? $"https://particular.net/extend-your-trial?p={clientName}"
+                    : $"https://particular.net/license/mt?p={clientName}&t={(activeLicense.IsEvaluation ? 0 : 1)}"
             };
 
             return licenseInfo;
-        }
-
-        async Task<string> BuildConnectedApplicationsListPart()
-        {
-            var connectedApplications = await connectedApplicationsStore.GetConnectedApplications();
-
-            return connectedApplications != null
-                ? $"&ca={string.Join(',', connectedApplications)}"
-                : string.Empty;
         }
 
         public class LicenseInfo

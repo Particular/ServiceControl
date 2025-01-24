@@ -8,16 +8,15 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Configuration;
+using Monitoring.HeartbeatMonitoring;
 using Particular.ServiceControl.Licensing;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Api;
 using ServiceControl.Api.Contracts;
-using ServiceControl.Persistence;
 
 class ConfigurationApi(ActiveLicense license,
     Settings settings,
-    IConnectedApplicationsDataStore connectedApplicationsDataStore,
-    IHttpClientFactory httpClientFactory) : IConfigurationApi
+    IHttpClientFactory httpClientFactory, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus) : IConfigurationApi
 {
     public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken)
     {
@@ -51,7 +50,7 @@ class ConfigurationApi(ActiveLicense license,
     }
 
 
-    public async Task<object> GetConfig(CancellationToken cancellationToken)
+    public Task<object> GetConfig(CancellationToken cancellationToken)
     {
         object content = new
         {
@@ -85,13 +84,10 @@ class ConfigurationApi(ActiveLicense license,
             {
                 settings.HeartbeatGracePeriod
             },
-            ConnectedApplications = new
-            {
-                ConnectedApplications = await connectedApplicationsDataStore.GetConnectedApplications()
-            }
+            MassTransitConnector = connectorHeartbeatStatus.LastHeartbeat
         };
 
-        return content;
+        return Task.FromResult(content);
     }
 
     public async Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default)

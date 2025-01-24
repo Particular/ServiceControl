@@ -19,6 +19,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.Api;
     using ServiceControl.Infrastructure.WebApi;
+    using ServiceControl.Monitoring.HeartbeatMonitoring;
 
     [TestFixture]
     class APIApprovals
@@ -34,7 +35,7 @@
                     new ActiveLicense(null) { IsValid = true },
                     new Settings(),
                     null,
-                    null
+                    new MassTransitConnectorHeartbeatStatus()
                 )
             )
             {
