@@ -20,6 +20,8 @@
 
             builder.AddServiceControlApis();
 
+            builder.Services.AddGrpc();
+
             builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
 
             // We're not explicitly adding Gzip here because it's already in the default list of supported compressors

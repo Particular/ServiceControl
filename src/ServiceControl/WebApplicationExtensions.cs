@@ -13,8 +13,13 @@ public static class WebApplicationExtensions
         app.UseResponseCompression();
         app.UseMiddleware<BodyUrlRouteFix>();
         app.UseHttpLogging();
+
         app.MapHub<MessageStreamerHub>("/api/messagestream");
         app.UseCors();
         app.MapControllers();
+        // Configure the HTTP request pipeline.
+        app.MapGrpcService<LogsService>();
+        app.MapGrpcService<TraceService>();
+        app.MapGrpcService<MetricsService>();
     }
 }

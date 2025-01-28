@@ -96,7 +96,6 @@ namespace Particular.ServiceControl
             }
 
             hostBuilder.Services.AddWindowsService();
-
             hostBuilder.AddServiceControlComponents(settings, transportCustomization, ServiceControlMainInstance.Components);
         }
 

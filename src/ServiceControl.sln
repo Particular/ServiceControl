@@ -1084,4 +1084,16 @@ Global
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}
 	EndGlobalSection
+	GlobalSection(RiderSharedRunConfigurations) = postSolution
+		File = ..\..\Workshop\exercises\01-composite-ui\before\.run\Everything.run.xml
+		File = ..\..\docs.particular.net\samples\azure-functions\service-bus-kafka\ASBFunctionsWorker_4\.run\Everything.run.xml
+		File = ..\..\docs.particular.net\samples\azure-functions\service-bus-kafka\ASBFunctionsWorker_5\.run\Everything.run.xml
+		File = ..\..\Workshop\exercises\03-sagas\before\.run\Everything.run.xml
+		File = ..\..\Workshop\exercises\02-publish-subscribe\after\.run\Everything.run.xml
+		File = ..\..\Workshop\exercises\04-integration\before\.run\Everything.run.xml
+		File = ..\..\Workshop\exercises\01-composite-ui\after\.run\Everything.run.xml
+		File = ..\..\Workshop\exercises\04-integration\after\.run\Everything.run.xml
+		File = ..\..\Workshop\exercises\03-sagas\after\.run\Everything.run.xml
+		File = ..\..\Workshop\exercises\02-publish-subscribe\before\.run\Everything.run.xml
+	EndGlobalSection
 EndGlobal

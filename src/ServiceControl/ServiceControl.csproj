@@ -34,6 +34,18 @@
     <PackageReference Include="ServiceControl.Contracts" />
     <PackageReference Include="System.Reactive.Linq" />
     <PackageReference Include="Yarp.ReverseProxy" />
+    <PackageReference Include="Grpc.AspNetCore"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="opentelemetry\proto\common\v1\common.proto" GrpcServices="none"/>
+    <Protobuf Include="opentelemetry\proto\resource\v1\resource.proto" GrpcServices="none"/>
+    <Protobuf Include="opentelemetry\proto\logs\v1\logs.proto" GrpcServices="none"/>
+    <Protobuf Include="opentelemetry\proto\trace\v1\trace.proto" GrpcServices="none"/>
+    <Protobuf Include="opentelemetry\proto\metrics\v1\metrics.proto" GrpcServices="none"/>
+    <Protobuf Include="opentelemetry\proto\collector\logs\v1\logs_service.proto" GrpcServices="Server"/>
+    <Protobuf Include="opentelemetry\proto\collector\trace\v1\trace_service.proto" GrpcServices="Server"/>
+    <Protobuf Include="opentelemetry\proto\collector\metrics\v1\metrics_service.proto" GrpcServices="Server"/>
   </ItemGroup>
 
   <ItemGroup>
