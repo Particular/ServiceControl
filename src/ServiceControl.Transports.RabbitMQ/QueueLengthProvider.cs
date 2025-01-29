@@ -75,13 +75,13 @@
         {
             foreach (var endpointQueuePair in endpointQueues)
             {
-                await queryExecutor.Execute(m =>
+                await queryExecutor.Execute(async m =>
                 {
                     var queueName = endpointQueuePair.Value;
 
                     try
                     {
-                        var size = (int)m.MessageCount(queueName);
+                        var size = (int)await m.MessageCountAsync(queueName, cancellationToken).ConfigureAwait(false);
 
                         sizes.AddOrUpdate(queueName, _ => size, (_, __) => size);
                     }
@@ -120,7 +120,7 @@
                     null); // value would come from config API in actual transport
             }
 
-            public async Task Execute(Action<IModel> action, CancellationToken cancellationToken = default)
+            public async Task Execute(Action<IChannel> action, CancellationToken cancellationToken = default)
             {
                 try
                 {
@@ -132,14 +132,14 @@
                         await Task.Delay(ReconnectionDelay, cancellationToken);
                     }
 
-                    if (model == null || model.IsClosed)
+                    if (channel == null || channel.IsClosed)
                     {
-                        model?.Dispose();
+                        channel?.Dispose();
 
-                        model = connection.CreateModel();
+                        channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
                     }
 
-                    action(model);
+                    action(channel);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
@@ -154,7 +154,7 @@
             public void Dispose() => connection?.Dispose();
 
             IConnection connection;
-            IModel model;
+            IChannel channel;
             ConnectionFactory connectionFactory;
 
             static readonly TimeSpan ReconnectionDelay = TimeSpan.FromSeconds(5);
