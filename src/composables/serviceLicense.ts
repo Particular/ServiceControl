@@ -25,7 +25,7 @@ const emptyLicense: License = {
   license_status: LicenseStatus.Unavailable,
   license_extension_url: "",
   licenseEdition: computed(() => {
-    return license.license_type && license.edition ? ", " + license.edition : "";
+    return `${license.license_type}${license.edition ? `, ${license.edition}` : ""}`;
   }),
   formattedInstanceName: computed(() => {
     return license.instance_name || "Upgrade ServiceControl to v3.4.0+ to see more information about this license";
@@ -115,6 +115,7 @@ function getSubscriptionDaysLeft(license: UnwrapNestedRefs<License>) {
   const isExpiring = license.license_status === "ValidWithExpiringSubscription";
 
   const expiringIn = useGetDayDiffFromToday(license.expiration_date);
+  if (isNaN(expiringIn)) return "";
   if (!isExpiring) return " - " + expiringIn + " days left";
   if (expiringIn === 0) return " - expiring today";
   if (expiringIn === 1) return " - expiring tomorrow";
@@ -127,6 +128,7 @@ function getTrialDaysLeft(license: UnwrapNestedRefs<License>) {
   const isExpiring = license.license_status === "ValidWithExpiringTrial";
 
   const expiringIn = useGetDayDiffFromToday(license.expiration_date);
+  if (isNaN(expiringIn)) return "";
   if (!isExpiring) return " - " + expiringIn + " days left";
   if (expiringIn === 0) return " - expiring today";
   if (expiringIn === 1) return " - expiring tomorrow";
@@ -137,6 +139,7 @@ function getUpgradeDaysLeft(license: UnwrapNestedRefs<License>) {
   if (license.license_status === "InvalidDueToExpiredUpgradeProtection") return " - expired";
 
   const expiringIn = useGetDayDiffFromToday(license.upgrade_protection_expiration);
+  if (isNaN(expiringIn)) return "";
   if (expiringIn <= 0) return " - expired";
   if (expiringIn === 0) return " - expiring today";
   if (expiringIn === 1) return " - 1 day left";
