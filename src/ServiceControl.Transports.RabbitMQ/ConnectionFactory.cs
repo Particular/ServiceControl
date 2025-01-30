@@ -4,13 +4,15 @@
     using System.Net.Security;
     using System.Security.Authentication;
     using System.Security.Cryptography.X509Certificates;
+    using System.Threading;
+    using System.Threading.Tasks;
     using global::RabbitMQ.Client;
 
     class ConnectionFactory
     {
         readonly string endpointName;
         readonly global::RabbitMQ.Client.ConnectionFactory connectionFactory;
-        readonly object lockObject = new object();
+        readonly SemaphoreSlim semaphoreSlim = new(1, 1);
 
         public ConnectionFactory(string endpointName, ConnectionConfiguration connectionConfiguration,
             X509Certificate2Collection clientCertificateCollection, bool disableRemoteCertificateValidation,
@@ -76,20 +78,25 @@
             }
         }
 
-        public IConnection CreatePublishConnection() => CreateConnection($"{endpointName} Publish", false);
+        public async Task<IConnection> CreatePublishConnection(CancellationToken cancellationToken) => await CreateConnection($"{endpointName} Publish", false, cancellationToken);
 
-        public IConnection CreateAdministrationConnection() => CreateConnection($"{endpointName} Administration", false);
+        public Task<IConnection> CreateAdministrationConnection(CancellationToken cancellationToken) => CreateConnection($"{endpointName} Administration", false, cancellationToken);
 
-        public IConnection CreateConnection(string connectionName, bool automaticRecoveryEnabled = true)
+        public async Task<IConnection> CreateConnection(string connectionName, bool automaticRecoveryEnabled = true, CancellationToken cancellationToken = default)
         {
-            lock (lockObject)
+            await semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
             {
                 connectionFactory.AutomaticRecoveryEnabled = automaticRecoveryEnabled;
                 connectionFactory.ClientProperties["connected"] = DateTime.UtcNow.ToString("G");
 
-                var connection = connectionFactory.CreateConnection(connectionName);
+                var connection = await connectionFactory.CreateConnectionAsync(connectionName, cancellationToken);
 
                 return connection;
+            }
+            finally
+            {
+                _ = semaphoreSlim.Release();
             }
         }
     }
