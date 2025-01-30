@@ -20,7 +20,6 @@
                 if (builder.GetBooleanValue("UseExternalAuthMechanism"))
                 {
                     transport.UseExternalAuthMechanism();
-                    transport.DoNotUseManagementApi();
                 }
 
                 if (builder.GetBooleanValue("DisableManagementApi"))
