@@ -124,7 +124,7 @@
             {
                 try
                 {
-                    connection ??= connectionFactory.CreateConnection("queue length monitor");
+                    connection ??= await connectionFactory.CreateConnection("queue length monitor", cancellationToken: cancellationToken);
 
                     //Connection implements reconnection logic
                     while (!connection.IsOpen)
