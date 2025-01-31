@@ -11,7 +11,6 @@
         public void CheckForSelfContainedRavenDB()
         {
             bool isCI = Environment.GetEnvironmentVariable("CI") == "true";
-            bool isLocal = !isCI;
 
             var ravenServerPath = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "..", "..", "..", "..", "..", "deploy", "RavenDBServer"));
             var ravenStudio = Path.Combine(ravenServerPath, "Raven.Studio.zip");
@@ -19,13 +18,29 @@
             var ravenServerExe = Path.Combine(ravenServerPath, "Raven.Server.exe");
             var offlineOperationsUtility = Path.Combine(ravenServerPath, "rvn.exe");
 
-            Assert.Multiple(() =>
+            try
             {
-                Assert.That(ravenStudio, Does.Exist); // No matter what
-                Assert.That(File.Exists(ravenServerDll), Is.EqualTo(isLocal));  // Only in local development
-                Assert.That(File.Exists(ravenServerExe), Is.EqualTo(isCI)); // Only on CI
-                Assert.That(File.Exists(offlineOperationsUtility), Is.EqualTo(isCI));    // Only on CI
-            });
+                Assert.Multiple(() =>
+                {
+                    Assert.That(ravenStudio, Does.Exist); // As of 6.2.3 this exists in embedded & self-contained versions
+                    Assert.That(ravenServerDll, Does.Exist);  // As of 6.2.3 this exists in embedded & self-contained versions
+                    if (isCI)
+                    {
+                        // These may not exist on a local build and that's OK, but they must exist in a self-contained build
+                        Assert.That(ravenServerExe, Does.Exist);
+                        Assert.That(offlineOperationsUtility, Does.Exist);
+                    }
+                });
+            }
+            catch (Exception)
+            {
+                TestContext.Out.WriteLine($"Contents of RavenServerPath {ravenServerPath}:");
+                foreach (var name in Directory.GetFileSystemEntries(ravenServerPath))
+                {
+                    TestContext.Out.WriteLine($" * {name}");
+                }
+                throw;
+            }
         }
     }
 }
