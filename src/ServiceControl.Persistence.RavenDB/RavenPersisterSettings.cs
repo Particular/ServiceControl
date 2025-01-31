@@ -26,6 +26,7 @@ class RavenPersisterSettings : PersistenceSettings, IRavenClientCertificateInfo
     public string ConnectionString { get; set; }
     public string ClientCertificatePath { get; set; }
     public string ClientCertificateBase64 { get; set; }
+    public string ClientCertificatePassword { get; set; }
     public bool UseEmbeddedServer => string.IsNullOrWhiteSpace(ConnectionString);
     public string LogPath { get; set; }
     public string LogsMode { get; set; } = LogsModeDefault;

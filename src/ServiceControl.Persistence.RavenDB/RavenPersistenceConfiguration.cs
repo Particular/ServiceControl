@@ -36,6 +36,7 @@
                 ConnectionString = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ConnectionStringKey),
                 ClientCertificatePath = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ClientCertificatePathKey),
                 ClientCertificateBase64 = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ClientCertificateBase64Key),
+                ClientCertificatePassword = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ClientCertificatePasswordKey),
                 DatabaseName = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabaseNameKey, RavenPersisterSettings.DatabaseNameDefault),
                 DatabasePath = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabasePathKey, DefaultDatabaseLocation()),
                 DatabaseMaintenancePort = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabaseMaintenancePortKey, RavenPersisterSettings.DatabaseMaintenancePortDefault),

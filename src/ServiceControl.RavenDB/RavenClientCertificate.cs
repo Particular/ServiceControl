@@ -15,7 +15,7 @@ public static class RavenClientCertificate
             try
             {
                 var bytes = Convert.FromBase64String(certInfo.ClientCertificateBase64);
-                return new X509Certificate2(bytes);
+                return new X509Certificate2(bytes, certInfo.ClientCertificatePassword);
             }
             catch (Exception x) when (x is FormatException or CryptographicException)
             {
@@ -25,7 +25,7 @@ public static class RavenClientCertificate
 
         if (certInfo.ClientCertificatePath is not null)
         {
-            return new X509Certificate2(certInfo.ClientCertificatePath);
+            return new X509Certificate2(certInfo.ClientCertificatePath, certInfo.ClientCertificatePassword);
         }
 
         var applicationDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty;
@@ -33,7 +33,7 @@ public static class RavenClientCertificate
 
         if (File.Exists(certificatePath))
         {
-            return new X509Certificate2(certificatePath);
+            return new X509Certificate2(certificatePath, certInfo.ClientCertificatePassword);
         }
         return null;
     }
@@ -43,4 +43,5 @@ public interface IRavenClientCertificateInfo
 {
     string? ClientCertificatePath { get; }
     string? ClientCertificateBase64 { get; }
+    string? ClientCertificatePassword { get; }
 }
