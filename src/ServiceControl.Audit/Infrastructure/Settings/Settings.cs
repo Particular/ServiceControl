@@ -43,7 +43,9 @@
             {
                 Hostname = SettingsReader.Read(SettingsRootNamespace, "Hostname", "localhost");
                 Port = SettingsReader.Read(SettingsRootNamespace, "Port", 44444);
-            };
+            }
+
+            ;
 
             MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
             ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");
@@ -79,8 +81,7 @@
             }
         }
 
-        [JsonIgnore]
-        public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
+        [JsonIgnore] public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
 
         public LoggingSettings LoggingSettings { get; }
 
@@ -109,6 +110,7 @@
         public int Port { get; set; }
 
         public bool PrintMetrics => SettingsReader.Read<bool>(SettingsRootNamespace, "PrintMetrics");
+        public string OtelMetricsUrl { get; set; } = SettingsReader.Read<string>(SettingsRootNamespace, nameof(OtelMetricsUrl));
         public string Hostname { get; private set; }
         public string VirtualDirectory => SettingsReader.Read(SettingsRootNamespace, "VirtualDirectory", string.Empty);
 

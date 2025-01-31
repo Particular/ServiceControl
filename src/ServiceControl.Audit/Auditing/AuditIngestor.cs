@@ -14,13 +14,11 @@
     using Persistence.UnitOfWork;
     using Recoverability;
     using SagaAudit;
-    using ServiceControl.Infrastructure.Metrics;
     using ServiceControl.Transports;
 
     public class AuditIngestor
     {
         public AuditIngestor(
-            Metrics metrics,
             Settings settings,
             IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
             EndpointInstanceMonitoring endpointInstanceMonitoring,
@@ -32,26 +30,11 @@
         {
             this.settings = settings;
             this.messageDispatcher = messageDispatcher;
-
-            var ingestedAuditMeter = metrics.GetCounter("Audit ingestion - ingested audit");
-            var ingestedSagaAuditMeter = metrics.GetCounter("Audit ingestion - ingested saga audit");
-            var auditBulkInsertDurationMeter = metrics.GetMeter("Audit ingestion - audit bulk insert duration", FrequencyInMilliseconds);
-            var sagaAuditBulkInsertDurationMeter = metrics.GetMeter("Audit ingestion - saga audit bulk insert duration", FrequencyInMilliseconds);
-            var bulkInsertCommitDurationMeter = metrics.GetMeter("Audit ingestion - bulk insert commit duration", FrequencyInMilliseconds);
-
-            var enrichers = new IEnrichImportedAuditMessages[]
-            {
-                new MessageTypeEnricher(),
-                new EnrichWithTrackingIds(),
-                new ProcessingStatisticsEnricher(),
-                new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring),
-                new DetectSuccessfulRetriesEnricher(),
-                new SagaRelationshipsEnricher()
-            }.Concat(auditEnrichers).ToArray();
+            var enrichers = new IEnrichImportedAuditMessages[] { new MessageTypeEnricher(), new EnrichWithTrackingIds(), new ProcessingStatisticsEnricher(), new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring), new DetectSuccessfulRetriesEnricher(), new SagaRelationshipsEnricher() }.Concat(auditEnrichers).ToArray();
 
             logQueueAddress = transportCustomization.ToTransportQualifiedQueueName(settings.AuditLogQueue);
 
-            auditPersister = new AuditPersister(unitOfWorkFactory, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession, messageDispatcher);
+            auditPersister = new AuditPersister(unitOfWorkFactory, enrichers, messageSession, messageDispatcher);
         }
 
         public async Task Ingest(List<MessageContext> contexts)
@@ -71,6 +54,7 @@
                     {
                         Log.Debug($"Forwarding {stored.Count} messages");
                     }
+
                     await Forward(stored, logQueueAddress);
                     if (Log.IsDebugEnabled)
                     {
@@ -159,7 +143,6 @@
         readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly string logQueueAddress;
 
-        static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
         static readonly ILog Log = LogManager.GetLogger<AuditIngestor>();
     }
 }

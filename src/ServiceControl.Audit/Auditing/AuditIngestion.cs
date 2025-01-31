@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.Metrics;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
@@ -14,18 +15,14 @@
     using Persistence;
     using Persistence.UnitOfWork;
     using ServiceControl.Infrastructure;
-    using ServiceControl.Infrastructure.Metrics;
     using Transports;
 
     class AuditIngestion : IHostedService
     {
-        static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
-
         public AuditIngestion(
             Settings settings,
             ITransportCustomization transportCustomization,
             TransportSettings transportSettings,
-            Metrics metrics,
             IFailedAuditStorage failedImportsStorage,
             AuditIngestionCustomCheck.State ingestionState,
             AuditIngestor auditIngestor,
@@ -39,10 +36,6 @@
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.settings = settings;
             this.applicationLifetime = applicationLifetime;
-
-            batchSizeMeter = metrics.GetMeter("Audit ingestion - batch size");
-            batchDurationMeter = metrics.GetMeter("Audit ingestion - batch processing duration", FrequencyInMilliseconds);
-            receivedMeter = metrics.GetCounter("Audit ingestion - received");
 
             if (!transportSettings.MaxConcurrency.HasValue)
             {
@@ -102,6 +95,7 @@
                         await stoppable.StopReceive(cancellationToken);
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
                     }
+
                     return;
                 }
 
@@ -168,6 +162,7 @@
                     logger.Info("Shutting down. Already stopped, skipping shut down");
                     return; //Already stopped
                 }
+
                 var stoppable = queueIngestor;
                 queueIngestor = null;
                 logger.Info("Shutting down. Infrastructure shut down commencing");
@@ -196,7 +191,7 @@
             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-            receivedMeter.Mark();
+            receivedMeter.Add(1);
 
             await channel.Writer.WriteAsync(messageContext, cancellationToken);
             await taskCompletionSource.Task;
@@ -217,11 +212,11 @@
                         contexts.Add(context);
                     }
 
-                    batchSizeMeter.Mark(contexts.Count);
-                    using (batchDurationMeter.Measure())
-                    {
-                        await auditIngestor.Ingest(contexts);
-                    }
+                    batchSizeMeter.Record(contexts.Count);
+                    var sw = Stopwatch.StartNew();
+
+                    await auditIngestor.Ingest(contexts);
+                    batchDurationMeter.Record(sw.ElapsedMilliseconds);
                 }
                 catch (OperationCanceledException)
                 {
@@ -261,9 +256,9 @@
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Settings settings;
         readonly Channel<MessageContext> channel;
-        readonly Meter batchSizeMeter;
-        readonly Meter batchDurationMeter;
-        readonly Counter receivedMeter;
+        readonly Histogram<long> batchSizeMeter = AuditMetrics.Meter.CreateHistogram<long>($"{AuditMetrics.Prefix}.batch_size");
+        readonly Histogram<double> batchDurationMeter = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.batch_duration_ms");
+        readonly Counter<long> receivedMeter = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.received");
         readonly Watchdog watchdog;
         readonly Task ingestionWorker;
         readonly IHostApplicationLifetime applicationLifetime;

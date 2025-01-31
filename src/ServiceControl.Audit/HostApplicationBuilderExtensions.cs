@@ -5,8 +5,8 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Auditing;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using Infrastructure;
-using Infrastructure.Metrics;
 using Infrastructure.Settings;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +20,8 @@ using NServiceBus.Logging;
 using NServiceBus.Transport;
 using Persistence;
 using Transports;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 
 static class HostApplicationBuilderExtensions
 {
@@ -61,12 +63,37 @@ static class HostApplicationBuilderExtensions
         // directly and to make things more complex of course the order of registration still matters ;)
         services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
-        services.AddMetrics(settings.PrintMetrics);
-
         services.AddPersistence(persistenceSettings, persistenceConfiguration);
 
         NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, onCriticalError, configuration);
         builder.UseNServiceBus(configuration);
+
+        if (!string.IsNullOrEmpty(settings.OtelMetricsUrl))
+        {
+            builder.Services.AddOpenTelemetry()
+                .ConfigureResource(b => b.AddService(serviceName: settings.InstanceName))
+                .WithMetrics(b =>
+                {
+                    b.AddMeter("ServiceControl");
+
+                    if (Uri.TryCreate(settings.OtelMetricsUrl, UriKind.Absolute, out var uri))
+                    {
+                        b.AddOtlpExporter(e =>
+                        {
+                            e.Endpoint = uri;
+                        });
+                    }
+                    else
+                    {
+                        b.AddAzureMonitorMetricExporter(o =>
+                        {
+                            o.ConnectionString = settings.OtelMetricsUrl;
+                        });
+                    }
+
+                    b.AddConsoleExporter();
+                });
+        }
 
         // Configure after the NServiceBus hosted service to ensure NServiceBus is already started
         if (settings.IngestAuditMessages)
@@ -101,9 +128,6 @@ Persistence:                        {persistenceConfiguration.Name}
 
         var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
         logger.Info(startupMessage);
-        endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
-        {
-            Settings = settings
-        });
+        endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new { Settings = settings });
     }
 }

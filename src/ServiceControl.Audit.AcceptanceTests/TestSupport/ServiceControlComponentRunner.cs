@@ -51,17 +51,19 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 TransportConnectionString = transportToUse.ConnectionString,
                 MaximumConcurrencyLevel = 2,
                 ServiceControlQueueAddress = "SHOULDNOTBEUSED",
+                OtelMetricsUrl = "http://localhost:4317",
                 MessageFilter = messageContext =>
                 {
                     var id = messageContext.NativeMessageId;
                     var headers = messageContext.Headers;
-
                     var log = NServiceBus.Logging.LogManager.GetLogger<ServiceControlComponentRunner>();
-                    headers.TryGetValue(Headers.MessageId, out var originalMessageId);
+                    headers.TryGetValue(Headers.MessageId,
+                        out var originalMessageId);
                     log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
 
                     //Do not filter out CC, SA and HB messages as they can't be stamped
-                    if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
+                    if (headers.TryGetValue(Headers.EnclosedMessageTypes,
+                            out var messageTypes)
                         && (messageTypes.StartsWith("ServiceControl.Contracts") || messageTypes.StartsWith("ServiceControl.EndpointPlugin")))
                     {
                         return false;
