@@ -3,9 +3,6 @@
 namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System;
-    using System.IO;
-    using System.Reflection;
-    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
@@ -38,21 +35,11 @@ namespace ServiceControl.Audit.Persistence.RavenDB
             {
                 await initializeSemaphore.WaitAsync(cancellationToken);
 
-                // Look for raven-client-certificate.pfx in same directory as application code
-                var applicationDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty;
-                var certificatePath = Path.Combine(applicationDirectory, "raven-client-certificate.pfx");
-                X509Certificate2? certificate = null;
-
-                if (File.Exists(certificatePath))
-                {
-                    certificate = new X509Certificate2(certificatePath);
-                }
-
                 var store = new DocumentStore
                 {
                     Database = configuration.Name,
                     Urls = [configuration.ServerConfiguration.ConnectionString],
-                    Certificate = certificate,
+                    Certificate = RavenClientCertificate.FindClientCertificate(),
                     Conventions = new DocumentConventions
                     {
                         SaveEnumsAsIntegers = true
