@@ -25,6 +25,10 @@ public static class RavenClientCertificate
 
         if (certInfo.ClientCertificatePath is not null)
         {
+            if (!File.Exists(certInfo.ClientCertificatePath))
+            {
+                throw new Exception("Could not read the RavenDB client certificate from the supplied path because no file was found.");
+            }
             return new X509Certificate2(certInfo.ClientCertificatePath, certInfo.ClientCertificatePassword);
         }
 
