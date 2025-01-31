@@ -130,7 +130,7 @@
                         // this can throw even though dispose is never supposed to throw
                         var commitSw = Stopwatch.StartNew();
                         await unitOfWork.DisposeAsync();
-bulkInsertCommitDurationMeter.Record(commitSw.ElapsedMilliseconds);
+                        bulkInsertCommitDurationMeter.Record(commitSw.ElapsedMilliseconds);
                     }
                     catch (Exception e)
                     {
