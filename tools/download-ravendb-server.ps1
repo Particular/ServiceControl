@@ -51,6 +51,3 @@ Copy-Item -Path $serverPath -Destination $deployPath -Recurse
 Write-Output "Deleting temporary files"
 Remove-Item $zipPath -Force
 Remove-Item $unzipPath -Force -Recurse
-
-Write-Output "Contents of deploy/RavenDBServer"
-Get-ChildItem deploy/RavenDBServer
