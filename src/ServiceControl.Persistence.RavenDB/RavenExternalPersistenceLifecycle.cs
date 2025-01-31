@@ -39,7 +39,7 @@ namespace ServiceControl.Persistence.RavenDB
                 {
                     Database = settings.DatabaseName,
                     Urls = [settings.ConnectionString],
-                    Certificate = RavenClientCertificate.FindClientCertificate(),
+                    Certificate = RavenClientCertificate.FindClientCertificate(settings.ClientCertificateBase64),
                     Conventions = new DocumentConventions
                     {
                         SaveEnumsAsIntegers = true

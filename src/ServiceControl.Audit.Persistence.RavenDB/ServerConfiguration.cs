@@ -18,6 +18,7 @@
         }
 
         public string ConnectionString { get; }
+        public string ClientCertificateBase64 { get; internal set; }
         public bool UseEmbeddedServer { get; }
         public string DbPath { get; internal set; } //Setter for ATT only
         public string ServerUrl { get; }

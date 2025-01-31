@@ -23,6 +23,7 @@ class RavenPersisterSettings : PersistenceSettings
     /// User provided external RavenDB instance connection string
     /// </summary>
     public string ConnectionString { get; set; }
+    public string ClientCertificateBase64 { get; set; }
     public bool UseEmbeddedServer => string.IsNullOrWhiteSpace(ConnectionString);
     public string LogPath { get; set; }
     public string LogsMode { get; set; } = LogsModeDefault;
