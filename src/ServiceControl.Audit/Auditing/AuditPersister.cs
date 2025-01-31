@@ -75,8 +75,6 @@
 
                         var auditSw = Stopwatch.StartNew();
                         await unitOfWork.RecordProcessedMessage(processedMessage, context.Body);
-                        auditSw.Stop();
-
                         auditBulkInsertDurationMeter.Record(auditSw.ElapsedMilliseconds);
 
                         ingestedAuditMeter.Add(1);
@@ -90,8 +88,6 @@
 
                         var sagaSw = Stopwatch.StartNew();
                         await unitOfWork.RecordSagaSnapshot(sagaSnapshot);
-                        sagaSw.Stop();
-
                         sagaAuditBulkInsertDurationMeter.Record(sagaSw.ElapsedMilliseconds);
 
                         ingestedSagaAuditMeter.Add(1);
@@ -134,8 +130,7 @@
                         // this can throw even though dispose is never supposed to throw
                         var commitSw = Stopwatch.StartNew();
                         await unitOfWork.DisposeAsync();
-                        commitSw.Stop();
-                        bulkInsertCommitDurationMeter.Record(commitSw.ElapsedMilliseconds);
+bulkInsertCommitDurationMeter.Record(commitSw.ElapsedMilliseconds);
                     }
                     catch (Exception e)
                     {
