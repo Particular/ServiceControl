@@ -8,19 +8,24 @@ using System.Security.Cryptography.X509Certificates;
 
 public static class RavenClientCertificate
 {
-    public static X509Certificate2? FindClientCertificate(string? base64String)
+    public static X509Certificate2? FindClientCertificate(IRavenClientCertificateInfo certInfo)
     {
-        if (base64String is not null)
+        if (certInfo.ClientCertificateBase64 is not null)
         {
             try
             {
-                var bytes = Convert.FromBase64String(base64String);
+                var bytes = Convert.FromBase64String(certInfo.ClientCertificateBase64);
                 return new X509Certificate2(bytes);
             }
             catch (Exception x) when (x is FormatException or CryptographicException)
             {
                 throw new Exception("Could not read the RavenDB client certificate from the configured Base64 value.", x);
             }
+        }
+
+        if (certInfo.ClientCertificatePath is not null)
+        {
+            return new X509Certificate2(certInfo.ClientCertificatePath);
         }
 
         var applicationDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty;
@@ -32,4 +37,10 @@ public static class RavenClientCertificate
         }
         return null;
     }
+}
+
+public interface IRavenClientCertificateInfo
+{
+    string? ClientCertificatePath { get; }
+    string? ClientCertificateBase64 { get; }
 }
