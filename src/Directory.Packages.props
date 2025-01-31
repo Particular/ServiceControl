@@ -51,7 +51,7 @@
     <PackageVersion Include="NUnit.Analyzers" Version="4.6.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="4.6.0" />
     <PackageVersion Include="Particular.Approvals" Version="2.0.1" />
-    <PackageVersion Include="Particular.Licensing.Sources" Version="6.0.0" />
+    <PackageVersion Include="Particular.Licensing.Sources" Version="6.0.1" />
     <PackageVersion Include="Particular.LicensingComponent.Report" Version="1.0.0" />
     <PackageVersion Include="Polly.Core" Version="8.5.0" />
     <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
