@@ -30,11 +30,24 @@
         {
             this.settings = settings;
             this.messageDispatcher = messageDispatcher;
-            var enrichers = new IEnrichImportedAuditMessages[] { new MessageTypeEnricher(), new EnrichWithTrackingIds(), new ProcessingStatisticsEnricher(), new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring), new DetectSuccessfulRetriesEnricher(), new SagaRelationshipsEnricher() }.Concat(auditEnrichers).ToArray();
+            var enrichers = new IEnrichImportedAuditMessages[]
+            {
+                 new MessageTypeEnricher(), 
+                 new EnrichWithTrackingIds(), 
+                 new ProcessingStatisticsEnricher(), 
+                 new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring), 
+                 new DetectSuccessfulRetriesEnricher(), 
+                 new SagaRelationshipsEnricher()
+            }.Concat(auditEnrichers).ToArray();
 
             logQueueAddress = transportCustomization.ToTransportQualifiedQueueName(settings.AuditLogQueue);
 
-            auditPersister = new AuditPersister(unitOfWorkFactory, enrichers, messageSession, messageDispatcher);
+            auditPersister = new AuditPersister(
+                unitOfWorkFactory,
+                enrichers,
+                messageSession,
+                messageDispatcher
+            );
         }
 
         public async Task Ingest(List<MessageContext> contexts)
@@ -54,7 +67,6 @@
                     {
                         Log.Debug($"Forwarding {stored.Count} messages");
                     }
-
                     await Forward(stored, logQueueAddress);
                     if (Log.IsDebugEnabled)
                     {

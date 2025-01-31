@@ -128,6 +128,9 @@ Persistence:                        {persistenceConfiguration.Name}
 
         var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
         logger.Info(startupMessage);
-        endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new { Settings = settings });
+        endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
+        {
+            Settings = settings
+        });
     }
 }

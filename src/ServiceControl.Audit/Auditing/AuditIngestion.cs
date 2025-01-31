@@ -95,7 +95,6 @@
                         await stoppable.StopReceive(cancellationToken);
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
                     }
-
                     return;
                 }
 
@@ -162,7 +161,6 @@
                     logger.Info("Shutting down. Already stopped, skipping shut down");
                     return; //Already stopped
                 }
-
                 var stoppable = queueIngestor;
                 queueIngestor = null;
                 logger.Info("Shutting down. Infrastructure shut down commencing");
