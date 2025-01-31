@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.Settings;
@@ -30,15 +29,7 @@
         {
             this.settings = settings;
             this.messageDispatcher = messageDispatcher;
-            var enrichers = new IEnrichImportedAuditMessages[]
-            {
-                 new MessageTypeEnricher(), 
-                 new EnrichWithTrackingIds(), 
-                 new ProcessingStatisticsEnricher(), 
-                 new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring), 
-                 new DetectSuccessfulRetriesEnricher(), 
-                 new SagaRelationshipsEnricher()
-            }.Concat(auditEnrichers).ToArray();
+            var enrichers = new IEnrichImportedAuditMessages[] { new MessageTypeEnricher(), new EnrichWithTrackingIds(), new ProcessingStatisticsEnricher(), new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring), new DetectSuccessfulRetriesEnricher(), new SagaRelationshipsEnricher() }.Concat(auditEnrichers).ToArray();
 
             logQueueAddress = transportCustomization.ToTransportQualifiedQueueName(settings.AuditLogQueue);
 
@@ -67,6 +58,7 @@
                     {
                         Log.Debug($"Forwarding {stored.Count} messages");
                     }
+
                     await Forward(stored, logQueueAddress);
                     if (Log.IsDebugEnabled)
                     {
