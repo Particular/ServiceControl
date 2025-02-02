@@ -53,7 +53,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
         if (userName != mangementApiUrl.UserName)
         {
-            _ = Diagnostics.AppendLine($"UserName in settings is different from Management API URL: {userName} != {managementUserName}");
+            _ = Diagnostics.AppendLine($"UserName in settings is different from Management API URL: {userName} != {mangementApiUrl.UserName}");
         }
 
         if (password != mangementApiUrl.Password)
