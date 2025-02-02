@@ -1,7 +1,9 @@
 ﻿namespace ServiceControl.Transports.RabbitMQ
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using BrokerThroughput;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
@@ -24,8 +26,17 @@
                 throw new InvalidOperationException("Connection string not configured");
             }
 
+            var connectionStringDictionary = ConnectionConfiguration.ParseNServiceBusConnectionString(transportSettings.ConnectionString, new StringBuilder());
+            var disableManagementApi = GetValue(connectionStringDictionary, "DisableManagementApi", "false");
+            if (!disableManagementApi.Equals("true", StringComparison.OrdinalIgnoreCase) && !disableManagementApi.Equals("false", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException("The value for 'DisableManagementApi' must be either 'true' or 'false'");
+            }
+
             var transport = new RabbitMQTransport(RoutingTopology.Direct(queueType, routingKeyConvention: type => type.FullName.Replace(".", "-")), transportSettings.ConnectionString, enableDelayedDelivery: false);
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
+            transport.ManagementApiUrl = GetValue(connectionStringDictionary, "ManagementApiUrl", string.Empty);
+            transport.UseManagementApi = disableManagementApi.Equals("false", StringComparison.OrdinalIgnoreCase);
 
             return transport;
         }
@@ -40,6 +51,11 @@
         {
             services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
+        }
+
+        static string GetValue(Dictionary<string, string> dictionary, string key, string defaultValue)
+        {
+            return dictionary.TryGetValue(key, out var value) ? value : defaultValue;
         }
     }
 }
