@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Auditing;
-using Azure.Monitor.OpenTelemetry.Exporter;
 using Infrastructure;
 using Infrastructure.Settings;
 using Microsoft.AspNetCore.HttpLogging;
@@ -76,20 +75,10 @@ static class HostApplicationBuilderExtensions
                 {
                     b.AddMeter("ServiceControl");
 
-                    if (Uri.TryCreate(settings.OtelMetricsUrl, UriKind.Absolute, out var uri))
+                    b.AddOtlpExporter(e =>
                     {
-                        b.AddOtlpExporter(e =>
-                        {
-                            e.Endpoint = uri;
-                        });
-                    }
-                    else
-                    {
-                        b.AddAzureMonitorMetricExporter(o =>
-                        {
-                            o.ConnectionString = settings.OtelMetricsUrl;
-                        });
-                    }
+                        e.Endpoint = new Uri(settings.OtelMetricsUrl);
+                    });
 
                     b.AddConsoleExporter();
                 });
@@ -128,9 +117,6 @@ Persistence:                        {persistenceConfiguration.Name}
 
         var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
         logger.Info(startupMessage);
-        endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
-        {
-            Settings = settings
-        });
+        endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new { Settings = settings });
     }
 }
