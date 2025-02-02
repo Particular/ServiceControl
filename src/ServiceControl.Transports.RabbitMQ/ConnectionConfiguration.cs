@@ -179,7 +179,7 @@
             return dictionary;
         }
 
-        static Dictionary<string, string> ParseNServiceBusConnectionString(string connectionString, StringBuilder invalidOptionsMessage)
+        internal static Dictionary<string, string> ParseNServiceBusConnectionString(string connectionString, StringBuilder invalidOptionsMessage)
         {
             var dictionary = new DbConnectionStringBuilder { ConnectionString = connectionString }
                 .OfType<KeyValuePair<string, object>>()
