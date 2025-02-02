@@ -29,10 +29,11 @@ static class HostApplicationBuilderExtensions
         Settings settings,
         EndpointConfiguration configuration)
     {
+        var version = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
         var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings);
         var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
 
-        RecordStartup(settings, configuration, persistenceConfiguration);
+        RecordStartup(version, settings, configuration, persistenceConfiguration);
 
         builder.Logging.ClearProviders();
         builder.Logging.AddNLog();
@@ -69,18 +70,22 @@ static class HostApplicationBuilderExtensions
 
         if (!string.IsNullOrEmpty(settings.OtelMetricsUrl))
         {
+            if (!Uri.TryCreate(settings.OtelMetricsUrl, UriKind.Absolute, out var otelMetricsUri))
+            {
+                throw new UriFormatException($"Invalid OtelMetricsUrl: {settings.OtelMetricsUrl}");
+            }
             builder.Services.AddOpenTelemetry()
-                .ConfigureResource(b => b.AddService(serviceName: settings.InstanceName))
+                .ConfigureResource(b => b.AddService(
+                    serviceName: "Particular.ServiceControl.Audit",
+                    serviceVersion: version,
+                    serviceInstanceId: settings.InstanceName))
                 .WithMetrics(b =>
                 {
                     b.AddMeter("ServiceControl");
-
                     b.AddOtlpExporter(e =>
                     {
-                        e.Endpoint = new Uri(settings.OtelMetricsUrl);
+                        e.Endpoint = otelMetricsUri;
                     });
-
-                    b.AddConsoleExporter();
                 });
         }
 
@@ -100,10 +105,8 @@ static class HostApplicationBuilderExtensions
         builder.Services.AddInstaller(persistenceSettings, persistenceConfiguration);
     }
 
-    static void RecordStartup(Settings settings, EndpointConfiguration endpointConfiguration, IPersistenceConfiguration persistenceConfiguration)
+    static void RecordStartup(string version, Settings settings, EndpointConfiguration endpointConfiguration, IPersistenceConfiguration persistenceConfiguration)
     {
-        var version = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
-
         var startupMessage = $@"
 -------------------------------------------------------------
 ServiceControl Audit Version:       {version}
