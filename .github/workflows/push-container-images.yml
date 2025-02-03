@@ -71,7 +71,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: particular/servicecontrol-monitoring
           readme-filepath: ./src/ServiceControl.Monitoring/Container-README.md
-          short-description: Monitoring instance's performance to track the health of a distributed system.
+          short-description: Track the health of a distributed system.
       - name: Update Docker Hub Description - RavenDB
         if: ${{ steps.validate.outputs.latest == 'true' }}
         uses: peter-evans/dockerhub-description@v4.0.0
