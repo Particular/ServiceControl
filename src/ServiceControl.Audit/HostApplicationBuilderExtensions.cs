@@ -81,7 +81,7 @@ static class HostApplicationBuilderExtensions
                     serviceInstanceId: settings.InstanceName))
                 .WithMetrics(b =>
                 {
-                    b.AddMeter("ServiceControl");
+                    b.AddMeter(AuditMetrics.MeterName);
                     b.AddOtlpExporter(e =>
                     {
                         e.Endpoint = otelMetricsUri;
