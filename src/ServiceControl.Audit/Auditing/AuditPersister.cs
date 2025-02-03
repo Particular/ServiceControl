@@ -75,9 +75,9 @@
 
                         var auditSw = Stopwatch.StartNew();
                         await unitOfWork.RecordProcessedMessage(processedMessage, context.Body);
-                        auditBulkInsertDurationMeter.Record(auditSw.ElapsedMilliseconds);
+                        auditBulkInsertDuration.Record(auditSw.ElapsedMilliseconds);
 
-                        ingestedAuditMeter.Add(1);
+                        storedAudits.Add(1);
                     }
                     else if (context.Extensions.TryGet(out SagaSnapshot sagaSnapshot))
                     {
@@ -88,9 +88,9 @@
 
                         var sagaSw = Stopwatch.StartNew();
                         await unitOfWork.RecordSagaSnapshot(sagaSnapshot);
-                        sagaAuditBulkInsertDurationMeter.Record(sagaSw.ElapsedMilliseconds);
+                        sagaAuditBulkInsertDuration.Record(sagaSw.ElapsedMilliseconds);
 
-                        ingestedSagaAuditMeter.Add(1);
+                        storedSagas.Add(1);
                     }
 
                     storedContexts.Add(context);
@@ -130,7 +130,7 @@
                         // this can throw even though dispose is never supposed to throw
                         var commitSw = Stopwatch.StartNew();
                         await unitOfWork.DisposeAsync();
-                        bulkInsertCommitDurationMeter.Record(commitSw.ElapsedMilliseconds);
+                        auditCommitDuration.Record(commitSw.ElapsedMilliseconds);
                     }
                     catch (Exception e)
                     {
@@ -283,11 +283,11 @@
             }
         }
 
-        readonly Counter<long> ingestedAuditMeter = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.stored_audit_messages");
-        readonly Counter<long> ingestedSagaAuditMeter = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.stored_saga_audits");
-        readonly Histogram<double> auditBulkInsertDurationMeter = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.bulk_insert_duration_audit", unit: "ms");
-        readonly Histogram<double> sagaAuditBulkInsertDurationMeter = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.bulk_insert_duration_sagas", unit: "ms");
-        readonly Histogram<double> bulkInsertCommitDurationMeter = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.commit_duration_audit", unit: "ms");
+        readonly Counter<long> storedAudits = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.stored_audit_messages");
+        readonly Counter<long> storedSagas = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.stored_saga_audits");
+        readonly Histogram<double> auditBulkInsertDuration = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.bulk_insert_duration_audits", unit: "ms");
+        readonly Histogram<double> sagaAuditBulkInsertDuration = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.bulk_insert_duration_sagas", unit: "ms");
+        readonly Histogram<double> auditCommitDuration = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.commit_duration_audits", unit: "ms");
 
         static readonly ILog Logger = LogManager.GetLogger<AuditPersister>();
     }

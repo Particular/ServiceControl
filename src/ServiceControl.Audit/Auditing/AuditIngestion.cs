@@ -191,7 +191,7 @@
             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-            receivedMeter.Add(1);
+            receivedAudits.Add(1);
 
             await channel.Writer.WriteAsync(messageContext, cancellationToken);
             await taskCompletionSource.Task;
@@ -212,11 +212,11 @@
                         contexts.Add(context);
                     }
 
-                    batchSizeMeter.Record(contexts.Count);
+                    auditBatchSize.Record(contexts.Count);
                     var sw = Stopwatch.StartNew();
 
                     await auditIngestor.Ingest(contexts);
-                    batchDurationMeter.Record(sw.ElapsedMilliseconds);
+                    auditBatchDuration.Record(sw.ElapsedMilliseconds);
                 }
                 catch (OperationCanceledException)
                 {
@@ -247,7 +247,7 @@
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver queueIngestor;
 
-        readonly SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
+        readonly SemaphoreSlim startStopSemaphore = new(1);
         readonly string inputEndpoint;
         readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
@@ -256,9 +256,9 @@
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Settings settings;
         readonly Channel<MessageContext> channel;
-        readonly Histogram<long> batchSizeMeter = AuditMetrics.Meter.CreateHistogram<long>($"{AuditMetrics.Prefix}.batch_size");
-        readonly Histogram<double> batchDurationMeter = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.batch_duration", unit: "ms");
-        readonly Counter<long> receivedMeter = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.received");
+        readonly Histogram<long> auditBatchSize = AuditMetrics.Meter.CreateHistogram<long>($"{AuditMetrics.Prefix}.batch_size_audits");
+        readonly Histogram<double> auditBatchDuration = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.batch_duration_audits", unit: "ms");
+        readonly Counter<long> receivedAudits = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.received_audits");
         readonly Watchdog watchdog;
         readonly Task ingestionWorker;
         readonly IHostApplicationLifetime applicationLifetime;
