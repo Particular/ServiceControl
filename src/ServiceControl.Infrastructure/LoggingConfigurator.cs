@@ -22,7 +22,7 @@ namespace ServiceControl.Infrastructure
             }
 
             var nlogConfig = new LoggingConfiguration();
-            var simpleLayout = new SimpleLayout("${longdate}|${threadid}|${level}|${logger}|${message}${onexception:|${exception:format=tostring}}");
+            var simpleLayout = new SimpleLayout("${longdate}|${processtime}|${threadid:padding=2}|${level:padding=5}|${logger:padding=70}|${message}${onexception:|${exception:format=tostring}}");
 
             var fileTarget = new FileTarget
             {
