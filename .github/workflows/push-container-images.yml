@@ -53,7 +53,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: particular/servicecontrol
           readme-filepath: ./src/ServiceControl/Container-README.md
-          short-description: Gather all the data and monitor multiple endpoints from a single location.
+          short-description: Gather status, performance and monitoring data for multiple endpoints from a single location.
       - name: Update Docker Hub Description - Audit
         if: ${{ steps.validate.outputs.latest == 'true' }}
         uses: peter-evans/dockerhub-description@v4.0.0
