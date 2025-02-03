@@ -12,6 +12,9 @@
         public const string DatabaseNameKey = "RavenDB/DatabaseName";
         public const string DatabasePathKey = "DbPath";
         public const string ConnectionStringKey = "RavenDB/ConnectionString";
+        public const string ClientCertificatePathKey = "RavenDB/ClientCertificatePath";
+        public const string ClientCertificateBase64Key = "RavenDB/ClientCertificateBase64";
+        public const string ClientCertificatePasswordKey = "RavenDB/ClientCertificatePassword";
         public const string DatabaseMaintenancePortKey = "DatabaseMaintenancePort";
         public const string ExpirationProcessTimerInSecondsKey = "ExpirationProcessTimerInSeconds";
         public const string LogPathKey = "LogPath";
@@ -24,6 +27,9 @@
             DatabaseNameKey,
             DatabasePathKey,
             ConnectionStringKey,
+            ClientCertificatePathKey,
+            ClientCertificateBase64Key,
+            ClientCertificatePasswordKey,
             DatabaseMaintenancePortKey,
             ExpirationProcessTimerInSecondsKey,
             LogPathKey,
@@ -59,6 +65,19 @@
                 }
 
                 serverConfiguration = new ServerConfiguration(connectionString);
+
+                if (settings.PersisterSpecificSettings.TryGetValue(ClientCertificatePathKey, out var clientCertificatePath))
+                {
+                    serverConfiguration.ClientCertificatePath = clientCertificatePath;
+                }
+                if (settings.PersisterSpecificSettings.TryGetValue(ClientCertificateBase64Key, out var clientCertificateBase64))
+                {
+                    serverConfiguration.ClientCertificateBase64 = clientCertificateBase64;
+                }
+                if (settings.PersisterSpecificSettings.TryGetValue(ClientCertificatePasswordKey, out var clientCertificatePassword))
+                {
+                    serverConfiguration.ClientCertificatePassword = clientCertificatePassword;
+                }
             }
             else
             {

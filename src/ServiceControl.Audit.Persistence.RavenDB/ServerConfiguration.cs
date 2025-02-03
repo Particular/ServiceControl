@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
-    public class ServerConfiguration
+    using ServiceControl.RavenDB;
+
+    public class ServerConfiguration : IRavenClientCertificateInfo
     {
         public ServerConfiguration(string connectionString)
         {
@@ -18,6 +20,9 @@
         }
 
         public string ConnectionString { get; }
+        public string ClientCertificatePath { get; set; }
+        public string ClientCertificateBase64 { get; set; }
+        public string ClientCertificatePassword { get; set; }
         public bool UseEmbeddedServer { get; }
         public string DbPath { get; internal set; } //Setter for ATT only
         public string ServerUrl { get; }
