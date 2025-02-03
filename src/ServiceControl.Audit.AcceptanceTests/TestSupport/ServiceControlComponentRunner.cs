@@ -51,7 +51,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 TransportConnectionString = transportToUse.ConnectionString,
                 MaximumConcurrencyLevel = 2,
                 ServiceControlQueueAddress = "SHOULDNOTBEUSED",
-                OtelMetricsUrl = "http://localhost:4317",
                 MessageFilter = messageContext =>
                 {
                     var id = messageContext.NativeMessageId;

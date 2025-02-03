@@ -283,11 +283,11 @@
             }
         }
 
-        readonly Counter<long> ingestedAuditMeter = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.ingested_audit_messages"); // metrics.GetCounter("Audit ingestion - ingested audit");
-        readonly Counter<long> ingestedSagaAuditMeter = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.ingested_saga_audits"); // metrics.GetCounter("Audit ingestion - ingested audit");
-        readonly Histogram<double> auditBulkInsertDurationMeter = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.audit_bulk_insert_duration_ms"); // metrics.GetCounter("Audit ingestion - ingested audit");
-        readonly Histogram<double> sagaAuditBulkInsertDurationMeter = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.saga_bulk_insert_duration_ms"); // metrics.GetCounter("Audit ingestion - ingested audit");
-        readonly Histogram<double> bulkInsertCommitDurationMeter = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.audit_commit_duration_ms"); // metrics.GetCounter("Audit ingestion - ingested audit");
+        readonly Counter<long> ingestedAuditMeter = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.stored_audit_messages");
+        readonly Counter<long> ingestedSagaAuditMeter = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.stored_saga_audits");
+        readonly Histogram<double> auditBulkInsertDurationMeter = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.bulk_insert_duration_audit", unit: "ms");
+        readonly Histogram<double> sagaAuditBulkInsertDurationMeter = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.bulk_insert_duration_sagas", unit: "ms");
+        readonly Histogram<double> bulkInsertCommitDurationMeter = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.commit_duration_audit", unit: "ms");
 
         static readonly ILog Logger = LogManager.GetLogger<AuditPersister>();
     }

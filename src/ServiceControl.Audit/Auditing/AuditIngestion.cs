@@ -95,6 +95,7 @@
                         await stoppable.StopReceive(cancellationToken);
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
                     }
+
                     return;
                 }
 
@@ -161,6 +162,7 @@
                     logger.Info("Shutting down. Already stopped, skipping shut down");
                     return; //Already stopped
                 }
+
                 var stoppable = queueIngestor;
                 queueIngestor = null;
                 logger.Info("Shutting down. Infrastructure shut down commencing");
@@ -255,7 +257,7 @@
         readonly Settings settings;
         readonly Channel<MessageContext> channel;
         readonly Histogram<long> batchSizeMeter = AuditMetrics.Meter.CreateHistogram<long>($"{AuditMetrics.Prefix}.batch_size");
-        readonly Histogram<double> batchDurationMeter = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.batch_duration_ms");
+        readonly Histogram<double> batchDurationMeter = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.batch_duration", unit: "ms");
         readonly Counter<long> receivedMeter = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.received");
         readonly Watchdog watchdog;
         readonly Task ingestionWorker;
