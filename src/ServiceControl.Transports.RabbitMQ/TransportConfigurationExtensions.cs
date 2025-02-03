@@ -21,6 +21,11 @@
                 {
                     transport.UseExternalAuthMechanism();
                 }
+
+                if (builder.GetBooleanValue("DisableManagementApi"))
+                {
+                    transport.DoNotUseManagementApi();
+                }
             }
 
             transport.ConnectionString(connectionString);
