@@ -87,6 +87,9 @@ static class HostApplicationBuilderExtensions
                         e.Endpoint = otelMetricsUri;
                     });
                 });
+            var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
+            logger.InfoFormat("OpenTelemetry metrics exporter enabled: {0}", settings.OtelMetricsUrl);
+
         }
 
         // Configure after the NServiceBus hosted service to ensure NServiceBus is already started
