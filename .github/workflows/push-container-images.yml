@@ -62,7 +62,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: particular/servicecontrol-audit
           readme-filepath: ./src/ServiceControl.Audit/Container-README.md
-          short-description: Audit instances provide valuable information about the message flow through a system.
+          short-description: Provide valuable information about the message flow through a system.
       - name: Update Docker Hub Description - Monitoring
         if: ${{ steps.validate.outputs.latest == 'true' }}
         uses: peter-evans/dockerhub-description@v4.0.0
