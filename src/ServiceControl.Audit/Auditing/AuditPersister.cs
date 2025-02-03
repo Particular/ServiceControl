@@ -210,7 +210,10 @@
                 }
 
                 // releasing the failed message context early so that they can be retried outside the current batch
-                context.GetTaskCompletionSource().TrySetException(e);
+                if (!context.GetTaskCompletionSource().TrySetException(e))
+                {
+                    Logger.Warn("ProcessSagaAuditMessage TrySetException failed");
+                }
             }
         }
 
@@ -279,7 +282,10 @@
                 }
 
                 // releasing the failed message context early so that they can be retried outside the current batch
-                context.GetTaskCompletionSource().TrySetException(e);
+                if (!context.GetTaskCompletionSource().TrySetException(e))
+                {
+                    Logger.Warn("ProcessAuditMessage TrySetException failed");
+                }
             }
         }
 

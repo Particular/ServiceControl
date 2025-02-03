@@ -54,7 +54,7 @@
 
             watchdog = new Watchdog("audit message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, logger);
 
-            ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
+            ingestionWorker = Task.Run(() => LoopWithTryCatch(), CancellationToken.None);
         }
 
         public Task StartAsync(CancellationToken _) => watchdog.Start(() => applicationLifetime.StopApplication());
@@ -197,6 +197,21 @@
             await taskCompletionSource.Task;
         }
 
+        async Task LoopWithTryCatch()
+        {
+            // TODO: Done to prevent conflicts with Otel branch, needs to becombine with Loop when merging to master
+            try
+            {
+                await Loop();
+            }
+            catch (Exception e)
+            {
+                logger.Fatal("Loop interrupted", e);
+                applicationLifetime.StopApplication();
+                throw;
+            }
+        }
+
         async Task Loop()
         {
             var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
@@ -219,10 +234,12 @@
                     await auditIngestor.Ingest(contexts);
                     auditBatchDuration.Record(sw.ElapsedMilliseconds);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException e)
                 {
-                    //Do nothing as we are shutting down
-                    continue;
+                    logger.Info("Ingesting messages failed", e);
+                    // continue loop, do nothing as we are shutting down
+                    // TODO: Assumption here is that OCE equals a shutdown which is definitely not the case
+                    //       We likely need to invoke `TrySetException`
                 }
                 catch (Exception e) // show must go on
                 {
@@ -234,7 +251,10 @@
                     // signal all message handling tasks to terminate
                     foreach (var context in contexts)
                     {
-                        context.GetTaskCompletionSource().TrySetException(e);
+                        if (!context.GetTaskCompletionSource().TrySetException(e))
+                        {
+                            logger.Error("Loop TrySetException failed");
+                        }
                     }
                 }
                 finally

@@ -68,7 +68,10 @@
 
                 foreach (var context in contexts)
                 {
-                    context.GetTaskCompletionSource().TrySetResult(true);
+                    if (!context.GetTaskCompletionSource().TrySetResult(true))
+                    {
+                        Log.Warn("TrySetResult failed");
+                    }
                 }
             }
             catch (Exception e)
