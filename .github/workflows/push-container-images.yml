@@ -53,6 +53,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: particular/servicecontrol
           readme-filepath: ./src/ServiceControl/Container-README.md
+          short-description: Gather status, performance and monitoring data for multiple endpoints from a single location.
       - name: Update Docker Hub Description - Audit
         if: ${{ steps.validate.outputs.latest == 'true' }}
         uses: peter-evans/dockerhub-description@v4.0.0
@@ -61,6 +62,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: particular/servicecontrol-audit
           readme-filepath: ./src/ServiceControl.Audit/Container-README.md
+          short-description: Provide valuable information about the message flow through a system.
       - name: Update Docker Hub Description - Monitoring
         if: ${{ steps.validate.outputs.latest == 'true' }}
         uses: peter-evans/dockerhub-description@v4.0.0
@@ -69,6 +71,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: particular/servicecontrol-monitoring
           readme-filepath: ./src/ServiceControl.Monitoring/Container-README.md
+          short-description: Track the health of a distributed system.
       - name: Update Docker Hub Description - RavenDB
         if: ${{ steps.validate.outputs.latest == 'true' }}
         uses: peter-evans/dockerhub-description@v4.0.0
@@ -77,3 +80,4 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: particular/servicecontrol-ravendb
           readme-filepath: ./src/ServiceControl.RavenDB/Container-README.md
+          short-description: The default storage for ServiceControl instances.
