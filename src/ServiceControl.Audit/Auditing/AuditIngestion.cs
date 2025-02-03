@@ -210,6 +210,7 @@
                     while (channel.Reader.TryRead(out var context))
                     {
                         contexts.Add(context);
+                        auditMessageSize.Record(context.Body.Length / 1024.0);
                     }
 
                     auditBatchSize.Record(contexts.Count);
@@ -258,6 +259,7 @@
         readonly Channel<MessageContext> channel;
         readonly Histogram<long> auditBatchSize = AuditMetrics.Meter.CreateHistogram<long>($"{AuditMetrics.Prefix}.batch_size_audits");
         readonly Histogram<double> auditBatchDuration = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.batch_duration_audits", unit: "ms");
+        readonly Histogram<double> auditMessageSize = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.audit_message_size", unit: "kilobytes");
         readonly Counter<long> receivedAudits = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.received_audits");
         readonly Watchdog watchdog;
         readonly Task ingestionWorker;
