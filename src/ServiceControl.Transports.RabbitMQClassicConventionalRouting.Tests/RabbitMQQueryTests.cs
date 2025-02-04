@@ -28,7 +28,7 @@ class RabbitMQQueryTests : TransportTestFixture
             MaxConcurrency = 1,
             EndpointName = Guid.NewGuid().ToString("N")
         };
-        var query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, transportSettings);
+        var query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, transportSettings, configuration.TransportCustomization);
         string[] additionalQueues = Enumerable.Range(1, 10).Select(i => $"myqueue{i}").ToArray();
         await configuration.TransportCustomization.ProvisionQueues(transportSettings, additionalQueues);
 
