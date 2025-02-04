@@ -156,20 +156,20 @@ export const hasFailedMessage =
       edit_of: "",
     };
 
-    driver.mockEndpointDynamic(`${serviceControlUrl}errors`, (url) => {
+    driver.mockEndpointDynamic(`${serviceControlUrl}errors`, "get", (url) => {
       const status = url.searchParams.get("status");
       if (status === "unresolved") {
-        return {
+        return Promise.resolve({
           body: [failedMessage],
           headers: { "Total-Count": "1" },
-        };
+        });
       }
 
       //For status=archived or status=retryissued
-      return {
+      return Promise.resolve({
         body: [],
         headers: { "Total-Count": "0" },
-      };
+      });
     });
 
     driver.mockEndpoint(`${serviceControlUrl}messages/${withMessageId}/body`, {
