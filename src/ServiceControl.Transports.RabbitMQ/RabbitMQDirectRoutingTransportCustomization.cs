@@ -8,11 +8,10 @@
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
 
-    public abstract class RabbitMQDirectRoutingTransportCustomization : TransportCustomization<RabbitMQTransport>
+    public abstract class RabbitMQDirectRoutingTransportCustomization(QueueType queueType)
+        : TransportCustomization<RabbitMQTransport>, IRabbitMQTransportExtensions
     {
-        readonly QueueType queueType;
-
-        protected RabbitMQDirectRoutingTransportCustomization(QueueType queueType) => this.queueType = queueType;
+        RabbitMQTransport rabbitMQTransport;
 
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition, TransportSettings transportSettings) { }
 
@@ -38,14 +37,13 @@
             transport.ManagementApiUrl = GetValue(connectionStringDictionary, "ManagementApiUrl", string.Empty);
             transport.UseManagementApi = disableManagementApi.Equals("false", StringComparison.OrdinalIgnoreCase);
 
+            rabbitMQTransport = transport;
+
             return transport;
         }
 
-        protected override void AddTransportForPrimaryCore(IServiceCollection services,
-            TransportSettings transportSettings)
-        {
-            services.AddSingleton<IBrokerThroughputQuery, RabbitMQQuery>();
-        }
+        protected override void AddTransportForPrimaryCore(IServiceCollection services, TransportSettings transportSettings)
+            => services.AddSingleton<IBrokerThroughputQuery, RabbitMQQuery>();
 
         protected sealed override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
         {
@@ -54,8 +52,15 @@
         }
 
         static string GetValue(Dictionary<string, string> dictionary, string key, string defaultValue)
+            => dictionary.TryGetValue(key, out var value) ? value : defaultValue;
+
+        RabbitMQTransport IRabbitMQTransportExtensions.GetTransport()
         {
-            return dictionary.TryGetValue(key, out var value) ? value : defaultValue;
+            if (rabbitMQTransport == null)
+            {
+                throw new InvalidOperationException("Transport instance has not been created yet. Make sure CreateTransport() is called before accessing the transport.");
+            };
+            return rabbitMQTransport;
         }
     }
 }
