@@ -14,7 +14,7 @@ using System.Collections.ObjectModel;
 using System.Net;
 
 [TestFixture]
-class RabbitMQQuery_ResponseParsing_Tests
+class RabbitMQQuery_ResponseParsing_Tests : TransportTestFixture
 {
     FakeTimeProvider provider;
     TransportSettings transportSettings;
@@ -35,7 +35,7 @@ class RabbitMQQuery_ResponseParsing_Tests
         httpHandler = new FakeHttpHandler();
         var httpClient = new HttpClient(httpHandler) { BaseAddress = new Uri("http://localhost:15672") };
 
-        rabbitMQQuery = new TestableRabbitMQQuery(provider, transportSettings, httpClient);
+        rabbitMQQuery = new TestableRabbitMQQuery(provider, transportSettings, httpClient, configuration.TransportCustomization);
         rabbitMQQuery.Initialize(ReadOnlyDictionary<string, string>.Empty);
     }
 
@@ -131,8 +131,9 @@ class RabbitMQQuery_ResponseParsing_Tests
     sealed class TestableRabbitMQQuery(
         TimeProvider timeProvider,
         TransportSettings transportSettings,
-        HttpClient customHttpClient)
-        : RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, timeProvider, transportSettings)
+        HttpClient customHttpClient,
+        ITransportCustomization transportCustomization)
+        : RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, timeProvider, transportSettings, transportCustomization)
     {
         protected override HttpClient CreateHttpClient(NetworkCredential defaultCredential, string apiUrl) => customHttpClient;
     }
