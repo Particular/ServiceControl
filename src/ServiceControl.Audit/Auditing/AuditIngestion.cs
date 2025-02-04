@@ -52,15 +52,27 @@
 
             errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, settings.LoggingSettings, OnCriticalError);
 
-            watchdog = new Watchdog("audit message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, logger);
-
-            ingestionWorker = Task.Run(() => LoopWithTryCatch(), CancellationToken.None);
+            watchdog = new Watchdog(
+                "audit message ingestion",
+                EnsureStarted,
+                EnsureStopped,
+                ingestionState.ReportError,
+                ingestionState.Clear,
+                settings.TimeToRestartAuditIngestionAfterFailure,
+                logger
+            );
         }
 
-        public Task StartAsync(CancellationToken _) => watchdog.Start(() => applicationLifetime.StopApplication());
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            stopSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            ingestionWorker = Loop(stopSource.Token);
+            await watchdog.Start(() => applicationLifetime.StopApplication());
+        }
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
+            await stopSource.CancelAsync();
             await watchdog.Stop();
             channel.Writer.Complete();
             await ingestionWorker;
@@ -197,76 +209,74 @@
             await taskCompletionSource.Task;
         }
 
-        async Task LoopWithTryCatch()
+        async Task Loop(CancellationToken cancellationToken)
         {
-            // TODO: Done to prevent conflicts with Otel branch, needs to becombine with Loop when merging to master
             try
             {
-                await Loop();
+                var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
+
+                while (await channel.Reader.WaitToReadAsync(cancellationToken))
+                {
+                    // will only enter here if there is something to read.
+                    try
+                    {
+                        // as long as there is something to read this will fetch up to MaximumConcurrency items
+                        while (channel.Reader.TryRead(out var context))
+                        {
+                            contexts.Add(context);
+                            auditMessageSize.Record(context.Body.Length / 1024D);
+                        }
+
+                        auditBatchSize.Record(contexts.Count);
+                        var sw = Stopwatch.StartNew();
+
+                        await auditIngestor.Ingest(contexts);
+                        auditBatchDuration.Record(sw.ElapsedMilliseconds);
+                    }
+                    catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
+                    {
+                        logger.Debug("Cancelled by host");
+                        return; // No point in continueing as WaitToReadAsync will throw OCE
+                    }
+                    catch (Exception e) // show must go on
+                    {
+                        if (logger.IsInfoEnabled)
+                        {
+                            logger.Info("Ingesting messages failed", e);
+                        }
+
+                        // signal all message handling tasks to terminate
+                        foreach (var context in contexts)
+                        {
+                            if (!context.GetTaskCompletionSource().TrySetException(e))
+                            {
+                                logger.Error("Loop TrySetException failed");
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        contexts.Clear();
+                    }
+                }
+                // will fall out here when writer is completed
+            }
+            catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
+            {
+                logger.Debug("Cancelled by host");
             }
             catch (Exception e)
             {
+                // Might the next exception scope throw an exception, consider this fatal as that cannot be an OCE
                 logger.Fatal("Loop interrupted", e);
                 applicationLifetime.StopApplication();
                 throw;
             }
         }
 
-        async Task Loop()
-        {
-            var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
-
-            while (await channel.Reader.WaitToReadAsync())
-            {
-                // will only enter here if there is something to read.
-                try
-                {
-                    // as long as there is something to read this will fetch up to MaximumConcurrency items
-                    while (channel.Reader.TryRead(out var context))
-                    {
-                        contexts.Add(context);
-                        auditMessageSize.Record(context.Body.Length / 1024.0);
-                    }
-
-                    auditBatchSize.Record(contexts.Count);
-                    var sw = Stopwatch.StartNew();
-
-                    await auditIngestor.Ingest(contexts);
-                    auditBatchDuration.Record(sw.ElapsedMilliseconds);
-                }
-                catch (OperationCanceledException e)
-                {
-                    logger.Info("Ingesting messages failed", e);
-                    // continue loop, do nothing as we are shutting down
-                    // TODO: Assumption here is that OCE equals a shutdown which is definitely not the case
-                    //       We likely need to invoke `TrySetException`
-                }
-                catch (Exception e) // show must go on
-                {
-                    if (logger.IsInfoEnabled)
-                    {
-                        logger.Info("Ingesting messages failed", e);
-                    }
-
-                    // signal all message handling tasks to terminate
-                    foreach (var context in contexts)
-                    {
-                        if (!context.GetTaskCompletionSource().TrySetException(e))
-                        {
-                            logger.Error("Loop TrySetException failed");
-                        }
-                    }
-                }
-                finally
-                {
-                    contexts.Clear();
-                }
-            }
-            // will fall out here when writer is completed
-        }
-
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver queueIngestor;
+        Task ingestionWorker;
 
         readonly SemaphoreSlim startStopSemaphore = new(1);
         readonly string inputEndpoint;
@@ -282,8 +292,9 @@
         readonly Histogram<double> auditMessageSize = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.audit_message_size", unit: "kilobytes");
         readonly Counter<long> receivedAudits = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.received_audits");
         readonly Watchdog watchdog;
-        readonly Task ingestionWorker;
         readonly IHostApplicationLifetime applicationLifetime;
+
+        CancellationTokenSource stopSource;
 
         static readonly ILog logger = LogManager.GetLogger<AuditIngestion>();
     }
