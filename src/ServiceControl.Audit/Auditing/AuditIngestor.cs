@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Settings;
     using Monitoring;
@@ -41,14 +42,14 @@
             );
         }
 
-        public async Task Ingest(List<MessageContext> contexts)
+        public async Task Ingest(List<MessageContext> contexts, CancellationToken cancellationToken)
         {
             if (Log.IsDebugEnabled)
             {
                 Log.Debug($"Ingesting {contexts.Count} message contexts");
             }
 
-            var stored = await auditPersister.Persist(contexts);
+            var stored = await auditPersister.Persist(contexts, cancellationToken);
 
             try
             {
@@ -59,7 +60,7 @@
                         Log.Debug($"Forwarding {stored.Count} messages");
                     }
 
-                    await Forward(stored, logQueueAddress);
+                    await Forward(stored, logQueueAddress, cancellationToken);
                     if (Log.IsDebugEnabled)
                     {
                         Log.Debug("Forwarded messages");
@@ -86,7 +87,7 @@
             }
         }
 
-        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress)
+        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress, CancellationToken cancellationToken)
         {
             var transportOperations = new TransportOperation[messageContexts.Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
             var index = 0;
@@ -103,7 +104,8 @@
                 var outgoingMessage = new OutgoingMessage(
                     messageContext.NativeMessageId,
                     messageContext.Headers,
-                    messageContext.Body);
+                    messageContext.Body
+                );
 
                 // Forwarded messages should last as long as possible
                 outgoingMessage.Headers.Remove(Headers.TimeToBeReceived);
@@ -115,12 +117,13 @@
             return anyContext != null
                 ? messageDispatcher.Value.Dispatch(
                     new TransportOperations(transportOperations),
-                    anyContext.TransportTransaction
+                    anyContext.TransportTransaction,
+                    cancellationToken
                 )
                 : Task.CompletedTask;
         }
 
-        public async Task VerifyCanReachForwardingAddress()
+        public async Task VerifyCanReachForwardingAddress(CancellationToken cancellationToken)
         {
             if (!settings.ForwardAuditMessages)
             {
@@ -137,7 +140,7 @@
                     )
                 );
 
-                await messageDispatcher.Value.Dispatch(transportOperations, new TransportTransaction());
+                await messageDispatcher.Value.Dispatch(transportOperations, new TransportTransaction(), cancellationToken);
             }
             catch (Exception e)
             {

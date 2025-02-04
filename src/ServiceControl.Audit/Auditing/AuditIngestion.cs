@@ -129,7 +129,7 @@
 
                 queueIngestor = transportInfrastructure.Receivers[inputEndpoint];
 
-                await auditIngestor.VerifyCanReachForwardingAddress();
+                await auditIngestor.VerifyCanReachForwardingAddress(cancellationToken);
 
                 await queueIngestor.StartReceive(cancellationToken);
 
@@ -230,7 +230,7 @@
                         auditBatchSize.Record(contexts.Count);
                         var sw = Stopwatch.StartNew();
 
-                        await auditIngestor.Ingest(contexts);
+                        await auditIngestor.Ingest(contexts, cancellationToken);
                         auditBatchDuration.Record(sw.ElapsedMilliseconds);
                     }
                     catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
