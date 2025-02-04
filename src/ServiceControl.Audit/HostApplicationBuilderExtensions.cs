@@ -77,7 +77,7 @@ static class HostApplicationBuilderExtensions
 
             builder.Services.AddOpenTelemetry()
                 .ConfigureResource(b => b.AddService(
-                    serviceName: "Particular.ServiceControl.Audit",
+                    serviceName: Telemetry.ServiceName,
                     serviceVersion: version,
                     serviceInstanceId: settings.InstanceName))
                 .WithMetrics(b =>
