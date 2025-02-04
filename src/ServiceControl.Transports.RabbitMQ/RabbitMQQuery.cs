@@ -9,7 +9,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -31,7 +30,6 @@ public class RabbitMQQuery : BrokerThroughputQuery
     readonly ILogger<RabbitMQQuery> logger;
     readonly TimeProvider timeProvider;
     readonly ConnectionConfiguration connectionConfiguration;
-    readonly TransportSettings transportSettings;
     readonly RabbitMQTransport rabbitMQTransport;
 
     public RabbitMQQuery(ILogger<RabbitMQQuery> logger,
@@ -41,10 +39,10 @@ public class RabbitMQQuery : BrokerThroughputQuery
     {
         this.logger = logger;
         this.timeProvider = timeProvider;
-        this.transportSettings = transportSettings;
         if (transportCustomization is IRabbitMQTransportExtensions rabbitMQTransportCustomization)
         {
             rabbitMQTransport = rabbitMQTransportCustomization.GetTransport();
+            _ = rabbitMQTransport;
         }
         else
         {
@@ -56,27 +54,25 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
-        var mangementApiUrl = GetManagementApiUrl();
-
         // The licensing component configurations take precedence over the management API connection string configuration options
         // https://docs.particular.net/servicecontrol/servicecontrol-instances/configuration#usage-reporting-when-using-the-rabbitmq-transport
-        var userName = GetSettingsValue(settings, RabbitMQSettings.UserName, mangementApiUrl.UserName);
-        var password = GetSettingsValue(settings, RabbitMQSettings.Password, mangementApiUrl.Password);
-        var apiUrl = GetSettingsValue(settings, RabbitMQSettings.API, mangementApiUrl.Uri.AbsoluteUri);
+        var userName = GetSettingsValue(settings, RabbitMQSettings.UserName, rabbitMQTransport.ManagementApiConfiguration.UserName);
+        var password = GetSettingsValue(settings, RabbitMQSettings.Password, rabbitMQTransport.ManagementApiConfiguration.Password);
+        var apiUrl = GetSettingsValue(settings, RabbitMQSettings.API, rabbitMQTransport.ManagementApiConfiguration.Url);
 
-        if (userName != mangementApiUrl.UserName)
+        if (userName != rabbitMQTransport.ManagementApiConfiguration.UserName)
         {
-            _ = Diagnostics.AppendLine($"UserName in settings is different from Management API URL: {userName} != {mangementApiUrl.UserName}");
+            _ = Diagnostics.AppendLine($"UserName in settings is different from Management API URL: {userName} != {rabbitMQTransport.ManagementApiConfiguration.UserName}");
         }
 
-        if (password != mangementApiUrl.Password)
+        if (password != rabbitMQTransport.ManagementApiConfiguration.Password)
         {
             _ = Diagnostics.AppendLine($"Password in settings is different from Management API URL.");
         }
 
-        if (apiUrl != mangementApiUrl.Uri.AbsoluteUri)
+        if (apiUrl != rabbitMQTransport.ManagementApiConfiguration.Url)
         {
-            _ = Diagnostics.AppendLine($"API URL in settings is different from Management API URL: {apiUrl} != {mangementApiUrl.Uri.AbsoluteUri}");
+            _ = Diagnostics.AppendLine($"API URL in settings is different from Management API URL: {apiUrl} != {rabbitMQTransport.ManagementApiConfiguration.Url}");
         }
 
         if (!Uri.TryCreate(apiUrl, UriKind.Absolute, out _))
@@ -116,45 +112,6 @@ public class RabbitMQQuery : BrokerThroughputQuery
         }
 
         return value;
-    }
-
-    UriBuilder GetManagementApiUrl()
-    {
-        var dictionary = ConnectionConfiguration.ParseNServiceBusConnectionString(transportSettings.ConnectionString, new StringBuilder());
-        UriBuilder uriBuilder;
-
-        var managementApiUrl = GetValue(dictionary, "ManagementApiUrl", "");
-
-        if (string.IsNullOrEmpty(managementApiUrl))
-        {
-            _ = Diagnostics.AppendLine("ManagementApiUrl is empty.  Setting credentials from the connectionString used by the instance.");
-            uriBuilder = new UriBuilder()
-            {
-                Scheme = connectionConfiguration.UseTls ? "https" : "http",
-                Host = connectionConfiguration.Host,
-            };
-        }
-        else
-        {
-            uriBuilder = new UriBuilder(managementApiUrl);
-        }
-
-        uriBuilder.UserName = string.IsNullOrEmpty(uriBuilder.UserName) ? connectionConfiguration.UserName : uriBuilder.UserName;
-        uriBuilder.Password = string.IsNullOrEmpty(uriBuilder.Password) ? connectionConfiguration.Password : uriBuilder.Password;
-
-        // Check if port was defined in the connection string or if it's the default value from UriBuilder
-        var isPortProvided = uriBuilder.Port != -1
-            && (!((uriBuilder.Port == 80 || uriBuilder.Port == 443)
-            && !managementApiUrl.Contains($":{uriBuilder.Port}")));
-
-        uriBuilder.Port = isPortProvided ? uriBuilder.Port : uriBuilder.Scheme == "https" ? 15671 : 15672;
-
-        return uriBuilder;
-    }
-
-    static string GetValue(Dictionary<string, string> dictionary, string key, string defaultValue)
-    {
-        return dictionary.TryGetValue(key, out var value) ? value : defaultValue;
     }
 
     protected virtual HttpClient CreateHttpClient(NetworkCredential defaultCredential, string apiUrl) =>
