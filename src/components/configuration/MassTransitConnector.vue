@@ -3,9 +3,9 @@ import { useConfiguration } from "@/composables/configuration";
 import moment from "moment";
 
 const configuration = useConfiguration();
-// "Wed, Jan 15th 2025 10:56:21 +10:00",
+
 function formatDate(date: string) {
-  return moment(date).local().format("LLLL"); //.format("ddd, MMM Do YYYY HH:mm:ss Z");
+  return moment(date).local().format("LLLL");
 }
 </script>
 
@@ -19,10 +19,10 @@ function formatDate(date: string) {
     <div class="row margin-bottom-10">
       <h4>List of error queues configured in the connector.</h4>
       <div class="queues-container">
-        <div class="row margin-gap hover-highlight" v-for="queue in configuration.mass_transit_connector.error_queues" :key="queue.name">
-          <div :title="queue.name">{{ queue.name }}</div>
-          <div class="error-color" v-if="!queue.ingesting">Not ingesting</div>
-          <div class="ok-color" v-else>Ok</div>
+        <div class="margin-gap hover-highlight" v-for="queue in configuration.mass_transit_connector.error_queues" :key="queue.name">
+          <i v-if="queue.ingesting" class="fa fa-check info-color"></i>
+          <i v-else class="fa fa-times error-color" v-tippy="`Not ingesting from this queue. Check the logs below for more information.`"></i>
+          <span>{{ queue.name }}</span>
         </div>
       </div>
     </div>
@@ -55,15 +55,14 @@ function formatDate(date: string) {
 }
 
 .queues-container {
-  max-width: 100%;
-  width: fit-content;
   padding: 0.75rem;
 }
-.queues-container .row {
-  display: grid;
-  grid-template-columns: 5fr minmax(10em, 1fr);
+.queues-container > div {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
 }
-.queues-container .row div {
+.queues-container > div div {
   overflow-wrap: anywhere;
 }
 
@@ -93,7 +92,7 @@ function formatDate(date: string) {
 .error-color {
   color: var(--bs-danger);
 }
-.ok-color {
+.info-color {
   color: var(--bs-success);
 }
 </style>
