@@ -32,7 +32,7 @@ class RabbitMQQueryTests : TransportTestFixture
             MaxConcurrency = 1,
             EndpointName = Guid.NewGuid().ToString("N")
         };
-        query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, transportSettings);
+        query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, transportSettings, configuration.TransportCustomization);
     }
 
     [Test]

@@ -16,6 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
+using NServiceBus;
 using Polly;
 using Polly.Retry;
 using ServiceControl.Transports.BrokerThroughput;
@@ -30,23 +31,35 @@ public class RabbitMQQuery : BrokerThroughputQuery
     readonly ILogger<RabbitMQQuery> logger;
     readonly TimeProvider timeProvider;
     readonly ConnectionConfiguration connectionConfiguration;
-    readonly string connectionString;
+    readonly TransportSettings transportSettings;
+    readonly RabbitMQTransport rabbitMQTransport;
 
     public RabbitMQQuery(ILogger<RabbitMQQuery> logger,
         TimeProvider timeProvider,
-        TransportSettings transportSettings) : base(logger, "RabbitMQ")
+        TransportSettings transportSettings,
+        ITransportCustomization transportCustomization) : base(logger, "RabbitMQ")
     {
         this.logger = logger;
         this.timeProvider = timeProvider;
-        connectionString = transportSettings.ConnectionString;
+        this.transportSettings = transportSettings;
+        if (transportCustomization is IRabbitMQTransportExtensions rabbitMQTransportCustomization)
+        {
+            rabbitMQTransport = rabbitMQTransportCustomization.GetTransport();
+        }
+        else
+        {
+            throw new InvalidOperationException($"Expected a RabbitMQTransport but received {transportCustomization.GetType().Name}.");
+        }
 
-        connectionConfiguration = ConnectionConfiguration.Create(connectionString, string.Empty);
+        connectionConfiguration = ConnectionConfiguration.Create(transportSettings.ConnectionString, string.Empty);
     }
 
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
         var mangementApiUrl = GetManagementApiUrl();
 
+        // The licensing component configurations take precedence over the management API connection string configuration options
+        // https://docs.particular.net/servicecontrol/servicecontrol-instances/configuration#usage-reporting-when-using-the-rabbitmq-transport
         var userName = GetSettingsValue(settings, RabbitMQSettings.UserName, mangementApiUrl.UserName);
         var password = GetSettingsValue(settings, RabbitMQSettings.Password, mangementApiUrl.Password);
         var apiUrl = GetSettingsValue(settings, RabbitMQSettings.API, mangementApiUrl.Uri.AbsoluteUri);
@@ -107,7 +120,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     UriBuilder GetManagementApiUrl()
     {
-        var dictionary = ConnectionConfiguration.ParseNServiceBusConnectionString(connectionString, new StringBuilder());
+        var dictionary = ConnectionConfiguration.ParseNServiceBusConnectionString(transportSettings.ConnectionString, new StringBuilder());
         UriBuilder uriBuilder;
 
         var managementApiUrl = GetValue(dictionary, "ManagementApiUrl", "");
