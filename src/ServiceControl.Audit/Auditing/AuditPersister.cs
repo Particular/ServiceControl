@@ -283,11 +283,11 @@
             }
         }
 
-        readonly Counter<long> storedAudits = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.stored_audit_messages");
-        readonly Counter<long> storedSagas = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.stored_saga_audits");
-        readonly Histogram<double> auditBulkInsertDuration = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.bulk_insert_duration_audits", unit: "ms");
-        readonly Histogram<double> sagaAuditBulkInsertDuration = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.bulk_insert_duration_sagas", unit: "ms");
-        readonly Histogram<double> auditCommitDuration = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.commit_duration_audits", unit: "ms");
+        readonly Counter<long> storedAudits = Telemetry.Meter.CreateCounter<long>("messages_stored");
+        readonly Counter<long> storedSagas = Telemetry.Meter.CreateCounter<long>("sagas_stored");
+        readonly Histogram<double> auditBulkInsertDuration = Telemetry.Meter.CreateHistogram<double>("messages_bulk_insert_duration", unit: "ms");
+        readonly Histogram<double> sagaAuditBulkInsertDuration = Telemetry.Meter.CreateHistogram<double>("sagas_bulk_insert_duration", unit: "ms");
+        readonly Histogram<double> auditCommitDuration = Telemetry.Meter.CreateHistogram<double>("messages_commit_duration", unit: "ms");
 
         static readonly ILog Logger = LogManager.GetLogger<AuditPersister>();
     }

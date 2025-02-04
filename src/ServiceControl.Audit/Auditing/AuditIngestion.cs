@@ -257,10 +257,10 @@
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Settings settings;
         readonly Channel<MessageContext> channel;
-        readonly Histogram<long> auditBatchSize = AuditMetrics.Meter.CreateHistogram<long>($"{AuditMetrics.Prefix}.batch_size_audits");
-        readonly Histogram<double> auditBatchDuration = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.batch_duration_audits", unit: "ms");
-        readonly Histogram<double> auditMessageSize = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.audit_message_size", unit: "kilobytes");
-        readonly Counter<long> receivedAudits = AuditMetrics.Meter.CreateCounter<long>($"{AuditMetrics.Prefix}.received_audits");
+        readonly Histogram<long> auditBatchSize = Telemetry.Meter.CreateHistogram<long>("messages_batch_size");
+        readonly Histogram<double> auditBatchDuration = Telemetry.Meter.CreateHistogram<double>("messages_batch_duration", unit: "ms");
+        readonly Histogram<double> auditMessageSize = Telemetry.Meter.CreateHistogram<double>("messages_size", unit: "kilobytes");
+        readonly Counter<long> receivedAudits = Telemetry.Meter.CreateCounter<long>("messages_received");
         readonly Watchdog watchdog;
         readonly Task ingestionWorker;
         readonly IHostApplicationLifetime applicationLifetime;
