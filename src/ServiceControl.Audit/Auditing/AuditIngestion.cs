@@ -217,6 +217,8 @@
 
                 while (await channel.Reader.WaitToReadAsync(cancellationToken))
                 {
+                    var sw = Stopwatch.StartNew();
+                    // TODO: Add timeout handling, if processing takes over for example 1 minute
                     // will only enter here if there is something to read.
                     try
                     {
@@ -228,7 +230,6 @@
                         }
 
                         auditBatchSize.Record(contexts.Count);
-                        var sw = Stopwatch.StartNew();
 
                         await auditIngestor.Ingest(contexts, cancellationToken);
 
@@ -265,6 +266,24 @@
                     }
                     finally
                     {
+                        const int infoThreshold = 5000;
+                        const int warnThreshold = 15000;
+                        const int errorThreshold = 60000;
+                        var elapsed = sw.ElapsedMilliseconds;
+
+                        if (elapsed > errorThreshold)
+                        {
+                            logger.ErrorFormat("Processing duration {0} exceeded {1}", elapsed, errorThreshold);
+                        }
+                        else if (elapsed > warnThreshold)
+                        {
+                            logger.WarnFormat("Processing duration {0} exceeded {1}", elapsed, warnThreshold);
+                        }
+                        else if (elapsed > infoThreshold)
+                        {
+                            logger.InfoFormat("Processing duration {0} exceeded {1}", elapsed, infoThreshold);
+                        }
+
                         contexts.Clear();
                     }
                 }
