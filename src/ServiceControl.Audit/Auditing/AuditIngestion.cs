@@ -231,6 +231,16 @@
                         var sw = Stopwatch.StartNew();
 
                         await auditIngestor.Ingest(contexts, cancellationToken);
+
+                        foreach (var context in contexts)
+                        {
+                            // Some items that faulted could already have been set
+                            if (!context.GetTaskCompletionSource().TrySetResult(true))
+                            {
+                                logger.Warn("TrySetResult failed");
+                            }
+                        }
+
                         auditBatchDuration.Record(sw.ElapsedMilliseconds);
                     }
                     catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
