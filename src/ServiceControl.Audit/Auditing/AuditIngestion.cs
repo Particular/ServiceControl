@@ -250,10 +250,9 @@
                     }
                     catch (Exception e) // show must go on
                     {
-                        if (logger.IsInfoEnabled)
-                        {
-                            logger.Info("Ingesting messages failed", e);
-                        }
+                        logger.Warn("Batch processing failed", e);
+
+                        // Signal circuitbreaker, throttle whatever
 
                         // signal all message handling tasks to terminate
                         foreach (var context in contexts)
