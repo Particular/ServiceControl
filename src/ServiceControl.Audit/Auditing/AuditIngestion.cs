@@ -215,6 +215,9 @@
             {
                 var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
 
+                long sequentialFailureCount = 0;
+                DateTime lastSuccess = DateTime.MinValue;
+
                 while (await channel.Reader.WaitToReadAsync(cancellationToken))
                 {
                     var sw = Stopwatch.StartNew();
@@ -243,6 +246,10 @@
                         }
 
                         auditBatchDuration.Record(sw.ElapsedMilliseconds);
+
+                        // No locking for consistency needed, just write, don't care about multi-threading
+                        sequentialFailureCount = 0;
+                        lastSuccess = DateTime.UtcNow;
                     }
                     catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
                     {
@@ -251,7 +258,8 @@
                     }
                     catch (Exception e) // show must go on
                     {
-                        logger.Warn("Batch processing failed", e);
+                        Interlocked.Increment(ref sequentialFailureCount);
+                        logger.Warn($"Batch processing failed [#{sequentialFailureCount} @{lastSuccess:O}] ", e);
 
                         // Signal circuitbreaker, throttle whatever
 
@@ -314,6 +322,7 @@
         readonly AuditIngestionFaultPolicy errorHandlingPolicy;
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Settings settings;
+        [Obsolete]
         readonly Channel<MessageContext> channel;
         readonly Histogram<long> auditBatchSize = AuditMetrics.Meter.CreateHistogram<long>($"{AuditMetrics.Prefix}.batch_size_audits");
         readonly Histogram<double> auditBatchDuration = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.batch_duration_audits", unit: "ms");
