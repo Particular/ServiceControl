@@ -52,15 +52,27 @@
 
             errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, settings.LoggingSettings, OnCriticalError);
 
-            watchdog = new Watchdog("audit message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, logger);
-
-            ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
+            watchdog = new Watchdog(
+                "audit message ingestion",
+                EnsureStarted,
+                EnsureStopped,
+                ingestionState.ReportError,
+                ingestionState.Clear,
+                settings.TimeToRestartAuditIngestionAfterFailure,
+                logger
+            );
         }
 
-        public Task StartAsync(CancellationToken _) => watchdog.Start(() => applicationLifetime.StopApplication());
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            stopSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            ingestionWorker = Loop(stopSource.Token);
+            await watchdog.Start(() => applicationLifetime.StopApplication());
+        }
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
+            await stopSource.CancelAsync();
             await watchdog.Stop();
             channel.Writer.Complete();
             await ingestionWorker;
@@ -117,7 +129,7 @@
 
                 queueIngestor = transportInfrastructure.Receivers[inputEndpoint];
 
-                await auditIngestor.VerifyCanReachForwardingAddress();
+                await auditIngestor.VerifyCanReachForwardingAddress(cancellationToken);
 
                 await queueIngestor.StartReceive(cancellationToken);
 
@@ -197,56 +209,74 @@
             await taskCompletionSource.Task;
         }
 
-        async Task Loop()
+        async Task Loop(CancellationToken cancellationToken)
         {
-            var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
-
-            while (await channel.Reader.WaitToReadAsync())
+            try
             {
-                // will only enter here if there is something to read.
-                try
-                {
-                    // as long as there is something to read this will fetch up to MaximumConcurrency items
-                    while (channel.Reader.TryRead(out var context))
-                    {
-                        contexts.Add(context);
-                        auditMessageSize.Record(context.Body.Length / 1024.0);
-                    }
+                var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
 
-                    auditBatchSize.Record(contexts.Count);
-                    var sw = Stopwatch.StartNew();
-
-                    await auditIngestor.Ingest(contexts);
-                    auditBatchDuration.Record(sw.ElapsedMilliseconds);
-                }
-                catch (OperationCanceledException)
+                while (await channel.Reader.WaitToReadAsync(cancellationToken))
                 {
-                    //Do nothing as we are shutting down
-                    continue;
-                }
-                catch (Exception e) // show must go on
-                {
-                    if (logger.IsInfoEnabled)
+                    // will only enter here if there is something to read.
+                    try
                     {
-                        logger.Info("Ingesting messages failed", e);
-                    }
+                        // as long as there is something to read this will fetch up to MaximumConcurrency items
+                        while (channel.Reader.TryRead(out var context))
+                        {
+                            contexts.Add(context);
+                            auditMessageSize.Record(context.Body.Length / 1024D);
+                        }
 
-                    // signal all message handling tasks to terminate
-                    foreach (var context in contexts)
+                        auditBatchSize.Record(contexts.Count);
+                        var sw = Stopwatch.StartNew();
+
+                        await auditIngestor.Ingest(contexts, cancellationToken);
+                        auditBatchDuration.Record(sw.ElapsedMilliseconds);
+                    }
+                    catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
                     {
-                        context.GetTaskCompletionSource().TrySetException(e);
+                        logger.Debug("Cancelled by host");
+                        return; // No point in continueing as WaitToReadAsync will throw OCE
+                    }
+                    catch (Exception e) // show must go on
+                    {
+                        if (logger.IsInfoEnabled)
+                        {
+                            logger.Info("Ingesting messages failed", e);
+                        }
+
+                        // signal all message handling tasks to terminate
+                        foreach (var context in contexts)
+                        {
+                            if (!context.GetTaskCompletionSource().TrySetException(e))
+                            {
+                                logger.Error("Loop TrySetException failed");
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        contexts.Clear();
                     }
                 }
-                finally
-                {
-                    contexts.Clear();
-                }
+                // will fall out here when writer is completed
             }
-            // will fall out here when writer is completed
+            catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
+            {
+                logger.Debug("Cancelled by host");
+            }
+            catch (Exception e)
+            {
+                // Might the next exception scope throw an exception, consider this fatal as that cannot be an OCE
+                logger.Fatal("Loop interrupted", e);
+                applicationLifetime.StopApplication();
+                throw;
+            }
         }
 
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver queueIngestor;
+        Task ingestionWorker;
 
         readonly SemaphoreSlim startStopSemaphore = new(1);
         readonly string inputEndpoint;
@@ -262,8 +292,9 @@
         readonly Histogram<double> auditMessageSize = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion.", "message_size"), unit: "kilobytes");
         readonly Counter<long> receivedAudits = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion.", "count"));
         readonly Watchdog watchdog;
-        readonly Task ingestionWorker;
         readonly IHostApplicationLifetime applicationLifetime;
+
+        CancellationTokenSource stopSource;
 
         static readonly ILog logger = LogManager.GetLogger<AuditIngestion>();
     }

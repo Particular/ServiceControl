@@ -23,7 +23,7 @@ namespace ServiceControl.Audit.Auditing
 
         public async Task Run(CancellationToken cancellationToken = default)
         {
-            await auditIngestor.VerifyCanReachForwardingAddress();
+            await auditIngestor.VerifyCanReachForwardingAddress(cancellationToken);
 
             var succeeded = 0;
             var failed = 0;
@@ -37,7 +37,7 @@ namespace ServiceControl.Audit.Auditing
                             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                             messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                            await auditIngestor.Ingest([messageContext]);
+                            await auditIngestor.Ingest([messageContext], cancellationToken);
 
                             await taskCompletionSource.Task;
 

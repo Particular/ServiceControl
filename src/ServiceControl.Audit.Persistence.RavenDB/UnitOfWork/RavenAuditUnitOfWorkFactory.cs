@@ -13,9 +13,10 @@
         MinimumRequiredStorageState customCheckState)
         : IAuditIngestionUnitOfWorkFactory
     {
-        public async ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize)
+        public async ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken)
         {
-            var timedCancellationSource = new CancellationTokenSource(databaseConfiguration.BulkInsertCommitTimeout);
+            var timedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timedCancellationSource.CancelAfter(databaseConfiguration.BulkInsertCommitTimeout);
             var bulkInsert = (await documentStoreProvider.GetDocumentStore(timedCancellationSource.Token))
                 .BulkInsert(new BulkInsertOptions { SkipOverwriteIfUnchanged = true, }, timedCancellationSource.Token);
 
