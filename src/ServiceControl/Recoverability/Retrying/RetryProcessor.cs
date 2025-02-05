@@ -203,7 +203,8 @@ namespace ServiceControl.Recoverability
             }
 
             var failedMessagesDocs = await manager.GetFailedMessages(failedMessageRetriesById.Keys);
-            var messages = failedMessagesDocs.Where(m => m != null).ToArray();
+            //filtering on Unresolved, since we don't want messages to be able to be retried while the previous batch was still pending
+            var messages = failedMessagesDocs.Where(m => m != null && m.Status == FailedMessageStatus.Unresolved).ToArray();
 
             Logger.Info($"Staging {messages.Length} messages for retry batch {stagingBatch.Id} with staging attempt Id {stagingId}.");
 

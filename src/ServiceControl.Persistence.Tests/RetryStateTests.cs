@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,7 @@
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.BackgroundTasks;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures;
@@ -174,6 +176,64 @@
             Assert.That(status.RetryState, Is.EqualTo(RetryState.Forwarding));
         }
 
+        [Test]
+        public async Task When_a_message_is_marked_for_retry_twice_it_is_only_retried_once()
+        {
+            var domainEvents = new FakeDomainEvents();
+            var retryManager = new RetryingManager(domainEvents);
+            var messageId = Guid.NewGuid().ToString();
+            var requestId = DeterministicGuid.MakeId(string.Join(string.Empty, messageId)).ToString();
+
+            var sender = new TestSender();
+            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint");
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender));
+
+            var message = new FailedMessage
+            {
+                Id = FailedMessageIdGenerator.MakeDocumentId(messageId),
+                UniqueMessageId = messageId,
+                FailureGroups = [],
+                Status = FailedMessageStatus.Unresolved,
+                ProcessingAttempts =
+                [
+                    new FailedMessage.ProcessingAttempt
+                    {
+                        AttemptedAt = DateTime.UtcNow,
+                        MessageMetadata = [],
+                        FailureDetails = new FailureDetails(),
+                        Headers = []
+                    }
+                ]
+            };
+
+            await ErrorStore.StoreFailedMessagesForTestsOnly([message]);
+            // Needs index FailedMessages_ByGroup
+            // Needs index FailedMessages_UniqueMessageIdAndTimeOfFailures
+            CompleteDatabaseOperation();
+
+            await CreateRetryBatchForMessageSelection(retryManager, true, messageId);
+            //stage
+            await processor.ProcessBatches();
+            //forward
+            await processor.ProcessBatches();
+            var status = retryManager.GetStatusForRetryOperation(requestId, RetryType.MultipleMessages);
+            var total1 = status.TotalNumberOfMessages;
+            var forwarded1 = status.NumberOfMessagesForwarded;
+
+            await CreateRetryBatchForMessageSelection(retryManager, true, messageId);
+            //stage
+            await processor.ProcessBatches();
+            //forward
+            await processor.ProcessBatches();
+            var total2 = status.TotalNumberOfMessages;
+            var forwarded2 = status.NumberOfMessagesForwarded;
+
+            Assert.That(total1, Is.EqualTo(1));
+            Assert.That(total2, Is.EqualTo(1));
+            Assert.That(forwarded1, Is.EqualTo(1));
+            Assert.That(forwarded2, Is.EqualTo(0));
+        }
+
         Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(RetryingManager retryManager, string groupId, bool progressToStaged, int numberOfMessages)
         {
             return CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, groupId, progressToStaged, Enumerable.Range(0, numberOfMessages).Select(i => Guid.NewGuid().ToString()).ToArray());
@@ -213,10 +273,30 @@
             // Needs index FailedMessages_UniqueMessageIdAndTimeOfFailures
             CompleteDatabaseOperation();
 
-            var documentManager = new CustomRetryDocumentManager(progressToStaged, RetryStore, retryManager);
+            await CreateRetryBatchForFailureGroup(retryManager, groupId, progressToStaged);
+        }
+
+        async Task CreateRetryBatchForFailureGroup(RetryingManager retryManager, string groupId, bool progressToStaged)
+        {
+            //var documentManager = new CustomRetryDocumentManager(progressToStaged, RetryStore, retryManager);
             var gateway = new CustomRetriesGateway(progressToStaged, RetryStore, retryManager);
 
             gateway.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(groupId, "Test-Context", groupType: null, DateTime.UtcNow));
+
+            CompleteDatabaseOperation();
+
+            await gateway.ProcessNextBulkRetry();
+
+            // Wait for indexes to catch up
+            CompleteDatabaseOperation();
+        }
+
+        async Task CreateRetryBatchForMessageSelection(RetryingManager retryManager, bool progressToStaged, string messageid)
+        {
+            //var documentManager = new CustomRetryDocumentManager(progressToStaged, RetryStore, retryManager);
+            var gateway = new CustomRetriesGateway(progressToStaged, RetryStore, retryManager);
+
+            await gateway.StartRetryForMessageSelection([messageid]);
 
             CompleteDatabaseOperation();
 
