@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.Settings;
@@ -43,27 +44,14 @@
 
         public async Task Ingest(List<MessageContext> contexts)
         {
-            if (Log.IsDebugEnabled)
-            {
-                Log.Debug($"Ingesting {contexts.Count} message contexts");
-            }
-
             var stored = await auditPersister.Persist(contexts);
 
             try
             {
                 if (settings.ForwardAuditMessages)
                 {
-                    if (Log.IsDebugEnabled)
-                    {
-                        Log.Debug($"Forwarding {stored.Count} messages");
-                    }
-
                     await Forward(stored, logQueueAddress);
-                    if (Log.IsDebugEnabled)
-                    {
-                        Log.Debug("Forwarded messages");
-                    }
+                    forwardedMessagesCounter.Add(stored.Count);
                 }
 
                 foreach (var context in contexts)
@@ -73,10 +61,7 @@
             }
             catch (Exception e)
             {
-                if (Log.IsWarnEnabled)
-                {
-                    Log.Warn("Forwarding messages failed", e);
-                }
+                Log.Warn("Forwarding messages failed", e);
 
                 // making sure to rethrow so that all messages get marked as failed
                 throw;
@@ -146,6 +131,7 @@
         readonly Settings settings;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly string logQueueAddress;
+        readonly Counter<long> forwardedMessagesCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion.", "forwarded_count"));
 
         static readonly ILog Log = LogManager.GetLogger<AuditIngestor>();
     }

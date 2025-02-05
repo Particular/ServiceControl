@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Threading;
     using System.Threading.Channels;
@@ -191,10 +190,11 @@
             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-            receivedAudits.Add(1);
-
             await channel.Writer.WriteAsync(messageContext, cancellationToken);
             await taskCompletionSource.Task;
+
+            ingestedMessagesCounter.Add(1);
+            messageSize.Record(messageContext.Body.Length / 1024.0);
         }
 
         async Task Loop()
@@ -210,14 +210,14 @@
                     while (channel.Reader.TryRead(out var context))
                     {
                         contexts.Add(context);
-                        auditMessageSize.Record(context.Body.Length / 1024.0);
                     }
 
                     auditBatchSize.Record(contexts.Count);
-                    var sw = Stopwatch.StartNew();
 
-                    await auditIngestor.Ingest(contexts);
-                    auditBatchDuration.Record(sw.ElapsedMilliseconds);
+                    using (new DurationRecorder(auditBatchDuration))
+                    {
+                        await auditIngestor.Ingest(contexts);
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -259,8 +259,8 @@
         readonly Channel<MessageContext> channel;
         readonly Histogram<long> auditBatchSize = Telemetry.Meter.CreateHistogram<long>(Telemetry.CreateInstrumentName("ingestion.", "batch_size"));
         readonly Histogram<double> auditBatchDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion.", "batch_duration"), unit: "ms");
-        readonly Histogram<double> auditMessageSize = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion.", "message_size"), unit: "kilobytes");
-        readonly Counter<long> receivedAudits = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion.", "count"));
+        readonly Histogram<double> messageSize = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion.", "message_size"), unit: "kilobytes");
+        readonly Counter<long> ingestedMessagesCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion.", "count"));
         readonly Watchdog watchdog;
         readonly Task ingestionWorker;
         readonly IHostApplicationLifetime applicationLifetime;

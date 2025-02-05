@@ -68,11 +68,11 @@ static class HostApplicationBuilderExtensions
         NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, onCriticalError, configuration);
         builder.UseNServiceBus(configuration);
 
-        if (!string.IsNullOrEmpty(settings.OtelMetricsUrl))
+        if (!string.IsNullOrEmpty(settings.OtlpEndpointUrl))
         {
-            if (!Uri.TryCreate(settings.OtelMetricsUrl, UriKind.Absolute, out var otelMetricsUri))
+            if (!Uri.TryCreate(settings.OtlpEndpointUrl, UriKind.Absolute, out var otelMetricsUri))
             {
-                throw new UriFormatException($"Invalid OtelMetricsUrl: {settings.OtelMetricsUrl}");
+                throw new UriFormatException($"Invalid OtlpEndpointUrl: {settings.OtlpEndpointUrl}");
             }
 
             builder.Services.AddOpenTelemetry()
@@ -90,7 +90,7 @@ static class HostApplicationBuilderExtensions
                 });
 
             var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
-            logger.InfoFormat("OpenTelemetry metrics exporter enabled: {0}", settings.OtelMetricsUrl);
+            logger.InfoFormat("OpenTelemetry metrics exporter enabled: {0}", settings.OtlpEndpointUrl);
         }
 
         // Configure after the NServiceBus hosted service to ensure NServiceBus is already started
