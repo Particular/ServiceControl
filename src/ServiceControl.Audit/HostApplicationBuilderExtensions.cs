@@ -77,9 +77,9 @@ static class HostApplicationBuilderExtensions
 
             builder.Services.AddOpenTelemetry()
                 .ConfigureResource(b => b.AddService(
-                    serviceName: Telemetry.ServiceName,
+                    serviceName: settings.InstanceName,
                     serviceVersion: version,
-                    serviceInstanceId: settings.InstanceName))
+                    autoGenerateServiceInstanceId: true))
                 .WithMetrics(b =>
                 {
                     b.AddMeter(Telemetry.MeterName);
