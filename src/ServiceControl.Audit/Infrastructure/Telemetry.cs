@@ -6,4 +6,6 @@ static class Telemetry
 {
     public const string MeterName = "Particular.ServiceControl.Audit";
     public static readonly Meter Meter = new(MeterName, "0.1.0");
+
+    public static string CreateInstrumentName(string instrumentNamespace, string instrumentName) => $"sc.audit.{instrumentNamespace}.{instrumentName}".ToLower();
 }
