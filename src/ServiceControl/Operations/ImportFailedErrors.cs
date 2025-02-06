@@ -16,17 +16,23 @@
         {
             if (settings.ForwardErrorMessages)
             {
-                await errorIngestor.VerifyCanReachForwardingAddress();
+                await errorIngestor.VerifyCanReachForwardingAddress(cancellationToken);
             }
 
             await store.ProcessFailedErrorImports(async transportMessage =>
             {
-                var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, settings.ErrorQueue, EmptyContextBag);
-                var taskCompletionSource =
-                    new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                var messageContext = new MessageContext(
+                    transportMessage.Id,
+                    transportMessage.Headers,
+                    transportMessage.Body,
+                    EmptyTransaction,
+                    settings.ErrorQueue,
+                    EmptyContextBag
+                );
+                var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                await errorIngestor.Ingest([messageContext]);
+                await errorIngestor.Ingest([messageContext], cancellationToken);
                 await taskCompletionSource.Task;
             }, cancellationToken);
         }

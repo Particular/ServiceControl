@@ -134,7 +134,7 @@
             {
                 await unitOfWork.Monitoring.RecordKnownEndpoint(knownEndpoint);
 
-                await unitOfWork.Complete();
+                await unitOfWork.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
             CompleteDatabaseOperation();
