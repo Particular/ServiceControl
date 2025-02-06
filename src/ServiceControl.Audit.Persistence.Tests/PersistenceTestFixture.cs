@@ -59,7 +59,7 @@
             configuration.AuditIngestionUnitOfWorkFactory;
 
         protected ValueTask<IAuditIngestionUnitOfWork> StartAuditUnitOfWork(int batchSize) =>
-            AuditIngestionUnitOfWorkFactory.StartNew(batchSize);
+            AuditIngestionUnitOfWorkFactory.StartNew(batchSize, TestContext.CurrentContext.CancellationToken);
 
         protected IServiceProvider ServiceProvider => configuration.ServiceProvider;
 
