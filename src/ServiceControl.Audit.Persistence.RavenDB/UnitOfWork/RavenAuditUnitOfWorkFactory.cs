@@ -15,13 +15,19 @@
     {
         public async ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken)
         {
-            var timedCancellationSource = new CancellationTokenSource(databaseConfiguration.BulkInsertCommitTimeout);
-            var bulkInsert = (await documentStoreProvider.GetDocumentStore(timedCancellationSource.Token))
-                .BulkInsert(new BulkInsertOptions { SkipOverwriteIfUnchanged = true, }, timedCancellationSource.Token);
+            // DO NOT USE using var, will be disposed by RavenAuditIngestionUnitOfWork
+            var lifetimeForwardedTimedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            lifetimeForwardedTimedCancellationSource.CancelAfter(databaseConfiguration.BulkInsertCommitTimeout);
+            var bulkInsert = (await documentStoreProvider.GetDocumentStore(lifetimeForwardedTimedCancellationSource.Token))
+                .BulkInsert(new BulkInsertOptions { SkipOverwriteIfUnchanged = true, }, lifetimeForwardedTimedCancellationSource.Token);
 
             return new RavenAuditIngestionUnitOfWork(
-                bulkInsert, timedCancellationSource, databaseConfiguration.AuditRetentionPeriod, new RavenAttachmentsBodyStorage(sessionProvider, bulkInsert, databaseConfiguration.MaxBodySizeToStore)
+                bulkInsert,
+                lifetimeForwardedTimedCancellationSource, // Transfer ownership for disposal
+                databaseConfiguration.AuditRetentionPeriod,
+                new RavenAttachmentsBodyStorage(sessionProvider, bulkInsert, databaseConfiguration.MaxBodySizeToStore)
             );
+            // Intentionally not disposing CTS!
         }
 
         public bool CanIngestMore() => customCheckState.CanIngestMore;
