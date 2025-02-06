@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
@@ -14,7 +15,7 @@ namespace ServiceControl.Recoverability
             this.dataStore = dataStore;
         }
 
-        public Task Handle(MessageFailed message)
+        public Task Handle(MessageFailed message, CancellationToken cancellationToken)
         {
             if (message.RepeatedFailure)
             {

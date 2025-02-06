@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.UnitTests.Monitoring
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using NUnit.Framework;
     using ServiceControl.Infrastructure.DomainEvents;
@@ -33,7 +34,7 @@
 
         class FakeDomainEvents : IDomainEvents
         {
-            public Task Raise<T>(T domainEvent) where T : IDomainEvent
+            public Task Raise<T>(T domainEvent, CancellationToken cancellationToken) where T : IDomainEvent
             {
                 return Task.CompletedTask;
             }

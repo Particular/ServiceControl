@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.UnitTests.Operations
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Infrastructure.DomainEvents;
 
@@ -8,7 +9,7 @@
     {
         public List<object> RaisedEvents { get; } = [];
 
-        public Task Raise<T>(T domainEvent) where T : IDomainEvent
+        public Task Raise<T>(T domainEvent, CancellationToken cancellationToken = default) where T : IDomainEvent
         {
             RaisedEvents.Add(domainEvent);
             return Task.CompletedTask;

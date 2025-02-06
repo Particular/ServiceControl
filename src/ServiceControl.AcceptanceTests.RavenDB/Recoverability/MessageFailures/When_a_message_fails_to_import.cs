@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.RavenDB.Recoverability.MessageFailures
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -75,7 +76,7 @@
 
         class MessageFailedHandler(MyContext scenarioContext) : IDomainHandler<MessageFailed>
         {
-            public Task Handle(MessageFailed domainEvent)
+            public Task Handle(MessageFailed domainEvent, CancellationToken cancellationToken)
             {
                 scenarioContext.MessageFailedEventPublished = true;
                 return Task.CompletedTask;
