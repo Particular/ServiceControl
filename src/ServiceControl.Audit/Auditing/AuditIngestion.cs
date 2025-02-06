@@ -59,15 +59,27 @@
 
             errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, settings.LoggingSettings, OnCriticalError);
 
-            watchdog = new Watchdog("audit message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, logger);
-
-            ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
+            watchdog = new Watchdog(
+                "audit message ingestion",
+                EnsureStarted,
+                EnsureStopped,
+                ingestionState.ReportError,
+                ingestionState.Clear,
+                settings.TimeToRestartAuditIngestionAfterFailure,
+                logger
+            );
         }
 
-        public Task StartAsync(CancellationToken _) => watchdog.Start(() => applicationLifetime.StopApplication());
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            stopSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            ingestionWorker = Task.Run(() => Loop(stopSource.Token), stopSource.Token);
+            await watchdog.Start(() => applicationLifetime.StopApplication());
+        }
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
+            await stopSource.CancelAsync();
             await watchdog.Stop();
             channel.Writer.Complete();
             await ingestionWorker;
@@ -202,55 +214,60 @@
             await taskCompletionSource.Task;
         }
 
-        async Task Loop()
+        async Task Loop(CancellationToken cancellationToken)
         {
-            var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
-
-            while (await channel.Reader.WaitToReadAsync())
+            try
             {
-                // will only enter here if there is something to read.
-                try
-                {
-                    // as long as there is something to read this will fetch up to MaximumConcurrency items
-                    while (channel.Reader.TryRead(out var context))
-                    {
-                        contexts.Add(context);
-                    }
+                var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
 
-                    batchSizeMeter.Mark(contexts.Count);
-                    using (batchDurationMeter.Measure())
+                while (await channel.Reader.WaitToReadAsync(cancellationToken))
+                {
+                    // will only enter here if there is something to read.
+                    try
                     {
-                        await auditIngestor.Ingest(contexts);
+                        // as long as there is something to read this will fetch up to MaximumConcurrency items
+                        while (channel.Reader.TryRead(out var context))
+                        {
+                            contexts.Add(context);
+                        }
+
+                        batchSizeMeter.Mark(contexts.Count);
+                        using (batchDurationMeter.Measure())
+                        {
+                            await auditIngestor.Ingest(contexts);
+                        }
                     }
-                }
-                catch (OperationCanceledException)
-                {
-                    //Do nothing as we are shutting down
-                    continue;
-                }
-                catch (Exception e) // show must go on
-                {
-                    if (logger.IsInfoEnabled)
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        throw; // Catch again in outer catch
+                    }
+                    catch (Exception e) // show must go on
                     {
                         logger.Info("Ingesting messages failed", e);
-                    }
 
-                    // signal all message handling tasks to terminate
-                    foreach (var context in contexts)
+                        // signal all message handling tasks to terminate
+                        foreach (var context in contexts)
+                        {
+                            context.GetTaskCompletionSource().TrySetException(e);
+                        }
+                    }
+                    finally
                     {
-                        context.GetTaskCompletionSource().TrySetException(e);
+                        contexts.Clear();
                     }
                 }
-                finally
-                {
-                    contexts.Clear();
-                }
+                // will fall out here when writer is completed
             }
-            // will fall out here when writer is completed
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // Cancellation
+            }
         }
 
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver queueIngestor;
+        Task ingestionWorker;
+        CancellationTokenSource stopSource;
 
         readonly SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
         readonly string inputEndpoint;
@@ -265,7 +282,6 @@
         readonly Meter batchDurationMeter;
         readonly Counter receivedMeter;
         readonly Watchdog watchdog;
-        readonly Task ingestionWorker;
         readonly IHostApplicationLifetime applicationLifetime;
 
         static readonly ILog logger = LogManager.GetLogger<AuditIngestion>();

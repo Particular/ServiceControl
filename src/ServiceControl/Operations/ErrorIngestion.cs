@@ -59,12 +59,23 @@
 
             errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, settings.LoggingSettings, OnCriticalError);
 
-            watchdog = new Watchdog("failed message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartErrorIngestionAfterFailure, Logger);
-
-            ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
+            watchdog = new Watchdog(
+                "failed message ingestion",
+                EnsureStarted,
+                EnsureStopped,
+                ingestionState.ReportError,
+                ingestionState.Clear,
+                settings.TimeToRestartErrorIngestionAfterFailure,
+                Logger
+            );
         }
 
-        public Task StartAsync(CancellationToken _) => watchdog.Start(() => applicationLifetime.StopApplication());
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            stopSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            ingestionWorker = Task.Run(() => Loop(stopSource.Token), stopSource.Token);
+            await watchdog.Start(() => applicationLifetime.StopApplication());
+        }
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
@@ -77,51 +88,54 @@
             }
         }
 
-        async Task Loop()
+        async Task Loop(CancellationToken cancellationToken)
         {
-            var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
-
-            while (await channel.Reader.WaitToReadAsync())
+            try
             {
-                // will only enter here if there is something to read.
-                try
-                {
-                    // as long as there is something to read this will fetch up to MaximumConcurrency items
-                    while (channel.Reader.TryRead(out var context))
-                    {
-                        contexts.Add(context);
-                    }
+                var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
 
-                    batchSizeMeter.Mark(contexts.Count);
-                    using (batchDurationMeter.Measure())
+                while (await channel.Reader.WaitToReadAsync(cancellationToken))
+                {
+                    // will only enter here if there is something to read.
+                    try
                     {
-                        await ingestor.Ingest(contexts);
+                        // as long as there is something to read this will fetch up to MaximumConcurrency items
+                        while (channel.Reader.TryRead(out var context))
+                        {
+                            contexts.Add(context);
+                        }
+
+                        batchSizeMeter.Mark(contexts.Count);
+                        using (batchDurationMeter.Measure())
+                        {
+                            await ingestor.Ingest(contexts);
+                        }
                     }
-                }
-                catch (OperationCanceledException)
-                {
-                    //Do nothing as we are shutting down
-                    continue;
-                }
-                catch (Exception e) // show must go on
-                {
-                    if (Logger.IsInfoEnabled)
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        throw; // Catch again in outer catch
+                    }
+                    catch (Exception e) // show must go on
                     {
                         Logger.Info("Ingesting messages failed", e);
-                    }
 
-                    // signal all message handling tasks to terminate
-                    foreach (var context in contexts)
+                        // signal all message handling tasks to terminate
+                        foreach (var context in contexts)
+                        {
+                            context.GetTaskCompletionSource().TrySetException(e);
+                        }
+                    }
+                    finally
                     {
-                        context.GetTaskCompletionSource().TrySetException(e);
+                        contexts.Clear();
                     }
                 }
-                finally
-                {
-                    contexts.Clear();
-                }
+                // will fall out here when writer is completed
             }
-            // will fall out here when writer is completed
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // Cancellation
+            }
         }
 
         async Task EnsureStarted(CancellationToken cancellationToken = default)
@@ -230,19 +244,21 @@
         ErrorIngestionFaultPolicy errorHandlingPolicy;
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver messageReceiver;
+        Task ingestionWorker;
+        CancellationTokenSource stopSource;
 
         readonly Settings settings;
         readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
         readonly Watchdog watchdog;
         readonly Channel<MessageContext> channel;
-        readonly Task ingestionWorker;
         readonly Meter batchDurationMeter;
         readonly Meter batchSizeMeter;
         readonly Counter receivedMeter;
         readonly ErrorIngestor ingestor;
         readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly IHostApplicationLifetime applicationLifetime;
+
         static readonly ILog Logger = LogManager.GetLogger<ErrorIngestion>();
     }
 }
