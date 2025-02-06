@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.UnitOfWork
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public abstract class IngestionUnitOfWorkBase : IIngestionUnitOfWork
@@ -19,6 +20,6 @@
 
         public IMonitoringIngestionUnitOfWork Monitoring { get; protected set; }
         public IRecoverabilityIngestionUnitOfWork Recoverability { get; protected set; }
-        public virtual Task Complete() => Task.CompletedTask;
+        public virtual Task Complete(CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }
