@@ -7,10 +7,13 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
+    using NServiceBus.Logging;
     using Settings;
 
     class ImportFailedAuditsCommand : AbstractCommand
     {
+        readonly ILog logger = LogManager.GetLogger<ImportFailedAuditsCommand>();
+
         public override async Task Execute(HostArguments args, Settings settings)
         {
             settings.IngestAuditMessages = false;
@@ -37,9 +40,9 @@
             {
                 await importer.Run(tokenSource.Token);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException e) when (tokenSource.IsCancellationRequested)
             {
-                // no op
+                logger.Info("Cancelled", e);
             }
             finally
             {

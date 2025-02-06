@@ -7,6 +7,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
+    using NServiceBus.Logging;
     using Operations;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
@@ -14,6 +15,8 @@
 
     class ImportFailedErrorsCommand : AbstractCommand
     {
+        readonly ILog Log = LogManager.GetLogger<ImportFailedErrorsCommand>();
+
         public override async Task Execute(HostArguments args, Settings settings)
         {
             settings.IngestErrorMessages = false;
@@ -38,9 +41,9 @@
             {
                 await importFailedErrors.Run(tokenSource.Token);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException e) when (tokenSource.IsCancellationRequested)
             {
-                // no-op
+                Log.Info("Cancelled", e);
             }
             finally
             {
