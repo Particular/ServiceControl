@@ -182,19 +182,22 @@
 
         async Task OnMessage(MessageContext messageContext, CancellationToken cancellationToken)
         {
-            if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
+            using (new DurationRecorder(ingestionDuration))
             {
-                return;
+                if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
+                {
+                    return;
+                }
+
+                var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                messageContext.SetTaskCompletionSource(taskCompletionSource);
+
+                await channel.Writer.WriteAsync(messageContext, cancellationToken);
+                await taskCompletionSource.Task;
+
+                ingestedMessagesCounter.Add(1);
+                messageSize.Record(messageContext.Body.Length / 1024.0);
             }
-
-            var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            messageContext.SetTaskCompletionSource(taskCompletionSource);
-
-            await channel.Writer.WriteAsync(messageContext, cancellationToken);
-            await taskCompletionSource.Task;
-
-            ingestedMessagesCounter.Add(1);
-            messageSize.Record(messageContext.Body.Length / 1024.0);
         }
 
         async Task Loop()
@@ -261,6 +264,7 @@
         readonly Histogram<double> auditBatchDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion.", "batch_duration"), unit: "ms");
         readonly Histogram<double> messageSize = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion.", "message_size"), unit: "kilobytes");
         readonly Counter<long> ingestedMessagesCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion.", "count"));
+        readonly Histogram<double> ingestionDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion.", "duration"), unit: "ms");
         readonly Watchdog watchdog;
         readonly Task ingestionWorker;
         readonly IHostApplicationLifetime applicationLifetime;
