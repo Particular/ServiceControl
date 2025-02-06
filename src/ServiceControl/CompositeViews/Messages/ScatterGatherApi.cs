@@ -125,7 +125,7 @@ namespace ServiceControl.CompositeViews.Messages
                     httpRequestException);
                 return QueryResult<TOut>.Empty();
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) // Intentional, used to gracefully handle timeout
             {
                 logger.Warn($"Failed to query remote instance at {remoteInstanceSetting.BaseAddress} due to a timeout");
                 return QueryResult<TOut>.Empty();

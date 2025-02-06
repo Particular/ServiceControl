@@ -30,7 +30,7 @@
             {
                 await reporter.Stop();
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 //NOOP
             }

@@ -42,7 +42,7 @@
                     }
                 } while (await timer.WaitForNextTickAsync(cancellationToken));
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 logger.LogInformation($"Stopping {nameof(ReportThroughputHostedService)} timer");
             }

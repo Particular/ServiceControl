@@ -37,7 +37,7 @@
             {
                 await importer.Run(tokenSource.Token);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (tokenSource.IsCancellationRequested)
             {
                 // no op
             }

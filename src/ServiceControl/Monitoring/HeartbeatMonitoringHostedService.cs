@@ -30,9 +30,9 @@
             {
                 await timer.Stop();
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                //NOOP
+                //NOOP, invoked Stop does not
             }
         }
 

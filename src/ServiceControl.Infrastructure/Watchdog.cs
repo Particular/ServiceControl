@@ -54,9 +54,9 @@
 
                         failedOnStartup ??= false;
                     }
-                    catch (OperationCanceledException)
+                    catch (OperationCanceledException) when (!shutdownTokenSource.IsCancellationRequested)
                     {
-                        //Do not Delay
+                        // Continue, as OCE is not from caller
                         continue;
                     }
                     catch (Exception e)
@@ -81,7 +81,7 @@
                     {
                         await Task.Delay(timeToWaitBetweenStartupAttempts, shutdownTokenSource.Token).ConfigureAwait(false);
                     }
-                    catch (OperationCanceledException)
+                    catch (OperationCanceledException) when (shutdownTokenSource.IsCancellationRequested)
                     {
                         //Ignore
                     }

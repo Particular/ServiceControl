@@ -73,7 +73,11 @@
                 remoteSettings.TemporarilyUnavailable = true;
                 throw new TimeoutException($"The remote instance at '{remoteSettings.BaseAddress}' doesn't seem to be available. It will be temporarily disabled. Reason: {e.Message}", e);
             }
-            catch (OperationCanceledException e)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // Cancelled, noop
+            }
+            catch (OperationCanceledException e) // Intentional, OCE gracefully handled by other catch
             {
                 remoteSettings.TemporarilyUnavailable = true;
                 throw new TimeoutException($"The remote at '{remoteSettings.BaseAddress}' did not respond within the allotted time of '{queryTimeout}'. It will be temporarily disabled.", e);

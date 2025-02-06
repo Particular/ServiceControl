@@ -48,7 +48,7 @@ public class RemoveExpiredEndpointInstances(
                 }
             } while (await timer.WaitForNextTickAsync(cancellationToken));
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             logger.LogInformation($"Stopping {nameof(RemoveExpiredEndpointInstances)} timer");
         }

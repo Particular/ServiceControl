@@ -82,7 +82,7 @@
                         await signal.WaitHandle.WaitOneAsync(cancellationToken);
                         signal.Reset();
                     }
-                    catch (OperationCanceledException)
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                     {
                         break;
                     }
@@ -91,7 +91,7 @@
                 }
                 while (!cancellationToken.IsCancellationRequested);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 // ignore
             }

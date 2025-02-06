@@ -53,7 +53,7 @@ public class BrokerThroughputCollectorHostedService(
                 }
             } while (await timer.WaitForNextTickAsync(stoppingToken));
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
             logger.LogInformation($"Stopping {nameof(BrokerThroughputCollectorHostedService)}");
         }

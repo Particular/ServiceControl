@@ -139,9 +139,9 @@
                 {
                     await checkTask;
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
-                    //Swallow
+                    // Even though we are stopping, ONLY swallow when OCE from callee to not hide any ungraceful stop errors
                 }
                 finally
                 {

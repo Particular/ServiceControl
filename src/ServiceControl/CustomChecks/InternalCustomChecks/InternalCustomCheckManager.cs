@@ -40,7 +40,7 @@
             {
                 result = await check.PerformCheck(cancellationToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 //Do nothing as we are shutting down
             }

@@ -49,7 +49,7 @@ class QueueLengthProvider : AbstractQueueLengthProvider
 
                 UpdateQueueLengthStore();
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
                 // no-op
             }

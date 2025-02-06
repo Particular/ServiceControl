@@ -32,7 +32,7 @@
                         await Task.Delay(interval, tokenSource.Token).ConfigureAwait(false);
                     }
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (tokenSource.IsCancellationRequested)
                 {
                     //no-op
                 }
