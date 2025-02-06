@@ -221,6 +221,8 @@
                     {
                         await auditIngestor.Ingest(contexts);
                     }
+
+                    consecutiveBatchFailuresCounter.Record(Interlocked.Exchange(ref consecutiveBatchFailures, 0));
                 }
                 catch (OperationCanceledException)
                 {
@@ -239,6 +241,8 @@
                     {
                         context.GetTaskCompletionSource().TrySetException(e);
                     }
+
+                    consecutiveBatchFailuresCounter.Record(Interlocked.Increment(ref consecutiveBatchFailures));
                 }
                 finally
                 {
@@ -250,6 +254,7 @@
 
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver queueIngestor;
+        long consecutiveBatchFailures = 0;
 
         readonly SemaphoreSlim startStopSemaphore = new(1);
         readonly string inputEndpoint;
@@ -264,6 +269,7 @@
         readonly Histogram<double> auditBatchDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion.", "batch_duration"), unit: "ms");
         readonly Histogram<double> messageSize = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion.", "message_size"), unit: "kilobytes");
         readonly Counter<long> ingestedMessagesCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion.", "count"));
+        readonly Histogram<long> consecutiveBatchFailuresCounter = Telemetry.Meter.CreateHistogram<long>(Telemetry.CreateInstrumentName("ingestion.", "consecutive_batch_failures"), unit: "count");
         readonly Histogram<double> ingestionDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion.", "duration"), unit: "ms");
         readonly Watchdog watchdog;
         readonly Task ingestionWorker;
