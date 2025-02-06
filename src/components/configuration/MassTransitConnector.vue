@@ -29,7 +29,8 @@ function formatDate(date: string) {
     <div class="row">
       <h4>The entries below are the most recent warning and error-level events recorded on the ServiceControl Connector.</h4>
       <div class="logs-container">
-        <div class="row margin-gap hover-highlight" v-for="log in [...configuration.mass_transit_connector.logs].reverse()" :key="log.date">
+        <div v-if="configuration.mass_transit_connector.logs.length === 0">No warning or error logs</div>
+        <div v-else class="row margin-gap hover-highlight" v-for="log in [...configuration.mass_transit_connector.logs].reverse()" :key="log.date">
           <div class="col-2">{{ formatDate(log.date) }}</div>
           <div class="col-1" :class="`${log.level.toLowerCase()}-color`">{{ log.level }}</div>
           <div class="col-9" :class="`${log.level.toLowerCase()}-color`">
