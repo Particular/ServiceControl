@@ -35,9 +35,9 @@
                             Logger.Debug($"Successfully re-imported failed error message {transportMessage.Id}.");
                         }
                     }
-                    catch (OperationCanceledException)
+                    catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
                     {
-                        //  no-op
+                        Logger.Info("Cancelled", e);
                     }
                     catch (Exception e)
                     {

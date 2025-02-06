@@ -42,7 +42,7 @@
 
                     await Task.Delay(QueryDelayInterval, stoppingToken);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
                     // no-op
                 }
@@ -67,7 +67,7 @@
 
                 problematicQueuesNames.TryRemove(queueLength.QueueName, out _);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 // no-op
             }

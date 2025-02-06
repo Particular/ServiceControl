@@ -17,7 +17,7 @@
     using ServiceControl.Infrastructure.Metrics;
     using Transports;
 
-    class AuditIngestion : IHostedService
+    class AuditIngestion : BackgroundService
     {
         static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
 
@@ -59,23 +59,15 @@
 
             errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, settings.LoggingSettings, OnCriticalError);
 
-            watchdog = new Watchdog("audit message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, logger);
-
-            ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
-        }
-
-        public Task StartAsync(CancellationToken _) => watchdog.Start(() => applicationLifetime.StopApplication());
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await watchdog.Stop();
-            channel.Writer.Complete();
-            await ingestionWorker;
-
-            if (transportInfrastructure != null)
-            {
-                await transportInfrastructure.Shutdown(cancellationToken);
-            }
+            watchdog = new Watchdog(
+                "audit message ingestion",
+                EnsureStarted,
+                EnsureStopped,
+                ingestionState.ReportError,
+                ingestionState.Clear,
+                settings.TimeToRestartAuditIngestionAfterFailure,
+                logger
+            );
         }
 
         Task OnCriticalError(string failure, Exception exception)
@@ -139,7 +131,7 @@
                     }
                     catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
                     {
-                        // ignored
+                        logger.Info("StopReceive cancelled");
                     }
                 }
 
@@ -176,7 +168,7 @@
             }
             catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
             {
-                // ignored
+                logger.Info("StopReceive cancelled");
             }
             finally
             {
@@ -202,51 +194,86 @@
             await taskCompletionSource.Task;
         }
 
-        async Task Loop()
+        public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
+            await watchdog.Start(() => applicationLifetime.StopApplication());
+            await base.StartAsync(cancellationToken);
+        }
 
-            while (await channel.Reader.WaitToReadAsync())
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            try
             {
-                // will only enter here if there is something to read.
-                try
-                {
-                    // as long as there is something to read this will fetch up to MaximumConcurrency items
-                    while (channel.Reader.TryRead(out var context))
-                    {
-                        contexts.Add(context);
-                    }
+                var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
 
-                    batchSizeMeter.Mark(contexts.Count);
-                    using (batchDurationMeter.Measure())
+                while (await channel.Reader.WaitToReadAsync(stoppingToken))
+                {
+                    // will only enter here if there is something to read.
+                    try
                     {
-                        await auditIngestor.Ingest(contexts);
+                        // as long as there is something to read this will fetch up to MaximumConcurrency items
+                        while (channel.Reader.TryRead(out var context))
+                        {
+                            contexts.Add(context);
+                        }
+
+                        batchSizeMeter.Mark(contexts.Count);
+                        using (batchDurationMeter.Measure())
+                        {
+                            await auditIngestor.Ingest(contexts);
+                        }
                     }
-                }
-                catch (OperationCanceledException)
-                {
-                    //Do nothing as we are shutting down
-                    continue;
-                }
-                catch (Exception e) // show must go on
-                {
-                    if (logger.IsInfoEnabled)
+                    catch (Exception e)
                     {
+                        // signal all message handling tasks to terminate
+                        foreach (var context in contexts)
+                        {
+                            _ = context.GetTaskCompletionSource().TrySetException(e);
+                        }
+
+                        if (e is OperationCanceledException && stoppingToken.IsCancellationRequested)
+                        {
+                            logger.Info("Batch cancelled", e);
+                            break;
+                        }
+
                         logger.Info("Ingesting messages failed", e);
                     }
-
-                    // signal all message handling tasks to terminate
-                    foreach (var context in contexts)
+                    finally
                     {
-                        context.GetTaskCompletionSource().TrySetException(e);
+                        contexts.Clear();
                     }
                 }
-                finally
+                // will fall out here when writer is completed
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                // ExecuteAsync cancelled
+            }
+        }
+
+        public override async Task StopAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await watchdog.Stop();
+                channel.Writer.Complete();
+                await base.StopAsync(cancellationToken);
+            }
+            finally
+            {
+                if (transportInfrastructure != null)
                 {
-                    contexts.Clear();
+                    try
+                    {
+                        await transportInfrastructure.Shutdown(cancellationToken);
+                    }
+                    catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
+                    {
+                        logger.Info("Shutdown cancelled", e);
+                    }
                 }
             }
-            // will fall out here when writer is completed
         }
 
         TransportInfrastructure transportInfrastructure;
@@ -265,7 +292,6 @@
         readonly Meter batchDurationMeter;
         readonly Counter receivedMeter;
         readonly Watchdog watchdog;
-        readonly Task ingestionWorker;
         readonly IHostApplicationLifetime applicationLifetime;
 
         static readonly ILog logger = LogManager.GetLogger<AuditIngestion>();

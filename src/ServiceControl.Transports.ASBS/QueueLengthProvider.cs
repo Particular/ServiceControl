@@ -43,7 +43,7 @@ namespace ServiceControl.Transports.ASBS
 
                     UpdateAllQueueLengths(queueRuntimeInfos);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
                     // no-op
                 }
