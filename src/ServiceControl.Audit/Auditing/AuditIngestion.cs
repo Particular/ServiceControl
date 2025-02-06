@@ -17,7 +17,7 @@
     using ServiceControl.Infrastructure.Metrics;
     using Transports;
 
-    class AuditIngestion : IHostedService
+    class AuditIngestion : BackgroundService
     {
         static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
 
@@ -68,26 +68,6 @@
                 settings.TimeToRestartAuditIngestionAfterFailure,
                 logger
             );
-        }
-
-        public async Task StartAsync(CancellationToken cancellationToken)
-        {
-            stopSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            ingestionWorker = Task.Run(() => Loop(stopSource.Token), stopSource.Token);
-            await watchdog.Start(() => applicationLifetime.StopApplication());
-        }
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await stopSource.CancelAsync();
-            await watchdog.Stop();
-            channel.Writer.Complete();
-            await ingestionWorker;
-
-            if (transportInfrastructure != null)
-            {
-                await transportInfrastructure.Shutdown(cancellationToken);
-            }
         }
 
         Task OnCriticalError(string failure, Exception exception)
@@ -214,13 +194,16 @@
             await taskCompletionSource.Task;
         }
 
-        async Task Loop(CancellationToken cancellationToken)
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            await watchdog.Start(() => applicationLifetime.StopApplication());
+
             try
             {
                 var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
 
-                while (await channel.Reader.WaitToReadAsync(cancellationToken))
+                while (await channel.Reader.WaitToReadAsync(stoppingToken))
                 {
                     // will only enter here if there is something to read.
                     try
@@ -237,7 +220,7 @@
                             await auditIngestor.Ingest(contexts);
                         }
                     }
-                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                     {
                         throw; // Catch again in outer catch
                     }
@@ -258,16 +241,26 @@
                 }
                 // will fall out here when writer is completed
             }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
                 // Cancellation
+            }
+            finally
+            {
+                await watchdog.Stop();
+                channel.Writer.Complete();
+
+                if (transportInfrastructure != null)
+                {
+                    // stoppingToken is cancelled, invoke so transport infrastructure will run teardown
+                    // No need to await, as this will throw OperationCancelledException
+                    _ = transportInfrastructure.Shutdown(stoppingToken);
+                }
             }
         }
 
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver queueIngestor;
-        Task ingestionWorker;
-        CancellationTokenSource stopSource;
 
         readonly SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
         readonly string inputEndpoint;

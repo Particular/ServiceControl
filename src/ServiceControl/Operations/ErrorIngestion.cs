@@ -17,7 +17,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using Transports;
 
-    class ErrorIngestion : IHostedService
+    class ErrorIngestion : BackgroundService
     {
         static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
 
@@ -70,31 +70,15 @@
             );
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            stopSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            ingestionWorker = Task.Run(() => Loop(stopSource.Token), stopSource.Token);
             await watchdog.Start(() => applicationLifetime.StopApplication());
-        }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await watchdog.Stop();
-            channel.Writer.Complete();
-            await ingestionWorker;
-            if (transportInfrastructure != null)
-            {
-                await transportInfrastructure.Shutdown(cancellationToken);
-            }
-        }
-
-        async Task Loop(CancellationToken cancellationToken)
-        {
             try
             {
                 var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
 
-                while (await channel.Reader.WaitToReadAsync(cancellationToken))
+                while (await channel.Reader.WaitToReadAsync(stoppingToken))
                 {
                     // will only enter here if there is something to read.
                     try
@@ -111,7 +95,7 @@
                             await ingestor.Ingest(contexts);
                         }
                     }
-                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                     {
                         throw; // Catch again in outer catch
                     }
@@ -132,9 +116,20 @@
                 }
                 // will fall out here when writer is completed
             }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
                 // Cancellation
+            }
+            finally
+            {
+                await watchdog.Stop();
+                channel.Writer.Complete();
+                if (transportInfrastructure != null)
+                {
+                    // stoppingToken is cancelled, invoke so transport infrastructure will run teardown
+                    // No need to await, as this will throw OperationCancelledException
+                    _ = transportInfrastructure.Shutdown(stoppingToken);
+                }
             }
         }
 
@@ -244,8 +239,6 @@
         ErrorIngestionFaultPolicy errorHandlingPolicy;
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver messageReceiver;
-        Task ingestionWorker;
-        CancellationTokenSource stopSource;
 
         readonly Settings settings;
         readonly ITransportCustomization transportCustomization;
