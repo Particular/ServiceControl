@@ -66,6 +66,14 @@
                         Log.Debug("Forwarded messages");
                     }
                 }
+
+                foreach (var context in contexts)
+                {
+                    if (!context.GetTaskCompletionSource().TrySetResult(true))
+                    {
+                        Log.Warn("TrySetResult failed");
+                    }
+                }
             }
             catch (Exception e)
             {

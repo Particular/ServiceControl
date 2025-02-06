@@ -235,16 +235,6 @@
                         auditBatchSize.Record(contexts.Count);
 
                         await auditIngestor.Ingest(contexts, cancellationToken);
-
-                        foreach (var context in contexts)
-                        {
-                            // Some items that faulted could already have been set
-                            if (!context.GetTaskCompletionSource().TrySetResult(true))
-                            {
-                                logger.Warn("TrySetResult failed");
-                            }
-                        }
-
                         auditBatchDuration.Record(sw.ElapsedMilliseconds);
 
                         // No locking for consistency needed, just write, don't care about multi-threading
