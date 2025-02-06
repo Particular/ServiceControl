@@ -49,7 +49,7 @@
             var unitOfWork = await UnitOfWorkFactory.StartNew();
             await Processor.Process(messageContexts, unitOfWork);
 
-            Assert.DoesNotThrowAsync(() => unitOfWork.Complete());
+            Assert.DoesNotThrowAsync(() => unitOfWork.Complete(TestContext.CurrentContext.CancellationToken));
         }
 
         [Test]
@@ -71,7 +71,7 @@
 
             var unitOfWork = await UnitOfWorkFactory.StartNew();
             await Processor.Process(messageContexts, unitOfWork);
-            await unitOfWork.Complete();
+            await unitOfWork.Complete(TestContext.CurrentContext.CancellationToken);
 
             Assert.DoesNotThrowAsync(
                 () => Handler.Handle(CreateLegacyRetryConfirmationCommand(), new TestableInvokeHandlerContext()));
@@ -89,7 +89,7 @@
 
             var unitOfWork = await UnitOfWorkFactory.StartNew();
             await Processor.Process(messageContexts, unitOfWork);
-            Assert.DoesNotThrowAsync(() => unitOfWork.Complete());
+            Assert.DoesNotThrowAsync(() => unitOfWork.Complete(TestContext.CurrentContext.CancellationToken));
         }
 
         static MarkMessageFailureResolvedByRetry CreateLegacyRetryConfirmationCommand()

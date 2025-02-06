@@ -96,7 +96,7 @@
                         batchSizeMeter.Mark(contexts.Count);
                         using (batchDurationMeter.Measure())
                         {
-                            await ingestor.Ingest(contexts);
+                            await ingestor.Ingest(contexts, stoppingToken);
                         }
                     }
                     catch (Exception e)
@@ -214,7 +214,7 @@
 
                 if (settings.ForwardErrorMessages)
                 {
-                    await ingestor.VerifyCanReachForwardingAddress();
+                    await ingestor.VerifyCanReachForwardingAddress(cancellationToken);
                 }
 
                 await messageReceiver.StartReceive(cancellationToken);

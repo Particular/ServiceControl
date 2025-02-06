@@ -70,7 +70,7 @@
                 var groups = new List<FailedMessage.FailureGroup>();
 
                 await uow.Recoverability.RecordFailedProcessingAttempt(context, processingAttempt, groups);
-                await uow.Complete();
+                await uow.Complete(cancellationSource.Token);
             }
 
             CompleteDatabaseOperation();
