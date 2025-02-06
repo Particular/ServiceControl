@@ -1,5 +1,6 @@
 namespace ServiceControl.Infrastructure.SignalR
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using DomainEvents;
 
@@ -8,11 +9,11 @@ namespace ServiceControl.Infrastructure.SignalR
     /// </summary>
     class ServicePulseNotifier(GlobalEventHandler broadcaster) : IDomainHandler<IDomainEvent>
     {
-        public async Task Handle(IDomainEvent domainEvent)
+        public async Task Handle(IDomainEvent domainEvent, CancellationToken cancellationToken)
         {
             if (domainEvent is IUserInterfaceEvent userInterfaceEvent)
             {
-                await broadcaster.Broadcast(userInterfaceEvent);
+                await broadcaster.Broadcast(userInterfaceEvent, cancellationToken);
             }
         }
     }

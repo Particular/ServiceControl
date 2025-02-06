@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.EventLog
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.EventLog;
     using Infrastructure.DomainEvents;
@@ -19,7 +20,7 @@
             this.mappings = mappings;
         }
 
-        public async Task Handle(IDomainEvent message)
+        public async Task Handle(IDomainEvent message, CancellationToken cancellationToken)
         {
             if (!mappings.HasMapping(message))
             {
@@ -41,7 +42,7 @@
                 // The reason is because this data is not useful for end users, so for now we just empty it.
                 // At the moment too much data is being populated in this field, and this has significant down sides to the amount of data we are sending down to ServicePulse (it actually crashes it).
                 RelatedTo = []
-            });
+            }, cancellationToken);
         }
 
         readonly GlobalEventHandler broadcaster;

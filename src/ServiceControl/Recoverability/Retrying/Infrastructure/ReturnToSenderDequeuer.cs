@@ -231,7 +231,7 @@ namespace ServiceControl.Recoverability
                         Reason = reason,
                         FailedMessageId = messageUniqueId,
                         Destination = destination
-                    });
+                    }, cancellationToken);
                 }
                 catch (Exception ex)
                 {

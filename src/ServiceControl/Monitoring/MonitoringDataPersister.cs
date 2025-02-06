@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Monitoring
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.EndpointControl;
     using Contracts.HeartbeatMonitoring;
@@ -19,22 +20,22 @@
             _endpointInstanceMonitoring = endpointInstanceMonitoring;
         }
 
-        public Task Handle(EndpointDetected domainEvent)
+        public Task Handle(EndpointDetected domainEvent, CancellationToken cancellationToken)
         {
             return _monitoringDataStore.CreateIfNotExists(domainEvent.Endpoint);
         }
 
-        public Task Handle(HeartbeatingEndpointDetected domainEvent)
+        public Task Handle(HeartbeatingEndpointDetected domainEvent, CancellationToken cancellationToken)
         {
             return _monitoringDataStore.CreateOrUpdate(domainEvent.Endpoint, _endpointInstanceMonitoring);
         }
 
-        public Task Handle(MonitoringEnabledForEndpoint domainEvent)
+        public Task Handle(MonitoringEnabledForEndpoint domainEvent, CancellationToken cancellationToken)
         {
             return _monitoringDataStore.UpdateEndpointMonitoring(domainEvent.Endpoint, true);
         }
 
-        public Task Handle(MonitoringDisabledForEndpoint domainEvent)
+        public Task Handle(MonitoringDisabledForEndpoint domainEvent, CancellationToken cancellationToken)
         {
             return _monitoringDataStore.UpdateEndpointMonitoring(domainEvent.Endpoint, false);
         }
