@@ -312,7 +312,6 @@
         readonly AuditIngestionFaultPolicy errorHandlingPolicy;
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Settings settings;
-        [Obsolete]
         readonly Channel<MessageContext> channel;
         readonly Histogram<long> auditBatchSize = AuditMetrics.Meter.CreateHistogram<long>($"{AuditMetrics.Prefix}.batch_size_audits");
         readonly Histogram<double> auditBatchDuration = AuditMetrics.Meter.CreateHistogram<double>($"{AuditMetrics.Prefix}.batch_duration_audits", unit: "ms");
