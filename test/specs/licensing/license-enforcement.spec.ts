@@ -5,6 +5,7 @@ import { expiredLicenseMessageWithValue } from "./questions/expiredLicenseMessag
 import { viewYourLicenseButton } from "./questions/viewYourLicenseButton";
 import { extendYourLicenseButton } from "./questions/extendYourLicenseButton";
 import { getAlertNotifications } from "./questions/alertNotifications";
+import { LicenseType } from "@/resources/LicenseInfo";
 import flushPromises from "flush-promises";
 
 describe("FEATURE: EXPIRING license detection", () => {
@@ -13,7 +14,7 @@ describe("FEATURE: EXPIRING license detection", () => {
       test(`EXAMPLE: Expiring trial with ${licenseExtensionUrl} as license extension url `, async ({ driver }) => {
         //Arrange
         await driver.setUp(precondition.serviceControlWithMonitoring);
-        await driver.setUp(precondition.hasExpiringLicense(precondition.LicenseType.Trial, licenseExtensionUrl));
+        await driver.setUp(precondition.hasExpiringLicense(LicenseType.Trial, 10, licenseExtensionUrl));
 
         await driver.goTo("monitoring");
 
@@ -27,8 +28,8 @@ describe("FEATURE: EXPIRING license detection", () => {
     });
 
     [
-      { description: "Expiring upgrade protection", licenseType: precondition.LicenseType.UpgradeProtection, textMatch: /once upgrade protection expires, you'll no longer have access to support or new product versions/i },
-      { description: "Expiring platform subscription", licenseType: precondition.LicenseType.Subscription, textMatch: /Once the license expires you'll no longer be able to continue using the Particular Service Platform/i },
+      { description: "Expiring upgrade protection", licenseType: LicenseType.UpgradeProtection, textMatch: /once upgrade protection expires, you'll no longer have access to support or new product versions/i },
+      { description: "Expiring platform subscription", licenseType: LicenseType.Subscription, textMatch: /Once the license expires you'll no longer be able to continue using the Particular Service Platform/i },
     ].forEach(({ description, licenseType, textMatch }) => {
       test(`EXAMPLE: ${description}`, async ({ driver }) => {
         //Arrange
@@ -53,7 +54,7 @@ describe("FEATURE: EXPIRED license detection", () => {
     test("EXAMPLE: Expired trial", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
-      await driver.setUp(precondition.hasExpiredLicense(precondition.LicenseType.Trial));
+      await driver.setUp(precondition.hasExpiredLicense(LicenseType.Trial));
 
       //Act
       await driver.goTo("monitoring");
@@ -73,7 +74,7 @@ describe("FEATURE: EXPIRED license detection", () => {
     test("EXAMPLE: Expired platform subscription", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
-      await driver.setUp(precondition.hasExpiredLicense(precondition.LicenseType.Subscription));
+      await driver.setUp(precondition.hasExpiredLicense(LicenseType.Subscription));
 
       //Act
       await driver.goTo("monitoring");
@@ -93,7 +94,7 @@ describe("FEATURE: EXPIRED license detection", () => {
     test("EXAMPLE: Expired upgrade protection", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
-      await driver.setUp(precondition.hasExpiredLicense(precondition.LicenseType.UpgradeProtection));
+      await driver.setUp(precondition.hasExpiredLicense(LicenseType.UpgradeProtection));
 
       //Act
       await driver.goTo("monitoring");

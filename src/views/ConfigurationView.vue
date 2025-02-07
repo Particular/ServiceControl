@@ -53,7 +53,7 @@ function preventIfDisabled(e: Event) {
     <div class="row">
       <div class="col-sm-12">
         <div class="nav tabs">
-          <h5 :class="{ active: isRouteSelected(routeLinks.configuration.license.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item">
+          <h5 :class="{ active: isRouteSelected(routeLinks.configuration.license.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item" role="tab" aria-label="license">
             <RouterLink :to="routeLinks.configuration.license.link">License</RouterLink>
             <exclamation-mark :type="convertToWarningLevel(licenseStatus.warningLevel)" />
           </h5>
@@ -61,27 +61,29 @@ function preventIfDisabled(e: Event) {
             :class="{ active: isRouteSelected(routeLinks.throughput.setup.root) || isRouteSelected(routeLinks.throughput.setup.mask.link) || isRouteSelected(routeLinks.throughput.setup.diagnostics.link), disabled: notConnected }"
             @click.capture="preventIfDisabled"
             class="nav-item"
+            role="tab"
+            aria-label="usage-setup"
           >
             <RouterLink :to="routeLinks.throughput.setup.root">Usage Setup</RouterLink>
             <exclamation-mark :type="WarningLevel.Danger" v-if="hasErrors" />
           </h5>
           <template v-if="!licenseStatus.isExpired">
-            <h5 :class="{ active: isRouteSelected(routeLinks.configuration.massTransitConnector.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item">
+            <h5 :class="{ active: isRouteSelected(routeLinks.configuration.massTransitConnector.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item" role="tab" aria-label="mass-transit-connector">
               <RouterLink :to="routeLinks.configuration.massTransitConnector.link">MassTransit Connector</RouterLink>
             </h5>
-            <h5 :class="{ active: isRouteSelected(routeLinks.configuration.healthCheckNotifications.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item">
+            <h5 :class="{ active: isRouteSelected(routeLinks.configuration.healthCheckNotifications.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item" role="tab" aria-label="health-check-notifications">
               <RouterLink :to="routeLinks.configuration.healthCheckNotifications.link">Health Check Notifications</RouterLink>
             </h5>
-            <h5 :class="{ active: isRouteSelected(routeLinks.configuration.retryRedirects.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item">
+            <h5 :class="{ active: isRouteSelected(routeLinks.configuration.retryRedirects.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item" role="tab" aria-label="retry-redirects">
               <RouterLink :to="routeLinks.configuration.retryRedirects.link">Retry Redirects ({{ redirectCount }})</RouterLink>
             </h5>
-            <h5 :class="{ active: isRouteSelected(routeLinks.configuration.connections.link) }" class="nav-item">
+            <h5 :class="{ active: isRouteSelected(routeLinks.configuration.connections.link) }" class="nav-item" role="tab" aria-label="connections">
               <RouterLink :to="routeLinks.configuration.connections.link">
                 Connections
                 <exclamation-mark v-if="displayConnectionsWarning" :type="WarningLevel.Danger" />
               </RouterLink>
             </h5>
-            <h5 :class="{ active: isRouteSelected(routeLinks.configuration.endpointConnection.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item">
+            <h5 :class="{ active: isRouteSelected(routeLinks.configuration.endpointConnection.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item" role="tab" aria-label="endpoint-connection">
               <RouterLink :to="routeLinks.configuration.endpointConnection.link">Endpoint Connection</RouterLink>
             </h5>
           </template>
