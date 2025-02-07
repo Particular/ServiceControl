@@ -269,7 +269,11 @@
             }
 
             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            messageContext.SetTaskCompletionSource(taskCompletionSource);
+
+            // Ideally we want to propagate the cancellationToken to the batch handling
+            // but cancellation in only cancelled when endpointInstance.Stop is cancelled, not when invoked.
+            // Not much shutdown speed to gain but this will ensure endpoint.Stop will return.
+            await using var cancellationTokenRegistration = cancellationToken.Register(() => _ = taskCompletionSource.TrySetCanceled());
 
             receivedMeter.Mark();
 
