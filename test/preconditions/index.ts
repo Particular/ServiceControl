@@ -12,7 +12,7 @@ export { hasEventLogItems } from "../preconditions/hasEventLogItems";
 export { hasRecoverabilityGroups } from "../preconditions/hasEmptyRecoverabilityGroups";
 export * from "./hasEndpointsWithHistoryPeriodData";
 export * from "./hasMonitoredEndpointDetails";
-export { hasNoHeartbeatsEndpoints, hasHeartbeatsEndpoints } from "../preconditions/hasHeartbeatEndpoints";
+export * from "../preconditions/hasHeartbeatEndpoints";
 export { serviceControlWithMonitoring } from "./serviceControlWithMonitoring";
 export * from "./recoverability";
 export { hasLicensingReportAvailable } from "../preconditions/hasLicensingReportAvailable";

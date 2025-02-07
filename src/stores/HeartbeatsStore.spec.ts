@@ -14,13 +14,12 @@ import { EndpointStatus } from "@/resources/Heartbeat";
 import { ColumnNames, useHeartbeatsStore } from "@/stores/HeartbeatsStore";
 
 describe("HeartbeatsStore tests", () => {
-  async function setup(endpoints: EndpointsView[], endpointSettings: EndpointSettings[], preSetup: (driver: Driver) => Promise<void> = () => Promise.resolve()) {
+  async function setup(endpoints: EndpointsView[], endpointSettings: EndpointSettings[] = [{ name: "", track_instances: true }], preSetup: (driver: Driver) => Promise<void> = () => Promise.resolve()) {
     const driver = makeDriverForTests();
 
     await preSetup(driver);
     await driver.setUp(serviceControlWithHeartbeats);
-    await driver.setUp(precondition.hasEndpointSettings(endpointSettings));
-    await driver.setUp(precondition.hasHeartbeatsEndpoints(endpoints));
+    await driver.setUp(precondition.hasHeartbeatsEndpoints(endpoints, endpointSettings));
 
     useServiceControlUrls();
     await useServiceControl();
@@ -34,7 +33,7 @@ describe("HeartbeatsStore tests", () => {
   }
 
   test("no endpoints", async () => {
-    const { filteredHealthyEndpoints, filteredUnhealthyEndpoints } = await setup([], []);
+    const { filteredHealthyEndpoints, filteredUnhealthyEndpoints } = await setup([]);
 
     expect(filteredHealthyEndpoints.value.length).toBe(0);
     expect(filteredUnhealthyEndpoints.value.length).toBe(0);
