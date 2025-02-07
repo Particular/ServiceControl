@@ -38,7 +38,7 @@
             {
                 await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, []);
 
-                await uow.Complete();
+                await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
             CompleteDatabaseOperation();
@@ -68,7 +68,7 @@
                 await uow.Recoverability.RecordFailedProcessingAttempt(contextA, attemptA, [new FailedMessage.FailureGroup { Id = groupIdA }]);
                 await uow.Recoverability.RecordFailedProcessingAttempt(contextB, attemptB, [new FailedMessage.FailureGroup { Id = groupIdB }]);
 
-                await uow.Complete();
+                await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
             CompleteDatabaseOperation();
@@ -99,7 +99,7 @@
             {
                 await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, [new FailedMessage.FailureGroup { Id = groupId }]);
 
-                await uow.Complete();
+                await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
             CompleteDatabaseOperation();
@@ -122,7 +122,7 @@
             {
                 await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, []);
 
-                await uow.Complete();
+                await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
             CompleteDatabaseOperation();
@@ -145,7 +145,7 @@
             {
                 await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, []);
 
-                await uow.Complete();
+                await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
             CompleteDatabaseOperation();
@@ -158,7 +158,7 @@
             {
                 await uow.Recoverability.RecordSuccessfulRetry(errors.Results.First().Id);
 
-                await uow.Complete();
+                await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
             await WaitUntil(async () => (await GetAllMessages()).Results.Count == 0, "Retry confirmation should cause message removal.");

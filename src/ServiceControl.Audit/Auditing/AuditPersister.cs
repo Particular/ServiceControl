@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
     using Monitoring;
@@ -38,7 +39,7 @@
             this.messageDispatcher = messageDispatcher;
         }
 
-        public async Task<IReadOnlyList<MessageContext>> Persist(IReadOnlyList<MessageContext> contexts)
+        public async Task<IReadOnlyList<MessageContext>> Persist(IReadOnlyList<MessageContext> contexts, CancellationToken cancellationToken)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -53,7 +54,7 @@
             {
 
                 // deliberately not using the using statement because we dispose async explicitly
-                unitOfWork = await unitOfWorkFactory.StartNew(contexts.Count);
+                unitOfWork = await unitOfWorkFactory.StartNew(contexts.Count, cancellationToken);
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {

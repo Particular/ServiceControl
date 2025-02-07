@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.DomainEvents
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Logging;
@@ -12,14 +13,14 @@
         readonly IServiceProvider serviceProvider;
         public DomainEvents(IServiceProvider serviceProvider) => this.serviceProvider = serviceProvider;
 
-        public async Task Raise<T>(T domainEvent) where T : IDomainEvent
+        public async Task Raise<T>(T domainEvent, CancellationToken cancellationToken) where T : IDomainEvent
         {
             var handlers = serviceProvider.GetServices<IDomainHandler<T>>();
             foreach (var handler in handlers)
             {
                 try
                 {
-                    await handler.Handle(domainEvent)
+                    await handler.Handle(domainEvent, cancellationToken)
                         .ConfigureAwait(false);
                 }
                 catch (Exception e)
@@ -34,7 +35,7 @@
             {
                 try
                 {
-                    await handler.Handle(domainEvent)
+                    await handler.Handle(domainEvent, cancellationToken)
                     .ConfigureAwait(false);
                 }
                 catch (Exception e)
