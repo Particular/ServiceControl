@@ -222,7 +222,7 @@
                         await auditIngestor.Ingest(contexts);
                     }
 
-                    consecutiveBatchFailuresCounter.Record(Interlocked.Exchange(ref consecutiveBatchFailures, 0));
+                    consecutiveBatchFailuresCounter.Record(0);
                 }
                 catch (OperationCanceledException)
                 {
@@ -242,7 +242,8 @@
                         context.GetTaskCompletionSource().TrySetException(e);
                     }
 
-                    consecutiveBatchFailuresCounter.Record(Interlocked.Increment(ref consecutiveBatchFailures));
+                    // no need to do interlocked increment since this is running sequential
+                    consecutiveBatchFailuresCounter.Record(consecutiveBatchFailures++);
                 }
                 finally
                 {
