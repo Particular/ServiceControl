@@ -44,7 +44,7 @@
             await domainEvents.Raise(new MessageFailureResolvedManually
             {
                 FailedMessageId = message.FailedMessageId
-            });
+            }, context.CancellationToken);
         }
 
         IErrorMessageDataStore dataStore;

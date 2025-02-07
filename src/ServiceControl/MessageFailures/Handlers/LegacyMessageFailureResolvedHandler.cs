@@ -27,7 +27,7 @@
             {
                 AlternativeFailedMessageIds = message.AlternativeFailedMessageIds,
                 FailedMessageId = message.FailedMessageId
-            });
+            }, context.CancellationToken);
         }
 
         // This is only needed because we might get this from legacy not yet converted instances
@@ -38,7 +38,7 @@
             {
                 AlternativeFailedMessageIds = message.AlternativeFailedMessageIds,
                 FailedMessageId = message.FailedMessageId
-            });
+            }, context.CancellationToken);
         }
 
         async Task MarkAsResolvedByRetry(string primaryId, string[] messageAlternativeFailedMessageIds)
