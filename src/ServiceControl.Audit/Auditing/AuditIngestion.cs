@@ -194,11 +194,14 @@
             await taskCompletionSource.Task;
         }
 
+        public override async Task StartAsync(CancellationToken cancellationToken)
+        {
+            await watchdog.Start(() => applicationLifetime.StopApplication());
+            await base.StartAsync(cancellationToken);
+        }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await watchdog.Start(() => applicationLifetime.StopApplication());
-
             try
             {
                 var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
@@ -243,18 +246,30 @@
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
-                // Cancellation
+                // ExecuteAsync cancelled
             }
-            finally
+        }
+
+        public override async Task StopAsync(CancellationToken cancellationToken)
+        {
+            try
             {
                 await watchdog.Stop();
                 channel.Writer.Complete();
-
+                await base.StopAsync(cancellationToken);
+            }
+            finally
+            {
                 if (transportInfrastructure != null)
                 {
-                    // stoppingToken is cancelled, invoke so transport infrastructure will run teardown
-                    // No need to await, as this will throw OperationCancelledException
-                    _ = transportInfrastructure.Shutdown(stoppingToken);
+                    try
+                    {
+                        await transportInfrastructure.Shutdown(cancellationToken);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        // StopAsync cancelled
+                    }
                 }
             }
         }
