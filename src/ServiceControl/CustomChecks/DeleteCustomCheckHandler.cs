@@ -17,7 +17,7 @@
         {
             await customChecksDataStore.DeleteCustomCheck(message.Id);
 
-            await domainEvents.Raise(new CustomCheckDeleted { Id = message.Id });
+            await domainEvents.Raise(new CustomCheckDeleted { Id = message.Id }, context.CancellationToken);
         }
 
         ICustomChecksDataStore customChecksDataStore;
