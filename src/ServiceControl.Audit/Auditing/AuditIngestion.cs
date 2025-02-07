@@ -223,19 +223,20 @@
                             await auditIngestor.Ingest(contexts);
                         }
                     }
-                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                    catch (Exception e)
                     {
-                        throw; // Catch again in outer catch
-                    }
-                    catch (Exception e) // show must go on
-                    {
-                        logger.Info("Ingesting messages failed", e);
-
                         // signal all message handling tasks to terminate
                         foreach (var context in contexts)
                         {
-                            context.GetTaskCompletionSource().TrySetException(e);
+                            _ = context.GetTaskCompletionSource().TrySetException(e);
                         }
+
+                        if (e is OperationCanceledException && stoppingToken.IsCancellationRequested)
+                        {
+                            break; // ExecuteAsync cancelled
+                        }
+
+                        logger.Info("Ingesting messages failed", e);
                     }
                     finally
                     {
