@@ -82,7 +82,7 @@ static class HostApplicationBuilderExtensions
                     autoGenerateServiceInstanceId: true))
                 .WithMetrics(b =>
                 {
-                    b.AddMeter(Telemetry.MeterName);
+                    b.AddAuditIngestionMeters();
                     b.AddOtlpExporter(e =>
                     {
                         e.Endpoint = otelMetricsUri;
