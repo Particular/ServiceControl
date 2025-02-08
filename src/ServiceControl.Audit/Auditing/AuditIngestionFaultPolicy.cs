@@ -104,8 +104,8 @@
             EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
         }
 
-        readonly Counter<long> retryCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "retry"));
-        readonly Counter<long> failedCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "failed"));
+        readonly Counter<long> retryCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "retry"), description: "Audit ingestion retries count");
+        readonly Counter<long> failedCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "failed"), description: "Audit ingestion failure count");
 
         static readonly ILog log = LogManager.GetLogger<AuditIngestionFaultPolicy>();
     }

@@ -105,9 +105,9 @@
 
                     try
                     {
-                        // this can throw even though dispose is never supposed to throw
                         using (new DurationRecorder(commitDuration))
                         {
+                            // this can throw even though dispose is never supposed to throw
                             await unitOfWork.DisposeAsync();
                         }
                     }
@@ -252,9 +252,9 @@
             }
         }
 
-        readonly Counter<long> storedAuditsCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "audits_count"));
-        readonly Counter<long> storedSagasCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "sagas_count"));
-        readonly Histogram<double> commitDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion", "commit_duration"), unit: "ms");
+        readonly Counter<long> storedAuditsCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "audits_count"), description: "Stored audit message count");
+        readonly Counter<long> storedSagasCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "sagas_count"), description: "Stored saga state count");
+        readonly Histogram<double> commitDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion", "commit_duration"), unit: "ms", description: "Storage unit of work commit duration");
 
         static readonly ILog Logger = LogManager.GetLogger<AuditPersister>();
     }
