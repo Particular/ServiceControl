@@ -66,6 +66,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
             TrackInstancesInitialValue = SettingsReader.Read(SettingsRootNamespace, "TrackInstancesInitialValue", true);
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
+            ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
+            Environment.SetEnvironmentVariable("ShutdownTimeout", ShutdownTimeout.ToString());
         }
 
         [JsonIgnore]
@@ -179,6 +181,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         public bool DisableHealthChecks { get; set; }
+
+        public TimeSpan ShutdownTimeout { get; set; } = TimeSpan.FromMinutes(5);
 
         public string GetConnectionString()
         {
