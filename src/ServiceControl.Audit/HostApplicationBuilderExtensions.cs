@@ -42,7 +42,7 @@ static class HostApplicationBuilderExtensions
         var transportCustomization = TransportFactory.Create(transportSettings);
         transportCustomization.AddTransportForAudit(services, transportSettings);
 
-        services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
+        services.Configure<HostOptions>(options => options.ShutdownTimeout = settings.ShutdownTimeout);
 
         services.AddSingleton(settings);
         services.AddSingleton<EndpointInstanceMonitoring>();

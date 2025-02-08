@@ -51,6 +51,8 @@
             EnableFullTextSearchOnBodies = SettingsReader.Read(SettingsRootNamespace, "EnableFullTextSearchOnBodies", true);
 
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
+            ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
+            Environment.SetEnvironmentVariable("ShutdownTimeout", ShutdownTimeout.ToString());
         }
 
         void LoadAuditQueueInformation()
@@ -150,6 +152,8 @@
         public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
 
         public bool EnableFullTextSearchOnBodies { get; set; }
+
+        public TimeSpan ShutdownTimeout { get; set; } = TimeSpan.FromMinutes(5);
 
         public TransportSettings ToTransportSettings()
         {

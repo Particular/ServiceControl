@@ -51,7 +51,7 @@ namespace Particular.ServiceControl
             var transportCustomization = TransportFactory.Create(transportSettings);
             transportCustomization.AddTransportForPrimary(services, transportSettings);
 
-            services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
+            services.Configure<HostOptions>(options => options.ShutdownTimeout = settings.ShutdownTimeout);
             services.AddSingleton<IDomainEvents, DomainEvents>();
 
             services.AddSingleton<MessageStreamerHub>();

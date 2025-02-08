@@ -15,6 +15,7 @@ namespace ServiceControl.RavenDB
     using Raven.Client.Documents.Conventions;
     using Raven.Client.ServerWide.Operations;
     using Raven.Embedded;
+    using Sparrow.Logging;
 
     public sealed class EmbeddedDatabase : IDisposable
     {
@@ -52,9 +53,24 @@ namespace ServiceControl.RavenDB
 
             var nugetPackagesPath = Path.Combine(databaseConfiguration.DbPath, "Packages", "NuGet");
 
+            LoggingSource.Instance.SetupLogMode(
+                (LogMode)255,
+                Path.Combine(databaseConfiguration.LogPath, "client"),
+                TimeSpan.FromDays(7),
+                1024 * 1024 * 10,
+                false
+            );
+
+            LoggingSource.Instance.EnableConsoleLogging();
+
+            var gracefulShutdownTimeout = TimeSpan.Parse(Environment.GetEnvironmentVariable("ShutdownTimeout"));
+            // Must be less to ensure teardown of child process completes
+            gracefulShutdownTimeout -= TimeSpan.FromSeconds(5);
+
             Logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
             var serverOptions = new ServerOptions
             {
+                GracefulShutdownTimeout = gracefulShutdownTimeout,
                 CommandLineArgs =
                 [
                     $"--Logs.Mode={databaseConfiguration.LogsMode}",
