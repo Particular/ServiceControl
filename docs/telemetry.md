@@ -21,7 +21,7 @@ The following metrics are available:
 - `sc.audit.ingestion.failed` - Failed audit message count
 - `sc.audit.ingestion.duration` - Audit message processing duration (in milliseconds)
 - `sc.audit.ingestion.message_size` - Audit message body size (in kilobytes)
-- `sc.audit.ingestion.forwarded_count` - Forwarded audiit messages count
+- `sc.audit.ingestion.forwarded_count` - Forwarded audit messages count
 
 ### Batching
 
