@@ -51,7 +51,7 @@ public sealed class ReadOnlyStream(ReadOnlyMemory<byte> memory) : Stream
 
             return Task.CompletedTask;
         }
-        catch (OperationCanceledException e)
+        catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
         {
             return Task.FromCanceled(e.CancellationToken);
         }
@@ -113,7 +113,7 @@ public sealed class ReadOnlyStream(ReadOnlyMemory<byte> memory) : Stream
 
             return Task.FromResult(result);
         }
-        catch (OperationCanceledException e)
+        catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
         {
             return Task.FromCanceled<int>(e.CancellationToken);
         }
@@ -136,7 +136,7 @@ public sealed class ReadOnlyStream(ReadOnlyMemory<byte> memory) : Stream
 
             return new ValueTask<int>(result);
         }
-        catch (OperationCanceledException e)
+        catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
         {
             return new ValueTask<int>(Task.FromCanceled<int>(e.CancellationToken));
         }

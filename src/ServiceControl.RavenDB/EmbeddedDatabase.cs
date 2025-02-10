@@ -109,7 +109,7 @@ namespace ServiceControl.RavenDB
 
                         Logger.Info("RavenDB server process restarted successfully.");
                     }
-                    catch (OperationCanceledException)
+                    catch (OperationCanceledException) when (shutdownCancellationToken.IsCancellationRequested)
                     {
                         //no-op
                     }
