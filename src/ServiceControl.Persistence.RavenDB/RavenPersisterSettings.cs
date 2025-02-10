@@ -2,8 +2,9 @@
 using Particular.LicensingComponent.Contracts;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.RavenDB.CustomChecks;
+using ServiceControl.RavenDB;
 
-class RavenPersisterSettings : PersistenceSettings
+class RavenPersisterSettings : PersistenceSettings, IRavenClientCertificateInfo
 {
     public int DatabaseMaintenancePort { get; set; } = DatabaseMaintenancePortDefault;
     public int ExpirationProcessTimerInSeconds { get; set; } = ExpirationProcessTimerInSecondsDefault;
@@ -23,6 +24,9 @@ class RavenPersisterSettings : PersistenceSettings
     /// User provided external RavenDB instance connection string
     /// </summary>
     public string ConnectionString { get; set; }
+    public string ClientCertificatePath { get; set; }
+    public string ClientCertificateBase64 { get; set; }
+    public string ClientCertificatePassword { get; set; }
     public bool UseEmbeddedServer => string.IsNullOrWhiteSpace(ConnectionString);
     public string LogPath { get; set; }
     public string LogsMode { get; set; } = LogsModeDefault;

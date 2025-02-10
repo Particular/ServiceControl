@@ -27,9 +27,9 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageVersion Include="Mindscape.Raygun4Net.NetCore" Version="11.2.1" />
-    <PackageVersion Include="NLog.Extensions.Logging" Version="5.3.15" />
-    <PackageVersion Include="NServiceBus" Version="9.2.3" />
-    <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="9.2.3" />
+    <PackageVersion Include="NLog.Extensions.Logging" Version="5.4.0" />
+    <PackageVersion Include="NServiceBus" Version="9.2.4" />
+    <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="9.2.4" />
     <PackageVersion Include="NServiceBus.AmazonSQS" Version="7.1.1" />
     <PackageVersion Include="NServiceBus.CustomChecks" Version="5.0.1" />
     <PackageVersion Include="NServiceBus.Extensions.Hosting" Version="3.0.1" />
@@ -49,7 +49,7 @@
     <PackageVersion Include="NuGet.Versioning" Version="6.12.1" />
     <PackageVersion Include="NUnit" Version="4.3.2" />
     <PackageVersion Include="NUnit.Analyzers" Version="4.6.0" />
-    <PackageVersion Include="NUnit3TestAdapter" Version="4.6.0" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="5.0.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
     <PackageVersion Include="Particular.Approvals" Version="2.0.1" />
@@ -87,6 +87,6 @@
   <ItemGroup>
     <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.48" />
     <GlobalPackageReference Include="Microsoft.Build.CopyOnWrite" Version="1.0.334" />
-    <GlobalPackageReference Include="Particular.Packaging" Version="4.2.0" />
+    <GlobalPackageReference Include="Particular.Packaging" Version="4.2.2" />
   </ItemGroup>
 </Project>
