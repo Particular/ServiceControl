@@ -39,7 +39,7 @@
 
                     await Task.Delay(QueryDelayInterval, stoppingToken);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
                     // no-op
                 }
@@ -141,7 +141,7 @@
 
                     action(model);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     // no-op
                 }

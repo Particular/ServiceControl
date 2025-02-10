@@ -65,7 +65,7 @@
 
                     await Task.Delay(QueryDelayInterval, stoppingToken);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
                     // no-op
                 }
@@ -104,7 +104,7 @@
                 var response = await client.GetQueueAttributesAsync(attReq, cancellationToken);
                 sizes[queue] = response.ApproximateNumberOfMessages;
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 // no-op
             }
