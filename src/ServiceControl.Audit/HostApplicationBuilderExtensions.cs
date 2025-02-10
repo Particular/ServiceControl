@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Auditing;
 using Infrastructure;
-using Infrastructure.Metrics;
 using Infrastructure.Settings;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +19,8 @@ using NServiceBus.Logging;
 using NServiceBus.Transport;
 using Persistence;
 using Transports;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 
 static class HostApplicationBuilderExtensions
 {
@@ -28,10 +29,11 @@ static class HostApplicationBuilderExtensions
         Settings settings,
         EndpointConfiguration configuration)
     {
+        var version = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
         var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings);
         var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
 
-        RecordStartup(settings, configuration, persistenceConfiguration);
+        RecordStartup(version, settings, configuration, persistenceConfiguration);
 
         builder.Logging.ClearProviders();
         builder.Logging.AddNLog();
@@ -61,12 +63,35 @@ static class HostApplicationBuilderExtensions
         // directly and to make things more complex of course the order of registration still matters ;)
         services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
-        services.AddMetrics(settings.PrintMetrics);
-
         services.AddPersistence(persistenceSettings, persistenceConfiguration);
 
         NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, onCriticalError, configuration);
         builder.UseNServiceBus(configuration);
+
+        if (!string.IsNullOrEmpty(settings.OtlpEndpointUrl))
+        {
+            if (!Uri.TryCreate(settings.OtlpEndpointUrl, UriKind.Absolute, out var otelMetricsUri))
+            {
+                throw new UriFormatException($"Invalid OtlpEndpointUrl: {settings.OtlpEndpointUrl}");
+            }
+
+            builder.Services.AddOpenTelemetry()
+                .ConfigureResource(b => b.AddService(
+                    serviceName: settings.InstanceName,
+                    serviceVersion: version,
+                    autoGenerateServiceInstanceId: true))
+                .WithMetrics(b =>
+                {
+                    b.AddAuditIngestionMeters();
+                    b.AddOtlpExporter(e =>
+                    {
+                        e.Endpoint = otelMetricsUri;
+                    });
+                });
+
+            var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
+            logger.InfoFormat("OpenTelemetry metrics exporter enabled: {0}", settings.OtlpEndpointUrl);
+        }
 
         // Configure after the NServiceBus hosted service to ensure NServiceBus is already started
         if (settings.IngestAuditMessages)
@@ -84,10 +109,8 @@ static class HostApplicationBuilderExtensions
         builder.Services.AddInstaller(persistenceSettings, persistenceConfiguration);
     }
 
-    static void RecordStartup(Settings settings, EndpointConfiguration endpointConfiguration, IPersistenceConfiguration persistenceConfiguration)
+    static void RecordStartup(string version, Settings settings, EndpointConfiguration endpointConfiguration, IPersistenceConfiguration persistenceConfiguration)
     {
-        var version = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
-
         var startupMessage = $@"
 -------------------------------------------------------------
 ServiceControl Audit Version:       {version}
@@ -101,9 +124,6 @@ Persistence:                        {persistenceConfiguration.Name}
 
         var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
         logger.Info(startupMessage);
-        endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
-        {
-            Settings = settings
-        });
+        endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new { Settings = settings });
     }
 }

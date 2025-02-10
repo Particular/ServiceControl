@@ -2,7 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
+    using System.Diagnostics.Metrics;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
@@ -14,18 +14,14 @@
     using Persistence;
     using Persistence.UnitOfWork;
     using ServiceControl.Infrastructure;
-    using ServiceControl.Infrastructure.Metrics;
     using Transports;
 
     class AuditIngestion : IHostedService
     {
-        static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
-
         public AuditIngestion(
             Settings settings,
             ITransportCustomization transportCustomization,
             TransportSettings transportSettings,
-            Metrics metrics,
             IFailedAuditStorage failedImportsStorage,
             AuditIngestionCustomCheck.State ingestionState,
             AuditIngestor auditIngestor,
@@ -39,10 +35,6 @@
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.settings = settings;
             this.applicationLifetime = applicationLifetime;
-
-            batchSizeMeter = metrics.GetMeter("Audit ingestion - batch size");
-            batchDurationMeter = metrics.GetMeter("Audit ingestion - batch processing duration", FrequencyInMilliseconds);
-            receivedMeter = metrics.GetCounter("Audit ingestion - received");
 
             if (!transportSettings.MaxConcurrency.HasValue)
             {
@@ -102,6 +94,7 @@
                         await stoppable.StopReceive(cancellationToken);
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
                     }
+
                     return;
                 }
 
@@ -168,6 +161,7 @@
                     logger.Info("Shutting down. Already stopped, skipping shut down");
                     return; //Already stopped
                 }
+
                 var stoppable = queueIngestor;
                 queueIngestor = null;
                 logger.Info("Shutting down. Infrastructure shut down commencing");
@@ -188,18 +182,22 @@
 
         async Task OnMessage(MessageContext messageContext, CancellationToken cancellationToken)
         {
-            if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
+            using (new DurationRecorder(ingestionDuration))
             {
-                return;
+                if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
+                {
+                    return;
+                }
+
+                var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                messageContext.SetTaskCompletionSource(taskCompletionSource);
+
+                await channel.Writer.WriteAsync(messageContext, cancellationToken);
+                await taskCompletionSource.Task;
+
+                ingestedMessagesCounter.Add(1);
+                messageSize.Record(messageContext.Body.Length / 1024.0);
             }
-
-            var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            messageContext.SetTaskCompletionSource(taskCompletionSource);
-
-            receivedMeter.Mark();
-
-            await channel.Writer.WriteAsync(messageContext, cancellationToken);
-            await taskCompletionSource.Task;
         }
 
         async Task Loop()
@@ -217,11 +215,14 @@
                         contexts.Add(context);
                     }
 
-                    batchSizeMeter.Mark(contexts.Count);
-                    using (batchDurationMeter.Measure())
+                    auditBatchSize.Record(contexts.Count);
+
+                    using (new DurationRecorder(auditBatchDuration))
                     {
                         await auditIngestor.Ingest(contexts);
                     }
+
+                    consecutiveBatchFailuresCounter.Record(0);
                 }
                 catch (OperationCanceledException)
                 {
@@ -240,6 +241,9 @@
                     {
                         context.GetTaskCompletionSource().TrySetException(e);
                     }
+
+                    // no need to do interlocked increment since this is running sequential
+                    consecutiveBatchFailuresCounter.Record(consecutiveBatchFailures++);
                 }
                 finally
                 {
@@ -251,8 +255,9 @@
 
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver queueIngestor;
+        long consecutiveBatchFailures = 0;
 
-        readonly SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
+        readonly SemaphoreSlim startStopSemaphore = new(1);
         readonly string inputEndpoint;
         readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
@@ -261,9 +266,12 @@
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Settings settings;
         readonly Channel<MessageContext> channel;
-        readonly Meter batchSizeMeter;
-        readonly Meter batchDurationMeter;
-        readonly Counter receivedMeter;
+        readonly Histogram<long> auditBatchSize = Telemetry.Meter.CreateHistogram<long>(Telemetry.CreateInstrumentName("ingestion", "batch_size"), description: "Audit ingestion average batch size");
+        readonly Histogram<double> auditBatchDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion", "batch_duration"), unit: "ms", "Average audit message batch processing duration");
+        readonly Histogram<double> messageSize = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion", "message_size"), unit: "kilobytes", description: "Average audit message body size");
+        readonly Counter<long> ingestedMessagesCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "count"), description: "Successful ingested audit message count");
+        readonly Histogram<long> consecutiveBatchFailuresCounter = Telemetry.Meter.CreateHistogram<long>(Telemetry.CreateInstrumentName("ingestion", "consecutive_batch_failures"), unit: "count", description: "Consecutive audit ingestion batch failure");
+        readonly Histogram<double> ingestionDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion", "duration"), unit: "ms", description: "Average incoming audit message processing duration");
         readonly Watchdog watchdog;
         readonly Task ingestionWorker;
         readonly IHostApplicationLifetime applicationLifetime;

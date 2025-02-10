@@ -2,6 +2,7 @@
 {
     using System;
     using System.Diagnostics;
+    using System.Diagnostics.Metrics;
     using System.IO;
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
@@ -37,10 +38,13 @@
             //Same as recoverability policy in NServiceBusFactory
             if (errorContext.ImmediateProcessingFailures < 3)
             {
+                retryCounter.Add(1);
                 return ErrorHandleResult.RetryRequired;
             }
 
             await StoreFailedMessageDocument(errorContext, cancellationToken);
+
+            failedCounter.Add(1);
             return ErrorHandleResult.Handled;
         }
 
@@ -99,6 +103,9 @@
 #endif
             EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
         }
+
+        readonly Counter<long> retryCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "retry"), description: "Audit ingestion retries count");
+        readonly Counter<long> failedCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "failed"), description: "Audit ingestion failure count");
 
         static readonly ILog log = LogManager.GetLogger<AuditIngestionFaultPolicy>();
     }

@@ -2,7 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
+    using System.Diagnostics.Metrics;
     using System.Text.Json;
     using System.Threading.Tasks;
     using Infrastructure;
@@ -15,43 +15,19 @@
     using ServiceControl.Audit.Persistence.Monitoring;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
     using ServiceControl.Infrastructure;
-    using ServiceControl.Infrastructure.Metrics;
     using ServiceControl.SagaAudit;
 
-    class AuditPersister
+    class AuditPersister(IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
+        IEnrichImportedAuditMessages[] enrichers,
+        IMessageSession messageSession,
+        Lazy<IMessageDispatcher> messageDispatcher)
     {
-        public AuditPersister(IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
-            IEnrichImportedAuditMessages[] enrichers,
-            Counter ingestedAuditMeter, Counter ingestedSagaAuditMeter, Meter auditBulkInsertDurationMeter,
-            Meter sagaAuditBulkInsertDurationMeter, Meter bulkInsertCommitDurationMeter, IMessageSession messageSession,
-            Lazy<IMessageDispatcher> messageDispatcher)
-        {
-            this.unitOfWorkFactory = unitOfWorkFactory;
-            this.enrichers = enrichers;
-
-            this.ingestedAuditMeter = ingestedAuditMeter;
-            this.ingestedSagaAuditMeter = ingestedSagaAuditMeter;
-            this.auditBulkInsertDurationMeter = auditBulkInsertDurationMeter;
-            this.sagaAuditBulkInsertDurationMeter = sagaAuditBulkInsertDurationMeter;
-            this.bulkInsertCommitDurationMeter = bulkInsertCommitDurationMeter;
-            this.messageSession = messageSession;
-            this.messageDispatcher = messageDispatcher;
-        }
-
         public async Task<IReadOnlyList<MessageContext>> Persist(IReadOnlyList<MessageContext> contexts)
         {
-            var stopwatch = Stopwatch.StartNew();
-
-            if (Logger.IsDebugEnabled)
-            {
-                Logger.Debug($"Batch size {contexts.Count}");
-            }
-
             var storedContexts = new List<MessageContext>(contexts.Count);
             IAuditIngestionUnitOfWork unitOfWork = null;
             try
             {
-
                 // deliberately not using the using statement because we dispose async explicitly
                 unitOfWork = await unitOfWorkFactory.StartNew(contexts.Count);
                 var inserts = new List<Task>(contexts.Count);
@@ -84,31 +60,15 @@
                             RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
                         }
 
-                        if (Logger.IsDebugEnabled)
-                        {
-                            Logger.Debug("Adding audit message for bulk storage");
-                        }
+                        await unitOfWork.RecordProcessedMessage(processedMessage, context.Body);
 
-                        using (auditBulkInsertDurationMeter.Measure())
-                        {
-                            await unitOfWork.RecordProcessedMessage(processedMessage, context.Body);
-                        }
-
-                        ingestedAuditMeter.Mark();
+                        storedAuditsCounter.Add(1);
                     }
                     else if (context.Extensions.TryGet(out SagaSnapshot sagaSnapshot))
                     {
-                        if (Logger.IsDebugEnabled)
-                        {
-                            Logger.Debug("Adding SagaSnapshot message for bulk storage");
-                        }
+                        await unitOfWork.RecordSagaSnapshot(sagaSnapshot);
 
-                        using (sagaAuditBulkInsertDurationMeter.Measure())
-                        {
-                            await unitOfWork.RecordSagaSnapshot(sagaSnapshot);
-                        }
-
-                        ingestedSagaAuditMeter.Mark();
+                        storedSagasCounter.Add(1);
                     }
 
                     storedContexts.Add(context);
@@ -145,9 +105,9 @@
 
                     try
                     {
-                        // this can throw even though dispose is never supposed to throw
-                        using (bulkInsertCommitDurationMeter.Measure())
+                        using (new DurationRecorder(commitDuration))
                         {
+                            // this can throw even though dispose is never supposed to throw
                             await unitOfWork.DisposeAsync();
                         }
                     }
@@ -161,16 +121,6 @@
                         // making sure to rethrow so that all messages get marked as failed
                         throw;
                     }
-                    finally
-                    {
-                        stopwatch.Stop();
-                    }
-                }
-
-                stopwatch.Stop();
-                if (Logger.IsDebugEnabled)
-                {
-                    Logger.Debug($"Batch size {contexts.Count} took {stopwatch.ElapsedMilliseconds} ms");
                 }
             }
 
@@ -263,6 +213,7 @@
                 {
                     Logger.Debug($"Emitting {commandsToEmit.Count} commands and {messagesToEmit.Count} control messages.");
                 }
+
                 foreach (var commandToEmit in commandsToEmit)
                 {
                     await messageSession.Send(commandToEmit);
@@ -301,16 +252,10 @@
             }
         }
 
-        readonly Counter ingestedAuditMeter;
-        readonly Counter ingestedSagaAuditMeter;
-        readonly Meter auditBulkInsertDurationMeter;
-        readonly Meter sagaAuditBulkInsertDurationMeter;
-        readonly Meter bulkInsertCommitDurationMeter;
-        readonly IMessageSession messageSession;
-        readonly Lazy<IMessageDispatcher> messageDispatcher;
+        readonly Counter<long> storedAuditsCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "audits_count"), description: "Stored audit message count");
+        readonly Counter<long> storedSagasCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "sagas_count"), description: "Stored saga state count");
+        readonly Histogram<double> commitDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion", "commit_duration"), unit: "ms", description: "Storage unit of work commit duration");
 
-        readonly IEnrichImportedAuditMessages[] enrichers;
-        readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         static readonly ILog Logger = LogManager.GetLogger<AuditPersister>();
     }
 }

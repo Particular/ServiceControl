@@ -2,7 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
+    using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.Settings;
@@ -14,13 +14,11 @@
     using Persistence.UnitOfWork;
     using Recoverability;
     using SagaAudit;
-    using ServiceControl.Infrastructure.Metrics;
     using ServiceControl.Transports;
 
     public class AuditIngestor
     {
         public AuditIngestor(
-            Metrics metrics,
             Settings settings,
             IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
             EndpointInstanceMonitoring endpointInstanceMonitoring,
@@ -32,50 +30,28 @@
         {
             this.settings = settings;
             this.messageDispatcher = messageDispatcher;
-
-            var ingestedAuditMeter = metrics.GetCounter("Audit ingestion - ingested audit");
-            var ingestedSagaAuditMeter = metrics.GetCounter("Audit ingestion - ingested saga audit");
-            var auditBulkInsertDurationMeter = metrics.GetMeter("Audit ingestion - audit bulk insert duration", FrequencyInMilliseconds);
-            var sagaAuditBulkInsertDurationMeter = metrics.GetMeter("Audit ingestion - saga audit bulk insert duration", FrequencyInMilliseconds);
-            var bulkInsertCommitDurationMeter = metrics.GetMeter("Audit ingestion - bulk insert commit duration", FrequencyInMilliseconds);
-
-            var enrichers = new IEnrichImportedAuditMessages[]
-            {
-                new MessageTypeEnricher(),
-                new EnrichWithTrackingIds(),
-                new ProcessingStatisticsEnricher(),
-                new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring),
-                new DetectSuccessfulRetriesEnricher(),
-                new SagaRelationshipsEnricher()
-            }.Concat(auditEnrichers).ToArray();
+            var enrichers = new IEnrichImportedAuditMessages[] { new MessageTypeEnricher(), new EnrichWithTrackingIds(), new ProcessingStatisticsEnricher(), new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring), new DetectSuccessfulRetriesEnricher(), new SagaRelationshipsEnricher() }.Concat(auditEnrichers).ToArray();
 
             logQueueAddress = transportCustomization.ToTransportQualifiedQueueName(settings.AuditLogQueue);
 
-            auditPersister = new AuditPersister(unitOfWorkFactory, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession, messageDispatcher);
+            auditPersister = new AuditPersister(
+                unitOfWorkFactory,
+                enrichers,
+                messageSession,
+                messageDispatcher
+            );
         }
 
         public async Task Ingest(List<MessageContext> contexts)
         {
-            if (Log.IsDebugEnabled)
-            {
-                Log.Debug($"Ingesting {contexts.Count} message contexts");
-            }
-
             var stored = await auditPersister.Persist(contexts);
 
             try
             {
                 if (settings.ForwardAuditMessages)
                 {
-                    if (Log.IsDebugEnabled)
-                    {
-                        Log.Debug($"Forwarding {stored.Count} messages");
-                    }
                     await Forward(stored, logQueueAddress);
-                    if (Log.IsDebugEnabled)
-                    {
-                        Log.Debug("Forwarded messages");
-                    }
+                    forwardedMessagesCounter.Add(stored.Count);
                 }
 
                 foreach (var context in contexts)
@@ -85,10 +61,7 @@
             }
             catch (Exception e)
             {
-                if (Log.IsWarnEnabled)
-                {
-                    Log.Warn("Forwarding messages failed", e);
-                }
+                Log.Warn("Forwarding messages failed", e);
 
                 // making sure to rethrow so that all messages get marked as failed
                 throw;
@@ -158,8 +131,8 @@
         readonly Settings settings;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly string logQueueAddress;
+        readonly Counter<long> forwardedMessagesCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "forwarded_count"), description: "Audit ingestion forwarded message count");
 
-        static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
         static readonly ILog Log = LogManager.GetLogger<AuditIngestor>();
     }
 }

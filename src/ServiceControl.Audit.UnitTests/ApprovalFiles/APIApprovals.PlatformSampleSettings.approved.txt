@@ -12,6 +12,7 @@
   "ApiUrl": "http://localhost:8888/api",
   "Port": 8888,
   "PrintMetrics": false,
+  "OtlpEndpointUrl": null,
   "Hostname": "localhost",
   "VirtualDirectory": "",
   "TransportType": "LearningTransport",

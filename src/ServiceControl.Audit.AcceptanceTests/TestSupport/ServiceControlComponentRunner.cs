@@ -55,7 +55,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 {
                     var id = messageContext.NativeMessageId;
                     var headers = messageContext.Headers;
-
                     var log = NServiceBus.Logging.LogManager.GetLogger<ServiceControlComponentRunner>();
                     headers.TryGetValue(Headers.MessageId, out var originalMessageId);
                     log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");

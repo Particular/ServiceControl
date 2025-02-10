@@ -109,6 +109,7 @@
         public int Port { get; set; }
 
         public bool PrintMetrics => SettingsReader.Read<bool>(SettingsRootNamespace, "PrintMetrics");
+        public string OtlpEndpointUrl { get; set; } = SettingsReader.Read<string>(SettingsRootNamespace, nameof(OtlpEndpointUrl));
         public string Hostname { get; private set; }
         public string VirtualDirectory => SettingsReader.Read(SettingsRootNamespace, "VirtualDirectory", string.Empty);
 
