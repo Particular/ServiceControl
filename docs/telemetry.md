@@ -1,6 +1,6 @@
 # Telemetry
 
-Instances can configured to emit telemetry to aid when performance testing or troubleshooting performance related issues.
+Instances can be configured to emit telemetry to aid in performance testing or troubleshooting performance-related issues.
 
 ## Error
 
@@ -11,6 +11,8 @@ Setting `ServiceControl/PrintMetrics` to `true` will print metrics to the logs a
 Set `ServiceControl.Audit/OtlpEndpointUrl` to a valid [OTLP endpoint url](https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options). Only GRPC endpoints are supported at this stage.
 
 It's recommended to use a local [OTEL Collector](https://opentelemetry.io/docs/collector/) to collect, batch and export the metrics to the relevant observability backend being used.
+
+Example configuration: https://github.com/andreasohlund/Docker/tree/main/otel-monitoring
 
 The following metrics are available:
 
