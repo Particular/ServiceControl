@@ -30,36 +30,24 @@
             var connectionConfiguration = ConnectionConfiguration.Create(transportSettings.ConnectionString, string.Empty);
             var connectionStringDictionary = ConnectionConfiguration.ParseNServiceBusConnectionString(transportSettings.ConnectionString, new StringBuilder());
 
-            var disableManagementApiString = GetValue(connectionStringDictionary, "DisableManagementApi", "false");
-            if (!bool.TryParse(disableManagementApiString, out var disableManagementApi))
+            var ValidateDeliveryLimitsString = GetValue(connectionStringDictionary, "ValidateDeliveryLimit", "false");
+            if (!bool.TryParse(ValidateDeliveryLimitsString, out var validateDeliveryLimits))
             {
-                throw new ArgumentException("The value for 'DisableManagementApi' must be either 'true' or 'false'");
+                throw new ArgumentException("The value for 'ValidateDeliveryLimit' must be either 'true' or 'false'");
             }
 
             var transport = new RabbitMQTransport(RoutingTopology.Conventional(queueType), transportSettings.ConnectionString, enableDelayedDelivery: false);
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
-            transport.UseManagementApi = !disableManagementApi;
-
-            if (!transport.UseManagementApi)
-            {
-                rabbitMQTransport = transport;
-                return transport;
-            }
+            transport.ValidateDeliveryLimits = validateDeliveryLimits;
 
             var url = GetValue(connectionStringDictionary, "ManagementApiUrl", string.Empty);
-            var username = GetValue(connectionStringDictionary, "ManagementApiUserName", connectionConfiguration.UserName);
-            var password = GetValue(connectionStringDictionary, "ManagementApiPassword", connectionConfiguration.Password);
 
             if (!string.IsNullOrEmpty(url))
             {
-                if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
-                {
-                    transport.ManagementApiConfiguration = new ManagementApiConfiguration(url, username, password);
-                }
-                else
-                {
-                    transport.ManagementApiConfiguration = new ManagementApiConfiguration(url);
-                }
+                var username = GetValue(connectionStringDictionary, "ManagementApiUserName", connectionConfiguration.UserName);
+                var password = GetValue(connectionStringDictionary, "ManagementApiPassword", connectionConfiguration.Password);
+                transport.ManagementApiConfiguration = !string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password)
+                    ? new ManagementApiConfiguration(url, username, password) : new ManagementApiConfiguration(url);
             }
 
             rabbitMQTransport = transport;
