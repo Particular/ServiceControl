@@ -25,6 +25,8 @@ All containers are [created on each build and pushed](.github/workflows/push-con
 > [!NOTE]
 > `latest` is not tagged for the ghcr images so exact versions must always be used, eg: `docker pull ghcr.io/particular/servicecontrol:6.3.1`
 
+Use https://github.com/Particular/ServiceControl/pkgs/container/{name} eg https://github.com/Particular/ServiceControl/pkgs/container/servicecontrol to view available versions.
+
 It's also possible to [locally test containers built from PRs in GitHub Container Registry](/docs/testing.md#container-tests)
 
 ### Infrastructure setup
