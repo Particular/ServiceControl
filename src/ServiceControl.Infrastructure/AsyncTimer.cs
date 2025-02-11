@@ -40,9 +40,9 @@
 
                             //Otherwise execute immediately
                         }
-                        catch (OperationCanceledException)
+                        catch (OperationCanceledException) when (token.IsCancellationRequested)
                         {
-                            // no-op
+                            break;
                         }
                         catch (Exception ex)
                         {
@@ -50,7 +50,7 @@
                         }
                     }
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (token.IsCancellationRequested)
                 {
                     // no-op
                 }
@@ -64,7 +64,7 @@
                 return;
             }
 
-            tokenSource.Cancel();
+            await tokenSource.CancelAsync().ConfigureAwait(false);
             tokenSource.Dispose();
 
             if (task != null)
@@ -73,7 +73,7 @@
                 {
                     await task.ConfigureAwait(false);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (tokenSource.IsCancellationRequested)
                 {
                     //NOOP
                 }

@@ -54,9 +54,10 @@
 
                         failedOnStartup ??= false;
                     }
-                    catch (OperationCanceledException)
+                    catch (OperationCanceledException e) when (!shutdownTokenSource.IsCancellationRequested)
                     {
-                        //Do not Delay
+                        // Continue, as OCE is not from caller
+                        log.Info("Start cancelled, retrying...", e);
                         continue;
                     }
                     catch (Exception e)
@@ -81,9 +82,9 @@
                     {
                         await Task.Delay(timeToWaitBetweenStartupAttempts, shutdownTokenSource.Token).ConfigureAwait(false);
                     }
-                    catch (OperationCanceledException)
+                    catch (OperationCanceledException) when (shutdownTokenSource.IsCancellationRequested)
                     {
-                        //Ignore
+                        //Ignore, no need to log cancellation of delay
                     }
                 }
                 try

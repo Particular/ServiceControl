@@ -30,7 +30,7 @@
 
                     await Task.Delay(QueryDelayInterval, stoppingToken);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
                     // It's OK. We're shutting down
                 }

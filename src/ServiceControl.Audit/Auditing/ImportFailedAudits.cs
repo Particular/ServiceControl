@@ -48,9 +48,9 @@ namespace ServiceControl.Audit.Auditing
                                 Logger.Debug($"Successfully re-imported failed audit message {transportMessage.Id}.");
                             }
                         }
-                        catch (OperationCanceledException)
+                        catch (OperationCanceledException e) when (token.IsCancellationRequested)
                         {
-                            // no-op
+                            Logger.Info("Cancelled", e);
                         }
                         catch (Exception e)
                         {
