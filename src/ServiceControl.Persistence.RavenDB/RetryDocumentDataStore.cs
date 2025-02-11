@@ -113,7 +113,7 @@
                 }
             };
 
-            return new PatchCommandData(FailedMessageRetry.MakeDocumentId(messageId), null, patch: patchRequest, patchIfMissing: patchRequest);
+            return new PatchCommandData(FailedMessageRetry.MakeDocumentId(messageId), null, patch: new PatchRequest { Script = "" }, patchIfMissing: patchRequest);
         }
 
         public async Task GetBatchesForAll(DateTime cutoff, Func<string, DateTime, Task> callback)
