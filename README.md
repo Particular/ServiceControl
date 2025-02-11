@@ -22,6 +22,9 @@ A video demo showing how to set it up is available on the Particular YouTube cha
 
 All containers are [created on each build and pushed](.github/workflows/push-container-images.yml) to the [GitHub container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry) where the various instance type can be [accessed by their names](/.github/workflows/push-container-images.yml#L33) and run locally.
 
+> [!NOTE]
+> `latest` is not tagged for the ghcr images so exact versions must always be used, eg: `docker pull ghcr.io/particular/servicecontrol:6.3.1`
+
 It's also possible to [locally test containers built from PRs in GitHub Container Registry](/docs/testing.md#container-tests)
 
 ### Infrastructure setup
