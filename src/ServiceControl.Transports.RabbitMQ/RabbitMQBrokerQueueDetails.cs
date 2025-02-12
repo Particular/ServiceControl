@@ -2,18 +2,18 @@
 namespace ServiceControl.Transports.RabbitMQ;
 
 using System.Collections.Generic;
-using System.Text.Json;
 using ServiceControl.Transports.BrokerThroughput;
+using NServiceBus.Transport.RabbitMQ.ManagementApi;
 
-public class RabbitMQBrokerQueueDetails(JsonElement token) : IBrokerQueue
+class RabbitMQBrokerQueueDetails(Queue queue) : IBrokerQueue
 {
-    public string QueueName { get; } = token.GetProperty("name").GetString()!;
+    public string QueueName { get; } = queue.Name;
     public string SanitizedName => QueueName;
     public string Scope => VHost;
-    public string VHost { get; } = token.GetProperty("vhost").GetString()!;
+    public string VHost { get; } = queue.Vhost;
     public List<string> EndpointIndicators { get; } = [];
-    long? AckedMessages { get; set; } = FromToken(token);
-    long Baseline { get; set; } = FromToken(token) ?? 0;
+    long? AckedMessages { get; set; } = queue.MessageStats?.Ack;
+    long Baseline { get; set; } = queue.MessageStats?.Ack ?? 0;
 
     public long CalculateThroughputFrom(RabbitMQBrokerQueueDetails newReading)
     {
@@ -32,9 +32,4 @@ public class RabbitMQBrokerQueueDetails(JsonElement token) : IBrokerQueue
 
         return newlyAckedMessages;
     }
-
-    static long? FromToken(JsonElement jsonElement) =>
-        jsonElement.TryGetProperty("message_stats", out var stats) && stats.TryGetProperty("ack", out var val)
-            ? val.GetInt64()
-            : null;
 }
