@@ -27,6 +27,11 @@
     <Artifact Include="$(OutputPath)" DestinationFolder="$(PowerShellModuleArtifactsPath)InstallerEngine" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Config.Tests" />
+    <InternalsVisibleTo Include="ServiceControlInstaller.Engine.UnitTests" />
+  </ItemGroup>
+
   <Target Name="EmbedInstallerResources" AfterTargets="ResolveProjectReferences">
     <ItemGroup>
       <Zip Include="..\..\zip\*.zip" />
@@ -42,5 +47,6 @@
       <TransitiveFrameworkReference Remove="@(TransitiveFrameworkReference)" Condition="'%(TransitiveFrameworkReference.Identity)' == 'Microsoft.WindowsDesktop.App.WindowsForms'" />
     </ItemGroup>
   </Target>
+
 
 </Project>

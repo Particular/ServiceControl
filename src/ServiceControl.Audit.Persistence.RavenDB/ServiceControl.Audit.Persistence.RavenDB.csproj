@@ -32,7 +32,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Audit.AcceptanceTests" />
     <InternalsVisibleTo Include="ServiceControl.Audit.AcceptanceTests.RavenDB" />
+    <InternalsVisibleTo Include="ServiceControl.Audit.Persistence.Tests" />
+    <InternalsVisibleTo Include="ServiceControl.Audit.Persistence.Tests.RavenDB" />
+    <InternalsVisibleTo Include="ServiceControl.Audit.UnitTests" />
   </ItemGroup>
 
 </Project>
