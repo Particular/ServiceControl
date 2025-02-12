@@ -37,10 +37,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="ServiceControl.Config.Tests" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ApplicationDefinition Remove="App.xaml" />
     <Page Include="App.xaml" />
   </ItemGroup>
@@ -58,6 +54,10 @@
   <ItemGroup>
     <None Remove="Resources\**\*.*" />
     <Resource Include="Resources\**\*.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Config.Tests" />
   </ItemGroup>
 
 </Project>

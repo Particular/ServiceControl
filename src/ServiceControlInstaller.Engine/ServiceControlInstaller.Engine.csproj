@@ -27,11 +27,6 @@
     <Artifact Include="$(OutputPath)" DestinationFolder="$(PowerShellModuleArtifactsPath)InstallerEngine" />
   </ItemGroup>
 
-  <ItemGroup>
-    <InternalsVisibleTo Include="ServiceControl.Config.Tests" />
-    <InternalsVisibleTo Include="ServiceControlInstaller.Engine.UnitTests" />
-  </ItemGroup>
-
   <Target Name="EmbedInstallerResources" AfterTargets="ResolveProjectReferences">
     <ItemGroup>
       <Zip Include="..\..\zip\*.zip" />
@@ -48,5 +43,9 @@
     </ItemGroup>
   </Target>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Config.Tests" />
+    <InternalsVisibleTo Include="ServiceControlInstaller.Engine.UnitTests" />
+  </ItemGroup>
 
 </Project>
