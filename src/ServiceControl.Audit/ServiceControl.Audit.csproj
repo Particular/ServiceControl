@@ -57,7 +57,6 @@
     <InternalsVisibleTo Include="ServiceControl.Audit.Persistence.Tests" />
     <InternalsVisibleTo Include="ServiceControl.Audit.Persistence.Tests.RavenDB" />
     <InternalsVisibleTo Include="ServiceControl.Audit.UnitTests" />
-    <InternalsVisibleTo Include="ServiceControl.Loadtests.Reporter" />
     <InternalsVisibleTo Include="ServiceControl.MultiInstance.AcceptanceTests" />
   </ItemGroup>
 

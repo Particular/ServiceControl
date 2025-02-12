@@ -52,12 +52,10 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="ServiceControl.AcceptanceTesting" />
-    <InternalsVisibleTo Include="ServiceControl.AcceptanceTests" />
     <InternalsVisibleTo Include="ServiceControl.AcceptanceTests.RavenDB" />
     <InternalsVisibleTo Include="ServiceControl.MultiInstance.AcceptanceTests" />
     <InternalsVisibleTo Include="ServiceControl.Persistence.RavenDb" />
     <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.RavenDB" />
-    <InternalsVisibleTo Include="ServiceControl.PersistenceTests" />
     <InternalsVisibleTo Include="ServiceControl.UnitTests" />
   </ItemGroup>
 

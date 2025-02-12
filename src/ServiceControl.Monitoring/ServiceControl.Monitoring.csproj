@@ -38,7 +38,6 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="ServiceControl.Monitoring.AcceptanceTests" />
-    <InternalsVisibleTo Include="ServiceControl.Monitoring.SmokeTests" />
     <InternalsVisibleTo Include="ServiceControl.Monitoring.UnitTests" />
   </ItemGroup>
 
