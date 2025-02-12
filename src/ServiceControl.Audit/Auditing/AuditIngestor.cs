@@ -131,7 +131,7 @@
         readonly Settings settings;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly string logQueueAddress;
-        readonly Counter<long> forwardedMessagesCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "forwarded_count"), description: "Audit ingestion forwarded message count");
+        readonly Counter<long> forwardedMessagesCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "forwarded"), description: "Audit ingestion forwarded message count");
 
         static readonly ILog Log = LogManager.GetLogger<AuditIngestor>();
     }

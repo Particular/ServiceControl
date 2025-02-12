@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics.Metrics;
     using System.Text.Json;
     using System.Threading.Tasks;
     using Infrastructure;
@@ -61,14 +60,10 @@
                         }
 
                         await unitOfWork.RecordProcessedMessage(processedMessage, context.Body);
-
-                        storedAuditsCounter.Add(1);
                     }
                     else if (context.Extensions.TryGet(out SagaSnapshot sagaSnapshot))
                     {
                         await unitOfWork.RecordSagaSnapshot(sagaSnapshot);
-
-                        storedSagasCounter.Add(1);
                     }
 
                     storedContexts.Add(context);
@@ -105,11 +100,8 @@
 
                     try
                     {
-                        using (new DurationRecorder(commitDuration))
-                        {
-                            // this can throw even though dispose is never supposed to throw
-                            await unitOfWork.DisposeAsync();
-                        }
+                        // this can throw even though dispose is never supposed to throw
+                        await unitOfWork.DisposeAsync();
                     }
                     catch (Exception e)
                     {
@@ -251,10 +243,6 @@
                 context.GetTaskCompletionSource().TrySetException(e);
             }
         }
-
-        readonly Counter<long> storedAuditsCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "audits_count"), description: "Stored audit message count");
-        readonly Counter<long> storedSagasCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "sagas_count"), description: "Stored saga state count");
-        readonly Histogram<double> commitDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion", "commit_duration"), unit: "ms", description: "Storage unit of work commit duration");
 
         static readonly ILog Logger = LogManager.GetLogger<AuditPersister>();
     }

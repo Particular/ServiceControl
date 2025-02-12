@@ -18,24 +18,18 @@ The following metrics are available:
 
 ### Ingestion
 
-- `sc.audit.ingestion.count` - Successful ingested audit message count
+- `sc.audit.ingestion.success` - Successful ingested audit message count
 - `sc.audit.ingestion.retry` - Retried audit message count
 - `sc.audit.ingestion.failed` - Failed audit message count
 - `sc.audit.ingestion.duration` - Audit message processing duration (in milliseconds)
 - `sc.audit.ingestion.message_size` - Audit message body size (in kilobytes)
-- `sc.audit.ingestion.forwarded_count` - Forwarded audit messages count
+- `sc.audit.ingestion.forwarded` - Forwarded audit messages count
 
 ### Batching
 
 - `sc.audit.ingestion.batch_duration` - Batch processing duration (in milliseconds)
 - `sc.audit.ingestion.batch_size` - Batch size (number of messages)
 - `sc.audit.ingestion.consecutive_batch_failures` - Consecutive batch failures
-
-### Storage
-
-- `sc.audit.ingestion.audits_count` - Stored audit message count
-- `sc.audit.ingestion.sagas_count` - Stored sagas message count
-- `sc.audit.ingestion.commit_duration` - Storage unit of work commit duration (in milliseconds)
 
 ## Monitoring
 
