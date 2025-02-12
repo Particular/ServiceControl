@@ -44,4 +44,12 @@
     <Artifact Condition="'$(CI)' != 'true' And '$(WindowsSelfContained)' != 'true'" Include="$(OutputPath)\RavenDBServer" DestinationFolder="$(ArtifactsPath)RavenDBServer" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.AcceptanceTests.RavenDB" />
+    <InternalsVisibleTo Include="ServiceControl.MultiInstance.AcceptanceTests" />
+    <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.RavenDB" />
+    <InternalsVisibleTo Include="ServiceControl.PersistenceTests" />
+    <InternalsVisibleTo Include="ServiceControl.UnitTests" />
+  </ItemGroup>
+
 </Project>

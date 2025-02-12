@@ -36,4 +36,10 @@
     <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Monitoring.dll.config;nsb*.txt" DirExclude=".logs" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Monitoring" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Monitoring.AcceptanceTests" />
+    <InternalsVisibleTo Include="ServiceControl.Monitoring.SmokeTests" />
+    <InternalsVisibleTo Include="ServiceControl.Monitoring.UnitTests" />
+  </ItemGroup>
+
 </Project>
