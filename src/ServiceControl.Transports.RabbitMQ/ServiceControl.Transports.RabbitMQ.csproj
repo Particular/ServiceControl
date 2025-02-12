@@ -25,4 +25,8 @@
     <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(Identity)\Transports\RabbitMQ')" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Transports.RabbitMQQuorumDirectRouting.Tests" Key="$(NServiceBusKey)"/>
+  </ItemGroup>
+
 </Project>
