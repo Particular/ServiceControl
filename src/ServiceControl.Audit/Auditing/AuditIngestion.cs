@@ -210,15 +210,15 @@
                     try
                     {
                         // as long as there is something to read this will fetch up to MaximumConcurrency items
-                        while (channel.Reader.TryRead(out var context))
-                        {
-                            contexts.Add(context);
-                        }
-
-                        auditBatchSize.Record(contexts.Count);
-
                         using (new DurationRecorder(auditBatchDuration))
                         {
+                            while (channel.Reader.TryRead(out var context))
+                            {
+                                contexts.Add(context);
+                            }
+
+                            auditBatchSize.Record(contexts.Count);
+                            
                             await auditIngestor.Ingest(contexts);
                         }
 
