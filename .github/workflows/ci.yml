@@ -8,6 +8,9 @@ on:
   workflow_dispatch:
 env:
   DOTNET_NOLOGO: true
+defaults:
+  run:
+    shell: pwsh
 jobs:
   build:
     name: ${{ matrix.os-name }}-${{ matrix.test-category }}
@@ -29,7 +32,6 @@ jobs:
       - name: Check for secrets
         env:
           SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
-        shell: pwsh
         run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
       - name: Checkout
         uses: actions/checkout@v4.2.2
@@ -40,12 +42,10 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - name: Download RavenDB Server
-        shell: pwsh
         run: ./tools/download-ravendb-server.ps1
       - name: Build
         run: dotnet build src --configuration Release -graph
       - name: Zip PowerShell module
-        shell: pwsh
         run: |
           New-Item assets\PowerShellModules -ItemType Directory
           Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
@@ -61,7 +61,6 @@ jobs:
           retention-days: 1
       - name: Smoke test PowerShell module import
         if: matrix.os-name == 'Windows'
-        shell: pwsh
         run: Import-Module ./deploy/PowerShellModules/Particular.ServiceControl.Management
       - name: Azure login
         uses: azure/login@v2.2.0
@@ -77,11 +76,11 @@ jobs:
       - name: Setup PostgreSQL
         uses: Particular/setup-postgres-action@v1.0.2
         if: matrix.test-category == 'PostgreSQL'
-        with:          
+        with:
           connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString
           tag: ServiceControl
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          registry-password: ${{ secrets.DOCKERHUB_TOKEN }}  
+          registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup RabbitMQ
         uses: Particular/setup-rabbitmq-action@v1.7.1
         if: matrix.test-category == 'RabbitMQ'
@@ -106,7 +105,6 @@ jobs:
           tag: ServiceControl
       - name: Setup SQS environment variables
         if: matrix.test-category == 'SQS'
-        shell: pwsh
         run: |
           echo "AWS_REGION=${{ secrets.AWS_REGION }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
           echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
