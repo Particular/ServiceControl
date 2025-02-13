@@ -1,5 +1,8 @@
 on:
   workflow_call:
+defaults:
+  run:
+    shell: pwsh
 jobs:
   build:
     if: ${{ github.actor != 'dependabot[bot]' }}
@@ -8,7 +11,6 @@ jobs:
       - name: Check for secrets
         env:
           SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
-        shell: pwsh
         run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
       - name: Checkout
         uses: actions/checkout@v4.2.0
@@ -19,7 +21,6 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - name: Download RavenDB Server
-        shell: pwsh
         run: ./tools/download-ravendb-server.ps1
       - name: Build
         run: dotnet build src --configuration Release -graph --property:WindowsSelfContained=true
@@ -47,7 +48,6 @@ jobs:
           assets\Particular.ServiceControl.exe
       - name: Rename ServiceControl Management EXE
         run: Rename-Item -Path assets\Particular.ServiceControl.exe -NewName "Particular.ServiceControl-${{ env.MinVerVersion }}.exe"
-        shell: pwsh
       - name: Sign PowerShell module
         run: |
           AzureSignTool sign `
@@ -80,7 +80,6 @@ jobs:
           Remove-Item deploy\Particular.ServiceControl* -recurse
           dotnet clean src --configuration Release --property:WindowsSelfContained=true
           dotnet build src\Particular.PlatformSample.ServiceControl\Particular.PlatformSample.ServiceControl.csproj --configuration Release -graph
-        shell: pwsh
       - name: Sign NuGet packages
         uses: Particular/sign-nuget-packages-action@v1.0.0
         with:
@@ -95,7 +94,6 @@ jobs:
           path: nugets/*
           retention-days: 1
       - name : Verify release artifact counts
-        shell: pwsh
         run: |
           $assetsCount = (Get-ChildItem -Recurse -File assets).Count
           $nugetsCount =  (Get-ChildItem -Recurse -File nugets).Count

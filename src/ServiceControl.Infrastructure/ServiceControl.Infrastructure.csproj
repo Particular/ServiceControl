@@ -9,9 +9,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="NLog.Extensions.Logging" />
     <PackageReference Include="NServiceBus" />
     <PackageReference Include="NServiceBus.Extensions.Logging" />
-    <PackageReference Include="NLog.Extensions.Logging" />
   </ItemGroup>
 
 </Project>

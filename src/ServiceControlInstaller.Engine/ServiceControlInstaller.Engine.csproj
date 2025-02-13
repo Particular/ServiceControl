@@ -43,4 +43,9 @@
     </ItemGroup>
   </Target>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Config.Tests" />
+    <InternalsVisibleTo Include="ServiceControlInstaller.Engine.UnitTests" />
+  </ItemGroup>
+
 </Project>
