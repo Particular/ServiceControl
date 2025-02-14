@@ -9,6 +9,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
+    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using ServiceControl.Audit.Persistence;
@@ -35,16 +36,19 @@
 
         public async Task<ErrorHandleResult> OnError(ErrorContext errorContext, CancellationToken cancellationToken = default)
         {
+            var tags = Telemetry.GetIngestedMessageTags(errorContext.Message.Headers);
+
             //Same as recoverability policy in NServiceBusFactory
             if (errorContext.ImmediateProcessingFailures < 3)
             {
-                retryCounter.Add(1);
+                retryCounter.Add(1, tags);
                 return ErrorHandleResult.RetryRequired;
             }
 
             await StoreFailedMessageDocument(errorContext, cancellationToken);
 
-            failedCounter.Add(1);
+            failedCounter.Add(1, tags);
+
             return ErrorHandleResult.Handled;
         }
 

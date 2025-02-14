@@ -1,6 +1,9 @@
 namespace ServiceControl.Audit;
 
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using NServiceBus;
 using OpenTelemetry.Metrics;
 
 static class Telemetry
@@ -13,5 +16,17 @@ static class Telemetry
     public static void AddAuditIngestionMeters(this MeterProviderBuilder builder)
     {
         builder.AddMeter(MeterName);
+    }
+
+    public static TagList GetIngestedMessageTags(IDictionary<string, string> headers)
+    {
+        var tags = new TagList();
+
+        if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageType))
+        {
+            tags.Add("nservicebus.message_type", messageType);
+        }
+
+        return tags;
     }
 }
