@@ -260,7 +260,7 @@
         {
             try
             {
-                await watchdog.Stop();
+                await watchdog.Stop(cancellationToken);
                 channel.Writer.Complete();
                 await base.StopAsync(cancellationToken);
             }

@@ -17,9 +17,14 @@
         ILog log;
         string taskName;
 
-        public Watchdog(string taskName, Func<CancellationToken, Task> ensureStarted,
-            Func<CancellationToken, Task> ensureStopped, Action<string> reportFailure, Action clearFailure,
-            TimeSpan timeToWaitBetweenStartupAttempts, ILog log)
+        public Watchdog(
+            string taskName,
+            Func<CancellationToken, Task> ensureStarted,
+            Func<CancellationToken, Task> ensureStopped, Action<string> reportFailure,
+            Action clearFailure,
+            TimeSpan timeToWaitBetweenStartupAttempts,
+            ILog log
+        )
         {
             this.taskName = taskName;
             this.ensureStopped = ensureStopped;
@@ -87,25 +92,27 @@
                         //Ignore, no need to log cancellation of delay
                     }
                 }
-                try
-                {
-                    log.Debug($"Stopping watching process {taskName}");
-                    //We don't pass the shutdown token here because it has already been cancelled and we want to ensure we stop the ingestion.
-                    await ensureStopped(CancellationToken.None).ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    log.Error($"Error while trying to stop {taskName}.", e);
-                    reportFailure(e.Message);
-                }
             });
             return Task.CompletedTask;
         }
 
-        public Task Stop()
+        public async Task Stop(CancellationToken cancellationToken)
         {
-            shutdownTokenSource.Cancel();
-            return watchdog;
+            try
+            {
+                log.Debug($"Stopping watching process {taskName}");
+                await shutdownTokenSource.CancelAsync().ConfigureAwait(false);
+                await watchdog.ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                log.Error($"Error while trying to stop {taskName}.", e);
+                throw;
+            }
+            finally
+            {
+                await ensureStopped(cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }
