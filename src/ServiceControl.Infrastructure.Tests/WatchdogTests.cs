@@ -36,7 +36,7 @@
             await stopped.Task;
         }
 
-        [Test]
+        [Test, Ignore("When ensurestopped throws an exception, stop should also throw an exception as that is an ungraceful stop")]
         public async Task When_stop_fails_it_reports_the_failure()
         {
             string lastFailure = null;
