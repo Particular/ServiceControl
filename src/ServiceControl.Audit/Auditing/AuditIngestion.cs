@@ -78,57 +78,22 @@
 
                 if (!unitOfWorkFactory.CanIngestMore())
                 {
-                    if (queueIngestor != null)
-                    {
-                        var stoppable = queueIngestor;
-                        queueIngestor = null;
-                        logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down commencing");
-                        await stoppable.StopReceive(cancellationToken);
-                        logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
-                    }
-
+                    await StopAndTeardownInfrastructure(cancellationToken);
                     return;
                 }
 
-                if (queueIngestor != null)
-                {
-                    logger.Debug("Ensure started. Already started, skipping start up");
-                    return; //Already started
-                }
-
-                logger.Info("Ensure started. Infrastructure starting");
-
-                transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
-                    inputEndpoint,
-                    transportSettings,
-                    OnMessage,
-                    errorHandlingPolicy.OnError,
-                    OnCriticalError,
-                    TransportTransactionMode.ReceiveOnly);
-
-                queueIngestor = transportInfrastructure.Receivers[inputEndpoint];
-
-                await auditIngestor.VerifyCanReachForwardingAddress();
-
-                await queueIngestor.StartReceive(cancellationToken);
-
-                logger.Info("Ensure started. Infrastructure started");
+                await SetUpAndStartInfrastructure(cancellationToken);
             }
-            catch
+            catch (Exception e)
             {
-                if (queueIngestor != null)
+                try
                 {
-                    try
-                    {
-                        await queueIngestor.StopReceive(cancellationToken);
-                    }
-                    catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
-                    {
-                        logger.Info("StopReceive cancelled");
-                    }
+                    await StopAndTeardownInfrastructure(cancellationToken);
                 }
-
-                queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 185
+                catch (Exception teardownException)
+                {
+                    throw new AggregateException(e, teardownException);
+                }
 
                 throw;
             }
@@ -137,6 +102,73 @@
                 logger.Debug("Ensure started. Start/stop semaphore releasing");
                 startStopSemaphore.Release();
                 logger.Debug("Ensure started. Start/stop semaphore released");
+            }
+        }
+
+        async Task SetUpAndStartInfrastructure(CancellationToken cancellationToken)
+        {
+            if (queueIngestor != null)
+            {
+                logger.Debug("Infrastructure already Started");
+                return;
+            }
+
+            try
+            {
+                logger.Info("Starting infrastructure");
+                transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
+                    inputEndpoint,
+                    transportSettings,
+                    OnMessage,
+                    errorHandlingPolicy.OnError,
+                    OnCriticalError,
+                    TransportTransactionMode.ReceiveOnly
+                );
+
+                queueIngestor = transportInfrastructure.Receivers[inputEndpoint];
+
+                await auditIngestor.VerifyCanReachForwardingAddress();
+                await queueIngestor.StartReceive(cancellationToken);
+
+                logger.Info("Started infrastructure");
+            }
+            catch (Exception e)
+            {
+                logger.Error("Failed to start infrastructure", e);
+                throw;
+            }
+        }
+
+        async Task StopAndTeardownInfrastructure(CancellationToken cancellationToken)
+        {
+            if (transportInfrastructure == null)
+            {
+                logger.Debug("Infrastructure already Stopped");
+                return;
+            }
+
+            try
+            {
+                logger.Info("Stopping infrastructure");
+                try
+                {
+                    if (queueIngestor != null)
+                    {
+                        await queueIngestor.StopReceive(cancellationToken);
+                    }
+                }
+                finally
+                {
+                    await transportInfrastructure.Shutdown(cancellationToken);
+                }
+
+                queueIngestor = null;
+                logger.Info("Stopped infrastructure");
+            }
+            catch (Exception e)
+            {
+                logger.Error("Failed to stop infrastructure", e);
+                throw;
             }
         }
 

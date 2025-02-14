@@ -12,7 +12,7 @@
         Action<string> reportFailure;
         Action clearFailure;
         Task watchdog;
-        CancellationTokenSource shutdownTokenSource = new CancellationTokenSource();
+        CancellationTokenSource shutdownTokenSource = new();
         TimeSpan timeToWaitBetweenStartupAttempts;
         ILog log;
         string taskName;
@@ -47,41 +47,37 @@
             {
                 log.Debug($"Starting watching {taskName}");
 
-                bool? failedOnStartup = null;
+                bool startup = true;
 
                 while (!shutdownTokenSource.IsCancellationRequested)
                 {
                     try
                     {
-                        log.Debug($"Ensuring {taskName} is running");
-                        await ensureStarted(shutdownTokenSource.Token).ConfigureAwait(false);
-                        clearFailure();
+                        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(shutdownTokenSource.Token);
+                        cancellationTokenSource.CancelAfter(15000);
 
-                        failedOnStartup ??= false;
+                        log.Debug($"Ensuring {taskName} is running");
+                        await ensureStarted(cancellationTokenSource.Token).ConfigureAwait(false);
+                        clearFailure();
+                        startup = false;
                     }
-                    catch (OperationCanceledException e) when (!shutdownTokenSource.IsCancellationRequested)
+                    catch (OperationCanceledException e) when (shutdownTokenSource.IsCancellationRequested)
                     {
-                        // Continue, as OCE is not from caller
-                        log.Info("Start cancelled, retrying...", e);
-                        continue;
+                        log.Debug("Cancelled", e);
+                        return;
                     }
                     catch (Exception e)
                     {
                         reportFailure(e.Message);
 
-                        if (failedOnStartup == null)
+                        if (startup)
                         {
-                            failedOnStartup = true;
-
                             log.Error($"Error during initial startup attempt for {taskName}.", e);
-
-                            //there was an error during startup hence we want to shut down the instance
                             onFailedOnStartup();
+                            return;
                         }
-                        else
-                        {
-                            log.Error($"Error while trying to start {taskName}. Starting will be retried in {timeToWaitBetweenStartupAttempts}.", e);
-                        }
+
+                        log.Error($"Error while trying to start {taskName}. Starting will be retried in {timeToWaitBetweenStartupAttempts}.", e);
                     }
                     try
                     {
