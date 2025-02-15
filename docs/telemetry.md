@@ -18,18 +18,28 @@ The following metrics are available:
 
 ### Ingestion
 
-- `sc.audit.ingestion.success` - Successful ingested audit message count
-- `sc.audit.ingestion.retry` - Retried audit message count
-- `sc.audit.ingestion.failed` - Failed audit message count
-- `sc.audit.ingestion.duration` - Audit message processing duration (in milliseconds)
-- `sc.audit.ingestion.message_size` - Audit message body size (in kilobytes)
-- `sc.audit.ingestion.forwarded` - Forwarded audit messages count
+#### Success or failure
+
+- `sc.audit.ingestion.success` - Successful ingested audit message count (Counter)
+- `sc.audit.ingestion.retry` - Retried audit message count (Counter)
+- `sc.audit.ingestion.failed` - Failed audit message count (Counter)
+
+The above metrics also have the following attributes attached:
+
+- `messaging.message.body.size` - The size of the message body in bytes
+- `messaging.message.type` - The logical message type of the message if present
+
+#### Details
+
+- `sc.audit.ingestion.duration` - Audit message processing duration in milliseconds (Histogram)
+- `sc.audit.ingestion.forwarded` - Count of the number of forwarded audit messages if forwarding is enabled (Counter)
 
 ### Batching
 
-- `sc.audit.ingestion.batch_duration` - Batch processing duration (in milliseconds)
-- `sc.audit.ingestion.batch_size` - Batch size (number of messages)
-- `sc.audit.ingestion.consecutive_batch_failures` - Consecutive batch failures
+- `sc.audit.ingestion.batch_duration` - Batch processing duration in milliseconds (Histogram)
+  - Attributes:
+    - `ingestion.batch_size`
+- `sc.audit.ingestion.consecutive_batch_failures` - Consecutive batch failures (Counter)
 
 ## Monitoring
 

@@ -174,7 +174,8 @@
 
         async Task OnMessage(MessageContext messageContext, CancellationToken cancellationToken)
         {
-            using (new DurationRecorder(ingestionDuration))
+            var tags = Telemetry.GetIngestedMessageTags(messageContext.Headers, messageContext.Body);
+            using (new DurationRecorder(ingestionDuration, tags))
             {
                 if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
                 {
@@ -187,8 +188,7 @@
                 await channel.Writer.WriteAsync(messageContext, cancellationToken);
                 await taskCompletionSource.Task;
 
-                successfulMessagesCounter.Add(1, Telemetry.GetIngestedMessageTags(messageContext.Headers));
-                messageSize.Record(messageContext.Body.Length / 1024.0);
+                successfulMessagesCounter.Add(1, tags);
             }
         }
 
@@ -210,14 +210,14 @@
                     try
                     {
                         // as long as there is something to read this will fetch up to MaximumConcurrency items
-                        using (new DurationRecorder(auditBatchDuration))
+                        using (var recorder = new DurationRecorder(batchDuration))
                         {
                             while (channel.Reader.TryRead(out var context))
                             {
                                 contexts.Add(context);
                             }
 
-                            auditBatchSize.Record(contexts.Count);
+                            recorder.Tags.Add("ingestion.batch_size", contexts.Count);
 
                             await auditIngestor.Ingest(contexts);
                         }
@@ -293,9 +293,7 @@
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Settings settings;
         readonly Channel<MessageContext> channel;
-        readonly Histogram<long> auditBatchSize = Telemetry.Meter.CreateHistogram<long>(Telemetry.CreateInstrumentName("ingestion", "batch_size"), description: "Audit ingestion average batch size");
-        readonly Histogram<double> auditBatchDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion", "batch_duration"), unit: "ms", "Average audit message batch processing duration");
-        readonly Histogram<double> messageSize = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion", "message_size"), unit: "kilobytes", description: "Average audit message body size");
+        readonly Histogram<double> batchDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion", "batch_duration"), unit: "ms", "Average audit message batch processing duration");
         readonly Counter<long> successfulMessagesCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "success"), description: "Successful ingested audit message count");
         readonly Histogram<long> consecutiveBatchFailuresCounter = Telemetry.Meter.CreateHistogram<long>(Telemetry.CreateInstrumentName("ingestion", "consecutive_batch_failures"), unit: "count", description: "Consecutive audit ingestion batch failure");
         readonly Histogram<double> ingestionDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion", "duration"), unit: "ms", description: "Average incoming audit message processing duration");

@@ -9,11 +9,10 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
-    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using ServiceControl.Audit.Persistence;
-    using ServiceControl.Configuration;
+    using Persistence;
+    using Configuration;
     using ServiceControl.Infrastructure;
 
     class AuditIngestionFaultPolicy
@@ -36,7 +35,7 @@
 
         public async Task<ErrorHandleResult> OnError(ErrorContext errorContext, CancellationToken cancellationToken = default)
         {
-            var tags = Telemetry.GetIngestedMessageTags(errorContext.Message.Headers);
+            var tags = Telemetry.GetIngestedMessageTags(errorContext.Message.Headers, errorContext.Message.Body);
 
             //Same as recoverability policy in NServiceBusFactory
             if (errorContext.ImmediateProcessingFailures < 3)
