@@ -130,7 +130,7 @@
                 await auditIngestor.VerifyCanReachForwardingAddress();
                 await queueIngestor.StartReceive(cancellationToken);
 
-                logger.Info("Started infrastructure");
+                logger.Info(LogMessages.StartedInfrastructure);
             }
             catch (Exception e)
             {
@@ -163,7 +163,7 @@
                 }
 
                 queueIngestor = null;
-                logger.Info("Stopped infrastructure");
+                logger.Info(LogMessages.StoppedInfrastructure);
             }
             catch (Exception e)
             {
@@ -335,5 +335,11 @@
         readonly IHostApplicationLifetime applicationLifetime;
 
         static readonly ILog logger = LogManager.GetLogger<AuditIngestion>();
+
+        internal static class LogMessages
+        {
+            internal const string StartedInfrastructure = "Started infrastructure";
+            internal const string StoppedInfrastructure = "Stopped infrastructure";
+        }
     }
 }
