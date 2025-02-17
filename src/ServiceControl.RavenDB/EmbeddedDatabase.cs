@@ -63,7 +63,7 @@ namespace ServiceControl.RavenDB
 
             LoggingSource.Instance.EnableConsoleLogging();
 
-            var gracefulShutdownTimeout = TimeSpan.Parse(Environment.GetEnvironmentVariable("ShutdownTimeout"));
+            var gracefulShutdownTimeout = TimeSpan.Parse(Environment.GetEnvironmentVariable("ShutdownTimeout")!);
             // Must be less to ensure teardown of child process completes
             gracefulShutdownTimeout -= TimeSpan.FromSeconds(5);
 
