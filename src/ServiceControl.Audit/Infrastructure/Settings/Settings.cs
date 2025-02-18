@@ -49,6 +49,7 @@
             ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
             EnableFullTextSearchOnBodies = SettingsReader.Read(SettingsRootNamespace, "EnableFullTextSearchOnBodies", true);
+            ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
 
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
@@ -151,6 +152,11 @@
         public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
 
         public bool EnableFullTextSearchOnBodies { get; set; }
+
+        // Windows services allow a maximum of 125 seconds when stopping a service.
+        // When shutting down or restarting the OS we have no control over the
+        // shutdown timeout
+        public TimeSpan ShutdownTimeout { get; set; } = TimeSpan.FromMinutes(2);
 
         public TransportSettings ToTransportSettings()
         {
