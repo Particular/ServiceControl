@@ -19,6 +19,7 @@ using NServiceBus.Logging;
 using NServiceBus.Transport;
 using Persistence;
 using Transports;
+using ServiceControl.Infrastructure;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 
