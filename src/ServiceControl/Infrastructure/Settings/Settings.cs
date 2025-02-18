@@ -181,10 +181,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool DisableHealthChecks { get; set; }
 
-        // Windows services allow a maximum of 125 seconds when stopping a service.
-        // When shutting down or restarting the OS we have no control over the
-        // shutdown timeout
-        public TimeSpan ShutdownTimeout { get; set; } = TimeSpan.FromMinutes(2);
+        // The default value is set to the maximum allowed time by the most restrictive
+        // hosting platform, which Docker Linux containers. 
+        public TimeSpan ShutdownTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
         public string GetConnectionString()
         {
