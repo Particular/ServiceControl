@@ -24,36 +24,41 @@
         protected override AzureServiceBusTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
             var connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
-            TopologyOptions topologyOptions;
+            TopicTopology selectedTopology;
 
             var serviceBusRootNamespace = new SettingsRootNamespace("ServiceControl.Transport.ASBS");
             if (SettingsReader.TryRead<string>(serviceBusRootNamespace, "Topology", out var topologyJson))
             {
-                topologyOptions = JsonSerializer.Deserialize<TopologyOptions>(topologyJson);
+                //Load topology from json
+                selectedTopology = TopicTopology.FromOptions(JsonSerializer.Deserialize<TopologyOptions>(topologyJson));
             }
-            else
+            else if (connectionSettings.TopicName != null)
             {
-                var options = new MigrationTopologyOptions
+                //Bundle name provided -> use migration topology
+                selectedTopology = TopicTopology.FromOptions(new MigrationTopologyOptions
                 {
                     TopicToPublishTo = connectionSettings.TopicName ?? DefaultSingleTopic,
                     TopicToSubscribeOn = connectionSettings.TopicName ?? DefaultSingleTopic,
-                    PublishedEventToTopicsMap =
-                    {
-                        ["ServiceControl.Contracts.CustomCheckFailed"] = "ServiceControl.Contracts.CustomCheckFailed",
-                        ["ServiceControl.Contracts.CustomCheckSucceeded"] = "ServiceControl.Contracts.CustomCheckSucceeded",
-                        ["ServiceControl.Contracts.HeartbeatRestored"] = "ServiceControl.Contracts.HeartbeatRestored",
-                        ["ServiceControl.Contracts.HeartbeatStopped"] = "ServiceControl.Contracts.HeartbeatStopped",
-                        ["ServiceControl.Contracts.FailedMessagesArchived"] = "ServiceControl.Contracts.FailedMessagesArchived",
-                        ["ServiceControl.Contracts.FailedMessagesUnArchived"] = "ServiceControl.Contracts.FailedMessagesUnArchived",
-                        ["ServiceControl.Contracts.MessageFailed"] = "ServiceControl.Contracts.MessageFailed",
-                        ["ServiceControl.Contracts.MessageFailureResolvedByRetry"] = "ServiceControl.Contracts.MessageFailureResolvedByRetry",
-                        ["ServiceControl.Contracts.MessageFailureResolvedManually"] = "ServiceControl.Contracts.MessageFailureResolvedManually"
-                    }
-                };
-                topologyOptions = options;
+                    EventsToMigrateMap = [
+                        "ServiceControl.Contracts.CustomCheckFailed",
+                        "ServiceControl.Contracts.CustomCheckSucceeded",
+                        "ServiceControl.Contracts.HeartbeatRestored",
+                        "ServiceControl.Contracts.HeartbeatStopped",
+                        "ServiceControl.Contracts.FailedMessagesArchived",
+                        "ServiceControl.Contracts.FailedMessagesUnArchived",
+                        "ServiceControl.Contracts.MessageFailed",
+                        "ServiceControl.Contracts.MessageFailureResolvedByRetry",
+                        "ServiceControl.Contracts.MessageFailureResolvedManually"
+                    ]
+                });
+            }
+            else
+            {
+                //Default to topic-per-event topology
+                selectedTopology = TopicTopology.Default;
             }
 
-            var transport = connectionSettings.AuthenticationMethod.CreateTransportDefinition(connectionSettings, TopicTopology.FromOptions(topologyOptions));
+            var transport = connectionSettings.AuthenticationMethod.CreateTransportDefinition(connectionSettings, selectedTopology);
             transport.UseWebSockets = connectionSettings.UseWebSockets;
             transport.EnablePartitioning = connectionSettings.EnablePartitioning;
 
