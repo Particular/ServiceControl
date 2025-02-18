@@ -65,6 +65,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
             TrackInstancesInitialValue = SettingsReader.Read(SettingsRootNamespace, "TrackInstancesInitialValue", true);
+            ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
 
@@ -179,6 +180,11 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         public bool DisableHealthChecks { get; set; }
+
+        // Windows services allow a maximum of 125 seconds when stopping a service.
+        // When shutting down or restarting the OS we have no control over the
+        // shutdown timeout
+        public TimeSpan ShutdownTimeout { get; set; } = TimeSpan.FromMinutes(2);
 
         public string GetConnectionString()
         {
