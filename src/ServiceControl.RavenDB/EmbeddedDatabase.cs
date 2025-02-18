@@ -53,7 +53,7 @@ namespace ServiceControl.RavenDB
             var nugetPackagesPath = Path.Combine(databaseConfiguration.DbPath, "Packages", "NuGet");
 
             Logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
-            var serverOptions = new ServerOptions
+            serverOptions = new ServerOptions
             {
                 CommandLineArgs =
                 [
@@ -162,8 +162,46 @@ namespace ServiceControl.RavenDB
 
         public async Task DeleteDatabase(string dbName)
         {
-            using var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(new DatabaseOptions(dbName) { SkipCreatingDatabase = true });
+            using var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(new DatabaseOptions(dbName)
+            {
+                SkipCreatingDatabase = true
+            });
             await store.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(dbName, true));
+        }
+
+        public async Task Stop(CancellationToken cancellationToken)
+        {
+            Logger.Debug("Stopping RavenDB server");
+            EmbeddedServer.Instance.ServerProcessExited -= OnServerProcessExited;
+
+            await shutdownTokenSource.CancelAsync();
+
+            // TODO: await EmbeddedServer.Instance.StopAsync(cancellationToken);
+
+            var processId = await EmbeddedServer.Instance.GetServerProcessIdAsync(cancellationToken);
+
+            var waitForCancellationTask = Task.Delay(Timeout.Infinite, cancellationToken);
+            var firstTask = await Task.WhenAny(
+                Task.Run(() => EmbeddedServer.Instance.Dispose(), cancellationToken),
+                waitForCancellationTask
+            );
+
+            if (firstTask == waitForCancellationTask)
+            {
+                try
+                {
+                    Logger.Warn("Killing RavenDB child process because host cancelled");
+                    var ravenChildProcess = Process.GetProcessById(processId);
+                    ravenChildProcess.Kill(entireProcessTree: true);
+                }
+                catch (Exception e)
+                {
+                    Logger.Error("Killing RavenDB child process failed", e);
+                }
+            }
+
+            EmbeddedServer.Instance = null!;
+            Logger.Debug("Stopped RavenDB server");
         }
 
         public void Dispose()
@@ -173,12 +211,21 @@ namespace ServiceControl.RavenDB
                 return;
             }
 
-            EmbeddedServer.Instance.ServerProcessExited -= OnServerProcessExited;
+            if (EmbeddedServer.Instance != null)
+            {
+                EmbeddedServer.Instance.ServerProcessExited -= OnServerProcessExited;
+            }
 
             shutdownTokenSource.Cancel();
-            Logger.Debug("Disposing RavenDB server");
-            EmbeddedServer.Instance.Dispose();
-            Logger.Debug("Dispose RavenDB server");
+
+            if (EmbeddedServer.Instance != null)
+            {
+                serverOptions.GracefulShutdownTimeout = TimeSpan.Zero;
+                Logger.Debug("Disposing RavenDB server");
+                EmbeddedServer.Instance.Dispose();
+                Logger.Debug("Disposed RavenDB server");
+            }
+
             shutdownTokenSource.Dispose();
             applicationStoppingRegistration.Dispose();
 
@@ -262,6 +309,7 @@ RavenDB Logging Level:              {configuration.LogsMode}
         readonly EmbeddedDatabaseConfiguration configuration;
         readonly CancellationToken shutdownCancellationToken;
         readonly CancellationTokenRegistration applicationStoppingRegistration;
+        static ServerOptions serverOptions;
 
         static TimeSpan delayBetweenRestarts = TimeSpan.FromSeconds(60);
         static readonly ILog Logger = LogManager.GetLogger<EmbeddedDatabase>();
