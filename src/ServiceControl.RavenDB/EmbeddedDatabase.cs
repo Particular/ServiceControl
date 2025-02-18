@@ -176,7 +176,9 @@ namespace ServiceControl.RavenDB
             EmbeddedServer.Instance.ServerProcessExited -= OnServerProcessExited;
 
             shutdownTokenSource.Cancel();
+            Logger.Debug("Disposing RavenDB server");
             EmbeddedServer.Instance.Dispose();
+            Logger.Debug("Dispose RavenDB server");
             shutdownTokenSource.Dispose();
             applicationStoppingRegistration.Dispose();
 

@@ -7,31 +7,40 @@ using ServiceControl.Audit.Infrastructure.Settings;
 using ServiceControl.Configuration;
 using ServiceControl.Infrastructure;
 
-AppDomain.CurrentDomain.UnhandledException += (s, e) => LogManager.GetLogger(typeof(Program)).Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
-
-// Hack: See https://github.com/Particular/ServiceControl/issues/4392
-var exitCode = await IntegratedSetup.Run();
-
-if (exitCode != 0)
+try
 {
-    return exitCode;
-}
+    AppDomain.CurrentDomain.UnhandledException += (s, e) => LogManager.GetLogger(typeof(Program)).Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
 
-ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
+    // Hack: See https://github.com/Particular/ServiceControl/issues/4392
+    var exitCode = await IntegratedSetup.Run();
 
-var arguments = new HostArguments(args);
+    if (exitCode != 0)
+    {
+        return exitCode;
+    }
 
-if (arguments.Help)
-{
-    arguments.PrintUsage();
+    ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
+
+    var arguments = new HostArguments(args);
+
+    if (arguments.Help)
+    {
+        arguments.PrintUsage();
+        return 0;
+    }
+
+    var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
+    LoggingConfigurator.ConfigureLogging(loggingSettings);
+
+    var settings = new Settings(loggingSettings: loggingSettings);
+
+    await new CommandRunner(arguments.Command).Execute(arguments, settings);
+
     return 0;
 }
-
-var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
-LoggingConfigurator.ConfigureLogging(loggingSettings);
-
-var settings = new Settings(loggingSettings: loggingSettings);
-
-await new CommandRunner(arguments.Command).Execute(arguments, settings);
-
-return 0;
+finally
+{
+    // Leave a trail in the logs to determine if the process was killed
+    NLog.LogManager.GetCurrentClassLogger().Info("Done!");
+    NLog.LogManager.Shutdown();
+}
