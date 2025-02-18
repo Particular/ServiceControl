@@ -28,5 +28,6 @@
   "MaximumConcurrencyLevel": null,
   "ServiceControlQueueAddress": "Particular.ServiceControl",
   "TimeToRestartAuditIngestionAfterFailure": "00:01:00",
-  "EnableFullTextSearchOnBodies": true
+  "EnableFullTextSearchOnBodies": true,
+  "ShutdownTimeout": "00:02:00"
 }

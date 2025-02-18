@@ -65,6 +65,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
             TrackInstancesInitialValue = SettingsReader.Read(SettingsRootNamespace, "TrackInstancesInitialValue", true);
+            ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
 
@@ -179,6 +180,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         public bool DisableHealthChecks { get; set; }
+
+        // The default value is set to the maximum allowed time by the most restrictive
+        // hosting platform, which Docker Linux containers. 
+        public TimeSpan ShutdownTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
         public string GetConnectionString()
         {
