@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.ASBS\ServiceControl.Transports.ASBS.csproj" />
     <!-- Needed to bring the dependencies that the transport plugin excludes -->
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
