@@ -1,12 +1,17 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
     using System.Linq;
+    using System.Text.Json;
     using BrokerThroughput;
+    using Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
+    using NServiceBus.Transport.AzureServiceBus;
 
     public class ASBSTransportCustomization : TransportCustomization<AzureServiceBusTransport>
     {
+        const string DefaultSingleTopic = "bundle-1";
+
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
@@ -19,17 +24,38 @@
         protected override AzureServiceBusTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
             var connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
-            var transport = connectionSettings.AuthenticationMethod.CreateTransportDefinition(connectionSettings);
-            transport.UseWebSockets = connectionSettings.UseWebSockets;
+            TopologyOptions topologyOptions;
 
-            if (connectionSettings.TopicName != null)
+            var serviceBusRootNamespace = new SettingsRootNamespace("ServiceControl.Transport.ASBS");
+            if (SettingsReader.TryRead<string>(serviceBusRootNamespace, "Topology", out var topologyJson))
             {
-                transport.Topology = TopicTopology.Single(connectionSettings.TopicName);
+                topologyOptions = JsonSerializer.Deserialize<TopologyOptions>(topologyJson);
+            }
+            else
+            {
+                var options = new MigrationTopologyOptions
+                {
+                    TopicToPublishTo = connectionSettings.TopicName ?? DefaultSingleTopic,
+                    TopicToSubscribeOn = connectionSettings.TopicName ?? DefaultSingleTopic,
+                    PublishedEventToTopicsMap =
+                    {
+                        ["ServiceControl.Contracts.CustomCheckFailed"] = "ServiceControl.Contracts.CustomCheckFailed",
+                        ["ServiceControl.Contracts.CustomCheckSucceeded"] = "ServiceControl.Contracts.CustomCheckSucceeded",
+                        ["ServiceControl.Contracts.HeartbeatRestored"] = "ServiceControl.Contracts.HeartbeatRestored",
+                        ["ServiceControl.Contracts.HeartbeatStopped"] = "ServiceControl.Contracts.HeartbeatStopped",
+                        ["ServiceControl.Contracts.FailedMessagesArchived"] = "ServiceControl.Contracts.FailedMessagesArchived",
+                        ["ServiceControl.Contracts.FailedMessagesUnArchived"] = "ServiceControl.Contracts.FailedMessagesUnArchived",
+                        ["ServiceControl.Contracts.MessageFailed"] = "ServiceControl.Contracts.MessageFailed",
+                        ["ServiceControl.Contracts.MessageFailureResolvedByRetry"] = "ServiceControl.Contracts.MessageFailureResolvedByRetry",
+                        ["ServiceControl.Contracts.MessageFailureResolvedManually"] = "ServiceControl.Contracts.MessageFailureResolvedManually"
+                    }
+                };
+                topologyOptions = options;
             }
 
+            var transport = connectionSettings.AuthenticationMethod.CreateTransportDefinition(connectionSettings, TopicTopology.FromOptions(topologyOptions));
+            transport.UseWebSockets = connectionSettings.UseWebSockets;
             transport.EnablePartitioning = connectionSettings.EnablePartitioning;
-
-            transport.ConfigureNameShorteners();
 
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 
