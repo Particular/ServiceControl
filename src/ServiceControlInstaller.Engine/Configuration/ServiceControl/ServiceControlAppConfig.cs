@@ -32,6 +32,12 @@
             settings.Set(ServiceControlSettings.EnableFullTextSearchOnBodies, details.EnableFullTextSearchOnBodies.ToString(), version);
             settings.Set(ServiceControlSettings.RemoteInstances, RemoteInstanceConverter.ToJson(details.RemoteInstances), version);
 
+            // Windows services allow a maximum of 125 seconds when stopping a service.
+            // When shutting down or restarting the OS we have no control over the
+            // shutdown timeout. This is by the installer engine that is run _only_ on
+            // Windows via SCMU or PowerShell
+            settings.Set(ServiceControlSettings.ShutdownTimeout, "00:02:00");
+
             // Retired settings
             settings.RemoveIfRetired(ServiceControlSettings.AuditQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.AuditLogQueue, version);
