@@ -53,7 +53,7 @@ namespace ServiceControl.RavenDB
             var nugetPackagesPath = Path.Combine(databaseConfiguration.DbPath, "Packages", "NuGet");
 
             Logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
-            serverOptions = new ServerOptions
+            var serverOptions = new ServerOptions
             {
                 CommandLineArgs =
                 [
@@ -85,6 +85,7 @@ namespace ServiceControl.RavenDB
 
         void Start(ServerOptions serverOptions)
         {
+            this.serverOptions = serverOptions;
             EmbeddedServer.Instance.ServerProcessExited += OnServerProcessExited;
             EmbeddedServer.Instance.StartServer(serverOptions);
 
@@ -220,7 +221,7 @@ namespace ServiceControl.RavenDB
 
             if (EmbeddedServer.Instance != null)
             {
-                serverOptions.GracefulShutdownTimeout = TimeSpan.Zero;
+                serverOptions!.GracefulShutdownTimeout = TimeSpan.Zero;
                 Logger.Debug("Disposing RavenDB server");
                 EmbeddedServer.Instance.Dispose();
                 Logger.Debug("Disposed RavenDB server");
@@ -309,7 +310,7 @@ RavenDB Logging Level:              {configuration.LogsMode}
         readonly EmbeddedDatabaseConfiguration configuration;
         readonly CancellationToken shutdownCancellationToken;
         readonly CancellationTokenRegistration applicationStoppingRegistration;
-        static ServerOptions serverOptions;
+        ServerOptions? serverOptions;
 
         static TimeSpan delayBetweenRestarts = TimeSpan.FromSeconds(60);
         static readonly ILog Logger = LogManager.GetLogger<EmbeddedDatabase>();
