@@ -213,7 +213,7 @@ namespace ServiceControl.RavenDB
                 }
             }
 
-            EmbeddedServer.Instance = null!;
+            serverOptions = null!;
             Logger.Debug("Stopped RavenDB server");
         }
 
@@ -224,14 +224,14 @@ namespace ServiceControl.RavenDB
                 return;
             }
 
-            if (EmbeddedServer.Instance != null)
+            if (serverOptions != null)
             {
                 EmbeddedServer.Instance.ServerProcessExited -= OnServerProcessExited;
             }
 
             shutdownTokenSource.Cancel();
 
-            if (EmbeddedServer.Instance != null)
+            if (serverOptions != null)
             {
                 // Set GracefulShutdownTimeout to Zero and exist ASAP, under normal operation instance would already
                 // have been allowed to gracefully stop during "Stop" method.
