@@ -10,8 +10,6 @@
 
     public class ASBSTransportCustomization : TransportCustomization<AzureServiceBusTransport>
     {
-        const string DefaultSingleTopic = "bundle-1";
-
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
@@ -24,38 +22,19 @@
         protected override AzureServiceBusTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
             var connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
-            TopicTopology selectedTopology;
 
-            var serviceBusRootNamespace = new SettingsRootNamespace("ServiceControl.Transport.ASBS");
-            if (SettingsReader.TryRead<string>(serviceBusRootNamespace, "Topology", out var topologyJson))
+            if (!transportSettings.TryGet(out TopicTopology selectedTopology))
             {
-                //Load topology from json
-                selectedTopology = TopicTopology.FromOptions(JsonSerializer.Deserialize<TopologyOptions>(topologyJson));
-            }
-            else if (connectionSettings.TopicName != null)
-            {
-                //Bundle name provided -> use migration topology
-                selectedTopology = TopicTopology.FromOptions(new MigrationTopologyOptions
+                //Topology is pre-selected and customized only when creating transport for the primary instance
+                //For all other cases use the connection string to determine which topology to use
+                if (connectionSettings.TopicName != null)
                 {
-                    TopicToPublishTo = connectionSettings.TopicName ?? DefaultSingleTopic,
-                    TopicToSubscribeOn = connectionSettings.TopicName ?? DefaultSingleTopic,
-                    EventsToMigrateMap = [
-                        "ServiceControl.Contracts.CustomCheckFailed",
-                        "ServiceControl.Contracts.CustomCheckSucceeded",
-                        "ServiceControl.Contracts.HeartbeatRestored",
-                        "ServiceControl.Contracts.HeartbeatStopped",
-                        "ServiceControl.Contracts.FailedMessagesArchived",
-                        "ServiceControl.Contracts.FailedMessagesUnArchived",
-                        "ServiceControl.Contracts.MessageFailed",
-                        "ServiceControl.Contracts.MessageFailureResolvedByRetry",
-                        "ServiceControl.Contracts.MessageFailureResolvedManually"
-                    ]
-                });
-            }
-            else
-            {
-                //Default to topic-per-event topology
-                selectedTopology = TopicTopology.Default;
+                    selectedTopology = TopicTopology.MigrateFromNamedSingleTopic(connectionSettings.TopicName);
+                }
+                else
+                {
+                    selectedTopology = TopicTopology.Default;
+                }
             }
 
             var transport = connectionSettings.AuthenticationMethod.CreateTransportDefinition(connectionSettings, selectedTopology);
@@ -71,6 +50,44 @@
             TransportSettings transportSettings)
         {
             services.AddSingleton<IBrokerThroughputQuery, AzureQuery>();
+
+            var connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
+            TopicTopology selectedTopology;
+
+            var serviceBusRootNamespace = new SettingsRootNamespace("ServiceControl.Transport.ASBS");
+            if (connectionSettings.TopicName != null)
+            {
+                //Bundle name provided -> use migration topology
+                //Need to explicitly specific events to be published on the single topic
+                selectedTopology = TopicTopology.FromOptions(new MigrationTopologyOptions
+                {
+                    TopicToPublishTo = connectionSettings.TopicName,
+                    TopicToSubscribeOn = connectionSettings.TopicName,
+                    EventsToMigrateMap = [
+                        "ServiceControl.Contracts.CustomCheckFailed",
+                        "ServiceControl.Contracts.CustomCheckSucceeded",
+                        "ServiceControl.Contracts.HeartbeatRestored",
+                        "ServiceControl.Contracts.HeartbeatStopped",
+                        "ServiceControl.Contracts.FailedMessagesArchived",
+                        "ServiceControl.Contracts.FailedMessagesUnArchived",
+                        "ServiceControl.Contracts.MessageFailed",
+                        "ServiceControl.Contracts.MessageFailureResolvedByRetry",
+                        "ServiceControl.Contracts.MessageFailureResolvedManually"
+                    ]
+                });
+            }
+            else if (SettingsReader.TryRead<string>(serviceBusRootNamespace, "Topology", out var topologyJson))
+            {
+                //Load topology from json
+                selectedTopology = TopicTopology.FromOptions(JsonSerializer.Deserialize(topologyJson, TopologyOptionsSerializationContext.Default.TopologyOptions));
+            }
+            else
+            {
+                //Default to topic-per-event topology
+                selectedTopology = TopicTopology.Default;
+            }
+
+            transportSettings.Set(selectedTopology);
         }
 
         protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
