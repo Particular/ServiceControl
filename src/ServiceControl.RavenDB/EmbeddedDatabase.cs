@@ -15,6 +15,7 @@ namespace ServiceControl.RavenDB
     using Raven.Client.Documents.Conventions;
     using Raven.Client.ServerWide.Operations;
     using Raven.Embedded;
+    using Sparrow.Logging;
 
     public sealed class EmbeddedDatabase : IDisposable
     {
@@ -51,6 +52,16 @@ namespace ServiceControl.RavenDB
             var licenseFileNameAndServerDirectory = GetRavenLicenseFileNameAndServerDirectory();
 
             var nugetPackagesPath = Path.Combine(databaseConfiguration.DbPath, "Packages", "NuGet");
+
+            LoggingSource.Instance.SetupLogMode(
+                (LogMode)255,
+                Path.Combine(databaseConfiguration.LogPath, "Raven.Embedded"),
+                retentionTime: TimeSpan.FromDays(14),
+                retentionSize: 1024 * 1024 * 10,
+                compress: false
+            );
+
+            LoggingSource.Instance.EnableConsoleLogging();
 
             Logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
             var serverOptions = new ServerOptions
@@ -191,13 +202,13 @@ namespace ServiceControl.RavenDB
             {
                 try
                 {
-                    Logger.Warn("Killing RavenDB child process because host cancelled");
+                    Logger.WarnFormat("Killing RavenDB server PID {0} child process because host cancelled", processId);
                     var ravenChildProcess = Process.GetProcessById(processId);
                     ravenChildProcess.Kill(entireProcessTree: true);
                 }
                 catch (Exception e)
                 {
-                    Logger.Error("Killing RavenDB child process failed", e);
+                    Logger.ErrorFormat("Failed to kill RavenDB server PID {0}\n{1}", processId, e);
                 }
             }
 
@@ -263,6 +274,7 @@ RavenDB Logging Level:              {configuration.LogsMode}
                 {
                     return -1;
                 }
+
                 return info.Length;
             }
             catch
