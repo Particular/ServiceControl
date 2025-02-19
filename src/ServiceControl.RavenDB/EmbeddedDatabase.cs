@@ -66,6 +66,7 @@ namespace ServiceControl.RavenDB
             Logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
             var serverOptions = new ServerOptions
             {
+                GracefulShutdownTimeout = TimeSpan.FromHours(1), // During Stop/Dispose we manually control this
                 CommandLineArgs =
                 [
                     $"--Logs.Mode={databaseConfiguration.LogsMode}",
