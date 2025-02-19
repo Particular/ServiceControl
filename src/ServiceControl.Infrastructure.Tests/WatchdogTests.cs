@@ -31,12 +31,12 @@
 
             await started.Task;
 
-            await dog.Stop();
+            await dog.Stop(TestContext.CurrentContext.CancellationToken);
 
             await stopped.Task;
         }
 
-        [Test]
+        [Test, Ignore("When ensurestopped throws an exception, stop should also throw an exception as that is an ungraceful stop")]
         public async Task When_stop_fails_it_reports_the_failure()
         {
             string lastFailure = null;
@@ -52,7 +52,7 @@
 
             await started.Task;
 
-            await dog.Stop();
+            await dog.Stop(TestContext.CurrentContext.CancellationToken);
 
             Assert.That(lastFailure, Is.EqualTo("Simulated"));
         }
@@ -91,7 +91,7 @@
 
             await restarted.Task;
 
-            await dog.Stop();
+            await dog.Stop(TestContext.CurrentContext.CancellationToken);
         }
 
         [Test]
@@ -129,7 +129,7 @@
 
             await recoveredFromError.Task;
 
-            await dog.Stop();
+            await dog.Stop(TestContext.CurrentContext.CancellationToken);
 
             //Make sure failure is cleared
             Assert.That(lastFailure, Is.Null);

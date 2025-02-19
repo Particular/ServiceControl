@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting.EndpointTemplates;
+    using Audit.Auditing;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -35,8 +36,7 @@
                     .When(context =>
                     {
                         return context.Logs.ToArray().Any(i =>
-                            i.Message.StartsWith(
-                                "Ensure started. Infrastructure started"));
+                            i.Message.StartsWith(AuditIngestion.LogMessages.StartedInfrastructure));
                     }, (_, __) =>
                     {
                         var databaseConfiguration = ServiceProvider.GetRequiredService<DatabaseConfiguration>();
@@ -47,8 +47,7 @@
                     .When(context =>
                     {
                         return context.Logs.ToArray().Any(i =>
-                            i.Message.StartsWith(
-                                "Shutting down due to failed persistence health check. Infrastructure shut down completed"));
+                            i.Message.StartsWith(AuditIngestion.LogMessages.StoppedInfrastructure));
                     }, (bus, c) => bus.SendLocal(new MyMessage()))
                 )
                 .Done(async c => await this.TryGetSingle<MessagesView>(
@@ -72,7 +71,7 @@
                    {
                        return context.Logs.ToArray().Any(i =>
                            i.Message.StartsWith(
-                               "Ensure started. Infrastructure started"));
+                                AuditIngestion.LogMessages.StartedInfrastructure));
                    }, (session, context) =>
                    {
                        var databaseConfiguration = ServiceProvider.GetRequiredService<DatabaseConfiguration>();
@@ -83,8 +82,7 @@
                    .When(context =>
                    {
                        ingestionShutdown = context.Logs.ToArray().Any(i =>
-                           i.Message.StartsWith(
-                               "Shutting down due to failed persistence health check. Infrastructure shut down completed"));
+                           i.Message.StartsWith(AuditIngestion.LogMessages.StoppedInfrastructure));
 
                        return ingestionShutdown;
                    },
