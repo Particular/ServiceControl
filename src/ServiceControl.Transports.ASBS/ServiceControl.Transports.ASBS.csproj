@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <NoWarn>CS0618</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,7 +15,7 @@
     <PackageReference Include="Azure.Monitor.Query" />
     <PackageReference Include="Azure.ResourceManager.ServiceBus" />
     <PackageReference Include="NServiceBus.CustomChecks" />
-    <PackageReference Include="NServiceBus.Transport.AzureServiceBus"/>
+    <PackageReference Include="NServiceBus.Transport.AzureServiceBus" />
   </ItemGroup>
 
   <ItemGroup>

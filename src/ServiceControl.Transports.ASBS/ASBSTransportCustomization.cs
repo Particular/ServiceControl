@@ -29,7 +29,9 @@
                 //For all other cases use the connection string to determine which topology to use
                 if (connectionSettings.TopicName != null)
                 {
+#pragma warning disable CS0618 // Type or member is obsolete
                     selectedTopology = TopicTopology.MigrateFromNamedSingleTopic(connectionSettings.TopicName);
+#pragma warning restore CS0618 // Type or member is obsolete
                 }
                 else
                 {
@@ -59,7 +61,9 @@
             {
                 //Bundle name provided -> use migration topology
                 //Need to explicitly specific events to be published on the single topic
+#pragma warning disable CS0618 // Type or member is obsolete
                 selectedTopology = TopicTopology.FromOptions(new MigrationTopologyOptions
+#pragma warning restore CS0618 // Type or member is obsolete
                 {
                     TopicToPublishTo = connectionSettings.TopicName,
                     TopicToSubscribeOn = connectionSettings.TopicName,
