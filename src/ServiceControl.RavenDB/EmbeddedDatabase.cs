@@ -221,6 +221,8 @@ namespace ServiceControl.RavenDB
 
             if (EmbeddedServer.Instance != null)
             {
+                // Set GracefulShutdownTimeout to Zero and exist ASAP, under normal operation instance would already
+                // have been allowed to gracefully stop during "Stop" method.
                 serverOptions!.GracefulShutdownTimeout = TimeSpan.Zero;
                 Logger.Debug("Disposing RavenDB server");
                 EmbeddedServer.Instance.Dispose();
