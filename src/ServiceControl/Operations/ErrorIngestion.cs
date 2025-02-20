@@ -72,7 +72,7 @@
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            await watchdog.Start(() => applicationLifetime.StopApplication());
+            await watchdog.Start(() => applicationLifetime.StopApplication(), cancellationToken);
             await base.StartAsync(cancellationToken);
         }
 
@@ -132,7 +132,7 @@
         {
             try
             {
-                await watchdog.Stop();
+                await watchdog.Stop(cancellationToken);
                 channel.Writer.Complete();
                 await base.StopAsync(cancellationToken);
             }
