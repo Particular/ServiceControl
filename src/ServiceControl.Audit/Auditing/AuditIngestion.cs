@@ -68,7 +68,7 @@
             return watchdog.OnFailure(failure);
         }
 
-        async Task EnsureStarted(CancellationToken cancellationToken = default)
+        async Task EnsureStarted(CancellationToken cancellationToken)
         {
             try
             {
@@ -177,7 +177,7 @@
             }
         }
 
-        async Task EnsureStopped(CancellationToken cancellationToken = default)
+        async Task EnsureStopped(CancellationToken cancellationToken)
         {
             try
             {
@@ -231,7 +231,7 @@
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            await watchdog.Start(() => applicationLifetime.StopApplication());
+            await watchdog.Start(() => applicationLifetime.StopApplication(), cancellationToken);
             await base.StartAsync(cancellationToken);
         }
 

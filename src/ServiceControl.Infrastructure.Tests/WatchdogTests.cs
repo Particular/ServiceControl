@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.Tests
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using NUnit.Framework;
@@ -27,7 +28,7 @@
                 return Task.CompletedTask;
             }, x => { }, () => { }, TimeSpan.FromSeconds(1), log);
 
-            await dog.Start(() => { });
+            await dog.Start(() => { }, CancellationToken.None);
 
             await started.Task;
 
@@ -48,7 +49,7 @@
                 return Task.CompletedTask;
             }, token => throw new Exception("Simulated"), x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log);
 
-            await dog.Start(() => { });
+            await dog.Start(() => { }, CancellationToken.None);
 
             await started.Task;
 
@@ -83,7 +84,7 @@
                 return Task.CompletedTask;
             }, x => { }, () => { }, TimeSpan.FromSeconds(1), log);
 
-            await dog.Start(() => { });
+            await dog.Start(() => { }, CancellationToken.None);
 
             await started.Task;
 
@@ -125,7 +126,7 @@
                 return Task.CompletedTask;
             }, token => Task.CompletedTask, x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log);
 
-            await dog.Start(() => { });
+            await dog.Start(() => { }, CancellationToken.None);
 
             await recoveredFromError.Task;
 
@@ -144,7 +145,7 @@
 
             var dog = new Watchdog("test process", token => throw new Exception("Simulated"), token => Task.CompletedTask, x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log);
 
-            await dog.Start(() => { onStartupFailureCalled.SetResult(true); });
+            await dog.Start(() => { onStartupFailureCalled.SetResult(true); }, CancellationToken.None);
 
             await onStartupFailureCalled.Task;
 
