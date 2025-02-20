@@ -206,6 +206,9 @@ namespace ServiceControl.RavenDB
                     Logger.WarnFormat("Killing RavenDB server PID {0} child process because host cancelled", processId);
                     var ravenChildProcess = Process.GetProcessById(processId);
                     ravenChildProcess.Kill(entireProcessTree: true);
+                    // Kill only signals
+                    Logger.WarnFormat("Waiting for RavenDB server PID {0} to exit... ", processId);
+                    await ravenChildProcess.WaitForExitAsync(CancellationToken.None);
                 }
                 catch (Exception e)
                 {
