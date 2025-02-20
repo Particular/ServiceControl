@@ -76,18 +76,18 @@
                 await startStopSemaphore.WaitAsync(cancellationToken);
                 logger.Debug("Ensure started. Start/stop semaphore acquired");
 
-                var canIngest = unitOfWorkFactory.CanIngestMore();
-
-                logger.DebugFormat("Ensure started {0}", canIngest);
-
-                if (canIngest)
+                if (!unitOfWorkFactory.CanIngestMore())
                 {
-                    await SetUpAndStartInfrastructure(cancellationToken);
-                }
-                else
-                {
+                    logger.Warn("Ensure started. Storage unable to ingest more. Ingestion will be paused");
+
                     await StopAndTeardownInfrastructure(cancellationToken);
+
+                    return;
                 }
+
+                logger.Debug("Ensure started. Storage able to ingest. Ingestion will be started");
+
+                await SetUpAndStartInfrastructure(cancellationToken);
             }
             catch (Exception e)
             {
