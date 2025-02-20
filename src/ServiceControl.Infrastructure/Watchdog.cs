@@ -53,8 +53,12 @@
                 {
                     try
                     {
+                        // Host builder start is launching the loop. The watch dog loop task runs in isolation
+                        // We want the start not to run to infinity. An NServiceBus endpoint should easily
+                        // start within 15 seconds.
+                        const int MaxStartDurationMs = 15000;
                         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(shutdownTokenSource.Token);
-                        cancellationTokenSource.CancelAfter(15000);
+                        cancellationTokenSource.CancelAfter(MaxStartDurationMs);
 
                         log.Debug($"Ensuring {taskName} is running");
                         await ensureStarted(cancellationTokenSource.Token).ConfigureAwait(false);
