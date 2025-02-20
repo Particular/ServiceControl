@@ -41,7 +41,7 @@
             return ensureStopped(shutdownTokenSource.Token);
         }
 
-        public Task Start(Action onFailedOnStartup)
+        public Task Start(Action onFailedOnStartup, CancellationToken cancellationToken)
         {
             watchdog = Task.Run(async () =>
             {
@@ -88,7 +88,8 @@
                         //Ignore, no need to log cancellation of delay
                     }
                 }
-            });
+            }, cancellationToken);
+
             return Task.CompletedTask;
         }
 
