@@ -123,7 +123,7 @@ class RabbitMQQueryTests : TransportTestFixture
         reset.Set();
         await runScenarioAndAdvanceTime.WaitAsync(token);
 
-        // Asserting that we have one message per hour during 24 hours, the first snapshot is not counted hence the 23 assertion. 
+        // Asserting that we have one message per hour during 24 hours, the first snapshot is not counted hence the 23 assertion.
         Assert.That(total, Is.GreaterThan(numMessagesToIngest));
     }
 }
