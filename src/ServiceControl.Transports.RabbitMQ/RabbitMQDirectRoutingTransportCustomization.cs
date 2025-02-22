@@ -31,7 +31,7 @@
             var ValidateDeliveryLimitsString = GetValue(connectionStringDictionary, "ValidateDeliveryLimits", "true");
             if (!bool.TryParse(ValidateDeliveryLimitsString, out var validateDeliveryLimits))
             {
-                throw new ArgumentException("The value for 'ValidateDeliveryLimit' must be either 'true' or 'false'");
+                throw new ArgumentException("The value for 'ValidateDeliveryLimits' must be either 'true' or 'false'");
             }
 
             var transport = new RabbitMQTransport(RoutingTopology.Direct(queueType, routingKeyConvention: type => type.FullName.Replace(".", "-")), transportSettings.ConnectionString, enableDelayedDelivery: false);
