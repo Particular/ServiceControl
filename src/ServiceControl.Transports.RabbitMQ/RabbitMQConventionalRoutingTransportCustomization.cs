@@ -30,10 +30,10 @@
             var connectionConfiguration = ConnectionConfiguration.Create(transportSettings.ConnectionString, string.Empty);
             var connectionStringDictionary = ConnectionConfiguration.ParseNServiceBusConnectionString(transportSettings.ConnectionString, new StringBuilder());
 
-            var ValidateDeliveryLimitsString = GetValue(connectionStringDictionary, "ValidateDeliveryLimit", "false");
+            var ValidateDeliveryLimitsString = GetValue(connectionStringDictionary, "ValidateDeliveryLimits", "false");
             if (!bool.TryParse(ValidateDeliveryLimitsString, out var validateDeliveryLimits))
             {
-                throw new ArgumentException("The value for 'ValidateDeliveryLimit' must be either 'true' or 'false'");
+                throw new ArgumentException("The value for 'ValidateDeliveryLimits' must be either 'true' or 'false'");
             }
 
             var transport = new RabbitMQTransport(RoutingTopology.Conventional(queueType), transportSettings.ConnectionString, enableDelayedDelivery: false);
