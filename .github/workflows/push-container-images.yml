@@ -22,28 +22,32 @@ jobs:
         with:
           version: ${{ inputs.version }}
       - name: Log in to GitHub container registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Login to Docker Hub
-        uses: docker/login-action@v3.3.0
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Publish to Docker Hub
         run: |
           $containers = @('servicecontrol', 'servicecontrol-audit', 'servicecontrol-monitoring', 'servicecontrol-ravendb')
           $tags = "${{ steps.validate.outputs.container-tags }}" -Split ','
           $sourceTag = "${{ inputs.version }}"
 
-          foreach ($tag in $tags)
+          foreach($name in $containers)
           {
-            foreach($name in $containers)
-            {
-              Write-Output "::group::Pushing $($name):$($tag)"
-              $cmd = "docker buildx imagetools create --tag particular/$($name):$($tag) ghcr.io/particular/$($name):$($sourceTag)"
-              Write-Output "Command: $cmd"
-              Invoke-Expression $cmd
-              Write-Output "::endgroup::"
-            }
+            Write-Output "::group::Pushing $name with $tags tags"
+            $tagsCLI = $tags -replace "^", "--tag particular/${name}:"
+            $cmd = "docker buildx imagetools create $tagsCLI ghcr.io/particular/${name}:$sourceTag"
+            Write-Output "Command: $cmd"
+            Invoke-Expression $cmd
+            Write-Output "::endgroup::"
           }
       - name: Update Docker Hub Description - ServiceControl
         if: ${{ steps.validate.outputs.latest == 'true' }}

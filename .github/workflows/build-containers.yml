@@ -12,13 +12,10 @@ jobs:
         include:
           - name: servicecontrol
             project: ServiceControl
-            description: ServiceControl error instance
           - name: servicecontrol-audit
             project: ServiceControl.Audit
-            description: ServiceControl audit instance
           - name: servicecontrol-monitoring
             project: ServiceControl.Monitoring
-            description: ServiceControl monitoring instance
       fail-fast: false
     steps:
       - name: Check for secrets
@@ -38,26 +35,26 @@ jobs:
         with:
           version: ${{ env.MinVerVersion }}
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.9.0
+        uses: docker/setup-buildx-action@v3
       - name: Log in to GitHub container registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: Build & inspect image
-        env:
-          TAG_NAME: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
-        run: |
-          docker buildx build --push --tag ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }} \
-              --file src/${{ matrix.project }}/Dockerfile \
-              --build-arg VERSION=${{ env.MinVerVersion }} \
-              --annotation "index:org.opencontainers.image.title=${{ matrix.name }}" \
-              --annotation "index:org.opencontainers.image.description=${{ matrix.description }}" \
-              --annotation "index:org.opencontainers.image.created=$(date '+%FT%TZ')" \
-              --annotation "index:org.opencontainers.image.revision=${{ github.sha }}" \
-              --annotation "index:org.opencontainers.image.authors=Particular Software" \
-              --annotation "index:org.opencontainers.image.vendor=Particular Software" \
-              --annotation "index:org.opencontainers.image.version=${{ env.MinVerVersion }}" \
-              --annotation "index:org.opencontainers.image.source=https://github.com/${{ github.repository }}/tree/${{ github.sha }}" \
-              --annotation "index:org.opencontainers.image.url=https://hub.docker.com/r/particular/${{ matrix.name }}" \
-              --annotation "index:org.opencontainers.image.documentation=https://docs.particular.net/servicecontrol/" \
-              --annotation "index:org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled-composite-extra" \
-              --platform linux/arm64,linux/amd64 .
-          docker buildx imagetools inspect ghcr.io/particular/${{ matrix.name }}:${{ env.TAG_NAME }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get current date
+        id: date
+        run: echo "date=$(date '+%FT%TZ')" >> $GITHUB_OUTPUT
+      - name: Build and push image to GitHub container registry
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          sbom: true
+          build-args: |
+            VERSION=${{ env.MinVerVersion }}
+            SHA=${{ github.sha }}
+            CREATED=${{ steps.date.outputs.date }}
+          file: src/${{ matrix.project }}/Dockerfile
+          tags: ghcr.io/particular/${{ matrix.name }}:${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
