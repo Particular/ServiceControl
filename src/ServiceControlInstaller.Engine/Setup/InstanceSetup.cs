@@ -25,7 +25,7 @@ static class InstanceSetup
             instance.Name,
             instance.SkipQueueCreation);
 
-    static void Run(string installPath, string exeName, string instanceName, bool skipQueueCreation = false)
+    static void Run(string installPath, string exeName, string instanceName, bool skipQueueCreation)
     {
         var args = $"--setup";
 
