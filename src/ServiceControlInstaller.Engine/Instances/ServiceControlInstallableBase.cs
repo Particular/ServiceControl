@@ -11,7 +11,6 @@
     using Accounts;
     using FileSystem;
     using NuGet.Versioning;
-    using Queues;
     using ReportCard;
     using Services;
     using UrlAcl;
@@ -197,7 +196,7 @@
 
         internal abstract WindowsServiceDetails GetWindowsServiceDetails();
 
-        protected abstract void RunQueueCreation();
+        protected abstract void RunSetup();
 
         public void RegisterUrlAcl()
         {
@@ -221,13 +220,9 @@
         {
             try
             {
-                RunQueueCreation();
+                RunSetup();
             }
-            catch (QueueCreationFailedException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
-            catch (QueueCreationTimeoutException ex)
+            catch (Exception ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
