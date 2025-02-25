@@ -12,10 +12,16 @@ jobs:
         include:
           - name: servicecontrol
             project: ServiceControl
+            title: ServiceControl
+            description: Gather status, performance and monitoring data for multiple endpoints from a single location.
           - name: servicecontrol-audit
             project: ServiceControl.Audit
+            title: ServiceControl Audit Instance
+            description: Provide valuable information about the message flow through a system.
           - name: servicecontrol-monitoring
             project: ServiceControl.Monitoring
+            title: ServiceControl Monitoring Instance
+            description: Track the health of a distributed system.
       fail-fast: false
     steps:
       - name: Check for secrets
@@ -52,9 +58,29 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           sbom: true
-          build-args: |
-            VERSION=${{ env.MinVerVersion }}
-            SHA=${{ github.sha }}
-            CREATED=${{ steps.date.outputs.date }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/Particular/ServiceControl/tree/${{ github.sha }}
+            org.opencontainers.image.authors="Particular Software"
+            org.opencontainers.image.vendor="Particular Software"
+            org.opencontainers.image.url=https://hub.docker.com/r/particular/${{ matrix.name }}
+            org.opencontainers.image.documentation=https://docs.particular.net/servicecontrol/
+            org.opencontainers.image.version=${{ env.MinVerVersion }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ steps.date.outputs.date }}
+            org.opencontainers.image.title=${{ matrix.title }}
+            org.opencontainers.image.description=${{ matrix.description }}
+            org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled-composite-extra
+          annotations: |
+            index:org.opencontainers.image.source=https://github.com/Particular/ServiceControl/tree/${{ github.sha }}
+            index:org.opencontainers.image.authors="Particular Software"
+            index:org.opencontainers.image.vendor="Particular Software"
+            index:org.opencontainers.image.url=https://hub.docker.com/r/particular/${{ matrix.name }}
+            index:org.opencontainers.image.documentation=https://docs.particular.net/servicecontrol/
+            index:org.opencontainers.image.version=${{ env.MinVerVersion }}
+            index:org.opencontainers.image.revision=${{ github.sha }}
+            index:org.opencontainers.image.created=${{ steps.date.outputs.date }}
+            index:org.opencontainers.image.title=${{ matrix.title }}
+            index:org.opencontainers.image.description=${{ matrix.description }}
+            index:org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled-composite-extra
           file: src/${{ matrix.project }}/Dockerfile
           tags: ghcr.io/particular/${{ matrix.name }}:${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
