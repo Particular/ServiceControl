@@ -67,7 +67,7 @@ namespace ServiceControl.Config.Framework.Modules
             {
                 progress.Report(5, 9, "Registering URL ACLs...");
                 instanceInstaller.RegisterUrlAcl();
-                progress.Report(6, 9, "Running instance setup...");
+                progress.Report(6, 9, "Running instance setup (can take a very long time)...");
                 instanceInstaller.SetupInstance();
             }
             catch (Exception ex)
@@ -141,7 +141,7 @@ namespace ServiceControl.Config.Framework.Modules
 
             UpgradeOptions(upgradeOptions, instance);
 
-            progress.Report(++currentStep, totalSteps, "Running instance setup...");
+            progress.Report(++currentStep, totalSteps, "Running instance setup (can take a very long time)...");
             instance.SetupInstance();
 
             instance.ReportCard.SetStatus();
