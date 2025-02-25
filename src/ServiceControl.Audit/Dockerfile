@@ -10,16 +10,7 @@ RUN dotnet publish src/HealthCheckApp/HealthCheckApp.csproj --arch $TARGETARCH -
 
 # Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled-composite-extra
-ARG VERSION
 WORKDIR /app
-
-LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceControl \
-      org.opencontainers.image.authors="Particular Software" \
-      org.opencontainers.image.url=https://docs.particular.net/servicecontrol/ \
-      org.opencontainers.image.documentation=https://docs.particular.net/servicecontrol/ \
-      org.opencontainers.image.version=$VERSION \
-      org.opencontainers.image.title=ServiceControl.Audit \
-      org.opencontainers.image.description="ServiceControl audit instance"
 
 EXPOSE 44444
 
