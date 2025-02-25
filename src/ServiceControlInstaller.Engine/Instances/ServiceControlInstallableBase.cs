@@ -20,10 +20,7 @@
     {
         public string ServiceDescription { get; set; }
 
-        public abstract string DirectoryName { get; }
-
-        [XmlIgnore]
-        public ReportCard ReportCard { get; set; }
+        [XmlIgnore] public ReportCard ReportCard { get; set; }
 
         public string AclUrl
         {
@@ -107,14 +104,11 @@
 
         public bool EnableFullTextSearchOnBodies { get; set; }
 
-        [XmlIgnore]
-        public SemanticVersion Version { get; set; }
+        [XmlIgnore] public SemanticVersion Version { get; set; }
 
-        [XmlIgnore]
-        public string ServiceAccount { get; set; }
+        [XmlIgnore] public string ServiceAccount { get; set; }
 
-        [XmlIgnore]
-        public string ServiceAccountPwd { get; set; }
+        [XmlIgnore] public string ServiceAccountPwd { get; set; }
 
         public string Url
         {
@@ -181,10 +175,7 @@
 
         protected List<string> GetServiceDependencies()
         {
-            var dependencies = new List<string>()
-            {
-                "HTTP"
-            };
+            var dependencies = new List<string>() { "HTTP" };
 
             if (TransportPackage.ZipName.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
             {
@@ -225,15 +216,6 @@
             catch (Exception ex)
             {
                 ReportCard.Errors.Add(ex.Message);
-            }
-        }
-
-        public void Save(string path)
-        {
-            var serializer = new XmlSerializer(GetType());
-            using (var stream = File.OpenWrite(path))
-            {
-                serializer.Serialize(stream, this);
             }
         }
 

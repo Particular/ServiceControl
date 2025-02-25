@@ -40,8 +40,6 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public PersistenceManifest PersistenceManifest { get; }
 
-        public override string DirectoryName => "ServiceControl";
-
         public List<RemoteInstanceSetting> RemoteInstances { get; set; } = [];
 
         public void AddRemoteInstance(string apiUri)
@@ -59,18 +57,14 @@ namespace ServiceControlInstaller.Engine.Instances
 
             if (RemoteInstances.All(x => string.Compare(x.ApiUri, apiUri, StringComparison.InvariantCultureIgnoreCase) != 0))
             {
-                RemoteInstances.Add(new RemoteInstanceSetting
-                {
-                    ApiUri = apiUri
-                });
+                RemoteInstances.Add(new RemoteInstanceSetting { ApiUri = apiUri });
             }
         }
 
         [XmlElement(typeof(XmlNullableTimeSpan))]
         public TimeSpan? AuditRetentionPeriod { get; set; }
 
-        [XmlElement(typeof(XmlTimeSpan))]
-        public TimeSpan ErrorRetentionPeriod { get; set; }
+        [XmlElement(typeof(XmlTimeSpan))] public TimeSpan ErrorRetentionPeriod { get; set; }
 
         internal override WindowsServiceDetails GetWindowsServiceDetails()
         {
