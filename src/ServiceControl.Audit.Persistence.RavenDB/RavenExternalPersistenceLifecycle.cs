@@ -64,7 +64,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
             }
         }
 
-        public Task Stop(CancellationToken cancellationToken) => Task.CompletedTask; // We are not stopping an external instance
+        public Task Stop(CancellationToken cancellationToken = default) => Task.CompletedTask; // We are not stopping an external instance
 
         public void Dispose() => documentStore?.Dispose();
 
