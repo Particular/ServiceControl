@@ -2,10 +2,9 @@
 {
     using System;
     using System.IO;
-    using System.Xml;
     using System.Xml.Serialization;
     using Configuration.ServiceControl;
-    using Queues;
+    using Setup;
     using Services;
     using Validation;
 
@@ -58,9 +57,9 @@
             };
         }
 
-        protected override void RunQueueCreation()
+        protected override void RunSetup()
         {
-            QueueCreation.RunQueueCreation(this);
+            InstanceSetup.Run(this);
         }
 
         protected override void ValidateMaintenancePort()

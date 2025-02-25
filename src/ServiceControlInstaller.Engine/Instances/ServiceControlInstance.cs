@@ -9,8 +9,8 @@ namespace ServiceControlInstaller.Engine.Instances
     using Configuration;
     using Configuration.ServiceControl;
     using FileSystem;
-    using Queues;
     using Services;
+    using Setup;
     using Validation;
 
     using AppConfig = Configuration.ServiceControl.AppConfig;
@@ -56,9 +56,9 @@ namespace ServiceControlInstaller.Engine.Instances
             return new ServiceControlAppConfig(this);
         }
 
-        public override void RunQueueCreation()
+        public override void RunSetup()
         {
-            QueueCreation.RunQueueCreation(this);
+            InstanceSetup.Run(this);
         }
 
         protected override void ValidateQueueNames()
