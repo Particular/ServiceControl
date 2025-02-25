@@ -6,5 +6,6 @@
     interface IRavenPersistenceLifecycle
     {
         Task Initialize(CancellationToken cancellationToken = default);
+        Task Stop(CancellationToken cancellationToken = default);
     }
 }
