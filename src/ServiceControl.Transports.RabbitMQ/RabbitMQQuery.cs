@@ -12,14 +12,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NServiceBus;
+using NServiceBus.Transport.RabbitMQ.ManagementApi;
 using Polly;
 using Polly.Retry;
 using ServiceControl.Transports.BrokerThroughput;
-using NServiceBus.Transport.RabbitMQ.ManagementApi;
 
 public class RabbitMQQuery : BrokerThroughputQuery
 {
-    HttpClient? httpClient;
     readonly ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
         .AddRetry(new RetryStrategyOptions()) // Add retry using the default options
         .AddTimeout(TimeSpan.FromMinutes(2)) // Add timeout if it keeps failing
@@ -93,7 +92,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
             //logger.LogDebug($"Querying {url}");
             response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueue(queue.QueueName, cancellationToken), cancellationToken);
 
-            if (response.Value is not null)
+            if (response.Value is null)
             {
                 throw new InvalidOperationException($"Could not access RabbitMQ Management API. ({response.StatusCode}: {response.Reason})");
             }
@@ -251,7 +250,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
         }
         catch (HttpRequestException e)
         {
-            throw new Exception($"Failed to connect to '{httpClient!.BaseAddress}'", e);
+            throw new Exception($"Failed to connect to management API", e);
         }
 
         return (true, []);
