@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Concurrent;
-    using System.Data.Common;
     using System.Threading;
     using System.Threading.Tasks;
     using global::RabbitMQ.Client;
@@ -109,13 +108,14 @@
                 var connectionConfiguration =
                     ConnectionConfiguration.Create(connectionString, "ServiceControl.Monitoring");
 
-                var dbConnectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+                // TODO Fix this up
+                //var dbConnectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 
                 connectionFactory = new ConnectionFactory("ServiceControl.Monitoring",
                     connectionConfiguration,
                     null, //providing certificates is not supported yet
-                    dbConnectionStringBuilder.GetBooleanValue("DisableRemoteCertificateValidation"),
-                    dbConnectionStringBuilder.GetBooleanValue("UseExternalAuthMechanism"),
+                    false,//dbConnectionStringBuilder.GetBooleanValue("DisableRemoteCertificateValidation"),
+                    false, //dbConnectionStringBuilder.GetBooleanValue("UseExternalAuthMechanism"),
                     null, // value would come from config API in actual transport
                     null); // value would come from config API in actual transport
             }
