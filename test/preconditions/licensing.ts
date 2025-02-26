@@ -77,6 +77,9 @@ const getLicenseMockedResponse =
 function getCustomDateISOString(daysCount: number, isExpired: boolean) {
   const today = new Date();
   const customDate = new Date(today);
+  // Set hours, minutes, seconds, and milliseconds to 00
+  today.setHours(0, 0, 0, 0);
+  customDate.setHours(0, 0, 0, 0);
 
   if (isExpired) {
     customDate.setDate(today.getDate() - daysCount);
