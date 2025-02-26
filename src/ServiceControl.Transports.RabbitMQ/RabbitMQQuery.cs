@@ -11,7 +11,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NServiceBus;
 using NServiceBus.Transport.RabbitMQ.ManagementApi;
 using Polly;
 using Polly.Retry;
@@ -21,7 +20,8 @@ public class RabbitMQQuery : BrokerThroughputQuery
 {
     readonly ILogger<RabbitMQQuery> logger;
     readonly TimeProvider timeProvider;
-    readonly RabbitMQTransport rabbitMQTransport;
+    readonly ManagementClient managementClient;
+
     readonly ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
       .AddRetry(new RetryStrategyOptions()) // Add retry using the default options
       .AddTimeout(TimeSpan.FromMinutes(2)) // Add timeout if it keeps failing
@@ -31,7 +31,15 @@ public class RabbitMQQuery : BrokerThroughputQuery
     {
         this.logger = logger;
         this.timeProvider = timeProvider;
-        rabbitMQTransport = GetRabbitMQTransport(transportCustomization);
+
+        if (transportCustomization is IManagementClientProvider provider)
+        {
+            managementClient = provider.ManagementClient;
+        }
+        else
+        {
+            throw new ArgumentException($"Transport customization does not implement {nameof(IManagementClientProvider)}. Type: {transportCustomization.GetType().Name}", nameof(transportCustomization));
+        }
     }
 
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
@@ -41,16 +49,6 @@ public class RabbitMQQuery : BrokerThroughputQuery
         CheckLegacySettings(settings, RabbitMQSettings.UserName);
         CheckLegacySettings(settings, RabbitMQSettings.Password);
         CheckLegacySettings(settings, RabbitMQSettings.API);
-    }
-
-    static RabbitMQTransport GetRabbitMQTransport(ITransportCustomization transportCustomization)
-    {
-        if (transportCustomization is IRabbitMQTransportExtensions rabbitMQTransportCustomization)
-        {
-            return rabbitMQTransportCustomization.GetTransport();
-        }
-
-        throw new InvalidOperationException($"Expected a RabbitMQTransport but received {transportCustomization.GetType().Name}.");
     }
 
     void CheckLegacySettings(ReadOnlyDictionary<string, string> settings, string key)
@@ -65,7 +63,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var queue = (RabbitMQBrokerQueueDetails)brokerQueue;
-        var response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueue(queue.QueueName, token), cancellationToken);
+        var response = await pipeline.ExecuteAsync(async token => await managementClient.GetQueue(queue.QueueName, token), cancellationToken);
 
         if (response.Value is null)
         {
@@ -81,7 +79,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
         {
             await Task.Delay(TimeSpan.FromMinutes(15), timeProvider, cancellationToken);
 
-            response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueue(queue.QueueName, token), cancellationToken);
+            response = await pipeline.ExecuteAsync(async token => await managementClient.GetQueue(queue.QueueName, token), cancellationToken);
 
             if (response.Value is null)
             {
@@ -101,7 +99,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     async Task GetRabbitDetails(CancellationToken cancellationToken)
     {
-        var response = await pipeline.ExecuteAsync(async async => await rabbitMQTransport.ManagementClient.GetOverview(cancellationToken), cancellationToken);
+        var response = await pipeline.ExecuteAsync(async async => await managementClient.GetOverview(cancellationToken), cancellationToken);
 
         ValidateResponse(response);
 
@@ -162,7 +160,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
     {
         try
         {
-            var response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetBindingsForQueue(brokerQueue.QueueName, token), cancellationToken);
+            var response = await pipeline.ExecuteAsync(async token => await managementClient.GetBindingsForQueue(brokerQueue.QueueName, token), cancellationToken);
 
             // Check if conventional binding is found
             if (response.Value.Any(binding => binding?.Source == brokerQueue.QueueName
@@ -181,7 +179,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
         try
         {
-            var response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetBindingsForExchange(brokerQueue.QueueName, token), cancellationToken);
+            var response = await pipeline.ExecuteAsync(async token => await managementClient.GetBindingsForExchange(brokerQueue.QueueName, token), cancellationToken);
 
             // Check if delayed binding is found
             if (response.Value.Any(binding => binding?.Source is "nsb.v2.delay-delivery" or "nsb.delay-delivery"
@@ -200,7 +198,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     internal async Task<(List<RabbitMQBrokerQueueDetails>?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
     {
-        var (StatusCode, Reason, Value, MorePages) = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueues(page, 500, token), cancellationToken);
+        var (StatusCode, Reason, Value, MorePages) = await pipeline.ExecuteAsync(async token => await managementClient.GetQueues(page, 500, token), cancellationToken);
 
         ValidateResponse((StatusCode, Reason, Value));
 
@@ -229,7 +227,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
     {
         try
         {
-            var (statusCode, reason, value) = await rabbitMQTransport.ManagementClient.GetOverview(cancellationToken);
+            var (statusCode, reason, value) = await managementClient.GetOverview(cancellationToken);
 
             if (value is not null)
             {
