@@ -84,7 +84,10 @@
             var documentStoreProvider = host.Services.GetRequiredService<IRavenDocumentStoreProvider>();
             DocumentStore = await documentStoreProvider.GetDocumentStore();
             var bulkInsert = DocumentStore.BulkInsert(
-                options: new BulkInsertOptions { SkipOverwriteIfUnchanged = true, });
+                options: new BulkInsertOptions
+                {
+                    SkipOverwriteIfUnchanged = true,
+                });
 
             var sessionProvider = host.Services.GetRequiredService<IRavenSessionProvider>();
 
@@ -103,11 +106,18 @@
             if (DocumentStore != null)
             {
                 await DocumentStore.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(
-                    new DeleteDatabasesOperation.Parameters { DatabaseNames = [databaseName], HardDelete = true }));
+                    new DeleteDatabasesOperation.Parameters
+                    {
+                        DatabaseNames = [databaseName],
+                        HardDelete = true
+                    }));
             }
 
-            await host.StopAsync();
-            host.Dispose();
+            if (host != null)
+            {
+                await host.StopAsync();
+                host.Dispose();
+            }
         }
 
 

@@ -32,6 +32,7 @@ class RavenPersisterSettings : PersistenceSettings, IRavenClientCertificateInfo
     public string LogsMode { get; set; } = LogsModeDefault;
     public string DatabaseName { get; set; } = DatabaseNameDefault;
     public string ThroughputDatabaseName { get; set; } = ThroughputSettings.DefaultDatabaseName;
+    public string SearchEngineType { get; set; } = "Corax";
 
     public const string DatabaseNameDefault = "primary";
     public const int DatabaseMaintenancePortDefault = 33334;

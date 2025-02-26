@@ -36,8 +36,8 @@
                 try
                 {
                     var databaseRecord = new DatabaseRecord(databaseName);
-                    databaseRecord.Settings.Add("Indexing.Auto.SearchEngineType", "Corax");
-                    databaseRecord.Settings.Add("Indexing.Static.SearchEngineType", "Corax");
+                    databaseRecord.Settings.Add("Indexing.Auto.SearchEngineType", configuration.SearchEngineType);
+                    databaseRecord.Settings.Add("Indexing.Static.SearchEngineType", configuration.SearchEngineType);
 
                     await documentStore.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), cancellationToken);
                 }
@@ -59,8 +59,33 @@
 
             var updated = false;
 
-            updated |= dbRecord.Settings.TryAdd("Indexing.Auto.SearchEngineType", "Corax");
-            updated |= dbRecord.Settings.TryAdd("Indexing.Static.SearchEngineType", "Corax");
+            if (dbRecord.Settings.TryGetValue(AutoSearchEngineTypeKey, out var searchEngineTypeAuto))
+            {
+                if (searchEngineTypeAuto != configuration.SearchEngineType)
+                {
+                    updated = true;
+                }
+            }
+            else
+            {
+                updated = true;
+            }
+
+            dbRecord.Settings[AutoSearchEngineTypeKey] = configuration.SearchEngineType;
+
+            if (dbRecord.Settings.TryGetValue(StaticSearchEngineTypeKey, out var searchEngineTypeStatic))
+            {
+                if (searchEngineTypeStatic != configuration.SearchEngineType)
+                {
+                    updated = true;
+                }
+            }
+            else
+            {
+                updated = true;
+            }
+
+            dbRecord.Settings[StaticSearchEngineTypeKey] = configuration.SearchEngineType;
 
             if (updated)
             {
@@ -116,5 +141,8 @@
 
             await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
         }
+
+        const string AutoSearchEngineTypeKey = "Indexing.Auto.SearchEngineType";
+        const string StaticSearchEngineTypeKey = "Indexing.Static.SearchEngineType";
     }
 }

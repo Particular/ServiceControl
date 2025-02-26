@@ -22,22 +22,9 @@
         public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
         public const string BulkInsertCommitTimeoutInSecondsKey = "BulkInsertCommitTimeoutInSeconds";
         public const string DataSpaceRemainingThresholdKey = "DataSpaceRemainingThreshold";
+        public const string SearchEngineTypeKey = "SearchEngineType";
 
-        public IEnumerable<string> ConfigurationKeys => new[]{
-            DatabaseNameKey,
-            DatabasePathKey,
-            ConnectionStringKey,
-            ClientCertificatePathKey,
-            ClientCertificateBase64Key,
-            ClientCertificatePasswordKey,
-            DatabaseMaintenancePortKey,
-            ExpirationProcessTimerInSecondsKey,
-            LogPathKey,
-            RavenDbLogLevelKey,
-            DataSpaceRemainingThresholdKey,
-            MinimumStorageLeftRequiredForIngestionKey,
-            BulkInsertCommitTimeoutInSecondsKey
-        };
+        public IEnumerable<string> ConfigurationKeys => new[] { DatabaseNameKey, DatabasePathKey, ConnectionStringKey, ClientCertificatePathKey, ClientCertificateBase64Key, ClientCertificatePasswordKey, DatabaseMaintenancePortKey, ExpirationProcessTimerInSecondsKey, LogPathKey, RavenDbLogLevelKey, DataSpaceRemainingThresholdKey, MinimumStorageLeftRequiredForIngestionKey, BulkInsertCommitTimeoutInSecondsKey, SearchEngineTypeKey };
 
         public string Name => "RavenDB";
 
@@ -70,10 +57,12 @@
                 {
                     serverConfiguration.ClientCertificatePath = clientCertificatePath;
                 }
+
                 if (settings.PersisterSpecificSettings.TryGetValue(ClientCertificateBase64Key, out var clientCertificateBase64))
                 {
                     serverConfiguration.ClientCertificateBase64 = clientCertificateBase64;
                 }
+
                 if (settings.PersisterSpecificSettings.TryGetValue(ClientCertificatePasswordKey, out var clientCertificatePassword))
                 {
                     serverConfiguration.ClientCertificatePassword = clientCertificatePassword;
@@ -120,6 +109,11 @@
 
             var bulkInsertTimeout = TimeSpan.FromSeconds(GetBulkInsertCommitTimeout(settings));
 
+            if (!settings.PersisterSpecificSettings.TryGetValue(SearchEngineTypeKey, out var searchEngineType))
+            {
+                searchEngineType = "Corax";
+            }
+
             return new DatabaseConfiguration(
                 databaseName,
                 expirationProcessTimerInSeconds,
@@ -129,7 +123,8 @@
                 dataSpaceRemainingThreshold,
                 minimumStorageLeftRequiredForIngestion,
                 serverConfiguration,
-                bulkInsertTimeout);
+                bulkInsertTimeout,
+                searchEngineType);
         }
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)

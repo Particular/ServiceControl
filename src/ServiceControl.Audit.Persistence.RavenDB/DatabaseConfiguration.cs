@@ -12,7 +12,8 @@
         int dataSpaceRemainingThreshold,
         int minimumStorageLeftRequiredForIngestion,
         ServerConfiguration serverConfiguration,
-        TimeSpan bulkInsertCommitTimeout)
+        TimeSpan bulkInsertCommitTimeout,
+        string searchEngineType)
     {
         public string Name { get; } = name;
 
@@ -33,5 +34,7 @@
         public int MinimumStorageLeftRequiredForIngestion { get; internal set; } = minimumStorageLeftRequiredForIngestion; //Setting for ATT only
 
         public TimeSpan BulkInsertCommitTimeout { get; } = bulkInsertCommitTimeout;
+
+        public string SearchEngineType { get; } = searchEngineType;
     }
 }
