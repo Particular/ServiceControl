@@ -5,13 +5,15 @@
     using BrokerThroughput;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
+    using NServiceBus.Transport.RabbitMQ.ManagementApi;
 
-    public abstract class RabbitMQDirectRoutingTransportCustomization(QueueType queueType)
-        : TransportCustomization<RabbitMQTransport>, IRabbitMQTransportExtensions
+    public abstract class RabbitMQDirectRoutingTransportCustomization(NServiceBus.QueueType queueType) : TransportCustomization<RabbitMQTransport>, IManagementClientProvider
     {
         RabbitMQTransport rabbitMQTransport;
 
-        protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition, TransportSettings transportSettings) { }
+        ManagementClient IManagementClientProvider.ManagementClient => rabbitMQTransport?.ManagementClient ?? throw new InvalidOperationException("Transport instance has not been created yet.");
+
+        protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition, TransportSettings transportSettings) => rabbitMQTransport = transportDefinition;
 
         protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition, TransportSettings transportSettings) { }
 
@@ -28,7 +30,6 @@
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
             transport.SetCustomSettingsFromConnectionString(transportSettings.ConnectionString);
 
-            rabbitMQTransport = transport;
             return transport;
         }
 
@@ -39,16 +40,6 @@
         {
             services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
-        }
-
-        RabbitMQTransport IRabbitMQTransportExtensions.GetTransport()
-        {
-            if (rabbitMQTransport == null)
-            {
-                throw new InvalidOperationException("Transport instance has not been created yet. Make sure CreateTransport() is called before accessing the transport.");
-            }
-
-            return rabbitMQTransport;
         }
     }
 }
