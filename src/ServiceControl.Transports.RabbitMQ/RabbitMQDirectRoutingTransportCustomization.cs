@@ -69,7 +69,8 @@
             if (rabbitMQTransport == null)
             {
                 throw new InvalidOperationException("Transport instance has not been created yet. Make sure CreateTransport() is called before accessing the transport.");
-            };
+            }
+
             return rabbitMQTransport;
         }
     }
