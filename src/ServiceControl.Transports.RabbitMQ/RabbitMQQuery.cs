@@ -67,15 +67,6 @@ public class RabbitMQQuery : BrokerThroughputQuery
         }
     }
 
-    // TODO: Determine if this needs to be updated in the RabbitMQ Transport
-    protected virtual HttpClient CreateHttpClient(NetworkCredential defaultCredential, string apiUrl) =>
-        new(new SocketsHttpHandler
-        {
-            Credentials = defaultCredential,
-            PooledConnectionLifetime = TimeSpan.FromMinutes(2)
-        })
-        { BaseAddress = new Uri(apiUrl) };
-
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,
         DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
