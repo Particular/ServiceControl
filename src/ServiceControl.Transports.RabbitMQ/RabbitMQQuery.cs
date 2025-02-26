@@ -41,8 +41,8 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
-        ////  TODO: Update documentation
-        //// https://docs.particular.net/servicecontrol/servicecontrol-instances/configuration#usage-reporting-when-using-the-rabbitmq-transport
+        //  TODO: Update documentation
+        // https://docs.particular.net/servicecontrol/servicecontrol-instances/configuration#usage-reporting-when-using-the-rabbitmq-transport
         CheckLegacySettings(settings, RabbitMQSettings.UserName);
         CheckLegacySettings(settings, RabbitMQSettings.Password);
         CheckLegacySettings(settings, RabbitMQSettings.API);
@@ -87,7 +87,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
         var response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueue(queue.QueueName, cancellationToken), cancellationToken);
 
-        if (!response.HasValue)
+        if (response.Value is null)
         {
             throw new InvalidOperationException($"Could not access RabbitMQ Management API. ({response.StatusCode}: {response.Reason})");
         }
@@ -103,7 +103,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
             logger.LogDebug($"Querying {url}");
             response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueue(queue.QueueName, cancellationToken), cancellationToken);
 
-            if (!response.HasValue)
+            if (response.Value is not null)
             {
                 throw new InvalidOperationException($"Could not access RabbitMQ Management API. ({response.StatusCode}: {response.Reason})");
             }
@@ -118,46 +118,44 @@ public class RabbitMQQuery : BrokerThroughputQuery
         }
     }
 
-    async Task<(string rabbitVersion, string managementVersion)> GetRabbitDetails(bool skipResiliencePipeline, CancellationToken cancellationToken)
+    async Task GetRabbitDetails(bool skipResiliencePipeline, CancellationToken cancellationToken)
     {
-        Response<Overview?> response = skipResiliencePipeline
+
+        var response = skipResiliencePipeline
             ? await rabbitMQTransport.ManagementClient.GetOverview(cancellationToken)
             : await pipeline.ExecuteAsync(async async => await rabbitMQTransport.ManagementClient.GetOverview(cancellationToken), cancellationToken);
 
-        var overview = GetResponseValue(response);
+        ValidateResponse(response);
 
-        if (overview.DisableStats)
+        if (response.Value!.DisableStats)
         {
             throw new Exception("The RabbitMQ broker is configured with 'management.disable_stats = true' or 'management_agent.disable_metrics_collector = true' " +
                 "and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker.");
         }
 
-        var rabbitVersion = response.Value?.BrokerVersion ?? response.Value?.ProductVersion;
-        var mgmtVersion = response.Value?.ManagementVersion;
-
-        return (rabbitVersion?.ToString() ?? "Unknown", mgmtVersion?.ToString() ?? "Unknown");
+        Data["RabbitMQVersion"] = response.Value?.BrokerVersion ?? "Unknown";
     }
 
-    static T GetResponseValue<T>(Response<T?> response) where T : class
+    void ValidateResponse<T>((HttpStatusCode StatusCode, string Reason, T? Value) response)
     {
-        if (!response.HasValue || response.Value is null)
+        if (response.StatusCode != HttpStatusCode.OK)
         {
-            throw new InvalidOperationException($"Could not access RabbitMQ Management API. ({response.StatusCode}: {response.Reason})");
+            throw new HttpRequestException($"Request failed with status code {response.StatusCode}: {response.Reason}");
         }
 
-        return response.Value;
+        if (response.Value is null)
+        {
+            throw new InvalidOperationException("Request was successful, but the response body was null when a value was expected");
+        }
     }
 
-    public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+    public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var page = 1;
         bool morePages;
         var vHosts = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
 
-        (string rabbitVersion, string managementVersion) = await GetRabbitDetails(false, cancellationToken);
-        Data["RabbitMQVersion"] = rabbitVersion;
-        Data["RabbitMQManagementVersionVersion"] = managementVersion;
+        await GetRabbitDetails(false, cancellationToken);
 
         do
         {
@@ -189,7 +187,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
     {
         try
         {
-            var response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueueBindings(brokerQueue.QueueName, cancellationToken), cancellationToken);
+            var response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetBindingsForQueue(brokerQueue.QueueName, cancellationToken), cancellationToken);
 
             // Check if conventional binding is found
             if (response.Value.Any(binding => binding?.Source == brokerQueue.QueueName
@@ -209,7 +207,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
         try
         {
-            var response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetExchangeBindingsDestination(brokerQueue.QueueName, cancellationToken), cancellationToken);
+            var response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetBindingsForExchange(brokerQueue.QueueName, cancellationToken), cancellationToken);
 
             // Check if delayed binding is found
             if (response.Value.Any(binding => binding?.Source is "nsb.v2.delay-delivery" or "nsb.delay-delivery"
@@ -229,29 +227,11 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     internal async Task<(List<RabbitMQBrokerQueueDetails>?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
     {
-        var pagination = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetPage(page, cancellationToken), cancellationToken);
-        switch (pagination.Value)
-        {
-            case Pagination obj:
-                {
-                    var pageCount = obj.PageCount;
-                    var pageReturned = obj.Page;
+        var (StatusCode, Reason, Value, MorePages) = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueues(page, 500, cancellationToken), cancellationToken);
 
-                    if (obj.Items is null) //is not JsonArray items
-                    {
-                        return (null, false);
-                    }
+        ValidateResponse((StatusCode, Reason, Value));
 
-                    return (MaterializeQueueDetails(obj.Items), pageCount > pageReturned);
-                }
-            // Older versions of RabbitMQ API did not have paging and returned the array of items directly
-            //case JsonArray arr:
-            //    {
-            //        return (MaterializeQueueDetails(arr), false);
-            //    }
-            default:
-                throw new Exception("Was not able to get list of queues from RabbitMQ broker.");
-        }
+        return (MaterializeQueueDetails(Value), MorePages);
     }
 
     static List<RabbitMQBrokerQueueDetails> MaterializeQueueDetails(List<Queue> items)
