@@ -10,7 +10,6 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using Microsoft.Extensions.Logging;
 using NServiceBus;
 using Polly;
@@ -72,9 +71,9 @@ public class RabbitMQQuery : BrokerThroughputQuery
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var queue = (RabbitMQBrokerQueueDetails)brokerQueue;
-        var url = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}";
+        //var url = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}";
 
-        logger.LogDebug($"Querying {url}");
+        //logger.LogDebug($"Querying {url}");
 
         var response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueue(queue.QueueName, cancellationToken), cancellationToken);
 
@@ -91,7 +90,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
         for (var i = 0; i < 24 * 4; i++)
         {
             await Task.Delay(TimeSpan.FromMinutes(15), timeProvider, cancellationToken);
-            logger.LogDebug($"Querying {url}");
+            //logger.LogDebug($"Querying {url}");
             response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueue(queue.QueueName, cancellationToken), cancellationToken);
 
             if (response.Value is not null)
@@ -144,7 +143,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
     {
         var page = 1;
         bool morePages;
-        var vHosts = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
+        //var vHosts = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
 
         await GetRabbitDetails(false, cancellationToken);
 
@@ -162,7 +161,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
                     {
                         continue;
                     }
-                    vHosts.Add(rabbitMQQueueDetails.VHost);
+                    //vHosts.Add(rabbitMQQueueDetails.VHost);
                     await AddAdditionalQueueDetails(rabbitMQQueueDetails, cancellationToken);
                     yield return rabbitMQQueueDetails;
                 }
@@ -171,7 +170,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
             page++;
         } while (morePages);
 
-        ScopeType = vHosts.Count > 1 ? "VirtualHost" : null;
+        //ScopeType = vHosts.Count > 1 ? "VirtualHost" : null;
     }
 
     async Task AddAdditionalQueueDetails(RabbitMQBrokerQueueDetails brokerQueue, CancellationToken cancellationToken)
@@ -182,7 +181,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
             // Check if conventional binding is found
             if (response.Value.Any(binding => binding?.Source == brokerQueue.QueueName
-                && binding?.Vhost == brokerQueue.VHost
+                //&& binding?.Vhost == brokerQueue.VHost
                 && binding?.Destination == brokerQueue.QueueName
                 && binding?.DestinationType == "queue"
                 && binding?.RoutingKey == string.Empty
@@ -202,7 +201,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
             // Check if delayed binding is found
             if (response.Value.Any(binding => binding?.Source is "nsb.v2.delay-delivery" or "nsb.delay-delivery"
-                    && binding?.Vhost == brokerQueue.VHost
+                    //&& binding?.Vhost == brokerQueue.VHost
                     && binding?.Destination == brokerQueue.QueueName
                     && binding?.DestinationType == "exchange"
                     && binding?.RoutingKey == $"#.{brokerQueue.QueueName}"))
