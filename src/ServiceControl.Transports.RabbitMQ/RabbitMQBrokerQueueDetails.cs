@@ -9,8 +9,8 @@ class RabbitMQBrokerQueueDetails(Queue queue) : IBrokerQueue
 {
     public string QueueName { get; } = queue.Name;
     public string SanitizedName => QueueName;
-    public string Scope => VHost;
-    public string VHost { get; } = queue.Vhost;
+    public string? Scope => null;
+    //public string VHost { get; } = queue.Vhost;
     public List<string> EndpointIndicators { get; } = [];
     long? AckedMessages { get; set; } = queue.MessageStats?.Ack;
     long Baseline { get; set; } = queue.MessageStats?.Ack ?? 0;
