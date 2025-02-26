@@ -4,7 +4,6 @@
     using Azure.Identity;
     using Azure.Messaging.ServiceBus.Administration;
     using NServiceBus;
-    using NServiceBus.Transport;
 
     public class TokenCredentialAuthentication : AuthenticationMethod
     {
@@ -30,9 +29,9 @@
         public override ServiceBusAdministrationClient BuildManagementClient()
             => new ServiceBusAdministrationClient(FullyQualifiedNamespace, Credential);
 
-        public override AzureServiceBusTransport CreateTransportDefinition(ConnectionSettings connectionSettings)
+        public override AzureServiceBusTransport CreateTransportDefinition(ConnectionSettings connectionSettings, TopicTopology topology)
         {
-            var transport = new AzureServiceBusTransport(FullyQualifiedNamespace, Credential);
+            var transport = new AzureServiceBusTransport(FullyQualifiedNamespace, Credential, topology);
             return transport;
         }
     }
