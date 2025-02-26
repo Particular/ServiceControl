@@ -19,18 +19,15 @@ using ServiceControl.Transports.BrokerThroughput;
 
 public class RabbitMQQuery : BrokerThroughputQuery
 {
-    readonly ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
-        .AddRetry(new RetryStrategyOptions()) // Add retry using the default options
-        .AddTimeout(TimeSpan.FromMinutes(2)) // Add timeout if it keeps failing
-        .Build();
     readonly ILogger<RabbitMQQuery> logger;
     readonly TimeProvider timeProvider;
     readonly RabbitMQTransport rabbitMQTransport;
+    readonly ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
+      .AddRetry(new RetryStrategyOptions()) // Add retry using the default options
+      .AddTimeout(TimeSpan.FromMinutes(2)) // Add timeout if it keeps failing
+      .Build();
 
-    public RabbitMQQuery(ILogger<RabbitMQQuery> logger,
-        TimeProvider timeProvider,
-        TransportSettings transportSettings,
-        ITransportCustomization transportCustomization) : base(logger, "RabbitMQ")
+    public RabbitMQQuery(ILogger<RabbitMQQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings, ITransportCustomization transportCustomization) : base(logger, "RabbitMQ")
     {
         this.logger = logger;
         this.timeProvider = timeProvider;
@@ -65,16 +62,10 @@ public class RabbitMQQuery : BrokerThroughputQuery
         }
     }
 
-    public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,
-        DateOnly startDate,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var queue = (RabbitMQBrokerQueueDetails)brokerQueue;
-        //var url = $"/api/queues/{HttpUtility.UrlEncode(queue.VHost)}/{HttpUtility.UrlEncode(queue.QueueName)}";
-
-        //logger.LogDebug($"Querying {url}");
-
-        var response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueue(queue.QueueName, cancellationToken), cancellationToken);
+        var response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueue(queue.QueueName, token), cancellationToken);
 
         if (response.Value is null)
         {
@@ -89,8 +80,8 @@ public class RabbitMQQuery : BrokerThroughputQuery
         for (var i = 0; i < 24 * 4; i++)
         {
             await Task.Delay(TimeSpan.FromMinutes(15), timeProvider, cancellationToken);
-            //logger.LogDebug($"Querying {url}");
-            response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueue(queue.QueueName, cancellationToken), cancellationToken);
+
+            response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueue(queue.QueueName, token), cancellationToken);
 
             if (response.Value is null)
             {
@@ -99,6 +90,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
             newReading = new RabbitMQBrokerQueueDetails(response.Value);
             var newTotalThroughput = queue.CalculateThroughputFrom(newReading);
+
             yield return new QueueThroughput
             {
                 DateUTC = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
@@ -107,12 +99,9 @@ public class RabbitMQQuery : BrokerThroughputQuery
         }
     }
 
-    async Task GetRabbitDetails(bool skipResiliencePipeline, CancellationToken cancellationToken)
+    async Task GetRabbitDetails(CancellationToken cancellationToken)
     {
-
-        var response = skipResiliencePipeline
-            ? await rabbitMQTransport.ManagementClient.GetOverview(cancellationToken)
-            : await pipeline.ExecuteAsync(async async => await rabbitMQTransport.ManagementClient.GetOverview(cancellationToken), cancellationToken);
+        var response = await pipeline.ExecuteAsync(async async => await rabbitMQTransport.ManagementClient.GetOverview(cancellationToken), cancellationToken);
 
         ValidateResponse(response);
 
@@ -142,15 +131,14 @@ public class RabbitMQQuery : BrokerThroughputQuery
     {
         var page = 1;
         bool morePages;
-        //var vHosts = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
 
-        await GetRabbitDetails(false, cancellationToken);
+        await GetRabbitDetails(cancellationToken);
 
         do
         {
             (var queues, morePages) = await GetPage(page, cancellationToken);
 
-            if (queues != null)
+            if (queues is not null)
             {
                 foreach (var rabbitMQQueueDetails in queues)
                 {
@@ -160,7 +148,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
                     {
                         continue;
                     }
-                    //vHosts.Add(rabbitMQQueueDetails.VHost);
+
                     await AddAdditionalQueueDetails(rabbitMQQueueDetails, cancellationToken);
                     yield return rabbitMQQueueDetails;
                 }
@@ -168,19 +156,16 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
             page++;
         } while (morePages);
-
-        //ScopeType = vHosts.Count > 1 ? "VirtualHost" : null;
     }
 
     async Task AddAdditionalQueueDetails(RabbitMQBrokerQueueDetails brokerQueue, CancellationToken cancellationToken)
     {
         try
         {
-            var response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetBindingsForQueue(brokerQueue.QueueName, cancellationToken), cancellationToken);
+            var response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetBindingsForQueue(brokerQueue.QueueName, token), cancellationToken);
 
             // Check if conventional binding is found
             if (response.Value.Any(binding => binding?.Source == brokerQueue.QueueName
-                //&& binding?.Vhost == brokerQueue.VHost
                 && binding?.Destination == brokerQueue.QueueName
                 && binding?.DestinationType == "queue"
                 && binding?.RoutingKey == string.Empty
@@ -196,11 +181,10 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
         try
         {
-            var response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetBindingsForExchange(brokerQueue.QueueName, cancellationToken), cancellationToken);
+            var response = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetBindingsForExchange(brokerQueue.QueueName, token), cancellationToken);
 
             // Check if delayed binding is found
             if (response.Value.Any(binding => binding?.Source is "nsb.v2.delay-delivery" or "nsb.delay-delivery"
-                    //&& binding?.Vhost == brokerQueue.VHost
                     && binding?.Destination == brokerQueue.QueueName
                     && binding?.DestinationType == "exchange"
                     && binding?.RoutingKey == $"#.{brokerQueue.QueueName}"))
@@ -216,7 +200,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     internal async Task<(List<RabbitMQBrokerQueueDetails>?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
     {
-        var (StatusCode, Reason, Value, MorePages) = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueues(page, 500, cancellationToken), cancellationToken);
+        var (StatusCode, Reason, Value, MorePages) = await pipeline.ExecuteAsync(async token => await rabbitMQTransport.ManagementClient.GetQueues(page, 500, token), cancellationToken);
 
         ValidateResponse((StatusCode, Reason, Value));
 
@@ -241,19 +225,25 @@ public class RabbitMQQuery : BrokerThroughputQuery
         new KeyDescriptionPair(RabbitMQSettings.Password, RabbitMQSettings.PasswordDescription)
     ];
 
-    protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
-        CancellationToken cancellationToken)
+    protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(CancellationToken cancellationToken)
     {
         try
         {
-            await GetRabbitDetails(true, cancellationToken);
-        }
-        catch (HttpRequestException e)
-        {
-            throw new Exception($"Failed to connect to management API", e);
-        }
+            var (statusCode, reason, value) = await rabbitMQTransport.ManagementClient.GetOverview(cancellationToken);
 
-        return (true, []);
+            if (value is not null)
+            {
+                return (true, []);
+            }
+            else
+            {
+                return (false, [$"{statusCode}: {reason}"]);
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new Exception($"Failed to connect to RabbitMQ management API", ex);
+        }
     }
 
     public static class RabbitMQSettings
