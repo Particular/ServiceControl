@@ -6,6 +6,8 @@
     using System.Threading.Tasks;
     using global::RabbitMQ.Client;
     using NServiceBus.Logging;
+    using NServiceBus.Transport.RabbitMQ;
+    using ConnectionFactory = NServiceBus.Transport.RabbitMQ.ConnectionFactory;
 
     class QueueLengthProvider : AbstractQueueLengthProvider
     {
@@ -105,18 +107,18 @@
 
             public void Initialize()
             {
-                var connectionConfiguration =
-                    ConnectionConfiguration.Create(connectionString, "ServiceControl.Monitoring");
+                var connectionConfiguration = ConnectionConfiguration.Create(connectionString);
 
                 // TODO Fix this up
                 //var dbConnectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 
-                connectionFactory = new ConnectionFactory("ServiceControl.Monitoring",
+                connectionFactory = new("ServiceControl.Monitoring",
                     connectionConfiguration,
                     null, //providing certificates is not supported yet
-                    false,//dbConnectionStringBuilder.GetBooleanValue("DisableRemoteCertificateValidation"),
-                    false, //dbConnectionStringBuilder.GetBooleanValue("UseExternalAuthMechanism"),
-                    null, // value would come from config API in actual transport
+                    false, // TODO Fix dbConnectionStringBuilder.GetBooleanValue("DisableRemoteCertificateValidation"),
+                    false, // TODO fix dbConnectionStringBuilder.GetBooleanValue("UseExternalAuthMechanism"),
+                    TimeSpan.FromSeconds(60), // value would come from config API in actual transport
+                    TimeSpan.FromSeconds(10), // value would come from config API in actual transport
                     null); // value would come from config API in actual transport
             }
 
