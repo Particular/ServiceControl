@@ -12,8 +12,8 @@
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
     using Raven.Client.ServerWide.Operations.Configuration;
-    using ServiceControl.Audit.Persistence.RavenDB.Indexes;
-    using ServiceControl.SagaAudit;
+    using Indexes;
+    using SagaAudit;
 
     class DatabaseSetup(DatabaseConfiguration configuration)
     {

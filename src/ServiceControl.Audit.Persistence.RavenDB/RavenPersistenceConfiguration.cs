@@ -22,7 +22,7 @@
         public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
         public const string BulkInsertCommitTimeoutInSecondsKey = "BulkInsertCommitTimeoutInSeconds";
         public const string DataSpaceRemainingThresholdKey = "DataSpaceRemainingThreshold";
-        public const string SearchEngineTypeKey = "SearchEngineType";
+        public const string SearchEngineTypeKey = "RavenDB/SearchEngineType";
 
         public IEnumerable<string> ConfigurationKeys => new[] { DatabaseNameKey, DatabasePathKey, ConnectionStringKey, ClientCertificatePathKey, ClientCertificateBase64Key, ClientCertificatePasswordKey, DatabaseMaintenancePortKey, ExpirationProcessTimerInSecondsKey, LogPathKey, RavenDbLogLevelKey, DataSpaceRemainingThresholdKey, MinimumStorageLeftRequiredForIngestionKey, BulkInsertCommitTimeoutInSecondsKey, SearchEngineTypeKey };
 
@@ -111,7 +111,7 @@
 
             if (!settings.PersisterSpecificSettings.TryGetValue(SearchEngineTypeKey, out var searchEngineType))
             {
-                searchEngineType = "Corax";
+                searchEngineType = SearchEngineTypeDefault;
             }
 
             return new DatabaseConfiguration(
@@ -192,5 +192,6 @@
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
         const int BulkInsertCommitTimeoutInSecondsDefault = 60;
+        const string SearchEngineTypeDefault = "Corax";
     }
 }
