@@ -19,10 +19,10 @@ static class RabbitMQTransportExtensions
             .OfType<KeyValuePair<string, object>>()
             .ToDictionary(pair => pair.Key, pair => pair.Value.ToString(), StringComparer.OrdinalIgnoreCase);
 
-        if (dictionary.TryGetValue("ValidateDeliveryLimits", out var validateString))
+        if (dictionary.TryGetValue("ValidateDeliveryLimits", out var validateDeliveryLimitsString))
         {
-            _ = bool.TryParse(validateString, out var validate);
-            transport.ValidateDeliveryLimits = validate;
+            _ = bool.TryParse(validateDeliveryLimitsString, out var validateDeliveryLimits);
+            transport.ValidateDeliveryLimits = validateDeliveryLimits;
         }
 
         if (dictionary.TryGetValue("ManagementApiUrl", out var url))
@@ -35,6 +35,18 @@ static class RabbitMQTransportExtensions
             {
                 transport.ManagementApiConfiguration = new(url);
             }
+        }
+
+        if (dictionary.TryGetValue("DisableRemoteCertificateValidation", out var disableRemoteCertificateValidationString))
+        {
+            _ = bool.TryParse(disableRemoteCertificateValidationString, out var disableRemoteCertificateValidation);
+            transport.ValidateRemoteCertificate = !disableRemoteCertificateValidation;
+        }
+
+        if (dictionary.TryGetValue("UseExternalAuthMechanism", out var useExternalAuthMechanismString))
+        {
+            _ = bool.TryParse(useExternalAuthMechanismString, out var useExternalAuthMechanism);
+            transport.UseExternalAuthMechanism = useExternalAuthMechanism;
         }
     }
 }
