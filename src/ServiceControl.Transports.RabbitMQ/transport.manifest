@@ -27,7 +27,7 @@
       "DisplayName": "RabbitMQ - Conventional routing topology (quorum queues)",
       "AssemblyName": "ServiceControl.Transports.RabbitMQ",
       "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
-      "SampleConnectionString": "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>;ValidateDeliveryLimits=<true|false(default)>;ManagementApiUrl=<SCHEME://HOST:PORT;ManagementApiUserName=<USERNAME>;ManagementApiPassword=<Password>",
+      "SampleConnectionString": "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>;ValidateDeliveryLimits=<true(default)|false>;ManagementApiUrl=<SCHEME://HOST:PORT>;ManagementApiUserName=<USERNAME>;ManagementApiPassword=<Password>",
       "AvailableInSCMU": true,
       "Aliases": [
         "ServiceControl.Transports.RabbitMQ.QuorumConventialRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ"
@@ -38,7 +38,7 @@
       "DisplayName": "RabbitMQ - Direct routing topology (quorum queues)",
       "AssemblyName": "ServiceControl.Transports.RabbitMQ",
       "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
-      "SampleConnectionString": "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>;ValidateDeliveryLimits=<true|false(default)>ManagementApiUrl=<SCHEME://HOST:PORT;ManagementApiUserName=<USERNAME>;ManagementApiPassword=<Password>",
+      "SampleConnectionString": "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>;ValidateDeliveryLimits=<true(default)|false>ManagementApiUrl=<SCHEME://HOST:PORT>;ManagementApiUserName=<USERNAME>;ManagementApiPassword=<Password>",
       "AvailableInSCMU": true,
       "Aliases": [
         "ServiceControl.Transports.RabbitMQ.QuorumDirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ"
