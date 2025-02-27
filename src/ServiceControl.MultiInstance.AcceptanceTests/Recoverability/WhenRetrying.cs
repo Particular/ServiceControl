@@ -15,7 +15,7 @@ abstract class WhenRetrying : AcceptanceTest
             return Task.FromResult(SingleResult<FailedMessage>.Empty);
         }
 
-        return this.TryGet<FailedMessage>("/api/errors/" + uniqueMessageId, f => f.Status == expectedStatus, instance);
+        return this.TryGet<FailedMessage>($"/api/errors/{uniqueMessageId}", f => f.Status == expectedStatus, instance);
     }
 
     protected Task<ManyResult<FailedMessageView>> GetAllFailedMessage(string instance, FailedMessageStatus expectedStatus) => this.TryGetMany<FailedMessageView>("/api/errors", f => f.Status == expectedStatus, instance);
