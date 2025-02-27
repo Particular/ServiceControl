@@ -30,7 +30,7 @@ class WhenRetryingWithEdit : WhenRetrying
                         FailedMessageStatus.Unresolved);
                     if (!failedMessage.HasResult)
                     {
-                        return false;
+                        return false; // No failed message yet
                     }
 
                     await this.Post<object>($"/api/edit/{failedMessage.Item.UniqueMessageId}",
@@ -47,7 +47,7 @@ class WhenRetryingWithEdit : WhenRetrying
 
                 var failedResolvedMessage = await GetFailedMessage(c.UniqueMessageId, ServiceControlInstanceName, FailedMessageStatus.Resolved);
 
-                return failedResolvedMessage.HasResult;
+                return failedResolvedMessage.HasResult; // If there is a result it means the message was resolved
             })
             .Run(TimeSpan.FromMinutes(2));
     }

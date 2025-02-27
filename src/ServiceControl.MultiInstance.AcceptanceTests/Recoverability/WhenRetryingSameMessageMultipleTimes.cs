@@ -34,10 +34,10 @@
                     b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
-                    if (c.RetryCount >= retryTypes.Length)
+                    if (c.RetryCount >= retryTypes.Length) // Are all retries done?
                     {
                         return !(await GetAllFailedMessage(ServiceControlInstanceName, FailedMessageStatus.Unresolved))
-                            .HasResult;
+                            .HasResult; // Should return true if all failed messages are no longer unresolved
                     }
 
                     if (retryTypes[c.RetryCount] == RetryType.Edit)
@@ -46,7 +46,7 @@
                             FailedMessageStatus.Unresolved);
                         if (!results.HasResult)
                         {
-                            return false;
+                            return false; // No failed messages yet
                         }
 
                         var result = results.Items.Single();
@@ -57,7 +57,7 @@
                     var failedMessage = await GetFailedMessage(c.UniqueMessageId, ServiceControlInstanceName, FailedMessageStatus.Unresolved);
                     if (!failedMessage.HasResult)
                     {
-                        return false;
+                        return false; // No failed message yet
                     }
 
                     if (retryTypes[c.RetryCount] == RetryType.Edit)
