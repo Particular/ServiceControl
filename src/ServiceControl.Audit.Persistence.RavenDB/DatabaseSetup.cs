@@ -36,8 +36,8 @@
                 try
                 {
                     var databaseRecord = new DatabaseRecord(databaseName);
-                    databaseRecord.Settings.Add("Indexing.Auto.SearchEngineType", configuration.SearchEngineType);
-                    databaseRecord.Settings.Add("Indexing.Static.SearchEngineType", configuration.SearchEngineType);
+                    databaseRecord.Settings.Add(AutoSearchEngineTypeKey, configuration.SearchEngineType);
+                    databaseRecord.Settings.Add(StaticSearchEngineTypeKey, configuration.SearchEngineType);
 
                     await documentStore.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), cancellationToken);
                 }
@@ -95,7 +95,7 @@
             }
         }
 
-        public static async Task DeleteLegacySagaDetailsIndex(IDocumentStore documentStore, CancellationToken cancellationToken)
+        internal static async Task DeleteLegacySagaDetailsIndex(IDocumentStore documentStore, CancellationToken cancellationToken)
         {
             // If the SagaDetailsIndex exists but does not have a .Take(50000), then we remove the current SagaDetailsIndex and
             // create a new one. If we do not remove the current one, then RavenDB will attempt to do a side-by-side migration.
@@ -103,11 +103,11 @@
             // for the index to not be stale before swapping to the new index. Constant ingestion means the index will never be not-stale.
             // This needs to stay in place until the next major version as the user could upgrade from an older version of the current
             // Major (v5.x.x) which might still have the incorrect index.
-            var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
+            var sagaDetailsIndexOperation = new GetIndexOperation(SagaDetailsIndexName);
             var sagaDetailsIndexDefinition = await documentStore.Maintenance.SendAsync(sagaDetailsIndexOperation, cancellationToken);
             if (sagaDetailsIndexDefinition != null && !sagaDetailsIndexDefinition.Reduce.Contains("Take(50000)"))
             {
-                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("SagaDetailsIndex"), cancellationToken);
+                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation(SagaDetailsIndexName), cancellationToken);
             }
         }
 
@@ -120,12 +120,12 @@
             if (configuration.EnableFullTextSearch)
             {
                 indexList.Add(new MessagesViewIndexWithFullTextSearch());
-                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"), cancellationToken);
+                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation(MessagesViewIndexName), cancellationToken);
             }
             else
             {
                 indexList.Add(new MessagesViewIndex());
-                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"), cancellationToken);
+                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation(MessagesViewIndexWithFullTextSearchIndexName), cancellationToken);
             }
 
             await IndexCreation.CreateIndexesAsync(indexList, documentStore, null, null, cancellationToken);
@@ -144,5 +144,8 @@
 
         const string AutoSearchEngineTypeKey = "Indexing.Auto.SearchEngineType";
         const string StaticSearchEngineTypeKey = "Indexing.Static.SearchEngineType";
+        internal const string MessagesViewIndexName = "MessagesViewIndex";
+        internal const string MessagesViewIndexWithFullTextSearchIndexName = "MessagesViewIndexWithFullTextSearch";
+        internal const string SagaDetailsIndexName = "SagaDetailsIndex";
     }
 }
