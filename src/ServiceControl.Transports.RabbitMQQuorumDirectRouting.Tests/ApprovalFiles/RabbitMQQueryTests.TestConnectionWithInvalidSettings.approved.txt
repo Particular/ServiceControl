@@ -1,7 +1,0 @@
-Connection test to RabbitMQ failed:
-Failed to connect to 'http://localhost:12345/'
-
-Connection attempted with the following settings:
-Username not set, defaulted to using "xxxxx" username from the ConnectionString used by instance
-Password not set, defaulted to using password from the ConnectionString used by instance
-RabbitMQ API Url set to "http://localhost:12345"
