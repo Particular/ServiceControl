@@ -4,17 +4,21 @@
     using System.Collections.Concurrent;
     using System.Threading;
     using System.Threading.Tasks;
-    using global::RabbitMQ.Client;
     using NServiceBus.Logging;
-    using NServiceBus.Transport.RabbitMQ;
-    using ConnectionFactory = NServiceBus.Transport.RabbitMQ.ConnectionFactory;
+    using NServiceBus.Transport.RabbitMQ.ManagementApi;
 
     class QueueLengthProvider : AbstractQueueLengthProvider
     {
-        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store) : base(settings, store)
+        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store, ITransportCustomization transportCustomization) : base(settings, store)
         {
-            queryExecutor = new QueryExecutor(ConnectionString);
-            queryExecutor.Initialize();
+            if (transportCustomization is IManagementClientProvider provider)
+            {
+                managementClient = provider.ManagementClient;
+            }
+            else
+            {
+                throw new ArgumentException($"Transport customization does not implement {nameof(IManagementClientProvider)}. Type: {transportCustomization.GetType().Name}", nameof(transportCustomization));
+            }
         }
 
         public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack) =>
@@ -76,90 +80,37 @@
         {
             foreach (var endpointQueuePair in endpointQueues)
             {
-                await queryExecutor.Execute(async m =>
-                {
-                    var queueName = endpointQueuePair.Value;
+                var queueName = endpointQueuePair.Value;
 
-                    try
-                    {
-                        var size = (int)await m.MessageCountAsync(queueName, cancellationToken).ConfigureAwait(false);
-
-                        sizes.AddOrUpdate(queueName, _ => size, (_, __) => size);
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Warn($"Error querying queue length for {queueName}", e);
-                    }
-                }, cancellationToken);
-            }
-        }
-
-        readonly QueryExecutor queryExecutor;
-        static readonly TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
-
-        readonly ConcurrentDictionary<string, string> endpointQueues = new ConcurrentDictionary<string, string>();
-        readonly ConcurrentDictionary<string, int> sizes = new ConcurrentDictionary<string, int>();
-
-        static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
-
-        class QueryExecutor(string connectionString) : IDisposable
-        {
-
-            public void Initialize()
-            {
-                var connectionConfiguration = ConnectionConfiguration.Create(connectionString);
-
-                // TODO Fix this up
-                //var dbConnectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
-
-                connectionFactory = new("ServiceControl.Monitoring",
-                    connectionConfiguration,
-                    null, //providing certificates is not supported yet
-                    false, // TODO Fix dbConnectionStringBuilder.GetBooleanValue("DisableRemoteCertificateValidation"),
-                    false, // TODO fix dbConnectionStringBuilder.GetBooleanValue("UseExternalAuthMechanism"),
-                    TimeSpan.FromSeconds(60), // value would come from config API in actual transport
-                    TimeSpan.FromSeconds(10), // value would come from config API in actual transport
-                    null); // value would come from config API in actual transport
-            }
-
-            public async Task Execute(Action<IChannel> action, CancellationToken cancellationToken = default)
-            {
                 try
                 {
-                    connection ??= await connectionFactory.CreateConnection("queue length monitor", cancellationToken: cancellationToken);
+                    var (statusCode, reason, queue) = await managementClient.GetQueue(queueName, cancellationToken);
 
-                    //Connection implements reconnection logic
-                    while (!connection.IsOpen)
+                    if (queue is not null)
                     {
-                        await Task.Delay(ReconnectionDelay, cancellationToken);
+                        var size = queue.MessageCount;
+                        sizes.AddOrUpdate(queueName, _ => size, (_, _) => size);
+                    }
+                    else
+                    {
+                        Logger.Warn($"Error querying queue length for {queueName}. {statusCode}: {reason}");
                     }
 
-                    if (channel == null || channel.IsClosed)
-                    {
-                        channel?.Dispose();
-
-                        channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-                    }
-
-                    action(channel);
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    // no-op
                 }
                 catch (Exception e)
                 {
-                    Logger.Warn("Error querying queue length.", e);
+                    Logger.Warn($"Error querying queue length for {queueName}", e);
                 }
             }
-
-            public void Dispose() => connection?.Dispose();
-
-            IConnection connection;
-            IChannel channel;
-            ConnectionFactory connectionFactory;
-
-            static readonly TimeSpan ReconnectionDelay = TimeSpan.FromSeconds(5);
         }
+
+        static readonly TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
+
+        readonly ConcurrentDictionary<string, string> endpointQueues = new();
+        readonly ConcurrentDictionary<string, long> sizes = new();
+
+        static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
+
+        readonly ManagementClient managementClient;
     }
 }
