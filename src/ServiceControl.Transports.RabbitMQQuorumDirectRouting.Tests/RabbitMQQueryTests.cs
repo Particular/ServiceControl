@@ -32,7 +32,7 @@ class RabbitMQQueryTests : TransportTestFixture
 
         configuration.TransportCustomization.CustomizePrimaryEndpoint(new EndpointConfiguration(transportSettings.EndpointName), transportSettings);
 
-        var query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, transportSettings, configuration.TransportCustomization);
+        var query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, configuration.TransportCustomization);
         query.Initialize(ReadOnlyDictionary<string, string>.Empty);
 
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
@@ -56,7 +56,7 @@ class RabbitMQQueryTests : TransportTestFixture
 
         configuration.TransportCustomization.CustomizePrimaryEndpoint(new EndpointConfiguration(transportSettings.EndpointName), transportSettings);
 
-        var query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, transportSettings, configuration.TransportCustomization);
+        var query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, configuration.TransportCustomization);
         query.Initialize(ReadOnlyDictionary<string, string>.Empty);
 
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
@@ -83,7 +83,7 @@ class RabbitMQQueryTests : TransportTestFixture
 
         await CreateTestQueue(transportSettings.EndpointName);
 
-        var query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, transportSettings, configuration.TransportCustomization);
+        var query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, configuration.TransportCustomization);
         query.Initialize(ReadOnlyDictionary<string, string>.Empty);
 
         var queueNames = new List<IBrokerQueue>();
