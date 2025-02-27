@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\NServiceBus.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,5 +14,5 @@
     <ProjectCapability Remove="TestContainer" />
   </ItemGroup>
   <!-- End Workaround -->
-  
+
 </Project>
