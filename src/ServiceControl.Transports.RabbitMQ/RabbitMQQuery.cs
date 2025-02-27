@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -93,6 +94,8 @@ public class RabbitMQQuery : BrokerThroughputQuery
             // so for now we are using a virtual method that can be overriden in tests
             // https://github.com/Particular/ServiceControl/issues/4493
             httpClient = CreateHttpClient(defaultCredential, apiUrl);
+            var authToken = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"{username}:{password}"));
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
         }
     }
 
@@ -154,7 +157,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
             throw new Exception("The RabbitMQ broker is configured with 'management.disable_stats = true' or 'management_agent.disable_metrics_collector = true' and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker.");
         }
 
-        var rabbitVersion = obj["rabbitmq_version"] ?? obj["product_version"];
+        var rabbitVersion = obj["rabbitmq_version"] ?? obj["product_version"] ?? obj["lavinmq_version"];
         var mgmtVersion = obj["management_version"];
 
         return (rabbitVersion?.GetValue<string>() ?? "Unknown", mgmtVersion?.GetValue<string>() ?? "Unknown");
