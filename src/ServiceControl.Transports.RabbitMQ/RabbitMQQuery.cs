@@ -27,7 +27,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
       .AddTimeout(TimeSpan.FromMinutes(2)) // Add timeout if it keeps failing
       .Build();
 
-    public RabbitMQQuery(ILogger<RabbitMQQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings, ITransportCustomization transportCustomization) : base(logger, "RabbitMQ")
+    public RabbitMQQuery(ILogger<RabbitMQQuery> logger, TimeProvider timeProvider, ITransportCustomization transportCustomization) : base(logger, "RabbitMQ")
     {
         this.logger = logger;
         this.timeProvider = timeProvider;
