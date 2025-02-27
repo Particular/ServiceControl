@@ -36,8 +36,8 @@
                 try
                 {
                     var databaseRecord = new DatabaseRecord(databaseName);
-                    databaseRecord.Settings.Add(AutoSearchEngineTypeKey, configuration.SearchEngineType);
-                    databaseRecord.Settings.Add(StaticSearchEngineTypeKey, configuration.SearchEngineType);
+                    databaseRecord.Settings.Add(AutoSearchEngineTypeKey, configuration.SearchEngineType.ToString());
+                    databaseRecord.Settings.Add(StaticSearchEngineTypeKey, configuration.SearchEngineType.ToString());
 
                     await documentStore.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), cancellationToken);
                 }
@@ -61,7 +61,7 @@
 
             if (dbRecord.Settings.TryGetValue(AutoSearchEngineTypeKey, out var searchEngineTypeAuto))
             {
-                if (searchEngineTypeAuto != configuration.SearchEngineType)
+                if (searchEngineTypeAuto != configuration.SearchEngineType.ToString())
                 {
                     updated = true;
                 }
@@ -71,11 +71,11 @@
                 updated = true;
             }
 
-            dbRecord.Settings[AutoSearchEngineTypeKey] = configuration.SearchEngineType;
+            dbRecord.Settings[AutoSearchEngineTypeKey] = configuration.SearchEngineType.ToString();
 
             if (dbRecord.Settings.TryGetValue(StaticSearchEngineTypeKey, out var searchEngineTypeStatic))
             {
-                if (searchEngineTypeStatic != configuration.SearchEngineType)
+                if (searchEngineTypeStatic != configuration.SearchEngineType.ToString())
                 {
                     updated = true;
                 }
@@ -85,7 +85,7 @@
                 updated = true;
             }
 
-            dbRecord.Settings[StaticSearchEngineTypeKey] = configuration.SearchEngineType;
+            dbRecord.Settings[StaticSearchEngineTypeKey] = configuration.SearchEngineType.ToString();
 
             if (updated)
             {

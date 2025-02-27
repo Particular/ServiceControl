@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System;
+    using Raven.Client.Documents.Indexes;
     using Sparrow.Json;
 
     public class DatabaseConfiguration(
@@ -13,7 +14,7 @@
         int minimumStorageLeftRequiredForIngestion,
         ServerConfiguration serverConfiguration,
         TimeSpan bulkInsertCommitTimeout,
-        string searchEngineType)
+        SearchEngineType searchEngineType)
     {
         public string Name { get; } = name;
 
@@ -35,6 +36,6 @@
 
         public TimeSpan BulkInsertCommitTimeout { get; } = bulkInsertCommitTimeout;
 
-        public string SearchEngineType { get; } = searchEngineType;
+        public SearchEngineType SearchEngineType { get; } = searchEngineType;
     }
 }

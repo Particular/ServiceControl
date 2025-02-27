@@ -36,7 +36,7 @@
                 var logsMode = "Operations";
                 var serverUrl = $"http://localhost:{PortUtility.FindAvailablePort(33334)}";
 
-                var databaseConfiguration = new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, 5, new ServerConfiguration(dbPath, serverUrl, logPath, logsMode), TimeSpan.FromSeconds(60), "Corax");
+                var databaseConfiguration = new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, 5, new ServerConfiguration(dbPath, serverUrl, logPath, logsMode), TimeSpan.FromSeconds(60), RavenPersistenceConfiguration.SearchEngineTypeDefault);
                 var serverConfig = databaseConfiguration.ServerConfiguration;
 
                 // TODO: See if more refactoring can be done in configuration classes

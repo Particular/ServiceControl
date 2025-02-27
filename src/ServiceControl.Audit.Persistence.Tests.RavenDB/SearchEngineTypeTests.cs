@@ -12,9 +12,11 @@ class SearchEngineTypeTests : PersistenceTestFixture
     [Test]
     public async Task Free_text_search_should_be_on_using_corax_by_default()
     {
-        var index = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(DatabaseSetup.MessagesViewIndexWithFullTextSearchIndexName));
+        var freeTextIndex = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(DatabaseSetup.MessagesViewIndexWithFullTextSearchIndexName));
+        var nonFreeTextIndex = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(DatabaseSetup.MessagesViewIndexName));
 
-        Assert.That(index, Is.Not.Null);
-        Assert.That(index.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
+        Assert.That(nonFreeTextIndex, Is.Null);
+        Assert.That(freeTextIndex, Is.Not.Null);
+        Assert.That(freeTextIndex.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
     }
 }

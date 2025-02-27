@@ -35,8 +35,8 @@ namespace ServiceControl.Persistence.RavenDB
                 try
                 {
                     var databaseRecord = new DatabaseRecord(databaseName);
-                    databaseRecord.Settings.Add("Indexing.Auto.SearchEngineType", settings.SearchEngineType);
-                    databaseRecord.Settings.Add("Indexing.Static.SearchEngineType", settings.SearchEngineType);
+                    databaseRecord.Settings.Add("Indexing.Auto.SearchEngineType", settings.SearchEngineType.ToString());
+                    databaseRecord.Settings.Add("Indexing.Static.SearchEngineType", settings.SearchEngineType.ToString());
 
                     await documentStore.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), cancellationToken);
                 }
@@ -58,8 +58,8 @@ namespace ServiceControl.Persistence.RavenDB
 
             var updated = false;
 
-            updated |= dbRecord.Settings.TryAdd("Indexing.Auto.SearchEngineType", settings.SearchEngineType);
-            updated |= dbRecord.Settings.TryAdd("Indexing.Static.SearchEngineType", settings.SearchEngineType);
+            updated |= dbRecord.Settings.TryAdd("Indexing.Auto.SearchEngineType", settings.SearchEngineType.ToString());
+            updated |= dbRecord.Settings.TryAdd("Indexing.Static.SearchEngineType", settings.SearchEngineType.ToString());
 
             if (updated)
             {

@@ -6,6 +6,7 @@
     using System.Reflection;
     using CustomChecks;
     using NServiceBus.Logging;
+    using Raven.Client.Documents.Indexes;
 
     public class RavenPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -109,9 +110,16 @@
 
             var bulkInsertTimeout = TimeSpan.FromSeconds(GetBulkInsertCommitTimeout(settings));
 
-            if (!settings.PersisterSpecificSettings.TryGetValue(SearchEngineTypeKey, out var searchEngineType))
+            var searchEngineType = SearchEngineTypeDefault;
+
+            if (settings.PersisterSpecificSettings.TryGetValue(SearchEngineTypeKey, out var searchEngineTypeValue))
             {
-                searchEngineType = SearchEngineTypeDefault;
+                if (!Enum.TryParse<SearchEngineType>(searchEngineTypeValue, out var explicitSearchEngineType))
+                {
+                    throw new InvalidOperationException($"{searchEngineTypeValue} is not supported.");
+                }
+
+                searchEngineType = explicitSearchEngineType;
             }
 
             return new DatabaseConfiguration(
@@ -192,6 +200,6 @@
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
         const int BulkInsertCommitTimeoutInSecondsDefault = 60;
-        const string SearchEngineTypeDefault = "Corax";
+        internal static readonly SearchEngineType SearchEngineTypeDefault = SearchEngineType.Corax;
     }
 }

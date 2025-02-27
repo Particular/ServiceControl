@@ -6,6 +6,7 @@
     using Configuration;
     using CustomChecks;
     using Particular.LicensingComponent.Contracts;
+    using Raven.Client.Documents.Indexes;
 
     class RavenPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -39,7 +40,7 @@
                 ClientCertificatePassword = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ClientCertificatePasswordKey),
                 DatabaseName = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabaseNameKey, RavenPersisterSettings.DatabaseNameDefault),
                 DatabasePath = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabasePathKey, DefaultDatabaseLocation()),
-                SearchEngineType = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.SearchEngineTypeKey, RavenPersisterSettings.SearchEngineTypeDefault),
+                SearchEngineType = SettingsReader.Read<SearchEngineType>(settingsRootNamespace, RavenBootstrapper.SearchEngineTypeKey, RavenPersisterSettings.SearchEngineTypeDefault),
                 DatabaseMaintenancePort = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabaseMaintenancePortKey, RavenPersisterSettings.DatabaseMaintenancePortDefault),
                 ExpirationProcessTimerInSeconds = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.ExpirationProcessTimerInSecondsKey, 600),
                 MinimumStorageLeftRequiredForIngestion = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault),
