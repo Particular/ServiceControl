@@ -2,11 +2,12 @@
 {
     using System;
     using System.Collections.Concurrent;
-    using System.Data.Common;
     using System.Threading;
     using System.Threading.Tasks;
     using global::RabbitMQ.Client;
     using NServiceBus.Logging;
+    using NServiceBus.Transport.RabbitMQ;
+    using ConnectionFactory = NServiceBus.Transport.RabbitMQ.ConnectionFactory;
 
     class QueueLengthProvider : AbstractQueueLengthProvider
     {
@@ -75,13 +76,13 @@
         {
             foreach (var endpointQueuePair in endpointQueues)
             {
-                await queryExecutor.Execute(m =>
+                await queryExecutor.Execute(async m =>
                 {
                     var queueName = endpointQueuePair.Value;
 
                     try
                     {
-                        var size = (int)m.MessageCount(queueName);
+                        var size = (int)await m.MessageCountAsync(queueName, cancellationToken).ConfigureAwait(false);
 
                         sizes.AddOrUpdate(queueName, _ => size, (_, __) => size);
                     }
@@ -106,25 +107,26 @@
 
             public void Initialize()
             {
-                var connectionConfiguration =
-                    ConnectionConfiguration.Create(connectionString, "ServiceControl.Monitoring");
+                var connectionConfiguration = ConnectionConfiguration.Create(connectionString);
 
-                var dbConnectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+                // TODO Fix this up
+                //var dbConnectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 
-                connectionFactory = new ConnectionFactory("ServiceControl.Monitoring",
+                connectionFactory = new("ServiceControl.Monitoring",
                     connectionConfiguration,
                     null, //providing certificates is not supported yet
-                    dbConnectionStringBuilder.GetBooleanValue("DisableRemoteCertificateValidation"),
-                    dbConnectionStringBuilder.GetBooleanValue("UseExternalAuthMechanism"),
-                    null, // value would come from config API in actual transport
+                    false, // TODO Fix dbConnectionStringBuilder.GetBooleanValue("DisableRemoteCertificateValidation"),
+                    false, // TODO fix dbConnectionStringBuilder.GetBooleanValue("UseExternalAuthMechanism"),
+                    TimeSpan.FromSeconds(60), // value would come from config API in actual transport
+                    TimeSpan.FromSeconds(10), // value would come from config API in actual transport
                     null); // value would come from config API in actual transport
             }
 
-            public async Task Execute(Action<IModel> action, CancellationToken cancellationToken = default)
+            public async Task Execute(Action<IChannel> action, CancellationToken cancellationToken = default)
             {
                 try
                 {
-                    connection ??= connectionFactory.CreateConnection("queue length monitor");
+                    connection ??= await connectionFactory.CreateConnection("queue length monitor", cancellationToken: cancellationToken);
 
                     //Connection implements reconnection logic
                     while (!connection.IsOpen)
@@ -132,14 +134,14 @@
                         await Task.Delay(ReconnectionDelay, cancellationToken);
                     }
 
-                    if (model == null || model.IsClosed)
+                    if (channel == null || channel.IsClosed)
                     {
-                        model?.Dispose();
+                        channel?.Dispose();
 
-                        model = connection.CreateModel();
+                        channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
                     }
 
-                    action(model);
+                    action(channel);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
@@ -154,7 +156,7 @@
             public void Dispose() => connection?.Dispose();
 
             IConnection connection;
-            IModel model;
+            IChannel channel;
             ConnectionFactory connectionFactory;
 
             static readonly TimeSpan ReconnectionDelay = TimeSpan.FromSeconds(5);
