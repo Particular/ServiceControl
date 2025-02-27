@@ -4,6 +4,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NUnit.Framework;
+    using Persistence.RavenDB;
     using Raven.Client.Documents.Indexes;
     using Raven.Client.Documents.Operations.Indexes;
     using ServiceControl.SagaAudit;
@@ -14,14 +15,14 @@
         [Test]
         public async Task Deletes_index_that_does_not_have_cap_of_50000()
         {
-            await configuration.DocumentStore.Maintenance.SendAsync(new DeleteIndexOperation("SagaDetailsIndex"));
+            await configuration.DocumentStore.Maintenance.SendAsync(new DeleteIndexOperation(DatabaseSetup.SagaDetailsIndexName));
 
             var indexWithout50000capDefinition = new IndexDefinition
             {
-                Name = "SagaDetailsIndex",
+                Name = DatabaseSetup.SagaDetailsIndexName,
                 Maps =
-                            [
-                                @"from doc in docs
+                [
+                    @"from doc in docs
                                                      select new
                                                      {
                                                          doc.SagaId,
@@ -41,7 +42,7 @@
                                     }
                                 }
             }"
-                            ],
+                ],
                 Reduce = @"from result in results
                                             group result by result.SagaId
                             into g
@@ -61,12 +62,12 @@
 
             await configuration.DocumentStore.Maintenance.SendAsync(putIndexesOp);
 
-            var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
+            var sagaDetailsIndexOperation = new GetIndexOperation(DatabaseSetup.SagaDetailsIndexName);
             var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
             Assert.That(sagaDetailsIndexDefinition, Is.Not.Null);
 
-            await Persistence.RavenDB.DatabaseSetup.DeleteLegacySagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
+            await DatabaseSetup.DeleteLegacySagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
 
             sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
@@ -76,9 +77,9 @@
         [Test]
         public async Task Does_not_delete_index_that_does_have_cap_of_50000()
         {
-            await Persistence.RavenDB.DatabaseSetup.DeleteLegacySagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
+            await DatabaseSetup.DeleteLegacySagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
 
-            var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
+            var sagaDetailsIndexOperation = new GetIndexOperation(DatabaseSetup.SagaDetailsIndexName);
             var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
             Assert.That(sagaDetailsIndexDefinition, Is.Not.Null);
@@ -100,13 +101,10 @@
 
             await configuration.CompleteDBOperation();
 
-            using (var session = configuration.DocumentStore.OpenAsyncSession())
-            {
-                var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
-                var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
+            var sagaDetailsIndexOperation = new GetIndexOperation(DatabaseSetup.SagaDetailsIndexName);
+            var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
-                Assert.That(sagaDetailsIndexDefinition.Reduce, Does.Contain("Take(50000)"), "The SagaDetails index definition does not contain a .Take(50000) to limit the number of saga state changes that are reduced by the map/reduce");
-            }
+            Assert.That(sagaDetailsIndexDefinition.Reduce, Does.Contain("Take(50000)"), "The SagaDetails index definition does not contain a .Take(50000) to limit the number of saga state changes that are reduced by the map/reduce");
         }
 
         async Task IngestSagaAudits(params SagaSnapshot[] snapshots)
@@ -116,6 +114,7 @@
             {
                 await unitOfWork.RecordSagaSnapshot(snapshot);
             }
+
             await unitOfWork.DisposeAsync();
             await configuration.CompleteDBOperation();
         }

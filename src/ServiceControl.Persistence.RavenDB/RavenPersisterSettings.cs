@@ -1,5 +1,6 @@
 ﻿using System;
 using Particular.LicensingComponent.Contracts;
+using Raven.Client.Documents.Linq.Indexing;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.RavenDB.CustomChecks;
 using ServiceControl.RavenDB;
@@ -32,7 +33,9 @@ class RavenPersisterSettings : PersistenceSettings, IRavenClientCertificateInfo
     public string LogsMode { get; set; } = LogsModeDefault;
     public string DatabaseName { get; set; } = DatabaseNameDefault;
     public string ThroughputDatabaseName { get; set; } = ThroughputSettings.DefaultDatabaseName;
+    public Raven.Client.Documents.Indexes.SearchEngineType SearchEngineType { get; set; } = SearchEngineTypeDefault;
 
+    public static readonly Raven.Client.Documents.Indexes.SearchEngineType SearchEngineTypeDefault = Raven.Client.Documents.Indexes.SearchEngineType.Corax;
     public const string DatabaseNameDefault = "primary";
     public const int DatabaseMaintenancePortDefault = 33334;
     public const int ExpirationProcessTimerInSecondsDefault = 600;

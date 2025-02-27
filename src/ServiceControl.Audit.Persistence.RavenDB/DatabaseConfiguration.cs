@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System;
+    using Raven.Client.Documents.Indexes;
     using Sparrow.Json;
 
     public class DatabaseConfiguration(
@@ -12,7 +13,8 @@
         int dataSpaceRemainingThreshold,
         int minimumStorageLeftRequiredForIngestion,
         ServerConfiguration serverConfiguration,
-        TimeSpan bulkInsertCommitTimeout)
+        TimeSpan bulkInsertCommitTimeout,
+        SearchEngineType searchEngineType)
     {
         public string Name { get; } = name;
 
@@ -33,5 +35,7 @@
         public int MinimumStorageLeftRequiredForIngestion { get; internal set; } = minimumStorageLeftRequiredForIngestion; //Setting for ATT only
 
         public TimeSpan BulkInsertCommitTimeout { get; } = bulkInsertCommitTimeout;
+
+        public SearchEngineType SearchEngineType { get; } = searchEngineType;
     }
 }

@@ -6,6 +6,7 @@
     using System.Reflection;
     using CustomChecks;
     using NServiceBus.Logging;
+    using Raven.Client.Documents.Indexes;
 
     public class RavenPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -22,22 +23,9 @@
         public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
         public const string BulkInsertCommitTimeoutInSecondsKey = "BulkInsertCommitTimeoutInSeconds";
         public const string DataSpaceRemainingThresholdKey = "DataSpaceRemainingThreshold";
+        public const string SearchEngineTypeKey = "RavenDB/SearchEngineType";
 
-        public IEnumerable<string> ConfigurationKeys => new[]{
-            DatabaseNameKey,
-            DatabasePathKey,
-            ConnectionStringKey,
-            ClientCertificatePathKey,
-            ClientCertificateBase64Key,
-            ClientCertificatePasswordKey,
-            DatabaseMaintenancePortKey,
-            ExpirationProcessTimerInSecondsKey,
-            LogPathKey,
-            RavenDbLogLevelKey,
-            DataSpaceRemainingThresholdKey,
-            MinimumStorageLeftRequiredForIngestionKey,
-            BulkInsertCommitTimeoutInSecondsKey
-        };
+        public IEnumerable<string> ConfigurationKeys => new[] { DatabaseNameKey, DatabasePathKey, ConnectionStringKey, ClientCertificatePathKey, ClientCertificateBase64Key, ClientCertificatePasswordKey, DatabaseMaintenancePortKey, ExpirationProcessTimerInSecondsKey, LogPathKey, RavenDbLogLevelKey, DataSpaceRemainingThresholdKey, MinimumStorageLeftRequiredForIngestionKey, BulkInsertCommitTimeoutInSecondsKey, SearchEngineTypeKey };
 
         public string Name => "RavenDB";
 
@@ -70,10 +58,12 @@
                 {
                     serverConfiguration.ClientCertificatePath = clientCertificatePath;
                 }
+
                 if (settings.PersisterSpecificSettings.TryGetValue(ClientCertificateBase64Key, out var clientCertificateBase64))
                 {
                     serverConfiguration.ClientCertificateBase64 = clientCertificateBase64;
                 }
+
                 if (settings.PersisterSpecificSettings.TryGetValue(ClientCertificatePasswordKey, out var clientCertificatePassword))
                 {
                     serverConfiguration.ClientCertificatePassword = clientCertificatePassword;
@@ -120,6 +110,18 @@
 
             var bulkInsertTimeout = TimeSpan.FromSeconds(GetBulkInsertCommitTimeout(settings));
 
+            var searchEngineType = SearchEngineTypeDefault;
+
+            if (settings.PersisterSpecificSettings.TryGetValue(SearchEngineTypeKey, out var searchEngineTypeValue))
+            {
+                if (!Enum.TryParse<SearchEngineType>(searchEngineTypeValue, out var explicitSearchEngineType))
+                {
+                    throw new InvalidOperationException($"{searchEngineTypeValue} is not supported.");
+                }
+
+                searchEngineType = explicitSearchEngineType;
+            }
+
             return new DatabaseConfiguration(
                 databaseName,
                 expirationProcessTimerInSeconds,
@@ -129,7 +131,8 @@
                 dataSpaceRemainingThreshold,
                 minimumStorageLeftRequiredForIngestion,
                 serverConfiguration,
-                bulkInsertTimeout);
+                bulkInsertTimeout,
+                searchEngineType);
         }
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
@@ -197,5 +200,6 @@
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
         const int BulkInsertCommitTimeoutInSecondsDefault = 60;
+        internal static readonly SearchEngineType SearchEngineTypeDefault = SearchEngineType.Corax;
     }
 }

@@ -12,6 +12,7 @@
         public const string ClientCertificatePasswordKey = "RavenDB/ClientCertificatePassword";
         public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
         public const string DatabaseNameKey = "RavenDB/DatabaseName";
+        public const string SearchEngineTypeKey = "RavenDB/SearchEngineType";
         public const string LogsPathKey = "LogPath";
         public const string RavenDbLogLevelKey = "RavenDBLogLevel";
     }
