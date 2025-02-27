@@ -11,7 +11,7 @@
     {
         RabbitMQTransport rabbitMQTransport;
 
-        ManagementClient IManagementClientProvider.ManagementClient => rabbitMQTransport?.ManagementClient ?? throw new InvalidOperationException("Transport instance has not been created yet.");
+        ManagementClient IManagementClientProvider.ManagementClient => rabbitMQTransport?.ManagementClient ?? new ManagementClient(rabbitMQTransport.ConnectionConfiguration, rabbitMQTransport.ManagementApiConfiguration);
 
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition, TransportSettings transportSettings) => rabbitMQTransport = transportDefinition;
 
