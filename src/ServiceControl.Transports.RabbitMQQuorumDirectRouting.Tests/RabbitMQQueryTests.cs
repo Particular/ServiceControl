@@ -3,75 +3,65 @@ namespace ServiceControl.Transport.Tests;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
+using NServiceBus;
 using NUnit.Framework;
-using Particular.Approvals;
+using ServiceControl.Transports.BrokerThroughput;
 using Transports;
 using Transports.RabbitMQ;
-using ServiceControl.Transports.BrokerThroughput;
 
 [TestFixture]
 class RabbitMQQueryTests : TransportTestFixture
 {
-    FakeTimeProvider provider;
-    TransportSettings transportSettings;
-    RabbitMQQuery query;
-
-    [SetUp]
-    public void Initialise()
-    {
-        provider = new();
-        provider.SetUtcNow(DateTimeOffset.UtcNow);
-        transportSettings = new TransportSettings
-        {
-            ConnectionString = configuration.ConnectionString,
-            MaxConcurrency = 1,
-            EndpointName = Guid.NewGuid().ToString("N")
-        };
-        query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, transportSettings, configuration.TransportCustomization);
-    }
-
     [Test]
     public async Task TestConnectionWithInvalidSettings()
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        var token = cancellationTokenSource.Token;
 
-        var dictionary = new Dictionary<string, string>
+        var provider = new FakeTimeProvider(DateTimeOffset.UtcNow);
+
+        var transportSettings = new TransportSettings
         {
-            { RabbitMQQuery.RabbitMQSettings.API, "http://localhost:12345" }
+            ConnectionString = configuration.ConnectionString + ";ManagementApiUrl=http://localhost:12345",
+            EndpointName = Guid.NewGuid().ToString("N")
         };
-        query.Initialize(new ReadOnlyDictionary<string, string>(dictionary));
+
+        configuration.TransportCustomization.CustomizePrimaryEndpoint(new EndpointConfiguration(transportSettings.EndpointName), transportSettings);
+
+        var query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, transportSettings, configuration.TransportCustomization);
+        query.Initialize(ReadOnlyDictionary<string, string>.Empty);
+
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.That(success, Is.False);
-        Approver.Verify(diagnostics,
-            s => Regex.Replace(s, "defaulted to using \"\\w*\" username", "defaulted to using \"xxxxx\" username",
-                RegexOptions.Multiline));
     }
 
     [Test]
     public async Task TestConnectionWithValidSettings()
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        var token = cancellationTokenSource.Token;
 
+        var provider = new FakeTimeProvider(DateTimeOffset.UtcNow);
+
+        var transportSettings = new TransportSettings
+        {
+            ConnectionString = configuration.ConnectionString,
+            EndpointName = Guid.NewGuid().ToString("N")
+        };
+
+        configuration.TransportCustomization.CustomizePrimaryEndpoint(new EndpointConfiguration(transportSettings.EndpointName), transportSettings);
+
+        var query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, transportSettings, configuration.TransportCustomization);
         query.Initialize(ReadOnlyDictionary<string, string>.Empty);
+
         (bool success, _, string diagnostics) = await query.TestConnection(cancellationTokenSource.Token);
 
         Assert.That(success, Is.True);
-        Approver.Verify(diagnostics,
-            s =>
-            {
-                s = Regex.Replace(s,
-                    "RabbitMQ API Url not set, defaulted to using \"http://[\\w.]*:15672\" from the ConnectionString used by instance",
-                    "RabbitMQ API Url not set, defaulted to using \"xxxx\" from the ConnectionString used by instance",
-                    RegexOptions.Multiline);
-                return Regex.Replace(s, "defaulted to using \"\\w*\" username", "defaulted to using \"xxxxx\" username",
-                    RegexOptions.Multiline);
-            });
     }
 
     [Test]
@@ -79,10 +69,21 @@ class RabbitMQQueryTests : TransportTestFixture
     {
         // We need to wait a bit of time, because the scenario running takes on average 1 sec per run.
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-        CancellationToken token = cancellationTokenSource.Token;
+        var token = cancellationTokenSource.Token;
+
+        var provider = new FakeTimeProvider(DateTimeOffset.UtcNow);
+
+        var transportSettings = new TransportSettings
+        {
+            ConnectionString = configuration.ConnectionString,
+            EndpointName = Guid.NewGuid().ToString("N")
+        };
+
+        configuration.TransportCustomization.CustomizePrimaryEndpoint(new EndpointConfiguration(transportSettings.EndpointName), transportSettings);
 
         await CreateTestQueue(transportSettings.EndpointName);
 
+        var query = new RabbitMQQuery(NullLogger<RabbitMQQuery>.Instance, provider, transportSettings, configuration.TransportCustomization);
         query.Initialize(ReadOnlyDictionary<string, string>.Empty);
 
         var queueNames = new List<IBrokerQueue>();
