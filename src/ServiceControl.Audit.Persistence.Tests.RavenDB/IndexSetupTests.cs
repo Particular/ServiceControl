@@ -36,6 +36,21 @@ class IndexSetupTests : PersistenceTestFixture
     }
 
     [Test]
+    public async Task Free_text_search_index_can_be_opted_out_from()
+    {
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, false, CancellationToken.None);
+
+        //TODO: find a better way
+        await Task.Delay(1000);
+
+        var freeTextIndex = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(DatabaseSetup.MessagesViewIndexWithFulltextSearchName));
+        var nonFreeTextIndex = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(DatabaseSetup.MessagesViewIndexName));
+
+        Assert.That(freeTextIndex, Is.Null);
+        Assert.That(nonFreeTextIndex, Is.Not.Null);
+    }
+
+    [Test]
     public async Task Indexes_should_be_reset_on_setup()
     {
         var index = new MessagesViewIndexWithFullTextSearch { Configuration = { ["Indexing.Static.SearchEngineType"] = SearchEngineType.Lucene.ToString() } };
