@@ -23,7 +23,7 @@ class DatabaseSetup(DatabaseConfiguration configuration)
 
         await UpdateDatabaseSettings(documentStore, configuration.Name, cancellationToken);
 
-        await CreateIndexes(documentStore, cancellationToken);
+        await CreateIndexes(documentStore, configuration.EnableFullTextSearch, cancellationToken);
 
         await ConfigureExpiration(documentStore, cancellationToken);
     }
@@ -79,13 +79,13 @@ class DatabaseSetup(DatabaseConfiguration configuration)
         }
     }
 
-    async Task CreateIndexes(IDocumentStore documentStore, CancellationToken cancellationToken)
+    internal static async Task CreateIndexes(IDocumentStore documentStore, bool enableFreeTextSearch, CancellationToken cancellationToken)
     {
         await DeleteLegacySagaDetailsIndex(documentStore, cancellationToken);
 
         List<AbstractIndexCreationTask> indexList = [new FailedAuditImportIndex(), new SagaDetailsIndex()];
 
-        if (configuration.EnableFullTextSearch)
+        if (enableFreeTextSearch)
         {
             indexList.Add(new MessagesViewIndexWithFullTextSearch());
             await documentStore.Maintenance.SendAsync(new DeleteIndexOperation(MessagesViewIndexName), cancellationToken);
