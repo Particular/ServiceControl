@@ -13,7 +13,7 @@
         {
             if (transportCustomization is IManagementClientProvider provider)
             {
-                managementClient = provider.ManagementClient;
+                managementClient = provider.GetManagementClient();
             }
             else
             {
@@ -84,7 +84,7 @@
 
                 try
                 {
-                    var (statusCode, reason, queue) = await managementClient.GetQueue(queueName, cancellationToken);
+                    var (statusCode, reason, queue) = await managementClient.Value.GetQueue(queueName, cancellationToken);
 
                     if (queue is not null)
                     {
@@ -111,6 +111,6 @@
 
         static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
 
-        readonly ManagementClient managementClient;
+        readonly Lazy<ManagementClient> managementClient;
     }
 }
