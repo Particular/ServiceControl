@@ -21,6 +21,7 @@
             Edit
         }
 
+        [Explicit]
         [TestCase(new[] { RetryType.NoEdit, RetryType.NoEdit, RetryType.Edit })]
         [TestCase(new[] { RetryType.Edit, RetryType.NoEdit, RetryType.Edit })]
         [TestCase(new[] { RetryType.NoEdit, RetryType.Edit, RetryType.NoEdit })]

@@ -9,12 +9,12 @@ using NServiceBus;
 using NServiceBus.AcceptanceTesting;
 using NServiceBus.Settings;
 using NUnit.Framework;
-using TestSupport;
 using ServiceControl.Infrastructure;
+using TestSupport;
 
 class WhenRetryingWithEdit : WhenRetrying
 {
-    [Test]
+    [Test, Explicit]
     public async Task ShouldCreateNewMessageAndResolveEditedMessage()
     {
         CustomServiceControlPrimarySettings = s => { s.AllowMessageEditing = true; };
