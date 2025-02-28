@@ -10,7 +10,7 @@
         [Test]
         public async Task Should_report_queue_length()
         {
-            var queueName = GetTestQueueName("queuelenght");
+            var queueName = GetTestQueueName("queuelength");
 
             await CreateTestQueue(queueName);
 
