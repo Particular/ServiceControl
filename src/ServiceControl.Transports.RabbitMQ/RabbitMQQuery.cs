@@ -20,7 +20,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 {
     readonly ILogger<RabbitMQQuery> logger;
     readonly TimeProvider timeProvider;
-    readonly ManagementClient managementClient;
+    readonly Lazy<ManagementClient> managementClient;
 
     readonly ResiliencePipeline pipeline = new ResiliencePipelineBuilder()
       .AddRetry(new RetryStrategyOptions()) // Add retry using the default options
@@ -34,7 +34,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
         if (transportCustomization is IManagementClientProvider provider)
         {
-            managementClient = provider.ManagementClient;
+            managementClient = provider.GetManagementClient();
         }
         else
         {
@@ -63,7 +63,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var queue = (RabbitMQBrokerQueueDetails)brokerQueue;
-        var response = await pipeline.ExecuteAsync(async token => await managementClient.GetQueue(queue.QueueName, token), cancellationToken);
+        var response = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueue(queue.QueueName, token), cancellationToken);
 
         if (response.Value is null)
         {
@@ -79,7 +79,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
         {
             await Task.Delay(TimeSpan.FromMinutes(15), timeProvider, cancellationToken);
 
-            response = await pipeline.ExecuteAsync(async token => await managementClient.GetQueue(queue.QueueName, token), cancellationToken);
+            response = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueue(queue.QueueName, token), cancellationToken);
 
             if (response.Value is null)
             {
@@ -99,7 +99,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     async Task GetRabbitDetails(CancellationToken cancellationToken)
     {
-        var response = await pipeline.ExecuteAsync(async async => await managementClient.GetOverview(cancellationToken), cancellationToken);
+        var response = await pipeline.ExecuteAsync(async async => await managementClient.Value.GetOverview(cancellationToken), cancellationToken);
 
         ValidateResponse(response);
 
@@ -160,7 +160,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
     {
         try
         {
-            var response = await pipeline.ExecuteAsync(async token => await managementClient.GetBindingsForQueue(brokerQueue.QueueName, token), cancellationToken);
+            var response = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetBindingsForQueue(brokerQueue.QueueName, token), cancellationToken);
 
             // Check if conventional binding is found
             if (response.Value.Any(binding => binding?.Source == brokerQueue.QueueName
@@ -179,7 +179,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
         try
         {
-            var response = await pipeline.ExecuteAsync(async token => await managementClient.GetBindingsForExchange(brokerQueue.QueueName, token), cancellationToken);
+            var response = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetBindingsForExchange(brokerQueue.QueueName, token), cancellationToken);
 
             // Check if delayed binding is found
             if (response.Value.Any(binding => binding?.Source is "nsb.v2.delay-delivery" or "nsb.delay-delivery"
@@ -198,7 +198,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     internal async Task<(List<RabbitMQBrokerQueueDetails>?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
     {
-        var (StatusCode, Reason, Value, MorePages) = await pipeline.ExecuteAsync(async token => await managementClient.GetQueues(page, 500, token), cancellationToken);
+        var (StatusCode, Reason, Value, MorePages) = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueues(page, 500, token), cancellationToken);
 
         ValidateResponse((StatusCode, Reason, Value));
 
@@ -227,7 +227,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
     {
         try
         {
-            var (statusCode, reason, value) = await managementClient.GetOverview(cancellationToken);
+            var (statusCode, reason, value) = await managementClient.Value.GetOverview(cancellationToken);
 
             if (value is not null)
             {

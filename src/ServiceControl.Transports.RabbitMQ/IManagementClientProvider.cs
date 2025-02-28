@@ -1,8 +1,9 @@
 ﻿namespace ServiceControl.Transports.RabbitMQ;
 
+using System;
 using NServiceBus.Transport.RabbitMQ.ManagementApi;
 
 interface IManagementClientProvider
 {
-    ManagementClient ManagementClient { get; }
+    Lazy<ManagementClient> GetManagementClient();
 }
