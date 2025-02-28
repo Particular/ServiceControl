@@ -1,5 +1,6 @@
 namespace ServiceControl.Audit.Persistence.Tests;
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -7,6 +8,7 @@ using Persistence.RavenDB;
 using Persistence.RavenDB.Indexes;
 using Raven.Client.Documents.Indexes;
 using Raven.Client.Documents.Operations.Indexes;
+using Raven.Client.Exceptions.Documents.Indexes;
 
 [TestFixture]
 class IndexSetupTests : PersistenceTestFixture
@@ -54,5 +56,51 @@ class IndexSetupTests : PersistenceTestFixture
 
         var indexStatsAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName));
         Assert.That(indexStatsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
+    }
+
+    [Test]
+    public async Task Indexes_should_not_be_reset_on_setup_when_locked_as_ignore()
+    {
+        var index = new MessagesViewIndexWithFullTextSearch { Configuration = { ["Indexing.Static.SearchEngineType"] = SearchEngineType.Lucene.ToString() } };
+
+        await IndexCreation.CreateIndexesAsync([index], configuration.DocumentStore);
+
+        await configuration.DocumentStore.Maintenance.SendAsync(new SetIndexesLockOperation(new SetIndexesLockOperation.Parameters
+        {
+            IndexNames = [index.IndexName],
+            Mode = IndexLockMode.LockedIgnore
+        }));
+
+        //TODO: find a better way
+        await Task.Delay(1000);
+
+        var indexStatsBefore = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName));
+
+        Assert.That(indexStatsBefore.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
+
+
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, CancellationToken.None);
+
+        //TODO: find a better way
+        await Task.Delay(1000);
+
+        var indexStatsAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName));
+        Assert.That(indexStatsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
+    }
+
+    [Test]
+    public async Task Indexes_should_not_be_reset_on_setup_when_locked_as_error()
+    {
+        var index = new MessagesViewIndexWithFullTextSearch { Configuration = { ["Indexing.Static.SearchEngineType"] = SearchEngineType.Lucene.ToString() } };
+
+        await IndexCreation.CreateIndexesAsync([index], configuration.DocumentStore);
+
+        await configuration.DocumentStore.Maintenance.SendAsync(new SetIndexesLockOperation(new SetIndexesLockOperation.Parameters
+        {
+            IndexNames = [index.IndexName],
+            Mode = IndexLockMode.LockedError
+        }));
+
+        Assert.ThrowsAsync<IndexCreationException>(async () => await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, CancellationToken.None));
     }
 }
