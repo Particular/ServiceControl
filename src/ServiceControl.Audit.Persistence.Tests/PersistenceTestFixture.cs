@@ -1,8 +1,10 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using NUnit.Framework;
@@ -18,12 +20,15 @@
         {
             configuration = new PersistenceTestsConfiguration();
 
+            testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
+
             return configuration.Configure(SetSettings);
         }
 
         [TearDown]
         public virtual Task Cleanup()
         {
+            testCancellationTokenSource?.Dispose();
             return configuration?.Cleanup();
         }
 
@@ -64,5 +69,11 @@
         protected IServiceProvider ServiceProvider => configuration.ServiceProvider;
 
         protected PersistenceTestsConfiguration configuration;
+
+        protected CancellationToken TestTimeoutCancellationToken => testCancellationTokenSource.Token;
+
+        CancellationTokenSource testCancellationTokenSource;
+
+        static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(30);
     }
 }

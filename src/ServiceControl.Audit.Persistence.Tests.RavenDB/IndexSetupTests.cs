@@ -38,7 +38,7 @@ class IndexSetupTests : PersistenceTestFixture
     [Test]
     public async Task Free_text_search_index_can_be_opted_out_from()
     {
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, false, CancellationToken.None);
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, false, TestTimeoutCancellationToken);
 
         var freeTextIndex = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(DatabaseSetup.MessagesViewIndexWithFulltextSearchName));
         var nonFreeTextIndex = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(DatabaseSetup.MessagesViewIndexName));
@@ -56,7 +56,7 @@ class IndexSetupTests : PersistenceTestFixture
 
         Assert.That(indexWithCustomConfigStats.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
 
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, CancellationToken.None);
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
 
         await WaitForIndexDefinitionUpdate(indexWithCustomConfigStats);
 
@@ -78,7 +78,7 @@ class IndexSetupTests : PersistenceTestFixture
 
         Assert.That(indexStatsBefore.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
 
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, CancellationToken.None);
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
 
         // raven will ignore the update since index was locked, so best we can do is wait a bit and check that settings hasn't changed
         await Task.Delay(1000);
@@ -98,25 +98,25 @@ class IndexSetupTests : PersistenceTestFixture
 
         await UpdateIndex(index);
 
-        Assert.ThrowsAsync<IndexCreationException>(async () => await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, CancellationToken.None));
+        Assert.ThrowsAsync<IndexCreationException>(async () => await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken));
     }
 
-    async Task<IndexStats> UpdateIndex(IAbstractIndexCreationTask index, CancellationToken cancellationToken = default)
+    async Task<IndexStats> UpdateIndex(IAbstractIndexCreationTask index)
     {
-        var statsBefore = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName), cancellationToken);
+        var statsBefore = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName), TestTimeoutCancellationToken);
 
-        await IndexCreation.CreateIndexesAsync([index], configuration.DocumentStore, null, null, cancellationToken);
+        await IndexCreation.CreateIndexesAsync([index], configuration.DocumentStore, null, null, TestTimeoutCancellationToken);
 
-        return await WaitForIndexDefinitionUpdate(statsBefore, cancellationToken);
+        return await WaitForIndexDefinitionUpdate(statsBefore);
     }
 
-    async Task<IndexStats> WaitForIndexDefinitionUpdate(IndexStats oldStats, CancellationToken cancellationToken = default)
+    async Task<IndexStats> WaitForIndexDefinitionUpdate(IndexStats oldStats)
     {
         while (true)
         {
             try
             {
-                var newStats = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(oldStats.Name), cancellationToken);
+                var newStats = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(oldStats.Name), TestTimeoutCancellationToken);
 
                 if (newStats.CreatedTimestamp > oldStats.CreatedTimestamp)
                 {
@@ -128,7 +128,7 @@ class IndexSetupTests : PersistenceTestFixture
                 // keep going since we can get this if we query right when the update happens
             }
 
-            await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
+            await Task.Delay(TimeSpan.FromMilliseconds(100), TestTimeoutCancellationToken);
         }
     }
 }
