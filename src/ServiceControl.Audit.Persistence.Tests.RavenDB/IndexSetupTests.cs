@@ -58,7 +58,7 @@ class IndexSetupTests : PersistenceTestFixture
 
         await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, CancellationToken.None);
 
-        WaitForIndexDefinitionUpdate(indexWithCustomConfigStats);
+        await WaitForIndexDefinitionUpdate(indexWithCustomConfigStats);
 
         var indexAfterResetStats = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName));
 
@@ -101,30 +101,34 @@ class IndexSetupTests : PersistenceTestFixture
         Assert.ThrowsAsync<IndexCreationException>(async () => await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, CancellationToken.None));
     }
 
-    async Task<IndexStats> UpdateIndex(IAbstractIndexCreationTask index)
+    async Task<IndexStats> UpdateIndex(IAbstractIndexCreationTask index, CancellationToken cancellationToken = default)
     {
-        var statsBefore = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName));
+        var statsBefore = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName), cancellationToken);
 
-        await IndexCreation.CreateIndexesAsync([index], configuration.DocumentStore);
+        await IndexCreation.CreateIndexesAsync([index], configuration.DocumentStore, null, null, cancellationToken);
 
-        WaitForIndexDefinitionUpdate(statsBefore);
-
-        return await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName));
+        return await WaitForIndexDefinitionUpdate(statsBefore, cancellationToken);
     }
 
-    void WaitForIndexDefinitionUpdate(IndexStats indexStats)
+    async Task<IndexStats> WaitForIndexDefinitionUpdate(IndexStats oldStats, CancellationToken cancellationToken = default)
     {
-        Assert.That(SpinWait.SpinUntil(() =>
+        while (true)
         {
             try
             {
-                return configuration.DocumentStore.Maintenance.Send(new GetIndexStatisticsOperation(indexStats.Name)).CreatedTimestamp > indexStats.CreatedTimestamp;
+                var newStats = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(oldStats.Name), cancellationToken);
+
+                if (newStats.CreatedTimestamp > oldStats.CreatedTimestamp)
+                {
+                    return newStats;
+                }
             }
             catch (OperationCanceledException)
             {
                 // keep going since we can get this if we query right when the update happens
-                return false;
             }
-        }, TimeSpan.FromSeconds(10)), Is.True);
+
+            await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
+        }
     }
 }
