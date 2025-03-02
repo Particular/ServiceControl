@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.Settings;
@@ -14,8 +13,7 @@
     using Persistence.UnitOfWork;
     using Recoverability;
     using SagaAudit;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Transports;
+    using Transports;
 
     public class AuditIngestor
     {
@@ -26,11 +24,13 @@
             IEnumerable<IEnrichImportedAuditMessages> auditEnrichers, // allows extending message enrichers with custom enrichers registered in the DI container
             IMessageSession messageSession,
             Lazy<IMessageDispatcher> messageDispatcher,
-            ITransportCustomization transportCustomization
+            ITransportCustomization transportCustomization,
+            AuditIngestionMetrics metrics
         )
         {
             this.settings = settings;
             this.messageDispatcher = messageDispatcher;
+            this.metrics = metrics;
             var enrichers = new IEnrichImportedAuditMessages[] { new MessageTypeEnricher(), new EnrichWithTrackingIds(), new ProcessingStatisticsEnricher(), new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring), new DetectSuccessfulRetriesEnricher(), new SagaRelationshipsEnricher() }.Concat(auditEnrichers).ToArray();
 
             logQueueAddress = transportCustomization.ToTransportQualifiedQueueName(settings.AuditLogQueue);
@@ -52,7 +52,7 @@
                 if (settings.ForwardAuditMessages)
                 {
                     await Forward(stored, logQueueAddress);
-                    forwardedMessagesCounter.Add(stored.Count);
+                    metrics.IncrementMessagesForwarded(stored.Count);
                 }
 
                 foreach (var context in contexts)
@@ -131,8 +131,8 @@
         readonly AuditPersister auditPersister;
         readonly Settings settings;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
+        readonly AuditIngestionMetrics metrics;
         readonly string logQueueAddress;
-        readonly Counter<long> forwardedMessagesCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "forwarded"), description: "Audit ingestion forwarded message count");
 
         static readonly ILog Log = LogManager.GetLogger<AuditIngestor>();
     }
