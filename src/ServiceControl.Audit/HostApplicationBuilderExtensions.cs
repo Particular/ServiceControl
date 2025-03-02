@@ -71,6 +71,8 @@ static class HostApplicationBuilderExtensions
         NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, onCriticalError, configuration);
         builder.UseNServiceBus(configuration);
 
+        services.AddSingleton<AuditIngestionMetrics>();
+
         if (!string.IsNullOrEmpty(settings.OtlpEndpointUrl))
         {
             if (!Uri.TryCreate(settings.OtlpEndpointUrl, UriKind.Absolute, out var otelMetricsUri))
