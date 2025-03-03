@@ -40,7 +40,7 @@ try
 }
 finally
 {
-    // Leave a trail in the logs to determine if the process was killed
-    NLog.LogManager.GetCurrentClassLogger().Info("Done!");
+    // The following log statement is meant to leave a trail in the logs to determine if the process was killed
+    NLog.LogManager.GetCurrentClassLogger().Info("Shutdown complete");
     NLog.LogManager.Shutdown();
 }
