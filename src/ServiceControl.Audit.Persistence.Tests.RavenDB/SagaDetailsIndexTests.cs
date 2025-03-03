@@ -1,27 +1,28 @@
-﻿namespace ServiceControl.Audit.Persistence.Tests
+﻿namespace ServiceControl.Audit.Persistence.Tests;
+
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using NUnit.Framework;
+using Persistence.RavenDB;
+using Raven.Client.Documents.Indexes;
+using Raven.Client.Documents.Operations.Indexes;
+using SagaAudit;
+
+[TestFixture]
+class SagaDetailsIndexTests : PersistenceTestFixture
 {
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using NUnit.Framework;
-    using Raven.Client.Documents.Indexes;
-    using Raven.Client.Documents.Operations.Indexes;
-    using ServiceControl.SagaAudit;
-
-    [TestFixture]
-    class SagaDetailsIndexTests : PersistenceTestFixture
+    [Test]
+    public async Task Deletes_index_that_does_not_have_cap_of_50000()
     {
-        [Test]
-        public async Task Deletes_index_that_does_not_have_cap_of_50000()
-        {
-            await configuration.DocumentStore.Maintenance.SendAsync(new DeleteIndexOperation("SagaDetailsIndex"));
+        await configuration.DocumentStore.Maintenance.SendAsync(new DeleteIndexOperation(DatabaseSetup.SagaDetailsIndexName));
 
-            var indexWithout50000capDefinition = new IndexDefinition
-            {
-                Name = "SagaDetailsIndex",
-                Maps =
-                            [
-                                @"from doc in docs
+        var indexWithout50000capDefinition = new IndexDefinition
+        {
+            Name = DatabaseSetup.SagaDetailsIndexName,
+            Maps =
+            [
+                @"from doc in docs
                                                      select new
                                                      {
                                                          doc.SagaId,
@@ -41,8 +42,8 @@
                                     }
                                 }
             }"
-                            ],
-                Reduce = @"from result in results
+            ],
+            Reduce = @"from result in results
                                             group result by result.SagaId
                             into g
                                             let first = g.First()
@@ -55,69 +56,66 @@
                                                     .OrderByDescending(x => x.FinishTime)
                                                     .ToList()
                                             }"
-            };
+        };
 
-            var putIndexesOp = new PutIndexesOperation(indexWithout50000capDefinition);
+        var putIndexesOp = new PutIndexesOperation(indexWithout50000capDefinition);
 
-            await configuration.DocumentStore.Maintenance.SendAsync(putIndexesOp);
+        await configuration.DocumentStore.Maintenance.SendAsync(putIndexesOp);
 
-            var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
-            var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
+        var sagaDetailsIndexOperation = new GetIndexOperation(DatabaseSetup.SagaDetailsIndexName);
+        var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
-            Assert.That(sagaDetailsIndexDefinition, Is.Not.Null);
+        Assert.That(sagaDetailsIndexDefinition, Is.Not.Null);
 
-            await Persistence.RavenDB.DatabaseSetup.DeleteLegacySagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
+        await DatabaseSetup.DeleteLegacySagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
 
-            sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
+        sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
-            Assert.That(sagaDetailsIndexDefinition, Is.Null);
-        }
+        Assert.That(sagaDetailsIndexDefinition, Is.Null);
+    }
 
-        [Test]
-        public async Task Does_not_delete_index_that_does_have_cap_of_50000()
+    [Test]
+    public async Task Does_not_delete_index_that_does_have_cap_of_50000()
+    {
+        await DatabaseSetup.DeleteLegacySagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
+
+        var sagaDetailsIndexOperation = new GetIndexOperation(DatabaseSetup.SagaDetailsIndexName);
+        var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
+
+        Assert.That(sagaDetailsIndexDefinition, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task Should_only_reduce_the_last_50000_saga_state_changes()
+    {
+        var sagaType = "MySagaType";
+        var sagaState = "some-saga-state";
+
+        await IngestSagaAudits(new SagaSnapshot
         {
-            await Persistence.RavenDB.DatabaseSetup.DeleteLegacySagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
+            SagaId = Guid.NewGuid(),
+            SagaType = sagaType,
+            Status = SagaStateChangeStatus.New,
+            StateAfterChange = sagaState
+        });
 
-            var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
-            var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
+        await configuration.CompleteDBOperation();
 
-            Assert.That(sagaDetailsIndexDefinition, Is.Not.Null);
-        }
+        var sagaDetailsIndexOperation = new GetIndexOperation(DatabaseSetup.SagaDetailsIndexName);
+        var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
-        [Test]
-        public async Task Should_only_reduce_the_last_50000_saga_state_changes()
+        Assert.That(sagaDetailsIndexDefinition.Reduce, Does.Contain("Take(50000)"), "The SagaDetails index definition does not contain a .Take(50000) to limit the number of saga state changes that are reduced by the map/reduce");
+    }
+
+    async Task IngestSagaAudits(params SagaSnapshot[] snapshots)
+    {
+        var unitOfWork = await StartAuditUnitOfWork(snapshots.Length);
+        foreach (var snapshot in snapshots)
         {
-            var sagaType = "MySagaType";
-            var sagaState = "some-saga-state";
-
-            await IngestSagaAudits(new SagaSnapshot
-            {
-                SagaId = Guid.NewGuid(),
-                SagaType = sagaType,
-                Status = SagaStateChangeStatus.New,
-                StateAfterChange = sagaState
-            });
-
-            await configuration.CompleteDBOperation();
-
-            using (var session = configuration.DocumentStore.OpenAsyncSession())
-            {
-                var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
-                var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
-
-                Assert.That(sagaDetailsIndexDefinition.Reduce, Does.Contain("Take(50000)"), "The SagaDetails index definition does not contain a .Take(50000) to limit the number of saga state changes that are reduced by the map/reduce");
-            }
+            await unitOfWork.RecordSagaSnapshot(snapshot);
         }
 
-        async Task IngestSagaAudits(params SagaSnapshot[] snapshots)
-        {
-            var unitOfWork = await StartAuditUnitOfWork(snapshots.Length);
-            foreach (var snapshot in snapshots)
-            {
-                await unitOfWork.RecordSagaSnapshot(snapshot);
-            }
-            await unitOfWork.DisposeAsync();
-            await configuration.CompleteDBOperation();
-        }
+        await unitOfWork.DisposeAsync();
+        await configuration.CompleteDBOperation();
     }
 }
