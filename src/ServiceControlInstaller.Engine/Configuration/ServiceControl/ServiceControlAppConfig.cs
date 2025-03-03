@@ -1,6 +1,10 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Data.Common;
     using System.IO;
+    using System.Linq;
     using Instances;
 
     public class ServiceControlAppConfig : AppConfig
@@ -12,7 +16,7 @@
 
         protected override void UpdateSettings()
         {
-            Config.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", details.ConnectionString);
+            Config.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", UpdateConnectionString());
             var settings = Config.AppSettings.Settings;
             var version = details.Version;
             settings.Set(ServiceControlSettings.InstanceName, details.InstanceName, version);
@@ -37,6 +41,9 @@
             settings.RemoveIfRetired(ServiceControlSettings.AuditLogQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.ForwardAuditMessages, version);
             settings.RemoveIfRetired(ServiceControlSettings.InternalQueueName, version);
+            settings.RemoveIfRetired(ServiceControlSettings.RabbitMqManagementApiUrl, version);
+            settings.RemoveIfRetired(ServiceControlSettings.RabbitMqManagementApiUsername, version);
+            settings.RemoveIfRetired(ServiceControlSettings.RabbitMqManagementApiPassword, version);
 
             RemoveRavenDB35Settings(settings, version);
         }
@@ -62,6 +69,47 @@
             settings.Set(ServiceControlSettings.TransportType, transportTypeName, version);
         }
 
-        IServiceControlInstance details;
+        string UpdateConnectionString()
+        {
+            var kvpList = new DbConnectionStringBuilder { ConnectionString = details.ConnectionString }
+                .OfType<KeyValuePair<string, object>>()
+                .Select(kvp => new KeyValuePair<string, string>(kvp.Key, kvp.Value.ToString()))
+                .ToList();
+
+            MigrateRabbitMqManagementApiSettings(kvpList);
+
+            return string.Join(";", kvpList.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+        }
+
+        void MigrateRabbitMqManagementApiSettings(IList<KeyValuePair<string, string>> connectionStringPairs)
+        {
+            if (!details.TransportPackage.Name.Contains("rabbitmq", StringComparison.OrdinalIgnoreCase) ||
+                connectionStringPairs.Any(kvp => kvp.Key.Equals("ManagementApiUrl", StringComparison.OrdinalIgnoreCase) || kvp.Key.Equals("ManagementApiUserName", StringComparison.OrdinalIgnoreCase)))
+            {
+                return;
+            }
+
+            var settings = Config.AppSettings.Settings;
+
+            var legacySetting = settings["LicensingComponent/RabbitMQ/ApiUrl"];
+            if (legacySetting is not null)
+            {
+                connectionStringPairs.Add(new KeyValuePair<string, string>("ManagementApiUrl", legacySetting.Value));
+            }
+
+            legacySetting = settings["LicensingComponent/RabbitMQ/UserName"];
+            if (legacySetting is not null)
+            {
+                connectionStringPairs.Add(new KeyValuePair<string, string>("ManagementApiUserName", legacySetting.Value));
+            }
+
+            legacySetting = settings["LicensingComponent/RabbitMQ/Password"];
+            if (legacySetting is not null)
+            {
+                connectionStringPairs.Add(new KeyValuePair<string, string>("ManagementApiPassword", legacySetting.Value));
+            }
+        }
+
+        readonly IServiceControlInstance details;
     }
 }

@@ -89,5 +89,23 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             Name = "ServiceControl/EnableFullTextSearchOnBodies",
             SupportedFrom = new SemanticVersion(4, 17, 0)
         };
+
+        public static readonly SettingInfo RabbitMqManagementApiUrl = new()
+        {
+            Name = "LicensingComponent/RabbitMQ/ApiUrl",
+            RemovedFrom = new SemanticVersion(6, 5, 0)
+        };
+
+        public static readonly SettingInfo RabbitMqManagementApiUsername = new()
+        {
+            Name = "LicensingComponent/RabbitMQ/UserName",
+            RemovedFrom = new SemanticVersion(6, 5, 0)
+        };
+
+        public static readonly SettingInfo RabbitMqManagementApiPassword = new()
+        {
+            Name = "LicensingComponent/RabbitMQ/Password",
+            RemovedFrom = new SemanticVersion(6, 5, 0)
+        };
     }
 }
