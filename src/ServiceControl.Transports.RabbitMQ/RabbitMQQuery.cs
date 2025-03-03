@@ -86,7 +86,9 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
         do
         {
-            (var queues, morePages) = await GetPage(page, cancellationToken);
+            (var statusCode, var reason, var queues, morePages) = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueues(page, 500, token), cancellationToken);
+
+            ValidateResponse((statusCode, reason, queues));
 
             if (queues is not null)
             {
@@ -122,15 +124,6 @@ public class RabbitMQQuery : BrokerThroughputQuery
         }
 
         Data["RabbitMQVersion"] = response.Value?.BrokerVersion ?? "Unknown";
-    }
-
-    async Task<(List<Queue>?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
-    {
-        var (statusCode, reason, value, morePages) = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueues(page, 500, token), cancellationToken);
-
-        ValidateResponse((statusCode, reason, value));
-
-        return (value, morePages);
     }
 
     async Task AddAdditionalQueueDetails(RabbitMQBrokerQueueDetails brokerQueue, CancellationToken cancellationToken)
