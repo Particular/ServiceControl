@@ -36,6 +36,10 @@ static class RabbitMQTransportExtensions
                 transport.ManagementApiConfiguration = new(url);
             }
         }
+        else if (dictionary.TryGetValue("ManagementApiUserName", out var userName) && dictionary.TryGetValue("ManagementApiPassword", out var password))
+        {
+            transport.ManagementApiConfiguration = new(userName, password);
+        }
 
         if (dictionary.TryGetValue("DisableRemoteCertificateValidation", out var disableRemoteCertificateValidationString))
         {
