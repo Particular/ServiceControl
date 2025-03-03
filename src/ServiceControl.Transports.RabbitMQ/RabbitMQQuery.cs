@@ -117,10 +117,9 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
         ValidateResponse(response);
 
-        if (response.Value!.DisableStats)
+        if (response.Value?.DisableStats ?? false)
         {
-            throw new Exception("The RabbitMQ broker is configured with 'management.disable_stats = true' or 'management_agent.disable_metrics_collector = true' " +
-                "and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker.");
+            throw new Exception(disableStatsErrorMessage);
         }
 
         Data["RabbitMQVersion"] = response.Value?.BrokerVersion ?? "Unknown";
@@ -189,6 +188,11 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
             if (value is not null)
             {
+                if (value.DisableStats)
+                {
+                    return (false, [disableStatsErrorMessage]);
+                }
+
                 return (true, []);
             }
             else
@@ -203,5 +207,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
     }
 
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings) => Diagnostics.AppendLine("Using settings from connection string");
+
+    const string disableStatsErrorMessage = "The RabbitMQ broker is configured with 'management.disable_stats = true' or 'management_agent.disable_metrics_collector = true' and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker.";
 }
 
