@@ -40,11 +40,6 @@ public class RabbitMQQuery : BrokerThroughputQuery
         }
     }
 
-    protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
-    {
-        Diagnostics.AppendLine("Using settings from connection string");
-    }
-
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var queue = (RabbitMQBrokerQueueDetails)brokerQueue;
@@ -82,34 +77,6 @@ public class RabbitMQQuery : BrokerThroughputQuery
         }
     }
 
-    async Task GetRabbitDetails(CancellationToken cancellationToken)
-    {
-        var response = await pipeline.ExecuteAsync(async async => await managementClient.Value.GetOverview(cancellationToken), cancellationToken);
-
-        ValidateResponse(response);
-
-        if (response.Value!.DisableStats)
-        {
-            throw new Exception("The RabbitMQ broker is configured with 'management.disable_stats = true' or 'management_agent.disable_metrics_collector = true' " +
-                "and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker.");
-        }
-
-        Data["RabbitMQVersion"] = response.Value?.BrokerVersion ?? "Unknown";
-    }
-
-    void ValidateResponse<T>((HttpStatusCode StatusCode, string Reason, T? Value) response)
-    {
-        if (response.StatusCode != HttpStatusCode.OK)
-        {
-            throw new HttpRequestException($"Request failed with status code {response.StatusCode}: {response.Reason}");
-        }
-
-        if (response.Value is null)
-        {
-            throw new InvalidOperationException("Request was successful, but the response body was null when a value was expected");
-        }
-    }
-
     public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var page = 1;
@@ -139,6 +106,30 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
             page++;
         } while (morePages);
+    }
+
+    async Task GetRabbitDetails(CancellationToken cancellationToken)
+    {
+        var response = await pipeline.ExecuteAsync(async async => await managementClient.Value.GetOverview(cancellationToken), cancellationToken);
+
+        ValidateResponse(response);
+
+        if (response.Value!.DisableStats)
+        {
+            throw new Exception("The RabbitMQ broker is configured with 'management.disable_stats = true' or 'management_agent.disable_metrics_collector = true' " +
+                "and as a result queue statistics cannot be collected using this tool. Consider changing the configuration of the RabbitMQ broker.");
+        }
+
+        Data["RabbitMQVersion"] = response.Value?.BrokerVersion ?? "Unknown";
+    }
+
+    internal async Task<(List<RabbitMQBrokerQueueDetails>?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
+    {
+        var (StatusCode, Reason, Value, MorePages) = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueues(page, 500, token), cancellationToken);
+
+        ValidateResponse((StatusCode, Reason, Value));
+
+        return (MaterializeQueueDetails(Value), MorePages);
     }
 
     async Task AddAdditionalQueueDetails(RabbitMQBrokerQueueDetails brokerQueue, CancellationToken cancellationToken)
@@ -181,15 +172,6 @@ public class RabbitMQQuery : BrokerThroughputQuery
         }
     }
 
-    internal async Task<(List<RabbitMQBrokerQueueDetails>?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
-    {
-        var (StatusCode, Reason, Value, MorePages) = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueues(page, 500, token), cancellationToken);
-
-        ValidateResponse((StatusCode, Reason, Value));
-
-        return (MaterializeQueueDetails(Value), MorePages);
-    }
-
     static List<RabbitMQBrokerQueueDetails> MaterializeQueueDetails(List<Queue> items)
     {
         var queues = new List<RabbitMQBrokerQueueDetails>();
@@ -199,6 +181,19 @@ public class RabbitMQQuery : BrokerThroughputQuery
         }
 
         return queues;
+    }
+
+    void ValidateResponse<T>((HttpStatusCode StatusCode, string Reason, T? Value) response)
+    {
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            throw new HttpRequestException($"Request failed with status code {response.StatusCode}: {response.Reason}");
+        }
+
+        if (response.Value is null)
+        {
+            throw new InvalidOperationException("Request was successful, but the response body was null when a value was expected");
+        }
     }
 
     public override KeyDescriptionPair[] Settings => [];
@@ -223,5 +218,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
             throw new Exception($"Failed to connect to RabbitMQ management API", ex);
         }
     }
+
+    protected override void InitializeCore(ReadOnlyDictionary<string, string> settings) => Diagnostics.AppendLine("Using settings from connection string");
 }
 
