@@ -123,7 +123,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
         Data["RabbitMQVersion"] = response.Value?.BrokerVersion ?? "Unknown";
     }
 
-    internal async Task<(List<RabbitMQBrokerQueueDetails>?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
+    async Task<(List<RabbitMQBrokerQueueDetails>?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
     {
         var (StatusCode, Reason, Value, MorePages) = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueues(page, 500, token), cancellationToken);
 
