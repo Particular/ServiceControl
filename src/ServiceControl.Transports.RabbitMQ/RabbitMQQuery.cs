@@ -90,17 +90,18 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
             if (queues is not null)
             {
-                foreach (var rabbitMQQueueDetails in queues)
+                foreach (var queue in queues)
                 {
-                    if (rabbitMQQueueDetails.QueueName.StartsWith("nsb.delay-level-") ||
-                        rabbitMQQueueDetails.QueueName.StartsWith("nsb.v2.delay-level-") ||
-                        rabbitMQQueueDetails.QueueName.StartsWith("nsb.v2.verify-"))
+                    if (queue.Name.StartsWith("nsb.delay-level-") ||
+                        queue.Name.StartsWith("nsb.v2.delay-level-") ||
+                        queue.Name.StartsWith("nsb.v2.verify-"))
                     {
                         continue;
                     }
 
-                    await AddAdditionalQueueDetails(rabbitMQQueueDetails, cancellationToken);
-                    yield return rabbitMQQueueDetails;
+                    var queueDetails = new RabbitMQBrokerQueueDetails(queue);
+                    await AddAdditionalQueueDetails(queueDetails, cancellationToken);
+                    yield return queueDetails;
                 }
             }
 
@@ -123,13 +124,13 @@ public class RabbitMQQuery : BrokerThroughputQuery
         Data["RabbitMQVersion"] = response.Value?.BrokerVersion ?? "Unknown";
     }
 
-    async Task<(List<RabbitMQBrokerQueueDetails>?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
+    async Task<(List<Queue>?, bool morePages)> GetPage(int page, CancellationToken cancellationToken)
     {
-        var (StatusCode, Reason, Value, MorePages) = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueues(page, 500, token), cancellationToken);
+        var (statusCode, reason, value, morePages) = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueues(page, 500, token), cancellationToken);
 
-        ValidateResponse((StatusCode, Reason, Value));
+        ValidateResponse((statusCode, reason, value));
 
-        return (MaterializeQueueDetails(Value), MorePages);
+        return (value, morePages);
     }
 
     async Task AddAdditionalQueueDetails(RabbitMQBrokerQueueDetails brokerQueue, CancellationToken cancellationToken)
@@ -170,17 +171,6 @@ public class RabbitMQQuery : BrokerThroughputQuery
         {
             // Clearly no delay binding here
         }
-    }
-
-    static List<RabbitMQBrokerQueueDetails> MaterializeQueueDetails(List<Queue> items)
-    {
-        var queues = new List<RabbitMQBrokerQueueDetails>();
-        foreach (var item in items)
-        {
-            queues.Add(new RabbitMQBrokerQueueDetails(item));
-        }
-
-        return queues;
     }
 
     void ValidateResponse<T>((HttpStatusCode StatusCode, string Reason, T? Value) response)
