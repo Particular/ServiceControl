@@ -63,7 +63,15 @@
                 throw new Exception("ServiceBus/AuditQueue value is required to start the instance");
             }
 
-            IngestAuditMessages = SettingsReader.Read(new SettingsRootNamespace("ServiceControl"), "IngestAuditMessages", true);
+            var serviceControlNamespace = new SettingsRootNamespace("ServiceControl");
+
+            if (!SettingsReader.TryRead(SettingsRootNamespace, "IngestAuditMessages", out bool ingestAuditMessages))
+            {
+                // Backwards compatibility
+                ingestAuditMessages = SettingsReader.Read(serviceControlNamespace, "IngestAuditMessages", true);
+            }
+
+            IngestAuditMessages = ingestAuditMessages;
 
             if (IngestAuditMessages == false)
             {
