@@ -37,8 +37,8 @@
             await stopped.Task;
         }
 
-        [Test, Ignore("When ensurestopped throws an exception, stop should also throw an exception as that is an ungraceful stop")]
-        public async Task When_stop_fails_it_reports_the_failure()
+        [Test]
+        public async Task When_stop_fails_stop_should_throw_identifying_ungraceful_stop()
         {
             string lastFailure = null;
             var started = new TaskCompletionSource<bool>();
@@ -53,9 +53,20 @@
 
             await started.Task;
 
-            await dog.Stop(TestContext.CurrentContext.CancellationToken);
+            // The following blocks the test:
+            //
+            // var ex = Assert.ThrowsAsync<Exception>(async () => await dog.Stop(TestContext.CurrentContext.CancellationToken));
+            // Assert.That(ex.Message, Is.EqualTo("Simulated"));
 
-            Assert.That(lastFailure, Is.EqualTo("Simulated"));
+            try
+            {
+                await dog.Stop(TestContext.CurrentContext.CancellationToken);
+                Assert.Fail("Should have thrown an exception");
+            }
+            catch (Exception ex)
+            {
+                Assert.That(ex.Message, Is.EqualTo("Simulated"));
+            }
         }
 
         [Test]
@@ -76,6 +87,7 @@
                 {
                     restarted.SetResult(true);
                 }
+
                 startAttempts++;
                 return Task.CompletedTask;
             }, token =>
