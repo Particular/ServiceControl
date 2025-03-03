@@ -18,7 +18,6 @@ using ServiceControl.Transports.BrokerThroughput;
 
 public class RabbitMQQuery : BrokerThroughputQuery
 {
-    readonly ILogger<RabbitMQQuery> logger;
     readonly TimeProvider timeProvider;
     readonly Lazy<ManagementClient> managementClient;
 
@@ -29,7 +28,6 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     public RabbitMQQuery(ILogger<RabbitMQQuery> logger, TimeProvider timeProvider, ITransportCustomization transportCustomization) : base(logger, "RabbitMQ")
     {
-        this.logger = logger;
         this.timeProvider = timeProvider;
 
         if (transportCustomization is IManagementClientProvider provider)
@@ -44,20 +42,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
-        //  TODO: Update documentation
-        // https://docs.particular.net/servicecontrol/servicecontrol-instances/configuration#usage-reporting-when-using-the-rabbitmq-transport
-        CheckLegacySettings(settings, RabbitMQSettings.UserName);
-        CheckLegacySettings(settings, RabbitMQSettings.Password);
-        CheckLegacySettings(settings, RabbitMQSettings.API);
-    }
-
-    void CheckLegacySettings(ReadOnlyDictionary<string, string> settings, string key)
-    {
-        if (settings.TryGetValue(key, out _))
-        {
-            logger.LogInformation($"The legacy LicensingComponent/{key} is still defined in the app.config or environment variables");
-            _ = Diagnostics.AppendLine($"LicensingComponent/{key} is still defined in the app.config or environment variables");
-        }
+        Diagnostics.AppendLine("Using settings from connection string");
     }
 
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate, [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -216,12 +201,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
         return queues;
     }
 
-    public override KeyDescriptionPair[] Settings =>
-    [
-        new KeyDescriptionPair(RabbitMQSettings.API, RabbitMQSettings.APIDescription),
-        new KeyDescriptionPair(RabbitMQSettings.UserName, RabbitMQSettings.UserNameDescription),
-        new KeyDescriptionPair(RabbitMQSettings.Password, RabbitMQSettings.PasswordDescription)
-    ];
+    public override KeyDescriptionPair[] Settings => [];
 
     protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(CancellationToken cancellationToken)
     {
@@ -242,16 +222,6 @@ public class RabbitMQQuery : BrokerThroughputQuery
         {
             throw new Exception($"Failed to connect to RabbitMQ management API", ex);
         }
-    }
-
-    public static class RabbitMQSettings
-    {
-        public static readonly string API = "RabbitMQ/ApiUrl";
-        public static readonly string APIDescription = "RabbitMQ management URL";
-        public static readonly string UserName = "RabbitMQ/UserName";
-        public static readonly string UserNameDescription = "Username to access the RabbitMQ management interface";
-        public static readonly string Password = "RabbitMQ/Password";
-        public static readonly string PasswordDescription = "Password to access the RabbitMQ management interface";
     }
 }
 
