@@ -158,30 +158,57 @@
             {
                 await startStopSemaphore.WaitAsync(cancellationToken);
 
-                if (!unitOfWorkFactory.CanIngestMore())
+                var canIngest = unitOfWorkFactory.CanIngestMore();
+
+                Logger.DebugFormat("Ensure started {0}", canIngest);
+
+                if (canIngest)
                 {
-                    if (messageReceiver != null)
-                    {
-                        var stoppable = messageReceiver;
-                        messageReceiver = null;
-                        await stoppable.StopReceive(cancellationToken);
-                        Logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
-                    }
-                    return;
+                    await SetUpAndStartInfrastructure(cancellationToken);
+                }
+                else
+                {
+                    await StopAndTeardownInfrastructure(cancellationToken);
+                }
+            }
+            catch (Exception e)
+            {
+                try
+                {
+                    await StopAndTeardownInfrastructure(cancellationToken);
+                }
+                catch (Exception teardownException)
+                {
+                    throw new AggregateException(e, teardownException);
                 }
 
-                if (messageReceiver != null)
-                {
-                    return; //Already started
-                }
+                throw;
+            }
+            finally
+            {
+                startStopSemaphore.Release();
+            }
+        }
 
+        async Task SetUpAndStartInfrastructure(CancellationToken cancellationToken)
+        {
+            if (messageReceiver != null)
+            {
+                Logger.Debug("Infrastructure already Started");
+                return;
+            }
+
+            try
+            {
+                Logger.Info("Starting infrastructure");
                 transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
                     errorQueue,
                     transportSettings,
                     OnMessage,
                     errorHandlingPolicy.OnError,
                     OnCriticalError,
-                    TransportTransactionMode.ReceiveOnly);
+                    TransportTransactionMode.ReceiveOnly
+                );
 
                 messageReceiver = transportInfrastructure.Receivers[errorQueue];
 
@@ -192,22 +219,45 @@
 
                 await messageReceiver.StartReceive(cancellationToken);
 
-                Logger.Info("Ensure started. Infrastructure started");
+                Logger.Info(LogMessages.StartedInfrastructure);
             }
-            catch
+            catch (Exception e)
             {
-                if (messageReceiver != null)
-                {
-                    await messageReceiver.StopReceive(cancellationToken);
-                }
-
-                messageReceiver = null; // Setting to null so that it doesn't exit when it retries in line 134
-
+                Logger.Error("Failed to start infrastructure", e);
                 throw;
             }
-            finally
+        }
+        async Task StopAndTeardownInfrastructure(CancellationToken cancellationToken)
+        {
+            if (transportInfrastructure == null)
             {
-                startStopSemaphore.Release();
+                Logger.Debug("Infrastructure already Stopped");
+                return;
+            }
+            try
+            {
+                Logger.Info("Stopping infrastructure");
+                try
+                {
+                    if (messageReceiver != null)
+                    {
+                        await messageReceiver.StopReceive(cancellationToken);
+                    }
+                }
+                finally
+                {
+                    await transportInfrastructure.Shutdown(cancellationToken);
+                }
+
+                messageReceiver = null;
+                transportInfrastructure = null;
+
+                Logger.Info(LogMessages.StoppedInfrastructure);
+            }
+            catch (Exception e)
+            {
+                Logger.Error("Failed to stop infrastructure", e);
+                throw;
             }
         }
 
@@ -238,14 +288,7 @@
             try
             {
                 await startStopSemaphore.WaitAsync(cancellationToken);
-
-                if (messageReceiver == null)
-                {
-                    return; //Already stopped
-                }
-                var stoppable = messageReceiver;
-                messageReceiver = null;
-                await stoppable.StopReceive(cancellationToken);
+                await StopAndTeardownInfrastructure(cancellationToken);
             }
             finally
             {
@@ -253,7 +296,7 @@
             }
         }
 
-        SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
+        SemaphoreSlim startStopSemaphore = new(1);
         string errorQueue;
         ErrorIngestionFaultPolicy errorHandlingPolicy;
         TransportInfrastructure transportInfrastructure;
@@ -272,5 +315,11 @@
         readonly IHostApplicationLifetime applicationLifetime;
 
         static readonly ILog Logger = LogManager.GetLogger<ErrorIngestion>();
+
+        internal static class LogMessages
+        {
+            internal const string StartedInfrastructure = "Started infrastructure";
+            internal const string StoppedInfrastructure = "Stopped infrastructure";
+        }
     }
 }

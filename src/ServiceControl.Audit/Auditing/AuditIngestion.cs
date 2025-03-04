@@ -72,9 +72,7 @@
         {
             try
             {
-                logger.Debug("Ensure started. Start/stop semaphore acquiring");
                 await startStopSemaphore.WaitAsync(cancellationToken);
-                logger.Debug("Ensure started. Start/stop semaphore acquired");
 
                 var canIngest = unitOfWorkFactory.CanIngestMore();
 
@@ -104,15 +102,13 @@
             }
             finally
             {
-                logger.Debug("Ensure started. Start/stop semaphore releasing");
                 startStopSemaphore.Release();
-                logger.Debug("Ensure started. Start/stop semaphore released");
             }
         }
 
         async Task SetUpAndStartInfrastructure(CancellationToken cancellationToken)
         {
-            if (queueIngestor != null)
+            if (messageReceiver != null)
             {
                 logger.Debug("Infrastructure already Started");
                 return;
@@ -130,10 +126,10 @@
                     TransportTransactionMode.ReceiveOnly
                 );
 
-                queueIngestor = transportInfrastructure.Receivers[inputEndpoint];
+                messageReceiver = transportInfrastructure.Receivers[inputEndpoint];
 
                 await auditIngestor.VerifyCanReachForwardingAddress();
-                await queueIngestor.StartReceive(cancellationToken);
+                await messageReceiver.StartReceive(cancellationToken);
 
                 logger.Info(LogMessages.StartedInfrastructure);
             }
@@ -157,9 +153,9 @@
                 logger.Info("Stopping infrastructure");
                 try
                 {
-                    if (queueIngestor != null)
+                    if (messageReceiver != null)
                     {
-                        await queueIngestor.StopReceive(cancellationToken);
+                        await messageReceiver.StopReceive(cancellationToken);
                     }
                 }
                 finally
@@ -167,7 +163,9 @@
                     await transportInfrastructure.Shutdown(cancellationToken);
                 }
 
-                queueIngestor = null;
+                messageReceiver = null;
+                transportInfrastructure = null;
+
                 logger.Info(LogMessages.StoppedInfrastructure);
             }
             catch (Exception e)
@@ -181,31 +179,12 @@
         {
             try
             {
-                logger.Info("Shutting down. Start/stop semaphore acquiring");
                 await startStopSemaphore.WaitAsync(cancellationToken);
-                logger.Info("Shutting down. Start/stop semaphore acquired");
-
-                if (queueIngestor == null)
-                {
-                    logger.Info("Shutting down. Already stopped, skipping shut down");
-                    return; //Already stopped
-                }
-
-                var stoppable = queueIngestor;
-                queueIngestor = null;
-                logger.Info("Shutting down. Infrastructure shut down commencing");
-                await stoppable.StopReceive(cancellationToken);
-                logger.Info("Shutting down. Infrastructure shut down completed");
-            }
-            catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
-            {
-                logger.Info("StopReceive cancelled");
+                await StopAndTeardownInfrastructure(cancellationToken);
             }
             finally
             {
-                logger.Info("Shutting down. Start/stop semaphore releasing");
                 startStopSemaphore.Release();
-                logger.Info("Shutting down. Start/stop semaphore released");
             }
         }
 
@@ -318,7 +297,7 @@
         }
 
         TransportInfrastructure transportInfrastructure;
-        IMessageReceiver queueIngestor;
+        IMessageReceiver messageReceiver;
         long consecutiveBatchFailures = 0;
 
         readonly SemaphoreSlim startStopSemaphore = new(1);
