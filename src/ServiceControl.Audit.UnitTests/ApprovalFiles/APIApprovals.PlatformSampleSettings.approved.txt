@@ -29,5 +29,5 @@
   "ServiceControlQueueAddress": "Particular.ServiceControl",
   "TimeToRestartAuditIngestionAfterFailure": "00:01:00",
   "EnableFullTextSearchOnBodies": true,
-  "ShutdownTimeout": "00:02:00"
+  "ShutdownTimeout": "00:00:05"
 }

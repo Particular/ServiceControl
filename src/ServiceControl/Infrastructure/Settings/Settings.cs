@@ -181,9 +181,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool DisableHealthChecks { get; set; }
 
-        // The default value is set to the maximum allowed time by the most restrictive
-        // hosting platform, which Docker Linux containers minus a few seconds
-        // to actually allow for cancellation and logging to take place
+        // The default value is set to the maximum allowed time by the most
+        // restrictive hosting platform, which is Linux containers. Linux
+        // containers allow for a maximum of 10 seconds. We set it to 5 to
+        // allow for cancellation and logging to take place
         public TimeSpan ShutdownTimeout { get; set; } = TimeSpan.FromSeconds(5);
 
         public string GetConnectionString()
