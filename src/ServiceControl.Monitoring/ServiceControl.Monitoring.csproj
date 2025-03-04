@@ -18,6 +18,7 @@
     <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
     <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
+    <ProjectReference Include="..\ServiceControl.Hosting\ServiceControl.Hosting.csproj" />
   </ItemGroup>
 
   <ItemGroup>
