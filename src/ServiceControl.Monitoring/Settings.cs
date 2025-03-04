@@ -39,6 +39,7 @@ namespace ServiceControl.Monitoring
             EndpointUptimeGracePeriod = TimeSpan.Parse(SettingsReader.Read(SettingsRootNamespace, "EndpointUptimeGracePeriod", "00:00:40"));
             MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
             ServiceControlThroughputDataQueue = SettingsReader.Read(SettingsRootNamespace, "ServiceControlThroughputDataQueue", "ServiceControl.ThroughputData");
+            ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
 
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
@@ -67,6 +68,12 @@ namespace ServiceControl.Monitoring
         public int? MaximumConcurrencyLevel { get; set; }
 
         public string ServiceControlThroughputDataQueue { get; set; }
+
+        // The default value is set to the maximum allowed time by the most
+        // restrictive hosting platform, which is Linux containers. Linux
+        // containers allow for a maximum of 10 seconds. We set it to 5 to
+        // allow for cancellation and logging to take place
+        public TimeSpan ShutdownTimeout { get; set; } = TimeSpan.FromSeconds(5);
 
         public TransportSettings ToTransportSettings()
         {

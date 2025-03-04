@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Configuration;
+using Hosting;
 using Infrastructure;
 using Infrastructure.BackgroundTasks;
 using Infrastructure.Extensions;
@@ -13,6 +14,7 @@ using Messaging;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.WindowsServices;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using NServiceBus;
@@ -39,7 +41,13 @@ public static class HostApplicationBuilderExtensions
         var transportCustomization = TransportFactory.Create(transportSettings);
         transportCustomization.AddTransportForMonitoring(services, transportSettings);
 
-        services.AddWindowsService();
+        services.Configure<HostOptions>(options => options.ShutdownTimeout = settings.ShutdownTimeout);
+
+        if (WindowsServiceHelpers.IsWindowsService())
+        {
+            // The if is added for clarity, internally AddWindowsService has a similar logic
+            hostBuilder.AddWindowsServiceWithRequestTimeout();
+        }
 
         services.AddSingleton(settings);
         services.AddSingleton<EndpointRegistry>();

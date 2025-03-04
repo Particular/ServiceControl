@@ -5,11 +5,13 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Auditing;
+using Hosting;
 using Infrastructure;
 using Infrastructure.Settings;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.WindowsServices;
 using Microsoft.Extensions.Logging;
 using Monitoring;
 using NLog.Extensions.Logging;
@@ -45,7 +47,7 @@ static class HostApplicationBuilderExtensions
         var transportCustomization = TransportFactory.Create(transportSettings);
         transportCustomization.AddTransportForAudit(services, transportSettings);
 
-        services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
+        services.Configure<HostOptions>(options => options.ShutdownTimeout = settings.ShutdownTimeout);
 
         services.AddSingleton(settings);
         services.AddSingleton<EndpointInstanceMonitoring>();
@@ -100,7 +102,11 @@ static class HostApplicationBuilderExtensions
             services.AddHostedService<AuditIngestion>();
         }
 
-        builder.Services.AddWindowsService();
+        if (WindowsServiceHelpers.IsWindowsService())
+        {
+            // The if is added for clarity, internally AddWindowsService has a similar logic
+            builder.AddWindowsServiceWithRequestTimeout();
+        }
     }
 
     public static void AddServiceControlAuditInstallers(this IHostApplicationBuilder builder, Settings settings)

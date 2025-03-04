@@ -17,6 +17,22 @@ using SagaAudit;
 
 class DatabaseSetup(DatabaseConfiguration configuration)
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Indexes;
+    using Raven.Client.Documents.Operations.Expiration;
+    using Raven.Client.Documents.Operations.Indexes;
+    using Raven.Client.Exceptions;
+    using Raven.Client.ServerWide;
+    using Raven.Client.ServerWide.Operations;
+    using Raven.Client.ServerWide.Operations.Configuration;
+    using Indexes;
+    using SagaAudit;
+
+
     public async Task Execute(IDocumentStore documentStore, CancellationToken cancellationToken)
     {
         await CreateDatabase(documentStore, configuration.Name, cancellationToken);

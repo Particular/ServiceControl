@@ -21,5 +21,10 @@ namespace ServiceControlInstaller.Engine.Configuration.Monitoring
         public static SettingInfo LogPath = new() { Name = "Monitoring/LogPath" };
         public static SettingInfo TransportType = new() { Name = "Monitoring/TransportType" };
         public static SettingInfo ErrorQueue = new() { Name = "Monitoring/ErrorQueue" };
+        public static SettingInfo ShutdownTimeout = new()
+        {
+            Name = "Monitoring/ShutdownTimeout",
+            SupportedFrom = new SemanticVersion(6, 4, 1)
+        };
     }
 }

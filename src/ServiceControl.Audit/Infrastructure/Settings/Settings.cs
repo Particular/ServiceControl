@@ -49,6 +49,7 @@
             ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
             EnableFullTextSearchOnBodies = SettingsReader.Read(SettingsRootNamespace, "EnableFullTextSearchOnBodies", true);
+            ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
 
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
@@ -151,6 +152,12 @@
         public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
 
         public bool EnableFullTextSearchOnBodies { get; set; }
+
+        // The default value is set to the maximum allowed time by the most
+        // restrictive hosting platform, which is Linux containers. Linux
+        // containers allow for a maximum of 10 seconds. We set it to 5 to
+        // allow for cancellation and logging to take place
+        public TimeSpan ShutdownTimeout { get; set; } = TimeSpan.FromSeconds(5);
 
         public TransportSettings ToTransportSettings()
         {

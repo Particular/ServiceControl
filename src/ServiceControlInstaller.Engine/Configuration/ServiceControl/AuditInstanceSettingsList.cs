@@ -35,5 +35,11 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             Name = "ServiceControl.Audit/EnableFullTextSearchOnBodies",
             SupportedFrom = new SemanticVersion(4, 17, 0)
         };
+
+        public static readonly SettingInfo ShutdownTimeout = new()
+        {
+            Name = "ServiceControl.Audit/ShutdownTimeout",
+            SupportedFrom = new SemanticVersion(6, 4, 1)
+        };
     }
 }

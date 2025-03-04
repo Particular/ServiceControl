@@ -65,6 +65,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
             TrackInstancesInitialValue = SettingsReader.Read(SettingsRootNamespace, "TrackInstancesInitialValue", true);
+            ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
 
@@ -179,6 +180,12 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         public bool DisableHealthChecks { get; set; }
+
+        // The default value is set to the maximum allowed time by the most
+        // restrictive hosting platform, which is Linux containers. Linux
+        // containers allow for a maximum of 10 seconds. We set it to 5 to
+        // allow for cancellation and logging to take place
+        public TimeSpan ShutdownTimeout { get; set; } = TimeSpan.FromSeconds(5);
 
         public string GetConnectionString()
         {

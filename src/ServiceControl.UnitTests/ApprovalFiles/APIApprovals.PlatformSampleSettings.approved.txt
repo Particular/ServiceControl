@@ -42,5 +42,6 @@
   "MaximumConcurrencyLevel": null,
   "RetryHistoryDepth": 10,
   "RemoteInstances": [],
-  "DisableHealthChecks": false
+  "DisableHealthChecks": false,
+  "ShutdownTimeout": "00:00:05"
 }
