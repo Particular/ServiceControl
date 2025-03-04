@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Auditing;
 using Infrastructure;
+using Infrastructure.Hosting;
 using Infrastructure.Settings;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.DependencyInjection;
@@ -105,7 +106,7 @@ static class HostApplicationBuilderExtensions
         {
             // The if is added for clarity, internally AddWindowsService has a similar logic
             builder.Services.AddWindowsService();
-            //TODO register our own lifecycle that replaces the WindowsService default one
+            builder.Services.AddSingleton<IHostLifetime, WindowsServiceCustomLifetime>();
         }
     }
 
