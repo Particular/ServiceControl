@@ -5,8 +5,8 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Auditing;
+using Hosting;
 using Infrastructure;
-using Infrastructure.Hosting;
 using Infrastructure.Settings;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.DependencyInjection;
@@ -105,8 +105,7 @@ static class HostApplicationBuilderExtensions
         if (WindowsServiceHelpers.IsWindowsService())
         {
             // The if is added for clarity, internally AddWindowsService has a similar logic
-            builder.Services.AddWindowsService();
-            builder.Services.AddSingleton<IHostLifetime, WindowsServiceCustomLifetime>();
+            builder.AddWindowsServiceWithRequestTimeout();
         }
     }
 

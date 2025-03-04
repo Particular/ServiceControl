@@ -5,6 +5,7 @@ namespace Particular.ServiceControl
     using System.Runtime.InteropServices;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
+    using global::ServiceControl.Hosting;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
@@ -99,8 +100,7 @@ namespace Particular.ServiceControl
             if (WindowsServiceHelpers.IsWindowsService())
             {
                 // The if is added for clarity, internally AddWindowsService has a similar logic
-                hostBuilder.Services.AddWindowsService();
-                //TODO register our own lifecycle that replaces the WindowsService default one
+                hostBuilder.AddWindowsServiceWithRequestTimeout();
             }
 
             hostBuilder.AddServiceControlComponents(settings, transportCustomization, ServiceControlMainInstance.Components);

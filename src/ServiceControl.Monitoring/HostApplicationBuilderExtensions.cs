@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Configuration;
+using Hosting;
 using Infrastructure;
 using Infrastructure.BackgroundTasks;
 using Infrastructure.Extensions;
@@ -45,8 +46,7 @@ public static class HostApplicationBuilderExtensions
         if (WindowsServiceHelpers.IsWindowsService())
         {
             // The if is added for clarity, internally AddWindowsService has a similar logic
-            services.AddWindowsService();
-            //TODO register our own lifecycle that replaces the WindowsService default one
+            hostBuilder.AddWindowsServiceWithRequestTimeout();
         }
 
         services.AddSingleton(settings);

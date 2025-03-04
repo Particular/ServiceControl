@@ -17,8 +17,7 @@
             if (WindowsServiceHelpers.IsWindowsService())
             {
                 // The if is added for clarity, internally AddWindowsService has a similar logic
-                hostBuilder.Services.AddWindowsService();
-                //TODO register our own lifecycle that replaces the WindowsService default one
+                hostBuilder.AddWindowsServiceWithRequestTimeout();
             }
 
             var host = hostBuilder.Build();
