@@ -39,6 +39,8 @@ public static class HostApplicationBuilderExtensions
         var transportCustomization = TransportFactory.Create(transportSettings);
         transportCustomization.AddTransportForMonitoring(services, transportSettings);
 
+        services.Configure<HostOptions>(options => options.ShutdownTimeout = settings.ShutdownTimeout);
+
         services.AddWindowsService();
 
         services.AddSingleton(settings);
