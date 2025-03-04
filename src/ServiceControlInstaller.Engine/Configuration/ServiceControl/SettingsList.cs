@@ -93,7 +93,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         public static SettingInfo ShutdownTimeout = new()
         {
             Name = "ServiceControl/ShutdownTimeout",
-            SupportedFrom = new SemanticVersion(6, 4, 0)
+            SupportedFrom = new SemanticVersion(6, 4, 1)
         };
     }
 }
