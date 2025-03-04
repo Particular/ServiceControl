@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using NServiceBus.Transport.RabbitMQ.ManagementApi;
 using ServiceControl.Transports.BrokerThroughput;
 
-class RabbitMQBrokerQueueDetails(Queue queue) : IBrokerQueue
+class RabbitMQBrokerQueue(Queue queue) : IBrokerQueue
 {
     public string QueueName { get; } = queue.Name;
 
@@ -19,7 +19,7 @@ class RabbitMQBrokerQueueDetails(Queue queue) : IBrokerQueue
 
     long Baseline { get; set; } = queue.MessageStats?.Ack ?? 0;
 
-    public long CalculateThroughputFrom(RabbitMQBrokerQueueDetails newReading)
+    public long CalculateThroughputFrom(RabbitMQBrokerQueue newReading)
     {
         var newlyAckedMessages = 0L;
 

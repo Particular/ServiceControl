@@ -42,7 +42,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var queue = (RabbitMQBrokerQueueDetails)brokerQueue;
+        var queue = (RabbitMQBrokerQueue)brokerQueue;
         var response = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueue(queue.QueueName, token), cancellationToken);
 
         if (response.Value is null)
@@ -50,7 +50,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
             throw new InvalidOperationException($"Could not access RabbitMQ Management API. ({response.StatusCode}: {response.Reason})");
         }
 
-        var newReading = new RabbitMQBrokerQueueDetails(response.Value);
+        var newReading = new RabbitMQBrokerQueue(response.Value);
 
         _ = queue.CalculateThroughputFrom(newReading);
 
@@ -66,7 +66,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
                 throw new InvalidOperationException($"Could not access RabbitMQ Management API. ({response.StatusCode}: {response.Reason})");
             }
 
-            newReading = new RabbitMQBrokerQueueDetails(response.Value);
+            newReading = new RabbitMQBrokerQueue(response.Value);
             var newTotalThroughput = queue.CalculateThroughputFrom(newReading);
 
             yield return new QueueThroughput
@@ -82,7 +82,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
         var page = 1;
         bool morePages;
 
-        await GetRabbitDetails(cancellationToken);
+        await GetBrokerDetails(cancellationToken);
 
         do
         {
@@ -101,9 +101,9 @@ public class RabbitMQQuery : BrokerThroughputQuery
                         continue;
                     }
 
-                    var queueDetails = new RabbitMQBrokerQueueDetails(queue);
-                    await AddAdditionalQueueDetails(queueDetails, cancellationToken);
-                    yield return queueDetails;
+                    var brokerQueue = new RabbitMQBrokerQueue(queue);
+                    await AddEndpointIndicators(brokerQueue, cancellationToken);
+                    yield return brokerQueue;
                 }
             }
 
@@ -111,7 +111,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
         } while (morePages);
     }
 
-    async Task GetRabbitDetails(CancellationToken cancellationToken)
+    async Task GetBrokerDetails(CancellationToken cancellationToken)
     {
         var response = await pipeline.ExecuteAsync(async async => await managementClient.Value.GetOverview(cancellationToken), cancellationToken);
 
@@ -125,7 +125,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
         Data["RabbitMQVersion"] = response.Value?.BrokerVersion ?? "Unknown";
     }
 
-    async Task AddAdditionalQueueDetails(RabbitMQBrokerQueueDetails brokerQueue, CancellationToken cancellationToken)
+    async Task AddEndpointIndicators(RabbitMQBrokerQueue brokerQueue, CancellationToken cancellationToken)
     {
         try
         {
