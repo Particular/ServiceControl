@@ -38,7 +38,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 
         public static readonly SettingInfo ShutdownTimeout = new()
         {
-            Name = "ServiceControl/ShutdownTimeout",
+            Name = "ServiceControl.Audit/ShutdownTimeout",
             SupportedFrom = new SemanticVersion(6, 4, 1)
         };
     }
