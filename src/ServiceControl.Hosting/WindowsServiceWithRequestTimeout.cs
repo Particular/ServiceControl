@@ -13,8 +13,7 @@ sealed class WindowsServiceWithRequestTimeout : WindowsServiceLifetime
     static readonly TimeSpan CancellationDuration = TimeSpan.FromSeconds(5);
     readonly HostOptions hostOptions;
 
-    // TODO: I don't think this constructor is needed and exist for backwards compability in the runtime
-
+    // TODO: This constructor should not be needed and exist for backwards compability in the runtime
     // public WindowsServiceWithRequestTimeout(IHostEnvironment environment, IHostApplicationLifetime applicationLifetime, ILoggerFactory loggerFactory, IOptions<HostOptions> optionsAccessor)
     //     : this(environment, applicationLifetime, loggerFactory, optionsAccessor, Options.Create(new WindowsServiceLifetimeOptions()))
     // {
