@@ -47,7 +47,7 @@
 
             var transport = new RabbitMQTransport(RoutingTopology.Direct(queueType, routingKeyConvention: type => type.FullName.Replace(".", "-")), transportSettings.ConnectionString, enableDelayedDelivery: false);
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
-            transport.SetCustomSettingsFromConnectionString(transportSettings.ConnectionString);
+            transport.ApplySettingsFromConnectionString(transportSettings.ConnectionString);
 
             return transport;
         }
