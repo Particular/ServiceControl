@@ -22,7 +22,6 @@ using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Features;
 using NServiceBus.Transport;
 using QueueLength;
-using ServiceControl.Hosting;
 using Timings;
 using Transports;
 
