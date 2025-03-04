@@ -8,7 +8,7 @@ using NServiceBus;
 
 static class RabbitMQTransportExtensions
 {
-    public static void SetCustomSettingsFromConnectionString(this RabbitMQTransport transport, string connectionString)
+    public static void ApplySettingsFromConnectionString(this RabbitMQTransport transport, string connectionString)
     {
         if (connectionString.StartsWith("amqp", StringComparison.OrdinalIgnoreCase))
         {
