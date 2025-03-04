@@ -13,6 +13,7 @@ using Messaging;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.WindowsServices;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using NServiceBus;
@@ -41,7 +42,12 @@ public static class HostApplicationBuilderExtensions
 
         services.Configure<HostOptions>(options => options.ShutdownTimeout = settings.ShutdownTimeout);
 
-        services.AddWindowsService();
+        if (WindowsServiceHelpers.IsWindowsService())
+        {
+            // The if is added for clarity, internally AddWindowsService has a similar logic
+            services.AddWindowsService();
+            //TODO register our own lifecycle that replaces the WindowsService default one
+        }
 
         services.AddSingleton(settings);
         services.AddSingleton<EndpointRegistry>();
