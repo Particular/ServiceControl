@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Settings;
 
+#pragma warning disable CA1416
 class WindowsServiceCustomLifetime : WindowsServiceLifetime
 {
     public WindowsServiceCustomLifetime(IHostEnvironment environment, IHostApplicationLifetime applicationLifetime, ILoggerFactory loggerFactory, IOptions<HostOptions> optionsAccessor, Settings settings)
@@ -28,3 +29,4 @@ class WindowsServiceCustomLifetime : WindowsServiceLifetime
 
     readonly Settings settings;
 }
+#pragma warning restore CA1416
