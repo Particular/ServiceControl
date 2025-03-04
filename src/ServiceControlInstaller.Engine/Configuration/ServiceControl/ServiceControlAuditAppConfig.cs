@@ -30,6 +30,12 @@
             settings.Set(AuditInstanceSettingsList.ServiceControlQueueAddress, instance.ServiceControlQueueAddress);
             settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, instance.EnableFullTextSearchOnBodies.ToString().ToLowerInvariant(), version);
 
+            // Windows services allow a maximum of 125 seconds when stopping a service.
+            // When shutting down or restarting the OS we have no control over the
+            // shutdown timeout. This is by the installer engine that is run _only_ on
+            // Windows via SCMU or PowerShell
+            settings.Set(ServiceControlSettings.ShutdownTimeout, "00:02:00");
+
             foreach (var manifestSetting in instance.PersistenceManifest.Settings)
             {
                 if (!settings.AllKeys.Contains(manifestSetting.Name))
