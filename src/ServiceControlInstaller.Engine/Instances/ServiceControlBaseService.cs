@@ -12,7 +12,6 @@ namespace ServiceControlInstaller.Engine.Instances
     using Configuration;
     using FileSystem;
     using NuGet.Versioning;
-    using Queues;
     using ReportCard;
     using Services;
     using UrlAcl;
@@ -383,19 +382,15 @@ namespace ServiceControlInstaller.Engine.Instances
             AppConfig.Save();
         }
 
-        public abstract void RunQueueCreation();
+        public abstract void RunSetup();
 
         public void SetupInstance()
         {
             try
             {
-                RunQueueCreation();
+                RunSetup();
             }
-            catch (QueueCreationFailedException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
-            catch (QueueCreationTimeoutException ex)
+            catch (Exception ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }

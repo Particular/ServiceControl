@@ -8,8 +8,8 @@ namespace ServiceControlInstaller.Engine.Instances
     using Configuration;
     using Configuration.ServiceControl;
     using FileSystem;
-    using Queues;
-    using ServiceControlInstaller.Engine.Validation;
+    using Setup;
+    using Validation;
     using Services;
 
     public class ServiceControlAuditInstance : ServiceControlBaseService, IServiceControlAuditInstance
@@ -57,7 +57,7 @@ namespace ServiceControlInstaller.Engine.Instances
         protected override TransportInfo DetermineTransportPackage()
         {
             var transportAppSetting = (AppConfig.Read<string>(AuditInstanceSettingsList.TransportType, null)?.Trim())
-                ?? throw new Exception($"{AuditInstanceSettingsList.TransportType.Name} setting not found in app.config.");
+                                      ?? throw new Exception($"{AuditInstanceSettingsList.TransportType.Name} setting not found in app.config.");
 
             var transport = ServiceControlCoreTransports.Find(transportAppSetting);
 
@@ -102,9 +102,9 @@ namespace ServiceControlInstaller.Engine.Instances
             EnableFullTextSearchOnBodies = AppConfig.Read(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, true);
         }
 
-        public override void RunQueueCreation()
+        public override void RunSetup()
         {
-            QueueCreation.RunQueueCreation(this);
+            InstanceSetup.Run(this);
         }
 
         protected override void Prepare(string zipResourceName, string destDir)

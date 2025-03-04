@@ -11,7 +11,7 @@
     using Configuration.Monitoring;
     using FileSystem;
     using NuGet.Versioning;
-    using Queues;
+    using Setup;
     using ReportCard;
     using Services;
     using UrlAcl;
@@ -148,13 +148,9 @@
         {
             try
             {
-                QueueCreation.RunQueueCreation(this);
+                InstanceSetup.Run(this);
             }
-            catch (QueueCreationFailedException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
-            catch (QueueCreationTimeoutException ex)
+            catch (Exception ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }

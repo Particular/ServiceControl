@@ -47,7 +47,7 @@ namespace ServiceControl.AcceptanceTesting
                 return ManyResult<T>.Empty;
             }
 
-            return ManyResult<T>.New(true, response);
+            return ManyResult<T>.New(true, response.Where(m => condition(m)).ToList());
         }
 
         public static async Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null) where T : class

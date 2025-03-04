@@ -11,9 +11,9 @@
     using Configuration;
     using Configuration.Monitoring;
     using FileSystem;
-    using Queues;
     using ReportCard;
     using Services;
+    using Setup;
     using UrlAcl;
     using Validation;
 
@@ -188,13 +188,9 @@
             {
                 try
                 {
-                    QueueCreation.RunQueueCreation(this);
+                    InstanceSetup.Run(this);
                 }
-                catch (QueueCreationFailedException ex)
-                {
-                    ReportCard.Errors.Add(ex.Message);
-                }
-                catch (QueueCreationTimeoutException ex)
+                catch (Exception ex)
                 {
                     ReportCard.Errors.Add(ex.Message);
                 }
@@ -278,13 +274,9 @@
         {
             try
             {
-                QueueCreation.RunQueueCreation(this);
+                InstanceSetup.Run(this);
             }
-            catch (QueueCreationFailedException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
-            catch (QueueCreationTimeoutException ex)
+            catch (Exception ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }

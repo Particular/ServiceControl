@@ -7,8 +7,8 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Xml;
     using System.Xml.Serialization;
     using Configuration.ServiceControl;
-    using Queues;
     using Services;
+    using Setup;
     using Validation;
 
     public class ServiceControlNewInstance : ServiceControlInstallableBase, IServiceControlInstance
@@ -85,9 +85,9 @@ namespace ServiceControlInstaller.Engine.Instances
             };
         }
 
-        protected override void RunQueueCreation()
+        protected override void RunSetup()
         {
-            QueueCreation.RunQueueCreation(this);
+            InstanceSetup.Run(this);
         }
 
         protected override void ValidateMaintenancePort()
