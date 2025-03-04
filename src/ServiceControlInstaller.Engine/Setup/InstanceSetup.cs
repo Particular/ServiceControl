@@ -46,25 +46,16 @@ static class InstanceSetup
 
         processStartupInfo.EnvironmentVariables.Add("INSTANCE_NAME", instanceName);
 
-        var p = Process.Start(processStartupInfo);
-        if (p != null)
-        {
-            var error = p.StandardError.ReadToEnd();
-            p.WaitForExit((int)TimeSpan.FromMinutes(1).TotalMilliseconds);
-            if (!p.HasExited)
-            {
-                p.Kill();
-                throw new TimeoutException($"Timed out waiting for {exeName} to perform setup. This usually indicates a configuration error.");
-            }
+        var p = Process.Start(processStartupInfo) ?? throw new Exception($"Attempt to launch {exeName} failed.");
 
-            if (p.ExitCode != 0)
-            {
-                throw new Exception($"{exeName} threw an error when performing setup. This typically indicates a configuration error. The error output from {exeName} was:\r\n {error}");
-            }
-        }
-        else
+        var error = p.StandardError.ReadToEnd();
+
+        // we will wait "forever" since killing the setup is dangerous and can lead to the database being in an invalid state
+        p.WaitForExit();
+
+        if (p.ExitCode != 0)
         {
-            throw new Exception($"Attempt to launch {exeName} failed.");
+            throw new Exception($"{exeName} threw an error when performing setup. This typically indicates a configuration error. The error output from {exeName} was:\r\n {error}");
         }
     }
 }
