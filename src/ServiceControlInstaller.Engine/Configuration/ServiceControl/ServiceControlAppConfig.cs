@@ -1,5 +1,7 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
+    using System;
+    using System.Data.Common;
     using System.IO;
     using Instances;
 
@@ -12,7 +14,7 @@
 
         protected override void UpdateSettings()
         {
-            Config.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", details.ConnectionString);
+            Config.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", UpdateConnectionString());
             var settings = Config.AppSettings.Settings;
             var version = details.Version;
             settings.Set(ServiceControlSettings.InstanceName, details.InstanceName, version);
@@ -43,6 +45,9 @@
             settings.RemoveIfRetired(ServiceControlSettings.AuditLogQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.ForwardAuditMessages, version);
             settings.RemoveIfRetired(ServiceControlSettings.InternalQueueName, version);
+            settings.RemoveIfRetired(ServiceControlSettings.LicensingComponentRabbitMqManagementApiUrl, version);
+            settings.RemoveIfRetired(ServiceControlSettings.LicensingComponentRabbitMqManagementApiUsername, version);
+            settings.RemoveIfRetired(ServiceControlSettings.LicensingComponentRabbitMqManagementApiPassword, version);
 
             RemoveRavenDB35Settings(settings, version);
         }
@@ -68,6 +73,43 @@
             settings.Set(ServiceControlSettings.TransportType, transportTypeName, version);
         }
 
-        IServiceControlInstance details;
+        string UpdateConnectionString()
+        {
+            var connectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = details.ConnectionString };
+
+            MigrateLicensingComponentRabbitMqManagementApiSettings(connectionStringBuilder);
+
+            return connectionStringBuilder.ConnectionString;
+        }
+
+        void MigrateLicensingComponentRabbitMqManagementApiSettings(DbConnectionStringBuilder connectionStringBuilder)
+        {
+            if (!details.TransportPackage.Name.Contains("rabbitmq", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            var settings = Config.AppSettings.Settings;
+
+            var legacySetting = settings[ServiceControlSettings.LicensingComponentRabbitMqManagementApiUrl.Name];
+            if (legacySetting is not null && !connectionStringBuilder.ContainsKey("ManagementApiUrl"))
+            {
+                connectionStringBuilder.Add("ManagementApiUrl", legacySetting.Value);
+            }
+
+            legacySetting = settings[ServiceControlSettings.LicensingComponentRabbitMqManagementApiUsername.Name];
+            if (legacySetting is not null && !connectionStringBuilder.ContainsKey("ManagementApiUserName"))
+            {
+                connectionStringBuilder.Add("ManagementApiUserName", legacySetting.Value);
+            }
+
+            legacySetting = settings[ServiceControlSettings.LicensingComponentRabbitMqManagementApiPassword.Name];
+            if (legacySetting is not null && !connectionStringBuilder.ContainsKey("ManagementApiPassword"))
+            {
+                connectionStringBuilder.Add("ManagementApiPassword", legacySetting.Value);
+            }
+        }
+
+        readonly IServiceControlInstance details;
     }
 }
