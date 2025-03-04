@@ -34,7 +34,7 @@
             // When shutting down or restarting the OS we have no control over the
             // shutdown timeout. This is by the installer engine that is run _only_ on
             // Windows via SCMU or PowerShell
-            settings.Set(ServiceControlSettings.ShutdownTimeout, "00:02:00", version);
+            settings.Set(AuditInstanceSettingsList.ShutdownTimeout, "00:02:00", version);
 
             foreach (var manifestSetting in instance.PersistenceManifest.Settings)
             {
