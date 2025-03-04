@@ -43,5 +43,5 @@
   "RetryHistoryDepth": 10,
   "RemoteInstances": [],
   "DisableHealthChecks": false,
-  "ShutdownTimeout": "00:02:00"
+  "ShutdownTimeout": "00:00:05"
 }
