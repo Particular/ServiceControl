@@ -34,7 +34,7 @@
                 .WithEndpoint<Sender>(b => b
                     .When(context =>
                     {
-                        return context.Logs.ToArray().Any(i => i.Message.StartsWith(ErrorIngestion.LogMessages.StoppedInfrastructure));
+                        return context.Logs.ToArray().Any(i => i.Message.StartsWith(ErrorIngestion.LogMessages.StartedInfrastructure));
                     }, (_, __) =>
                     {
                         PersisterSettings.MinimumStorageLeftRequiredForIngestion = 100;
