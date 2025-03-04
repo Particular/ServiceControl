@@ -17,6 +17,7 @@ namespace Particular.ServiceControl
     using Microsoft.AspNetCore.HttpLogging;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Hosting.WindowsServices;
     using Microsoft.Extensions.Logging;
     using NLog.Extensions.Logging;
     using NServiceBus;
@@ -95,7 +96,12 @@ namespace Particular.ServiceControl
                 hostBuilder.AddInternalCustomChecks();
             }
 
-            hostBuilder.Services.AddWindowsService();
+            if (WindowsServiceHelpers.IsWindowsService())
+            {
+                // The if is added for clarity, internally AddWindowsService has a similar logic
+                hostBuilder.Services.AddWindowsService();
+                //TODO register our own lifecycle that replaces the WindowsService default one
+            }
 
             hostBuilder.AddServiceControlComponents(settings, transportCustomization, ServiceControlMainInstance.Components);
         }

@@ -2,6 +2,7 @@
 {
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Hosting.WindowsServices;
     using Persistence;
     using Settings;
 
@@ -17,7 +18,12 @@
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.Services.AddPersistence(persistenceSettings, persistenceConfiguration);
 
-            hostBuilder.Services.AddWindowsService();
+            if (WindowsServiceHelpers.IsWindowsService())
+            {
+                // The if is added for clarity, internally AddWindowsService has a similar logic
+                hostBuilder.Services.AddWindowsService();
+                //TODO register our own lifecycle that replaces the WindowsService default one
+            }
 
             var host = hostBuilder.Build();
             await host.RunAsync();
