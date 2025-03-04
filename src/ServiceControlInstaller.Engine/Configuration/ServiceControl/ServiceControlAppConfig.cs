@@ -1,10 +1,8 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
     using System;
-    using System.Collections.Generic;
     using System.Data.Common;
     using System.IO;
-    using System.Linq;
     using Instances;
 
     public class ServiceControlAppConfig : AppConfig
@@ -41,9 +39,9 @@
             settings.RemoveIfRetired(ServiceControlSettings.AuditLogQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.ForwardAuditMessages, version);
             settings.RemoveIfRetired(ServiceControlSettings.InternalQueueName, version);
-            settings.RemoveIfRetired(ServiceControlSettings.RabbitMqManagementApiUrl, version);
-            settings.RemoveIfRetired(ServiceControlSettings.RabbitMqManagementApiUsername, version);
-            settings.RemoveIfRetired(ServiceControlSettings.RabbitMqManagementApiPassword, version);
+            settings.RemoveIfRetired(ServiceControlSettings.LicensingComponentRabbitMqManagementApiUrl, version);
+            settings.RemoveIfRetired(ServiceControlSettings.LicensingComponentRabbitMqManagementApiUsername, version);
+            settings.RemoveIfRetired(ServiceControlSettings.LicensingComponentRabbitMqManagementApiPassword, version);
 
             RemoveRavenDB35Settings(settings, version);
         }
@@ -71,42 +69,38 @@
 
         string UpdateConnectionString()
         {
-            var kvpList = new DbConnectionStringBuilder { ConnectionString = details.ConnectionString }
-                .OfType<KeyValuePair<string, object>>()
-                .Select(kvp => new KeyValuePair<string, string>(kvp.Key, kvp.Value.ToString()))
-                .ToList();
+            var connectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = details.ConnectionString };
 
-            MigrateRabbitMqManagementApiSettings(kvpList);
+            MigrateLicensingComponentRabbitMqManagementApiSettings(connectionStringBuilder);
 
-            return string.Join(";", kvpList.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+            return connectionStringBuilder.ConnectionString;
         }
 
-        void MigrateRabbitMqManagementApiSettings(IList<KeyValuePair<string, string>> connectionStringPairs)
+        void MigrateLicensingComponentRabbitMqManagementApiSettings(DbConnectionStringBuilder connectionStringBuilder)
         {
-            if (!details.TransportPackage.Name.Contains("rabbitmq", StringComparison.OrdinalIgnoreCase) ||
-                connectionStringPairs.Any(kvp => kvp.Key.Equals("ManagementApiUrl", StringComparison.OrdinalIgnoreCase) || kvp.Key.Equals("ManagementApiUserName", StringComparison.OrdinalIgnoreCase)))
+            if (!details.TransportPackage.Name.Contains("rabbitmq", StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
 
             var settings = Config.AppSettings.Settings;
 
-            var legacySetting = settings["LicensingComponent/RabbitMQ/ApiUrl"];
-            if (legacySetting is not null)
+            var legacySetting = settings[ServiceControlSettings.LicensingComponentRabbitMqManagementApiUrl.Name];
+            if (legacySetting is not null && !connectionStringBuilder.ContainsKey("ManagementApiUrl"))
             {
-                connectionStringPairs.Add(new KeyValuePair<string, string>("ManagementApiUrl", legacySetting.Value));
+                connectionStringBuilder.Add("ManagementApiUrl", legacySetting.Value);
             }
 
-            legacySetting = settings["LicensingComponent/RabbitMQ/UserName"];
-            if (legacySetting is not null)
+            legacySetting = settings[ServiceControlSettings.LicensingComponentRabbitMqManagementApiUsername.Name];
+            if (legacySetting is not null && !connectionStringBuilder.ContainsKey("ManagementApiUserName"))
             {
-                connectionStringPairs.Add(new KeyValuePair<string, string>("ManagementApiUserName", legacySetting.Value));
+                connectionStringBuilder.Add("ManagementApiUserName", legacySetting.Value);
             }
 
-            legacySetting = settings["LicensingComponent/RabbitMQ/Password"];
-            if (legacySetting is not null)
+            legacySetting = settings[ServiceControlSettings.LicensingComponentRabbitMqManagementApiPassword.Name];
+            if (legacySetting is not null && !connectionStringBuilder.ContainsKey("ManagementApiPassword"))
             {
-                connectionStringPairs.Add(new KeyValuePair<string, string>("ManagementApiPassword", legacySetting.Value));
+                connectionStringBuilder.Add("ManagementApiPassword", legacySetting.Value);
             }
         }
 

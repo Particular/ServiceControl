@@ -90,19 +90,19 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             SupportedFrom = new SemanticVersion(4, 17, 0)
         };
 
-        public static readonly SettingInfo RabbitMqManagementApiUrl = new()
+        public static readonly SettingInfo LicensingComponentRabbitMqManagementApiUrl = new()
         {
             Name = "LicensingComponent/RabbitMQ/ApiUrl",
             RemovedFrom = new SemanticVersion(6, 5, 0)
         };
 
-        public static readonly SettingInfo RabbitMqManagementApiUsername = new()
+        public static readonly SettingInfo LicensingComponentRabbitMqManagementApiUsername = new()
         {
             Name = "LicensingComponent/RabbitMQ/UserName",
             RemovedFrom = new SemanticVersion(6, 5, 0)
         };
 
-        public static readonly SettingInfo RabbitMqManagementApiPassword = new()
+        public static readonly SettingInfo LicensingComponentRabbitMqManagementApiPassword = new()
         {
             Name = "LicensingComponent/RabbitMQ/Password",
             RemovedFrom = new SemanticVersion(6, 5, 0)
