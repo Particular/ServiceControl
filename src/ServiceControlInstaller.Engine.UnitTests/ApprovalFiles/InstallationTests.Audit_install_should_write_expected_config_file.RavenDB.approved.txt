@@ -10,6 +10,7 @@
         <add key="ServiceControl.Audit/AuditRetentionPeriod" value="00:00:00" />
         <add key="ServiceControl.Audit/EnableFullTextSearchOnBodies"
             value="false" />
+        <add key="ServiceControl/ShutdownTimeout" value="00:02:00" />
         <add key="ServiceControl.Audit/DBPath" value="value-not-asserted" />
         <add key="ServiceControl.Audit/DatabaseMaintenancePort" value="33333" />
     </appSettings>
