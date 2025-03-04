@@ -8,6 +8,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
+    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using NUnit.Framework;
@@ -87,21 +88,24 @@
             // currently working around by creating a service collection per start call and then disposing the provider
             // as part of the method scope. This could lead to potential problems later once we add disposable resources
             // but this code probably requires a major overhaul anyway.
-            var serviceCollection = new ServiceCollection();
+
             var transportSettings = new TransportSettings
             {
                 ConnectionString = configuration.ConnectionString,
                 EndpointName = queueName,
                 MaxConcurrency = 1
             };
+
+            var serviceCollection = new ServiceCollection();
+
             configuration.TransportCustomization.AddTransportForMonitoring(serviceCollection, transportSettings);
-            serviceCollection.AddSingleton<Action<QueueLengthEntry[], EndpointToQueueMapping>>((qlt, _) =>
-                onQueueLengthReported(qlt.First()));
+            configuration.TransportCustomization.CustomizeMonitoringEndpoint(new EndpointConfiguration("queueName"), transportSettings);
+
+            serviceCollection.AddSingleton<Action<QueueLengthEntry[], EndpointToQueueMapping>>((qlt, _) => onQueueLengthReported(qlt.First()));
             var serviceProvider = serviceCollection.BuildServiceProvider();
+
             queueLengthProvider = serviceProvider.GetRequiredService<IProvideQueueLength>();
-
             await queueLengthProvider.StartAsync(CancellationToken.None);
-
             queueLengthProvider.TrackEndpointInputQueue(new EndpointToQueueMapping(queueName, queueName));
 
             return new QueueLengthProviderScope(serviceProvider);
