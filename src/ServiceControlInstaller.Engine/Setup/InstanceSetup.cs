@@ -25,7 +25,7 @@ static class InstanceSetup
             instance.Name,
             instance.SkipQueueCreation);
 
-    internal static void Run(string installPath, string exeName, string instanceName, bool skipQueueCreation)
+    static void Run(string installPath, string exeName, string instanceName, bool skipQueueCreation)
     {
         var args = $"--setup";
 
@@ -34,6 +34,11 @@ static class InstanceSetup
             args += " --skip-queue-creation";
         }
 
+        Run(installPath, exeName, instanceName, args);
+    }
+
+    internal static void Run(string installPath, string exeName, string instanceName, string args)
+    {
         var processStartupInfo = new ProcessStartInfo
         {
             CreateNoWindow = true,

@@ -1,3 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-
-Console.WriteLine("Hello, World!");
+﻿if (args.Any(a => a == "fail"))
+{
+    throw new Exception("Fake exception");
+}
