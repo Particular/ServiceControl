@@ -17,4 +17,12 @@ public class SetupInstanceTests
 
         Assert.That(ex.Message, Does.Contain("Fake exception"));
     }
+
+    [Test]
+    public void Should_capture_and_rethrow_non_zero_exit_codes()
+    {
+        var ex = Assert.Throws<Exception>(() => InstanceSetup.Run(TestContext.CurrentContext.WorkDirectory, "SetupProcessFake.exe", "test", "non-zero-exit-code"));
+
+        Assert.That(ex.Message, Does.Contain("returned a non-zero exit code: 3"));
+    }
 }

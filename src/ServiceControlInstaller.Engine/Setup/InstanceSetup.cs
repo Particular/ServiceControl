@@ -60,7 +60,7 @@ static class InstanceSetup
 
         if (p.ExitCode != 0)
         {
-            throw new Exception($"{exeName} threw an error when performing setup. This typically indicates a configuration error. The error output from {exeName} was:\r\n {error}");
+            throw new Exception($"{exeName} returned a non-zero exit code: {p.ExitCode}. This typically indicates a configuration error. The error output was:\r\n {error}");
         }
     }
 }
