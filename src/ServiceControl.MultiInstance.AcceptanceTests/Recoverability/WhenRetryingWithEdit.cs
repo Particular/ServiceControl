@@ -14,7 +14,7 @@ using TestSupport;
 
 class WhenRetryingWithEdit : WhenRetrying
 {
-    [Test, Explicit]
+    [Test]
     public async Task ShouldCreateNewMessageAndResolveEditedMessage()
     {
         CustomServiceControlPrimarySettings = s => { s.AllowMessageEditing = true; };
@@ -49,7 +49,7 @@ class WhenRetryingWithEdit : WhenRetrying
 
                 return failedResolvedMessage.HasResult; // If there is a result it means the message was resolved
             })
-            .Run(TimeSpan.FromMinutes(2));
+            .Run(TimeSpan.FromSeconds(30));
     }
 
     class FailureEndpoint : EndpointConfigurationBuilder
