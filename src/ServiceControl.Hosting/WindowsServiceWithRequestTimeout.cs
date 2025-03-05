@@ -36,4 +36,11 @@ sealed class WindowsServiceWithRequestTimeout : WindowsServiceLifetime
 
         base.OnStop();
     }
+
+    protected override void OnShutdown()
+    {
+        var logger = NLog.LogManager.GetCurrentClassLogger();
+        logger.Info("OnShutdown invoked, process may exit ungracefully");
+        base.OnShutdown();
+    }
 }
