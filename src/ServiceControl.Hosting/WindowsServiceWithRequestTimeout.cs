@@ -27,7 +27,13 @@ sealed class WindowsServiceWithRequestTimeout : WindowsServiceLifetime
 
     protected override void OnStop()
     {
-        RequestAdditionalTime(hostOptions.ShutdownTimeout + CancellationDuration);
+        var logger = NLog.LogManager.GetCurrentClassLogger();
+        var additionalTime = hostOptions.ShutdownTimeout + CancellationDuration;
+
+        logger.Info($"OnStop invoked, going to ask for additional time: {additionalTime}");
+        RequestAdditionalTime(additionalTime);
+        logger.Info("Additional time requested");
+
         base.OnStop();
     }
 }
