@@ -3,7 +3,6 @@
 using System;
 using System.Threading;
 using Engine.Setup;
-using Mono.Cecil.Cil;
 using NUnit.Framework;
 
 [TestFixture]

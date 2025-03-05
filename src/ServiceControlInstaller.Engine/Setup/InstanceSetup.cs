@@ -35,6 +35,8 @@ static class InstanceSetup
             args += " --skip-queue-creation";
         }
 
+        // we will wait "forever" since that is the most safe action right not. We will leave it up to the setup code in the instances to make sure it won't run forever.
+        // If/when provide better UI experience we might revisit this and potentially find a way for the installer to control the timeout.
         Run(installPath, exeName, instanceName, args, Timeout.Infinite);
     }
 
