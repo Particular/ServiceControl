@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using Instances;
 
 static class InstanceSetup
@@ -34,10 +35,10 @@ static class InstanceSetup
             args += " --skip-queue-creation";
         }
 
-        Run(installPath, exeName, instanceName, args);
+        Run(installPath, exeName, instanceName, args, Timeout.Infinite);
     }
 
-    internal static void Run(string installPath, string exeName, string instanceName, string args)
+    internal static Process Run(string installPath, string exeName, string instanceName, string args, int timeout)
     {
         var processStartupInfo = new ProcessStartInfo
         {
@@ -53,14 +54,15 @@ static class InstanceSetup
 
         var p = Process.Start(processStartupInfo) ?? throw new Exception($"Attempt to launch {exeName} failed.");
 
+        p.WaitForExit(timeout);
+
+        if (!p.HasExited || p.ExitCode == 0)
+        {
+            return p;
+        }
+
         var error = p.StandardError.ReadToEnd();
 
-        // we will wait "forever" since killing the setup is dangerous and can lead to the database being in an invalid state
-        p.WaitForExit();
-
-        if (p.ExitCode != 0)
-        {
-            throw new Exception($"{exeName} returned a non-zero exit code: {p.ExitCode}. This typically indicates a configuration error. The error output was:\r\n {error}");
-        }
+        throw new Exception($"{exeName} returned a non-zero exit code: {p.ExitCode}. This typically indicates a configuration error. The error output was:\r\n {error}");
     }
 }
