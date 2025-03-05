@@ -7,5 +7,5 @@ using NUnit.Framework;
 public class SetupInstanceTests
 {
     [Test]
-    public void Should_not_throw_on_0_exit_code() => Assert.DoesNotThrow(() => InstanceSetup.Run("", "", "test", false));
+    public void Should_not_throw_on_0_exit_code() => Assert.DoesNotThrow(() => InstanceSetup.Run(TestContext.CurrentContext.WorkDirectory, "SetupProcessFake.exe", "test", false));
 }
