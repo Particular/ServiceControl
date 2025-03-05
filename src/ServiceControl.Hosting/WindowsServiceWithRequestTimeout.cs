@@ -30,10 +30,4 @@ sealed class WindowsServiceWithRequestTimeout : WindowsServiceLifetime
         RequestAdditionalTime(hostOptions.ShutdownTimeout + CancellationDuration);
         base.OnStop();
     }
-
-    protected override void OnShutdown()
-    {
-        RequestAdditionalTime(hostOptions.ShutdownTimeout + CancellationDuration);
-        base.OnShutdown();
-    }
 }
