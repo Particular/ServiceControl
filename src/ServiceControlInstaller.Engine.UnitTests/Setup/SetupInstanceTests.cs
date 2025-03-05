@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using Engine.Setup;
+using Mono.Cecil.Cil;
 using NUnit.Framework;
 
 [TestFixture]
@@ -25,6 +26,7 @@ public class SetupInstanceTests
         var ex = Assert.Throws<Exception>(() => InstanceSetup.Run(TestContext.CurrentContext.WorkDirectory, "SetupProcessFake.exe", "test", "non-zero-exit-code", Timeout.Infinite));
 
         Assert.That(ex.Message, Does.Contain("returned a non-zero exit code: 3"));
+        Assert.That(ex.Message, Does.Contain("Fake non zero exit code message"));
     }
 
     [Test]
