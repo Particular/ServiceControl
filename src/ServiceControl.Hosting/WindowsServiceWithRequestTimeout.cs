@@ -30,7 +30,7 @@ sealed class WindowsServiceWithRequestTimeout : WindowsServiceLifetime
         var logger = NLog.LogManager.GetCurrentClassLogger();
         var additionalTime = hostOptions.ShutdownTimeout + CancellationDuration;
 
-        logger.Info($"OnStop invoked, going to ask for additional time: {additionalTime}");
+        logger.Info("OnStop invoked, going to ask for additional time: {additionalTime}", additionalTime);
         RequestAdditionalTime(additionalTime);
         logger.Info("Additional time requested");
 
