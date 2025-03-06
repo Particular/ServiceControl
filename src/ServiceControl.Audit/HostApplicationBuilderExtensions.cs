@@ -22,22 +22,22 @@ using NServiceBus.Logging;
 using NServiceBus.Transport;
 using Persistence;
 using Transports;
-using ServiceControl.Infrastructure;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 
 static class HostApplicationBuilderExtensions
 {
+    static string InstanceVersion = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
+
     public static void AddServiceControlAudit(this IHostApplicationBuilder builder,
         Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError,
         Settings settings,
         EndpointConfiguration configuration)
     {
-        var version = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
         var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings);
         var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
 
-        RecordStartup(version, settings, configuration, persistenceConfiguration);
+        RecordStartup(settings, configuration, persistenceConfiguration);
 
         builder.Logging.ClearProviders();
         builder.Logging.AddNLog();
@@ -72,32 +72,7 @@ static class HostApplicationBuilderExtensions
         NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, onCriticalError, configuration);
         builder.UseNServiceBus(configuration);
 
-        services.AddSingleton<IngestionMetrics>();
-
-        if (!string.IsNullOrEmpty(settings.OtlpEndpointUrl))
-        {
-            if (!Uri.TryCreate(settings.OtlpEndpointUrl, UriKind.Absolute, out var otelMetricsUri))
-            {
-                throw new UriFormatException($"Invalid OtlpEndpointUrl: {settings.OtlpEndpointUrl}");
-            }
-
-            builder.Services.AddOpenTelemetry()
-                .ConfigureResource(b => b.AddService(
-                    serviceName: settings.InstanceName,
-                    serviceVersion: version,
-                    autoGenerateServiceInstanceId: true))
-                .WithMetrics(b =>
-                {
-                    b.AddMeter(IngestionMetrics.MeterName);
-                    b.AddOtlpExporter(e =>
-                    {
-                        e.Endpoint = otelMetricsUri;
-                    });
-                });
-
-            var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
-            logger.InfoFormat("OpenTelemetry metrics exporter enabled: {0}", settings.OtlpEndpointUrl);
-        }
+        builder.AddMetrics(settings);
 
         // Configure after the NServiceBus hosted service to ensure NServiceBus is already started
         if (settings.IngestAuditMessages)
@@ -119,11 +94,41 @@ static class HostApplicationBuilderExtensions
         builder.Services.AddInstaller(persistenceSettings, persistenceConfiguration);
     }
 
-    static void RecordStartup(string version, Settings settings, EndpointConfiguration endpointConfiguration, IPersistenceConfiguration persistenceConfiguration)
+    public static void AddMetrics(this IHostApplicationBuilder builder, Settings settings)
+    {
+        builder.Services.AddSingleton<IngestionMetrics>();
+
+        if (!string.IsNullOrEmpty(settings.OtlpEndpointUrl))
+        {
+            if (!Uri.TryCreate(settings.OtlpEndpointUrl, UriKind.Absolute, out var otelMetricsUri))
+            {
+                throw new UriFormatException($"Invalid OtlpEndpointUrl: {settings.OtlpEndpointUrl}");
+            }
+
+            builder.Services.AddOpenTelemetry()
+                .ConfigureResource(b => b.AddService(
+                    serviceName: settings.InstanceName,
+                    serviceVersion: InstanceVersion,
+                    autoGenerateServiceInstanceId: true))
+                .WithMetrics(b =>
+                {
+                    b.AddMeter(IngestionMetrics.MeterName);
+                    b.AddOtlpExporter(e =>
+                    {
+                        e.Endpoint = otelMetricsUri;
+                    });
+                });
+
+            var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
+            logger.InfoFormat("OpenTelemetry metrics exporter enabled: {0}", settings.OtlpEndpointUrl);
+        }
+    }
+
+    static void RecordStartup(Settings settings, EndpointConfiguration endpointConfiguration, IPersistenceConfiguration persistenceConfiguration)
     {
         var startupMessage = $@"
 -------------------------------------------------------------
-ServiceControl Audit Version:       {version}
+ServiceControl Audit Version:       {InstanceVersion}
 Audit Retention Period:             {settings.AuditRetentionPeriod}
 Forwarding Audit Messages:          {settings.ForwardAuditMessages}
 ServiceControl Logging Level:       {settings.LoggingSettings.LogLevel}
