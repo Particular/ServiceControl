@@ -16,7 +16,7 @@ public record MessageMetrics(MessageContext Context, Histogram<double> Duration)
         var tags = IngestionMetrics.GetMessageTags(Context.Headers);
 
         tags.Add("result", result);
-        Duration.Record(sw.ElapsedMilliseconds, tags);
+        Duration.Record(sw.Elapsed.TotalSeconds, tags);
     }
 
     string result = "failed";

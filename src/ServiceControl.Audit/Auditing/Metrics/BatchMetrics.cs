@@ -25,7 +25,7 @@ public record BatchMetrics(int MaxBatchSize, Histogram<double> BatchDuration, Ac
         }
 
         tags.Add("result", result);
-        BatchDuration.Record(sw.ElapsedMilliseconds, tags);
+        BatchDuration.Record(sw.Elapsed.TotalSeconds, tags);
     }
 
     public void Complete(int size) => actualBatchSize = size;

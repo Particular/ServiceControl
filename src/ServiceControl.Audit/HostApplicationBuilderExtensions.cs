@@ -27,7 +27,7 @@ using OpenTelemetry.Resources;
 
 static class HostApplicationBuilderExtensions
 {
-    static string InstanceVersion = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
+    static readonly string InstanceVersion = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
 
     public static void AddServiceControlAudit(this IHostApplicationBuilder builder,
         Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError,

@@ -15,9 +15,9 @@ public class IngestionMetrics
     {
         var meter = meterFactory.Create(MeterName, MeterVersion);
 
-        batchDuration = meter.CreateHistogram<double>(CreateInstrumentName("batch_duration"), unit: "ms", "Average audit message batch processing duration");
+        batchDuration = meter.CreateHistogram<double>(CreateInstrumentName("batch_duration"), unit: "seconds", "Average audit message batch processing duration");
+        ingestionDuration = meter.CreateHistogram<double>(CreateInstrumentName("message_duration"), unit: "seconds", description: "Average incoming audit message processing duration");
         consecutiveBatchFailureGauge = meter.CreateObservableGauge(CreateInstrumentName("consecutive_batch_failures"), () => consecutiveBatchFailures, description: "Consecutive audit ingestion batch failure");
-        ingestionDuration = meter.CreateHistogram<double>(CreateInstrumentName("duration"), unit: "ms", description: "Average incoming audit message processing duration");
         failureCounter = meter.CreateCounter<long>(CreateInstrumentName("failure_count"), description: "Audit ingestion failure count");
     }
 
