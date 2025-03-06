@@ -22,7 +22,7 @@
         IBodyStorage bodyStorage)
         : IAuditIngestionUnitOfWork
     {
-        public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body)
+        public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
         {
             processedMessage.MessageMetadata["ContentLength"] = body.Length;
             if (!body.IsEmpty)
@@ -37,7 +37,7 @@
                 await using var stream = new ReadOnlyStream(body);
                 var contentType = processedMessage.Headers.GetValueOrDefault(Headers.ContentType, "text/xml");
 
-                await bodyStorage.Store(processedMessage.Id, contentType, body.Length, stream);
+                await bodyStorage.Store(processedMessage.Id, contentType, body.Length, stream, cancellationToken);
             }
         }
 
@@ -47,10 +47,10 @@
                 [Constants.Documents.Metadata.Expires] = DateTime.UtcNow.Add(auditRetentionPeriod)
             };
 
-        public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot)
+        public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken)
             => bulkInsert.StoreAsync(sagaSnapshot, GetExpirationMetadata());
 
-        public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint)
+        public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken)
             => bulkInsert.StoreAsync(knownEndpoint, GetExpirationMetadata());
 
         public async ValueTask DisposeAsync()

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -11,7 +12,7 @@
 
     public class BodyStorageEnricher(IBodyStorage bodyStorage, PersistenceSettings settings)
     {
-        public async ValueTask StoreAuditMessageBody(ReadOnlyMemory<byte> body, ProcessedMessage processedMessage)
+        public async ValueTask StoreAuditMessageBody(ReadOnlyMemory<byte> body, ProcessedMessage processedMessage, CancellationToken cancellationToken)
         {
             var bodySize = body.Length;
             processedMessage.MessageMetadata.Add("ContentLength", bodySize);
@@ -23,7 +24,7 @@
             var contentType = GetContentType(processedMessage.Headers, "text/xml");
             processedMessage.MessageMetadata.Add("ContentType", contentType);
 
-            var stored = await TryStoreBody(body, processedMessage, bodySize, contentType);
+            var stored = await TryStoreBody(body, processedMessage, bodySize, contentType, cancellationToken);
             if (!stored)
             {
                 processedMessage.MessageMetadata.Add("BodyNotStored", true);
@@ -33,7 +34,7 @@
         static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
             => headers.GetValueOrDefault(Headers.ContentType, defaultContentType);
 
-        async ValueTask<bool> TryStoreBody(ReadOnlyMemory<byte> body, ProcessedMessage processedMessage, int bodySize, string contentType)
+        async ValueTask<bool> TryStoreBody(ReadOnlyMemory<byte> body, ProcessedMessage processedMessage, int bodySize, string contentType, CancellationToken cancellationToken)
         {
             var bodyId = MessageId(processedMessage.Headers);
             var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
@@ -71,7 +72,7 @@
 
                 if (useBodyStore)
                 {
-                    await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize);
+                    await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize, cancellationToken);
                     storedInBodyStorage = true;
                 }
             }
@@ -80,10 +81,10 @@
             return storedInBodyStorage;
         }
 
-        async Task StoreBodyInBodyStorage(ReadOnlyMemory<byte> body, string bodyId, string contentType, int bodySize)
+        async Task StoreBodyInBodyStorage(ReadOnlyMemory<byte> body, string bodyId, string contentType, int bodySize, CancellationToken cancellationToken)
         {
             await using var bodyStream = new ReadOnlyStream(body);
-            await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
+            await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream, cancellationToken);
         }
 
         static string MessageId(IReadOnlyDictionary<string, string> headers)

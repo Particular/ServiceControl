@@ -1,11 +1,12 @@
 ﻿namespace ServiceControl.Audit.Auditing.BodyStorage
 {
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public interface IBodyStorage
     {
-        Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream);
+        Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken);
         Task<StreamResult> TryFetch(string bodyId);
     }
 
