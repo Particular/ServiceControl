@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using Instances;
 
 static class InstanceSetup
@@ -34,6 +35,13 @@ static class InstanceSetup
             args += " --skip-queue-creation";
         }
 
+        // we will wait "forever" since that is the most safe action right not. We will leave it up to the setup code in the instances to make sure it won't run forever.
+        // If/when provide better UI experience we might revisit this and potentially find a way for the installer to control the timeout.
+        Run(installPath, exeName, instanceName, args, Timeout.Infinite);
+    }
+
+    internal static Process Run(string installPath, string exeName, string instanceName, string args, int timeout)
+    {
         var processStartupInfo = new ProcessStartInfo
         {
             CreateNoWindow = true,
@@ -46,25 +54,17 @@ static class InstanceSetup
 
         processStartupInfo.EnvironmentVariables.Add("INSTANCE_NAME", instanceName);
 
-        var p = Process.Start(processStartupInfo);
-        if (p != null)
-        {
-            var error = p.StandardError.ReadToEnd();
-            p.WaitForExit((int)TimeSpan.FromMinutes(1).TotalMilliseconds);
-            if (!p.HasExited)
-            {
-                p.Kill();
-                throw new TimeoutException($"Timed out waiting for {exeName} to perform setup. This usually indicates a configuration error.");
-            }
+        var p = Process.Start(processStartupInfo) ?? throw new Exception($"Attempt to launch {exeName} failed.");
 
-            if (p.ExitCode != 0)
-            {
-                throw new Exception($"{exeName} threw an error when performing setup. This typically indicates a configuration error. The error output from {exeName} was:\r\n {error}");
-            }
-        }
-        else
+        p.WaitForExit(timeout);
+
+        if (!p.HasExited || p.ExitCode == 0)
         {
-            throw new Exception($"Attempt to launch {exeName} failed.");
+            return p;
         }
+
+        var error = p.StandardError.ReadToEnd();
+
+        throw new Exception($"{exeName} returned a non-zero exit code: {p.ExitCode}. This typically indicates a configuration error. The error output was:\r\n {error}");
     }
 }
