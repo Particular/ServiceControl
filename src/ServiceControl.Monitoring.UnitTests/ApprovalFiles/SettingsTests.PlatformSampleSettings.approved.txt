@@ -15,5 +15,6 @@
   "EndpointUptimeGracePeriod": "00:00:40",
   "RootUrl": "http://localhost:9999/",
   "MaximumConcurrencyLevel": null,
-  "ServiceControlThroughputDataQueue": "ServiceControl.ThroughputData"
+  "ServiceControlThroughputDataQueue": "ServiceControl.ThroughputData",
+  "ShutdownTimeout": "00:00:05"
 }

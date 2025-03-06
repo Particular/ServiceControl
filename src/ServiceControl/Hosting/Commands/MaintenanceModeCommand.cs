@@ -2,6 +2,7 @@
 {
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Hosting.WindowsServices;
     using Particular.ServiceControl.Hosting;
     using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -13,7 +14,11 @@
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.Services.AddPersistence(settings, maintenanceMode: true);
 
-            hostBuilder.Services.AddWindowsService();
+            if (WindowsServiceHelpers.IsWindowsService())
+            {
+                // The if is added for clarity, internally AddWindowsService has a similar logic
+                hostBuilder.AddWindowsServiceWithRequestTimeout();
+            }
 
             var host = hostBuilder.Build();
             await host.RunAsync();
