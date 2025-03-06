@@ -9,6 +9,8 @@ using NServiceBus.Transport;
 
 public class IngestionMetrics
 {
+    public const string MeterName = "Particular.ServiceControl.Audit";
+
     public IngestionMetrics(IMeterFactory meterFactory)
     {
         var meter = meterFactory.Create(MeterName, MeterVersion);
@@ -64,7 +66,6 @@ public class IngestionMetrics
     readonly Histogram<double> ingestionDuration;
     readonly Counter<long> failureCounter;
 
-    const string MeterName = "Particular.ServiceControl.Audit";
     const string MeterVersion = "0.1.0";
 
     static readonly string SagaUpdateMessageType = typeof(SagaUpdatedMessage).FullName;
