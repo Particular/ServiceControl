@@ -60,11 +60,11 @@
                             RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
                         }
 
-                        await unitOfWork.RecordProcessedMessage(processedMessage, context.Body);
+                        await unitOfWork.RecordProcessedMessage(processedMessage, context.Body, cancellationToken);
                     }
                     else if (context.Extensions.TryGet(out SagaSnapshot sagaSnapshot))
                     {
-                        await unitOfWork.RecordSagaSnapshot(sagaSnapshot);
+                        await unitOfWork.RecordSagaSnapshot(sagaSnapshot, cancellationToken);
                     }
 
                     storedContexts.Add(context);
@@ -77,7 +77,7 @@
                         Logger.Debug($"Adding known endpoint '{endpoint.Name}' for bulk storage");
                     }
 
-                    await unitOfWork.RecordKnownEndpoint(endpoint);
+                    await unitOfWork.RecordKnownEndpoint(endpoint, cancellationToken);
                 }
             }
             catch (Exception e)
