@@ -43,8 +43,6 @@ class AuditIngestionFaultPolicy
 
         await StoreFailedMessageDocument(errorContext, cancellationToken);
 
-        //failedCounter.Add(1, tags);
-
         return ErrorHandleResult.Handled;
     }
 
