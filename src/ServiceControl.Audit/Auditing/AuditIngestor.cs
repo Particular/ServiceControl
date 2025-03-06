@@ -25,13 +25,12 @@
             IEnumerable<IEnrichImportedAuditMessages> auditEnrichers, // allows extending message enrichers with custom enrichers registered in the DI container
             IMessageSession messageSession,
             Lazy<IMessageDispatcher> messageDispatcher,
-            ITransportCustomization transportCustomization,
-            AuditIngestionMetrics metrics
+            ITransportCustomization transportCustomization
         )
         {
             this.settings = settings;
             this.messageDispatcher = messageDispatcher;
-            this.metrics = metrics;
+
             var enrichers = new IEnrichImportedAuditMessages[] { new MessageTypeEnricher(), new EnrichWithTrackingIds(), new ProcessingStatisticsEnricher(), new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring), new DetectSuccessfulRetriesEnricher(), new SagaRelationshipsEnricher() }.Concat(auditEnrichers).ToArray();
 
             logQueueAddress = transportCustomization.ToTransportQualifiedQueueName(settings.AuditLogQueue);
@@ -53,7 +52,6 @@
                 if (settings.ForwardAuditMessages)
                 {
                     await Forward(stored, logQueueAddress);
-                    metrics.IncrementMessagesForwarded(stored.Count);
                 }
 
                 foreach (var context in contexts)
@@ -132,7 +130,6 @@
         readonly AuditPersister auditPersister;
         readonly Settings settings;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
-        readonly AuditIngestionMetrics metrics;
         readonly string logQueueAddress;
 
         static readonly ILog Log = LogManager.GetLogger<AuditIngestor>();
