@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
     using Monitoring;
@@ -21,14 +22,14 @@
         IMessageSession messageSession,
         Lazy<IMessageDispatcher> messageDispatcher)
     {
-        public async Task<IReadOnlyList<MessageContext>> Persist(IReadOnlyList<MessageContext> contexts)
+        public async Task<IReadOnlyList<MessageContext>> Persist(IReadOnlyList<MessageContext> contexts, CancellationToken cancellationToken)
         {
             var storedContexts = new List<MessageContext>(contexts.Count);
             IAuditIngestionUnitOfWork unitOfWork = null;
             try
             {
                 // deliberately not using the using statement because we dispose async explicitly
-                unitOfWork = await unitOfWorkFactory.StartNew(contexts.Count);
+                unitOfWork = await unitOfWorkFactory.StartNew(contexts.Count, cancellationToken);
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {
