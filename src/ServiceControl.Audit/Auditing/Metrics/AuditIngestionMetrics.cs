@@ -9,13 +9,10 @@ public class AuditIngestionMetrics
     {
         var meter = meterFactory.Create(MeterName, MeterVersion);
 
-        forwardedMessagesCounter = meter.CreateCounter<long>(CreateInstrumentName("forwarded"), description: "Audit ingestion forwarded message count");
         batchDuration = meter.CreateHistogram<double>(CreateInstrumentName("batch_duration"), unit: "ms", "Average audit message batch processing duration");
         consecutiveBatchFailureGauge = meter.CreateObservableGauge(CreateInstrumentName("consecutive_batch_failures"), () => consecutiveBatchFailures, unit: "count", description: "Consecutive audit ingestion batch failure");
         ingestionDuration = meter.CreateHistogram<double>(CreateInstrumentName("duration"), unit: "ms", description: "Average incoming audit message processing duration");
     }
-
-    public void IncrementMessagesForwarded(int count) => forwardedMessagesCounter.Add(count);
 
     public MessageIngestionMetrics BeginIngestion(MessageContext messageContext) => new(messageContext, ingestionDuration);
 
@@ -37,7 +34,6 @@ public class AuditIngestionMetrics
 
     long consecutiveBatchFailures;
 
-    readonly Counter<long> forwardedMessagesCounter;
     readonly Histogram<double> batchDuration;
 #pragma warning disable IDE0052
     readonly ObservableGauge<long> consecutiveBatchFailureGauge;
