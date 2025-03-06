@@ -5,7 +5,6 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.Settings;
-    using Metrics;
     using Monitoring;
     using NServiceBus;
     using NServiceBus.Logging;

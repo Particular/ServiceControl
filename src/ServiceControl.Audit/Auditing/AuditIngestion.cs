@@ -27,7 +27,7 @@
             AuditIngestor auditIngestor,
             IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
             IHostApplicationLifetime applicationLifetime,
-            AuditIngestionMetrics metrics)
+            IngestionMetrics metrics)
         {
             inputEndpoint = settings.AuditQueue;
             this.transportCustomization = transportCustomization;
@@ -53,7 +53,7 @@
                 FullMode = BoundedChannelFullMode.Wait
             });
 
-            errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, settings.LoggingSettings, OnCriticalError);
+            errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, settings.LoggingSettings, OnCriticalError, metrics);
 
             watchdog = new Watchdog(
                 "audit message ingestion",
@@ -298,7 +298,7 @@
         readonly Channel<MessageContext> channel;
         readonly Watchdog watchdog;
         readonly IHostApplicationLifetime applicationLifetime;
-        readonly AuditIngestionMetrics metrics;
+        readonly IngestionMetrics metrics;
 
         static readonly ILog logger = LogManager.GetLogger<AuditIngestion>();
     }
