@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.Tests
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using NUnit.Framework;
@@ -27,17 +28,17 @@
                 return Task.CompletedTask;
             }, x => { }, () => { }, TimeSpan.FromSeconds(1), log);
 
-            await dog.Start(() => { });
+            await dog.Start(() => { }, CancellationToken.None);
 
             await started.Task;
 
-            await dog.Stop();
+            await dog.Stop(TestContext.CurrentContext.CancellationToken);
 
             await stopped.Task;
         }
 
         [Test]
-        public async Task When_stop_fails_it_reports_the_failure()
+        public async Task When_stop_fails_stop_should_throw_identifying_ungraceful_stop()
         {
             string lastFailure = null;
             var started = new TaskCompletionSource<bool>();
@@ -48,13 +49,24 @@
                 return Task.CompletedTask;
             }, token => throw new Exception("Simulated"), x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log);
 
-            await dog.Start(() => { });
+            await dog.Start(() => { }, CancellationToken.None);
 
             await started.Task;
 
-            await dog.Stop();
+            // The following blocks the test:
+            //
+            // var ex = Assert.ThrowsAsync<Exception>(async () => await dog.Stop(TestContext.CurrentContext.CancellationToken));
+            // Assert.That(ex.Message, Is.EqualTo("Simulated"));
 
-            Assert.That(lastFailure, Is.EqualTo("Simulated"));
+            try
+            {
+                await dog.Stop(TestContext.CurrentContext.CancellationToken);
+                Assert.Fail("Should have thrown an exception");
+            }
+            catch (Exception ex)
+            {
+                Assert.That(ex.Message, Is.EqualTo("Simulated"));
+            }
         }
 
         [Test]
@@ -75,6 +87,7 @@
                 {
                     restarted.SetResult(true);
                 }
+
                 startAttempts++;
                 return Task.CompletedTask;
             }, token =>
@@ -83,7 +96,7 @@
                 return Task.CompletedTask;
             }, x => { }, () => { }, TimeSpan.FromSeconds(1), log);
 
-            await dog.Start(() => { });
+            await dog.Start(() => { }, CancellationToken.None);
 
             await started.Task;
 
@@ -91,7 +104,7 @@
 
             await restarted.Task;
 
-            await dog.Stop();
+            await dog.Stop(TestContext.CurrentContext.CancellationToken);
         }
 
         [Test]
@@ -125,11 +138,11 @@
                 return Task.CompletedTask;
             }, token => Task.CompletedTask, x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log);
 
-            await dog.Start(() => { });
+            await dog.Start(() => { }, CancellationToken.None);
 
             await recoveredFromError.Task;
 
-            await dog.Stop();
+            await dog.Stop(TestContext.CurrentContext.CancellationToken);
 
             //Make sure failure is cleared
             Assert.That(lastFailure, Is.Null);
@@ -144,7 +157,7 @@
 
             var dog = new Watchdog("test process", token => throw new Exception("Simulated"), token => Task.CompletedTask, x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log);
 
-            await dog.Start(() => { onStartupFailureCalled.SetResult(true); });
+            await dog.Start(() => { onStartupFailureCalled.SetResult(true); }, CancellationToken.None);
 
             await onStartupFailureCalled.Task;
 

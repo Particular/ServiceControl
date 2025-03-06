@@ -9,6 +9,7 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using Operations;
     using ServiceBus.Management.Infrastructure.Settings;
 
     [TestFixture]
@@ -33,7 +34,7 @@
                 .WithEndpoint<Sender>(b => b
                     .When(context =>
                     {
-                        return context.Logs.ToArray().Any(i => i.Message.StartsWith("Ensure started. Infrastructure started"));
+                        return context.Logs.ToArray().Any(i => i.Message.StartsWith(ErrorIngestion.LogMessages.StartedInfrastructure));
                     }, (_, __) =>
                     {
                         PersisterSettings.MinimumStorageLeftRequiredForIngestion = 100;
@@ -43,8 +44,7 @@
                     .When(context =>
                     {
                         return context.Logs.ToArray().Any(i =>
-                            i.Message.StartsWith(
-                                "Shutting down due to failed persistence health check. Infrastructure shut down completed"));
+                            i.Message.StartsWith(ErrorIngestion.LogMessages.StoppedInfrastructure));
                     }, (bus, c) => bus.SendLocal(new MyMessage())
                     )
                     .DoNotFailOnErrorMessages())
@@ -62,8 +62,7 @@
                     .When(context =>
                     {
                         return context.Logs.ToArray().Any(i =>
-                            i.Message.StartsWith(
-                                "Ensure started. Infrastructure started"));
+                            i.Message.StartsWith(ErrorIngestion.LogMessages.StartedInfrastructure));
                     }, (session, context) =>
                     {
                         PersisterSettings.MinimumStorageLeftRequiredForIngestion = 100;
@@ -73,8 +72,7 @@
                     .When(context =>
                     {
                         ingestionShutdown = context.Logs.ToArray().Any(i =>
-                            i.Message.StartsWith(
-                                "Shutting down due to failed persistence health check. Infrastructure shut down completed"));
+                            i.Message.StartsWith(ErrorIngestion.LogMessages.StoppedInfrastructure));
 
                         return ingestionShutdown;
                     },
