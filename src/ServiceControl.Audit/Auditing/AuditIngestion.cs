@@ -27,7 +27,8 @@
             AuditIngestor auditIngestor,
             IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
             IHostApplicationLifetime applicationLifetime,
-            IngestionMetrics metrics)
+            IngestionMetrics metrics
+        )
         {
             inputEndpoint = settings.AuditQueue;
             this.transportCustomization = transportCustomization;
@@ -132,7 +133,7 @@
 
                 messageReceiver = transportInfrastructure.Receivers[inputEndpoint];
 
-                await auditIngestor.VerifyCanReachForwardingAddress();
+                await auditIngestor.VerifyCanReachForwardingAddress(cancellationToken);
                 await messageReceiver.StartReceive(cancellationToken);
 
                 logger.Info(LogMessages.StartedInfrastructure);
@@ -236,7 +237,7 @@
                             contexts.Add(context);
                         }
 
-                        await auditIngestor.Ingest(contexts);
+                        await auditIngestor.Ingest(contexts, stoppingToken);
 
                         batchMetrics.Complete(contexts.Count);
                     }
