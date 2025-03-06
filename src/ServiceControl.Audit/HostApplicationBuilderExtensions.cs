@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Auditing;
+using Auditing.Metrics;
 using Infrastructure;
 using Infrastructure.Settings;
 using Microsoft.AspNetCore.HttpLogging;

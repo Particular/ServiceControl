@@ -2,11 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics.Metrics;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Infrastructure.Settings;
+    using Metrics;
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -26,7 +26,8 @@
             AuditIngestionCustomCheck.State ingestionState,
             AuditIngestor auditIngestor,
             IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
-            IHostApplicationLifetime applicationLifetime)
+            IHostApplicationLifetime applicationLifetime,
+            AuditIngestionMetrics metrics)
         {
             inputEndpoint = settings.AuditQueue;
             this.transportCustomization = transportCustomization;
@@ -35,13 +36,16 @@
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.settings = settings;
             this.applicationLifetime = applicationLifetime;
+            this.metrics = metrics;
 
             if (!transportSettings.MaxConcurrency.HasValue)
             {
                 throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
             }
 
-            channel = Channel.CreateBounded<MessageContext>(new BoundedChannelOptions(transportSettings.MaxConcurrency.Value)
+            MaxBatchSize = transportSettings.MaxConcurrency.Value;
+
+            channel = Channel.CreateBounded<MessageContext>(new BoundedChannelOptions(MaxBatchSize)
             {
                 SingleReader = true,
                 SingleWriter = false,
@@ -174,22 +178,21 @@
 
         async Task OnMessage(MessageContext messageContext, CancellationToken cancellationToken)
         {
-            var tags = Telemetry.GetIngestedMessageTags(messageContext.Headers, messageContext.Body);
-            using (new DurationRecorder(ingestionDuration, tags))
+            using var messageIngestionMetrics = metrics.BeginIngestion(messageContext);
+
+            if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
             {
-                if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
-                {
-                    return;
-                }
-
-                var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                messageContext.SetTaskCompletionSource(taskCompletionSource);
-
-                await channel.Writer.WriteAsync(messageContext, cancellationToken);
-                await taskCompletionSource.Task;
-
-                successfulMessagesCounter.Add(1, tags);
+                messageIngestionMetrics.Skipped();
+                return;
             }
+
+            var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            messageContext.SetTaskCompletionSource(taskCompletionSource);
+
+            await channel.Writer.WriteAsync(messageContext, cancellationToken);
+            _ = await taskCompletionSource.Task;
+
+            messageIngestionMetrics.Success();
         }
 
         public override async Task StartAsync(CancellationToken cancellationToken)
@@ -202,7 +205,7 @@
         {
             try
             {
-                var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
+                var contexts = new List<MessageContext>(MaxBatchSize);
 
                 while (await channel.Reader.WaitToReadAsync(stoppingToken))
                 {
@@ -210,19 +213,19 @@
                     try
                     {
                         // as long as there is something to read this will fetch up to MaximumConcurrency items
-                        using (var recorder = new DurationRecorder(batchDuration))
+                        using (var batchMetrics = metrics.BeginBatch(MaxBatchSize))
                         {
                             while (channel.Reader.TryRead(out var context))
                             {
                                 contexts.Add(context);
                             }
 
-                            recorder.Tags.Add("ingestion.batch_size", contexts.Count);
-
                             await auditIngestor.Ingest(contexts);
+
+                            batchMetrics.Complete(contexts.Count);
                         }
 
-                        consecutiveBatchFailuresCounter.Record(0);
+                        //metrics.ClearB .Record(0);
                     }
                     catch (Exception e)
                     {
@@ -241,7 +244,7 @@
                         logger.Info("Ingesting messages failed", e);
 
                         // no need to do interlocked increment since this is running sequential
-                        consecutiveBatchFailuresCounter.Record(consecutiveBatchFailures++);
+                        //consecutiveBatchFailuresCounter.Record(consecutiveBatchFailures++);
                     }
                     finally
                     {
@@ -282,8 +285,8 @@
 
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver queueIngestor;
-        long consecutiveBatchFailures = 0;
 
+        readonly int MaxBatchSize;
         readonly SemaphoreSlim startStopSemaphore = new(1);
         readonly string inputEndpoint;
         readonly ITransportCustomization transportCustomization;
@@ -293,12 +296,9 @@
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Settings settings;
         readonly Channel<MessageContext> channel;
-        readonly Histogram<double> batchDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion", "batch_duration"), unit: "ms", "Average audit message batch processing duration");
-        readonly Counter<long> successfulMessagesCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "success"), description: "Successful ingested audit message count");
-        readonly Histogram<long> consecutiveBatchFailuresCounter = Telemetry.Meter.CreateHistogram<long>(Telemetry.CreateInstrumentName("ingestion", "consecutive_batch_failures"), unit: "count", description: "Consecutive audit ingestion batch failure");
-        readonly Histogram<double> ingestionDuration = Telemetry.Meter.CreateHistogram<double>(Telemetry.CreateInstrumentName("ingestion", "duration"), unit: "ms", description: "Average incoming audit message processing duration");
         readonly Watchdog watchdog;
         readonly IHostApplicationLifetime applicationLifetime;
+        readonly AuditIngestionMetrics metrics;
 
         static readonly ILog logger = LogManager.GetLogger<AuditIngestion>();
     }
