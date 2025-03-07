@@ -11,6 +11,8 @@ import { userIndicatorMapper } from "./userIndicatorMapper";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import { useShowToast } from "@/composables/toast";
 import ResultsCount from "@/components/ResultsCount.vue";
+import { useHiddenFeature } from "./useHiddenFeature";
+import { license } from "@/composables/serviceLicense";
 
 enum NameFilterType {
   beginsWith = "Begins with",
@@ -66,6 +68,9 @@ const filteredData = computed(() => {
     })
     .sort(sortItem?.comparer);
 });
+// We can remove this hidden toggle once we have new edition licenses.
+const hiddenFeatureToggle = useHiddenFeature(["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown"]);
+const showMonthly = computed(() => license.edition === "MonthlyUsage" || hiddenFeatureToggle.value);
 
 onMounted(async () => {
   await loadData();
@@ -221,7 +226,8 @@ async function save() {
     <thead>
       <tr>
         <th scope="col">{{ props.columnTitle }}</th>
-        <th scope="col" class="text-end formatThroughputColumn">Maximum daily throughput</th>
+        <th v-if="showMonthly" scope="col" class="text-end formatThroughputColumn">Highest monthly throughput <i class="fa fa-info-circle text-primary" v-tippy="'In the last 12 months'" /></th>
+        <th v-else scope="col" class="text-end formatThroughputColumn">Maximum daily throughput <i class="fa fa-info-circle text-primary" v-tippy="'In the last 12 months'" /></th>
         <th scope="col">Endpoint Type <i class="fa fa-info-circle text-primary" v-tippy="'Pick the most correct option'" /></th>
       </tr>
     </thead>
@@ -233,7 +239,8 @@ async function save() {
         <td class="col" aria-label="name">
           {{ row.name }}
         </td>
-        <td class="col text-end formatThroughputColumn" style="width: 250px" aria-label="maximum daily throughput">{{ row.max_daily_throughput.toLocaleString() }}</td>
+        <td v-if="showMonthly" class="col text-end formatThroughputColumn" style="width: 250px" aria-label="maximum usage throughput">{{ row.max_monthly_throughput ? row.max_monthly_throughput.toLocaleString() : "0" }}</td>
+        <td v-else class="col text-end formatThroughputColumn" style="width: 250px" aria-label="maximum usage throughput">{{ row.max_daily_throughput.toLocaleString() }}</td>
         <td class="col" style="width: 350px" aria-label="endpoint type">
           <select class="form-select endpointType format-text" @change="(event) => updateIndicator(event, row.name)">
             <option v-if="props.showEndpointTypePlaceholder" value="">Pick the most appropriate option</option>

@@ -13,32 +13,32 @@ interface License extends LicenseInfo {
   formattedInstanceName: ComputedRef<string>;
 }
 
-const emptyLicense: License = {
-  edition: "",
-  expiration_date: "",
-  upgrade_protection_expiration: "",
-  license_type: "",
-  instance_name: "",
-  trial_license: true,
-  registered_to: "",
-  status: "",
-  license_status: LicenseStatus.Unavailable,
-  license_extension_url: "",
-  licenseEdition: computed(() => {
-    return `${license.license_type}${license.edition ? `, ${license.edition}` : ""}`;
-  }),
-  formattedInstanceName: computed(() => {
-    return license.instance_name || "Upgrade ServiceControl to v3.4.0+ to see more information about this license";
-  }),
-  formattedExpirationDate: computed(() => {
-    return license.expiration_date ? new Date(license.expiration_date.replace("Z", "")).toLocaleDateString() : "";
-  }),
-  formattedUpgradeProtectionExpiration: computed(() => {
-    return license.upgrade_protection_expiration ? new Date(license.upgrade_protection_expiration.replace("Z", "")).toLocaleDateString() : "";
-  }),
-};
+class emptyLicense implements License {
+  edition = "";
+  expiration_date = "";
+  upgrade_protection_expiration = "";
+  license_type = "";
+  instance_name = "";
+  trial_license = true;
+  registered_to = "";
+  status = "";
+  license_status = LicenseStatus.Unavailable;
+  license_extension_url = "";
+  licenseEdition = computed(() => {
+    return `${this.license_type}${this.edition ? `, ${this.edition}` : ""}`;
+  });
+  formattedInstanceName = computed(() => {
+    return this.instance_name || "Upgrade ServiceControl to v3.4.0+ to see more information about this license";
+  });
+  formattedExpirationDate = computed(() => {
+    return this.expiration_date ? new Date(this.expiration_date.replace("Z", "")).toLocaleDateString() : "";
+  });
+  formattedUpgradeProtectionExpiration = computed(() => {
+    return this.upgrade_protection_expiration ? new Date(this.upgrade_protection_expiration.replace("Z", "")).toLocaleDateString() : "";
+  });
+}
 
-const license = reactive<License>(emptyLicense);
+const license = reactive<License>(new emptyLicense());
 
 const licenseStatus = reactive({
   isSubscriptionLicense: false,
@@ -64,6 +64,9 @@ function useLicense() {
 
 async function getOrUpdateLicenseStatus() {
   const lic = await getLicense();
+  if (lic === null) {
+    return;
+  }
   license.license_type = lic.license_type;
   license.expiration_date = lic.expiration_date;
   license.trial_license = lic.trial_license;
@@ -152,6 +155,6 @@ async function getLicense() {
     return data;
   } catch (err) {
     console.log(err);
-    return emptyLicense;
+    return null;
   }
 }
