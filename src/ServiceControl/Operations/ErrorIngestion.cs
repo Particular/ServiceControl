@@ -132,6 +132,7 @@
         {
             try
             {
+                await stoppingToken.CancelAsync();
                 await watchdog.Stop(cancellationToken);
                 channel.Writer.Complete();
                 await base.StopAsync(cancellationToken);
@@ -261,8 +262,11 @@
             }
         }
 
-        async Task OnMessage(MessageContext messageContext, CancellationToken cancellationToken)
+        async Task OnMessage(MessageContext messageContext, CancellationToken cancellationTokenParent)
         {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenParent, stoppingToken.Token);
+            var cancellationToken = cts.Token;
+
             if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
             {
                 return;
@@ -307,6 +311,7 @@
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver messageReceiver;
 
+        readonly CancellationTokenSource stoppingToken = new();
         readonly Settings settings;
         readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
