@@ -24,6 +24,7 @@ The following ingestion metrics with their corresponding dimensions are availabl
   - `result` - Indicates if the full batch size was used (batch size == max concurrency of the transport): `full` or `partial`
 - `sc.audit.ingestion.message_duration_seconds` - Audit message processing duration in seconds
   - `message.category` - Indicates the category of the message ingested: `audit-message`, `saga-update` or `control-message`
+  - `result` - Indicates the outcome of the operation: `success`, `failed` or `skipped` (if the message was filtered out and skipped)
 - `sc.audit.ingestion.failures_total` - Failure counter
   - `message.category` - Indicates the category of the message ingested: `audit-message`, `saga-update` or `control-message`
   - `result` - Indicates how the failure was resolved: `retry` or `stored-poision`
