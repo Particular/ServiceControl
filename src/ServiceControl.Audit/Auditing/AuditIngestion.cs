@@ -228,20 +228,17 @@
                     // will only enter here if there is something to read.
                     try
                     {
+                        using var batchMetrics = metrics.BeginBatch(MaxBatchSize);
+
                         // as long as there is something to read this will fetch up to MaximumConcurrency items
-                        using (var batchMetrics = metrics.BeginBatch(MaxBatchSize))
+                        while (channel.Reader.TryRead(out var context))
                         {
-                            while (channel.Reader.TryRead(out var context))
-                            {
-                                contexts.Add(context);
-                            }
-
-                            await auditIngestor.Ingest(contexts);
-
-                            batchMetrics.Complete(contexts.Count);
+                            contexts.Add(context);
                         }
 
-                        //metrics.ClearB .Record(0);
+                        await auditIngestor.Ingest(contexts);
+
+                        batchMetrics.Complete(contexts.Count);
                     }
                     catch (Exception e)
                     {
@@ -258,9 +255,6 @@
                         }
 
                         logger.Info("Ingesting messages failed", e);
-
-                        // no need to do interlocked increment since this is running sequential
-                        //consecutiveBatchFailuresCounter.Record(consecutiveBatchFailures++);
                     }
                     finally
                     {
