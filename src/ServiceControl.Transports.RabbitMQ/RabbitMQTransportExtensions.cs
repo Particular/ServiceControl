@@ -25,21 +25,11 @@ static class RabbitMQTransportExtensions
             transport.ValidateDeliveryLimits = validateDeliveryLimits;
         }
 
-        if (dictionary.TryGetValue("ManagementApiUrl", out var url))
-        {
-            if (dictionary.TryGetValue("ManagementApiUserName", out var userName) && dictionary.TryGetValue("ManagementApiPassword", out var password))
-            {
-                transport.ManagementApiConfiguration = new(url, userName, password);
-            }
-            else
-            {
-                transport.ManagementApiConfiguration = new(url);
-            }
-        }
-        else if (dictionary.TryGetValue("ManagementApiUserName", out var userName) && dictionary.TryGetValue("ManagementApiPassword", out var password))
-        {
-            transport.ManagementApiConfiguration = new(userName, password);
-        }
+        dictionary.TryGetValue("ManagementApiUrl", out var url);
+        dictionary.TryGetValue("ManagementApiUserName", out var userName);
+        dictionary.TryGetValue("ManagementApiPassword", out var password);
+
+        transport.ManagementApiConfiguration = ManagementApiConfiguration.Create(url, userName, password);
 
         if (dictionary.TryGetValue("DisableRemoteCertificateValidation", out var disableRemoteCertificateValidationString))
         {

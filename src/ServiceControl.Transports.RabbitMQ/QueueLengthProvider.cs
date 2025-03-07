@@ -84,18 +84,10 @@
 
                 try
                 {
-                    var (statusCode, reason, queue) = await managementClient.Value.GetQueue(queueName, cancellationToken);
+                    var queue = await managementClient.Value.GetQueue(queueName, cancellationToken);
 
-                    if (queue is not null)
-                    {
-                        var size = queue.MessageCount;
-                        sizes.AddOrUpdate(queueName, _ => size, (_, _) => size);
-                    }
-                    else
-                    {
-                        Logger.Warn($"Error querying queue length for {queueName}. {statusCode}: {reason}");
-                    }
-
+                    var size = queue.MessageCount;
+                    sizes.AddOrUpdate(queueName, _ => size, (_, _) => size);
                 }
                 catch (Exception e)
                 {
