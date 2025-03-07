@@ -12,19 +12,15 @@ public record BatchMetrics(int MaxBatchSize, Histogram<double> BatchDuration, Ac
 
         string result;
 
-        if (actualBatchSize <= 0)
-        {
-            result = "failed";
-            IsSuccess(false);
-        }
-        else
-        {
-            result = actualBatchSize == MaxBatchSize ? "full" : "partial";
+		var isSuccess = actualBatchSize > 0;
+        
+        IsSuccess(isSuccess);
 
-            IsSuccess(true);
+        if (isSuccess)
+        {
+            var result = actualBatchSize == MaxBatchSize ? "full" : "partial";
+            tags.Add("result", result);
         }
-
-        tags.Add("result", result);
         BatchDuration.Record(sw.Elapsed.TotalSeconds, tags);
     }
 

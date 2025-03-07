@@ -55,7 +55,7 @@ public class IngestionMetrics
         }
     }
 
-    static string CreateInstrumentName(string instrumentName) => $"sc.audit.ingestion.{instrumentName}".ToLower();
+    static string CreateInstrumentName(string instrumentName) => $"sc.audit.ingestion.{instrumentName.ToLower()}";
 
     long consecutiveBatchFailures;
 
