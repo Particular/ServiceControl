@@ -185,7 +185,7 @@
             try
             {
                 await startStopSemaphore.WaitAsync(cancellationToken);
-                await StopAndTeardownInfrastructure(cancellationToken);
+                await StopAndTeardownInfrastructure(new CancellationToken(canceled: true));
             }
             finally
             {
