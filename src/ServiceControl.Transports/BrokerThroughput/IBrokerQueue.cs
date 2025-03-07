@@ -7,8 +7,11 @@ using System.Collections.Generic;
 public interface IBrokerQueue
 #pragma warning restore CA1711
 {
-    public string QueueName { get; }
-    public string SanitizedName { get; }
-    public string? Scope { get; }
-    public List<string> EndpointIndicators { get; }
+    string QueueName { get; }
+
+    string SanitizedName { get; }
+
+    string? Scope { get; }
+
+    List<string> EndpointIndicators { get; }
 }
