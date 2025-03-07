@@ -42,32 +42,21 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var queue = (RabbitMQBrokerQueue)brokerQueue;
-        var response = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueue(queue.QueueName, token), cancellationToken);
+        var rabbitBrokerQueue = (RabbitMQBrokerQueue)brokerQueue;
+        var queue = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueue(rabbitBrokerQueue.QueueName, token), cancellationToken);
+        var newReading = new RabbitMQBrokerQueue(queue);
 
-        if (response.Value is null)
-        {
-            throw new InvalidOperationException($"Could not access RabbitMQ Management API. ({response.StatusCode}: {response.Reason})");
-        }
-
-        var newReading = new RabbitMQBrokerQueue(response.Value);
-
-        _ = queue.CalculateThroughputFrom(newReading);
+        _ = rabbitBrokerQueue.CalculateThroughputFrom(newReading);
 
         // looping for 24hrs, in 4 increments of 15 minutes
         for (var i = 0; i < 24 * 4; i++)
         {
             await Task.Delay(TimeSpan.FromMinutes(15), timeProvider, cancellationToken);
 
-            response = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueue(queue.QueueName, token), cancellationToken);
+            queue = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueue(rabbitBrokerQueue.QueueName, token), cancellationToken);
+            newReading = new RabbitMQBrokerQueue(queue);
 
-            if (response.Value is null)
-            {
-                throw new InvalidOperationException($"Could not access RabbitMQ Management API. ({response.StatusCode}: {response.Reason})");
-            }
-
-            newReading = new RabbitMQBrokerQueue(response.Value);
-            var newTotalThroughput = queue.CalculateThroughputFrom(newReading);
+            var newTotalThroughput = rabbitBrokerQueue.CalculateThroughputFrom(newReading);
 
             yield return new QueueThroughput
             {
@@ -86,25 +75,20 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
         do
         {
-            (var statusCode, var reason, var queues, morePages) = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueues(page, 500, token), cancellationToken);
+            (var queues, morePages) = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetQueues(page, 500, token), cancellationToken);
 
-            ValidateResponse((statusCode, reason, queues));
-
-            if (queues is not null)
+            foreach (var queue in queues)
             {
-                foreach (var queue in queues)
+                if (queue.Name.StartsWith("nsb.delay-level-") ||
+                    queue.Name.StartsWith("nsb.v2.delay-level-") ||
+                    queue.Name.StartsWith("nsb.v2.verify-"))
                 {
-                    if (queue.Name.StartsWith("nsb.delay-level-") ||
-                        queue.Name.StartsWith("nsb.v2.delay-level-") ||
-                        queue.Name.StartsWith("nsb.v2.verify-"))
-                    {
-                        continue;
-                    }
-
-                    var brokerQueue = new RabbitMQBrokerQueue(queue);
-                    await AddEndpointIndicators(brokerQueue, cancellationToken);
-                    yield return brokerQueue;
+                    continue;
                 }
+
+                var brokerQueue = new RabbitMQBrokerQueue(queue);
+                await AddEndpointIndicators(brokerQueue, cancellationToken);
+                yield return brokerQueue;
             }
 
             page++;
@@ -113,30 +97,28 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     async Task GetBrokerDetails(CancellationToken cancellationToken)
     {
-        var response = await pipeline.ExecuteAsync(async async => await managementClient.Value.GetOverview(cancellationToken), cancellationToken);
+        var overview = await pipeline.ExecuteAsync(async async => await managementClient.Value.GetOverview(cancellationToken), cancellationToken);
 
-        ValidateResponse(response);
-
-        if (response.Value?.DisableStats ?? false)
+        if (overview.DisableStats)
         {
             throw new Exception(disableStatsErrorMessage);
         }
 
-        Data["RabbitMQVersion"] = response.Value?.BrokerVersion ?? "Unknown";
+        Data["RabbitMQVersion"] = overview.BrokerVersion ?? "Unknown";
     }
 
     async Task AddEndpointIndicators(RabbitMQBrokerQueue brokerQueue, CancellationToken cancellationToken)
     {
         try
         {
-            var response = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetBindingsForQueue(brokerQueue.QueueName, token), cancellationToken);
+            var bindings = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetBindingsForQueue(brokerQueue.QueueName, token), cancellationToken);
 
             // Check if conventional binding is found
-            if (response.Value.Any(binding => binding?.Source == brokerQueue.QueueName
-                && binding?.Destination == brokerQueue.QueueName
-                && binding?.DestinationType == "queue"
-                && binding?.RoutingKey == string.Empty
-                && binding?.PropertiesKey == "~"))
+            if (bindings.Any(binding => binding.Source == brokerQueue.QueueName
+                && binding.Destination == brokerQueue.QueueName
+                && binding.DestinationType == "queue"
+                && binding.RoutingKey == string.Empty
+                && binding.PropertiesKey == "~"))
             {
                 brokerQueue.EndpointIndicators.Add("ConventionalTopologyBinding");
             }
@@ -148,13 +130,13 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
         try
         {
-            var response = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetBindingsForExchange(brokerQueue.QueueName, token), cancellationToken);
+            var bindings = await pipeline.ExecuteAsync(async token => await managementClient.Value.GetBindingsForExchange(brokerQueue.QueueName, token), cancellationToken);
 
             // Check if delayed binding is found
-            if (response.Value.Any(binding => binding?.Source is "nsb.v2.delay-delivery" or "nsb.delay-delivery"
-                    && binding?.Destination == brokerQueue.QueueName
-                    && binding?.DestinationType == "exchange"
-                    && binding?.RoutingKey == $"#.{brokerQueue.QueueName}"))
+            if (bindings.Any(binding => binding.Source is "nsb.v2.delay-delivery" or "nsb.delay-delivery"
+                    && binding.Destination == brokerQueue.QueueName
+                    && binding.DestinationType == "exchange"
+                    && binding.RoutingKey == $"#.{brokerQueue.QueueName}"))
             {
                 brokerQueue.EndpointIndicators.Add("DelayBinding");
             }
@@ -165,40 +147,20 @@ public class RabbitMQQuery : BrokerThroughputQuery
         }
     }
 
-    void ValidateResponse<T>((HttpStatusCode StatusCode, string Reason, T? Value) response)
-    {
-        if (response.StatusCode != HttpStatusCode.OK)
-        {
-            throw new HttpRequestException($"Request failed with status code {response.StatusCode}: {response.Reason}");
-        }
-
-        if (response.Value is null)
-        {
-            throw new InvalidOperationException("Request was successful, but the response body was null when a value was expected");
-        }
-    }
-
     public override KeyDescriptionPair[] Settings => [];
 
     protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(CancellationToken cancellationToken)
     {
         try
         {
-            var (statusCode, reason, value) = await managementClient.Value.GetOverview(cancellationToken);
+            var overview = await managementClient.Value.GetOverview(cancellationToken);
 
-            if (value is not null)
+            if (overview.DisableStats)
             {
-                if (value.DisableStats)
-                {
-                    return (false, [disableStatsErrorMessage]);
-                }
+                return (false, [disableStatsErrorMessage]);
+            }
 
-                return (true, []);
-            }
-            else
-            {
-                return (false, [$"{statusCode}: {reason}"]);
-            }
+            return (true, []);
         }
         catch (HttpRequestException ex)
         {
