@@ -18,28 +18,16 @@ The following metrics are available:
 
 ### Ingestion
 
-#### Success or failure
+The following ingestion metrics with their corresponding dimensions are available:
 
-- `sc.audit.ingestion.success` - Successful ingested audit message count (Counter)
-- `sc.audit.ingestion.retry` - Retried audit message count (Counter)
-- `sc.audit.ingestion.failed` - Failed audit message count (Counter)
-
-The above metrics also have the following attributes attached:
-
-- `messaging.message.body.size` - The size of the message body in bytes
-- `messaging.message.type` - The logical message type of the message if present
-
-#### Details
-
-- `sc.audit.ingestion.duration` - Audit message processing duration in milliseconds (Histogram)
-- `sc.audit.ingestion.forwarded` - Count of the number of forwarded audit messages if forwarding is enabled (Counter)
-
-### Batching
-
-- `sc.audit.ingestion.batch_duration` - Batch processing duration in milliseconds (Histogram)
-  - Attributes:
-    - `ingestion.batch_size`
-- `sc.audit.ingestion.consecutive_batch_failures` - Consecutive batch failures (Counter)
+- `sc.audit.ingestion.batch_duration_seconds` - Message batch processing duration in seconds
+  - `result` - Indicates if the full batch size was used (batch size == max concurrency of the transport): `full` or `partial`
+- `sc.audit.ingestion.message_duration_seconds` - Audit message processing duration in seconds
+  - `message.category` - Indicates the category of the message ingested: `audit-message`, `saga-update` or `control-message`
+- `sc.audit.ingestion.failures_total` - Failure counter
+  - `message.category` - Indicates the category of the message ingested: `audit-message`, `saga-update` or `control-message`
+  - `result` - Indicates how the failure was resolved: `retry` or `stored-poision`
+- `sc.audit.ingestion.consecutive_batch_failure_total` - Consecutive batch failures
 
 ## Monitoring
 
