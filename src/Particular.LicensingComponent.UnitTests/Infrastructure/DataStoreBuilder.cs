@@ -91,6 +91,33 @@ class DataStoreBuilder(ILicensingDataStore store)
         return this;
     }
 
+    public DataStoreBuilder WithThroughput(ThroughputData throughput)
+    {
+        Endpoint endpoint = endpoints.LastOrDefault() ??
+                            throw new InvalidOperationException(
+                                $"Need to add an endpoint before calling {nameof(WithThroughput)}");
+
+        var source = endpoint.Id.ThroughputSource;
+        if (endpoints.SingleOrDefault(e => e.Id.Name == endpoint.Id.Name && e.Id.ThroughputSource == source) == null)
+        {
+            throw new InvalidOperationException(
+                $"Need to add endpoint {endpoint.Id.Name}:{source} before calling {nameof(WithThroughput)}");
+        }
+
+        var idForThroughput = new EndpointIdentifier(endpoint.Id.Name, source);
+
+        if (endpointThroughput.TryGetValue(idForThroughput, out List<ThroughputData> throughputList))
+        {
+            throughputList.Add(throughput);
+        }
+        else
+        {
+            endpointThroughput.Add(idForThroughput, [throughput]);
+        }
+
+        return this;
+    }
+
     public async Task Build()
     {
         foreach (Endpoint endpoint in endpoints)
