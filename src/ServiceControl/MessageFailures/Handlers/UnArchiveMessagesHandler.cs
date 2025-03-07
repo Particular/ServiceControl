@@ -18,7 +18,7 @@
             {
                 DocumentIds = ids,
                 MessagesCount = ids.Length
-            });
+            }, context.CancellationToken);
         }
     }
 }

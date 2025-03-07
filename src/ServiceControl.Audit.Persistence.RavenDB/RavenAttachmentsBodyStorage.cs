@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using Raven.Client.Documents.BulkInsert;
@@ -11,7 +12,7 @@
         int settingsMaxBodySizeToStore)
         : IBodyStorage
     {
-        public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
+        public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken)
         {
             if (bodySize > settingsMaxBodySizeToStore)
             {
@@ -19,7 +20,7 @@
             }
 
             return bulkInsert.AttachmentsFor(bodyId)
-                .StoreAsync("body", bodyStream, contentType);
+                .StoreAsync("body", bodyStream, contentType, cancellationToken);
         }
 
         public async Task<StreamResult> TryFetch(string bodyId)

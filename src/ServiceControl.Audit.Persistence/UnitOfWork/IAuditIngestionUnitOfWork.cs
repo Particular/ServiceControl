@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.UnitOfWork
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Auditing;
     using Monitoring;
@@ -8,8 +9,8 @@
 
     public interface IAuditIngestionUnitOfWork : IAsyncDisposable
     {
-        Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body = default);
-        Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot);
-        Task RecordKnownEndpoint(KnownEndpoint knownEndpoint);
+        Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body = default, CancellationToken cancellationToken = default);
+        Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken = default);
+        Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken = default);
     }
 }

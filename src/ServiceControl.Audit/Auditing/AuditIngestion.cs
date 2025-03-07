@@ -128,7 +128,7 @@
 
                 messageReceiver = transportInfrastructure.Receivers[inputEndpoint];
 
-                await auditIngestor.VerifyCanReachForwardingAddress();
+                await auditIngestor.VerifyCanReachForwardingAddress(cancellationToken);
                 await messageReceiver.StartReceive(cancellationToken);
 
                 logger.Info(LogMessages.StartedInfrastructure);
@@ -180,7 +180,7 @@
             try
             {
                 await startStopSemaphore.WaitAsync(cancellationToken);
-                await StopAndTeardownInfrastructure(cancellationToken);
+                await StopAndTeardownInfrastructure(new CancellationToken(canceled: true));
             }
             finally
             {
@@ -235,7 +235,7 @@
 
                             recorder.Tags.Add("ingestion.batch_size", contexts.Count);
 
-                            await auditIngestor.Ingest(contexts);
+                            await auditIngestor.Ingest(contexts, stoppingToken);
                         }
 
                         consecutiveBatchFailuresCounter.Record(0);

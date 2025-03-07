@@ -26,7 +26,7 @@
                 await domainEvents.Raise(new FailedMessageArchived
                 {
                     FailedMessageId = failedMessageId
-                });
+                }, context.CancellationToken);
 
                 await dataStore.FailedMessageMarkAsArchived(failedMessageId);
             }

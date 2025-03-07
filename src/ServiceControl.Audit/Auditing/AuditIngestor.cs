@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics.Metrics;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Settings;
     using Monitoring;
@@ -43,15 +44,15 @@
             );
         }
 
-        public async Task Ingest(List<MessageContext> contexts)
+        public async Task Ingest(List<MessageContext> contexts, CancellationToken cancellationToken)
         {
-            var stored = await auditPersister.Persist(contexts);
+            var stored = await auditPersister.Persist(contexts, cancellationToken);
 
             try
             {
                 if (settings.ForwardAuditMessages)
                 {
-                    await Forward(stored, logQueueAddress);
+                    await Forward(stored, logQueueAddress, cancellationToken);
                     forwardedMessagesCounter.Add(stored.Count);
                 }
 
@@ -69,7 +70,7 @@
             }
         }
 
-        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress)
+        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress, CancellationToken cancellationToken)
         {
             var transportOperations = new TransportOperation[messageContexts.Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
             var index = 0;
@@ -98,12 +99,11 @@
             return anyContext != null
                 ? messageDispatcher.Value.Dispatch(
                     new TransportOperations(transportOperations),
-                    anyContext.TransportTransaction
-                )
+                    anyContext.TransportTransaction, cancellationToken)
                 : Task.CompletedTask;
         }
 
-        public async Task VerifyCanReachForwardingAddress()
+        public async Task VerifyCanReachForwardingAddress(CancellationToken cancellationToken)
         {
             if (!settings.ForwardAuditMessages)
             {
@@ -120,7 +120,7 @@
                     )
                 );
 
-                await messageDispatcher.Value.Dispatch(transportOperations, new TransportTransaction());
+                await messageDispatcher.Value.Dispatch(transportOperations, new TransportTransaction(), cancellationToken);
             }
             catch (Exception e)
             {

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
 
@@ -51,7 +52,7 @@
                 ArchiveType = ArchiveType,
                 Progress = GetProgress(),
                 StartTime = Started
-            });
+            }, CancellationToken.None);
         }
 
         public Task BatchUnarchived(int numberOfMessagesUnarchivedInBatch)
@@ -68,7 +69,7 @@
                 Progress = GetProgress(),
                 StartTime = Started,
                 Last = Last.Value
-            });
+            }, CancellationToken.None);
         }
 
         public Task FinalizeUnarchive()
@@ -84,7 +85,7 @@
                 Progress = GetProgress(),
                 StartTime = Started,
                 Last = Last.Value
-            });
+            }, CancellationToken.None);
         }
 
         public Task Complete()
@@ -103,7 +104,7 @@
                 Last = Last.Value,
                 CompletionTime = CompletionTime.Value,
                 GroupName = GroupName
-            });
+            }, CancellationToken.None);
         }
 
         internal bool NeedsAcknowledgement()
