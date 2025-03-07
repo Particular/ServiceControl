@@ -2,7 +2,12 @@
 
 using ServiceControl.Configuration;
 
-public class ThroughputSettings(string serviceControlQueue, string errorQueue, string transportType, string customerName, string serviceControlVersion)
+public class ThroughputSettings(
+    string serviceControlQueue,
+    string errorQueue,
+    string transportType,
+    string customerName,
+    string serviceControlVersion)
 {
     public static readonly SettingsRootNamespace SettingsNamespace = new("LicensingComponent");
 

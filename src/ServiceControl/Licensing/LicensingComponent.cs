@@ -11,13 +11,16 @@ using ServiceBus.Management.Infrastructure.Settings;
 class LicensingComponent : ServiceControlComponent
 {
     public override void Configure(Settings settings, ITransportCustomization transportCustomization,
-        IHostApplicationBuilder hostBuilder) =>
+        IHostApplicationBuilder hostBuilder)
+    {
+        var licenseDetails = LicenseManager.FindLicense().Details;
         hostBuilder.AddLicensingComponent(
             TransportManifestLibrary.Find(settings.TransportType)?.Name ?? settings.TransportType,
             settings.ErrorQueue,
             settings.InstanceName,
-            LicenseManager.FindLicense().Details.RegisteredTo,
+            licenseDetails.RegisteredTo,
             ServiceControlVersion.GetFileVersion());
+    }
 
     public override void Setup(Settings settings, IComponentInstallationContext context,
         IHostApplicationBuilder hostBuilder) =>
