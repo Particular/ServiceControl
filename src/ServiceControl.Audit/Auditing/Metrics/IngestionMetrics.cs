@@ -15,9 +15,11 @@ public class IngestionMetrics
     {
         var meter = meterFactory.Create(MeterName, MeterVersion);
 
-        batchDuration = meter.CreateHistogram<double>(CreateInstrumentName("batch_duration_seconds"), unit: "seconds", "Message batch processing duration in seconds");
-        ingestionDuration = meter.CreateHistogram<double>(CreateInstrumentName("message_duration_seconds"), unit: "seconds", description: "Audit message processing duration in seconds");
-        consecutiveBatchFailureGauge = meter.CreateObservableGauge(CreateInstrumentName("consecutive_batch_failure_total"), () => consecutiveBatchFailures, description: "Consecutive audit ingestion batch failure");
+        var durationBucketsInSeconds = new InstrumentAdvice<double> { HistogramBucketBoundaries = [0.01, 0.05, 0.1, 0.5, 1, 5] };
+
+        batchDuration = meter.CreateHistogram(CreateInstrumentName("batch_duration_seconds"), unit: "seconds", "Message batch processing duration in seconds", advice: durationBucketsInSeconds);
+        ingestionDuration = meter.CreateHistogram(CreateInstrumentName("message_duration_seconds"), unit: "seconds", description: "Audit message processing duration in seconds", advice: durationBucketsInSeconds);
+        consecutiveBatchFailureGauge = meter.CreateGauge<long>(CreateInstrumentName("consecutive_batch_failure_total"), description: "Consecutive audit ingestion batch failure");
         failureCounter = meter.CreateCounter<long>(CreateInstrumentName("failures_total"), description: "Audit ingestion failure count");
     }
 
@@ -53,6 +55,8 @@ public class IngestionMetrics
         {
             consecutiveBatchFailures++;
         }
+
+        consecutiveBatchFailureGauge.Record(consecutiveBatchFailures);
     }
 
     static string CreateInstrumentName(string instrumentName) => $"sc.audit.ingestion.{instrumentName.ToLower()}";
@@ -60,9 +64,7 @@ public class IngestionMetrics
     long consecutiveBatchFailures;
 
     readonly Histogram<double> batchDuration;
-#pragma warning disable IDE0052
-    readonly ObservableGauge<long> consecutiveBatchFailureGauge;
-#pragma warning restore IDE0052
+    readonly Gauge<long> consecutiveBatchFailureGauge;
     readonly Histogram<double> ingestionDuration;
     readonly Counter<long> failureCounter;
 
