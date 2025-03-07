@@ -18,7 +18,7 @@ defineEmits<{
 }>();
 
 const loading = computed(() => {
-  return !license;
+  return !license || license.status === "";
 });
 
 const configuration = useConfiguration();
