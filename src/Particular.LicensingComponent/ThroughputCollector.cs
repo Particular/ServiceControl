@@ -71,7 +71,8 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
                 Name = endpointData.Name,
                 UserIndicator = endpointData.UserIndicator ?? (endpointData.IsKnownEndpoint ? Contracts.UserIndicator.NServiceBusEndpoint.ToString() : string.Empty),
                 IsKnownEndpoint = endpointData.IsKnownEndpoint,
-                MaxDailyThroughput = endpointData.ThroughputData.Max()
+                MaxDailyThroughput = endpointData.ThroughputData.MaxDailyThroughput(),
+                MaxMonthlyThroughput = endpointData.ThroughputData.MaxMonthlyThroughput()
             };
 
             endpointSummaries.Add(endpointSummary);
@@ -130,7 +131,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
                 EndpointIndicators = endpointData.EndpointIndicators ?? [],
                 NoDataOrSendOnly = endpointData.ThroughputData.Sum() == 0,
                 Scope = endpointData.Scope ?? "",
-                Throughput = endpointData.ThroughputData.Max(),
+                Throughput = endpointData.ThroughputData.MaxDailyThroughput(),
                 DailyThroughputFromAudit = endpointData.ThroughputData.FromSource(ThroughputSource.Audit).Select(s => new DailyThroughput { DateUTC = s.DateUTC, MessageCount = s.MessageCount }).ToArray(),
                 DailyThroughputFromMonitoring = endpointData.ThroughputData.FromSource(ThroughputSource.Monitoring).Select(s => new DailyThroughput { DateUTC = s.DateUTC, MessageCount = s.MessageCount }).ToArray(),
                 DailyThroughputFromBroker = notAnNsbEndpoint ? [] : endpointData.ThroughputData.FromSource(ThroughputSource.Broker).Select(s => new DailyThroughput { DateUTC = s.DateUTC, MessageCount = s.MessageCount }).ToArray()

@@ -122,14 +122,14 @@ class LicensingDataStore(
 
     public async Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken)
     {
-        var results = queueNames.ToDictionary(queueName => queueName, queueNames => new List<ThroughputData>() as IEnumerable<ThroughputData>);
+        var results = queueNames.ToDictionary(queueName => queueName, _ => new List<ThroughputData>() as IEnumerable<ThroughputData>);
 
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
         var query = session.Query<EndpointDocument>()
             .Where(document => document.SanitizedName.In(queueNames))
-            .Include(builder => builder.IncludeTimeSeries(ThroughputTimeSeriesName));
+            .Include(builder => builder.IncludeTimeSeries(ThroughputTimeSeriesName, DateTime.UtcNow.AddMonths(-14)));
 
         var documents = await query.ToListAsync(cancellationToken);
 

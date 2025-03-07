@@ -1,6 +1,8 @@
 ﻿namespace Particular.LicensingComponent.UnitTests;
 
+using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
@@ -81,7 +83,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
     [TestCase(ThroughputSource.Audit)]
     [TestCase(ThroughputSource.Broker)]
     [TestCase(ThroughputSource.Monitoring)]
-    public async Task Should_return_correct_max_throughput_in_summary_when_data_only_from_one_source(ThroughputSource source)
+    public async Task Should_return_correct_max_daily_throughput_in_summary_when_data_only_from_one_source(ThroughputSource source)
     {
         // Arrange
         await DataStore.CreateBuilder()
@@ -106,7 +108,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
     }
 
     [Test]
-    public async Task Should_return_correct_max_throughput_in_summary_when_multiple_sources()
+    public async Task Should_return_correct_max_daily_throughput_in_summary_when_multiple_sources()
     {
         // Arrange
         await DataStore.CreateBuilder()
@@ -138,7 +140,44 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
     }
 
     [Test]
-    public async Task Should_return_correct_max_throughput_in_summary_when_endpoint_has_no_throughput()
+    public async Task Should_return_correct_max_monthly_throughput_in_summary_when_multiple_sources()
+    {
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker])
+            .WithThroughput(new ThroughputData([
+                new EndpointDailyThroughput(new DateOnly(2025, 1, 10), 50),
+                new EndpointDailyThroughput(new DateOnly(2025, 1, 15), 50),
+                new EndpointDailyThroughput(new DateOnly(2025, 1, 16), 150),
+                new EndpointDailyThroughput(new DateOnly(2025, 2, 20), 160),
+                new EndpointDailyThroughput(new DateOnly(2025, 3, 25), 65),
+                new EndpointDailyThroughput(new DateOnly(2025, 4, 30), 70),
+                new EndpointDailyThroughput(new DateOnly(2025, 5, 1), 75)]))
+            .AddEndpoint("Endpoint2", sources: [ThroughputSource.Broker])
+            .WithThroughput(new ThroughputData([
+                new EndpointDailyThroughput(new DateOnly(2025, 1, 10), 60),
+                new EndpointDailyThroughput(new DateOnly(2025, 1, 15), 65),
+                new EndpointDailyThroughput(new DateOnly(2025, 5, 20), 165),
+                new EndpointDailyThroughput(new DateOnly(2025, 3, 25), 65),
+                new EndpointDailyThroughput(new DateOnly(2025, 9, 30), 70)]))
+            .Build();
+
+        // Act
+        var summary = await ThroughputCollector.GetThroughputSummary(CancellationToken.None);
+
+        // Assert
+        Assert.That(summary, Is.Not.Null);
+        Assert.That(summary, Has.Count.EqualTo(2));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(summary.First(w => w.Name == "Endpoint1").MaxMonthlyThroughput, Is.EqualTo(250), $"Incorrect MaxDailyThroughput recorded for Endpoint1");
+            Assert.That(summary.First(w => w.Name == "Endpoint2").MaxMonthlyThroughput, Is.EqualTo(165), $"Incorrect MaxDailyThroughput recorded for Endpoint2");
+        });
+    }
+
+    [Test]
+    public async Task Should_return_correct_max_daily_throughput_in_summary_when_endpoint_has_no_throughput()
     {
         // Arrange
         await DataStore.CreateBuilder().AddEndpoint().Build();
@@ -153,7 +192,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
     }
 
     [Test]
-    public async Task Should_return_correct_max_throughput_in_summary_when_data_from_multiple_sources_and_name_is_different()
+    public async Task Should_return_correct_max_daily_throughput_in_summary_when_data_from_multiple_sources_and_name_is_different()
     {
         // Arrange
         await DataStore.CreateBuilder()

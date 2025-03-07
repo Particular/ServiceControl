@@ -7,6 +7,7 @@ public class EndpointThroughputSummary
     public bool IsKnownEndpoint { get; set; }
     public string UserIndicator { get; set; }
     public long MaxDailyThroughput { get; set; }
+    public long MaxMonthlyThroughput { get; set; }
 }
 
 public class UpdateUserIndicator
