@@ -269,6 +269,7 @@
             }
 
             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            messageContext.SetTaskCompletionSource(taskCompletionSource);
 
             // Ideally we want to propagate the cancellationToken to the batch handling
             // but cancellation in only cancelled when endpointInstance.Stop is cancelled, not when invoked.
