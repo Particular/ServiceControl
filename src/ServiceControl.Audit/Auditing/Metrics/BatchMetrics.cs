@@ -8,19 +8,22 @@ public record BatchMetrics(int MaxBatchSize, Histogram<double> BatchDuration, Ac
 {
     public void Dispose()
     {
-        var tags = new TagList();
-
         var isSuccess = actualBatchSize > 0;
 
         IsSuccess(isSuccess);
 
+        string result;
+
         if (isSuccess)
         {
-            var result = actualBatchSize == MaxBatchSize ? "full" : "partial";
-            tags.Add("result", result);
+            result = actualBatchSize == MaxBatchSize ? "full" : "partial";
+        }
+        else
+        {
+            result = "failed";
         }
 
-        BatchDuration.Record(sw.Elapsed.TotalSeconds, tags);
+        BatchDuration.Record(sw.Elapsed.TotalSeconds, new TagList { { "result", result } });
     }
 
     public void Complete(int size) => actualBatchSize = size;
