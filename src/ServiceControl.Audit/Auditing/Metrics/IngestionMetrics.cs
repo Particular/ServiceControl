@@ -11,16 +11,17 @@ public class IngestionMetrics
 {
     public const string MeterName = "Particular.ServiceControl.Audit";
 
+    public static readonly string BatchDurationInstrumentName = $"{InstrumentPrefix}.batch_duration_seconds";
+    public static readonly string MessageDurationInstrumentName = $"{InstrumentPrefix}.message_duration_seconds";
+
     public IngestionMetrics(IMeterFactory meterFactory)
     {
         var meter = meterFactory.Create(MeterName, MeterVersion);
 
-        var durationBucketsInSeconds = new InstrumentAdvice<double> { HistogramBucketBoundaries = [0.01, 0.05, 0.1, 0.5, 1, 5] };
-
-        batchDuration = meter.CreateHistogram(CreateInstrumentName("batch_duration_seconds"), unit: "seconds", "Message batch processing duration in seconds", advice: durationBucketsInSeconds);
-        ingestionDuration = meter.CreateHistogram(CreateInstrumentName("message_duration_seconds"), unit: "seconds", description: "Audit message processing duration in seconds", advice: durationBucketsInSeconds);
-        consecutiveBatchFailureGauge = meter.CreateGauge<long>(CreateInstrumentName("consecutive_batch_failure_total"), description: "Consecutive audit ingestion batch failure");
-        failureCounter = meter.CreateCounter<long>(CreateInstrumentName("failures_total"), description: "Audit ingestion failure count");
+        batchDuration = meter.CreateHistogram<double>(BatchDurationInstrumentName, unit: "seconds", "Message batch processing duration in seconds");
+        ingestionDuration = meter.CreateHistogram<double>(MessageDurationInstrumentName, unit: "seconds", description: "Audit message processing duration in seconds");
+        consecutiveBatchFailureGauge = meter.CreateGauge<long>($"{InstrumentPrefix}.consecutive_batch_failure_total", description: "Consecutive audit ingestion batch failure");
+        failureCounter = meter.CreateCounter<long>($"{InstrumentPrefix}.failures_total", description: "Audit ingestion failure count");
     }
 
     public MessageMetrics BeginIngestion(MessageContext messageContext) => new(messageContext, ingestionDuration);
@@ -59,8 +60,6 @@ public class IngestionMetrics
         consecutiveBatchFailureGauge.Record(consecutiveBatchFailures);
     }
 
-    static string CreateInstrumentName(string instrumentName) => $"sc.audit.ingestion.{instrumentName.ToLower()}";
-
     long consecutiveBatchFailures;
 
     readonly Histogram<double> batchDuration;
@@ -69,6 +68,7 @@ public class IngestionMetrics
     readonly Counter<long> failureCounter;
 
     const string MeterVersion = "0.1.0";
+    const string InstrumentPrefix = "sc.audit.ingestion";
 
     static readonly string SagaUpdateMessageType = typeof(SagaUpdatedMessage).FullName;
 }

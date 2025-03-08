@@ -112,11 +112,12 @@ static class HostApplicationBuilderExtensions
                     autoGenerateServiceInstanceId: true))
                 .WithMetrics(b =>
                 {
-                    b.AddMeter(IngestionMetrics.MeterName);
-                    b.AddOtlpExporter(e =>
+                    b.AddIngestionMetrics();
+                    b.AddOtlpExporter(e => e.Endpoint = otelMetricsUri);
+                    if (Debugger.IsAttached)
                     {
-                        e.Endpoint = otelMetricsUri;
-                    });
+                        b.AddConsoleExporter();
+                    }
                 });
 
             var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
