@@ -62,6 +62,7 @@ public class IngestionMetrics
 
     readonly Histogram<double> batchDuration;
 #pragma warning disable IDE0052
+    // this can be changed to Gauge<T> once we can use the latest version of System.Diagnostics.DiagnosticSource
     readonly ObservableGauge<long> consecutiveBatchFailureGauge;
 #pragma warning restore IDE0052
     readonly Histogram<double> ingestionDuration;
