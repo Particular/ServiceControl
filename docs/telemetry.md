@@ -14,10 +14,6 @@ It's recommended to use a local [OTEL Collector](https://opentelemetry.io/docs/c
 
 Example configuration: https://github.com/andreasohlund/Docker/tree/main/otel-monitoring
 
-The following metrics are available:
-
-### Ingestion
-
 The following ingestion metrics with their corresponding dimensions are available:
 
 - `sc.audit.ingestion.batch_duration_seconds` - Message batch processing duration in seconds
@@ -29,6 +25,12 @@ The following ingestion metrics with their corresponding dimensions are availabl
   - `message.category` - Indicates the category of the message ingested: `audit-message`, `saga-update` or `control-message`
   - `result` - Indicates how the failure was resolved: `retry` or `stored-poision`
 - `sc.audit.ingestion.consecutive_batch_failure_total` - Consecutive batch failures
+
+Example queries in PromQL for use in Grafana:
+
+- Ingestion rate: `sum (rate(sc_audit_ingestion_message_duration_seconds_count[$__rate_interval])) by (exported_job)`
+- Failure rate: `sum(rate(sc_audit_ingestion_failures_total[$__rate_interval])) by (exported_job,result)`
+- Message duration: `histogram_quantile(0.9,sum(rate(sc_audit_ingestion_message_duration_seconds_bucket[$__rate_interval])) by (le,exported_job))` 
 
 ## Monitoring
 
