@@ -20,7 +20,7 @@ public class IngestionMetrics
 
         batchDuration = meter.CreateHistogram<double>(BatchDurationInstrumentName, unit: "seconds", "Message batch processing duration in seconds");
         ingestionDuration = meter.CreateHistogram<double>(MessageDurationInstrumentName, unit: "seconds", description: "Audit message processing duration in seconds");
-        consecutiveBatchFailureGauge = meter.CreateGauge<long>($"{InstrumentPrefix}.consecutive_batch_failure_total", description: "Consecutive audit ingestion batch failure");
+        consecutiveBatchFailureGauge = meter.CreateObservableGauge($"{InstrumentPrefix}.consecutive_batch_failure_total", () => consecutiveBatchFailures, description: "Consecutive audit ingestion batch failure");
         failureCounter = meter.CreateCounter<long>($"{InstrumentPrefix}.failures_total", description: "Audit ingestion failure count");
     }
 
@@ -56,14 +56,14 @@ public class IngestionMetrics
         {
             consecutiveBatchFailures++;
         }
-
-        consecutiveBatchFailureGauge.Record(consecutiveBatchFailures);
     }
 
     long consecutiveBatchFailures;
 
     readonly Histogram<double> batchDuration;
-    readonly Gauge<long> consecutiveBatchFailureGauge;
+#pragma warning disable IDE0052
+    readonly ObservableGauge<long> consecutiveBatchFailureGauge;
+#pragma warning restore IDE0052
     readonly Histogram<double> ingestionDuration;
     readonly Counter<long> failureCounter;
 
