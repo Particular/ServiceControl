@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.Settings;
@@ -14,8 +13,7 @@
     using Persistence.UnitOfWork;
     using Recoverability;
     using SagaAudit;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Transports;
+    using Transports;
 
     public class AuditIngestor
     {
@@ -31,6 +29,7 @@
         {
             this.settings = settings;
             this.messageDispatcher = messageDispatcher;
+
             var enrichers = new IEnrichImportedAuditMessages[] { new MessageTypeEnricher(), new EnrichWithTrackingIds(), new ProcessingStatisticsEnricher(), new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring), new DetectSuccessfulRetriesEnricher(), new SagaRelationshipsEnricher() }.Concat(auditEnrichers).ToArray();
 
             logQueueAddress = transportCustomization.ToTransportQualifiedQueueName(settings.AuditLogQueue);
@@ -52,7 +51,6 @@
                 if (settings.ForwardAuditMessages)
                 {
                     await Forward(stored, logQueueAddress);
-                    forwardedMessagesCounter.Add(stored.Count);
                 }
 
                 foreach (var context in contexts)
@@ -132,7 +130,6 @@
         readonly Settings settings;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly string logQueueAddress;
-        readonly Counter<long> forwardedMessagesCounter = Telemetry.Meter.CreateCounter<long>(Telemetry.CreateInstrumentName("ingestion", "forwarded"), description: "Audit ingestion forwarded message count");
 
         static readonly ILog Log = LogManager.GetLogger<AuditIngestor>();
     }

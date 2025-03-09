@@ -50,6 +50,7 @@
     <PackageVersion Include="NUnit" Version="4.3.2" />
     <PackageVersion Include="NUnit.Analyzers" Version="4.6.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="5.0.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.9.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
     <PackageVersion Include="Particular.Approvals" Version="2.0.1" />
@@ -63,6 +64,7 @@
     <PackageVersion Include="ReactiveUI.WPF" Version="20.1.63" />
     <PackageVersion Include="ServiceControl.Contracts" Version="5.0.0" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="8.0.1" />
+    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="9.0.2" />
     <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="8.0.1" />
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="8.0.1" />
     <PackageVersion Include="System.Linq.Async" Version="6.0.1" />

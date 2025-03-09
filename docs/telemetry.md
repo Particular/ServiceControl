@@ -14,32 +14,23 @@ It's recommended to use a local [OTEL Collector](https://opentelemetry.io/docs/c
 
 Example configuration: https://github.com/andreasohlund/Docker/tree/main/otel-monitoring
 
-The following metrics are available:
+The following ingestion metrics with their corresponding dimensions are available:
 
-### Ingestion
+- `sc.audit.ingestion.batch_duration_seconds` - Message batch processing duration in seconds
+  - `result` - Indicates if the full batch size was used (batch size == max concurrency of the transport): `full`, `partial` or `failed`
+- `sc.audit.ingestion.message_duration_seconds` - Audit message processing duration in seconds
+  - `message.category` - Indicates the category of the message ingested: `audit-message`, `saga-update` or `control-message`
+  - `result` - Indicates the outcome of the operation: `success`, `failed` or `skipped` (if the message was filtered out and skipped)
+- `sc.audit.ingestion.failures_total` - Failure counter
+  - `message.category` - Indicates the category of the message ingested: `audit-message`, `saga-update` or `control-message`
+  - `result` - Indicates how the failure was resolved: `retry` or `stored-poision`
+- `sc.audit.ingestion.consecutive_batch_failure_total` - Consecutive batch failures
 
-#### Success or failure
+Example queries in PromQL for use in Grafana:
 
-- `sc.audit.ingestion.success` - Successful ingested audit message count (Counter)
-- `sc.audit.ingestion.retry` - Retried audit message count (Counter)
-- `sc.audit.ingestion.failed` - Failed audit message count (Counter)
-
-The above metrics also have the following attributes attached:
-
-- `messaging.message.body.size` - The size of the message body in bytes
-- `messaging.message.type` - The logical message type of the message if present
-
-#### Details
-
-- `sc.audit.ingestion.duration` - Audit message processing duration in milliseconds (Histogram)
-- `sc.audit.ingestion.forwarded` - Count of the number of forwarded audit messages if forwarding is enabled (Counter)
-
-### Batching
-
-- `sc.audit.ingestion.batch_duration` - Batch processing duration in milliseconds (Histogram)
-  - Attributes:
-    - `ingestion.batch_size`
-- `sc.audit.ingestion.consecutive_batch_failures` - Consecutive batch failures (Counter)
+- Ingestion rate: `sum (rate(sc_audit_ingestion_message_duration_seconds_count[$__rate_interval])) by (exported_job)`
+- Failure rate: `sum(rate(sc_audit_ingestion_failures_total[$__rate_interval])) by (exported_job,result)`
+- Message duration: `histogram_quantile(0.9,sum(rate(sc_audit_ingestion_message_duration_seconds_bucket[$__rate_interval])) by (le,exported_job))` 
 
 ## Monitoring
 
