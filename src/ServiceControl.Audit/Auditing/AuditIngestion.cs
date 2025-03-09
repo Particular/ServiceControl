@@ -294,7 +294,7 @@
         }
 
         TransportInfrastructure transportInfrastructure;
-        IMessageReceiver queueIngestor;
+        IMessageReceiver messageReceiver;
 
         readonly int MaxBatchSize;
         readonly SemaphoreSlim startStopSemaphore = new(1);
