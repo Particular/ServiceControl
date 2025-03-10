@@ -6,12 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using NServiceBus.CustomChecks;
 
-class CheckDirtyMemory(IRavenDocumentStoreProvider documentStoreProvider) : CustomCheck("ServiceControl.Audit database", "Dirty memory trends", TimeSpan.FromMinutes(5))
+class CheckDirtyMemory(DatabaseConfiguration databaseConfiguration) : CustomCheck("ServiceControl.Audit database", "Dirty memory trends", TimeSpan.FromMinutes(5))
 {
     readonly List<int> lastDirtyMemoryReads = [];
     public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
     {
-        var retriever = await GetMemoryRetriever(cancellationToken);
+        var retriever = await GetMemoryRetriever();
         var memoryInfo = await retriever.GetMemoryInformation(cancellationToken);
 
         if (memoryInfo.IsHighDirty)
@@ -37,15 +37,9 @@ class CheckDirtyMemory(IRavenDocumentStoreProvider documentStoreProvider) : Cust
     }
 
     MemoryInformationRetriever _retriever;
-    async Task<MemoryInformationRetriever> GetMemoryRetriever(CancellationToken cancellationToken = default)
+    async Task<MemoryInformationRetriever> GetMemoryRetriever()
     {
-        if (_retriever == null)
-        {
-            var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
-            var serverUrl = documentStore.Urls[0]; //TODO is there a better way to get the RavenDB server URL?
-            _retriever = new MemoryInformationRetriever(serverUrl);
-        }
-        return _retriever;
+        return _retriever ??= new MemoryInformationRetriever(databaseConfiguration.ServerConfiguration.ServerUrl);
     }
 
     static TrendDirection AnalyzeTrendUsingRegression(List<int> values)
