@@ -35,6 +35,7 @@ class CheckDirtyMemory(DatabaseConfiguration databaseConfiguration) : CustomChec
             Log.Debug("Not enough dirty memory data in the series to calculate a trend.");
         }
 
+        // TODO do we need a threshold below which the check never fails?
         // Three means we'll be observing for 15 minutes before calculating the trend
         if (lastDirtyMemoryReads.Count >= 3 && AnalyzeTrendUsingRegression(lastDirtyMemoryReads) == TrendDirection.Increasing)
         {
