@@ -15,7 +15,7 @@ export default interface LicenseInfo {
 
 export function typeText(license: LicenseInfo, configuration: Configuration | null) {
   if (license.trial_license && configuration?.mass_transit_connector) {
-    return "Early Access";
+    return "Early Access ";
   }
 }
 
