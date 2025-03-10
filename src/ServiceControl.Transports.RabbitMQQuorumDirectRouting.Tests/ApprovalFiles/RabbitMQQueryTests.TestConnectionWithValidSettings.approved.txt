@@ -1,6 +1,0 @@
-Connection test to RabbitMQ was successful
-
-Connection settings used:
-Username not set, defaulted to using "xxxxx" username from the ConnectionString used by instance
-Password not set, defaulted to using password from the ConnectionString used by instance
-RabbitMQ API Url not set, defaulted to using "xxxx" from the ConnectionString used by instance
