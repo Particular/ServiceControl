@@ -1,5 +1,7 @@
 on:
   workflow_call:
+permissions:
+  packages: write
 jobs:
   containers:
     runs-on: ubuntu-22.04

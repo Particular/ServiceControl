@@ -125,16 +125,13 @@ jobs:
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
   containers:
-    if: ${{ github.actor != 'dependabot[bot]' }}
     uses: ./.github/workflows/build-containers.yml
     secrets: inherit
   db-container:
-    if: ${{ github.actor != 'dependabot[bot]' }}
     uses: ./.github/workflows/build-db-container.yml
     secrets: inherit
   # See /src/container-integration-test/README.md
   container-test:
-    if: ${{ github.actor != 'dependabot[bot]' }}
     needs: [ 'containers', 'db-container' ]
     uses: ./.github/workflows/container-integration-test.yml
     secrets: inherit
