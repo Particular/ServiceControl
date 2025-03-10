@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NServiceBus.CustomChecks;
+using NServiceBus.Logging;
 
 class CheckDirtyMemory(DatabaseConfiguration databaseConfiguration) : CustomCheck("ServiceControl.Audit database", "Dirty memory trends", TimeSpan.FromMinutes(5))
 {
@@ -16,31 +17,38 @@ class CheckDirtyMemory(DatabaseConfiguration databaseConfiguration) : CustomChec
 
         if (memoryInfo.IsHighDirty)
         {
-            //log warning
-            return CheckResult.Failed("There is a high level of dirty memory. Check the ServiceControl " +
-                                      "troubleshooting guide for guidance on how to mitigate the issue.");
+            var message = $"There is a high level of dirty memory ({memoryInfo.DirtyMemory}kb). Check the ServiceControl " +
+                          "troubleshooting guide for guidance on how to mitigate the issue.";
+            Log.Warn(message);
+            return CheckResult.Failed(message);
         }
 
         lastDirtyMemoryReads.Add(memoryInfo.DirtyMemory);
         if (lastDirtyMemoryReads.Count > 20)
         {
-            //cap the list at 20
-            lastDirtyMemoryReads.RemoveAt(lastDirtyMemoryReads.Count - 1);
+            //cap the list at 20 which means we're keeping about 1 hour and 40 minutes of data
+            lastDirtyMemoryReads.RemoveAt(0);
         }
 
-        if (lastDirtyMemoryReads.Count > 3 && AnalyzeTrendUsingRegression(lastDirtyMemoryReads) == TrendDirection.Increasing) // Three means we'll be observing for 15 minutes before calculating the trend
+        if (lastDirtyMemoryReads.Count < 3)
         {
-            // log a warning and fail the check
+            Log.Debug("Not enough dirty memory data in the series to calculate a trend.");
+        }
+
+        // Three means we'll be observing for 15 minutes before calculating the trend
+        if (lastDirtyMemoryReads.Count >= 3 && AnalyzeTrendUsingRegression(lastDirtyMemoryReads) == TrendDirection.Increasing)
+        {
+            var message = $"Dirty memory is increasing. Last available value is {memoryInfo.DirtyMemory}kb. " +
+                          $"Check the ServiceControl troubleshooting guide for guidance on how to mitigate the issue.";
+            Log.Warn(message);
+            return CheckResult.Failed(message);
         }
 
         return CheckResult.Pass;
     }
 
     MemoryInformationRetriever _retriever;
-    async Task<MemoryInformationRetriever> GetMemoryRetriever()
-    {
-        return _retriever ??= new MemoryInformationRetriever(databaseConfiguration.ServerConfiguration.ServerUrl);
-    }
+    async Task<MemoryInformationRetriever> GetMemoryRetriever() => _retriever ??= new MemoryInformationRetriever(databaseConfiguration.ServerConfiguration.ServerUrl);
 
     static TrendDirection AnalyzeTrendUsingRegression(List<int> values)
     {
@@ -87,7 +95,8 @@ class CheckDirtyMemory(DatabaseConfiguration databaseConfiguration) : CustomChec
     {
         Increasing,
         Decreasing,
-        Flat,
-        Mixed
+        Flat
     }
+
+    static readonly ILog Log = LogManager.GetLogger<CheckDirtyMemory>();
 }
