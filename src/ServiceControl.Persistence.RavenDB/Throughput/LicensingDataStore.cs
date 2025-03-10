@@ -127,9 +127,10 @@ class LicensingDataStore(
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
+        var from = DateTime.UtcNow.AddMonths(-14);
         var query = session.Query<EndpointDocument>()
             .Where(document => document.SanitizedName.In(queueNames))
-            .Include(builder => builder.IncludeTimeSeries(ThroughputTimeSeriesName, DateTime.UtcNow.AddMonths(-14)));
+            .Include(builder => builder.IncludeTimeSeries(ThroughputTimeSeriesName, from));
 
         var documents = await query.ToListAsync(cancellationToken);
 
@@ -137,7 +138,7 @@ class LicensingDataStore(
         {
             var timeSeries = await session
                 .IncrementalTimeSeriesFor(document.GenerateDocumentId(), ThroughputTimeSeriesName)
-                .GetAsync(token: cancellationToken);
+                .GetAsync(from, token: cancellationToken);
 
             if (results.TryGetValue(document.SanitizedName, out var throughputDatas) &&
                 throughputDatas is List<ThroughputData> throughputDataList)
