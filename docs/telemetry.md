@@ -24,7 +24,7 @@ The following ingestion metrics with their corresponding dimensions are availabl
 - `sc.audit.ingestion.failures_total` - Failure counter
   - `message.category` - Indicates the category of the message ingested: `audit-message`, `saga-update` or `control-message`
   - `result` - Indicates how the failure was resolved: `retry` or `stored-poison`
-- `sc.audit.ingestion.consecutive_batch_failure_total` - Consecutive batch failures
+- `sc.audit.ingestion.consecutive_batch_failures_total` - Consecutive batch failures
 
 Example queries in PromQL for use in Grafana:
 
