@@ -14,11 +14,12 @@ namespace ServiceControl.Persistence
 
                 from message in messages
                 let last = message.ProcessingAttempts.Last()
+                let metadata = last.MessageMetadata
                 select new SortAndFilterOptions
                 {
                     MessageId = last.MessageId,
-                    MessageType = (string)last.MessageMetadata["MessageType"],
-                    IsSystemMessage = (bool)last.MessageMetadata["IsSystemMessage"],
+                    MessageType = (string)metadata["MessageType"],
+                    IsSystemMessage = (bool)metadata["IsSystemMessage"],
                     Status = message.Status == FailedMessageStatus.Archived
                         ? MessageStatus.ArchivedFailure
                           : message.Status == FailedMessageStatus.Resolved
@@ -26,14 +27,14 @@ namespace ServiceControl.Persistence
                                 : message.ProcessingAttempts.Count == 1
                                     ? MessageStatus.Failed
                                     : MessageStatus.RepeatedFailure,
-                    TimeSent = (DateTime)last.MessageMetadata["TimeSent"],
+                    TimeSent = (DateTime)metadata["TimeSent"],
                     ProcessedAt = last.AttemptedAt,
-                    ReceivingEndpointName = ((EndpointDetails)last.MessageMetadata["ReceivingEndpoint"]).Name,
-                    CriticalTime = (TimeSpan?)last.MessageMetadata["CriticalTime"],
-                    ProcessingTime = (TimeSpan?)last.MessageMetadata["ProcessingTime"],
-                    DeliveryTime = (TimeSpan?)last.MessageMetadata["DeliveryTime"],
-                    Query = last.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", last.Headers.Select(x => x.Value)) }).ToArray(),
-                    ConversationId = (string)last.MessageMetadata["ConversationId"]
+                    ReceivingEndpointName = ((EndpointDetails)metadata["ReceivingEndpoint"]).Name,
+                    CriticalTime = (TimeSpan?)metadata["CriticalTime"],
+                    ProcessingTime = (TimeSpan?)metadata["ProcessingTime"],
+                    DeliveryTime = (TimeSpan?)metadata["DeliveryTime"],
+                    Query = metadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", last.Headers.Select(x => x.Value)) }).ToArray(),
+                    ConversationId = (string)metadata["ConversationId"]
                 };
 
             // StandardAnalyzer is the default analyzer, so no follow-up Analyze() call is needed here
