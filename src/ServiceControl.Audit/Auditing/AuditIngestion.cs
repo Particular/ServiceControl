@@ -185,6 +185,9 @@
             try
             {
                 await startStopSemaphore.WaitAsync(cancellationToken);
+
+                // By passing a CancellationToken in the cancelled state we stop receivers ASAP and
+                // still correctly stop/shutdown
                 await StopAndTeardownInfrastructure(new CancellationToken(canceled: true));
             }
             finally
