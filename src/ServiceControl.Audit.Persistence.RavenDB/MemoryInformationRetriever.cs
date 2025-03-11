@@ -27,7 +27,7 @@ class MemoryInformationRetriever(DatabaseConfiguration databaseConfiguration)
         var responseDto = JsonSerializer.Deserialize<ResponseDto>(await httpResponse.Content.ReadAsStringAsync(cancellationToken));
 
         var values = responseDto.MemoryInformation.DirtyMemory.Split(' ');
-        if (!string.Equals(values[1],"KBytes", StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(values[1], "KBytes", StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException($"Unexpected response. Was expecting memory details in KBytes, instead received: {responseDto.MemoryInformation.DirtyMemory}");
         }
