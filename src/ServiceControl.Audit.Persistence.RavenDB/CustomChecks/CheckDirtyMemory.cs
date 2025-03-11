@@ -16,7 +16,7 @@ class CheckDirtyMemory(MemoryInformationRetriever memoryInformationRetriever) : 
 
         if (isHighDirty)
         {
-            var message = $"There is a high level of dirty memory ({dirtyMemoryKb}kb). Check the ServiceControl " +
+            var message = $"There is a high level of RavenDB dirty memory ({dirtyMemoryKb}kb). Check the ServiceControl " +
                           "troubleshooting guide for guidance on how to mitigate the issue.";
             Log.Warn(message);
             return CheckResult.Failed(message);
@@ -32,13 +32,13 @@ class CheckDirtyMemory(MemoryInformationRetriever memoryInformationRetriever) : 
         switch (lastDirtyMemoryReads.Count)
         {
             case < 3:
-                Log.Debug("Not enough dirty memory data in the series to calculate a trend.");
+                Log.Debug("Not enough RavenDB dirty memory data in the series to calculate a trend.");
                 break;
             // TODO do we need a threshold below which the check never fails?
             // Three means we'll be observing for 15 minutes before calculating the trend
             case >= 3 when AnalyzeTrendUsingRegression(lastDirtyMemoryReads) == TrendDirection.Increasing:
                 {
-                    var message = $"Dirty memory is increasing. Last available value is {dirtyMemoryKb}kb. " +
+                    var message = $"RavenDB dirty memory is increasing. Last available value is {dirtyMemoryKb}kb. " +
                                   $"Check the ServiceControl troubleshooting guide for guidance on how to mitigate the issue.";
                     Log.Warn(message);
                     return CheckResult.Failed(message);
