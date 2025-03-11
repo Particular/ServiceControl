@@ -25,7 +25,8 @@ namespace ServiceControl.Audit.Persistence.RavenDB.Indexes
                     CriticalTime = (TimeSpan?)metadata["CriticalTime"],
                     ProcessingTime = (TimeSpan?)metadata["ProcessingTime"],
                     DeliveryTime = (TimeSpan?)metadata["DeliveryTime"],
-                    Query = new[] {
+                    Query = new[]
+                    {
                         string.Join(' ', message.Headers.Values),
                         string.Join(' ', metadata.Values.Where(v => v != null).Select(v => v.ToString())) // Needed, RaveDB does not like object arrays
                     },
