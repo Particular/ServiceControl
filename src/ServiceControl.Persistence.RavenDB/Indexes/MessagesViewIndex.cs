@@ -35,7 +35,7 @@ namespace ServiceControl.Persistence
                     Query = new[]
                     {
                         string.Join(' ', last.Headers.Values),
-                        string.Join(' ', metadata.Values.Select(v => v.ToString())) // Needed, RavenDB does not like object arrays
+                        string.Join(' ', metadata.Values.Where(v => v != null).Select(v => v.ToString())) // Needed, RavenDB does not like object arrays
                     },
                     ConversationId = (string)metadata["ConversationId"]
                 };
