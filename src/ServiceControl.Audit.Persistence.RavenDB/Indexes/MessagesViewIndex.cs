@@ -12,23 +12,24 @@ namespace ServiceControl.Audit.Persistence.RavenDB.Indexes
         {
             Map = messages =>
                 from message in messages
+                let metadata = message.MessageMetadata
                 select new SortAndFilterOptions
                 {
-                    MessageId = (string)message.MessageMetadata["MessageId"],
-                    MessageType = (string)message.MessageMetadata["MessageType"],
-                    IsSystemMessage = (bool)message.MessageMetadata["IsSystemMessage"],
-                    Status = (bool)message.MessageMetadata["IsRetried"] ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
-                    TimeSent = (DateTime)message.MessageMetadata["TimeSent"],
+                    MessageId = (string)metadata["MessageId"],
+                    MessageType = (string)metadata["MessageType"],
+                    IsSystemMessage = (bool)metadata["IsSystemMessage"],
+                    Status = (bool)metadata["IsRetried"] ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
+                    TimeSent = (DateTime)metadata["TimeSent"],
                     ProcessedAt = message.ProcessedAt,
-                    ReceivingEndpointName = ((EndpointDetails)message.MessageMetadata["ReceivingEndpoint"]).Name,
-                    CriticalTime = (TimeSpan?)message.MessageMetadata["CriticalTime"],
-                    ProcessingTime = (TimeSpan?)message.MessageMetadata["ProcessingTime"],
-                    DeliveryTime = (TimeSpan?)message.MessageMetadata["DeliveryTime"],
+                    ReceivingEndpointName = ((EndpointDetails)metadata["ReceivingEndpoint"]).Name,
+                    CriticalTime = (TimeSpan?)metadata["CriticalTime"],
+                    ProcessingTime = (TimeSpan?)metadata["ProcessingTime"],
+                    DeliveryTime = (TimeSpan?)metadata["DeliveryTime"],
                     Query = new[] {
                         string.Join(" ", message.Headers.Values),
-                        string.Join(" ", message.MessageMetadata.Values.Select(v => v.ToString() ?? ""))
+                        string.Join(" ", metadata.Values.Select(v => v.ToString() ?? ""))
                     },
-                    ConversationId = (string)message.MessageMetadata["ConversationId"]
+                    ConversationId = (string)metadata["ConversationId"]
                 };
 
             Index(x => x.Query, FieldIndexing.Search);
