@@ -28,7 +28,9 @@ namespace ServiceControl.Audit.Persistence.RavenDB.Indexes
                     Query = new[]
                     {
                         string.Join(' ', message.Headers.Values),
-                        string.Join(' ', metadata.Values.Select(v => v.ToString())) // Needed, RaveDB does not like object arrays
+                        // Needed, RavenDB does not like object arrays
+                        // and cannot directly use metadata.Values
+                        string.Join(' ', metadata.Select(x => x.Value.ToString()))
                     },
                     ConversationId = (string)metadata["ConversationId"]
                 };
