@@ -12,7 +12,7 @@ class CheckDirtyMemory(DatabaseConfiguration databaseConfiguration) : CustomChec
     readonly List<int> lastDirtyMemoryReads = [];
     public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
     {
-        var retriever = await GetMemoryRetriever();
+        var retriever = GetMemoryRetriever();
         var (isHighDirty, dirtyMemory) = await retriever.GetMemoryInformation(cancellationToken);
 
         if (isHighDirty)
@@ -44,13 +44,17 @@ class CheckDirtyMemory(DatabaseConfiguration databaseConfiguration) : CustomChec
                     Log.Warn(message);
                     return CheckResult.Failed(message);
                 }
+
+            default:
+                // NOP
+                break;
         }
 
         return CheckResult.Pass;
     }
 
     MemoryInformationRetriever _retriever;
-    async Task<MemoryInformationRetriever> GetMemoryRetriever() => _retriever ??= new MemoryInformationRetriever(databaseConfiguration.ServerConfiguration.ServerUrl);
+    MemoryInformationRetriever GetMemoryRetriever() => _retriever ??= new MemoryInformationRetriever(databaseConfiguration.ServerConfiguration.ServerUrl);
 
     static TrendDirection AnalyzeTrendUsingRegression(List<int> values)
     {
@@ -77,7 +81,7 @@ class CheckDirtyMemory(DatabaseConfiguration databaseConfiguration) : CustomChec
             sumXX += x * x;
         }
 
-        double slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+        double slope = ((n * sumXY) - (sumX * sumY)) / ((n * sumXX) - (sumX * sumX));
 
         // Determine trend based on slope
         if (Math.Abs(slope) < 0.001) // Small threshold to handle floating-point precision
