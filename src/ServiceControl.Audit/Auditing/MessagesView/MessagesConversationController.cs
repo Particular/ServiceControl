@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.Auditing.MessagesView
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.WebApi;
@@ -13,9 +14,9 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     {
         [Route("conversations/{conversationId}")]
         [HttpGet]
-        public async Task<IList<MessagesView>> Get([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string conversationId)
+        public async Task<IList<MessagesView>> Get([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string conversationId, CancellationToken cancellationToken)
         {
-            var result = await dataStore.QueryMessagesByConversationId(conversationId, pagingInfo, sortInfo);
+            var result = await dataStore.QueryMessagesByConversationId(conversationId, pagingInfo, sortInfo, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }

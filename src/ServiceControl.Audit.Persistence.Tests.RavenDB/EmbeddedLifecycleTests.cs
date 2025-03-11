@@ -35,7 +35,7 @@
         [Test]
         public async Task Verify_embedded_database()
         {
-            await DataStore.QueryKnownEndpoints();
+            await DataStore.QueryKnownEndpoints(TestContext.CurrentContext.CancellationToken);
 
             Assert.Multiple(() =>
             {

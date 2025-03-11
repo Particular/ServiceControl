@@ -7,7 +7,7 @@
     public interface IBodyStorage
     {
         Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken);
-        Task<StreamResult> TryFetch(string bodyId);
+        Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken);
     }
 
     public class StreamResult

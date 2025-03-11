@@ -23,10 +23,10 @@
                 .StoreAsync("body", bodyStream, contentType, cancellationToken);
         }
 
-        public async Task<StreamResult> TryFetch(string bodyId)
+        public async Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken)
         {
-            using var session = await sessionProvider.OpenSession();
-            var result = await session.Advanced.Attachments.GetAsync($"MessageBodies/{bodyId}", "body");
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var result = await session.Advanced.Attachments.GetAsync($"MessageBodies/{bodyId}", "body", cancellationToken);
 
             if (result == null)
             {

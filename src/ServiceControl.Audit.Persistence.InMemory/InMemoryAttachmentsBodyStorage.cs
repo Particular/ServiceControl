@@ -44,7 +44,7 @@
             return Task.CompletedTask;
         }
 
-        public async Task<StreamResult> TryFetch(string bodyId)
+        public async Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken)
         {
             var messageBody = messageBodies.FirstOrDefault(w => w.BodyId == bodyId);
 

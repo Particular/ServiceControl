@@ -46,9 +46,9 @@
 
             await IngestProcessedMessagesAudits(messages);
 
-            var endpointA = (await DataStore.QueryAuditCounts("EndpointA")).Results;
-            var endpointB = (await DataStore.QueryAuditCounts("EndpointB")).Results;
-            var sysMsgEndpoint = (await DataStore.QueryAuditCounts("SystemEndpoint")).Results;
+            var endpointA = (await DataStore.QueryAuditCounts("EndpointA", TestContext.CurrentContext.CancellationToken)).Results;
+            var endpointB = (await DataStore.QueryAuditCounts("EndpointB", TestContext.CurrentContext.CancellationToken)).Results;
+            var sysMsgEndpoint = (await DataStore.QueryAuditCounts("SystemEndpoint", TestContext.CurrentContext.CancellationToken)).Results;
 
             Assert.That(sysMsgEndpoint, Is.Empty);
 
