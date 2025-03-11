@@ -1,15 +1,14 @@
 namespace ServiceControl.Audit.Persistence.RavenDB;
 
 using System;
-using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-class MemoryInformationRetriever(string serverUrl)
+class MemoryInformationRetriever(DatabaseConfiguration databaseConfiguration)
 {
-    readonly HttpClient client = new() { BaseAddress = new Uri(serverUrl) };
+    readonly HttpClient client = new() { BaseAddress = new Uri(databaseConfiguration.ServerConfiguration.ServerUrl) };
 
     record ResponseDto
     {
