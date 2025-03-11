@@ -26,8 +26,8 @@ namespace ServiceControl.Audit.Persistence.RavenDB.Indexes
                     ProcessingTime = (TimeSpan?)metadata["ProcessingTime"],
                     DeliveryTime = (TimeSpan?)metadata["DeliveryTime"],
                     Query = new[] {
-                        string.Join(" ", message.Headers.Values),
-                        string.Join(" ", metadata.Values.Select(v => v.ToString() ?? ""))
+                        string.Join(' ', message.Headers.Values),
+                        string.Join(' ', metadata.Values.Select(v => v.ToString() ?? string.Empty))
                     },
                     ConversationId = (string)metadata["ConversationId"]
                 };
