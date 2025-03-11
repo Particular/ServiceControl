@@ -11,6 +11,7 @@ namespace ServiceControl.Persistence
         public MessagesViewIndex()
         {
             Map = messages =>
+
                 from message in messages
                 let last = message.ProcessingAttempts.Last()
                 let metadata = last.MessageMetadata
@@ -21,19 +22,18 @@ namespace ServiceControl.Persistence
                     IsSystemMessage = (bool)metadata["IsSystemMessage"],
                     Status = message.Status == FailedMessageStatus.Archived
                         ? MessageStatus.ArchivedFailure
-                        : message.Status == FailedMessageStatus.Resolved
-                            ? MessageStatus.ResolvedSuccessfully
-                            : message.ProcessingAttempts.Count == 1
-                                ? MessageStatus.Failed
-                                : MessageStatus.RepeatedFailure,
+                          : message.Status == FailedMessageStatus.Resolved
+                              ? MessageStatus.ResolvedSuccessfully
+                                : message.ProcessingAttempts.Count == 1
+                                    ? MessageStatus.Failed
+                                    : MessageStatus.RepeatedFailure,
                     TimeSent = (DateTime)metadata["TimeSent"],
                     ProcessedAt = last.AttemptedAt,
                     ReceivingEndpointName = ((EndpointDetails)metadata["ReceivingEndpoint"]).Name,
                     CriticalTime = (TimeSpan?)metadata["CriticalTime"],
                     ProcessingTime = (TimeSpan?)metadata["ProcessingTime"],
                     DeliveryTime = (TimeSpan?)metadata["DeliveryTime"],
-                    Query = new[]
-                    {
+                    Query = new[] {
                         string.Join(' ', last.Headers.Values),
                         string.Join(' ', metadata.Values.Where(v => v != null).Select(v => v.ToString())) // Needed, RavenDB does not like object arrays
                     },
