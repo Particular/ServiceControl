@@ -23,7 +23,7 @@ class MemoryInformationRetriever(DatabaseConfiguration databaseConfiguration)
 
     public async Task<(bool IsHighDirty, int DirtyMemoryKb)> GetMemoryInformation(CancellationToken cancellationToken = default)
     {
-        var httpResponse = await client.GetAsync("/admin/debug/memory/stats", cancellationToken);
+        var httpResponse = await client.GetAsync("/admin/debug/memory/stats?includeThreads=false&includeMappings=false", cancellationToken);
         var responseDto = JsonSerializer.Deserialize<ResponseDto>(await httpResponse.Content.ReadAsStringAsync(cancellationToken));
 
         var values = responseDto.MemoryInformation.DirtyMemory.Split(' ');
