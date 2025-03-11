@@ -64,27 +64,31 @@ class CheckDirtyMemory(DatabaseConfiguration databaseConfiguration) : CustomChec
         }
 
         // Calculate slope using linear regression
-        double n = values.Count;
-        double sumX = 0;
-        double sumY = 0;
-        double sumXY = 0;
-        double sumXX = 0;
+        double numberOfPoints = values.Count;
+        double sumOfIndices = 0;
+        double sumOfValues = 0;
+        double sumOfIndicesMultipliedByValues = 0;
+        double sumOfIndicesSquared = 0;
 
         for (int i = 0; i < values.Count; i++)
         {
-            double x = i;
-            double y = values[i];
+            double index = i;
+            double value = values[i];
 
-            sumX += x;
-            sumY += y;
-            sumXY += x * y;
-            sumXX += x * x;
+            sumOfIndices += index;
+            sumOfValues += value;
+            sumOfIndicesMultipliedByValues += index * value;
+            sumOfIndicesSquared += index * index;
         }
 
-        double slope = ((n * sumXY) - (sumX * sumY)) / ((n * sumXX) - (sumX * sumX));
+        // Slope formula: (n*Σxy - Σx*Σy) / (n*Σx² - (Σx)²)
+        double slopeNumerator = (numberOfPoints * sumOfIndicesMultipliedByValues) - (sumOfIndices * sumOfValues);
+        double slopeDenominator = (numberOfPoints * sumOfIndicesSquared) - (sumOfIndices * sumOfIndices);
+        double slope = slopeNumerator / slopeDenominator;
 
         // Determine trend based on slope
-        if (Math.Abs(slope) < 0.001) // Small threshold to handle floating-point precision
+        const double slopeThreshold = 0.001; // Small threshold to handle floating-point precision
+        if (Math.Abs(slope) < slopeThreshold)
         {
             return TrendDirection.Flat;
         }
