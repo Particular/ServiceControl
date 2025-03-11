@@ -23,7 +23,7 @@ The following ingestion metrics with their corresponding dimensions are availabl
   - `result` - Indicates the outcome of the operation: `success`, `failed` or `skipped` (if the message was filtered out and skipped)
 - `sc.audit.ingestion.failures_total` - Failure counter
   - `message.category` - Indicates the category of the message ingested: `audit-message`, `saga-update` or `control-message`
-  - `result` - Indicates how the failure was resolved: `retry` or `stored-poision`
+  - `result` - Indicates how the failure was resolved: `retry` or `stored-poison`
 - `sc.audit.ingestion.consecutive_batch_failures_total` - Consecutive batch failures
 
 Example queries in PromQL for use in Grafana:
@@ -32,6 +32,23 @@ Example queries in PromQL for use in Grafana:
 - Failure rate: `sum(rate(sc_audit_ingestion_failures_total[$__rate_interval])) by (exported_job,result)`
 - Message duration: `histogram_quantile(0.9,sum(rate(sc_audit_ingestion_message_duration_seconds_bucket[$__rate_interval])) by (le,exported_job))` 
 
+Example Grafana dashboard - https://github.com/andreasohlund/Docker/blob/main/otel-monitoring/grafana-platform-template.json
+
 ## Monitoring
 
 No telemetry is currently available.
+
+## RavenDB
+
+To emit and visualize RavenDB telemetry:
+
+1. Install a RavenDB developer license (needed to get support for emitting telemetry)
+2. [Enable and configure Raven to emit telemetry](https://ravendb.net/docs/article-page/6.2/csharp/server/administration/monitoring/open-telemetry) (the example below shows targeting a local OTEL collector)
+    ```
+    environment:
+      RAVEN_Monitoring_OpenTelemetry_Enabled: true
+      RAVEN_Monitoring_OpenTelemetry_OpenTelemetryProtocol_Enabled: true
+      RAVEN_Monitoring_OpenTelemetry_OpenTelemetryProtocol_Protocol: gRPC
+      RAVEN_Monitoring_OpenTelemetry_OpenTelemetryProtocol_Endpoint: http://host.docker.internal:4317
+    ```
+3. Visualize the data, for example https://grafana.com/grafana/dashboards/22698-ravendb-prometheus/ 
