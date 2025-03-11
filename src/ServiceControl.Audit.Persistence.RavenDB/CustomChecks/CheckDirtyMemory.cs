@@ -13,36 +13,37 @@ class CheckDirtyMemory(DatabaseConfiguration databaseConfiguration) : CustomChec
     public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
     {
         var retriever = await GetMemoryRetriever();
-        var memoryInfo = await retriever.GetMemoryInformation(cancellationToken);
+        var (isHighDirty, dirtyMemory) = await retriever.GetMemoryInformation(cancellationToken);
 
-        if (memoryInfo.IsHighDirty)
+        if (isHighDirty)
         {
-            var message = $"There is a high level of dirty memory ({memoryInfo.DirtyMemory}kb). Check the ServiceControl " +
+            var message = $"There is a high level of dirty memory ({dirtyMemory}kb). Check the ServiceControl " +
                           "troubleshooting guide for guidance on how to mitigate the issue.";
             Log.Warn(message);
             return CheckResult.Failed(message);
         }
 
-        lastDirtyMemoryReads.Add(memoryInfo.DirtyMemory);
+        lastDirtyMemoryReads.Add(dirtyMemory);
         if (lastDirtyMemoryReads.Count > 20)
         {
             //cap the list at 20 which means we're keeping about 1 hour and 40 minutes of data
             lastDirtyMemoryReads.RemoveAt(0);
         }
 
-        if (lastDirtyMemoryReads.Count < 3)
+        switch (lastDirtyMemoryReads.Count)
         {
-            Log.Debug("Not enough dirty memory data in the series to calculate a trend.");
-        }
-
-        // TODO do we need a threshold below which the check never fails?
-        // Three means we'll be observing for 15 minutes before calculating the trend
-        if (lastDirtyMemoryReads.Count >= 3 && AnalyzeTrendUsingRegression(lastDirtyMemoryReads) == TrendDirection.Increasing)
-        {
-            var message = $"Dirty memory is increasing. Last available value is {memoryInfo.DirtyMemory}kb. " +
-                          $"Check the ServiceControl troubleshooting guide for guidance on how to mitigate the issue.";
-            Log.Warn(message);
-            return CheckResult.Failed(message);
+            case < 3:
+                Log.Debug("Not enough dirty memory data in the series to calculate a trend.");
+                break;
+            // TODO do we need a threshold below which the check never fails?
+            // Three means we'll be observing for 15 minutes before calculating the trend
+            case >= 3 when AnalyzeTrendUsingRegression(lastDirtyMemoryReads) == TrendDirection.Increasing:
+                {
+                    var message = $"Dirty memory is increasing. Last available value is {dirtyMemory}kb. " +
+                                  $"Check the ServiceControl troubleshooting guide for guidance on how to mitigate the issue.";
+                    Log.Warn(message);
+                    return CheckResult.Failed(message);
+                }
         }
 
         return CheckResult.Pass;
@@ -53,7 +54,7 @@ class CheckDirtyMemory(DatabaseConfiguration databaseConfiguration) : CustomChec
 
     static TrendDirection AnalyzeTrendUsingRegression(List<int> values)
     {
-        if (values == null || values.Count <= 1)
+        if (values is not { Count: > 1 })
         {
             throw new ArgumentException("Need at least two values to determine a trend");
         }
@@ -84,12 +85,7 @@ class CheckDirtyMemory(DatabaseConfiguration databaseConfiguration) : CustomChec
             return TrendDirection.Flat;
         }
 
-        if (slope > 0)
-        {
-            return TrendDirection.Increasing;
-        }
-
-        return TrendDirection.Decreasing;
+        return slope > 0 ? TrendDirection.Increasing : TrendDirection.Decreasing;
     }
 
     enum TrendDirection
