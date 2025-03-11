@@ -33,10 +33,7 @@ namespace ServiceControl.Persistence
                     CriticalTime = (TimeSpan?)metadata["CriticalTime"],
                     ProcessingTime = (TimeSpan?)metadata["ProcessingTime"],
                     DeliveryTime = (TimeSpan?)metadata["DeliveryTime"],
-                    Query = new[] {
-                        string.Join(' ', last.Headers.Values),
-                        string.Join(' ', metadata.Values.Where(v => v != null).Select(v => v.ToString())) // Needed, RavenDB does not like object arrays
-                    },
+                    Query = metadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", last.Headers.Select(x => x.Value)) }).ToArray(),
                     ConversationId = (string)metadata["ConversationId"]
                 };
 
