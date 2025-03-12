@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using NServiceBus.CustomChecks;
 using NServiceBus.Logging;
 
-class CheckDirtyMemory(MemoryInformationRetriever memoryInformationRetriever) : CustomCheck("ServiceControl.Audit database", "Dirty memory trends", TimeSpan.FromMinutes(5))
+class CheckDirtyMemory(MemoryInformationRetriever memoryInformationRetriever) : CustomCheck("RavenDB dirty memory trends", "ServiceControl.Audit Health", TimeSpan.FromMinutes(5))
 {
     readonly List<int> lastDirtyMemoryReads = [];
     public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
