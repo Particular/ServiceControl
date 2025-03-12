@@ -56,14 +56,16 @@ static class InstanceSetup
 
         var p = Process.Start(processStartupInfo) ?? throw new Exception($"Attempt to launch {exeName} failed.");
 
+        // Reading std err needs to happen before waiting to avoid the risk of a deadlock.
+        // See https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process.standardoutput?view=net-9.0&redirectedfrom=MSDN#remarks for more details.
+        var error = p.StandardError.ReadToEnd();
+
         p.WaitForExit(timeout);
 
         if (!p.HasExited || p.ExitCode == 0)
         {
             return p;
         }
-
-        var error = p.StandardError.ReadToEnd();
 
         throw new Exception($"{exeName} returned a non-zero exit code: {p.ExitCode}. This typically indicates a configuration error. The error output was:\r\n {error}");
     }
