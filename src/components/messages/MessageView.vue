@@ -443,7 +443,6 @@ onUnmounted(() => {
                 <h5 :class="{ active: panel === 3 }" class="nav-item" @click="togglePanel(3)"><a href="javascript:void(0)">Message body</a></h5>
                 <h5 v-if="!isMassTransitConnected" :class="{ active: panel === 4 }" class="nav-item" @click="togglePanel(4)"><a href="javascript:void(0)">Flow Diagram</a></h5>
               </div>
-              <pre v-if="panel === 0">{{ failedMessage.exception?.message }}</pre>
               <pre v-if="panel === 1">{{ failedMessage.exception?.stack_trace }}</pre>
               <table class="table" v-if="panel === 2 && !failedMessage.headersNotFound">
                 <tbody>
