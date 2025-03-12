@@ -80,8 +80,7 @@
 
         void SetRestartOnFailure(string serviceName)
         {
-            const int actionCount = 2;
-            const uint delay = 60000;
+            const int actionCount = 3;
 
             var service = IntPtr.Zero;
             var failureActionsPtr = IntPtr.Zero;
@@ -95,17 +94,26 @@
                 var action1 = new SC_ACTION
                 {
                     Type = SC_ACTION_TYPE.SC_ACTION_RESTART,
-                    Delay = delay
+                    Delay = 10000
                 };
 
                 Marshal.StructureToPtr(action1, actionPtr, false);
 
                 var action2 = new SC_ACTION
                 {
-                    Type = SC_ACTION_TYPE.SC_ACTION_NONE,
-                    Delay = delay
+                    Type = SC_ACTION_TYPE.SC_ACTION_RESTART,
+                    Delay = 30000
                 };
+
                 Marshal.StructureToPtr(action2, (IntPtr)((long)actionPtr + Marshal.SizeOf(typeof(SC_ACTION))), false);
+
+                var action3 = new SC_ACTION
+                {
+                    Type = SC_ACTION_TYPE.SC_ACTION_RESTART,
+                    Delay = 60000
+                };
+
+                Marshal.StructureToPtr(action3, (IntPtr)((long)actionPtr + (Marshal.SizeOf(typeof(SC_ACTION)) * 2)), false);
 
                 var failureActions = new SERVICE_FAILURE_ACTIONS
                 {
