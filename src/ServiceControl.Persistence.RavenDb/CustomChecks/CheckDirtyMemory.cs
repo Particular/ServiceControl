@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.RavenDB.CustomChecks;
+﻿namespace ServiceControl.Persistence.RavenDB.CustomChecks;
 
 using System;
 using System.Collections.Generic;

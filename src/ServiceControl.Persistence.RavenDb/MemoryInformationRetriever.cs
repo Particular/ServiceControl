@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.RavenDB;
+﻿namespace ServiceControl.Persistence.RavenDB;
 
 using System;
 using System.Net.Http;
