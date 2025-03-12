@@ -35,12 +35,10 @@ static class InstanceSetup
             args += " --skip-queue-creation";
         }
 
-        // we will wait "forever" since that is the most safe action right not. We will leave it up to the setup code in the instances to make sure it won't run forever.
-        // If/when provide better UI experience we might revisit this and potentially find a way for the installer to control the timeout.
-        Run(installPath, exeName, instanceName, args, Timeout.Infinite);
+        Run(installPath, exeName, instanceName, args);
     }
 
-    internal static Process Run(string installPath, string exeName, string instanceName, string args, int timeout)
+    internal static void Run(string installPath, string exeName, string instanceName, string args)
     {
         var processStartupInfo = new ProcessStartInfo
         {
@@ -56,14 +54,19 @@ static class InstanceSetup
 
         var p = Process.Start(processStartupInfo) ?? throw new Exception($"Attempt to launch {exeName} failed.");
 
-        p.WaitForExit(timeout);
+        // Reading std err needs to happen before waiting to avoid the risk of a deadlock.
+        // See https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process.standardoutput?view=net-9.0&redirectedfrom=MSDN#remarks for more details.
+        // Note that this will wait forever, should we want to avoid that the async ProcessStartInfo.ErrorDataReceived API needs to be used.
+        var error = p.StandardError.ReadToEnd();
+
+        // we will wait "forever" since that is the most safe action right not. We will leave it up to the setup code in the instances to make sure it won't run forever.
+        // If/when provide better UI experience we might revisit this and potentially find a way for the installer to control the timeout.
+        p.WaitForExit();
 
         if (!p.HasExited || p.ExitCode == 0)
         {
-            return p;
+            return;
         }
-
-        var error = p.StandardError.ReadToEnd();
 
         throw new Exception($"{exeName} returned a non-zero exit code: {p.ExitCode}. This typically indicates a configuration error. The error output was:\r\n {error}");
     }
