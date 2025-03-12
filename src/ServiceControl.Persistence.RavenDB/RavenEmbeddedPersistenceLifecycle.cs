@@ -69,6 +69,14 @@ namespace ServiceControl.Persistence.RavenDB
             }
         }
 
+        public async Task Stop(CancellationToken cancellationToken)
+        {
+            if (database != null)
+            {
+                await database.Stop(cancellationToken);
+            }
+        }
+
         public void Dispose()
         {
             documentStore?.Dispose();

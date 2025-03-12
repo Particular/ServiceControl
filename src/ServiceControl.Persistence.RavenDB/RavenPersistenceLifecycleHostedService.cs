@@ -10,6 +10,6 @@ namespace ServiceControl.Persistence.RavenDB
     {
         public Task StartAsync(CancellationToken cancellationToken) => persistenceLifecycle.Initialize(cancellationToken);
 
-        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task StopAsync(CancellationToken cancellationToken) => persistenceLifecycle.Stop(cancellationToken);
     }
 }
