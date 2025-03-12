@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
-import { licenseStatus } from "../composables/serviceLicense";
-import { connectionState, stats } from "../composables/serviceServiceControl";
+import { licenseStatus } from "@/composables/serviceLicense";
+import { connectionState, stats } from "@/composables/serviceServiceControl";
 import LicenseExpired from "../components/LicenseExpired.vue";
 import routeLinks from "@/router/routeLinks";
 import isRouteSelected from "@/composables/isRouteSelected";
@@ -31,10 +31,7 @@ const showPendingRetry = window.defaultConfig.showPendingRetry;
             </h5>
 
             <!--All Failed Messages-->
-            <h5
-              v-if="!licenseStatus.isExpired"
-              :class="{ active: isRouteSelected(routeLinks.failedMessage.failedMessages.link) || isRouteSelected(routeLinks.failedMessage.message.link(`id`)), disabled: !connectionState.connected && !connectionState.connectedRecently }"
-            >
+            <h5 v-if="!licenseStatus.isExpired" :class="{ active: isRouteSelected(routeLinks.failedMessage.failedMessages.link), disabled: !connectionState.connected && !connectionState.connectedRecently }">
               <RouterLink :to="routeLinks.failedMessage.failedMessages.link">All Failed Messages </RouterLink>
               <span v-if="stats.number_of_failed_messages !== 0" class="badge badge-important">{{ stats.number_of_failed_messages }}</span>
             </h5>

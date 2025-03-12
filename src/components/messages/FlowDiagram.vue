@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
+import { useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
 import { type DefaultEdge, MarkerType, useVueFlow, VueFlow, type Styles, type Node } from "@vue-flow/core";
 import TimeSince from "../TimeSince.vue";
 import routeLinks from "@/router/routeLinks";
 import Message from "@/resources/Message";
 import { NServiceBusHeaders } from "@/resources/Header";
+import { useRoute } from "vue-router";
 
 const props = defineProps<{
   conversationId?: string;
@@ -41,6 +42,8 @@ interface MappedMessage {
 
 const nodeSpacingX = 300;
 const nodeSpacingY = 200;
+
+const route = useRoute();
 
 async function getConversation(conversationId: string) {
   const [, data] = await useTypedFetchFromServiceControl<Message[]>(`conversations/${conversationId}`);
@@ -206,7 +209,7 @@ function typeIcon(type: MessageType) {
             <i class="fa" :class="typeIcon(nodeProps.data.type)" :title="nodeProps.data.type" />
             <div class="lead righ-side-ellipsis" :title="nodeProps.data.nodeName">
               <strong>
-                <RouterLink v-if="nodeProps.data.isError" :to="routeLinks.failedMessage.message.link(nodeProps.data.id)">{{ nodeProps.data.nodeName }}</RouterLink>
+                <RouterLink v-if="nodeProps.data.isError" :to="{ path: routeLinks.messages.message.link(nodeProps.data.id), query: { back: route.path } }">{{ nodeProps.data.nodeName }}</RouterLink>
                 <span v-else>{{ nodeProps.data.nodeName }}</span>
               </strong>
             </div>

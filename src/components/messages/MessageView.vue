@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { RouterLink, useRoute } from "vue-router";
-import { serviceControlUrl, useFetchFromServiceControl, useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
-import { useArchiveMessage, useRetryMessages, useUnarchiveMessage } from "../../composables/serviceFailedMessage";
-import { useDownloadFileFromString } from "../../composables/fileDownloadCreator";
-import { useShowToast } from "../../composables/toast";
+import { RouterLink, useRoute, useRouter } from "vue-router";
+import { serviceControlUrl, useFetchFromServiceControl, useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
+import { useArchiveMessage, useRetryMessages, useUnarchiveMessage } from "@/composables/serviceFailedMessage";
+import { useDownloadFileFromString } from "@/composables/fileDownloadCreator";
+import { useShowToast } from "@/composables/toast";
 import NoData from "../NoData.vue";
 import TimeSince from "../TimeSince.vue";
 import moment from "moment";
 import ConfirmDialog from "../ConfirmDialog.vue";
 import FlowDiagram from "./FlowDiagram.vue";
-import EditRetryDialog from "./EditRetryDialog.vue";
+import EditRetryDialog from "../failedmessages/EditRetryDialog.vue";
 import routeLinks from "@/router/routeLinks";
 import { EditAndRetryConfig } from "@/resources/Configuration";
 import { TYPE } from "vue-toastification";
@@ -28,6 +28,7 @@ const route = useRoute();
 const failedMessage = ref<ExtendedFailedMessage | FailedMessageError>();
 const editAndRetryConfiguration = ref<EditAndRetryConfig>();
 
+const backLink = ref<string>(routeLinks.failedMessage.failedMessages.link);
 const id = computed(() => route.params.id as string);
 watch(id, async () => await loadFailedMessage());
 
@@ -40,39 +41,34 @@ const configuration = useConfiguration();
 const isMassTransitConnected = useIsMassTransitConnected();
 
 async function loadFailedMessage() {
-  try {
-    const response = await useFetchFromServiceControl("errors/last/" + id.value);
-    if (response.status === 404) {
-      failedMessage.value = { notFound: true } as FailedMessageError;
-      return;
-    } else if (!response.ok) {
-      failedMessage.value = { error: true } as FailedMessageError;
-      return;
-    }
-    const message = (await response.json()) as ExtendedFailedMessage;
-    message.archived = message.status === FailedMessageStatus.Archived;
-    message.resolved = message.status === FailedMessageStatus.Resolved;
-    message.retried = message.status === FailedMessageStatus.RetryIssued;
-    message.error_retention_period = moment.duration(configuration.value?.data_retention.error_retention_period).asHours();
-    message.isEditAndRetryEnabled = editAndRetryConfiguration.value?.enabled ?? false;
-
-    // Maintain the mutations of the message in memory until the api returns a newer modified message
-    if (failedMessage.value && !isError(failedMessage.value) && failedMessage.value.last_modified === message.last_modified) {
-      message.retried = failedMessage.value?.retried;
-      message.archiving = failedMessage.value?.archiving;
-      message.restoring = failedMessage.value?.restoring;
-    } else {
-      message.archiving = false;
-      message.restoring = false;
-    }
-
-    updateMessageDeleteDate(message);
-    await downloadHeadersAndBody(message);
-    failedMessage.value = message;
-  } catch (err) {
-    console.log(err);
+  const response = await useFetchFromServiceControl(`errors/last/${id.value}`);
+  if (response.status === 404) {
+    failedMessage.value = { notFound: true } as FailedMessageError;
+    return;
+  } else if (!response.ok) {
+    failedMessage.value = { error: true } as FailedMessageError;
     return;
   }
+  const message = (await response.json()) as ExtendedFailedMessage;
+  message.archived = message.status === FailedMessageStatus.Archived;
+  message.resolved = message.status === FailedMessageStatus.Resolved;
+  message.retried = message.status === FailedMessageStatus.RetryIssued;
+  message.error_retention_period = moment.duration(configuration.value?.data_retention.error_retention_period).asHours();
+  message.isEditAndRetryEnabled = editAndRetryConfiguration.value?.enabled ?? false;
+
+  // Maintain the mutations of the message in memory until the api returns a newer modified message
+  if (failedMessage.value && !isError(failedMessage.value) && failedMessage.value.last_modified === message.last_modified) {
+    message.retried = failedMessage.value?.retried;
+    message.archiving = failedMessage.value?.archiving;
+    message.restoring = failedMessage.value?.restoring;
+  } else {
+    message.archiving = false;
+    message.restoring = false;
+  }
+
+  updateMessageDeleteDate(message);
+  await downloadHeadersAndBody(message);
+  failedMessage.value = message;
 }
 
 async function getEditAndRetryConfig() {
@@ -361,11 +357,15 @@ function changeRefreshInterval(milliseconds: number) {
 }
 
 onMounted(async () => {
+  const back = useRouter().currentRoute.value.query.back as string;
+  if (back) {
+    backLink.value = back;
+  }
   togglePanel(1);
 
   await getEditAndRetryConfig();
   startRefreshInterval();
-  loadFailedMessage();
+  await loadFailedMessage();
 });
 
 onUnmounted(() => {
@@ -386,6 +386,7 @@ onUnmounted(() => {
         <div v-if="!isError(failedMessage)">
           <div class="row">
             <div class="col-sm-12 no-side-padding">
+              <RouterLink :to="backLink"><i class="fa fa-chevron-left"></i> Back</RouterLink>
               <div class="active break group-title">
                 <h1 class="message-type-title">{{ failedMessage.message_type }}</h1>
               </div>
@@ -403,7 +404,9 @@ onUnmounted(() => {
                   {{ failedMessage.number_of_processing_attempts - 1 }} Retry Failures
                 </span>
                 <span v-if="failedMessage.edited" v-tippy="`Message was edited`" class="label sidebar-label label-info metadata-label">Edited</span>
-                <span v-if="failedMessage.edited" class="metadata metadata-link"><i class="fa fa-history"></i> <RouterLink :to="routeLinks.failedMessage.message.link(failedMessage.edit_of)">View previous version</RouterLink></span>
+                <span v-if="failedMessage.edited" class="metadata metadata-link"
+                  ><i class="fa fa-history"></i> <RouterLink :to="{ path: routeLinks.messages.message.link(failedMessage.edit_of), query: { back: route.path } }">View previous version</RouterLink></span
+                >
                 <span v-if="failedMessage.time_of_failure" class="metadata"><i class="fa fa-clock-o"></i> Failed: <time-since :date-utc="failedMessage.time_of_failure"></time-since></span>
                 <span class="metadata"><i class="fa pa-endpoint"></i> Endpoint: {{ failedMessage.receiving_endpoint.name }}</span>
                 <span class="metadata"><i class="fa fa-laptop"></i> Machine: {{ failedMessage.receiving_endpoint.host }}</span>
@@ -426,7 +429,7 @@ onUnmounted(() => {
                   <i class="fa fa-pencil"></i> Edit & retry
                 </button>
                 <button v-if="!isMassTransitConnected" type="button" class="btn btn-default" @click="debugInServiceInsight()" title="Browse this message in ServiceInsight, if installed">
-                  <img src="@/assets/si-icon.svg" /> View in ServiceInsight
+                  <img src="@/assets/si-icon.svg" alt="ServiceInsight logo" /> View in ServiceInsight
                 </button>
                 <button type="button" class="btn btn-default" @click="exportMessage()"><i class="fa fa-download"></i> Export message</button>
               </div>
@@ -473,8 +476,8 @@ onUnmounted(() => {
                 showDeleteConfirm = false;
                 archiveMessage();
               "
-              :heading="'Are you sure you want to delete this message?'"
-              :body="'If you delete, this message won\'t be available for retrying unless it is later restored.'"
+              heading="Are you sure you want to delete this message?"
+              body="If you delete, this message won't be available for retrying unless it is later restored."
             ></ConfirmDialog>
 
             <ConfirmDialog
@@ -484,8 +487,8 @@ onUnmounted(() => {
                 showRestoreConfirm = false;
                 unarchiveMessage();
               "
-              :heading="'Are you sure you want to restore this message?'"
-              :body="'The restored message will be moved back to the list of failed messages.'"
+              heading="Are you sure you want to restore this message?"
+              body="The restored message will be moved back to the list of failed messages."
             ></ConfirmDialog>
 
             <ConfirmDialog
@@ -495,8 +498,8 @@ onUnmounted(() => {
                 showRetryConfirm = false;
                 retryMessage();
               "
-              :heading="'Are you sure you want to retry this message?'"
-              :body="'Are you sure you want to retry this message?'"
+              heading="Are you sure you want to retry this message?"
+              body="Are you sure you want to retry this message?"
             ></ConfirmDialog>
 
             <EditRetryDialog
