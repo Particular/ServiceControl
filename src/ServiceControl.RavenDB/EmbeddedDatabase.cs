@@ -66,7 +66,6 @@ namespace ServiceControl.RavenDB
             Logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
             var serverOptions = new ServerOptions
             {
-                GracefulShutdownTimeout = TimeSpan.FromHours(1), // During Stop/Dispose we manually control this
                 CommandLineArgs =
                 [
                     $"--Logs.Mode={databaseConfiguration.LogsMode}",
@@ -189,22 +188,34 @@ namespace ServiceControl.RavenDB
 
             await shutdownTokenSource.CancelAsync();
 
-            // TODO: await EmbeddedServer.Instance.StopAsync(cancellationToken);
+            // EmbeddedServer does not have have an async Stop method, the Dispose operation blocks and waits
+            // until its GracefulShutdownTimeout is reached and then does a Process.Kill
+            //
+            // This logic gets the child process ID uses a Task.Delay with infinite.
+            //
+            // a. The Task.Delay gets cancelled first
+            // b. The EmbeddedServer.Dispose completes first
+            //
+            // If the Task.Delay gets cancelled first this means Dispose is still running and
+            // then we kill the process
+
+            serverOptions!.GracefulShutdownTimeout = TimeSpan.FromHours(1); // During Stop/Dispose we manually control this
 
             var processId = await EmbeddedServer.Instance.GetServerProcessIdAsync(cancellationToken);
 
-            var waitForCancellationTask = Task.Delay(Timeout.Infinite, cancellationToken);
-            var firstTask = await Task.WhenAny(
-                Task.Run(() => EmbeddedServer.Instance.Dispose(), cancellationToken),
-                waitForCancellationTask
-            );
+            // Dispose always need to be invoked, even when already cancelled
+            var disposeTask = Task.Run(() => EmbeddedServer.Instance.Dispose(), CancellationToken.None);
 
-            if (firstTask == waitForCancellationTask)
+            var waitForCancellationTask = Task.Delay(Timeout.Infinite, cancellationToken);
+
+            var delayIsCancelled = waitForCancellationTask == await Task.WhenAny(disposeTask, waitForCancellationTask);
+
+            if (delayIsCancelled)
             {
                 try
                 {
-                    Logger.WarnFormat("Killing RavenDB server PID {0} child process because host cancelled", processId);
-                    var ravenChildProcess = Process.GetProcessById(processId);
+                    Logger.WarnFormat("Killing RavenDB server PID {0} because host cancelled", processId);
+                    using var ravenChildProcess = Process.GetProcessById(processId);
                     ravenChildProcess.Kill(entireProcessTree: true);
                     // Kill only signals
                     Logger.WarnFormat("Waiting for RavenDB server PID {0} to exit... ", processId);
@@ -212,7 +223,7 @@ namespace ServiceControl.RavenDB
                 }
                 catch (Exception e)
                 {
-                    Logger.ErrorFormat("Failed to kill RavenDB server PID {0}\n{1}", processId, e);
+                    Logger.ErrorFormat("Failed to kill RavenDB server PID {0} shutdown\n{1}", processId, e);
                 }
             }
 
