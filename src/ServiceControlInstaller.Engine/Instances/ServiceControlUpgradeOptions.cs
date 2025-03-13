@@ -11,6 +11,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public bool SkipQueueCreation { get; set; }
         public string RemoteUrl { get; set; }
         public bool Force { get; set; }
+        public string UpgradedConnectionString { get; set; }
 
         public void ApplyChangesToInstance(ServiceControlBaseService instance)
         {
@@ -47,12 +48,17 @@ namespace ServiceControlInstaller.Engine.Instances
                 instance.DatabaseMaintenancePort = MaintenancePort;
             }
 
-            if (string.IsNullOrWhiteSpace(RemoteUrl) == false)
+            if (!string.IsNullOrWhiteSpace(RemoteUrl))
             {
                 instance.AddRemoteInstance(RemoteUrl);
             }
 
             instance.SkipQueueCreation = SkipQueueCreation;
+
+            if (!string.IsNullOrEmpty(UpgradedConnectionString))
+            {
+                instance.ConnectionString = UpgradedConnectionString;
+            }
         }
 
         void ApplyChangesTo(ServiceControlAuditInstance instance)

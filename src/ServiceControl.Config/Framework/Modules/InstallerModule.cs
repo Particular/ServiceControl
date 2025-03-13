@@ -137,6 +137,14 @@ namespace ServiceControl.Config.Framework.Modules
             {
                 progress.Report(currentStep++, totalSteps, "Restoring app.config...");
                 instance.RestoreAppConfig(backupFile);
+
+                var restoredConnectionString = instance.AppConfig.Config.ConnectionStrings.ConnectionStrings["NServiceBus/Transport"];
+
+                if (restoredConnectionString is not null &&
+                    !string.Equals(instance.ConnectionString, restoredConnectionString.ConnectionString, StringComparison.OrdinalIgnoreCase))
+                {
+                    upgradeOptions.UpgradedConnectionString = restoredConnectionString.ConnectionString;
+                }
             }
 
             UpgradeOptions(upgradeOptions, instance);
