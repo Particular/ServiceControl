@@ -218,8 +218,8 @@ onMounted(() => {
                   <div class="row msg-editor-tabs">
                     <div class="col-sm-12 no-side-padding">
                       <div role="tablist" class="tabs msg-tabs">
-                        <h5 role="tab" :class="{ active: panel === 1 }" class="nav-item" @click="togglePanel(1)"><a href="javascript:void(0)">Headers</a></h5>
-                        <h5 role="tab" :class="{ active: panel === 2 }" class="nav-item" @click="togglePanel(2)"><a href="javascript:void(0)">Message body</a></h5>
+                        <h5 role="tab" :class="{ active: panel === 1 }" class="nav-item" @click.prevent="togglePanel(1)"><a href="#">Headers</a></h5>
+                        <h5 role="tab" :class="{ active: panel === 2 }" class="nav-item" @click.prevent="togglePanel(2)"><a href="#">Message body</a></h5>
                       </div>
                     </div>
                   </div>

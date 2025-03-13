@@ -20,6 +20,9 @@ import { NServiceBusHeaders } from "@/resources/Header";
 import { useConfiguration } from "@/composables/configuration";
 import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnected";
 import { parse, stringify } from "lossless-json";
+import BodyView from "@/components/messages/BodyView.vue";
+import HeadersView from "@/components/messages/HeadersView.vue";
+import StackTraceView from "@/components/messages/StacktraceView.vue";
 
 let refreshInterval: number | undefined;
 let pollingFaster = false;
@@ -438,31 +441,15 @@ onUnmounted(() => {
           <div class="row">
             <div class="col-sm-12 no-side-padding">
               <div class="nav tabs msg-tabs">
-                <h5 :class="{ active: panel === 1 }" class="nav-item" @click="togglePanel(1)"><a href="javascript:void(0)">Stacktrace</a></h5>
-                <h5 :class="{ active: panel === 2 }" class="nav-item" @click="togglePanel(2)"><a href="javascript:void(0)">Headers</a></h5>
-                <h5 :class="{ active: panel === 3 }" class="nav-item" @click="togglePanel(3)"><a href="javascript:void(0)">Message body</a></h5>
-                <h5 v-if="!isMassTransitConnected" :class="{ active: panel === 4 }" class="nav-item" @click="togglePanel(4)"><a href="javascript:void(0)">Flow Diagram</a></h5>
+                <h5 :class="{ active: panel === 1 }" class="nav-item" @click.prevent="togglePanel(1)"><a href="#">Stacktrace</a></h5>
+                <h5 :class="{ active: panel === 2 }" class="nav-item" @click.prevent="togglePanel(2)"><a href="#">Message body</a></h5>
+                <h5 :class="{ active: panel === 3 }" class="nav-item" @click.prevent="togglePanel(3)"><a href="#">Headers</a></h5>
+                <h5 v-if="!isMassTransitConnected" :class="{ active: panel === 4 }" class="nav-item" @click.prevent="togglePanel(4)"><a href="#">Flow Diagram</a></h5>
               </div>
-              <pre v-if="panel === 1">{{ failedMessage.exception?.stack_trace }}</pre>
-              <table class="table" v-if="panel === 2 && !failedMessage.headersNotFound">
-                <tbody>
-                  <tr class="interactiveList" v-for="(header, index) in failedMessage.headers" :key="index">
-                    <td nowrap="nowrap">{{ header.key }}</td>
-                    <td>
-                      <pre>{{ header.value }}</pre>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <div v-if="panel === 2 && failedMessage.headersNotFound" class="alert alert-info">
-                Could not find message headers. This could be because the message URL is invalid or the corresponding message was processed and is no longer tracked by ServiceControl.
-              </div>
-              <pre v-if="panel === 3 && !failedMessage.messageBodyNotFound && !failedMessage.bodyUnavailable">{{ failedMessage.messageBody }}</pre>
-              <div v-if="panel === 3 && failedMessage.messageBodyNotFound" class="alert alert-info">
-                Could not find message body. This could be because the message URL is invalid or the corresponding message was processed and is no longer tracked by ServiceControl.
-              </div>
-              <div v-if="panel === 3 && failedMessage.bodyUnavailable" class="alert alert-info">Message body unavailable.</div>
-              <FlowDiagram v-if="panel === 4" :conversation-id="failedMessage.conversationId" :message-id="id"></FlowDiagram>
+              <StackTraceView v-if="panel === 1" :message="failedMessage" />
+              <BodyView v-if="panel === 2" :message="failedMessage" />
+              <HeadersView v-if="panel === 3" :message="failedMessage" />
+              <FlowDiagram v-if="panel === 4" :message="failedMessage" />
             </div>
           </div>
 

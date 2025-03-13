@@ -7,10 +7,10 @@ import routeLinks from "@/router/routeLinks";
 import Message from "@/resources/Message";
 import { NServiceBusHeaders } from "@/resources/Header";
 import { useRoute } from "vue-router";
+import { ExtendedFailedMessage } from "@/resources/FailedMessage";
 
 const props = defineProps<{
-  conversationId?: string;
-  messageId: string;
+  message: ExtendedFailedMessage;
 }>();
 
 enum MessageType {
@@ -161,9 +161,9 @@ const elements = ref<(Node | DefaultEdge)[]>([]);
 const { onPaneReady, fitView } = useVueFlow();
 
 onMounted(async () => {
-  if (!props.conversationId) return;
+  if (!props.message.conversationId) return;
 
-  const messages = await getConversation(props.conversationId);
+  const messages = await getConversation(props.message.conversationId);
   const mappedMessages = messages.map(mapMessage);
 
   const assignDescendantLevelsAndWidth = (message: MappedMessage, level = 0) => {
@@ -203,7 +203,7 @@ function typeIcon(type: MessageType) {
   <div id="tree-container">
     <VueFlow v-model="elements" :min-zoom="0.1">
       <template #node-message="nodeProps">
-        <div class="node" :class="[nodeProps.data.isError && 'error', nodeProps.data.id === props.messageId && 'current-message']">
+        <div class="node" :class="[nodeProps.data.isError && 'error', nodeProps.data.id === props.message.id && 'current-message']">
           <div class="node-text wordwrap">
             <i v-if="nodeProps.data.isError" class="fa pa-flow-failed" />
             <i class="fa" :class="typeIcon(nodeProps.data.type)" :title="nodeProps.data.type" />
