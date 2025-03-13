@@ -6,6 +6,7 @@ import VueTippy from "vue-tippy";
 import { createPinia } from "pinia";
 import SimpleTypeahead from "vue3-simple-typeahead";
 import { createVCodeBlock } from "@wdns/vue-code-block";
+import "highlight.js/styles/github-dark.css";
 
 const toastOptions: PluginOptions = {
   position: POSITION.BOTTOM_RIGHT,
@@ -25,6 +26,7 @@ export function mount({ router }: { router: Router }) {
 
   const VCodeBlock = createVCodeBlock({
     theme: "github-dark",
+    cssPath: "highlight.js/styles/github-dark.css",
     highlightjs: true,
   });
 
