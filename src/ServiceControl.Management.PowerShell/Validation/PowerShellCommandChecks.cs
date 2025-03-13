@@ -71,15 +71,23 @@
 
         protected override Task<bool> PromptForRabbitMqCheck(bool isUpgrade)
         {
-            if (acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQBrokerVersion310, StringComparison.OrdinalIgnoreCase)))
+            if (!acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQBrokerVersion310, StringComparison.OrdinalIgnoreCase)))
             {
-                return Task.FromResult(true);
+                var terminateMsg = $"ServiceControl version {Constants.CurrentVersion} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Use -Acknowledgements {AcknowledgementValues.RabbitMQBrokerVersion310} if you are sure your broker meets these requirements.";
+
+                Terminate(terminateMsg, "Install Error", ErrorCategory.InvalidArgument);
+                return Task.FromResult(false);
             }
 
-            var terminateMsg = $"ServiceControl version {Constants.CurrentVersion} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Use -Acknowledgements {AcknowledgementValues.RabbitMQBrokerVersion310} if you are sure your broker meets these requirements.";
+            if (!acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQManagementApi, StringComparison.OrdinalIgnoreCase)))
+            {
+                var terminateMsg = $"ServiceControl version {Constants.CurrentVersion} requires that the management plugin be enabled and the management API be accessible. Use -Acknowledgements {AcknowledgementValues.RabbitMQManagementApi} if you are sure your broker meets these requirements.";
 
-            Terminate(terminateMsg, "Install Error", ErrorCategory.InvalidArgument);
-            return Task.FromResult(false);
+                Terminate(terminateMsg, "Install Error", ErrorCategory.InvalidArgument);
+                return Task.FromResult(false);
+            }
+
+            return Task.FromResult(true);
         }
 
         protected override Task<bool> PromptToStopRunningInstance(BaseService instance)

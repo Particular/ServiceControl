@@ -21,7 +21,7 @@
         {
             var title = isUpgrade ? "UPGRADE WARNING" : "INSTALL WARNING";
             var beforeWhat = isUpgrade ? "upgrading" : "installing";
-            var message = $"ServiceControl version {Constants.CurrentVersion} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before {beforeWhat}.";
+            var message = $"ServiceControl version {Constants.CurrentVersion} requires:\n• RabbitMQ broker version 3.10.0 or higher\n• The stream_queue and quorum_queue feature flags must be enabled\n• The management plugin must be enabled\n\nPlease confirm your broker meets the minimum requirements before {beforeWhat}.";
             var question = "Do you want to proceed?";
             var yes = "Yes, my RabbitMQ broker meets the minimum requirements";
             var no = "No, cancel the install";
