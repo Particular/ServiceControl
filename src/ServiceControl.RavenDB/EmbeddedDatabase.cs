@@ -53,15 +53,19 @@ namespace ServiceControl.RavenDB
 
             var nugetPackagesPath = Path.Combine(databaseConfiguration.DbPath, "Packages", "NuGet");
 
-            LoggingSource.Instance.SetupLogMode(
-                (LogMode)255,
-                Path.Combine(databaseConfiguration.LogPath, "Raven.Embedded"),
-                retentionTime: TimeSpan.FromDays(14),
-                retentionSize: 1024 * 1024 * 10,
-                compress: false
-            );
+            var logMode = Enum.Parse<LogMode>(databaseConfiguration.LogsMode);
 
-            LoggingSource.Instance.EnableConsoleLogging();
+            if (logMode == LogMode.Information) // Most verbose
+            {
+                LoggingSource.Instance.EnableConsoleLogging();
+                LoggingSource.Instance.SetupLogMode(
+                    logMode,
+                    Path.Combine(databaseConfiguration.LogPath, "Raven.Embedded"),
+                    retentionTime: TimeSpan.FromDays(14),
+                    retentionSize: 1024 * 1024 * 10,
+                    compress: false
+                );
+            }
 
             Logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
             var serverOptions = new ServerOptions
