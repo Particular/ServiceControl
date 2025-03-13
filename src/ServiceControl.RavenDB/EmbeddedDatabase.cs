@@ -251,7 +251,7 @@ namespace ServiceControl.RavenDB
 
             if (serverOptions != null)
             {
-                // Set GracefulShutdownTimeout to Zero and exist ASAP, under normal operation instance would already
+                // Set GracefulShutdownTimeout to Zero and exit ASAP, under normal operation instance would already
                 // have been allowed to gracefully stop during "Stop" method.
                 serverOptions!.GracefulShutdownTimeout = TimeSpan.Zero;
                 Logger.Debug("Disposing RavenDB server");
