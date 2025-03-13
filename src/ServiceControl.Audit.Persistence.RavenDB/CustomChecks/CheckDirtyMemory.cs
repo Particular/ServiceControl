@@ -16,7 +16,7 @@ class CheckDirtyMemory(MemoryInformationRetriever memoryInformationRetriever) : 
         {
             var message = $"There is a high level of RavenDB dirty memory ({dirtyMemoryKb}kb). Check the ServiceControl " +
                           "troubleshooting guide for guidance on how to mitigate the issue. " +
-                          "Visit the https://docs.particular.net/servicecontrol/troubleshooting page for more information.";
+                          "Visit the https://docs.particular.net/servicecontrol/troubleshooting#ravendb-dirty-memory page for more information.";
             Log.Warn(message);
             return CheckResult.Failed(message);
         }
