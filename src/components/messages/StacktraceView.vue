@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ExtendedFailedMessage } from "@/resources/FailedMessage";
-import VCodeBlock from "@wdns/vue-code-block";
+import CodeEditor from "@/components/CodeEditor.vue";
 
 const props = defineProps<{
   message: ExtendedFailedMessage;
@@ -8,5 +8,5 @@ const props = defineProps<{
 </script>
 
 <template>
-  <VCodeBlock :code="props.message.exception.stack_trace" lang="csharp"></VCodeBlock>
+  <CodeEditor :model-value="props.message.exception.stack_trace" language="powershell" :read-only="true" :show-gutter="false"></CodeEditor>
 </template>

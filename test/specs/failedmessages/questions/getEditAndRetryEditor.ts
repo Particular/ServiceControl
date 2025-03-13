@@ -10,7 +10,7 @@ export async function getEditAndRetryEditor() {
     },
 
     bodyFieldIsDisabled() {
-      return within(dialog).getByRole("textbox", { name: "message body" }).hasAttribute("disabled");
+      return within(dialog).getByRole("textbox", { name: "message body" }).hasAttribute("readonly");
     },
 
     hasWarningMatchingText(legendText: RegExp) {

@@ -38,6 +38,7 @@ export interface ExtendedFailedMessage extends FailedMessage {
   headers: Header[];
   conversationId: string;
   messageBody: string;
+  contentType: string;
   isEditAndRetryEnabled: boolean;
   redirect: boolean;
   submittedForRetrial: boolean;

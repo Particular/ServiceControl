@@ -5,8 +5,6 @@ import Toast, { type PluginOptions, POSITION } from "vue-toastification";
 import VueTippy from "vue-tippy";
 import { createPinia } from "pinia";
 import SimpleTypeahead from "vue3-simple-typeahead";
-import { createVCodeBlock } from "@wdns/vue-code-block";
-import "highlight.js/styles/github-dark.css";
 
 const toastOptions: PluginOptions = {
   position: POSITION.BOTTOM_RIGHT,
@@ -24,14 +22,8 @@ export function mount({ router }: { router: Router }) {
     next();
   });
 
-  const VCodeBlock = createVCodeBlock({
-    theme: "github-dark",
-    cssPath: "highlight.js/styles/github-dark.css",
-    highlightjs: true,
-  });
-
   const app = createApp(App);
-  app.use(router).use(Toast, toastOptions).use(SimpleTypeahead).use(VCodeBlock).use(createPinia()).use(VueTippy);
+  app.use(router).use(Toast, toastOptions).use(SimpleTypeahead).use(createPinia()).use(VueTippy);
   app.mount(`#app`);
 
   app.config.errorHandler = (err, instance) => {

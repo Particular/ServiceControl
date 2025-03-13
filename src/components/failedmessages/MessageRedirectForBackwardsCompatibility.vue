@@ -11,3 +11,6 @@ onMounted(async () => {
   await router.push({ path: routeLinks.messages.message.link(id.toString()), query: { back: routeLinks.failedMessage.failedMessages.link } });
 });
 </script>
+<template>
+  <template></template>
+</template>

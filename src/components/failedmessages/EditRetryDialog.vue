@@ -5,6 +5,9 @@ import MessageHeader from "./EditMessageHeader.vue";
 import { EditAndRetryConfig } from "@/resources/Configuration";
 import type Header from "@/resources/Header";
 import { ExtendedFailedMessage } from "@/resources/FailedMessage";
+import parseContentType from "@/composables/contentTypeParser";
+import { CodeLanguage } from "@/components/codeEditorTypes";
+import CodeEditor from "@/components/CodeEditor.vue";
 
 interface HeaderWithEditing extends Header {
   isLocked: boolean;
@@ -28,6 +31,7 @@ interface LocalMessageState {
   isBodyChanged: boolean;
   isBodyEmpty: boolean;
   isContentTypeSupported: boolean;
+  language?: CodeLanguage;
   bodyContentType: string | undefined;
   bodyUnavailable: boolean;
   isEvent: boolean;
@@ -104,30 +108,6 @@ function getContentType() {
   return header?.value;
 }
 
-function isContentTypeSupported(contentType: string | undefined) {
-  if (contentType === undefined) return false;
-
-  if (contentType.startsWith("text/")) return true;
-
-  const charsetUtf8 = "; charset=utf-8";
-
-  if (contentType.endsWith(charsetUtf8)) {
-    contentType = contentType.substring(0, contentType.length - charsetUtf8.length);
-  }
-
-  if (contentType === "application/json") return true;
-
-  if (contentType.startsWith("application/")) {
-    // Some examples:
-    // application/atom+xml
-    // application/ld+json
-    // application/vnd.masstransit+json
-    if (contentType.endsWith("+json") || contentType.endsWith("+xml")) return true;
-  }
-
-  return false;
-}
-
 function getMessageIntent() {
   const intent = findHeadersByKey("NServiceBus.MessageIntent");
   return intent?.value;
@@ -167,7 +147,9 @@ function initializeMessageBodyAndHeaders() {
 
   const contentType = getContentType();
   localMessage.value.bodyContentType = contentType;
-  localMessage.value.isContentTypeSupported = isContentTypeSupported(contentType);
+  const parsedContentType = parseContentType(contentType);
+  localMessage.value.isContentTypeSupported = parsedContentType.isSupported;
+  localMessage.value.language = parsedContentType.language;
 
   const messageIntent = getMessageIntent();
   localMessage.value.isEvent = messageIntent === "Publish";
@@ -248,7 +230,9 @@ onMounted(() => {
                         </tbody>
                       </table>
                       <div role="tabpanel" v-if="panel === 2 && !localMessage.bodyUnavailable" style="height: calc(100% - 260px)">
-                        <textarea aria-label="message body" class="form-control" :disabled="!localMessage.isContentTypeSupported" v-model="localMessage.messageBody"></textarea>
+                        <div style="margin-top: 20px">
+                          <CodeEditor role="textbox" aria-label="message body" :read-only="!localMessage.isContentTypeSupported" v-model="localMessage.messageBody" :language="localMessage.language" :show-gutter="true"></CodeEditor>
+                        </div>
                         <span class="empty-error" v-if="localMessage.isBodyEmpty"><i class="fa fa-exclamation-triangle"></i> Message body cannot be empty</span>
                         <span class="reset-body" v-if="localMessage.isBodyChanged"><i class="fa fa-undo" v-tippy="`Reset changes`"></i> <a @click="resetBodyChanges()" href="javascript:void(0)">Reset changes</a></span>
                         <div class="alert alert-info" v-if="panel === 2 && localMessage.bodyUnavailable">{{ localMessage.bodyUnavailable }}</div>
@@ -368,10 +352,5 @@ onMounted(() => {
   height: calc(100% - 37px);
   overflow-y: auto;
   padding-right: 15px;
-}
-
-.modal-msg-editor :deep(textarea) {
-  height: 100%;
-  margin-top: 20px;
 }
 </style>
