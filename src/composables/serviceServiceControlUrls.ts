@@ -53,7 +53,7 @@ export function useFetchFromServiceControl(suffix: string) {
 
 export async function useTypedFetchFromServiceControl<T>(suffix: string): Promise<[Response, T]> {
   const response = await fetch(`${serviceControlUrl.value}${suffix}`);
-  if (!response.ok) throw new Error(response?.statusText ?? "No response");
+  if (!response.ok) throw new Error(response.statusText ?? "No response");
   const data = await response.json();
 
   return [response, data];

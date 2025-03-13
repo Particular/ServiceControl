@@ -404,9 +404,9 @@ onUnmounted(() => {
                   {{ failedMessage.number_of_processing_attempts - 1 }} Retry Failures
                 </span>
                 <span v-if="failedMessage.edited" v-tippy="`Message was edited`" class="label sidebar-label label-info metadata-label">Edited</span>
-                <span v-if="failedMessage.edited" class="metadata metadata-link"
-                  ><i class="fa fa-history"></i> <RouterLink :to="{ path: routeLinks.messages.message.link(failedMessage.edit_of), query: { back: route.path } }">View previous version</RouterLink></span
-                >
+                <span v-if="failedMessage.edited" class="metadata metadata-link">
+                  <i class="fa fa-history"></i> <RouterLink :to="{ path: routeLinks.messages.message.link(failedMessage.edit_of), query: { back: route.path } }">View previous version</RouterLink>
+                </span>
                 <span v-if="failedMessage.time_of_failure" class="metadata"><i class="fa fa-clock-o"></i> Failed: <time-since :date-utc="failedMessage.time_of_failure"></time-since></span>
                 <span class="metadata"><i class="fa pa-endpoint"></i> Endpoint: {{ failedMessage.receiving_endpoint.name }}</span>
                 <span class="metadata"><i class="fa fa-laptop"></i> Machine: {{ failedMessage.receiving_endpoint.host }}</span>
