@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Audit.Auditing.BodyStorage;
 
@@ -15,7 +16,7 @@
             messageBodies = [];
         }
 
-        public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
+        public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken)
         {
             var messageBody = messageBodies.FirstOrDefault(w => w.BodyId == bodyId);
 
@@ -43,7 +44,7 @@
             return Task.CompletedTask;
         }
 
-        public async Task<StreamResult> TryFetch(string bodyId)
+        public async Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken)
         {
             var messageBody = messageBodies.FirstOrDefault(w => w.BodyId == bodyId);
 

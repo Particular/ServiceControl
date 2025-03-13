@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Recoverability.Retrying
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -13,7 +14,7 @@
             this.settings = settings;
         }
 
-        public Task Handle(RetryOperationCompleted message)
+        public Task Handle(RetryOperationCompleted message, CancellationToken cancellationToken)
         {
             return store.RecordRetryOperationCompleted(
                 message.RequestId,

@@ -27,7 +27,8 @@
             AuditIngestor auditIngestor,
             IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
             IHostApplicationLifetime applicationLifetime,
-            IngestionMetrics metrics)
+            IngestionMetrics metrics
+        )
         {
             inputEndpoint = settings.AuditQueue;
             this.transportCustomization = transportCustomization;
@@ -132,7 +133,7 @@
 
                 messageReceiver = transportInfrastructure.Receivers[inputEndpoint];
 
-                await auditIngestor.VerifyCanReachForwardingAddress();
+                await auditIngestor.VerifyCanReachForwardingAddress(cancellationToken);
                 await messageReceiver.StartReceive(cancellationToken);
 
                 logger.Info(LogMessages.StartedInfrastructure);
@@ -184,7 +185,10 @@
             try
             {
                 await startStopSemaphore.WaitAsync(cancellationToken);
-                await StopAndTeardownInfrastructure(cancellationToken);
+
+                // By passing a CancellationToken in the cancelled state we stop receivers ASAP and
+                // still correctly stop/shutdown
+                await StopAndTeardownInfrastructure(new CancellationToken(canceled: true));
             }
             finally
             {
@@ -236,7 +240,7 @@
                             contexts.Add(context);
                         }
 
-                        await auditIngestor.Ingest(contexts);
+                        await auditIngestor.Ingest(contexts, stoppingToken);
 
                         batchMetrics.Complete(contexts.Count);
                     }

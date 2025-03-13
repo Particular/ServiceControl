@@ -21,7 +21,7 @@
                 }
                 );
 
-            var queryResult = await DataStore.QuerySagaHistoryById(sagaId);
+            var queryResult = await DataStore.QuerySagaHistoryById(sagaId, TestContext.CurrentContext.CancellationToken);
 
             Assert.Multiple(() =>
             {
@@ -36,7 +36,7 @@
         public async Task Handles_no_results_gracefully()
         {
             var nonExistentSagaId = Guid.NewGuid();
-            var queryResult = await DataStore.QuerySagaHistoryById(nonExistentSagaId);
+            var queryResult = await DataStore.QuerySagaHistoryById(nonExistentSagaId, TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResult.Results, Is.Null);
         }
@@ -53,7 +53,7 @@
                 new SagaSnapshot { SagaId = sagaId }
             );
 
-            var queryResult = await DataStore.QuerySagaHistoryById(sagaId);
+            var queryResult = await DataStore.QuerySagaHistoryById(sagaId, TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResult.Results.Changes, Has.Count.EqualTo(2));
         }

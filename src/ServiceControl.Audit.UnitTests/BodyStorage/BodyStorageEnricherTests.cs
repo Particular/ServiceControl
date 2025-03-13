@@ -4,6 +4,7 @@ namespace ServiceControl.UnitTests.BodyStorage
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Audit.Auditing;
     using Audit.Auditing.BodyStorage;
@@ -33,7 +34,7 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             var message = new ProcessedMessage(headers, metadata);
 
-            await enricher.StoreAuditMessageBody(body, message);
+            await enricher.StoreAuditMessageBody(body, message, TestContext.CurrentContext.CancellationToken);
 
             Assert.Multiple(() =>
             {
@@ -63,7 +64,7 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             var message = new ProcessedMessage(headers, metadata);
 
-            await enricher.StoreAuditMessageBody(body, message);
+            await enricher.StoreAuditMessageBody(body, message, TestContext.CurrentContext.CancellationToken);
 
             Assert.Multiple(() =>
             {
@@ -95,7 +96,7 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             var message = new ProcessedMessage(headers, metadata);
 
-            await enricher.StoreAuditMessageBody(body, message);
+            await enricher.StoreAuditMessageBody(body, message, TestContext.CurrentContext.CancellationToken);
 
             Assert.Multiple(() =>
             {
@@ -127,7 +128,7 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             var message = new ProcessedMessage(headers, metadata);
 
-            await enricher.StoreAuditMessageBody(body, message);
+            await enricher.StoreAuditMessageBody(body, message, TestContext.CurrentContext.CancellationToken);
 
             Assert.Multiple(() =>
             {
@@ -159,7 +160,7 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             var message = new ProcessedMessage(headers, metadata);
 
-            await enricher.StoreAuditMessageBody(body, message);
+            await enricher.StoreAuditMessageBody(body, message, TestContext.CurrentContext.CancellationToken);
 
             Assert.Multiple(() =>
             {
@@ -190,7 +191,7 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             var message = new ProcessedMessage(headers, metadata);
 
-            await enricher.StoreAuditMessageBody(body, message);
+            await enricher.StoreAuditMessageBody(body, message, TestContext.CurrentContext.CancellationToken);
 
             Assert.Multiple(() =>
             {
@@ -221,7 +222,7 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             var message = new ProcessedMessage(headers, metadata);
 
-            await enricher.StoreAuditMessageBody(body, message);
+            await enricher.StoreAuditMessageBody(body, message, TestContext.CurrentContext.CancellationToken);
 
             Assert.Multiple(() =>
             {
@@ -251,7 +252,7 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             var message = new ProcessedMessage(headers, metadata);
 
-            await enricher.StoreAuditMessageBody(body, message);
+            await enricher.StoreAuditMessageBody(body, message, TestContext.CurrentContext.CancellationToken);
 
             Assert.That(fakeStorage.StoredBodySize, Is.GreaterThan(0));
         }
@@ -260,13 +261,13 @@ namespace ServiceControl.UnitTests.BodyStorage
         {
             public int StoredBodySize { get; set; }
 
-            public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
+            public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken)
             {
                 StoredBodySize = bodySize;
                 return Task.CompletedTask;
             }
 
-            public Task<StreamResult> TryFetch(string bodyId)
+            public Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();
             }

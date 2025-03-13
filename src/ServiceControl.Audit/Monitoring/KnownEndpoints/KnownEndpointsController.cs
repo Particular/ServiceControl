@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.Monitoring
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.WebApi;
@@ -13,9 +14,9 @@ namespace ServiceControl.Audit.Monitoring
     {
         [Route("endpoints/known")]
         [HttpGet]
-        public async Task<IList<KnownEndpointsView>> GetAll([FromQuery] PagingInfo pagingInfo)
+        public async Task<IList<KnownEndpointsView>> GetAll([FromQuery] PagingInfo pagingInfo, CancellationToken cancellationToken)
         {
-            var result = await dataStore.QueryKnownEndpoints();
+            var result = await dataStore.QueryKnownEndpoints(cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }

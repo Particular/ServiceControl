@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Auditing.BodyStorage;
@@ -29,7 +30,7 @@
             failedAuditImports = [];
         }
 
-        public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input)
+        public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input, CancellationToken cancellationToken)
         {
             var sagaHistory = sagaHistories.FirstOrDefault(w => w.SagaId == input);
 
@@ -41,7 +42,7 @@
             return await Task.FromResult(new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(string.Empty, 1)));
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
         {
             var matched = messageViews
                 .Where(w => !w.IsSystemMessage || includeSystemMessages)
@@ -50,7 +51,7 @@
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string keyword, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string keyword, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
         {
             var messages = GetMessageIdsMatchingQuery(keyword);
 
@@ -60,7 +61,7 @@
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count())));
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
         {
             var messages = GetMessageIdsMatchingQuery(keyword);
 
@@ -68,25 +69,25 @@
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
         {
             var matched = messageViews.Where(w => w.ReceivingEndpoint.Name == endpointName).ToList();
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
         {
             var matched = messageViews.Where(w => w.ConversationId == conversationId).ToList();
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
         }
 
-        public async Task<MessageBodyView> GetMessageBody(string messageId)
+        public async Task<MessageBodyView> GetMessageBody(string messageId, CancellationToken cancellationToken)
         {
             var result = await GetMessageBodyFromMetadata(messageId);
 
             if (!result.Found)
             {
-                var fromAttachments = await GetMessageBodyFromAttachments(messageId);
+                var fromAttachments = await GetMessageBodyFromAttachments(messageId, cancellationToken);
                 if (fromAttachments.Found)
                 {
                     return fromAttachments;
@@ -121,9 +122,9 @@
              .Select(pm => pm.MessageMetadata["MessageId"] as string)
              .ToList();
         }
-        async Task<MessageBodyView> GetMessageBodyFromAttachments(string messageId)
+        async Task<MessageBodyView> GetMessageBodyFromAttachments(string messageId, CancellationToken cancellationToken)
         {
-            var fromBodyStorage = await bodyStorage.TryFetch(messageId);
+            var fromBodyStorage = await bodyStorage.TryFetch(messageId, cancellationToken);
 
             if (fromBodyStorage.HasResult)
             {
@@ -165,7 +166,7 @@
             return Task.FromResult(MessageBodyView.FromString(body, contentType, bodySize, string.Empty));
         }
 
-        public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints()
+        public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints(CancellationToken cancellationToken)
         {
             var knownEndpointsView = knownEndpoints
                 .Select(x => new KnownEndpointsView
@@ -184,7 +185,7 @@
             return await Task.FromResult(new QueryResult<IList<KnownEndpointsView>>(knownEndpointsView, new QueryStatsInfo(string.Empty, knownEndpointsView.Count)));
         }
 
-        public Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName)
+        public Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName, CancellationToken cancellationToken)
         {
             var results = messageViews
                 .Where(m => m.ReceivingEndpoint.Name == endpointName && !m.IsSystemMessage)

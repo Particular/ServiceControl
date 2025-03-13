@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.SagaAudit
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.WebApi;
@@ -14,9 +15,9 @@ namespace ServiceControl.Audit.SagaAudit
     {
         [Route("sagas/{id}")]
         [HttpGet]
-        public async Task<SagaHistory> Sagas([FromQuery] PagingInfo pagingInfo, Guid id)
+        public async Task<SagaHistory> Sagas([FromQuery] PagingInfo pagingInfo, Guid id, CancellationToken cancellationToken)
         {
-            var result = await dataStore.QuerySagaHistoryById(id);
+            var result = await dataStore.QuerySagaHistoryById(id, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }

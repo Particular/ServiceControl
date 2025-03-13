@@ -2,6 +2,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.WebApi;
@@ -14,36 +15,36 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     {
         [Route("messages")]
         [HttpGet]
-        public async Task<IList<MessagesView>> GetAllMessages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, [FromQuery(Name = "include_system_messages")] bool includeSystemMessages)
+        public async Task<IList<MessagesView>> GetAllMessages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, [FromQuery(Name = "include_system_messages")] bool includeSystemMessages, CancellationToken cancellationToken)
         {
-            var result = await dataStore.GetMessages(includeSystemMessages, pagingInfo, sortInfo);
+            var result = await dataStore.GetMessages(includeSystemMessages, pagingInfo, sortInfo, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
 
         [Route("endpoints/{endpoint}/messages")]
         [HttpGet]
-        public async Task<IList<MessagesView>> GetEndpointMessages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, [FromQuery(Name = "include_system_messages")] bool includeSystemMessages, string endpoint)
+        public async Task<IList<MessagesView>> GetEndpointMessages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, [FromQuery(Name = "include_system_messages")] bool includeSystemMessages, string endpoint, CancellationToken cancellationToken)
         {
-            var result = await dataStore.QueryMessagesByReceivingEndpoint(includeSystemMessages, endpoint, pagingInfo, sortInfo);
+            var result = await dataStore.QueryMessagesByReceivingEndpoint(includeSystemMessages, endpoint, pagingInfo, sortInfo, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
 
         [Route("endpoints/{endpoint}/audit-count")]
         [HttpGet]
-        public async Task<IList<AuditCount>> GetEndpointAuditCounts([FromQuery] PagingInfo pagingInfo, string endpoint)
+        public async Task<IList<AuditCount>> GetEndpointAuditCounts([FromQuery] PagingInfo pagingInfo, string endpoint, CancellationToken cancellationToken)
         {
-            var result = await dataStore.QueryAuditCounts(endpoint);
+            var result = await dataStore.QueryAuditCounts(endpoint, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
 
         [Route("messages/{id}/body")]
         [HttpGet]
-        public async Task<IActionResult> Get(string id)
+        public async Task<IActionResult> Get(string id, CancellationToken cancellationToken)
         {
-            var result = await dataStore.GetMessageBody(id);
+            var result = await dataStore.GetMessageBody(id, cancellationToken);
 
             if (result.Found == false)
             {
@@ -67,36 +68,36 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 
         [Route("messages/search")]
         [HttpGet]
-        public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string q)
+        public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string q, CancellationToken cancellationToken)
         {
-            var result = await dataStore.QueryMessages(q, pagingInfo, sortInfo);
+            var result = await dataStore.QueryMessages(q, pagingInfo, sortInfo, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
 
         [Route("messages/search/{keyword}")]
         [HttpGet]
-        public async Task<IList<MessagesView>> SearchByKeyWord([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string keyword)
+        public async Task<IList<MessagesView>> SearchByKeyWord([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string keyword, CancellationToken cancellationToken)
         {
-            var result = await dataStore.QueryMessages(keyword, pagingInfo, sortInfo);
+            var result = await dataStore.QueryMessages(keyword, pagingInfo, sortInfo, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
 
         [Route("endpoints/{endpoint}/messages/search")]
         [HttpGet]
-        public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string q)
+        public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string q, CancellationToken cancellationToken)
         {
-            var result = await dataStore.QueryMessagesByReceivingEndpointAndKeyword(endpoint, q, pagingInfo, sortInfo);
+            var result = await dataStore.QueryMessagesByReceivingEndpointAndKeyword(endpoint, q, pagingInfo, sortInfo, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
 
         [Route("endpoints/{endpoint}/messages/search/{keyword}")]
         [HttpGet]
-        public async Task<IList<MessagesView>> SearchByKeyword([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string keyword)
+        public async Task<IList<MessagesView>> SearchByKeyword([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string keyword, CancellationToken cancellationToken)
         {
-            var result = await dataStore.QueryMessagesByReceivingEndpointAndKeyword(endpoint, keyword, pagingInfo, sortInfo);
+            var result = await dataStore.QueryMessagesByReceivingEndpointAndKeyword(endpoint, keyword, pagingInfo, sortInfo, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }

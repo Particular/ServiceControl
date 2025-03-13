@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Persistence.UnitOfWork
 {
+    using System.Threading;
     using System.Threading.Tasks;
 
     // HINT: This allows an implementor to provide only part of the implementation and allow the other part
@@ -18,7 +19,11 @@
             Recoverability = primary.Recoverability ?? fallback.Recoverability;
         }
 
-        public override Task Complete() => Task.WhenAll(primary.Complete(), fallback.Complete());
+        public override Task Complete(CancellationToken cancellationToken)
+            => Task.WhenAll(
+                primary.Complete(cancellationToken),
+                fallback.Complete(cancellationToken)
+            );
 
         protected override void Dispose(bool disposing)
         {

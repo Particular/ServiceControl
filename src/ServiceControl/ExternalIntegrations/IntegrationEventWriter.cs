@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
@@ -15,7 +16,7 @@
             this.eventPublishers = eventPublishers;
         }
 
-        public async Task Handle(IDomainEvent message)
+        public async Task Handle(IDomainEvent message, CancellationToken cancellationToken)
         {
             var dispatchContexts = eventPublishers
                 .Where(p => p.Handles(message))

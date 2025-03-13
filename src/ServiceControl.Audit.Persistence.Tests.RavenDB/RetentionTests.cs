@@ -32,11 +32,11 @@
                 message
                 );
 
-            var queryResultBeforeExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"));
+            var queryResultBeforeExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), TestContext.CurrentContext.CancellationToken);
 
             await Task.Delay(4000);
 
-            var queryResultAfterExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"));
+            var queryResultAfterExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResultBeforeExpiration.Results, Has.Count.EqualTo(1));
             Assert.Multiple(() =>
@@ -62,11 +62,11 @@
                 knownEndpoint
             );
 
-            var queryResultBeforeExpiration = await DataStore.QueryKnownEndpoints();
+            var queryResultBeforeExpiration = await DataStore.QueryKnownEndpoints(TestContext.CurrentContext.CancellationToken);
 
             await Task.Delay(4000);
 
-            var queryResultAfterExpiration = await DataStore.QueryKnownEndpoints();
+            var queryResultAfterExpiration = await DataStore.QueryKnownEndpoints(TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResultBeforeExpiration.Results, Has.Count.EqualTo(1));
             Assert.Multiple(() =>
@@ -88,11 +88,11 @@
                 new SagaSnapshot { SagaId = sagaId }
             );
 
-            var queryResultBeforeExpiration = await DataStore.QuerySagaHistoryById(sagaId);
+            var queryResultBeforeExpiration = await DataStore.QuerySagaHistoryById(sagaId, TestContext.CurrentContext.CancellationToken);
 
             await Task.Delay(4000);
 
-            var queryResultAfterExpiration = await DataStore.QuerySagaHistoryById(sagaId);
+            var queryResultAfterExpiration = await DataStore.QuerySagaHistoryById(sagaId, TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResultBeforeExpiration.Results, Is.Not.Null);
             Assert.Multiple(() =>

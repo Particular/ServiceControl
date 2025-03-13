@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Persistence.RavenDB
 {
     using System.Collections.Concurrent;
+    using System.Threading;
     using System.Threading.Tasks;
-    using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
     using ServiceControl.Persistence.UnitOfWork;
 
@@ -22,12 +22,12 @@
 
         internal void AddCommand(ICommandData command) => commands.Enqueue(command);
 
-        public override async Task Complete()
+        public override async Task Complete(CancellationToken cancellationToken)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             // not really interested in the batch results since a batch is atomic
             session.Advanced.Defer(commands.ToArray());
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
         }
     }
 }

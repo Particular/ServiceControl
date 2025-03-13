@@ -11,7 +11,7 @@
         public async Task Handles_no_results_gracefully()
         {
             var nonExistentBodyId = Guid.NewGuid().ToString();
-            var result = await BodyStorage.TryFetch(nonExistentBodyId);
+            var result = await BodyStorage.TryFetch(nonExistentBodyId, TestContext.CurrentContext.CancellationToken);
 
             Assert.That(result.HasResult, Is.False);
         }

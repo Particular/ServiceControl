@@ -96,7 +96,7 @@
                         batchSizeMeter.Mark(contexts.Count);
                         using (batchDurationMeter.Measure())
                         {
-                            await ingestor.Ingest(contexts);
+                            await ingestor.Ingest(contexts, stoppingToken);
                         }
                     }
                     catch (Exception e)
@@ -214,7 +214,7 @@
 
                 if (settings.ForwardErrorMessages)
                 {
-                    await ingestor.VerifyCanReachForwardingAddress();
+                    await ingestor.VerifyCanReachForwardingAddress(cancellationToken);
                 }
 
                 await messageReceiver.StartReceive(cancellationToken);
@@ -271,6 +271,11 @@
             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             messageContext.SetTaskCompletionSource(taskCompletionSource);
 
+            // Ideally we want to propagate the cancellationToken to the batch handling
+            // but cancellation in only cancelled when endpointInstance.Stop is cancelled, not when invoked.
+            // Not much shutdown speed to gain but this will ensure endpoint.Stop will return.
+            await using var cancellationTokenRegistration = cancellationToken.Register(() => _ = taskCompletionSource.TrySetCanceled());
+
             receivedMeter.Mark();
 
             await channel.Writer.WriteAsync(messageContext, cancellationToken);
@@ -288,7 +293,10 @@
             try
             {
                 await startStopSemaphore.WaitAsync(cancellationToken);
-                await StopAndTeardownInfrastructure(cancellationToken);
+
+                // By passing a CancellationToken in the cancelled state we stop receivers ASAP and
+                // still correctly stop/shutdown
+                await StopAndTeardownInfrastructure(new CancellationToken(canceled: true));
             }
             finally
             {

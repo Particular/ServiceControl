@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
     using Infrastructure.DomainEvents;
@@ -42,7 +43,7 @@
             }
         }
 
-        public Task Handle(CustomCheckFailed domainEvent)
+        public Task Handle(CustomCheckFailed domainEvent, CancellationToken cancellationToken)
         {
             if (IsHealthCheck(domainEvent.CustomCheckId))
             {
@@ -61,13 +62,13 @@
 {domainEvent.CustomCheckId} failed on {domainEvent.FailedAt}. 
 
 {domainEvent.FailureReason}"
-                });
+                }, cancellationToken: cancellationToken);
             }
 
             return Task.CompletedTask;
         }
 
-        public Task Handle(CustomCheckSucceeded domainEvent)
+        public Task Handle(CustomCheckSucceeded domainEvent, CancellationToken cancellationToken)
         {
             if (IsHealthCheck(domainEvent.CustomCheckId))
             {
@@ -84,7 +85,7 @@
                     Body = $@"{domainEvent.Category} check for ServiceControl instance {instanceName} at {instanceAddress}.
 
 {domainEvent.CustomCheckId} succeeded on {domainEvent.SucceededAt}."
-                });
+                }, cancellationToken: cancellationToken);
             }
 
             return Task.CompletedTask;

@@ -11,7 +11,8 @@
 
         Task ProcessFailedMessages(
             Func<FailedTransportMessage, Func<CancellationToken, Task>, CancellationToken, Task> onMessage,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken
+        );
 
         Task<int> GetFailedAuditsCount();
     }

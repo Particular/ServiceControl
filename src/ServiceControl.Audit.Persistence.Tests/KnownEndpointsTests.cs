@@ -22,7 +22,7 @@
 
             await IngestKnownEndpoints(ingestedEndpoint);
 
-            var endpoints = await DataStore.QueryKnownEndpoints();
+            var endpoints = await DataStore.QueryKnownEndpoints(TestContext.CurrentContext.CancellationToken);
 
             Assert.That(endpoints.Results, Has.Count.EqualTo(1));
             var endpoint = endpoints.Results[0];
@@ -48,7 +48,7 @@
 
             await IngestKnownEndpoints(knownEndpoints);
 
-            var queryResult = await DataStore.QueryKnownEndpoints();
+            var queryResult = await DataStore.QueryKnownEndpoints(TestContext.CurrentContext.CancellationToken);
 
             Assert.Multiple(() =>
             {

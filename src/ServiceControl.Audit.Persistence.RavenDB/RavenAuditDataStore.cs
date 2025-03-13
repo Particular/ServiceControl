@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Auditing.MessagesView;
     using Extensions;
@@ -19,48 +20,48 @@
     class RavenAuditDataStore(IRavenSessionProvider sessionProvider, DatabaseConfiguration databaseConfiguration)
         : IAuditDataStore
     {
-        public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input)
+        public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input, CancellationToken cancellationToken)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var sagaHistory = await
                 session.Query<SagaHistory, SagaDetailsIndex>()
                     .Statistics(out var stats)
-                    .SingleOrDefaultAsync(x => x.SagaId == input);
+                    .SingleOrDefaultAsync(x => x.SagaId == input, token: cancellationToken);
 
             return sagaHistory == null ? QueryResult<SagaHistory>.Empty() : new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults));
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                 .Statistics(out var stats)
                 .IncludeSystemMessagesWhere(includeSystemMessages)
                 .Sort(sortInfo)
                 .Paging(pagingInfo)
                 .ToMessagesView()
-                .ToListAsync();
+                .ToListAsync(token: cancellationToken);
 
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                 .Statistics(out var stats)
                 .Search(x => x.Query, searchParam)
                 .Sort(sortInfo)
                 .Paging(pagingInfo)
                 .ToMessagesView()
-                .ToListAsync();
+                .ToListAsync(token: cancellationToken);
 
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                 .Statistics(out var stats)
                 .Search(x => x.Query, keyword)
@@ -68,14 +69,14 @@
                 .Sort(sortInfo)
                 .Paging(pagingInfo)
                 .ToMessagesView()
-                .ToListAsync();
+                .ToListAsync(token: cancellationToken);
 
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                 .Statistics(out var stats)
                 .IncludeSystemMessagesWhere(includeSystemMessages)
@@ -83,29 +84,29 @@
                 .Sort(sortInfo)
                 .Paging(pagingInfo)
                 .ToMessagesView()
-                .ToListAsync();
+                .ToListAsync(token: cancellationToken);
 
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                 .Statistics(out var stats)
                 .Where(m => m.ConversationId == conversationId)
                 .Sort(sortInfo)
                 .Paging(pagingInfo)
                 .ToMessagesView()
-                .ToListAsync();
+                .ToListAsync(token: cancellationToken);
 
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
-        public async Task<MessageBodyView> GetMessageBody(string messageId)
+        public async Task<MessageBodyView> GetMessageBody(string messageId, CancellationToken cancellationToken)
         {
-            using var session = await sessionProvider.OpenSession();
-            var result = await session.Advanced.Attachments.GetAsync(messageId, "body");
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var result = await session.Advanced.Attachments.GetAsync(messageId, "body", cancellationToken);
 
             if (result == null)
             {
@@ -120,10 +121,10 @@
             );
         }
 
-        public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints()
+        public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints(CancellationToken cancellationToken)
         {
-            using var session = await sessionProvider.OpenSession();
-            var endpoints = await session.Advanced.LoadStartingWithAsync<KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024);
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var endpoints = await session.Advanced.LoadStartingWithAsync<KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024, token: cancellationToken);
 
             var knownEndpoints = endpoints
                 .Select(x => new KnownEndpointsView
@@ -142,11 +143,11 @@
             return new QueryResult<IList<KnownEndpointsView>>(knownEndpoints, new QueryStatsInfo(string.Empty, knownEndpoints.Count));
         }
 
-        public async Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName)
+        public async Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName, CancellationToken cancellationToken)
         {
             var indexName = GetIndexName(isFullTextSearchEnabled);
 
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             // Maximum should really be 31 queries if there are 30 days of audit data, but default limit is 30
             session.Advanced.MaxNumberOfRequestsPerSession = 40;
 
@@ -155,7 +156,7 @@
             var oldestMsg = await session.Query<MessagesViewIndex.SortAndFilterOptions>(indexName)
                 .Where(m => m.ReceivingEndpointName == endpointName)
                 .OrderBy(m => m.ProcessedAt)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(token: cancellationToken);
 
             if (oldestMsg != null)
             {
@@ -173,11 +174,15 @@
                         .Statistics(out var stats)
                         .Where(m => m.ReceivingEndpointName == endpointName && !m.IsSystemMessage && m.ProcessedAt >= date && m.ProcessedAt < nextDate)
                         .Take(0)
-                        .ToArrayAsync();
+                        .ToArrayAsync(token: cancellationToken);
 
                     if (stats.TotalResults > 0)
                     {
-                        results.Add(new AuditCount { UtcDate = date, Count = stats.TotalResults });
+                        results.Add(new AuditCount
+                        {
+                            UtcDate = date,
+                            Count = stats.TotalResults
+                        });
                     }
                 }
             }

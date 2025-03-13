@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.Operations;
     using Infrastructure.DomainEvents;
@@ -49,7 +50,7 @@
             logQueueAddress = new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(this.settings.ErrorLogQueue));
         }
 
-        public async Task Ingest(List<MessageContext> contexts)
+        public async Task Ingest(List<MessageContext> contexts, CancellationToken cancellationToken)
         {
             var failedMessages = new List<MessageContext>(contexts.Count);
             var retriedMessages = new List<MessageContext>(contexts.Count);
@@ -67,7 +68,7 @@
             }
 
 
-            var storedFailed = await PersistFailedMessages(failedMessages, retriedMessages);
+            var storedFailed = await PersistFailedMessages(failedMessages, retriedMessages, cancellationToken);
 
             try
             {
@@ -89,7 +90,7 @@
                     {
                         Logger.Debug($"Forwarding {storedFailed.Count} messages");
                     }
-                    await Forward(storedFailed);
+                    await Forward(storedFailed, cancellationToken);
                     if (Logger.IsDebugEnabled)
                     {
                         Logger.Debug("Forwarded messages");
@@ -113,7 +114,7 @@
             }
         }
 
-        async Task<IReadOnlyList<MessageContext>> PersistFailedMessages(List<MessageContext> failedMessageContexts, List<MessageContext> retriedMessageContexts)
+        async Task<IReadOnlyList<MessageContext>> PersistFailedMessages(List<MessageContext> failedMessageContexts, List<MessageContext> retriedMessageContexts, CancellationToken cancellationToken)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -130,7 +131,7 @@
 
                 using (bulkInsertDurationMeter.Measure())
                 {
-                    await unitOfWork.Complete();
+                    await unitOfWork.Complete(cancellationToken);
                 }
                 return storedFailedMessageContexts;
             }
@@ -154,7 +155,7 @@
             }
         }
 
-        Task Forward(IReadOnlyCollection<MessageContext> messageContexts)
+        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, CancellationToken cancellationToken)
         {
             var transportOperations = new TransportOperation[messageContexts.Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
             var index = 0;
@@ -177,11 +178,11 @@
             return anyContext != null
                 ? messageDispatcher.Value.Dispatch(
                     new TransportOperations(transportOperations),
-                    anyContext.TransportTransaction)
+                    anyContext.TransportTransaction, cancellationToken)
                 : Task.CompletedTask;
         }
 
-        public async Task VerifyCanReachForwardingAddress()
+        public async Task VerifyCanReachForwardingAddress(CancellationToken cancellationToken)
         {
             try
             {
@@ -193,7 +194,7 @@
                     )
                 );
 
-                await messageDispatcher.Value.Dispatch(transportOperations, new TransportTransaction());
+                await messageDispatcher.Value.Dispatch(transportOperations, new TransportTransaction(), cancellationToken);
             }
             catch (Exception e)
             {
