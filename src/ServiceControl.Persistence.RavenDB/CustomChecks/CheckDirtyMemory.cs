@@ -10,11 +10,11 @@ class CheckDirtyMemory(MemoryInformationRetriever memoryInformationRetriever) : 
 {
     public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
     {
-        var (isHighDirty, dirtyMemoryKb) = await memoryInformationRetriever.GetMemoryInformation(cancellationToken);
+        var (isHighDirty, dirtyMemory) = await memoryInformationRetriever.GetMemoryInformation(cancellationToken);
 
         if (isHighDirty)
         {
-            var message = $"There is a high level of RavenDB dirty memory ({dirtyMemoryKb}kb). See https://docs.particular.net/servicecontrol/troubleshooting#ravendb-dirty-memory for guidance on how to mitigate the issue.";
+            var message = $"There is a high level of RavenDB dirty memory ({dirtyMemory}). See https://docs.particular.net/servicecontrol/troubleshooting#ravendb-dirty-memory for guidance on how to mitigate the issue.";
             Log.Warn(message);
             return CheckResult.Failed(message);
         }
