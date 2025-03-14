@@ -198,13 +198,13 @@ namespace ServiceControl.RavenDB
             // until its GracefulShutdownTimeout is reached and then does a Process.Kill. Due to this behavior this can
             // be shorter or longer than the allowed stop duration.
             //
-            // With the Task.WhenAny 2 things can happen:
+            // When Task.WhenAny is called, 2 things can happen:
             //
             // a. The Task.Delay gets cancelled first
             // b. The EmbeddedServer.Dispose completes first
             //
             // If the Task.Delay gets cancelled first this means Dispose is still running and
-            // then we try and kill the process
+            // then we try and kill the process, if not disposed completed and we're done.
 
             serverOptions!.GracefulShutdownTimeout = TimeSpan.FromHours(1); // During Stop/Dispose we manually control this
 
