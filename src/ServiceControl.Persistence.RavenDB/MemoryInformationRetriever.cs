@@ -8,7 +8,10 @@ using System.Threading.Tasks;
 
 class MemoryInformationRetriever(RavenPersisterSettings persisterSettings)
 {
-    // TODO what does a connection string look like? Is it only a URI or could it contain other stuff?
+    // What does a connection string look like? Is it only a URI or could it contain other stuff?
+    // The primary instance has only the concept of a connection string (vs the Audit instance having
+    // both a ServiceUrl and a ConnectionString). If the connection string contain always only the
+    // server URL, this code is safe, otherwise it need to be adjusted to extract the server URL. 
     readonly HttpClient client = new() { BaseAddress = new Uri(persisterSettings.ConnectionString) };
 
     record ResponseDto
