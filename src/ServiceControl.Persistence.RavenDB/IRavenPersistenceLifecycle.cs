@@ -8,6 +8,6 @@ namespace ServiceControl.Persistence.RavenDB
     interface IRavenPersistenceLifecycle
     {
         Task Initialize(CancellationToken cancellationToken = default);
-        Task Stop(CancellationToken cancellationToken);
+        Task Stop(CancellationToken cancellationToken = default);
     }
 }
