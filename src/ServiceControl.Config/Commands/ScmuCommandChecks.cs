@@ -2,6 +2,7 @@
 {
     using System;
     using System.Diagnostics;
+    using System.Text;
     using System.Threading.Tasks;
     using ServiceControl.Config.Framework;
     using ServiceControlInstaller.Engine;
@@ -21,12 +22,19 @@
         {
             var title = isUpgrade ? "UPGRADE WARNING" : "INSTALL WARNING";
             var beforeWhat = isUpgrade ? "upgrading" : "installing";
-            var message = $"ServiceControl version {Constants.CurrentVersion} requires:\n• RabbitMQ broker version 3.10.0 or higher\n• The stream_queue and quorum_queue feature flags must be enabled\n• The management plugin must be enabled\n\nPlease confirm your broker meets the minimum requirements before {beforeWhat}.";
             var question = "Do you want to proceed?";
             var yes = "Yes, my RabbitMQ broker meets the minimum requirements";
             var no = "No, cancel the install";
 
-            var continueInstall = await windowManager.ShowYesNoDialog(title, message, question, yes, no);
+            var message = new StringBuilder();
+            message.AppendLine($"ServiceControl version {Constants.CurrentVersion} requires:");
+            message.AppendLine("• RabbitMQ broker version 3.10.0 or higher");
+            message.AppendLine("• The stream_queue and quorum_queue feature flags must be enabled");
+            message.AppendLine($"• The management plugin API must be enabled and accessible. This might require custom settings to be added to the connection string before {beforeWhat}. See the ServiceControl documentation for details.");
+            message.AppendLine();
+            message.AppendLine($"Please confirm your broker meets the minimum requirements before {beforeWhat}.");
+
+            var continueInstall = await windowManager.ShowYesNoDialog(title, message.ToString(), question, yes, no);
             return continueInstall;
         }
 

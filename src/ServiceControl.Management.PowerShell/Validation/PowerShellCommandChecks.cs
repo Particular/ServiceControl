@@ -81,7 +81,7 @@
 
             if (!acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQManagementApi, StringComparison.OrdinalIgnoreCase)))
             {
-                var terminateMsg = $"ServiceControl version {Constants.CurrentVersion} requires that the management plugin be enabled and the management API be accessible. Use -Acknowledgements {AcknowledgementValues.RabbitMQManagementApi} if you are sure your broker meets these requirements.";
+                var terminateMsg = $"ServiceControl version {Constants.CurrentVersion} requires that the management plugin API must be enabled and accessible. This might require custom settings to be added to the connection string. See the ServiceControl documentation for details. Use -Acknowledgements {AcknowledgementValues.RabbitMQManagementApi} if you are sure your broker meets these requirements.";
 
                 Terminate(terminateMsg, "Install Error", ErrorCategory.InvalidArgument);
                 return Task.FromResult(false);
