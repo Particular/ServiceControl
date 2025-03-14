@@ -192,37 +192,45 @@ namespace ServiceControl.RavenDB
 
             await shutdownTokenSource.CancelAsync();
 
-            // EmbeddedServer does not have have an async Stop method, the Dispose operation blocks and waits
-            // until its GracefulShutdownTimeout is reached and then does a Process.Kill
+            // This is a workaround until the EmbeddedServer properly supports cancellation!
             //
-            // This logic gets the child process ID uses a Task.Delay with infinite.
+            // EmbeddedServer does not have an async Stop method, the Dispose operation blocks and waits
+            // until its GracefulShutdownTimeout is reached and then does a Process.Kill. Due to this behavior this can
+            // be shorter or longer than the allowed stop duration.
+            //
+            // With the Task.WhenAny 2 things can happen:
             //
             // a. The Task.Delay gets cancelled first
             // b. The EmbeddedServer.Dispose completes first
             //
             // If the Task.Delay gets cancelled first this means Dispose is still running and
-            // then we kill the process
+            // then we try and kill the process
 
             serverOptions!.GracefulShutdownTimeout = TimeSpan.FromHours(1); // During Stop/Dispose we manually control this
 
-            var processId = await EmbeddedServer.Instance.GetServerProcessIdAsync(cancellationToken);
 
             // Dispose always need to be invoked, even when already cancelled
             var disposeTask = Task.Run(() => EmbeddedServer.Instance.Dispose(), CancellationToken.None);
 
+            // Runs "infinite" but will eventually get cancelled
             var waitForCancellationTask = Task.Delay(Timeout.Infinite, cancellationToken);
 
             var delayIsCancelled = waitForCancellationTask == await Task.WhenAny(disposeTask, waitForCancellationTask);
 
             if (delayIsCancelled)
             {
+                int processId = 0;
                 try
                 {
+                    // We always want to try and kill the process, even when already cancelled
+                    processId = await EmbeddedServer.Instance.GetServerProcessIdAsync(CancellationToken.None);
                     Logger.WarnFormat("Killing RavenDB server PID {0} because host cancelled", processId);
                     using var ravenChildProcess = Process.GetProcessById(processId);
                     ravenChildProcess.Kill(entireProcessTree: true);
                     // Kill only signals
                     Logger.WarnFormat("Waiting for RavenDB server PID {0} to exit... ", processId);
+                    // When WaitForExitAsync returns, the process could still exist but in a frozen state to flush
+                    // memory mapped pages to storage.
                     await ravenChildProcess.WaitForExitAsync(CancellationToken.None);
                 }
                 catch (Exception e)
