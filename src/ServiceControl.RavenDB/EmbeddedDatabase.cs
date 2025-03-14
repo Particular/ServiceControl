@@ -15,6 +15,7 @@ namespace ServiceControl.RavenDB
     using Raven.Client.Documents.Conventions;
     using Raven.Client.ServerWide.Operations;
     using Raven.Embedded;
+    using Sparrow.Logging;
 
     public sealed class EmbeddedDatabase : IDisposable
     {
@@ -52,6 +53,20 @@ namespace ServiceControl.RavenDB
 
             var nugetPackagesPath = Path.Combine(databaseConfiguration.DbPath, "Packages", "NuGet");
 
+            var logMode = Enum.Parse<LogMode>(databaseConfiguration.LogsMode);
+
+            if (logMode == LogMode.Information) // Most verbose
+            {
+                LoggingSource.Instance.EnableConsoleLogging();
+                LoggingSource.Instance.SetupLogMode(
+                    logMode,
+                    Path.Combine(databaseConfiguration.LogPath, "Raven.Embedded"),
+                    retentionTime: TimeSpan.FromDays(14),
+                    retentionSize: 1024 * 1024 * 10,
+                    compress: false
+                );
+            }
+
             Logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
             var serverOptions = new ServerOptions
             {
@@ -85,6 +100,7 @@ namespace ServiceControl.RavenDB
 
         void Start(ServerOptions serverOptions)
         {
+            this.serverOptions = serverOptions;
             EmbeddedServer.Instance.ServerProcessExited += OnServerProcessExited;
             EmbeddedServer.Instance.StartServer(serverOptions);
 
@@ -162,8 +178,69 @@ namespace ServiceControl.RavenDB
 
         public async Task DeleteDatabase(string dbName)
         {
-            using var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(new DatabaseOptions(dbName) { SkipCreatingDatabase = true });
+            using var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(new DatabaseOptions(dbName)
+            {
+                SkipCreatingDatabase = true
+            });
             await store.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(dbName, true));
+        }
+
+        public async Task Stop(CancellationToken cancellationToken)
+        {
+            Logger.Debug("Stopping RavenDB server");
+            EmbeddedServer.Instance.ServerProcessExited -= OnServerProcessExited;
+
+            await shutdownTokenSource.CancelAsync();
+
+            // This is a workaround until the EmbeddedServer properly supports cancellation!
+            //
+            // EmbeddedServer does not have an async Stop method, the Dispose operation blocks and waits
+            // until its GracefulShutdownTimeout is reached and then does a Process.Kill. Due to this behavior this can
+            // be shorter or longer than the allowed stop duration.
+            //
+            // When Task.WhenAny is called, 2 things can happen:
+            //
+            // a. The Task.Delay gets cancelled first
+            // b. The EmbeddedServer.Dispose completes first
+            //
+            // If the Task.Delay gets cancelled first this means Dispose is still running and
+            // then we try and kill the process, if not disposed completed and we're done.
+
+            serverOptions!.GracefulShutdownTimeout = TimeSpan.FromHours(1); // During Stop/Dispose we manually control this
+
+
+            // Dispose always need to be invoked, even when already cancelled
+            var disposeTask = Task.Run(() => EmbeddedServer.Instance.Dispose(), CancellationToken.None);
+
+            // Runs "infinite" but will eventually get cancelled
+            var waitForCancellationTask = Task.Delay(Timeout.Infinite, cancellationToken);
+
+            var delayIsCancelled = waitForCancellationTask == await Task.WhenAny(disposeTask, waitForCancellationTask);
+
+            if (delayIsCancelled)
+            {
+                int processId = 0;
+                try
+                {
+                    // We always want to try and kill the process, even when already cancelled
+                    processId = await EmbeddedServer.Instance.GetServerProcessIdAsync(CancellationToken.None);
+                    Logger.WarnFormat("Killing RavenDB server PID {0} because host cancelled", processId);
+                    using var ravenChildProcess = Process.GetProcessById(processId);
+                    ravenChildProcess.Kill(entireProcessTree: true);
+                    // Kill only signals
+                    Logger.WarnFormat("Waiting for RavenDB server PID {0} to exit... ", processId);
+                    // When WaitForExitAsync returns, the process could still exist but in a frozen state to flush
+                    // memory mapped pages to storage.
+                    await ravenChildProcess.WaitForExitAsync(CancellationToken.None);
+                }
+                catch (Exception e)
+                {
+                    Logger.ErrorFormat("Failed to kill RavenDB server PID {0} shutdown\n{1}", processId, e);
+                }
+            }
+
+            serverOptions = null!;
+            Logger.Debug("Stopped RavenDB server");
         }
 
         public void Dispose()
@@ -173,12 +250,23 @@ namespace ServiceControl.RavenDB
                 return;
             }
 
-            EmbeddedServer.Instance.ServerProcessExited -= OnServerProcessExited;
+            if (serverOptions != null)
+            {
+                EmbeddedServer.Instance.ServerProcessExited -= OnServerProcessExited;
+            }
 
             shutdownTokenSource.Cancel();
-            Logger.Debug("Disposing RavenDB server");
-            EmbeddedServer.Instance.Dispose();
-            Logger.Debug("Dispose RavenDB server");
+
+            if (serverOptions != null)
+            {
+                // Set GracefulShutdownTimeout to Zero and exit ASAP, under normal operation instance would already
+                // have been allowed to gracefully stop during "Stop" method.
+                serverOptions!.GracefulShutdownTimeout = TimeSpan.Zero;
+                Logger.Debug("Disposing RavenDB server");
+                EmbeddedServer.Instance.Dispose();
+                Logger.Debug("Disposed RavenDB server");
+            }
+
             shutdownTokenSource.Dispose();
             applicationStoppingRegistration.Dispose();
 
@@ -213,6 +301,7 @@ RavenDB Logging Level:              {configuration.LogsMode}
                 {
                     return -1;
                 }
+
                 return info.Length;
             }
             catch
@@ -262,6 +351,7 @@ RavenDB Logging Level:              {configuration.LogsMode}
         readonly EmbeddedDatabaseConfiguration configuration;
         readonly CancellationToken shutdownCancellationToken;
         readonly CancellationTokenRegistration applicationStoppingRegistration;
+        ServerOptions? serverOptions;
 
         static TimeSpan delayBetweenRestarts = TimeSpan.FromSeconds(60);
         static readonly ILog Logger = LogManager.GetLogger<EmbeddedDatabase>();

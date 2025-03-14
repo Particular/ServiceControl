@@ -59,6 +59,8 @@ namespace ServiceControl.Persistence.RavenDB
             }
         }
 
+        public Task Stop(CancellationToken cancellationToken) => Task.CompletedTask;
+
         public void Dispose() => documentStore?.Dispose();
 
         IDocumentStore? documentStore;
