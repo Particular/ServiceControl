@@ -12,6 +12,8 @@ class CheckDirtyMemory(MemoryInformationRetriever memoryInformationRetriever) : 
     {
         var (isHighDirty, dirtyMemory) = await memoryInformationRetriever.GetMemoryInformation(cancellationToken);
 
+        Log.Debug($"RavenDB dirty memory value: {dirtyMemory}.");
+
         if (isHighDirty)
         {
             var message = $"There is a high level of RavenDB dirty memory ({dirtyMemory}). See https://docs.particular.net/servicecontrol/troubleshooting#ravendb-dirty-memory for guidance on how to mitigate the issue.";
