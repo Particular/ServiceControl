@@ -49,7 +49,9 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddCustomCheck<CheckRavenDBIndexLag>();
         services.AddCustomCheck<CheckFreeDiskSpace>();
         services.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
+        services.AddCustomCheck<CheckDirtyMemory>();
 
+        services.AddSingleton<MemoryInformationRetriever>();
         services.AddSingleton<OperationsManager>();
 
         services.AddSingleton<IArchiveMessages, MessageArchiver>();

@@ -1,3 +1,4 @@
 ServiceControl.Audit Health: Audit Database Index Lag
 ServiceControl.Audit Health: Audit Message Ingestion Process
+ServiceControl.Audit Health: RavenDB dirty memory
 Storage space: ServiceControl.Audit database

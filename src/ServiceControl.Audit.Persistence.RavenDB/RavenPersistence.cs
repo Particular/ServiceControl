@@ -21,6 +21,7 @@
         static void ConfigureLifecycle(IServiceCollection services, DatabaseConfiguration databaseConfiguration)
         {
             services.AddSingleton(databaseConfiguration);
+            services.AddSingleton<MemoryInformationRetriever>();
 
             services.AddSingleton<IRavenSessionProvider, RavenSessionProvider>();
             services.AddHostedService<RavenPersistenceLifecycleHostedService>();
