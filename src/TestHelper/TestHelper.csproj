@@ -14,5 +14,5 @@
     <ProjectCapability Remove="TestContainer" />
   </ItemGroup>
   <!-- End Workaround -->
-  
+
 </Project>

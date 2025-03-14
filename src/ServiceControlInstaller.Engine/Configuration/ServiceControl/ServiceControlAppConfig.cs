@@ -1,7 +1,11 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
+    using System;
+    using System.Configuration;
+    using System.Data.Common;
     using System.IO;
     using Instances;
+    using NuGet.Versioning;
 
     public class ServiceControlAppConfig : AppConfig
     {
@@ -12,9 +16,12 @@
 
         protected override void UpdateSettings()
         {
+            UpdateConnectionString();
             Config.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", details.ConnectionString);
+
             var settings = Config.AppSettings.Settings;
             var version = details.Version;
+
             settings.Set(ServiceControlSettings.InstanceName, details.InstanceName, version);
             settings.Set(ServiceControlSettings.VirtualDirectory, details.VirtualDirectory);
             settings.Set(ServiceControlSettings.Port, details.Port.ToString());
@@ -43,6 +50,9 @@
             settings.RemoveIfRetired(ServiceControlSettings.AuditLogQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.ForwardAuditMessages, version);
             settings.RemoveIfRetired(ServiceControlSettings.InternalQueueName, version);
+            settings.RemoveIfRetired(ServiceControlSettings.LicensingComponentRabbitMqManagementApiUrl, version);
+            settings.RemoveIfRetired(ServiceControlSettings.LicensingComponentRabbitMqManagementApiUsername, version);
+            settings.RemoveIfRetired(ServiceControlSettings.LicensingComponentRabbitMqManagementApiPassword, version);
 
             RemoveRavenDB35Settings(settings, version);
         }
@@ -68,6 +78,44 @@
             settings.Set(ServiceControlSettings.TransportType, transportTypeName, version);
         }
 
-        IServiceControlInstance details;
+        void UpdateConnectionString()
+        {
+            if (details.TransportPackage.Name.Contains("rabbitmq", StringComparison.OrdinalIgnoreCase))
+            {
+                MigrateLicensingComponentRabbitMqManagementApiSettings();
+            }
+        }
+
+        void MigrateLicensingComponentRabbitMqManagementApiSettings()
+        {
+            if (details.ConnectionString.StartsWith("amqp", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            var shouldMigrate = VersionComparer.Version.Compare(details.Version, new SemanticVersion(6, 5, 0)) >= 0;
+
+            if (shouldMigrate)
+            {
+                var connectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = details.ConnectionString };
+                var settings = Config.AppSettings.Settings;
+
+                MigrateSetting(connectionStringBuilder, settings[ServiceControlSettings.LicensingComponentRabbitMqManagementApiUrl.Name], "ManagementApiUrl");
+                MigrateSetting(connectionStringBuilder, settings[ServiceControlSettings.LicensingComponentRabbitMqManagementApiUsername.Name], "ManagementApiUserName");
+                MigrateSetting(connectionStringBuilder, settings[ServiceControlSettings.LicensingComponentRabbitMqManagementApiPassword.Name], "ManagementApiPassword");
+
+                details.ConnectionString = connectionStringBuilder.ConnectionString;
+            }
+
+            static void MigrateSetting(DbConnectionStringBuilder connectionStringBuilder, KeyValueConfigurationElement setting, string connectionStringSettingName)
+            {
+                if (setting is not null && !connectionStringBuilder.ContainsKey(connectionStringSettingName))
+                {
+                    connectionStringBuilder.Add(connectionStringSettingName, setting.Value);
+                }
+            }
+        }
+
+        readonly IServiceControlInstance details;
     }
 }

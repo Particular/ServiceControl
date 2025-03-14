@@ -4,6 +4,7 @@
     using System.Linq;
     using System.ServiceProcess;
     using System.Threading.Tasks;
+    using NuGet.Versioning;
     using ServiceControl.LicenseManagement;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
@@ -46,7 +47,7 @@
                 .Select(i => i.TransportPackage)
                 .First(t => t is not null);
 
-            var continueInstall = await RabbitMqCheckIsOK(transport, false).ConfigureAwait(false);
+            var continueInstall = await RabbitMqCheckIsOK(transport, Constants.CurrentVersion, false).ConfigureAwait(false);
 
             return continueInstall;
         }
@@ -81,12 +82,9 @@
             return true;
         }
 
-        async Task<bool> RabbitMqCheckIsOK(TransportInfo transport, bool isUpgrade)
+        async Task<bool> RabbitMqCheckIsOK(TransportInfo transport, SemanticVersion instanceVersion, bool isUpgrade)
         {
-            if (transport is null)
-            {
-                throw new ArgumentNullException(nameof(transport));
-            }
+            ArgumentNullException.ThrowIfNull(transport);
 
             if (transport.ZipName != "RabbitMQ")
             {
@@ -94,9 +92,9 @@
                 return true;
             }
 
-            // Only way we DON'T need to warn is if we're updating an instance that's already on a "new" (AvailableInSCMU) Rabbit transport
-            var needToWarn = !(isUpgrade && transport.AvailableInSCMU);
-            if (!needToWarn)
+            var newerThan650 = VersionComparer.Version.Compare(instanceVersion, new SemanticVersion(6, 5, 0)) > 0;
+
+            if (isUpgrade && newerThan650)
             {
                 return true;
             }
@@ -166,7 +164,7 @@
                 }
             }
 
-            if (!await RabbitMqCheckIsOK(instance.TransportPackage, isUpgrade: true).ConfigureAwait(false))
+            if (!await RabbitMqCheckIsOK(instance.TransportPackage, instance.Version, isUpgrade: true).ConfigureAwait(false))
             {
                 return false;
             }

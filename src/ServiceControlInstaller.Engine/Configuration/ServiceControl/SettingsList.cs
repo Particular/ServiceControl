@@ -95,5 +95,23 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             Name = "ServiceControl/ShutdownTimeout",
             SupportedFrom = new SemanticVersion(6, 4, 1)
         };
+
+        public static readonly SettingInfo LicensingComponentRabbitMqManagementApiUrl = new()
+        {
+            Name = "LicensingComponent/RabbitMQ/ApiUrl",
+            RemovedFrom = new SemanticVersion(6, 5, 0)
+        };
+
+        public static readonly SettingInfo LicensingComponentRabbitMqManagementApiUsername = new()
+        {
+            Name = "LicensingComponent/RabbitMQ/UserName",
+            RemovedFrom = new SemanticVersion(6, 5, 0)
+        };
+
+        public static readonly SettingInfo LicensingComponentRabbitMqManagementApiPassword = new()
+        {
+            Name = "LicensingComponent/RabbitMQ/Password",
+            RemovedFrom = new SemanticVersion(6, 5, 0)
+        };
     }
 }

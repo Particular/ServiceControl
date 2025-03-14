@@ -16,7 +16,7 @@ namespace ServiceControlInstaller.Engine
     public interface ITransportConfig
     {
         TransportInfo TransportPackage { get; }
-        string ConnectionString { get; }
+        string ConnectionString { get; set; }
     }
 
     public interface IPersistenceConfig

@@ -2,18 +2,23 @@
 {
     using System;
     using System.Collections.Concurrent;
-    using System.Data.Common;
     using System.Threading;
     using System.Threading.Tasks;
-    using global::RabbitMQ.Client;
     using NServiceBus.Logging;
+    using NServiceBus.Transport.RabbitMQ.ManagementApi;
 
     class QueueLengthProvider : AbstractQueueLengthProvider
     {
-        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store) : base(settings, store)
+        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store, ITransportCustomization transportCustomization) : base(settings, store)
         {
-            queryExecutor = new QueryExecutor(ConnectionString);
-            queryExecutor.Initialize();
+            if (transportCustomization is IManagementClientProvider provider)
+            {
+                managementClient = provider.GetManagementClient();
+            }
+            else
+            {
+                throw new ArgumentException($"Transport customization does not implement {nameof(IManagementClientProvider)}. Type: {transportCustomization.GetType().Name}", nameof(transportCustomization));
+            }
         }
 
         public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack) =>
@@ -75,89 +80,29 @@
         {
             foreach (var endpointQueuePair in endpointQueues)
             {
-                await queryExecutor.Execute(m =>
-                {
-                    var queueName = endpointQueuePair.Value;
+                var queueName = endpointQueuePair.Value;
 
-                    try
-                    {
-                        var size = (int)m.MessageCount(queueName);
-
-                        sizes.AddOrUpdate(queueName, _ => size, (_, __) => size);
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Warn($"Error querying queue length for {queueName}", e);
-                    }
-                }, cancellationToken);
-            }
-        }
-
-        readonly QueryExecutor queryExecutor;
-        static readonly TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
-
-        readonly ConcurrentDictionary<string, string> endpointQueues = new ConcurrentDictionary<string, string>();
-        readonly ConcurrentDictionary<string, int> sizes = new ConcurrentDictionary<string, int>();
-
-        static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
-
-        class QueryExecutor(string connectionString) : IDisposable
-        {
-
-            public void Initialize()
-            {
-                var connectionConfiguration =
-                    ConnectionConfiguration.Create(connectionString, "ServiceControl.Monitoring");
-
-                var dbConnectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
-
-                connectionFactory = new ConnectionFactory("ServiceControl.Monitoring",
-                    connectionConfiguration,
-                    null, //providing certificates is not supported yet
-                    dbConnectionStringBuilder.GetBooleanValue("DisableRemoteCertificateValidation"),
-                    dbConnectionStringBuilder.GetBooleanValue("UseExternalAuthMechanism"),
-                    null, // value would come from config API in actual transport
-                    null); // value would come from config API in actual transport
-            }
-
-            public async Task Execute(Action<IModel> action, CancellationToken cancellationToken = default)
-            {
                 try
                 {
-                    connection ??= connectionFactory.CreateConnection("queue length monitor");
+                    var queue = await managementClient.Value.GetQueue(queueName, cancellationToken);
 
-                    //Connection implements reconnection logic
-                    while (!connection.IsOpen)
-                    {
-                        await Task.Delay(ReconnectionDelay, cancellationToken);
-                    }
-
-                    if (model == null || model.IsClosed)
-                    {
-                        model?.Dispose();
-
-                        model = connection.CreateModel();
-                    }
-
-                    action(model);
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    // no-op
+                    var size = queue.MessageCount;
+                    sizes.AddOrUpdate(queueName, _ => size, (_, _) => size);
                 }
                 catch (Exception e)
                 {
-                    Logger.Warn("Error querying queue length.", e);
+                    Logger.Warn($"Error querying queue length for {queueName}", e);
                 }
             }
-
-            public void Dispose() => connection?.Dispose();
-
-            IConnection connection;
-            IModel model;
-            ConnectionFactory connectionFactory;
-
-            static readonly TimeSpan ReconnectionDelay = TimeSpan.FromSeconds(5);
         }
+
+        static readonly TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
+
+        readonly ConcurrentDictionary<string, string> endpointQueues = new();
+        readonly ConcurrentDictionary<string, long> sizes = new();
+
+        static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
+
+        readonly Lazy<ManagementClient> managementClient;
     }
 }
