@@ -26,16 +26,11 @@ class MemoryInformationRetriever(DatabaseConfiguration databaseConfiguration)
         public string DirtyMemory { get; set; }
     }
 
-    public async Task<(bool IsHighDirty, int DirtyMemoryKb)> GetMemoryInformation(CancellationToken cancellationToken = default)
+    public async Task<(bool IsHighDirty, string DirtyMemory)> GetMemoryInformation(CancellationToken cancellationToken = default)
     {
         var httpResponse = await client.GetAsync("/admin/debug/memory/stats?includeThreads=false&includeMappings=false", cancellationToken);
         var responseDto = JsonSerializer.Deserialize<ResponseDto>(await httpResponse.Content.ReadAsStringAsync(cancellationToken));
 
-        var values = responseDto.MemoryInformation.DirtyMemory.Split(' ');
-        if (!string.Equals(values[1], "KBytes", StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException($"Unexpected response. Was expecting memory details in KBytes, instead received: {responseDto.MemoryInformation.DirtyMemory}");
-        }
-        return (responseDto.MemoryInformation.IsHighDirty, int.Parse(values[0]));
+        return (responseDto.MemoryInformation.IsHighDirty, responseDto.MemoryInformation.DirtyMemory);
     }
 }
