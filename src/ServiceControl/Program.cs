@@ -38,6 +38,11 @@ try
 
     return 0;
 }
+catch (Exception ex)
+{
+    NLog.LogManager.GetCurrentClassLogger().Fatal(ex, "Unrecoverable error");
+    throw;
+}
 finally
 {
     // The following log statement is meant to leave a trail in the logs to determine if the process was killed
