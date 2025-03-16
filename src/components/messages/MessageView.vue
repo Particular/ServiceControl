@@ -428,7 +428,7 @@ onUnmounted(() => {
                 <button type="button" class="btn btn-default" v-if="!failedMessage.archived" :disabled="failedMessage.retried || failedMessage.resolved" @click="showDeleteConfirm = true"><i class="fa fa-trash"></i> Delete message</button>
                 <button type="button" class="btn btn-default" v-if="failedMessage.archived" @click="showRestoreConfirm = true"><i class="fa fa-undo"></i> Restore</button>
                 <button type="button" class="btn btn-default" :disabled="failedMessage.retried || failedMessage.archived || failedMessage.resolved" @click="showRetryConfirm = true"><i class="fa fa-refresh"></i> Retry message</button>
-                <button type="button" class="btn btn-default" v-if="failedMessage.isEditAndRetryEnabled" :disabled="failedMessage.retried || failedMessage.archived || failedMessage.resolved" @click="showEditAndRetryModal()">
+                <button type="button" class="btn btn-default" aria-label="Edit & retry" v-if="failedMessage.isEditAndRetryEnabled" :disabled="failedMessage.retried || failedMessage.archived || failedMessage.resolved" @click="showEditAndRetryModal()">
                   <i class="fa fa-pencil"></i> Edit & retry
                 </button>
                 <button v-if="!isMassTransitConnected" type="button" class="btn btn-default" @click="debugInServiceInsight()" title="Browse this message in ServiceInsight, if installed">
