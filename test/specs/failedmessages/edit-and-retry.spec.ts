@@ -77,7 +77,7 @@ describe("FEATURE: Editing failed messages", () => {
         await messageEditor.switchToMessageBodyTab();
 
         //Then The message body should be editable
-        expect(messageEditor.bodyFieldIsDisabled()).toBeFalsy();
+        expect(messageEditor.bodyFieldIsReadOnly()).toBeFalsy();
       });
     });
 
@@ -103,7 +103,7 @@ describe("FEATURE: Editing failed messages", () => {
       await messageEditor.switchToMessageBodyTab();
 
       //Then The message body should NOT be editable
-      expect(messageEditor.bodyFieldIsDisabled()).toBeTruthy();
+      expect(messageEditor.bodyFieldIsReadOnly()).toBeTruthy();
       expect(
         messageEditor.hasWarningMatchingText(/message body cannot be edited because content type "application\/octet-stream" is not supported\. only messages with content types "application\/json" and "text\/xml" can be edited\./i)
       ).toBeTruthy();

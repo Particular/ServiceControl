@@ -231,7 +231,7 @@ onMounted(() => {
                       </table>
                       <div role="tabpanel" v-if="panel === 2 && !localMessage.bodyUnavailable" style="height: calc(100% - 260px)">
                         <div style="margin-top: 20px">
-                          <CodeEditor role="textbox" aria-label="message body" :read-only="!localMessage.isContentTypeSupported" v-model="localMessage.messageBody" :language="localMessage.language" :show-gutter="true"></CodeEditor>
+                          <CodeEditor aria-label="message body" :read-only="!localMessage.isContentTypeSupported" v-model="localMessage.messageBody" :language="localMessage.language" :show-gutter="true"></CodeEditor>
                         </div>
                         <span class="empty-error" v-if="localMessage.isBodyEmpty"><i class="fa fa-exclamation-triangle"></i> Message body cannot be empty</span>
                         <span class="reset-body" v-if="localMessage.isBodyChanged"><i class="fa fa-undo" v-tippy="`Reset changes`"></i> <a @click="resetBodyChanges()" href="javascript:void(0)">Reset changes</a></span>

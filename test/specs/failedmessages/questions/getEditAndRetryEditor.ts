@@ -9,8 +9,9 @@ export async function getEditAndRetryEditor() {
       await UserEvent.click(tab);
     },
 
-    bodyFieldIsDisabled() {
-      return within(dialog).getByRole("textbox", { name: "message body" }).hasAttribute("readonly");
+    bodyFieldIsReadOnly() {
+      const textbox = within(within(dialog).getByLabelText("message body")).getByRole("textbox");
+      return textbox.ariaReadOnly === "true";
     },
 
     hasWarningMatchingText(legendText: RegExp) {

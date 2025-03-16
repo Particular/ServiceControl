@@ -19,6 +19,6 @@ async function copyToClipboard() {
 
 <template>
   <Tippy content="Copied" ref="tippyRef" trigger="manual">
-    <button type="button" class="btn btn-sm" @click="copyToClipboard"><i class="fa fa-copy"></i> Copy to clipboard</button>
+    <button type="button" class="btn btn-secondary btn-sm" @click="copyToClipboard"><i class="fa fa-copy"></i> Copy to clipboard</button>
   </Tippy>
 </template>
