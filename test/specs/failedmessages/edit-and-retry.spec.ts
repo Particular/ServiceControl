@@ -45,7 +45,7 @@ describe("FEATURE: Editing failed messages", () => {
         );
 
         //When the user opens the message editor
-        await driver.goTo("failed-messages/message/81dca64e-76fc-e1c3-11a2-3069f51c58c8");
+        await driver.goTo("messages/81dca64e-76fc-e1c3-11a2-3069f51c58c8");
         await openEditAndRetryEditor();
         const messageEditor = await getEditAndRetryEditor();
         await messageEditor.switchToMessageBodyTab();
@@ -71,7 +71,7 @@ describe("FEATURE: Editing failed messages", () => {
       );
 
       //When the user opens the message editor
-      await driver.goTo("failed-messages/message/81dca64e-76fc-e1c3-11a2-3069f51c58c8");
+      await driver.goTo("messages/81dca64e-76fc-e1c3-11a2-3069f51c58c8");
       await openEditAndRetryEditor();
       const messageEditor = await getEditAndRetryEditor();
       await messageEditor.switchToMessageBodyTab();
