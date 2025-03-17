@@ -23,7 +23,7 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
   await driver.setUp(precondition.errorsDefaultHandler);
 
   //http://localhost:33333/api/customchecks
-  await driver.setUp(precondition.hasNoFailingCustomChecks);
+  await driver.setUp(precondition.hasCustomChecksEmpty);
 
   //http://localhost:33633/monitored-endpoints/disconnected
   await driver.setUp(precondition.hasNoDisconnectedEndpoints);

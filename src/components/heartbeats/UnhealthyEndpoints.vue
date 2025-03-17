@@ -13,7 +13,7 @@ const { unhealthyEndpoints, filteredUnhealthyEndpoints } = storeToRefs(store);
   <div class="row">
     <ResultsCount :displayed="filteredUnhealthyEndpoints.length" :total="unhealthyEndpoints.length" />
   </div>
-  <section name="unhealthy_endpoints">
+  <section name="unhealthy_endpoints" aria-label="Unhealthy Endpoints">
     <no-data v-if="unhealthyEndpoints.length === 0" message="No unhealthy endpoints"></no-data>
     <div v-else class="row">
       <div class="col-sm-12 no-side-padding">

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import VCodeBlock from "@wdns/vue-code-block";
 import { ThroughputConnectionSetting } from "@/resources/ThroughputConnectionSettings";
 import { computed, ref } from "vue";
 import DropDown, { Item } from "@/components/DropDown.vue";
+import CodeEditor from "@/components/CodeEditor.vue";
+import { CodeLanguage } from "@/components/codeEditorTypes";
 
 const props = withDefaults(
   defineProps<{
@@ -43,11 +44,11 @@ const languageSelected = ref("config");
 const codeSelected = computed(() => {
   switch (languageSelected.value) {
     case "bash":
-      return { code: bash.value, lang: "bash" };
+      return { code: bash.value, lang: <CodeLanguage>"shell" };
     case "windows":
-      return { code: windows.value, lang: "cmd" };
+      return { code: windows.value, lang: <CodeLanguage>"shell" };
     default:
-      return { code: config.value, lang: "xml" };
+      return { code: config.value, lang: <CodeLanguage>"xml" };
   }
 });
 
@@ -75,7 +76,7 @@ function languageChanged(item: Item) {
     <drop-down label="Configuration type" :select-item="languages.find((v) => v.value === languageSelected)" :callback="languageChanged" :items="languages" />
   </div>
   <div class="configuration">
-    <VCodeBlock :code="codeSelected.code" :lang="codeSelected.lang" />
+    <CodeEditor :model-value="codeSelected.code" :language="codeSelected.lang" :show-gutter="false" />
     <div class="instructions">
       <slot name="configInstructions" v-if="languageSelected === 'config'"></slot>
       <slot name="environmentVariableInstructions" v-else></slot>

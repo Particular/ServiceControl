@@ -1,3 +1,5 @@
+import Configuration from "./Configuration";
+
 export default interface LicenseInfo {
   registered_to: string;
   edition: string;
@@ -11,6 +13,12 @@ export default interface LicenseInfo {
   status: string;
 }
 
+export function typeText(license: LicenseInfo, configuration: Configuration | null) {
+  if (license.trial_license && configuration?.mass_transit_connector) {
+    return "Early Access ";
+  }
+}
+
 export enum LicenseStatus {
   Valid = "Valid",
   Unavailable = "Unavailable",
@@ -21,4 +29,9 @@ export enum LicenseStatus {
   ValidWithExpiredUpgradeProtection = "ValidWithExpiredUpgradeProtection",
   ValidWithExpiringUpgradeProtection = "ValidWithExpiringUpgradeProtection",
   ValidWithExpiringSubscription = "ValidWithExpiringSubscription",
+}
+export enum LicenseType {
+  Subscription,
+  Trial,
+  UpgradeProtection,
 }

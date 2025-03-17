@@ -91,7 +91,7 @@ async function toggleDefaultSetting() {
     <div class="row">
       <ResultsCount :displayed="filteredEndpoints.length" :total="sortedEndpoints.length" />
     </div>
-    <section name="endpoint_configuration">
+    <section name="endpoint_configuration" aria-label="Endpoint Configuration">
       <div class="row">
         <div class="col-9 no-side-padding">
           <no-data v-if="sortedEndpoints.length === 0" message="Nothing to configure" />

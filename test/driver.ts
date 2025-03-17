@@ -1,11 +1,14 @@
-import { type PathParams } from "msw";
+import { DefaultBodyType, StrictRequest, type PathParams } from "msw";
 
 type GoTo = (path: string) => Promise<void>;
 type DisposeApp = () => void;
+
+export type Method = "get" | "post" | "patch" | "put" | "delete" | "options";
+
 export type MockEndpointOptions = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   body: Record<string, any> | string | number | boolean | null | undefined;
-  method?: "get" | "post" | "patch" | "put" | "delete" | "options";
+  method?: Method;
   status?: number;
   headers?: { [key: string]: string };
 };
@@ -18,7 +21,7 @@ export type MockEndpointDynamicOptions = {
 };
 
 type MockEndpoint = (path: string, options: MockEndpointOptions) => void;
-type MockEndpointDynamic = (endpoint: string, callBack: (url: URL, params: PathParams) => MockEndpointDynamicOptions) => void;
+type MockEndpointDynamic = (endpoint: string, method: Method, callBack: (url: URL, params: PathParams, request: StrictRequest<DefaultBodyType>) => Promise<MockEndpointDynamicOptions>) => void;
 
 export type SetupFactoryOptions = {
   driver: Driver;

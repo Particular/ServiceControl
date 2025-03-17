@@ -38,6 +38,7 @@ export interface ExtendedFailedMessage extends FailedMessage {
   headers: Header[];
   conversationId: string;
   messageBody: string;
+  contentType: string;
   isEditAndRetryEnabled: boolean;
   redirect: boolean;
   submittedForRetrial: boolean;
@@ -62,6 +63,6 @@ export interface ExceptionDetails {
 export enum FailedMessageStatus {
   Unresolved = "unresolved",
   Resolved = "resolved",
-  RetryIssued = "retryissued",
+  RetryIssued = "retryIssued",
   Archived = "archived",
 }

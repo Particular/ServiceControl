@@ -5,7 +5,7 @@ import ServiceControlNotAvailable from "../ServiceControlNotAvailable.vue";
 import { licenseStatus } from "@/composables/serviceLicense";
 import { connectionState, useServiceControlConnections } from "@/composables/serviceServiceControl";
 import BusyIndicator from "../BusyIndicator.vue";
-import VCodeBlock from "@wdns/vue-code-block";
+import CodeEditor from "@/components/CodeEditor.vue";
 
 const isExpired = licenseStatus.isExpired;
 
@@ -109,7 +109,7 @@ function switchJsonTab() {
               <section v-if="showCodeOnlyTab && !loading">
                 <div class="row">
                   <div class="col-12 h-100">
-                    <VCodeBlock :code="inlineSnippet" lang="csharp"></VCodeBlock>
+                    <CodeEditor :model-value="inlineSnippet" language="csharp" :show-gutter="false"></CodeEditor>
                   </div>
                 </div>
               </section>
@@ -119,11 +119,11 @@ function switchJsonTab() {
                   <div class="col-12 h-100">
                     <p>Note that when using JSON for configuration, you also need to change the endpoint configuration as shown below.</p>
                     <p><strong>Endpoint configuration:</strong></p>
-                    <VCodeBlock :code="jsonSnippet" lang="csharp"></VCodeBlock>
+                    <CodeEditor :model-value="jsonSnippet" language="csharp" :show-gutter="false"></CodeEditor>
                     <p style="margin-top: 15px">
                       <strong>JSON configuration file:</strong>
                     </p>
-                    <VCodeBlock :code="jsonConfig" lang="json"></VCodeBlock>
+                    <CodeEditor :model-value="jsonConfig" language="json" :show-gutter="false"></CodeEditor>
                   </div>
                 </div>
               </section>

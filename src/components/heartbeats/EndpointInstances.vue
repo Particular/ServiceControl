@@ -207,12 +207,12 @@ async function toggleAlerts(instance: EndpointsView) {
         <template #data="{ pageData }">
           <div role="rowgroup" aria-label="endpoints">
             <div role="row" :aria-label="instance.name" class="row grid-row" v-for="instance in pageData" :key="instance.id">
-              <div role="cell" aria-label="instance-name" class="col-6 host-name">
+              <div role="cell" class="col-6 host-name">
                 <span role="status" class="status-icon">
                   <i v-if="instance.heartbeat_information?.reported_status !== EndpointStatus.Alive" aria-label="instance dead" class="fa fa-heartbeat text-danger" />
                   <i v-else aria-label="instance alive" class="fa fa-heartbeat text-success" />
                 </span>
-                <span class="lead">{{ instance.host_display_name }}</span>
+                <span class="lead" aria-label="instance-name">{{ instance.host_display_name }}</span>
               </div>
               <div role="cell" aria-label="last-heartbeat" class="col-2 last-heartbeat">
                 <LastHeartbeat :date="instance.heartbeat_information?.last_report_at" tooltip-target="instance" />

@@ -1,81 +1,153 @@
 import { test, describe } from "../../drivers/vitest/driver";
+import { expect } from "vitest";
+import * as precondition from "../../preconditions";
+import { customChecksFailedRowsList, customChecksListElement, customChecksMessageElement, customChecksFailedReasonList, customChecksListPaginationElement, customChecksReportedDateList } from "./questions/failedCustomChecks";
+import { waitFor } from "@testing-library/vue";
+import { updateCustomCheckItemByStatus } from "../../preconditions/customChecks";
 
 describe("FEATURE: Failing custom checks", () => {
-  describe("RULE: Custom checks are displayed", () => {
-    test.todo("EXAMPLE: All custom checks are in a failed state and should be displayed in a list on the custom checks tab");
+  describe("RULE: Failed custom checks should be displayed", () => {
+    test("EXAMPLE: All custom checks are in a failed state are displayed in a list on the custom checks tab", async ({ driver }) => {
+      const failingCustomCheckCount = 5;
+      const passingCustomCheckCount = 3;
 
-    /* SCENARIO
-          Given there are custom checks
-          And all custom checks are in a failed state
-          When navigating to the custom checks tab
-          Then a list of custom checks is shown
-        */
+      await driver.setUp(precondition.serviceControlWithMonitoring);
+      await driver.setUp(precondition.hasCustomChecks(failingCustomCheckCount, passingCustomCheckCount));
 
-    /* NOTES
-          Failure reason (if given)
-          Name (Check)
-          Category
-          Endpoint
-          Host
-          Last checked
-        */
+      await driver.goTo("/custom-checks");
+
+      await waitFor(async () => {
+        expect(await customChecksListElement()).toBeInTheDocument(); //failed list is visisble
+      });
+      expect(customChecksMessageElement()).not.toBeInTheDocument(); //no data message is not vsible
+      await waitFor(async () => {
+        expect(await customChecksFailedRowsList()).toHaveLength(failingCustomCheckCount); //count of failed checks matches failing count set
+
+        const failedReasonList = await customChecksFailedReasonList();
+        expect(failedReasonList).toHaveLength(failingCustomCheckCount); //count of failed reasons matches failing count set
+
+        failedReasonList.forEach((reason) => {
+          const textContent = reason.textContent?.trim();
+          expect(textContent).not.toBe(""); //  the failed reason text content is not empty
+        });
+      });
+    });
   });
-  describe("RULE: Only failed custom checks are displayed", () => {
-    test.todo("EXAMPLE: Only failed custom checks should be displayed in the list on the custom checks tab");
 
-    /* SCENARIO
-          Given there are two failed custom checks
-          And one passing custom check
-          When navigating to the custom checks tab
-          Then the two failed custom checks are shown
-          And the passing custom check is not shown
-        */
+  describe("RULE: Failed custom checks should have pagination when failed checks count is greater than 10", () => {
+    test("EXAMPLE: 11 failed custom checks is paginated on the custom checks tab", async ({ driver }) => {
+      const failingCustomCheckCount = 11;
+      const passingCustomCheckCount = 3;
+
+      await driver.setUp(precondition.serviceControlWithMonitoring);
+      await driver.setUp(precondition.hasCustomChecks(failingCustomCheckCount, passingCustomCheckCount));
+
+      await driver.goTo("/custom-checks");
+
+      await waitFor(async () => {
+        expect(await customChecksListElement()).toBeInTheDocument(); //failed list visible
+      });
+      expect(customChecksListPaginationElement()).toBeInTheDocument(); //pagination visible
+      await waitFor(async () => {
+        expect(await customChecksFailedRowsList()).toHaveLength(failingCustomCheckCount); //count of failed checks matches failing count set
+      });
+    });
+
+    test("EXAMPLE: 9 failed custom checks is not paginated on the custom checks tab", async ({ driver }) => {
+      const failingCustomCheckCount = 9;
+      const passingCustomCheckCount = 3;
+
+      await driver.setUp(precondition.serviceControlWithMonitoring);
+      await driver.setUp(precondition.hasCustomChecks(failingCustomCheckCount, passingCustomCheckCount));
+
+      await driver.goTo("/custom-checks");
+
+      await waitFor(async () => {
+        expect(await customChecksListElement()).toBeInTheDocument(); //failed list is visisble
+      });
+      expect(customChecksListPaginationElement()).not.toBeInTheDocument(); //pagination not visible
+      await waitFor(async () => {
+        expect(await customChecksFailedRowsList()).toHaveLength(failingCustomCheckCount); //count of failed checks matches failing count set
+      });
+    });
   });
   describe("RULE: Failed custom checks should be shown in descending order of last checked", () => {
-    test.todo("EXAMPLE: Three failed custom checks should be displayed in descending order of last checked on the custom checks tab");
+    test("EXAMPLE:Three failed custom checks is  displayed in descending order of last checked on the custom checks tab", async ({ driver }) => {
+      const failingCustomCheckCount = 5;
+      const passingCustomCheckCount = 3;
 
-    /* SCENARIO
-          Given there are three failed custom checks
-          And the custom checks failed at different times
-          When navigating to the custom checks tab
-          Then the custom checks are shown in descending order of last checked
-        */
-  });
-  describe("RULE: Failed custom checks should have pagination", () => {
-    test.todo("EXAMPLE: 51 failed custom checks should be paginated on the custom checks tab");
+      await driver.setUp(precondition.serviceControlWithMonitoring);
+      await driver.setUp(precondition.hasCustomChecks(failingCustomCheckCount, passingCustomCheckCount));
 
-    /* SCENARIO
-          Given there are 51 failed custom checks
-          When navigating to the custom checks tab
-          Then the pagination controls should be visible
-          And the page number should be 1
-          And only the first 50 custom checks should be rendered
-          And page 2 should be available to click on
-        */
+      await driver.goTo("/custom-checks");
 
-    test.todo("EXAMPLE: 49 failed custom checks should not be paginated on the custom checks tab");
-    /* SCENARIO
-          Given there are 49 failed custom checks
-          When navigating to the custom checks tab
-          Then the pagination controls should not be visible
-        */
+      await waitFor(async () => {
+        expect(await customChecksListElement()).toBeInTheDocument(); //failed list is visisble
+      });
+      await waitFor(async () => {
+        expect(await customChecksFailedRowsList()).toHaveLength(failingCustomCheckCount); //count of failed checks matches failing count set
+      });
+
+      const timestamps = await customChecksReportedDateList(); // Ensure this is awaited correctly
+
+      // Ensure that the times are in descending order
+      for (let i = 0; i < timestamps.length - 1; i++) {
+        expect(timestamps[i]).toBeGreaterThanOrEqual(timestamps[i + 1]);
+      }
+    });
   });
   describe("RULE: Custom checks should auto-refresh", () => {
-    test.todo("EXAMPLE: When a custom check fails, the custom checks tab should auto-refresh with the new failed custom check");
+    test("EXAMPLE:When a custom check fails, the custom checks tab is auto-refreshed with the new failed custom check", async ({ driver }) => {
+      const failingCustomCheckCount = 3;
+      const passingCustomCheckCount = 2;
 
-    /* SCENARIO
-          Given 2 passing custom checks
-          And the custom checks page is open
-          When the endpoint reports a failing custom check
-          Then the failing custom check should be rendered
-        */
+      await driver.setUp(precondition.serviceControlWithMonitoring);
+      const customCheckItems = precondition.generateCustomChecksData(failingCustomCheckCount, passingCustomCheckCount)();
+      await driver.setUp(precondition.getCustomChecks(customCheckItems));
 
-    test.todo("EXAMPLE: A failing custom check that begins passing should be removed from the list on the custom checks tab");
-    /* SCENARIO
-          Given 2 failing custom checks
-          And the custom checks page is open
-          When one of the custom checks passes
-          Then the passing custom check should be removed from the list
-        */
+      await driver.goTo("/custom-checks");
+
+      await waitFor(async () => {
+        expect(await customChecksListElement()).toBeInTheDocument(); //failed list is visisble
+      });
+      await waitFor(async () => {
+        expect(await customChecksFailedRowsList()).toHaveLength(failingCustomCheckCount); //count of failed checks matches failing count set
+      });
+
+      updateCustomCheckItemByStatus(customCheckItems, "Pass"); // Fail an existing item that is passing
+      await driver.setUp(precondition.getCustomChecks(customCheckItems));
+
+      await driver.goTo("/custom-checks");
+      await waitFor(async () => {
+        expect(await customChecksFailedRowsList()).toHaveLength(failingCustomCheckCount + 1); // Now it should be increased by 1
+      });
+    });
+
+    test("EXAMPLE: A failing custom check that begins passing is auto-refreshed and removed from the list on the custom checks tab", async ({ driver }) => {
+      const failingCustomCheckCount = 3;
+      const passingCustomCheckCount = 2;
+
+      await driver.setUp(precondition.serviceControlWithMonitoring);
+      const customCheckItems = precondition.generateCustomChecksData(failingCustomCheckCount, passingCustomCheckCount)();
+      await driver.setUp(precondition.getCustomChecks(customCheckItems));
+
+      await driver.goTo("/custom-checks");
+
+      await waitFor(async () => {
+        expect(await customChecksListElement()).toBeInTheDocument(); //failed list is visisble
+      });
+      await waitFor(async () => {
+        expect(await customChecksFailedRowsList()).toHaveLength(failingCustomCheckCount); //count of failed checks matches failing count set
+      });
+
+      updateCustomCheckItemByStatus(customCheckItems, "Fail"); // an existing item that is failing
+
+      await driver.setUp(precondition.getCustomChecks(customCheckItems));
+
+      await driver.goTo("/custom-checks");
+      await waitFor(async () => {
+        expect(await customChecksFailedRowsList()).toHaveLength(failingCustomCheckCount - 1); // Now it should be decreased by 1
+      });
+    });
   });
 });

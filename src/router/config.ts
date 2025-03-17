@@ -96,9 +96,14 @@ const config: RouteItem[] = [
       {
         path: routeLinks.failedMessage.message.template,
         title: "Message",
-        component: () => import("@/components/failedmessages/MessageView.vue"),
+        component: () => import("@/components/failedmessages/MessageRedirectForBackwardsCompatibility.vue"),
       },
     ],
+  },
+  {
+    path: routeLinks.messages.message.template,
+    title: "Message",
+    component: () => import("@/components/messages/MessageView.vue"),
   },
   {
     path: routeLinks.monitoring.root,
@@ -156,6 +161,11 @@ const config: RouteItem[] = [
         title: "License",
         path: routeLinks.configuration.license.template,
         component: () => import("@/components/configuration/PlatformLicense.vue"),
+      },
+      {
+        title: "MassTransit Connector",
+        path: routeLinks.configuration.massTransitConnector.template,
+        component: () => import("@/components/configuration/MassTransitConnector.vue"),
       },
       {
         title: "Health Check Notifications",

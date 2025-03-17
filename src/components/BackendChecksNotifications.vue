@@ -3,7 +3,6 @@ import { computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import "bootstrap";
 import { monitoringUrl, serviceControlUrl, useIsMonitoringDisabled } from "@/composables/serviceServiceControlUrls";
-import "highlight.js/styles/github-dark.css";
 import { monitoringConnectionState, connectionState, environment } from "@/composables/serviceServiceControl";
 import routeLinks from "@/router/routeLinks";
 import { useShowToast } from "@/composables/toast";
@@ -53,5 +52,5 @@ watch(
 );
 </script>
 <template>
-  <div></div>
+  <template></template>
 </template>

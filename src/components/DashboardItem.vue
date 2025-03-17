@@ -7,9 +7,9 @@ const props = defineProps<{
 </script>
 
 <template>
-  <RouterLink class="summary-item" :class="{ 'summary-danger': counter > 0, 'summary-info': counter === 0 || !counter }" :to="url">
+  <RouterLink aria-label="Dashboard Item" class="summary-item" :class="{ 'summary-danger': counter > 0, 'summary-info': counter === 0 || !counter }" :to="url">
     <i class="fa fa-3x" :class="props.iconClass"> </i>
-    <span v-if="counter > 0" class="badge badge-important">{{ counter }}</span>
+    <span v-if="counter > 0" aria-label="Alert Count" class="badge badge-important">{{ counter }}</span>
     <h4>
       <slot></slot>
     </h4>

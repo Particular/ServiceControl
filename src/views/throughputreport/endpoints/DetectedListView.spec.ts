@@ -205,7 +205,7 @@ describe("DetectedListView tests", () => {
 
       let throughput = 0;
       for (const row of within(table).getAllByRole("row").slice(1)) {
-        expect(within(row).getByRole("cell", { name: "maximum daily throughput" }).textContent).toBe(`${throughput++}`);
+        expect(within(row).getByRole("cell", { name: "maximum usage throughput" }).textContent).toBe(`${throughput++}`);
       }
 
       await user.click(screen.getByRole("button", { name: /Sort by/i }));
@@ -213,7 +213,7 @@ describe("DetectedListView tests", () => {
 
       throughput = dataLength - 1;
       for (const row of within(table).getAllByRole("row").slice(1)) {
-        expect(within(row).getByRole("cell", { name: "maximum daily throughput" }).textContent).toBe(`${throughput--}`);
+        expect(within(row).getByRole("cell", { name: "maximum usage throughput" }).textContent).toBe(`${throughput--}`);
       }
     });
 

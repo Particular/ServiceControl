@@ -1,7 +1,7 @@
-import { http, HttpResponse, type PathParams } from "msw";
+import { DefaultBodyType, http, HttpResponse, StrictRequest, type PathParams } from "msw";
 import type { SetupWorker } from "msw/browser";
 import { SetupServer } from "msw/node";
-import { MockEndpointDynamicOptions, MockEndpointOptions } from "./driver";
+import { MockEndpointDynamicOptions, MockEndpointOptions, Method } from "./driver";
 
 export const makeMockEndpoint =
   ({ mockServer }: { mockServer: SetupServer | SetupWorker }) =>
@@ -11,11 +11,11 @@ export const makeMockEndpoint =
 
 export const makeMockEndpointDynamic =
   ({ mockServer }: { mockServer: SetupServer | SetupWorker }) =>
-  (endpoint: string, callBack: (url: URL, params: PathParams) => MockEndpointDynamicOptions) => {
+  (endpoint: string, method: Method = "get", callBack: (url: URL, params: PathParams, request: StrictRequest<DefaultBodyType>) => Promise<MockEndpointDynamicOptions>) => {
     mockServer.use(
-      http.get(endpoint, ({ request, params }) => {
+      http[method](endpoint, async ({ request, params }) => {
         const url = new URL(request.url.toString());
-        const { body, status = 200, headers = {} } = callBack(url, params);
+        const { body, status = 200, headers = {} } = await callBack(url, params, request);
         return HttpResponse.json(body, { status: status, headers: headers });
       })
     );

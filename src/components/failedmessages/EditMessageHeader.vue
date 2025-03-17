@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from "vue";
 
 interface MessageHeader {
   key: string;
-  value: string;
+  value?: string;
   isChanged: boolean;
   isMarkedAsRemoved: boolean;
   isLocked: boolean;
@@ -14,7 +14,7 @@ const settings = defineProps<{
   header: MessageHeader;
 }>();
 
-let origHeaderValue: string;
+let origHeaderValue: string | undefined;
 const header = ref<MessageHeader>(settings.header);
 
 const headerValue = computed(() => settings.header.value);

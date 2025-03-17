@@ -9,7 +9,7 @@ const emit = defineEmits<{ toggle: [] }>();
 
 <template>
   <div class="onoffswitch">
-    <input type="checkbox" :id="`onoffswitch${id}`" :name="`onoffswitch${id}`" class="onoffswitch-checkbox" @click="emit('toggle')" :checked="value ?? false" />
+    <input type="checkbox" :id="`onoffswitch${id}`" :name="`onoffswitch${id}`" :aria-label="`onoffswitch${id}`" class="onoffswitch-checkbox" @click="emit('toggle')" :checked="value ?? false" />
     <label class="onoffswitch-label" :for="`onoffswitch${id}`">
       <span class="onoffswitch-inner"></span>
       <span class="onoffswitch-switch"></span>

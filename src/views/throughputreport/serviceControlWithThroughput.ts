@@ -6,7 +6,7 @@ export const serviceControlWithThroughput = async ({ driver }: SetupFactoryOptio
   await driver.setUp(precondition.hasUpToDateServicePulse);
   await driver.setUp(precondition.hasUpToDateServiceControl);
   await driver.setUp(precondition.errorsDefaultHandler);
-  await driver.setUp(precondition.hasNoFailingCustomChecks);
+  await driver.setUp(precondition.hasCustomChecksEmpty);
   await driver.setUp(precondition.hasEventLogItems);
   await driver.setUp(precondition.hasNoHeartbeatsEndpoints);
   await driver.setUp(precondition.hasServiceControlMainInstance(minimumSCVersionForThroughput));
