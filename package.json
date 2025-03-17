@@ -57,7 +57,7 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-promise": "^7.2.1",
-    "eslint-plugin-vue": "^9.30.0",
+    "eslint-plugin-vue": "^10.0.0",
     "flush-promises": "^1.0.2",
     "globals": "^16.0.0",
     "jsdom": "^25.0.1",
