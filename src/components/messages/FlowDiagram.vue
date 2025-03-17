@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
-import { type DefaultEdge, MarkerType, useVueFlow, VueFlow, type Styles, type Node } from "@vue-flow/core";
+import { type DefaultEdge, MarkerType, VueFlow, type Styles, type Node } from "@vue-flow/core";
 import TimeSince from "../TimeSince.vue";
 import routeLinks from "@/router/routeLinks";
 import Message from "@/resources/Message";
 import { NServiceBusHeaders } from "@/resources/Header";
 import { useRoute } from "vue-router";
 import { ExtendedFailedMessage } from "@/resources/FailedMessage";
+import { Controls } from "@vue-flow/controls";
 
 const props = defineProps<{
   message: ExtendedFailedMessage;
@@ -158,7 +159,6 @@ function constructEdges(mappedMessages: MappedMessage[]): DefaultEdge[] {
 }
 
 const elements = ref<(Node | DefaultEdge)[]>([]);
-const { onPaneReady, fitView } = useVueFlow();
 
 onMounted(async () => {
   if (!props.message.conversationId) return;
@@ -178,13 +178,6 @@ onMounted(async () => {
   for (const root of mappedMessages.filter((message) => !message.parentId)) assignDescendantLevelsAndWidth(root);
 
   elements.value = [...constructNodes(mappedMessages), ...constructEdges(mappedMessages)];
-  //TODO: if doing fitView on next Vue onUpdated() then it doesn't appear the elements
-  // are actually drawn yet. See if we can determine a better event to use this on rather than relying on setTimeout
-  setTimeout(() => fitView(), 50);
-});
-
-onPaneReady(({ fitView }) => {
-  fitView();
 });
 
 function typeIcon(type: MessageType) {
@@ -201,7 +194,8 @@ function typeIcon(type: MessageType) {
 
 <template>
   <div id="tree-container">
-    <VueFlow v-model="elements" :min-zoom="0.1">
+    <VueFlow v-model="elements" :min-zoom="0.1" :fit-view-on-init="true">
+      <Controls />
       <template #node-message="nodeProps">
         <div class="node" :class="[nodeProps.data.isError && 'error', nodeProps.data.id === props.message.id && 'current-message']">
           <div class="node-text wordwrap">
@@ -230,6 +224,7 @@ function typeIcon(type: MessageType) {
 <style>
 @import "@vue-flow/core/dist/style.css";
 @import "@vue-flow/core/dist/theme-default.css";
+@import "@vue-flow/controls/dist/style.css";
 </style>
 
 <style scoped>

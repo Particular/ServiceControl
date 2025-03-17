@@ -21,6 +21,7 @@
     "@codemirror/lang-xml": "^6.1.0",
     "@codemirror/legacy-modes": "^6.5.0",
     "@tinyhttp/content-disposition": "^2.2.2",
+    "@vue-flow/controls": "^1.1.2",
     "@vue-flow/core": "^1.42.4",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
