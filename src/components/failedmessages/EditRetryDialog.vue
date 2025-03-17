@@ -230,7 +230,7 @@ onMounted(() => {
                         </tbody>
                       </table>
                       <div role="tabpanel" v-if="panel === 2 && !localMessage.bodyUnavailable" style="height: calc(100% - 260px)">
-                        <div style="margin-top: 20px">
+                        <div style="margin-top: 1.25rem">
                           <CodeEditor aria-label="message body" :read-only="!localMessage.isContentTypeSupported" v-model="localMessage.messageBody" :language="localMessage.language" :show-gutter="true"></CodeEditor>
                         </div>
                         <span class="empty-error" v-if="localMessage.isBodyEmpty"><i class="fa fa-exclamation-triangle"></i> Message body cannot be empty</span>
