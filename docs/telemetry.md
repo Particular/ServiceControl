@@ -8,11 +8,7 @@ Setting `ServiceControl/PrintMetrics` to `true` will print metrics to the logs a
 
 ## Audit
 
-Set `ServiceControl.Audit/OtlpEndpointUrl` to a valid [OTLP endpoint url](https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options). Only GRPC endpoints are supported at this stage.
-
-It's recommended to use a local [OTEL Collector](https://opentelemetry.io/docs/collector/) to collect, batch and export the metrics to the relevant observability backend being used.
-
-Example configuration: https://github.com/andreasohlund/Docker/tree/main/otel-monitoring
+Set `ServiceControl.Audit/OtlpEndpointUrl` to a valid [OTLP endpoint url](https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options). Only GRPC endpoints are supported at this stage. 
 
 The following ingestion metrics with their corresponding dimensions are available:
 
@@ -26,11 +22,11 @@ The following ingestion metrics with their corresponding dimensions are availabl
   - `result` - Indicates how the failure was resolved: `retry` or `stored-poison`
 - `sc.audit.ingestion.consecutive_batch_failures_total` - Consecutive batch failures
 
-Example queries in PromQL for use in Grafana:
+Example queries in PromQL:
 
-- Ingestion rate: `sum (rate(sc_audit_ingestion_message_duration_seconds_count[$__rate_interval])) by (exported_job)`
-- Failure rate: `sum(rate(sc_audit_ingestion_failures_total[$__rate_interval])) by (exported_job,result)`
-- Message duration: `histogram_quantile(0.9,sum(rate(sc_audit_ingestion_message_duration_seconds_bucket[$__rate_interval])) by (le,exported_job))` 
+- Ingestion rate: `sum (rate(sc_audit_ingestion_message_duration_seconds_count[5m])) by (exported_job)`
+- Failure rate: `sum(rate(sc_audit_ingestion_failures_total[5m])) by (exported_job,result)`
+- Message duration: `histogram_quantile(0.9,sum(rate(sc_audit_ingestion_message_duration_seconds_bucket[5m])) by (le,exported_job))` 
 
 Example Grafana dashboard - https://github.com/andreasohlund/Docker/blob/main/otel-monitoring/grafana-platform-template.json
 
@@ -52,3 +48,13 @@ To emit and visualize RavenDB telemetry:
       RAVEN_Monitoring_OpenTelemetry_OpenTelemetryProtocol_Endpoint: http://host.docker.internal:4317
     ```
 3. Visualize the data, for example https://grafana.com/grafana/dashboards/22698-ravendb-prometheus/ 
+
+## OTEL Collector
+
+It's recommended to use a local [OTEL Collector](https://opentelemetry.io/docs/collector/) to collect, batch and export the metrics to the relevant observability backend being used.
+
+Example configuration: https://github.com/andreasohlund/Docker/tree/main/otel-monitoring
+
+### Azure Monitor
+
+User the [exporter for Azure Monitor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/azuremonitorexporter/README.md) to push telemetry to application insights.
