@@ -121,11 +121,11 @@ async function toggleDefaultSetting() {
 <style scoped>
 .instructions {
   padding: 10px;
-  p {
-    color: unset;
-  }
 }
 
+.instructions p {
+  color: unset;
+}
 .defaultSetting {
   display: flex;
   flex-wrap: wrap;

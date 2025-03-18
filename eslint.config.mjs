@@ -6,7 +6,7 @@ import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended"
 import pluginPromise from "eslint-plugin-promise";
 
 export default tseslint.config({
-  ignores: ["node_modules/**/*", "dist/**/*", "/public/js/app.constants.js"],
+  ignores: ["/node_modules/**/*", "/dist/**/*", "/public/js/app.constants.js"],
   files: ["**/*.{js,mjs,ts,vue}"],
   languageOptions: { globals: globals.browser, ecmaVersion: "latest", parserOptions: { parser: tseslint.parser } },
   extends: [pluginJs.configs.recommended, ...tseslint.configs.recommended, ...pluginVue.configs["flat/essential"], pluginPromise.configs["flat/recommended"], eslintPluginPrettierRecommended],
