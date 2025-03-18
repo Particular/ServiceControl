@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import { licenseStatus } from "../../composables/serviceLicense";
 import { connectionState } from "../../composables/serviceServiceControl";
 import { usePatchToServiceControl, usePostToServiceControl, useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
@@ -24,7 +24,7 @@ const perPage = 50;
 const cookies = useCookies().cookies;
 const selectedPeriod = ref("All Pending Retries");
 const endpoints = ref<string[]>([]);
-const messageList = ref<IMessageList>();
+const messageList = useTemplateRef<IMessageList>("messageList");
 const messages = ref<ExtendedFailedMessage[]>([]);
 const selectedQueue = ref("empty");
 const showConfirmRetry = ref(false);

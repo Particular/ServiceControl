@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, useTemplateRef } from "vue";
 import { licenseStatus } from "../../composables/serviceLicense";
 import { connectionState } from "../../composables/serviceServiceControl";
 import { useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
@@ -15,7 +15,7 @@ import getSortFunction from "@/components/getSortFunction";
 
 const selectedClassifier = ref<string>("");
 const classifiers = ref<string[]>([]);
-const messageGroupList = ref<IMessageGroupList>();
+const messageGroupList = useTemplateRef<IMessageGroupList>("messageGroupList");
 const sortMethod = ref<SortOptions<GroupOperation>["sort"]>();
 
 function sortGroups(sort: SortOptions<GroupOperation>) {

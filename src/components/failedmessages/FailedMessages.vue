@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import { licenseStatus } from "../../composables/serviceLicense";
 import { connectionState } from "../../composables/serviceServiceControl";
 import { useFetchFromServiceControl, usePatchToServiceControl, useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
@@ -31,7 +31,7 @@ const totalCount = ref(0);
 const showDelete = ref(false);
 const showConfirmRetryAll = ref(false);
 const showConfirmDeleteAll = ref(false);
-const messageList = ref<IMessageList>();
+const messageList = useTemplateRef<IMessageList>("messageList");
 const messages = ref<ExtendedFailedMessage[]>([]);
 const sortOptions: SortOptions<GroupOperation>[] = [
   {

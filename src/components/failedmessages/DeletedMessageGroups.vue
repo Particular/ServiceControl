@@ -40,7 +40,6 @@ interface ExtendedFailureGroupView extends FailureGroupView {
 }
 
 let pollingFaster = false;
-const messageGroupList = ref();
 const archiveGroups = ref<ExtendedFailureGroupView[]>([]);
 const undismissedRestoreGroups = ref<ExtendedFailureGroupView[]>([]);
 const loadingData = ref(true);
@@ -68,12 +67,12 @@ function saveDefaultGroupingClassifier(classifier: string) {
   cookies.set("archived_groups_classification", classifier);
 }
 
-function classifierChanged(classifier: string) {
+async function classifierChanged(classifier: string) {
   saveDefaultGroupingClassifier(classifier);
 
   selectedClassifier.value = classifier;
   archiveGroups.value = [];
-  messageGroupList.value = loadArchivedMessageGroups(classifier);
+  await loadArchivedMessageGroups(classifier);
 }
 
 async function getArchiveGroups(classifier: string) {
@@ -304,7 +303,7 @@ onMounted(async () => {
 
         <div class="box-container">
           <div class="messagegrouplist">
-            <div ref="messageGroupList">
+            <div>
               <div class="row">
                 <div class="col-sm-12">
                   <no-data v-if="archiveGroups.length === 0 && !loadingData" title="message groups" message="There are currently no grouped message failures"></no-data>
