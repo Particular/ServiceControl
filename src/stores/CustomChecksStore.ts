@@ -37,8 +37,6 @@ export const useCustomChecksStore = defineStore("CustomChecksStore", () => {
     });
   }
 
-  dataRetriever.executeAndResetTimer();
-
   return {
     dismissCustomCheck,
     pageNumber,

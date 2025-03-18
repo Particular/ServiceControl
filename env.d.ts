@@ -10,6 +10,7 @@ declare global {
       service_control_url: string;
       monitoring_urls: string[];
       showPendingRetry: boolean;
+      showAllMessages: boolean;
     };
   }
 }

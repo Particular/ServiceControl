@@ -101,8 +101,6 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
     }
   });
 
-  refresh();
-
   return {
     testResults,
     refresh,

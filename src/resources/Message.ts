@@ -15,7 +15,7 @@ export default interface Message {
   is_system_message: boolean;
   conversation_id: string;
   headers: Header[];
-  status: string;
+  status: MessageStatus;
   message_intent: string;
   body_url: string;
   body_size: number;
@@ -26,4 +26,13 @@ export interface ExtendedMessage extends Message {
   error: boolean;
   headersNotFound: boolean;
   messageBodyNotFound: boolean;
+}
+
+export enum MessageStatus {
+  Failed = "failed",
+  RepeatedFailure = "repeatedFailure",
+  Successful = "successful",
+  ResolvedSuccessfully = "resolvedSuccessfully",
+  ArchivedFailure = "archivedFailure",
+  RetryIssued = "retryIssued",
 }

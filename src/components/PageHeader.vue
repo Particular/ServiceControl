@@ -12,6 +12,7 @@ import EventsMenuItem from "@/components/events/EventsMenuItem.vue";
 import DashboardMenuItem from "@/components/dashboard/DashboardMenuItem.vue";
 import FeedbackButton from "@/components/FeedbackButton.vue";
 import ThroughputMenuItem from "@/views/throughputreport/ThroughputMenuItem.vue";
+import AuditMenuItem from "./audit/AuditMenuItem.vue";
 
 // prettier-ignore
 const menuItems = computed(
@@ -19,6 +20,7 @@ const menuItems = computed(
   DashboardMenuItem,
   HeartbeatsMenuItem,
   ...(useIsMonitoringEnabled() ? [MonitoringMenuItem] : []),
+  ...(window.defaultConfig.showAllMessages ? [AuditMenuItem] : []),
   FailedMessagesMenuItem,
   CustomChecksMenuItem,
   EventsMenuItem,

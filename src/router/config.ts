@@ -8,13 +8,14 @@ import routeLinks from "@/router/routeLinks";
 import CustomChecksView from "@/views/CustomChecksView.vue";
 import HeartbeatsView from "@/views/HeartbeatsView.vue";
 import ThroughputReportView from "@/views/ThroughputReportView.vue";
+import AuditView from "@/views/AuditView.vue";
 
 export interface RouteItem {
   path: string;
   alias?: string;
   redirect?: string;
   title: string;
-  component: RouteComponent | (() => Promise<RouteComponent>);
+  component?: RouteComponent | (() => Promise<RouteComponent>);
   children?: RouteItem[];
 }
 
@@ -51,6 +52,11 @@ const config: RouteItem[] = [
         component: () => import("@/components/heartbeats/HeartbeatConfiguration.vue"),
       },
     ],
+  },
+  {
+    path: routeLinks.messages.root,
+    component: AuditView,
+    title: "All Messages",
   },
   {
     path: routeLinks.failedMessage.root,
@@ -96,7 +102,7 @@ const config: RouteItem[] = [
       {
         path: routeLinks.failedMessage.message.template,
         title: "Message",
-        component: () => import("@/components/failedmessages/MessageRedirectForBackwardsCompatibility.vue"),
+        redirect: routeLinks.messages.message.template,
       },
     ],
   },
