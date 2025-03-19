@@ -51,9 +51,9 @@ public class TimerJob
                     catch (Exception ex)
                     {
                         consecutiveFailures++;
-                        var exponentialBackoffDelay = TimeSpan.FromSeconds(int.Min(60, consecutiveFailures * consecutiveFailures));
+                        var backoffDelay = TimeSpan.FromSeconds(int.Min(6, consecutiveFailures) * 10);
 
-                        await Task.Delay(exponentialBackoffDelay, token).ConfigureAwait(false);
+                        await Task.Delay(backoffDelay, token).ConfigureAwait(false);
 
                         errorCallback(ex);
                     }
