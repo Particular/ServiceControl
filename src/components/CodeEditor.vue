@@ -53,7 +53,7 @@ const extensions = computed(() => {
     <div v-if="props.showCopyToClipboard" class="toolbar">
       <CopyToClipboard :value="code" />
     </div>
-    <CodeMirror v-model="code" :extensions="extensions" :basic="props.showGutter" :minimal="!props.showGutter" :readonly="props.readOnly" :gutter="!props.readOnly"></CodeMirror>
+    <CodeMirror v-model="code" :extensions="extensions" :basic="props.showGutter" :minimal="!props.showGutter" :readonly="props.readOnly" :gutter="!props.readOnly" :wrap="true"></CodeMirror>
   </div>
 </template>
 
