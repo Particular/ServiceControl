@@ -24,11 +24,15 @@ public class TimerJob
             {
                 await Task.Delay(due, token).ConfigureAwait(false);
 
+                var consecutiveFailures = 0;
+
                 while (!token.IsCancellationRequested)
                 {
                     try
                     {
                         var result = await callback(token).ConfigureAwait(false);
+
+                        consecutiveFailures = 0;
                         if (result == TimerJobExecutionResult.DoNotContinueExecuting)
                         {
                             tokenSource.Cancel();
@@ -46,6 +50,11 @@ public class TimerJob
                     }
                     catch (Exception ex)
                     {
+                        consecutiveFailures++;
+                        var exponentialBackoffDelay = TimeSpan.FromSeconds(int.Max(60, consecutiveFailures * consecutiveFailures));
+
+                        await Task.Delay(exponentialBackoffDelay, token).ConfigureAwait(false);
+
                         errorCallback(ex);
                     }
                 }
