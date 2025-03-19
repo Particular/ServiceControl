@@ -57,7 +57,7 @@ public class TimerJob
         }, CancellationToken.None);
     }
 
-    public async Task Stop()
+    public async Task Stop(CancellationToken cancellationToken)
     {
         if (tokenSource == null)
         {
@@ -67,16 +67,18 @@ public class TimerJob
         await tokenSource.CancelAsync().ConfigureAwait(false);
         tokenSource.Dispose();
 
-        if (task != null)
+        if (task == null)
         {
-            try
-            {
-                await task.ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) when (tokenSource.IsCancellationRequested)
-            {
-                //NOOP
-            }
+            return;
+        }
+
+        try
+        {
+            Task.WaitAll([task], cancellationToken);
+        }
+        catch (OperationCanceledException) when (tokenSource.IsCancellationRequested)
+        {
+            //NOOP
         }
     }
 

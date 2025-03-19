@@ -24,17 +24,7 @@
             timer = scheduler.Schedule(_ => CheckEndpoints(), TimeSpan.Zero, TimeSpan.FromSeconds(5), e => { log.Error("Exception occurred when monitoring endpoint instances", e); });
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            try
-            {
-                await timer.Stop();
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                //NOOP, invoked Stop does not
-            }
-        }
+        public Task StopAsync(CancellationToken cancellationToken) => timer.Stop(cancellationToken);
 
         async Task<TimerJobExecutionResult> CheckEndpoints()
         {

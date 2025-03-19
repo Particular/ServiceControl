@@ -174,10 +174,7 @@
                 return Task.CompletedTask;
             }
 
-            public Task StopAsync(CancellationToken cancellationToken)
-            {
-                return timer?.Stop() ?? Task.CompletedTask;
-            }
+            public Task StopAsync(CancellationToken cancellationToken) => timer?.Stop(cancellationToken) ?? Task.CompletedTask;
 
             async Task<TimerJobExecutionResult> ProcessRequestedBulkRetryOperations()
             {
@@ -237,10 +234,7 @@
                 return Task.CompletedTask;
             }
 
-            public Task StopAsync(CancellationToken cancellationToken)
-            {
-                return timer.Stop();
-            }
+            public Task StopAsync(CancellationToken cancellationToken) => timer.Stop(cancellationToken);
 
             TimerJob timer;
             readonly IAsyncTimer scheduler;
@@ -266,10 +260,7 @@
                 return Task.CompletedTask;
             }
 
-            public async Task StopAsync(CancellationToken cancellationToken)
-            {
-                await timer.Stop();
-            }
+            public Task StopAsync(CancellationToken cancellationToken) => timer.Stop(cancellationToken);
 
             async Task<TimerJobExecutionResult> Process(CancellationToken cancellationToken)
             {
