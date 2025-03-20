@@ -11,7 +11,7 @@
         {
             if (context.Headers.TryGetValue(NServiceBus.Headers.EnclosedMessageTypes, out var typeHeader))
             {
-                var types = typeHeader.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                var types = typeHeader.Split(';', StringSplitOptions.RemoveEmptyEntries);
 
                 var typesWithoutVersionInfo = string.Join(";", types.Select(x => RemoveVersionAndKeyInformation(x)));
 
