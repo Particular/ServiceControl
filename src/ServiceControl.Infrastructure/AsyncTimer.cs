@@ -83,7 +83,7 @@ public class TimerJob
 
         try
         {
-            Task.WaitAll([task], cancellationToken);
+            await task.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (tokenSource.IsCancellationRequested)
         {
