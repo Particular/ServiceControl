@@ -94,7 +94,7 @@
 
             return anyContext != null
                 ? messageDispatcher.Value.Dispatch(
-                    new TransportOperations(transportOperations.ToArray()),
+                    new TransportOperations([.. transportOperations]),
                     anyContext.TransportTransaction, cancellationToken)
                 : Task.CompletedTask;
         }
