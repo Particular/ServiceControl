@@ -13,7 +13,7 @@
             {
                 var types = typeHeader.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
-                var typesWithoutVersionInfo = string.Join(";", types.Select(x => RemoveVersionAndKeyInformation(x)));
+                var typesWithoutVersionInfo = string.Join(';', types.Select(x => RemoveVersionAndKeyInformation(x)));
 
                 context.Headers[NServiceBus.Headers.EnclosedMessageTypes] = typesWithoutVersionInfo;
             }

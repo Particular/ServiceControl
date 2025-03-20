@@ -94,7 +94,7 @@ namespace Tests
                 .Where(u => u.Category == "Transports")
                 .Select(u => u.Name);
 
-            Assert.That(bundledTransports, Is.EquivalentTo(allTransports), $"Expected transports folder to contain {string.Join(",", allTransports)}");
+            Assert.That(bundledTransports, Is.EquivalentTo(allTransports), $"Expected transports folder to contain {string.Join(',', allTransports)}");
         }
 
         readonly DeploymentPackage deploymentPackage;
