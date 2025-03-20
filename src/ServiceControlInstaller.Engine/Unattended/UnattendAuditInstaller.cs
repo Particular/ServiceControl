@@ -27,7 +27,7 @@
             instanceInstaller.Version = Constants.CurrentVersion;
 
             //Validation
-            await instanceInstaller.Validate(promptToProceed).ConfigureAwait(false);
+            await instanceInstaller.Validate(promptToProceed);
             if (instanceInstaller.ReportCard.HasErrors)
             {
                 foreach (var error in instanceInstaller.ReportCard.Errors)

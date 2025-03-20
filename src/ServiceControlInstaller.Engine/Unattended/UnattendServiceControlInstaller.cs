@@ -32,7 +32,7 @@
                 instanceInstaller.Version = Constants.CurrentVersion;
 
                 //Validation
-                await instanceInstaller.Validate(promptToProceed).ConfigureAwait(false);
+                await instanceInstaller.Validate(promptToProceed);
 
                 if (instanceInstaller.ReportCard.HasErrors)
                 {
@@ -147,7 +147,7 @@
         internal async Task<bool> Update(ServiceControlInstance instance, bool startService)
         {
             instance.ReportCard = new ReportCard();
-            await instance.ValidateChanges().ConfigureAwait(false);
+            await instance.ValidateChanges();
             if (instance.ReportCard.HasErrors)
             {
                 return false;

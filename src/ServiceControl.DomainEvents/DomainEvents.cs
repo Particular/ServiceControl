@@ -21,7 +21,7 @@
                 try
                 {
                     await handler.Handle(domainEvent, cancellationToken)
-                        .ConfigureAwait(false);
+                        ;
                 }
                 catch (Exception e)
                 {
@@ -36,7 +36,7 @@
                 try
                 {
                     await handler.Handle(domainEvent, cancellationToken)
-                    .ConfigureAwait(false);
+                    ;
                 }
                 catch (Exception e)
                 {

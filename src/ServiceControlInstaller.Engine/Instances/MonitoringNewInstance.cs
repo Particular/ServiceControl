@@ -181,7 +181,7 @@
 
             try
             {
-                ReportCard.CancelRequested = await new PathsValidator(this).RunValidation(true, promptToProceed).ConfigureAwait(false);
+                ReportCard.CancelRequested = await new PathsValidator(this).RunValidation(true, promptToProceed);
             }
             catch (EngineValidationException ex)
             {

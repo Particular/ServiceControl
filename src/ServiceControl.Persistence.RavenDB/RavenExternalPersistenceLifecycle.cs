@@ -51,7 +51,7 @@ namespace ServiceControl.Persistence.RavenDB
                 await StartupChecks.EnsureServerVersion(store, cancellationToken);
 
                 var databaseSetup = new DatabaseSetup(settings, store);
-                await databaseSetup.Execute(cancellationToken).ConfigureAwait(false);
+                await databaseSetup.Execute(cancellationToken);
             }
             finally
             {

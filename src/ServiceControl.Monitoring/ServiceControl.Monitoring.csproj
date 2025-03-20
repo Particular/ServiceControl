@@ -42,4 +42,8 @@
     <InternalsVisibleTo Include="ServiceControl.Monitoring.UnitTests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EditorConfigFiles Remove=".editorconfig" />
+  </ItemGroup>
+
 </Project>
