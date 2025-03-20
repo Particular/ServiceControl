@@ -97,8 +97,7 @@
 
         Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress)
         {
-            var transportOperations = new TransportOperation[messageContexts.Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
-            var index = 0;
+            var transportOperations = new List<TransportOperation>(messageContexts.Count);
             MessageContext anyContext = null;
             foreach (var messageContext in messageContexts)
             {
@@ -117,13 +116,12 @@
                 // Forwarded messages should last as long as possible
                 outgoingMessage.Headers.Remove(Headers.TimeToBeReceived);
 
-                transportOperations[index] = new TransportOperation(outgoingMessage, new UnicastAddressTag(forwardingAddress));
-                index++;
+                transportOperations.Add(new TransportOperation(outgoingMessage, new UnicastAddressTag(forwardingAddress)));
             }
 
             return anyContext != null
                 ? messageDispatcher.Value.Dispatch(
-                    new TransportOperations(transportOperations),
+                    new TransportOperations([.. transportOperations]),
                     anyContext.TransportTransaction
                 )
                 : Task.CompletedTask;
