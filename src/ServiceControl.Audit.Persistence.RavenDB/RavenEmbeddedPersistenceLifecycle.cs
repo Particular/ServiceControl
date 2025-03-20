@@ -61,7 +61,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
                     }
                     catch (DatabaseLoadTimeoutException e)
                     {
-                        Log.Warn("Could not connect to database. Retrying in 500ms...", e);
+                        Log.Warn("Connecting to the embedded RavenDB database timed out. Retrying in 500ms...", e);
                         await Task.Delay(500, cancellationToken);
                     }
                 }
