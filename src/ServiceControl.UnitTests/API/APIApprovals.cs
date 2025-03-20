@@ -74,7 +74,7 @@
                     return new
                     {
                         MethodSignature = methodSignature,
-                        HttpMethods = string.Join("/", httpMethods),
+                        HttpMethods = string.Join('/', httpMethods),
                         Route = route.Template
                     };
                 })
@@ -150,7 +150,7 @@
 
             foreach (var settingLine in settingsLines)
             {
-                var parts = settingLine.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                var parts = settingLine.Split(':', StringSplitOptions.RemoveEmptyEntries);
                 var settingName = parts[0].Trim('"', ' ');
 
                 if (dataStoreSettings.Contains(settingName) == false)

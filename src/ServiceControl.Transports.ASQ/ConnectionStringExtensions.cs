@@ -24,10 +24,8 @@
                         break;
                 }
             }
-            return string.Join(";", parts);
+            return string.Join(';', parts);
         }
-
-
 
         const string SubscriptionsTableName = "Subscriptions Table";
 
