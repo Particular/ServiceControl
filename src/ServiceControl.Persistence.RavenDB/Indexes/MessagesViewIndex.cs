@@ -32,7 +32,7 @@ namespace ServiceControl.Persistence
                     CriticalTime = (TimeSpan?)last.MessageMetadata["CriticalTime"],
                     ProcessingTime = (TimeSpan?)last.MessageMetadata["ProcessingTime"],
                     DeliveryTime = (TimeSpan?)last.MessageMetadata["DeliveryTime"],
-                    Query = last.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", last.Headers.Select(x => x.Value)) }).ToArray(),
+                    Query = last.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(' ', last.Headers.Select(x => x.Value)) }).ToArray(),
                     ConversationId = (string)last.MessageMetadata["ConversationId"]
                 };
 

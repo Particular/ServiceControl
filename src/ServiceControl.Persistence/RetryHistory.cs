@@ -38,7 +38,7 @@
 
         public string GetHistoryOperationsUniqueIdentifier()
         {
-            return string.Join(",", HistoricOperations.Select(x => x.RequestId));
+            return string.Join(',', HistoricOperations.Select(x => x.RequestId));
         }
 
         public void AddToUnacknowledged(UnacknowledgedRetryOperation unacknowledgedRetryOperation)

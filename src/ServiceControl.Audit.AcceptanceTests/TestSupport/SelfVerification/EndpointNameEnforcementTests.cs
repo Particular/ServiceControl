@@ -21,7 +21,7 @@
                 .Where(t => Conventions.EndpointNamingConvention(t).Length > endpointNameMaxLength)
                 .ToList();
 
-            Assert.That(violators, Is.Empty, string.Join(",", violators));
+            Assert.That(violators, Is.Empty, string.Join(',', violators));
         }
 
         static bool IsEndpointClass(Type t) => endpointConfigurationBuilderType.IsAssignableFrom(t);

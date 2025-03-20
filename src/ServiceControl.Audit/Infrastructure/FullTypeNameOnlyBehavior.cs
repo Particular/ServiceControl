@@ -16,7 +16,7 @@ namespace ServiceControl.Audit.Infrastructure
                 enclosedTypes[i] = enclosedTypes[i].Replace($", {AssemblyFullName}", string.Empty);
             }
 
-            context.Headers[Headers.EnclosedMessageTypes] = string.Join(";", enclosedTypes);
+            context.Headers[Headers.EnclosedMessageTypes] = string.Join(';', enclosedTypes);
 
             return next(context);
         }

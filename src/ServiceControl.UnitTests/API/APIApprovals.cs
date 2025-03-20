@@ -74,7 +74,7 @@
                     return new
                     {
                         MethodSignature = methodSignature,
-                        HttpMethods = string.Join("/", httpMethods),
+                        HttpMethods = string.Join('/', httpMethods),
                         Route = route.Template
                     };
                 })

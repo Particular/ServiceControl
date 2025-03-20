@@ -22,7 +22,7 @@ namespace Tests
 
             var persisters = deploymentPackage.DeploymentUnits.Where(u => u.Category == "Persisters");
 
-            Assert.That(persisters.Select(d => d.Name), Is.EquivalentTo(expectedPersisters), $"Expected Persisters folder to contain {string.Join(",", expectedPersisters)}");
+            Assert.That(persisters.Select(d => d.Name), Is.EquivalentTo(expectedPersisters), $"Expected Persisters folder to contain {string.Join(',', expectedPersisters)}");
 
             foreach (var persister in persisters)
             {
