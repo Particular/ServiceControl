@@ -20,8 +20,7 @@
             {
                 try
                 {
-                    await handler.Handle(domainEvent, cancellationToken)
-                        ;
+                    await handler.Handle(domainEvent, cancellationToken);
                 }
                 catch (Exception e)
                 {
@@ -35,8 +34,7 @@
             {
                 try
                 {
-                    await handler.Handle(domainEvent, cancellationToken)
-                    ;
+                    await handler.Handle(domainEvent, cancellationToken);
                 }
                 catch (Exception e)
                 {
