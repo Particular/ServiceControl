@@ -1,17 +1,55 @@
 name: Virus scan
 on:
-  release:
-    types: [published]
+  pull_request:
 jobs:
   virus-scan:
     runs-on: ubuntu-latest
     steps:
-      - name: Scan release for viruses
-        uses: Particular/virus-scan-action@main
-        with:
-          owner: ${{ github.repository_owner }}
-          repo: ${{ github.event.repository.name }}
-          tag: ${{ github.event.release.name }}
-          github-access-token: ${{ secrets.GITHUB_TOKEN }}
-          slack-token: ${{ secrets.SLACK_TOKEN }}
-          slack-channel: ${{ vars.VIRUS_REPORTING_SLACK_CHANNEL }}
+    - id: install
+      name: Install ClamAV
+      shell: bash
+      run: |
+        sudo apt-get update && sudo apt-get install clamav
+        clamVersion=$(clamscan --version)
+        echo $clamVersion
+        echo "CLAMAV_VERSION=$clamVersion" >> $GITHUB_ENV
+    - id: update
+      name: Update virus signature database
+      shell: bash
+      run: |
+        sudo systemctl stop clamav-freshclam
+        sudo freshclam
+        sudo systemctl start clamav-freshclam
+    - name: Get release
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fs = require('fs');
+          
+          await io.mkdirP('github-release-assets');
+          
+          let release = await github.rest.repos.getReleaseByTag({
+            owner: 'Particular',
+            repo: 'ServiceControl',
+            tag: '5.9.1'
+          });
+          
+          core.exportVariable('RELEASE_ID', release.data.id);
+          core.exportVariable('RELEASE_BODY', release.data.body);
+          core.exportVariable('RELEASE_HTML_URL', release.data.html_url);
+          
+          for (const assetInfo of release.data.assets) {
+            let asset = await github.request(assetInfo.browser_download_url);
+            await fs.writeFile('github-release-assets/' + assetInfo.name, Buffer.from(asset.data), () => {});
+          }
+          
+          let zipball = await github.request(release.data.zipball_url);
+          await fs.writeFile('github-release-assets/source.zip', Buffer.from(zipball.data), () => {});
+          
+          let tarball = await github.request(release.data.tarball_url);
+          await fs.writeFile('github-release-assets/source.tar.gz', Buffer.from(tarball.data), () => {});
+          
+    - name: Run ClamAV
+      shell: bash
+      run: sudo clamscan --infected github-release-assets/
