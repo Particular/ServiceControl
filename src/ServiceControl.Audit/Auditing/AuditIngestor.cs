@@ -70,7 +70,7 @@
 
         Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress, CancellationToken cancellationToken)
         {
-            var transportOperations = new List<TransportOperation>();
+            var transportOperations = new List<TransportOperation>(messageContexts.Count);
             MessageContext anyContext = null;
             foreach (var messageContext in messageContexts)
             {
