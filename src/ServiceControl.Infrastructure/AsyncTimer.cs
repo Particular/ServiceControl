@@ -51,7 +51,9 @@ public class TimerJob
                     catch (Exception ex)
                     {
                         consecutiveFailures++;
-                        var backoffDelay = TimeSpan.FromSeconds(int.Min(6, consecutiveFailures) * 10);
+                        const int MaxDelayDurationInSeconds = 60;
+                        var delayInSeconds = consecutiveFailures * 10;
+                        var backoffDelay = TimeSpan.FromSeconds(int.Min(MaxDelayDurationInSeconds, delayInSeconds));
 
                         await Task.Delay(backoffDelay, token).ConfigureAwait(false);
 
@@ -75,6 +77,7 @@ public class TimerJob
 
         await tokenSource.CancelAsync().ConfigureAwait(false);
         tokenSource.Dispose();
+        tokenSource = null;
 
         if (task == null)
         {
