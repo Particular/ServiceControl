@@ -37,7 +37,7 @@
                         Assert.That(details.Status, Is.EqualTo("Commercial"));
                         Assert.That(details.Expired, Is.False);
                         Assert.That(details.Type, Is.EqualTo("Professional"));
-                        Assert.That(DateTime.UtcNow.AddDays(14), Is.LessThan(details.Expiration), $"The RavenDB license expires {details.Expiration} which is less than 2 weeks. Contact RavenDB at <sales@ravendb.net> for the new license.");
+                        Assert.That(DateTime.UtcNow.AddDays(7), Is.LessThan(details.Expiration), $"The RavenDB license expires {details.Expiration} which is less than one week. Contact RavenDB at <sales@ravendb.net> for the new license.");
                     });
                 }
             }
