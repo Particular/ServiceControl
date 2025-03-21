@@ -77,7 +77,6 @@ public class TimerJob
 
         await tokenSource.CancelAsync().ConfigureAwait(false);
         tokenSource.Dispose();
-        tokenSource = null;
 
         if (task == null)
         {
