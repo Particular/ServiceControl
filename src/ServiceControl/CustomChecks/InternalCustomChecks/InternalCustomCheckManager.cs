@@ -67,7 +67,7 @@
                 : TimerJobExecutionResult.DoNotContinueExecuting;
         }
 
-        public Task Stop() => timer?.Stop() ?? Task.CompletedTask;
+        public Task Stop() => timer?.Stop(CancellationToken.None) ?? Task.CompletedTask;
 
         TimerJob timer;
         readonly ICustomCheck check;

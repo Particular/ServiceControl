@@ -20,7 +20,7 @@
             return Task.CompletedTask;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken) => timer.Stop();
+        public Task StopAsync(CancellationToken cancellationToken) => timer.Stop(cancellationToken);
 
         TimerJob timer;
 
