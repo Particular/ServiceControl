@@ -29,7 +29,7 @@
                     while (!tokenSource.IsCancellationRequested)
                     {
                         Print();
-                        await Task.Delay(interval, tokenSource.Token).ConfigureAwait(false);
+                        await Task.Delay(interval, tokenSource.Token);
                     }
                 }
                 catch (OperationCanceledException) when (tokenSource.IsCancellationRequested)

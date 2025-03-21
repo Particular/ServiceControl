@@ -61,7 +61,7 @@
                         cancellationTokenSource.CancelAfter(MaxStartDurationMs);
 
                         log.Debug($"Ensuring {taskName} is running");
-                        await ensureStarted(cancellationTokenSource.Token).ConfigureAwait(false);
+                        await ensureStarted(cancellationTokenSource.Token);
                         clearFailure();
                         startup = false;
                     }
@@ -85,7 +85,7 @@
                     }
                     try
                     {
-                        await Task.Delay(timeToWaitBetweenStartupAttempts, shutdownTokenSource.Token).ConfigureAwait(false);
+                        await Task.Delay(timeToWaitBetweenStartupAttempts, shutdownTokenSource.Token);
                     }
                     catch (OperationCanceledException) when (shutdownTokenSource.IsCancellationRequested)
                     {
@@ -102,8 +102,8 @@
             try
             {
                 log.Debug($"Stopping watching process {taskName}");
-                await shutdownTokenSource.CancelAsync().ConfigureAwait(false);
-                await watchdog.ConfigureAwait(false);
+                await shutdownTokenSource.CancelAsync();
+                await watchdog;
             }
             catch (Exception e)
             {
@@ -112,7 +112,7 @@
             }
             finally
             {
-                await ensureStopped(cancellationToken).ConfigureAwait(false);
+                await ensureStopped(cancellationToken);
             }
         }
     }

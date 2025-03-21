@@ -116,7 +116,7 @@
         {
             try
             {
-                await new PathsValidator(this).RunValidation(false).ConfigureAwait(false);
+                await new PathsValidator(this).RunValidation(false);
             }
             catch (EngineValidationException ex)
             {

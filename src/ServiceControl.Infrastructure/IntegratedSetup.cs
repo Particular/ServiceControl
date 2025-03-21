@@ -52,7 +52,7 @@
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-            await process.WaitForExitAsync().ConfigureAwait(false);
+            await process.WaitForExitAsync();
 
             return process.ExitCode;
         }

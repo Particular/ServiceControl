@@ -245,7 +245,7 @@
 
             try
             {
-                ReportCard.CancelRequested = await ValidatePaths(promptToProceed).ConfigureAwait(false);
+                ReportCard.CancelRequested = await ValidatePaths(promptToProceed);
             }
             catch (EngineValidationException ex)
             {

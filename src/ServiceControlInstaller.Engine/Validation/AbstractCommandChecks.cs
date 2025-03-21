@@ -26,12 +26,12 @@
         public async Task<bool> CanAddInstance()
         {
             // Check for license
-            if (!await IsLicenseOk().ConfigureAwait(false))
+            if (!await IsLicenseOk())
             {
                 return false;
             }
 
-            if (await OldVersionOfServiceControlInstalled().ConfigureAwait(false))
+            if (await OldVersionOfServiceControlInstalled())
             {
                 return false;
             }
@@ -47,7 +47,7 @@
                 .Select(i => i.TransportPackage)
                 .First(t => t is not null);
 
-            var continueInstall = await RabbitMqCheckIsOK(transport, Constants.CurrentVersion, false).ConfigureAwait(false);
+            var continueInstall = await RabbitMqCheckIsOK(transport, Constants.CurrentVersion, false);
 
             return continueInstall;
         }
@@ -68,14 +68,14 @@
             {
                 var verb = isDelete ? "remove" : "edit";
                 var message = $"This instance version {instanceVersion} is newer than the installer version {Constants.CurrentVersion}. This installer can only {verb} instances with versions between {Constants.CurrentVersion.Major}.0.0 and {Constants.CurrentVersion}.";
-                await NotifyError(title, message).ConfigureAwait(false);
+                await NotifyError(title, message);
                 return false;
             }
 
             if (installerOfDifferentMajor && !isDelete)
             {
                 var message = $"This installer cannot edit instances created by a different major version. A {instanceVersion.Major}.* installer version greater or equal to {instanceVersion.Major}.{instanceVersion.Minor}.{instanceVersion.Patch} must be used instead.";
-                await NotifyError(title, message).ConfigureAwait(false);
+                await NotifyError(title, message);
                 return false;
             }
 
@@ -99,18 +99,18 @@
                 return true;
             }
 
-            return await PromptForRabbitMqCheck(isUpgrade).ConfigureAwait(false);
+            return await PromptForRabbitMqCheck(isUpgrade);
         }
 
         public async Task<bool> CanUpgradeInstance(BaseService instance, bool forceUpgradeDb = false)
         {
             // Check for license
-            if (!await IsLicenseOk().ConfigureAwait(false))
+            if (!await IsLicenseOk())
             {
                 return false;
             }
 
-            if (await OldVersionOfServiceControlInstalled().ConfigureAwait(false))
+            if (await OldVersionOfServiceControlInstalled())
             {
                 return false;
             }
@@ -119,7 +119,7 @@
             var cantUpdateTransport = instance.TransportPackage.Removed && instance.TransportPackage.AutoMigrateTo is null;
             if (cantUpdateTransport)
             {
-                await NotifyForDeprecatedMessageTransport(instance.TransportPackage).ConfigureAwait(false);
+                await NotifyForDeprecatedMessageTransport(instance.TransportPackage);
                 return false;
             }
 
@@ -134,11 +134,11 @@
 
                     if (!forceUpgradeAllowed)
                     {
-                        await NotifyError("Cannot run the command", "Only ServiceControl 4.x primary instances that use RavenDB 3.5 persistence can be force-upgraded.").ConfigureAwait(false);
+                        await NotifyError("Cannot run the command", "Only ServiceControl 4.x primary instances that use RavenDB 3.5 persistence can be force-upgraded.");
                         return false;
                     }
 
-                    if (!await PromptToContinueWithForcedUpgrade().ConfigureAwait(false))
+                    if (!await PromptToContinueWithForcedUpgrade())
                     {
                         return false;
                     }
@@ -149,7 +149,7 @@
 
                     if (!compatibleStorageEngine)
                     {
-                        await NotifyForIncompatibleStorageEngine(baseInstance).ConfigureAwait(false);
+                        await NotifyForIncompatibleStorageEngine(baseInstance);
                         return false;
                     }
                 }
@@ -159,12 +159,12 @@
                 var upgradeInfo = UpgradeInfo.GetUpgradePathFor(instance.Version);
                 if (upgradeInfo.HasIncompatibleVersion)
                 {
-                    await NotifyForIncompatibleUpgradeVersion(upgradeInfo).ConfigureAwait(false);
+                    await NotifyForIncompatibleUpgradeVersion(upgradeInfo);
                     return false;
                 }
             }
 
-            if (!await RabbitMqCheckIsOK(instance.TransportPackage, instance.Version, isUpgrade: true).ConfigureAwait(false))
+            if (!await RabbitMqCheckIsOK(instance.TransportPackage, instance.Version, isUpgrade: true))
             {
                 return false;
             }
@@ -177,7 +177,7 @@
             if (OldScmuCheck.OldVersionOfServiceControlInstalled(out var installedVersion))
             {
                 var message = $"An old version {installedVersion} of ServiceControl Management is installed, which will not work after installing new instances. Before installing ServiceControl 5 instances, you must either uninstall the {installedVersion} instance or update it to a 4.x version at least {OldScmuCheck.MinimumScmuVersion}.";
-                await NotifyError("Outdated Version Installed", message).ConfigureAwait(false);
+                await NotifyError("Outdated Version Installed", message);
                 return true;
             }
 
@@ -189,7 +189,7 @@
             var licenseCheckResult = CheckLicenseIsValid();
             if (!licenseCheckResult.Valid)
             {
-                await NotifyError("License Error", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net").ConfigureAwait(false);
+                await NotifyError("License Error", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net");
                 return false;
             }
 
@@ -203,7 +203,7 @@
                 return false;
             }
 
-            var proceed = await PromptToStopRunningInstance(instance).ConfigureAwait(false);
+            var proceed = await PromptToStopRunningInstance(instance);
 
             return !proceed;
         }

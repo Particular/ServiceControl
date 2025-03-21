@@ -69,7 +69,7 @@ namespace ServiceControlInstaller.Engine.Validation
                 //Do Checks that only make sense on add instance
                 if (includeNewInstanceChecks)
                 {
-                    cancelRequested = await CheckPathsAreEmpty(promptToProceed).ConfigureAwait(false);
+                    cancelRequested = await CheckPathsAreEmpty(promptToProceed);
                 }
 
                 return cancelRequested;
@@ -104,7 +104,7 @@ namespace ServiceControlInstaller.Engine.Validation
 
                     if (directory.EnumerateFileSystemInfos().Any())
                     {
-                        var shouldProceed = await promptToProceed(pathInfo).ConfigureAwait(false);
+                        var shouldProceed = await promptToProceed(pathInfo);
                         if (!shouldProceed)
                         {
                             return true;

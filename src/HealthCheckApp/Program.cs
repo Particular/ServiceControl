@@ -7,7 +7,7 @@ if (string.IsNullOrEmpty(url))
     throw new Exception("Missing URL");
 }
 
-var response = await http.GetAsync(url).ConfigureAwait(false);
+var response = await http.GetAsync(url);
 response.EnsureSuccessStatusCode();
 
 if (response.Content.Headers.ContentType?.MediaType != "application/json" || response.Content.Headers.ContentLength == 0)

@@ -22,12 +22,12 @@ namespace ServiceControl.Infrastructure
                 tokenRegistration = cancellationToken.Register(
                     state => ((TaskCompletionSource<bool>)state).TrySetCanceled(),
                     tcs);
-                return await tcs.Task.ConfigureAwait(false);
+                return await tcs.Task;
             }
             finally
             {
                 registeredHandle?.Unregister(null);
-                await tokenRegistration.DisposeAsync().ConfigureAwait(false);
+                await tokenRegistration.DisposeAsync();
             }
         }
 

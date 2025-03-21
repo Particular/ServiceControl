@@ -26,7 +26,7 @@
             instanceInstaller.ReportCard = new ReportCard();
 
             //Validation
-            await instanceInstaller.Validate(promptToProceed).ConfigureAwait(false);
+            await instanceInstaller.Validate(promptToProceed);
             if (instanceInstaller.ReportCard.HasErrors)
             {
                 foreach (var error in instanceInstaller.ReportCard.Errors)
@@ -143,7 +143,7 @@
         internal async Task<bool> Update(MonitoringInstance instance, bool startService)
         {
             instance.ReportCard = new ReportCard();
-            await instance.ValidateChanges().ConfigureAwait(false);
+            await instance.ValidateChanges();
             if (instance.ReportCard.HasErrors)
             {
                 foreach (var error in instance.ReportCard.Errors)
