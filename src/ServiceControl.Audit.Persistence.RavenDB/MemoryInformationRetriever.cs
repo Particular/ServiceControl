@@ -13,7 +13,7 @@ class MemoryInformationRetriever(DatabaseConfiguration databaseConfiguration)
     // string when running in external mode. However, the tricky part is that when tests are run they
     // behave like if it was external mode. If the connection string contain always only the server
     // URL, this code is safe, otherwise it need to be adjusted to extract the server URL.
-    readonly HttpClient client = new() { BaseAddress = new Uri(databaseConfiguration.ServerConfiguration.ServerUrl ?? databaseConfiguration.ServerConfiguration.ConnectionString) };
+    readonly HttpClient client = new() { BaseAddress = new Uri(databaseConfiguration.ServerConfiguration.ConnectionString ?? databaseConfiguration.ServerConfiguration.ServerUrl) };
 
     record ResponseDto
     {
