@@ -11,8 +11,8 @@ class MemoryInformationRetriever(DatabaseConfiguration databaseConfiguration)
     // Connection string is composed of the server URL. The ?? operator is needed because ServerUrl
     // is populated when running embedded and connection string when running in external mode.
     // However, the tricky part is that when tests are run they behave like if it was external mode.
-    // ServerUrl is always populated by the persister settings, hence the code first checks for the
-    // presence of a connection string, and if null, falls back to ServerUrl
+    // Only one of ConnectionString and ServerUrl will be non-null, so we'll check ConnectionString first
+    // to be consistent with the error instance implementation, where ServerUrl always has a value.
     readonly HttpClient client = new() { BaseAddress = new Uri(databaseConfiguration.ServerConfiguration.ConnectionString ?? databaseConfiguration.ServerConfiguration.ServerUrl) };
 
     record ResponseDto
