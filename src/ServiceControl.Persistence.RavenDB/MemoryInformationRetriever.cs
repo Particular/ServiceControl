@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 class MemoryInformationRetriever(RavenPersisterSettings persisterSettings)
 {
-    // What does a connection string look like? Is it only a URI or could it contain other stuff?
-    // The ?? operator is needed because ServerUrl is populated when running embedded and connection
-    // string when running in external mode. However, the tricky part is that when tests are run they
-    // behave like if it was external mode. If the connection string contain always only the server
-    // URL, this code is safe, otherwise it need to be adjusted to extract the server URL.
+    // Connection string is composed of the server URL. The ?? operator is needed because ServerUrl
+    // is populated when running embedded and connection string when running in external mode.
+    // However, the tricky part is that when tests are run they behave like if it was external mode.
+    // ServerUrl is always populated by the persister settings, hence the code first checks for the
+    // presence of a connection string, and if null, falls back to ServerUrl
     readonly HttpClient client = new() { BaseAddress = new Uri(persisterSettings.ConnectionString ?? persisterSettings.ServerUrl) };
 
     record ResponseDto
