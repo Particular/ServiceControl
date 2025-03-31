@@ -106,7 +106,7 @@ namespace ServiceControl.CompositeViews.Messages
             var forwarderError = await forwarder.SendAsync(HttpContext, remote.BaseAddress, httpMessageInvoker);
             if (forwarderError != ForwarderError.None && HttpContext.GetForwarderErrorFeature()?.Exception is { } exception)
             {
-                logger.Warn($"Failed to forward the request ot remote instance at {remote.BaseAddress + HttpContext.Request.GetEncodedPathAndQuery()}.", exception);
+                logger.Warn($"Failed to forward the request to remote instance at {remote.BaseAddress}{HttpContext.Request.GetEncodedPathAndQuery()}.", exception);
             }
 
             return Empty;

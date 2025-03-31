@@ -174,6 +174,40 @@ namespace ServiceControl.Persistence
             return source;
         }
 
+        public static IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> FilterBySentTimeRange(this IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> source, string range)
+        {
+            if (string.IsNullOrWhiteSpace(range))
+            {
+                return source;
+            }
+
+            var filters = range.Split(SplitChars, StringSplitOptions.None);
+            DateTime from, to;
+            try
+            {
+
+                if (filters.Length == 2)
+                {
+                    from = DateTime.Parse(filters[0], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+                    to = DateTime.Parse(filters[1], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+                    source.Where(m => m.TimeSent >= from && m.TimeSent <= to);
+
+                }
+                else
+                {
+                    from = DateTime.Parse(filters[0], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+                    source.Where(m => m.TimeSent >= from);
+                }
+            }
+            catch (Exception)
+            {
+                throw new Exception(
+                    "Invalid sent time date range, dates need to be in ISO8601 format and it needs to be a range eg. 2016-03-11T00:27:15.474Z...2016-03-16T03:27:15.474Z");
+            }
+
+            return source;
+        }
+
         public static IAsyncDocumentQuery<T> FilterByQueueAddress<T>(this IAsyncDocumentQuery<T> source, string queueAddress)
         {
             if (string.IsNullOrWhiteSpace(queueAddress))
