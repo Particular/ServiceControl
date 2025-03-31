@@ -9,9 +9,10 @@ namespace ServiceControl.CompositeViews.Messages
     public record ScatterGatherApiMessageViewWithSystemMessagesContext(
         PagingInfo PagingInfo,
         SortInfo SortInfo,
-        bool IncludeSystemMessages) : ScatterGatherApiMessageViewContext(PagingInfo, SortInfo);
+        bool IncludeSystemMessages,
+        string TimeSentRange = null) : ScatterGatherApiMessageViewContext(PagingInfo, SortInfo, TimeSentRange);
 
-    public record ScatterGatherApiMessageViewContext(PagingInfo PagingInfo, SortInfo SortInfo) : ScatterGatherContext(PagingInfo);
+    public record ScatterGatherApiMessageViewContext(PagingInfo PagingInfo, SortInfo SortInfo, string TimeSentRange = null) : ScatterGatherContext(PagingInfo);
 
     public abstract class ScatterGatherApiMessageView<TDataStore, TInput> : ScatterGatherApi<TDataStore, TInput, IList<MessagesView>>
         where TInput : ScatterGatherApiMessageViewContext
@@ -51,7 +52,7 @@ namespace ServiceControl.CompositeViews.Messages
                 combined.Sort(comparer);
             }
 
-            return combined;
+            return combined.Take(input.PagingInfo.PageSize).ToList();
         }
 
         IComparer<MessagesView> FinalOrder(SortInfo sortInfo) => MessageViewComparer.FromSortInfo(sortInfo);

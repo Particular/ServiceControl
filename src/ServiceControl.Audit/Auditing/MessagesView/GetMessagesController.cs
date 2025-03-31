@@ -17,7 +17,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IList<MessagesView>> GetAllMessages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, [FromQuery(Name = "include_system_messages")] bool includeSystemMessages, CancellationToken cancellationToken)
         {
-            var result = await dataStore.GetMessages(includeSystemMessages, pagingInfo, sortInfo, cancellationToken);
+            var result = await dataStore.GetMessages(includeSystemMessages, pagingInfo, sortInfo, null, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
@@ -26,7 +26,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IList<MessagesView>> GetEndpointMessages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, [FromQuery(Name = "include_system_messages")] bool includeSystemMessages, string endpoint, CancellationToken cancellationToken)
         {
-            var result = await dataStore.QueryMessagesByReceivingEndpoint(includeSystemMessages, endpoint, pagingInfo, sortInfo, cancellationToken);
+            var result = await dataStore.QueryMessagesByReceivingEndpoint(includeSystemMessages, endpoint, pagingInfo, sortInfo, null, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
@@ -70,7 +70,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string q, CancellationToken cancellationToken)
         {
-            var result = await dataStore.QueryMessages(q, pagingInfo, sortInfo, cancellationToken);
+            var result = await dataStore.QueryMessages(q, pagingInfo, sortInfo, null, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
@@ -79,7 +79,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IList<MessagesView>> SearchByKeyWord([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string keyword, CancellationToken cancellationToken)
         {
-            var result = await dataStore.QueryMessages(keyword, pagingInfo, sortInfo, cancellationToken);
+            var result = await dataStore.QueryMessages(keyword, pagingInfo, sortInfo, null, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
@@ -88,7 +88,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string q, CancellationToken cancellationToken)
         {
-            var result = await dataStore.QueryMessagesByReceivingEndpointAndKeyword(endpoint, q, pagingInfo, sortInfo, cancellationToken);
+            var result = await dataStore.QueryMessagesByReceivingEndpointAndKeyword(endpoint, q, pagingInfo, sortInfo, null, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
@@ -97,7 +97,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IList<MessagesView>> SearchByKeyword([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string keyword, CancellationToken cancellationToken)
         {
-            var result = await dataStore.QueryMessagesByReceivingEndpointAndKeyword(endpoint, keyword, pagingInfo, sortInfo, cancellationToken);
+            var result = await dataStore.QueryMessagesByReceivingEndpointAndKeyword(endpoint, keyword, pagingInfo, sortInfo, null, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }

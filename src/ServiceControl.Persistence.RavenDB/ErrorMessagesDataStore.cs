@@ -34,12 +34,14 @@
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(
             PagingInfo pagingInfo,
             SortInfo sortInfo,
-            bool includeSystemMessages
+            bool includeSystemMessages,
+            string timeSentRange
             )
         {
             using var session = await sessionProvider.OpenSession();
             var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                 .IncludeSystemMessagesWhere(includeSystemMessages)
+                .FilterBySentTimeRange(timeSentRange)
                 .Statistics(out var stats)
                 .Sort(sortInfo)
                 .Paging(pagingInfo)
@@ -55,12 +57,14 @@
             string endpointName,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
-            bool includeSystemMessages
+            bool includeSystemMessages,
+            string timeSentRange
             )
         {
             using var session = await sessionProvider.OpenSession();
             var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                 .IncludeSystemMessagesWhere(includeSystemMessages)
+                .FilterBySentTimeRange(timeSentRange)
                 .Where(m => m.ReceivingEndpointName == endpointName)
                 .Statistics(out var stats)
                 .Sort(sortInfo)
@@ -78,7 +82,8 @@
             string endpointName,
             string searchKeyword,
             PagingInfo pagingInfo,
-            SortInfo sortInfo
+            SortInfo sortInfo,
+            string timeSentRange
             )
         {
             using var session = await sessionProvider.OpenSession();
@@ -86,6 +91,7 @@
                 .Statistics(out var stats)
                 .Search(x => x.Query, searchKeyword)
                 .Where(m => m.ReceivingEndpointName == endpointName)
+                .FilterBySentTimeRange(timeSentRange)
                 .Sort(sortInfo)
                 .Paging(pagingInfo)
                 .OfType<FailedMessage>()
@@ -120,13 +126,15 @@
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(
             string searchTerms,
             PagingInfo pagingInfo,
-            SortInfo sortInfo
+            SortInfo sortInfo,
+            string timeSentRange
             )
         {
             using var session = await sessionProvider.OpenSession();
             var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                 .Statistics(out var stats)
                 .Search(x => x.Query, searchTerms)
+                .FilterBySentTimeRange(timeSentRange)
                 .Sort(sortInfo)
                 .Paging(pagingInfo)
                 .OfType<FailedMessage>()
