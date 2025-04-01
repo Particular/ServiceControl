@@ -3,13 +3,14 @@ import { reactive, ref } from "vue";
 import Header from "@/resources/Header.ts";
 import type EndpointDetails from "@/resources/EndpointDetails.ts";
 import FailedMessage, { ExceptionDetails, FailedMessageStatus } from "@/resources/FailedMessage.ts";
-import useEditAndRetry from "@/composables/useEditAndRetry.ts";
+import { editRetryConfig } from "@/composables/useEditAndRetry.ts";
 import { useFetchFromServiceControl, useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls.ts";
-import Message from "@/resources/Message.ts";
+import Message, { MessageStatus } from "@/resources/Message.ts";
 import moment from "moment/moment";
 import { useConfiguration } from "@/composables/configuration.ts";
 import { parse, stringify } from "lossless-json";
 import xmlFormat from "xml-formatter";
+import { useArchiveMessage, useRetryMessages, useUnarchiveMessage } from "@/composables/serviceFailedMessage.ts";
 
 interface DataContainer<T> {
   loading?: boolean;
@@ -26,6 +27,8 @@ interface Model {
   sending_endpoint?: EndpointDetails;
   receiving_endpoint?: EndpointDetails;
   body_url?: string;
+  status?: MessageStatus;
+  processed_at?: string;
   failure_status: Partial<{
     retried: boolean;
     archiving: boolean;
@@ -61,8 +64,21 @@ export const useMessageViewStore = defineStore("MessageViewStore", () => {
   const headers = ref<DataContainer<Header[]>>({ data: [] });
   const body = ref<DataContainer<{ value?: string; content_type?: string }>>({ data: {} });
   const state = reactive<DataContainer<Model>>({ data: { failure_metadata: {}, failure_status: {}, dialog_status: {} } });
+  let bodyLoadedId = "";
+  let conversationLoadedId = "";
+  const conversationData = ref<DataContainer<Message[]>>({ data: [] });
+
+  function reset() {
+    state.data = { failure_metadata: {}, failure_status: {}, dialog_status: {} };
+    headers.value.data = [];
+    body.value.data = { value: "", content_type: "" };
+    bodyLoadedId = "";
+    conversationLoadedId = "";
+    conversationData.value.data = [];
+  }
 
   async function loadFailedMessage(id: string) {
+    state.data.id = id;
     state.loading = true;
     state.failed_to_load = false;
     state.not_found = false;
@@ -78,15 +94,27 @@ export const useMessageViewStore = defineStore("MessageViewStore", () => {
       }
 
       const message = (await response.json()) as FailedMessage;
+      state.data.message_id = message.message_id;
+      state.data.message_type = message.message_type;
+      state.data.sending_endpoint = message.sending_endpoint;
+      state.data.receiving_endpoint = message.receiving_endpoint;
       state.data.failure_status.archived = message.status === FailedMessageStatus.Archived;
       state.data.failure_status.resolved = message.status === FailedMessageStatus.Resolved;
       state.data.failure_status.retried = message.status === FailedMessageStatus.RetryIssued;
       state.data.failure_metadata.last_modified = message.last_modified;
+      state.data.failure_metadata.exception = message.exception;
+      state.data.failure_metadata.time_of_failure = message.time_of_failure;
+      state.data.failure_metadata.edited = message.edited;
+      state.data.failure_metadata.edit_of = message.edit_of;
+      state.data.failure_metadata.number_of_processing_attempts = message.number_of_processing_attempts;
+      state.data.failure_metadata.status = message.status;
+
+      await loadMessage(state.data.message_id, id);
     } catch {
-      state.failed_to_load = headers.value.failed_to_load = true;
+      state.failed_to_load = true;
       return;
     } finally {
-      state.loading = headers.value.loading = false;
+      state.loading = false;
     }
 
     const countdown = moment(state.data.failure_metadata.last_modified).add(error_retention_period, "hours");
@@ -96,7 +124,8 @@ export const useMessageViewStore = defineStore("MessageViewStore", () => {
     // TODO: Maintain the mutations of the message in memory until the api returns a newer modified message
   }
 
-  async function loadMessage(messageId: string, receivingEndpointName: string) {
+  async function loadMessage(messageId: string, id: string) {
+    state.data.id = id;
     state.loading = headers.value.loading = true;
     state.failed_to_load = headers.value.failed_to_load = false;
     state.not_found = headers.value.not_found = false;
@@ -104,7 +133,7 @@ export const useMessageViewStore = defineStore("MessageViewStore", () => {
     try {
       const [, data] = await useTypedFetchFromServiceControl<Message[]>(`messages/search/${messageId}`);
 
-      const message = data.find((value) => value.receiving_endpoint.name === receivingEndpointName);
+      const message = data.find((value) => value.id === id);
 
       if (!message) {
         state.not_found = headers.value.not_found = true;
@@ -117,6 +146,8 @@ export const useMessageViewStore = defineStore("MessageViewStore", () => {
       state.data.message_type = message.message_type;
       state.data.sending_endpoint = message.sending_endpoint;
       state.data.receiving_endpoint = message.receiving_endpoint;
+      state.data.status = message.status;
+      state.data.processed_at = message.processed_at;
 
       headers.value.data = message.headers;
     } catch {
@@ -126,18 +157,37 @@ export const useMessageViewStore = defineStore("MessageViewStore", () => {
     }
   }
 
-  async function downloadBody() {
-    if (body.value.not_found) {
+  async function loadConversation(conversationId: string) {
+    if (conversationId === conversationLoadedId) {
       return;
     }
 
+    conversationLoadedId = conversationId;
+    conversationData.value.loading = true;
+    try {
+      const [, data] = await useTypedFetchFromServiceControl<Message[]>(`conversations/${conversationId}`);
+
+      conversationData.value.data = data;
+    } catch {
+      conversationData.value.failed_to_load = true;
+    } finally {
+      conversationData.value.loading = false;
+    }
+  }
+
+  async function downloadBody() {
+    if (!state.data.body_url) {
+      return;
+    }
+    if (state.data.id === bodyLoadedId) {
+      return;
+    }
+
+    bodyLoadedId = state.data.id ?? "";
     body.value.loading = true;
     body.value.failed_to_load = false;
 
     try {
-      if (!state.data.body_url) {
-        return;
-      }
       const response = await useFetchFromServiceControl(state.data.body_url.substring(1));
       if (response.status === 404) {
         body.value.not_found = true;
@@ -162,6 +212,54 @@ export const useMessageViewStore = defineStore("MessageViewStore", () => {
     }
   }
 
+  async function archiveMessage() {
+    if (state.data.id) {
+      await useArchiveMessage([state.data.id]);
+      state.data.failure_status.archiving = true;
+    }
+  }
+
+  async function restoreMessage() {
+    if (state.data.id) {
+      await useUnarchiveMessage([state.data.id]);
+      state.data.failure_status.restoring = true;
+    }
+  }
+
+  async function retryMessage() {
+    if (state.data.id) {
+      await useRetryMessages([state.data.id]);
+      state.data.failure_status.retried = true;
+    }
+  }
+
+  async function exportMessage() {
+    if (state.failed_to_load || state.not_found) {
+      return "";
+    }
+
+    let exportString = "";
+    if (state.data.failure_metadata.exception?.stack_trace !== undefined) {
+      exportString += "STACKTRACE\n";
+      exportString += state.data.failure_metadata.exception.stack_trace;
+      exportString += "\n\n";
+    }
+
+    exportString += "HEADERS";
+    for (let i = 0; i < headers.value.data.length; i++) {
+      exportString += `\n${headers.value.data[i].key}: ${headers.value.data[i].value}`;
+    }
+
+    await downloadBody();
+
+    if (!(body.value.not_found || body.value.failed_to_load)) {
+      exportString += "\n\nMESSAGE BODY\n";
+      exportString += body.value.data.value;
+    }
+
+    return exportString;
+  }
+
   const configuration = useConfiguration();
   const error_retention_period = moment.duration(configuration.value?.data_retention.error_retention_period).asHours();
 
@@ -169,10 +267,17 @@ export const useMessageViewStore = defineStore("MessageViewStore", () => {
     headers,
     body,
     state,
-    edit_and_retry_config: useEditAndRetry(),
+    edit_and_retry_config: editRetryConfig,
+    reset,
     loadMessage,
     loadFailedMessage,
+    loadConversation,
     downloadBody,
+    exportMessage,
+    archiveMessage,
+    restoreMessage,
+    retryMessage,
+    conversationData,
   };
 });
 

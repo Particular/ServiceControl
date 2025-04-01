@@ -2,12 +2,11 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRetryEditedMessage } from "@/composables/serviceFailedMessage.ts";
 import MessageHeader from "./EditMessageHeader.vue";
-import { EditAndRetryConfig } from "@/resources/Configuration";
 import type Header from "@/resources/Header";
-import { ExtendedFailedMessage } from "@/resources/FailedMessage";
 import parseContentType from "@/composables/contentTypeParser";
 import { CodeLanguage } from "@/components/codeEditorTypes";
 import CodeEditor from "@/components/CodeEditor.vue";
+import { useMessageViewStore } from "@/stores/MessageViewStore.ts";
 
 interface HeaderWithEditing extends Header {
   isLocked: boolean;
@@ -18,13 +17,7 @@ interface HeaderWithEditing extends Header {
 
 const emit = defineEmits<{
   cancel: [];
-  retried: [];
-}>();
-
-const props = defineProps<{
-  id: string;
-  message: ExtendedFailedMessage;
-  configuration: EditAndRetryConfig;
+  confirm: [];
 }>();
 
 interface LocalMessageState {
@@ -57,9 +50,9 @@ let origMessageBody: string;
 const showEditAndRetryConfirmation = ref(false);
 const showCancelConfirmation = ref(false);
 const showEditRetryGenericError = ref(false);
-
-const id = computed(() => props.id);
-const messageBody = computed(() => props.message.messageBody);
+const store = useMessageViewStore();
+const id = computed(() => store.state.data.id ?? "");
+const messageBody = computed(() => store.body.data.value);
 
 watch(messageBody, (newValue) => {
   if (newValue !== origMessageBody) {
@@ -118,7 +111,7 @@ async function retryEditedMessage() {
   try {
     await useRetryEditedMessage(id.value, localMessage);
     localMessage.value.retried = true;
-    return emit("retried");
+    return emit("confirm");
   } catch {
     showEditAndRetryConfirmation.value = false;
     showEditRetryGenericError.value = true;
@@ -126,17 +119,17 @@ async function retryEditedMessage() {
 }
 
 function initializeMessageBodyAndHeaders() {
-  origMessageBody = props.message.messageBody;
+  origMessageBody = store.body.data.value ?? "";
   localMessage.value = {
     isBodyChanged: false,
     isBodyEmpty: false,
     isContentTypeSupported: false,
     bodyContentType: undefined,
-    bodyUnavailable: props.message.bodyUnavailable,
+    bodyUnavailable: store.body.not_found ?? false,
     isEvent: false,
-    retried: props.message.retried,
-    headers: props.message.headers.map((header: Header) => ({ ...header })) as HeaderWithEditing[],
-    messageBody: props.message.messageBody,
+    retried: store.state.data.failure_status.retried ?? false,
+    headers: store.headers.data.map((header: Header) => ({ ...header })) as HeaderWithEditing[],
+    messageBody: store.body.data.value ?? "",
   };
   localMessage.value.isBodyEmpty = false;
   localMessage.value.isBodyChanged = false;
@@ -150,17 +143,17 @@ function initializeMessageBodyAndHeaders() {
   const messageIntent = getMessageIntent();
   localMessage.value.isEvent = messageIntent === "Publish";
 
-  for (let index = 0; index < props.message.headers.length; index++) {
-    const header: HeaderWithEditing = props.message.headers[index] as HeaderWithEditing;
+  for (let index = 0; index < store.headers.data.length; index++) {
+    const header: HeaderWithEditing = store.headers.data[index] as HeaderWithEditing;
 
     header.isLocked = false;
     header.isSensitive = false;
     header.isMarkedAsRemoved = false;
     header.isChanged = false;
 
-    if (props.configuration.locked_headers.includes(header.key)) {
+    if (store.edit_and_retry_config.locked_headers.includes(header.key)) {
       header.isLocked = true;
-    } else if (props.configuration.sensitive_headers.includes(header.key)) {
+    } else if (store.edit_and_retry_config.sensitive_headers.includes(header.key)) {
       header.isSensitive = true;
     }
 

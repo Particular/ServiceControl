@@ -2,15 +2,11 @@ import { useTypedFetchFromServiceControl } from "@/composables/serviceServiceCon
 import { EditAndRetryConfig } from "@/resources/Configuration.ts";
 import { ref } from "vue";
 
-const editAndRetry = ref<EditAndRetryConfig>();
+export const editRetryConfig = ref<EditAndRetryConfig>({ enabled: false, locked_headers: [], sensitive_headers: [] });
 
 async function populate() {
   const [, data] = await useTypedFetchFromServiceControl<EditAndRetryConfig>("edit/config");
 
-  editAndRetry.value = data;
+  editRetryConfig.value = data;
 }
 populate();
-
-export default function useEditAndRetry(): EditAndRetryConfig {
-  return editAndRetry.value ?? { enabled: false, locked_headers: [], sensitive_headers: [] };
-}

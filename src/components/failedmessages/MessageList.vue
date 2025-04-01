@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import TimeSince from "../TimeSince.vue";
 import NoData from "../NoData.vue";
 import routeLinks from "@/router/routeLinks";
@@ -17,7 +17,6 @@ export interface IMessageList {
 
 let lastLabelClickedIndex: number | undefined;
 const router = useRouter();
-const route = useRoute();
 const emit = defineEmits(["retryRequested"]);
 const props = withDefaults(
   defineProps<{
@@ -78,7 +77,7 @@ function labelClicked($event: MouseEvent, index: number) {
 }
 
 function navigateToMessage(messageId: string) {
-  router.push({ path: routeLinks.messages.message.link(messageId), query: { back: route.path } });
+  router.push({ path: routeLinks.messages.failedMessage.link(messageId) });
 }
 
 defineExpose<IMessageList>({

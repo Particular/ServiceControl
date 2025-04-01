@@ -33,7 +33,8 @@ const failedMessagesLinks = (root: string) => {
 const messagesLinks = (root: string) => {
   return {
     root,
-    message: { link: (id: string) => `${root}/${id}`, template: "/messages/:id" },
+    failedMessage: { link: (id: string) => `${root}/${id}`, template: "/messages/:id" },
+    successMessage: { link: (messageId: string, id: string) => `${root}/${messageId}/${id}`, template: "/messages/:messageId/:id" },
   };
 };
 

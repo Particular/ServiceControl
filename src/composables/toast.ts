@@ -21,3 +21,8 @@ export function useShowToast(type: TYPE, title: string, message: string, doNotUs
     ...options,
   });
 }
+
+export const showToastAfterOperation = async (operation: () => Promise<void>, toastType: TYPE, title: string, message: string) => {
+  await operation();
+  useShowToast(toastType, title, message);
+};

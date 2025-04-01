@@ -102,14 +102,19 @@ const config: RouteItem[] = [
       {
         path: routeLinks.failedMessage.message.template,
         title: "Message",
-        redirect: routeLinks.messages.message.template,
+        redirect: routeLinks.messages.failedMessage.template,
       },
     ],
   },
   {
-    path: routeLinks.messages.message.template,
+    path: routeLinks.messages.failedMessage.template,
     title: "Message",
-    component: () => import("@/components/messages/MessageView.vue"),
+    component: () => import("@/components/messages/MessageView2.vue"),
+  },
+  {
+    path: routeLinks.messages.successMessage.template,
+    title: "Message",
+    component: () => import("@/components/messages/MessageView2.vue"),
   },
   {
     path: routeLinks.monitoring.root,

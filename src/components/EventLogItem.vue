@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import TimeSince from "../components/TimeSince.vue";
 import type EventLogItem from "@/resources/EventLogItem";
 // eslint-disable-next-line no-duplicate-imports
@@ -8,7 +8,6 @@ import routeLinks from "@/router/routeLinks";
 
 defineProps<{ eventLogItem: EventLogItem }>();
 const router = useRouter();
-const route = useRoute();
 
 function navigateToEvent(eventLogItem: EventLogItem) {
   switch (eventLogItem.category) {
@@ -27,7 +26,7 @@ function navigateToEvent(eventLogItem: EventLogItem) {
     case "MessageFailures":
       if (eventLogItem.related_to?.length && eventLogItem.related_to[0].search("message") > 0) {
         const messageId = eventLogItem.related_to[0].substring(9);
-        router.push({ path: routeLinks.messages.message.link(messageId), query: { back: route.path } });
+        router.push({ path: routeLinks.messages.failedMessage.link(messageId) });
       } else {
         router.push(routeLinks.failedMessage.root);
       }
