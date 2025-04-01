@@ -21,12 +21,6 @@ export default interface Message {
   body_size: number;
   instance_id: string;
 }
-export interface ExtendedMessage extends Message {
-  notFound: boolean;
-  error: boolean;
-  headersNotFound: boolean;
-  messageBodyNotFound: boolean;
-}
 
 export enum MessageStatus {
   Failed = "failed",
