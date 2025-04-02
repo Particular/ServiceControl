@@ -53,10 +53,10 @@ A long (though not exhaustive) list, although not every change will merit runnin
 
 Try to break ServiceControl instances by gracefully (CTRL+C) and ungracefully (kill) processes to validate if both storage and logic behavior correctly. This type of testing is very difficult to automate.
 
-- [ ] Ingestion, have the smoketest tool or the load generator generator create a large number of messsages:
+- [ ] Ingestion, have the smoketest tool or the load generator generator create a large number of messages:
   - [ ] Gracefully stop (CTRL+C) processes
   - [ ] Ungracefully (kill)  processes
-- [ ] Retry groups, create a large retry group and interrup these:
+- [ ] Retry groups, create a large retry group and interrupt these:
   - [ ] Gracefully stop (CTRL+C) processes
   - [ ] Ungracefully (kill)  processes
 
@@ -71,7 +71,7 @@ Test the new version against the previous version.
   - [ ] Rebooting the machine and verifying that ServiceControl instances start in a reasonable amount of time and behave correctly
   - [ ] Stopping ServiceControl Windows services, verifying they stop as expected, and subsequently start in a reasonable amount of time and behave correctly
   - [ ] Killing the hosting virtual machine from the Azure portal and verifying instances behave correctly after the reboot
-  - [ ] Trying to upgrade instances to newer versions while ingestion runs at full speed under load, and verify the upgrade is successful 
+  - [ ] Trying to upgrade instances to newer versions while ingestion runs at full speed under load and verify the upgrade is successful 
 
 Review CPU/RAM utilization and disk IO.
 
