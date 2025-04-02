@@ -11,7 +11,7 @@ namespace ServiceControl.CompositeViews.Messages
         PagingInfo PagingInfo,
         SortInfo SortInfo,
         string SearchQuery,
-        string TimeSentRange = null)
+        DateTimeRange TimeSentRange = null)
         : ScatterGatherApiMessageViewContext(PagingInfo, SortInfo, TimeSentRange);
 
     public class SearchApi : ScatterGatherApiMessageView<IErrorMessageDataStore, SearchApiContext>

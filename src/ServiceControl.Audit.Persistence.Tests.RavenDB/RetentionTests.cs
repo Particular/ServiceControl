@@ -28,15 +28,13 @@
         {
             var message = MakeMessage("MyMessageId");
 
-            await IngestProcessedMessagesAudits(
-                message
-                );
+            await IngestProcessedMessagesAudits(message);
 
-            var queryResultBeforeExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), null, TestContext.CurrentContext.CancellationToken);
+            var queryResultBeforeExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
 
             await Task.Delay(4000);
 
-            var queryResultAfterExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), null, TestContext.CurrentContext.CancellationToken);
+            var queryResultAfterExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResultBeforeExpiration.Results, Has.Count.EqualTo(1));
             Assert.Multiple(() =>

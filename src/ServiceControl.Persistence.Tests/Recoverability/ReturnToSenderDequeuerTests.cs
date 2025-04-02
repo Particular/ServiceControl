@@ -168,22 +168,24 @@
 
         class FakeErrorMessageDataStore : IErrorMessageDataStore
         {
-            public Task<byte[]> FetchFromFailedMessage(string bodyId) => Task.FromResult(Encoding.UTF8.GetBytes(bodyId));
-
-            public Task<QueryResult<IList<MessagesView>>> GetAllMessages(PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages, string timeSentRange) => throw new NotImplementedException();
+            public Task<QueryResult<IList<MessagesView>>> GetAllMessages(PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages,
+                DateTimeRange timeSentRange = null) =>
+                throw new NotImplementedException();
 
             public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(string endpointName, PagingInfo pagingInfo, SortInfo sortInfo,
-                bool includeSystemMessages, string timeSentRange) =>
+                bool includeSystemMessages, DateTimeRange timeSentRange = null) =>
                 throw new NotImplementedException();
 
             public Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo,
                 bool includeSystemMessages) =>
                 throw new NotImplementedException();
 
-            public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(string searchTerms, PagingInfo pagingInfo, SortInfo sortInfo, string timeSentRange) => throw new NotImplementedException();
+            public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(string searchTerms, PagingInfo pagingInfo, SortInfo sortInfo,
+                DateTimeRange timeSentRange = null) =>
+                throw new NotImplementedException();
 
             public Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(string endpointName, string searchKeyword, PagingInfo pagingInfo, SortInfo sortInfo,
-                string timeSentRange) =>
+                DateTimeRange timeSentRange = null) =>
                 throw new NotImplementedException();
 
             public Task FailedMessageMarkAsArchived(string failedMessageId) => throw new NotImplementedException();
@@ -238,6 +240,7 @@
 
             public Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress) => throw new NotImplementedException();
 
+            public Task<byte[]> FetchFromFailedMessage(string bodyId) => Task.FromResult(Encoding.UTF8.GetBytes(bodyId));
             public Task StoreEventLogItem(EventLogItem logItem) => throw new NotImplementedException();
 
             public Task StoreFailedMessagesForTestsOnly(params FailedMessage[] failedMessages) => throw new NotImplementedException();

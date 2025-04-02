@@ -12,7 +12,7 @@ namespace ServiceControl.CompositeViews.Messages
         SortInfo SortInfo,
         bool IncludeSystemMessages,
         string EndpointName,
-        string TimeSentRange = null)
+        DateTimeRange TimeSentRange = null)
         : ScatterGatherApiMessageViewWithSystemMessagesContext(PagingInfo, SortInfo, IncludeSystemMessages, TimeSentRange);
 
     public class GetAllMessagesForEndpointApi : ScatterGatherApiMessageView<IErrorMessageDataStore, AllMessagesForEndpointContext>

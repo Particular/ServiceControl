@@ -18,7 +18,8 @@ public class GetMessages2Controller(IAuditDataStore dataStore) : ControllerBase
         [FromQuery] SortInfo sortInfo,
         [FromQuery(Name = "page_size")] int pageSize,
         [FromQuery(Name = "endpoint_name")] string endpointName,
-        [FromQuery(Name = "range")] string range,
+        [FromQuery(Name = "from")] string from,
+        [FromQuery(Name = "to")] string to,
         string q,
         CancellationToken cancellationToken)
     {
@@ -28,11 +29,11 @@ public class GetMessages2Controller(IAuditDataStore dataStore) : ControllerBase
         {
             if (string.IsNullOrWhiteSpace(q))
             {
-                result = await dataStore.GetMessages(false, pagingInfo, sortInfo, range, cancellationToken);
+                result = await dataStore.GetMessages(false, pagingInfo, sortInfo, new DateTimeRange(from, to), cancellationToken);
             }
             else
             {
-                result = await dataStore.QueryMessages(q, pagingInfo, sortInfo, range, cancellationToken);
+                result = await dataStore.QueryMessages(q, pagingInfo, sortInfo, new DateTimeRange(from, to), cancellationToken);
             }
         }
         else
@@ -40,12 +41,12 @@ public class GetMessages2Controller(IAuditDataStore dataStore) : ControllerBase
             if (string.IsNullOrWhiteSpace(q))
             {
                 result = await dataStore.QueryMessagesByReceivingEndpoint(false, endpointName, pagingInfo, sortInfo,
-                    range, cancellationToken);
+                    new DateTimeRange(from, to), cancellationToken);
             }
             else
             {
                 result = await dataStore.QueryMessagesByReceivingEndpointAndKeyword(endpointName, q, pagingInfo,
-                    sortInfo, range, cancellationToken);
+                    sortInfo, new DateTimeRange(from, to), cancellationToken);
             }
         }
 

@@ -35,7 +35,7 @@
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages,
-            string timeSentRange
+            DateTimeRange timeSentRange
             )
         {
             using var session = await sessionProvider.OpenSession();
@@ -58,7 +58,7 @@
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages,
-            string timeSentRange
+            DateTimeRange timeSentRange
             )
         {
             using var session = await sessionProvider.OpenSession();
@@ -83,7 +83,7 @@
             string searchKeyword,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
-            string timeSentRange
+            DateTimeRange timeSentRange
             )
         {
             using var session = await sessionProvider.OpenSession();
@@ -127,7 +127,7 @@
             string searchTerms,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
-            string timeSentRange
+            DateTimeRange timeSentRange
             )
         {
             using var session = await sessionProvider.OpenSession();
