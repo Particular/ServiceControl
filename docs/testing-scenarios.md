@@ -60,13 +60,18 @@ Try to break ServiceControl instances by gracefully (CTRL+C) and ungracefully (k
   - [ ] Gracefully stop (CTRL+C) processes
   - [ ] Ungracefully (kill)  processes
 
-## Performance / load testing
+## Performance/Load testing
 
 Test the new version against the previous version.
 
 - [ ] Test performance with a clean database
 - [ ] Test performance with a moderate database that exceeds the RAM of the machine
-- [ ] Test performance of a large database that exceeds
+- [ ] Test performance of a large database that exceeds 500 GB
+- [ ] Test stability by:
+  - [ ] Rebooting the machine and verifying that ServiceControl instances start in a reasonable amount of time and behave correctly
+  - [ ] Stopping ServiceControl Windows services, verifying they stop as expected, and subsequently start in a reasonable amount of time and behave correctly
+  - [ ] Killing the hosting virtual machine from the Azure portal and verifying instances behave correctly after the reboot
+  - [ ] Trying to upgrade instances to newer versions while ingestion runs at full speed under load, and verify the upgrade is successful 
 
 Review CPU/RAM utilization and disk IO.
 
