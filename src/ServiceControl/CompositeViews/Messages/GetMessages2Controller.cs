@@ -22,7 +22,8 @@ public class GetMessages2Controller(
         [FromQuery] SortInfo sortInfo,
         [FromQuery(Name = "page_size")] int pageSize,
         [FromQuery(Name = "endpoint_name")] string endpointName,
-        [FromQuery(Name = "range")] string range,
+        [FromQuery(Name = "from")] string from,
+        [FromQuery(Name = "to")] string to,
         string q)
     {
         QueryResult<IList<MessagesView>> result;
@@ -33,13 +34,13 @@ public class GetMessages2Controller(
             {
                 result = await allMessagesApi.Execute(
                     new ScatterGatherApiMessageViewWithSystemMessagesContext(pagingInfo,
-                        sortInfo, false, range),
+                        sortInfo, false, new DateTimeRange(from, to)),
                     Request.GetEncodedPathAndQuery());
             }
             else
             {
                 result = await searchApi.Execute(
-                    new SearchApiContext(pagingInfo, sortInfo, q, range),
+                    new SearchApiContext(pagingInfo, sortInfo, q, new DateTimeRange(from, to)),
                     Request.GetEncodedPathAndQuery());
             }
         }
@@ -49,12 +50,12 @@ public class GetMessages2Controller(
             {
                 result = await allMessagesEndpointApi.Execute(
                     new AllMessagesForEndpointContext(pagingInfo, sortInfo, false,
-                        endpointName, range),
+                        endpointName, new DateTimeRange(from, to)),
                     Request.GetEncodedPathAndQuery());
             }
             else
             {
-                result = await searchEndpointApi.Execute(new SearchEndpointContext(pagingInfo, sortInfo, q, endpointName, range),
+                result = await searchEndpointApi.Execute(new SearchEndpointContext(pagingInfo, sortInfo, q, endpointName, new DateTimeRange(from, to)),
                     Request.GetEncodedPathAndQuery());
             }
         }

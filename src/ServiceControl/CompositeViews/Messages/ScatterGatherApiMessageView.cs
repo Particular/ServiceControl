@@ -10,9 +10,9 @@ namespace ServiceControl.CompositeViews.Messages
         PagingInfo PagingInfo,
         SortInfo SortInfo,
         bool IncludeSystemMessages,
-        string TimeSentRange = null) : ScatterGatherApiMessageViewContext(PagingInfo, SortInfo, TimeSentRange);
+        DateTimeRange TimeSentRange = null) : ScatterGatherApiMessageViewContext(PagingInfo, SortInfo, TimeSentRange);
 
-    public record ScatterGatherApiMessageViewContext(PagingInfo PagingInfo, SortInfo SortInfo, string TimeSentRange = null) : ScatterGatherContext(PagingInfo);
+    public record ScatterGatherApiMessageViewContext(PagingInfo PagingInfo, SortInfo SortInfo, DateTimeRange TimeSentRange = null) : ScatterGatherContext(PagingInfo);
 
     public abstract class ScatterGatherApiMessageView<TDataStore, TInput> : ScatterGatherApi<TDataStore, TInput, IList<MessagesView>>
         where TInput : ScatterGatherApiMessageViewContext
