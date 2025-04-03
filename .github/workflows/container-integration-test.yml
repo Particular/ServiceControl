@@ -68,7 +68,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Azure Login
         if: ${{ matrix.name == 'asb' || matrix.name == 'asq' }}
-        uses: azure/login@v2.2.0
+        uses: azure/login@v2.3.0
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup Azure Service Bus
