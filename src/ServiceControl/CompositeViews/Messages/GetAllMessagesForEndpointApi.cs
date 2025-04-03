@@ -11,8 +11,9 @@ namespace ServiceControl.CompositeViews.Messages
         PagingInfo PagingInfo,
         SortInfo SortInfo,
         bool IncludeSystemMessages,
-        string EndpointName)
-        : ScatterGatherApiMessageViewWithSystemMessagesContext(PagingInfo, SortInfo, IncludeSystemMessages);
+        string EndpointName,
+        DateTimeRange TimeSentRange = null)
+        : ScatterGatherApiMessageViewWithSystemMessagesContext(PagingInfo, SortInfo, IncludeSystemMessages, TimeSentRange);
 
     public class GetAllMessagesForEndpointApi : ScatterGatherApiMessageView<IErrorMessageDataStore, AllMessagesForEndpointContext>
     {
@@ -21,6 +22,6 @@ namespace ServiceControl.CompositeViews.Messages
         {
         }
 
-        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(AllMessagesForEndpointContext input) => DataStore.GetAllMessagesForEndpoint(input.EndpointName, input.PagingInfo, input.SortInfo, input.IncludeSystemMessages);
+        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(AllMessagesForEndpointContext input) => DataStore.GetAllMessagesForEndpoint(input.EndpointName, input.PagingInfo, input.SortInfo, input.IncludeSystemMessages, input.TimeSentRange);
     }
 }

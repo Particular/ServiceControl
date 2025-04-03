@@ -174,6 +174,26 @@ namespace ServiceControl.Persistence
             return source;
         }
 
+        public static IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> FilterBySentTimeRange(this IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> source, DateTimeRange range)
+        {
+            if (range == null)
+            {
+                return source;
+            }
+
+            if (range.From.HasValue)
+            {
+                source = source.Where(m => m.TimeSent >= range.From);
+            }
+
+            if (range.To.HasValue)
+            {
+                source = source.Where(m => m.TimeSent <= range.To);
+            }
+
+            return source;
+        }
+
         public static IAsyncDocumentQuery<T> FilterByQueueAddress<T>(this IAsyncDocumentQuery<T> source, string queueAddress)
         {
             if (string.IsNullOrWhiteSpace(queueAddress))
