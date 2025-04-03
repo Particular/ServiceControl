@@ -8,6 +8,7 @@ import { NServiceBusHeaders } from "@/resources/Header";
 import { Controls } from "@vue-flow/controls";
 import { useMessageViewStore } from "@/stores/MessageViewStore.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { storeToRefs } from "pinia";
 
 enum MessageType {
   Event = "Event message",
@@ -40,6 +41,7 @@ const nodeSpacingX = 300;
 const nodeSpacingY = 200;
 
 const store = useMessageViewStore();
+const { state } = storeToRefs(useMessageViewStore());
 
 async function getConversation(conversationId: string) {
   await store.loadConversation(conversationId);
@@ -157,9 +159,9 @@ function constructEdges(mappedMessages: MappedMessage[]): DefaultEdge[] {
 const elements = ref<(Node | DefaultEdge)[]>([]);
 
 onMounted(async () => {
-  if (!store.state.data.conversation_id) return;
+  if (!state.value.data.conversation_id) return;
 
-  const messages = await getConversation(store.state.data.conversation_id);
+  const messages = await getConversation(state.value.data.conversation_id);
   const mappedMessages = messages.map(mapMessage);
 
   const assignDescendantLevelsAndWidth = (message: MappedMessage, level = 0) => {

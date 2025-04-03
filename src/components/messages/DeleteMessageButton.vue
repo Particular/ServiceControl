@@ -5,20 +5,22 @@ import { computed, ref } from "vue";
 import { showToastAfterOperation } from "@/composables/toast.ts";
 import { TYPE } from "vue-toastification";
 import { MessageStatus } from "@/resources/Message.ts";
+import { storeToRefs } from "pinia";
 
 const store = useMessageViewStore();
+const { state } = storeToRefs(store);
 const isConfirmDialogVisible = ref(false);
 
-const failureStatus = computed(() => store.state.data.failure_status);
+const failureStatus = computed(() => state.value.data.failure_status);
 const isDisabled = computed(() => failureStatus.value.retried || failureStatus.value.resolved);
-const isVisible = computed(() => !failureStatus.value.archived && store.state.data.status !== MessageStatus.Successful && store.state.data.status !== MessageStatus.ResolvedSuccessfully);
+const isVisible = computed(() => !failureStatus.value.archived && state.value.data.status !== MessageStatus.Successful && state.value.data.status !== MessageStatus.ResolvedSuccessfully);
 
 const handleConfirm = async () => {
   isConfirmDialogVisible.value = false;
 
-  const message = `Deleting the message ${store.state.data.id} ...`;
+  const message = `Deleting the message ${state.value.data.id} ...`;
   await showToastAfterOperation(store.archiveMessage, TYPE.INFO, "Info", message);
-  store.state.data.failure_status.archiving = true;
+  state.value.data.failure_status.archiving = true;
 };
 </script>
 

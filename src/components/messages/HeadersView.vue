@@ -2,8 +2,9 @@
 import CopyToClipboard from "@/components/CopyToClipboard.vue";
 import { computed, ref } from "vue";
 import { useMessageViewStore } from "@/stores/MessageViewStore.ts";
+import { storeToRefs } from "pinia";
 
-const store = useMessageViewStore();
+const { headers } = storeToRefs(useMessageViewStore());
 
 const hoverStates = ref<Record<number, boolean>>({});
 const searchTerm = ref<string>("");
@@ -13,9 +14,9 @@ const toggleHover = (index: number, state: boolean) => {
 // Computed property to filter headers based on search term
 const filteredHeaders = computed(() => {
   if (!searchTerm.value) {
-    return store.headers.data;
+    return headers.value.data;
   }
-  return store.headers.data.filter((header) => header.key.toLowerCase().includes(searchTerm.value.toLowerCase()) || header.value?.toLowerCase().includes(searchTerm.value.toLowerCase()));
+  return headers.value.data.filter((header) => header.key.toLowerCase().includes(searchTerm.value.toLowerCase()) || header.value?.toLowerCase().includes(searchTerm.value.toLowerCase()));
 });
 </script>
 
@@ -31,7 +32,7 @@ const filteredHeaders = computed(() => {
       </div>
     </div>
   </div>
-  <table class="table" v-if="filteredHeaders.length > 0 && !store.headers.not_found">
+  <table class="table" v-if="filteredHeaders.length > 0 && !headers.not_found">
     <tbody>
       <tr class="interactiveList" v-for="(header, index) in filteredHeaders" :key="index">
         <td nowrap="nowrap">{{ header.key }}</td>
@@ -46,8 +47,8 @@ const filteredHeaders = computed(() => {
   </table>
 
   <!-- Message if filtered list is empty -->
-  <div v-if="filteredHeaders.length <= 0 && !store.headers.not_found" class="alert alert-warning">No headers found matching the search term.</div>
-  <div v-if="store.headers.not_found" class="alert alert-info">Could not find message headers. This could be because the message URL is invalid or the corresponding message was processed and is no longer tracked by ServiceControl.</div>
+  <div v-if="filteredHeaders.length <= 0 && !headers.not_found" class="alert alert-warning">No headers found matching the search term.</div>
+  <div v-if="headers.not_found" class="alert alert-info">Could not find message headers. This could be because the message URL is invalid or the corresponding message was processed and is no longer tracked by ServiceControl.</div>
 </template>
 
 <style scoped>

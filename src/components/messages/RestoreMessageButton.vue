@@ -4,18 +4,20 @@ import { useMessageViewStore } from "@/stores/MessageViewStore.ts";
 import { computed, ref } from "vue";
 import { showToastAfterOperation } from "@/composables/toast.ts";
 import { TYPE } from "vue-toastification";
+import { storeToRefs } from "pinia";
 
 const store = useMessageViewStore();
+const { state } = storeToRefs(store);
 const isConfirmDialogVisible = ref(false);
 
-const failureStatus = computed(() => store.state.data.failure_status);
+const failureStatus = computed(() => state.value.data.failure_status);
 
 const handleConfirm = async () => {
   isConfirmDialogVisible.value = false;
 
-  const message = `Restoring the message ${store.state.data.id} ...`;
+  const message = `Restoring the message ${state.value.data.id} ...`;
   await showToastAfterOperation(store.restoreMessage, TYPE.INFO, "Info", message);
-  store.state.data.failure_status.restoring = true;
+  state.value.data.failure_status.restoring = true;
 };
 </script>
 
