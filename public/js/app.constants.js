@@ -4,5 +4,4 @@ window.defaultConfig = {
   service_control_url: 'http://localhost:33333/api/',
   monitoring_urls: ['http://localhost:33633/'],
   showPendingRetry: false,
-  showAllMessages: true,
 };
