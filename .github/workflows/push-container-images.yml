@@ -51,7 +51,7 @@ jobs:
           }
       - name: Update Docker Hub Description - ServiceControl
         if: ${{ steps.validate.outputs.latest == 'true' }}
-        uses: peter-evans/dockerhub-description@v4.0.0
+        uses: peter-evans/dockerhub-description@v4.0.2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -60,7 +60,7 @@ jobs:
           short-description: Gather status, performance and monitoring data for multiple endpoints from a single location.
       - name: Update Docker Hub Description - Audit
         if: ${{ steps.validate.outputs.latest == 'true' }}
-        uses: peter-evans/dockerhub-description@v4.0.0
+        uses: peter-evans/dockerhub-description@v4.0.2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -69,7 +69,7 @@ jobs:
           short-description: Provide valuable information about the message flow through a system.
       - name: Update Docker Hub Description - Monitoring
         if: ${{ steps.validate.outputs.latest == 'true' }}
-        uses: peter-evans/dockerhub-description@v4.0.0
+        uses: peter-evans/dockerhub-description@v4.0.2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -78,7 +78,7 @@ jobs:
           short-description: Track the health of a distributed system.
       - name: Update Docker Hub Description - RavenDB
         if: ${{ steps.validate.outputs.latest == 'true' }}
-        uses: peter-evans/dockerhub-description@v4.0.0
+        uses: peter-evans/dockerhub-description@v4.0.2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
