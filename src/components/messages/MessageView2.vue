@@ -24,27 +24,9 @@ const route = useRoute();
 const id = computed(() => route.params.id as string);
 const messageId = computed(() => route.params.messageId as string);
 const isError = computed(() => messageId.value === undefined);
-
 const isMassTransitConnected = useIsMassTransitConnected();
 const store = useMessageViewStore();
 const { state } = storeToRefs(store);
-
-watch(
-  [id, messageId],
-  async ([newId, newMessageId], [oldId, oldMessageId]) => {
-    if (newId !== oldId || newMessageId !== oldMessageId) {
-      store.reset();
-    }
-
-    if (newMessageId !== undefined) {
-      await store.loadMessage(newMessageId, newId);
-    } else {
-      await store.loadFailedMessage(newId);
-    }
-  },
-  { immediate: true }
-);
-
 const tabs = computed(() => {
   const currentTabs = [
     {
@@ -73,6 +55,22 @@ const tabs = computed(() => {
 
   return currentTabs;
 });
+
+watch(
+  [id, messageId],
+  async ([newId, newMessageId], [oldId, oldMessageId]) => {
+    if (newId !== oldId || newMessageId !== oldMessageId) {
+      store.reset();
+    }
+
+    if (newMessageId !== undefined) {
+      await store.loadMessage(newMessageId, newId);
+    } else {
+      await store.loadFailedMessage(newId);
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>

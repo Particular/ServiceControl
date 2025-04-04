@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, type Component, type DefineComponent } from "vue";
+import { ref, type Component, type DefineComponent, shallowRef } from "vue";
 
 interface Tab {
   text: string;
@@ -8,7 +8,7 @@ interface Tab {
 
 const props = defineProps<{ tabs: Tab[] }>();
 const activePanel = ref(0);
-const activeComponent = ref(props.tabs[0].component);
+const activeComponent = shallowRef(props.tabs[0].component);
 
 function togglePanel(panelIndex: number) {
   activePanel.value = panelIndex;
