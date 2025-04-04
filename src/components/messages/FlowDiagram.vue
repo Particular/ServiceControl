@@ -6,7 +6,7 @@ import routeLinks from "@/router/routeLinks";
 import Message from "@/resources/Message";
 import { NServiceBusHeaders } from "@/resources/Header";
 import { Controls } from "@vue-flow/controls";
-import { useMessageViewStore } from "@/stores/MessageViewStore.ts";
+import { useMessageViewStore } from "@/stores/MessageViewStore";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { storeToRefs } from "pinia";
 

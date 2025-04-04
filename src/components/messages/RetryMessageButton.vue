@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
-import { useMessageViewStore } from "@/stores/MessageViewStore.ts";
+import { useMessageViewStore } from "@/stores/MessageViewStore";
 import { computed, ref } from "vue";
-import { showToastAfterOperation } from "@/composables/toast.ts";
+import { showToastAfterOperation } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
-import { MessageStatus } from "@/resources/Message.ts";
+import { MessageStatus } from "@/resources/Message";
 import { storeToRefs } from "pinia";
-import { FailedMessageStatus } from "@/resources/FailedMessage.ts";
+import { FailedMessageStatus } from "@/resources/FailedMessage";
 
 const store = useMessageViewStore();
 const { state } = storeToRefs(store);

@@ -9,7 +9,7 @@ import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnect
 import BodyView from "@/components/messages/BodyView.vue";
 import HeadersView from "@/components/messages/HeadersView.vue";
 import StackTraceView from "@/components/messages/StacktraceView.vue";
-import { useMessageViewStore } from "@/stores/MessageViewStore.ts";
+import { useMessageViewStore } from "@/stores/MessageViewStore";
 import DeleteMessageButton from "@/components/messages/DeleteMessageButton.vue";
 import RestoreMessageButton from "@/components/messages/RestoreMessageButton.vue";
 import RetryMessageButton from "@/components/messages/RetryMessageButton.vue";

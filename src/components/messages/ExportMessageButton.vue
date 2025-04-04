@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useMessageViewStore } from "@/stores/MessageViewStore.ts";
-import { useDownloadFileFromString } from "@/composables/fileDownloadCreator.ts";
-import { showToastAfterOperation } from "@/composables/toast.ts";
+import { useMessageViewStore } from "@/stores/MessageViewStore";
+import { useDownloadFileFromString } from "@/composables/fileDownloadCreator";
+import { showToastAfterOperation } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import { ref } from "vue";
 

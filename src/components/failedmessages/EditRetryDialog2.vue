@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { useRetryEditedMessage } from "@/composables/serviceFailedMessage.ts";
+import { useRetryEditedMessage } from "@/composables/serviceFailedMessage";
 import MessageHeader from "./EditMessageHeader.vue";
 import type Header from "@/resources/Header";
 import parseContentType from "@/composables/contentTypeParser";
 import { CodeLanguage } from "@/components/codeEditorTypes";
 import CodeEditor from "@/components/CodeEditor.vue";
-import { useMessageViewStore } from "@/stores/MessageViewStore.ts";
+import { useMessageViewStore } from "@/stores/MessageViewStore";
 import { storeToRefs } from "pinia";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 

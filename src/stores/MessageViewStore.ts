@@ -1,16 +1,16 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { reactive, ref } from "vue";
-import Header from "@/resources/Header.ts";
-import type EndpointDetails from "@/resources/EndpointDetails.ts";
-import FailedMessage, { ExceptionDetails, FailedMessageStatus } from "@/resources/FailedMessage.ts";
-import { editRetryConfig } from "@/composables/useEditAndRetry.ts";
-import { useFetchFromServiceControl, useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls.ts";
-import Message, { MessageStatus } from "@/resources/Message.ts";
+import Header from "@/resources/Header";
+import type EndpointDetails from "@/resources/EndpointDetails";
+import FailedMessage, { ExceptionDetails, FailedMessageStatus } from "@/resources/FailedMessage";
+import { editRetryConfig } from "@/composables/useEditAndRetry";
+import { useFetchFromServiceControl, useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
+import Message, { MessageStatus } from "@/resources/Message";
 import moment from "moment/moment";
-import { useConfiguration } from "@/composables/configuration.ts";
+import { useConfiguration } from "@/composables/configuration";
 import { parse, stringify } from "lossless-json";
 import xmlFormat from "xml-formatter";
-import { useArchiveMessage, useRetryMessages, useUnarchiveMessage } from "@/composables/serviceFailedMessage.ts";
+import { useArchiveMessage, useRetryMessages, useUnarchiveMessage } from "@/composables/serviceFailedMessage";
 
 interface DataContainer<T> {
   loading?: boolean;

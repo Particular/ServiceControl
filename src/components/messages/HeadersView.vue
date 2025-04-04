@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CopyToClipboard from "@/components/CopyToClipboard.vue";
 import { computed, ref } from "vue";
-import { useMessageViewStore } from "@/stores/MessageViewStore.ts";
+import { useMessageViewStore } from "@/stores/MessageViewStore";
 import { storeToRefs } from "pinia";
 
 const { headers } = storeToRefs(useMessageViewStore());

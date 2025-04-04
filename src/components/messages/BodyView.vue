@@ -2,7 +2,7 @@
 import { computed, watch } from "vue";
 import CodeEditor from "@/components/CodeEditor.vue";
 import parseContentType from "@/composables/contentTypeParser";
-import { useMessageViewStore } from "@/stores/MessageViewStore.ts";
+import { useMessageViewStore } from "@/stores/MessageViewStore";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { storeToRefs } from "pinia";
 

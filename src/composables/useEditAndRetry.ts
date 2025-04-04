@@ -1,5 +1,5 @@
-import { useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls.ts";
-import { EditAndRetryConfig } from "@/resources/Configuration.ts";
+import { useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
+import { EditAndRetryConfig } from "@/resources/Configuration";
 import { ref } from "vue";
 
 export const editRetryConfig = ref<EditAndRetryConfig>({ enabled: false, locked_headers: [], sensitive_headers: [] });

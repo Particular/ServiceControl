@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { useRetryEditedMessage } from "@/composables/serviceFailedMessage.ts";
+import { useRetryEditedMessage } from "@/composables/serviceFailedMessage";
 import MessageHeader from "./EditMessageHeader.vue";
 import { EditAndRetryConfig } from "@/resources/Configuration";
 import type Header from "@/resources/Header";
