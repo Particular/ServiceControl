@@ -2,7 +2,6 @@
 import routeLinks from "@/router/routeLinks";
 import { ColumnNames, useAuditStore } from "@/stores/AuditStore";
 import { storeToRefs } from "pinia";
-import { useRoute } from "vue-router";
 import SortableColumn from "../SortableColumn.vue";
 import { MessageStatus } from "@/resources/Message";
 import moment from "moment";
@@ -11,7 +10,6 @@ import RefreshConfig from "../RefreshConfig.vue";
 import ItemsPerPage from "../ItemsPerPage.vue";
 import PaginationStrip from "../PaginationStrip.vue";
 
-const route = useRoute();
 const store = useAuditStore();
 const { messages, sortByInstances, itemsPerPage, selectedPage, totalCount } = storeToRefs(store);
 
