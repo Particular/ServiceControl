@@ -1,18 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
 import { type DefaultEdge, MarkerType, VueFlow, type Styles, type Node } from "@vue-flow/core";
 import TimeSince from "../TimeSince.vue";
 import routeLinks from "@/router/routeLinks";
 import Message from "@/resources/Message";
 import { NServiceBusHeaders } from "@/resources/Header";
-import { useRoute } from "vue-router";
-import { ExtendedFailedMessage } from "@/resources/FailedMessage";
 import { Controls } from "@vue-flow/controls";
-
-const props = defineProps<{
-  message: ExtendedFailedMessage;
-}>();
+import { useMessageViewStore } from "@/stores/MessageViewStore";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { storeToRefs } from "pinia";
 
 enum MessageType {
   Event = "Event message",
@@ -44,11 +40,13 @@ interface MappedMessage {
 const nodeSpacingX = 300;
 const nodeSpacingY = 200;
 
-const route = useRoute();
+const store = useMessageViewStore();
+const { state } = storeToRefs(useMessageViewStore());
 
 async function getConversation(conversationId: string) {
-  const [, data] = await useTypedFetchFromServiceControl<Message[]>(`conversations/${conversationId}`);
-  return data;
+  await store.loadConversation(conversationId);
+
+  return store.conversationData.data;
 }
 
 function mapMessage(message: Message): MappedMessage {
@@ -161,9 +159,9 @@ function constructEdges(mappedMessages: MappedMessage[]): DefaultEdge[] {
 const elements = ref<(Node | DefaultEdge)[]>([]);
 
 onMounted(async () => {
-  if (!props.message.conversationId) return;
+  if (!state.value.data.conversation_id) return;
 
-  const messages = await getConversation(props.message.conversationId);
+  const messages = await getConversation(state.value.data.conversation_id);
   const mappedMessages = messages.map(mapMessage);
 
   const assignDescendantLevelsAndWidth = (message: MappedMessage, level = 0) => {
@@ -193,26 +191,28 @@ function typeIcon(type: MessageType) {
 </script>
 
 <template>
-  <div id="tree-container">
+  <div v-if="store.conversationData.failed_to_load" class="alert alert-info">FlowDiagram data is unavailable.</div>
+  <LoadingSpinner v-else-if="store.conversationData.loading" />
+  <div v-else id="tree-container">
     <VueFlow v-model="elements" :min-zoom="0.1" :fit-view-on-init="true">
       <Controls />
-      <template #node-message="nodeProps">
-        <div class="node" :class="[nodeProps.data.isError && 'error', nodeProps.data.id === props.message.id && 'current-message']">
+      <template #node-message="{ data }: { data: MappedMessage }">
+        <div class="node" :class="{ error: data.isError, 'current-message': data.id === store.state.data.id }">
           <div class="node-text wordwrap">
-            <i v-if="nodeProps.data.isError" class="fa pa-flow-failed" />
-            <i class="fa" :class="typeIcon(nodeProps.data.type)" :title="nodeProps.data.type" />
-            <div class="lead righ-side-ellipsis" :title="nodeProps.data.nodeName">
+            <i v-if="data.isError" class="fa pa-flow-failed" />
+            <i class="fa" :class="typeIcon(data.type)" :title="data.type" />
+            <div class="lead right-side-ellipsis" :title="data.nodeName">
               <strong>
-                <RouterLink v-if="nodeProps.data.isError" :to="{ path: routeLinks.messages.failedMessage.link(nodeProps.data.id), query: { back: route.path } }">{{ nodeProps.data.nodeName }}</RouterLink>
-                <span v-else>{{ nodeProps.data.nodeName }}</span>
+                <RouterLink v-if="data.isError" :to="{ path: routeLinks.messages.failedMessage.link(data.id) }">{{ data.nodeName }}</RouterLink>
+                <RouterLink v-else :to="{ path: routeLinks.messages.successMessage.link(data.messageId, data.id) }">{{ data.nodeName }}</RouterLink>
               </strong>
             </div>
             <span class="time-sent">
-              <time-since class="time-since" :date-utc="nodeProps.data.timeSent" />
+              <time-since class="time-since" :date-utc="data.timeSent" />
             </span>
-            <template v-if="nodeProps.data.sagaName">
+            <template v-if="data.sagaName">
               <i class="fa pa-flow-saga" />
-              <div class="saga lead righ-side-ellipsis" :title="nodeProps.data.sagaName">{{ nodeProps.data.sagaName }}</div>
+              <div class="saga lead right-side-ellipsis" :title="data.sagaName">{{ data.sagaName }}</div>
             </template>
           </div>
         </div>
@@ -243,14 +243,13 @@ function typeIcon(type: MessageType) {
   padding: 10px;
   border-radius: 3px;
   font-size: 12px;
-  text-align: center;
   border-width: 1px;
   border-style: solid;
   color: var(--vf-node-text);
   text-align: left;
 }
 
-.righ-side-ellipsis {
+.right-side-ellipsis {
   direction: rtl;
   text-align: left;
 }
@@ -306,6 +305,11 @@ function typeIcon(type: MessageType) {
   width: 182px;
 }
 
+.current-message {
+  border-color: #cccbcc;
+  background-color: #cccbcc !important;
+}
+
 .current-message.error {
   border-color: #be514a;
   background-color: #be514a !important;
@@ -344,6 +348,10 @@ function typeIcon(type: MessageType) {
 .current-message.error .node-text a:hover {
   cursor: text;
   text-decoration: none;
+}
+
+.node-text a {
+  color: #000;
 }
 
 .error .node-text a {
