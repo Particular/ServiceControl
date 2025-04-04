@@ -17,6 +17,7 @@ import EditAndRetryButton from "@/components/messages/EditAndRetryButton.vue";
 import ExportMessageButton from "@/components/messages/ExportMessageButton.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { storeToRefs } from "pinia";
+import MetadataLabel from "@/components/messages/MetadataLabel.vue";
 
 const panel = ref<number>(1);
 const route = useRoute();
@@ -71,20 +72,19 @@ onMounted(() => {
           <div class="row">
             <div class="col-sm-12 no-side-padding">
               <div class="metadata group-message-count message-metadata">
-                <span v-if="state.data.failure_status.retried" v-tippy="`Message is being retried`" class="label sidebar-label label-info metadata-label">Retried</span>
-                <span v-if="state.data.failure_status.restoring" v-tippy="`Message is being retried`" class="label sidebar-label label-info metadata-label">Restoring...</span>
-                <span v-if="state.data.failure_status.archiving" v-tippy="`Message is being deleted`" class="label sidebar-label label-info metadata-label">Deleting...</span>
-                <span v-if="state.data.failure_status.archived" v-tippy="`Message is deleted`" class="label sidebar-label label-warning metadata-label">Deleted</span>
-                <span v-if="state.data.failure_status.resolved" v-tippy="`Message was processed successfully`" class="label sidebar-label label-warning metadata-label">Processed</span>
-                <span
-                  v-if="state.data.failure_metadata.number_of_processing_attempts && state.data.failure_metadata.number_of_processing_attempts > 1"
-                  :v-tippy="`This message has already failed ${state.data.failure_metadata.number_of_processing_attempts} times`"
-                  class="label sidebar-label label-important metadata-label"
-                >
-                  {{ state.data.failure_metadata.number_of_processing_attempts - 1 }} Retry Failures
-                </span>
+                <MetadataLabel v-if="state.data.failure_status.retried" tooltip="Message is being retried" type="info" text="Retried" />
+                <MetadataLabel v-if="state.data.failure_status.restoring" tooltip="Message is being restored" type="info" text="Restoring..." />
+                <MetadataLabel v-if="state.data.failure_status.archiving" tooltip="Message is being deleted" type="info" text="Deleting..." />
+                <MetadataLabel v-if="state.data.failure_status.archived" tooltip="Message is deleted" type="warning" text="Deleted" />
+                <MetadataLabel v-if="state.data.failure_status.resolved" tooltip="Message was processed successfully" type="warning" text="Processed" />
+                <MetadataLabel
+                  v-if="state.data.failure_metadata.number_of_processing_attempts !== undefined && state.data.failure_metadata.number_of_processing_attempts > 1"
+                  :tooltip="`This message has already failed ${state.data.failure_metadata.number_of_processing_attempts} times`"
+                  type="important"
+                  :text="`${(state.data.failure_metadata.number_of_processing_attempts ?? 0) - 1} Retry Failures`"
+                />
                 <template v-if="state.data.failure_metadata.edited">
-                  <span v-tippy="`Message was edited`" class="label sidebar-label label-info metadata-label">Edited</span>
+                  <MetadataLabel tooltip="Message was edited" type="info" text="Edited" />
                   <span v-if="state.data.failure_metadata.edit_of" class="metadata metadata-link">
                     <i class="fa fa-history"></i> <RouterLink :to="{ path: routeLinks.messages.failedMessage.link(state.data.failure_metadata.edit_of) }">View previous version</RouterLink>
                   </span>
