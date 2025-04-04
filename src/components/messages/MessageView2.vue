@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, watch } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import NoData from "../NoData.vue";
 import TimeSince from "../TimeSince.vue";
@@ -16,10 +16,10 @@ import RetryMessageButton from "@/components/messages/RetryMessageButton.vue";
 import EditAndRetryButton from "@/components/messages/EditAndRetryButton.vue";
 import ExportMessageButton from "@/components/messages/ExportMessageButton.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import TabsLayout from "@/components/TabsLayout.vue";
 import { storeToRefs } from "pinia";
 import MetadataLabel from "@/components/messages/MetadataLabel.vue";
 
-const panel = ref<number>(1);
 const route = useRoute();
 const id = computed(() => route.params.id as string);
 const messageId = computed(() => route.params.messageId as string);
@@ -28,10 +28,6 @@ const isError = computed(() => messageId.value === undefined);
 const isMassTransitConnected = useIsMassTransitConnected();
 const store = useMessageViewStore();
 const { state } = storeToRefs(store);
-
-function togglePanel(panelNum: number) {
-  panel.value = panelNum;
-}
 
 watch(
   [id, messageId],
@@ -49,8 +45,33 @@ watch(
   { immediate: true }
 );
 
-onMounted(() => {
-  togglePanel(isError.value ? 1 : 2);
+const tabs = computed(() => {
+  const currentTabs = [
+    {
+      text: "Message body",
+      component: BodyView,
+    },
+    {
+      text: "Headers",
+      component: HeadersView,
+    },
+  ];
+
+  if (isError.value) {
+    currentTabs.unshift({
+      text: "Stacktrace",
+      component: StackTraceView,
+    });
+  }
+
+  if (!isMassTransitConnected.value) {
+    currentTabs.push({
+      text: "Flow Diagram",
+      component: FlowDiagram,
+    });
+  }
+
+  return currentTabs;
 });
 </script>
 
@@ -117,16 +138,7 @@ onMounted(() => {
           </div>
           <div class="row">
             <div class="col-sm-12 no-side-padding">
-              <div class="nav tabs msg-tabs">
-                <h5 v-if="isError" :class="{ active: panel === 1 }" class="nav-item" @click.prevent="togglePanel(1)"><a href="#">Stacktrace</a></h5>
-                <h5 :class="{ active: panel === 2 }" class="nav-item" @click.prevent="togglePanel(2)"><a href="#">Message body</a></h5>
-                <h5 :class="{ active: panel === 3 }" class="nav-item" @click.prevent="togglePanel(3)"><a href="#">Headers</a></h5>
-                <h5 v-if="!isMassTransitConnected" :class="{ active: panel === 4 }" class="nav-item" @click.prevent="togglePanel(4)"><a href="#">Flow Diagram</a></h5>
-              </div>
-              <StackTraceView v-if="isError && panel === 1" />
-              <BodyView v-if="panel === 2" />
-              <HeadersView v-if="panel === 3" />
-              <FlowDiagram v-if="panel === 4" />
+              <TabsLayout :tabs="tabs" />
             </div>
           </div>
         </template>
