@@ -120,8 +120,6 @@ export const useMessageViewStore = defineStore("MessageViewStore", () => {
     const countdown = moment(state.data.failure_metadata.last_modified).add(error_retention_period, "hours");
     state.data.failure_status.delete_soon = countdown < moment();
     state.data.failure_metadata.deleted_in = countdown.format();
-
-    // TODO: Maintain the mutations of the message in memory until the api returns a newer modified message
   }
 
   async function loadMessage(messageId: string, id: string) {
@@ -229,8 +227,35 @@ export const useMessageViewStore = defineStore("MessageViewStore", () => {
   async function retryMessage() {
     if (state.data.id) {
       await useRetryMessages([state.data.id]);
-      state.data.failure_status.retried = true;
+      state.data.failure_status.retry_in_progress = true;
     }
+  }
+
+  async function pollForNextUpdate(status: FailedMessageStatus) {
+    if (!state.data.id) {
+      return;
+    }
+
+    let maxRetries = 60; // We try for 60 seconds
+
+    do {
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // eslint-disable-next-line no-await-in-loop
+      const [, data] = await useTypedFetchFromServiceControl<FailedMessage>(`errors/last/${state.data.id}`);
+      if (status === data.status) {
+        break;
+      }
+    } while (maxRetries-- > 0);
+
+    if (maxRetries === 0) {
+      // It never changed so no need to refresh UI
+      return;
+    }
+
+    const id = state.data.id;
+    reset();
+    await loadFailedMessage(id);
   }
 
   async function exportMessage() {
@@ -278,6 +303,7 @@ export const useMessageViewStore = defineStore("MessageViewStore", () => {
     restoreMessage,
     retryMessage,
     conversationData,
+    pollForNextUpdate,
   };
 });
 

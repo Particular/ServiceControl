@@ -6,6 +6,7 @@ import { showToastAfterOperation } from "@/composables/toast.ts";
 import { TYPE } from "vue-toastification";
 import { MessageStatus } from "@/resources/Message.ts";
 import { storeToRefs } from "pinia";
+import { FailedMessageStatus } from "@/resources/FailedMessage.ts";
 
 const store = useMessageViewStore();
 const { state } = storeToRefs(store);
@@ -20,7 +21,8 @@ const handleConfirm = async () => {
 
   const message = `Retrying the message ${state.value.data.id} ...`;
   await showToastAfterOperation(store.retryMessage, TYPE.INFO, "Info", message);
-  state.value.data.failure_status.retried = true;
+
+  await store.pollForNextUpdate(FailedMessageStatus.Resolved);
 };
 </script>
 

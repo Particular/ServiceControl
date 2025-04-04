@@ -91,7 +91,8 @@ watch(
           <div class="row">
             <div class="col-sm-12 no-side-padding">
               <div class="metadata group-message-count message-metadata">
-                <MetadataLabel v-if="state.data.failure_status.retried" tooltip="Message is being retried" type="info" text="Retried" />
+                <MetadataLabel v-if="state.data.failure_status.retry_in_progress" tooltip="Message is being added to the retries queue" type="info" text="Requesting retry..." />
+                <MetadataLabel v-if="state.data.failure_status.retried" tooltip="Message is enqueued to be retried" type="info" text="Waiting for retry" />
                 <MetadataLabel v-if="state.data.failure_status.restoring" tooltip="Message is being restored" type="info" text="Restoring..." />
                 <MetadataLabel v-if="state.data.failure_status.archiving" tooltip="Message is being deleted" type="info" text="Deleting..." />
                 <MetadataLabel v-if="state.data.failure_status.archived" tooltip="Message is deleted" type="warning" text="Deleted" />

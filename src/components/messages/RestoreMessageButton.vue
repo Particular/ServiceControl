@@ -5,24 +5,26 @@ import { computed, ref } from "vue";
 import { showToastAfterOperation } from "@/composables/toast.ts";
 import { TYPE } from "vue-toastification";
 import { storeToRefs } from "pinia";
+import { FailedMessageStatus } from "@/resources/FailedMessage.ts";
 
 const store = useMessageViewStore();
 const { state } = storeToRefs(store);
 const isConfirmDialogVisible = ref(false);
 
-const failureStatus = computed(() => state.value.data.failure_status);
+const isVisible = computed(() => state.value.data.failure_status.archived);
 
 const handleConfirm = async () => {
   isConfirmDialogVisible.value = false;
 
   const message = `Restoring the message ${state.value.data.id} ...`;
   await showToastAfterOperation(store.restoreMessage, TYPE.INFO, "Info", message);
-  state.value.data.failure_status.restoring = true;
+
+  await store.pollForNextUpdate(FailedMessageStatus.Unresolved);
 };
 </script>
 
 <template>
-  <template v-if="failureStatus.archived">
+  <template v-if="isVisible">
     <button type="button" class="btn btn-default" @click="isConfirmDialogVisible = true"><i class="fa fa-undo"></i> Restore</button>
     <Teleport to="#modalDisplay">
       <ConfirmDialog

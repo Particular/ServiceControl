@@ -7,6 +7,8 @@ import parseContentType from "@/composables/contentTypeParser";
 import { CodeLanguage } from "@/components/codeEditorTypes";
 import CodeEditor from "@/components/CodeEditor.vue";
 import { useMessageViewStore } from "@/stores/MessageViewStore.ts";
+import { storeToRefs } from "pinia";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 interface HeaderWithEditing extends Header {
   isLocked: boolean;
@@ -51,8 +53,9 @@ const showEditAndRetryConfirmation = ref(false);
 const showCancelConfirmation = ref(false);
 const showEditRetryGenericError = ref(false);
 const store = useMessageViewStore();
-const id = computed(() => store.state.data.id ?? "");
-const messageBody = computed(() => store.body.data.value);
+const { state, headers, body, edit_and_retry_config } = storeToRefs(store);
+const id = computed(() => state.value.data.id ?? "");
+const messageBody = computed(() => body.value.data.value);
 
 watch(messageBody, (newValue) => {
   if (newValue !== origMessageBody) {
@@ -119,17 +122,17 @@ async function retryEditedMessage() {
 }
 
 function initializeMessageBodyAndHeaders() {
-  origMessageBody = store.body.data.value ?? "";
+  origMessageBody = body.value.data.value ?? "";
   localMessage.value = {
     isBodyChanged: false,
     isBodyEmpty: false,
     isContentTypeSupported: false,
     bodyContentType: undefined,
-    bodyUnavailable: store.body.not_found ?? false,
+    bodyUnavailable: body.value.not_found ?? false,
     isEvent: false,
-    retried: store.state.data.failure_status.retried ?? false,
-    headers: store.headers.data.map((header: Header) => ({ ...header })) as HeaderWithEditing[],
-    messageBody: store.body.data.value ?? "",
+    retried: state.value.data.failure_status.retried ?? false,
+    headers: headers.value.data.map((header: Header) => ({ ...header })) as HeaderWithEditing[],
+    messageBody: body.value.data.value ?? "",
   };
   localMessage.value.isBodyEmpty = false;
   localMessage.value.isBodyChanged = false;
@@ -143,17 +146,17 @@ function initializeMessageBodyAndHeaders() {
   const messageIntent = getMessageIntent();
   localMessage.value.isEvent = messageIntent === "Publish";
 
-  for (let index = 0; index < store.headers.data.length; index++) {
-    const header: HeaderWithEditing = store.headers.data[index] as HeaderWithEditing;
+  for (let index = 0; index < headers.value.data.length; index++) {
+    const header: HeaderWithEditing = headers.value.data[index] as HeaderWithEditing;
 
     header.isLocked = false;
     header.isSensitive = false;
     header.isMarkedAsRemoved = false;
     header.isChanged = false;
 
-    if (store.edit_and_retry_config.locked_headers.includes(header.key)) {
+    if (edit_and_retry_config.value.locked_headers.includes(header.key)) {
       header.isLocked = true;
-    } else if (store.edit_and_retry_config.sensitive_headers.includes(header.key)) {
+    } else if (edit_and_retry_config.value.sensitive_headers.includes(header.key)) {
       header.isSensitive = true;
     }
 
@@ -220,7 +223,8 @@ onMounted(() => {
                       </table>
                       <div role="tabpanel" v-if="panel === 2 && !localMessage.bodyUnavailable" style="height: calc(100% - 260px)">
                         <div style="margin-top: 1.25rem">
-                          <CodeEditor aria-label="message body" :read-only="!localMessage.isContentTypeSupported" v-model="localMessage.messageBody" :language="localMessage.language" :show-gutter="true"></CodeEditor>
+                          <LoadingSpinner v-if="body.loading" />
+                          <CodeEditor v-else aria-label="message body" :read-only="!localMessage.isContentTypeSupported" v-model="localMessage.messageBody" :language="localMessage.language" :show-gutter="true"></CodeEditor>
                         </div>
                         <span class="empty-error" v-if="localMessage.isBodyEmpty"><i class="fa fa-exclamation-triangle"></i> Message body cannot be empty</span>
                         <span class="reset-body" v-if="localMessage.isBodyChanged"><i class="fa fa-undo" v-tippy="`Reset changes`"></i> <a @click="resetBodyChanges()" href="javascript:void(0)">Reset changes</a></span>
