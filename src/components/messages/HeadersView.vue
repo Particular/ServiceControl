@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ExtendedFailedMessage } from "@/resources/FailedMessage";
 import CopyToClipboard from "@/components/CopyToClipboard.vue";
+import FilterInput from "@/components/FilterInput.vue";
 import { computed, ref } from "vue";
 const props = defineProps<{
   message: ExtendedFailedMessage;
@@ -26,7 +27,9 @@ const filteredHeaders = computed(() => {
       <div class="col">
         <div class="text-search-container">
           <div class="text-search">
-            <input type="search" aria-label="Filter by name" v-model="searchTerm" class="form-control format-text" placeholder="Search for a header key or value..." />
+            <div class="filter-group">
+              <FilterInput v-model="searchTerm" aria-label="Filter by name" :placeholder="'Search for a header key or value...'" />
+            </div>
           </div>
         </div>
       </div>
@@ -76,11 +79,7 @@ const filteredHeaders = computed(() => {
   width: 100%;
   max-width: 40rem;
 }
-.format-text {
-  font-weight: unset;
-  font-size: 14px;
-  min-width: 120px;
-}
+
 .filters {
   background-color: #f3f3f3;
   margin-top: 5px;

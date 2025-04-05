@@ -1,10 +1,16 @@
 <script setup lang="ts">
 const model = defineModel<string>({ required: true });
+defineProps({
+  placeholder: {
+    type: String,
+    default: "Filter by name...", // Default value
+  },
+});
 </script>
 
 <template>
   <div role="search" aria-label="filter" class="filter-input">
-    <input type="search" placeholder="Filter by name..." aria-label="filter by name" class="form-control-static filter-input" v-model="model" />
+    <input type="search" :placeholder="placeholder" aria-label="filter by name" class="form-control-static filter-input" v-model="model" />
   </div>
 </template>
 
