@@ -1,16 +1,23 @@
 <script setup lang="ts">
+import { ref, watch } from "vue";
+import debounce from "lodash/debounce";
+
 const model = defineModel<string>({ required: true });
-defineProps({
-  placeholder: {
-    type: String,
-    default: "Filter by name...", // Default value
-  },
+const props = withDefaults(defineProps<{ placeholder?: string; ariaLabel?: string }>(), { placeholder: "Filter by name...", ariaLabel: "filter by name" });
+const localInput = ref<string>(model.value);
+
+const debounceUpdateModel = debounce((value: string) => {
+  model.value = value;
+}, 600);
+
+watch(localInput, (newValue) => {
+  debounceUpdateModel(newValue);
 });
 </script>
 
 <template>
   <div role="search" aria-label="filter" class="filter-input">
-    <input type="search" :placeholder="placeholder" aria-label="filter by name" class="form-control-static filter-input" v-model="model" />
+    <input type="search" :placeholder="props.placeholder" :aria-label="props.ariaLabel" class="form-control-static filter-input" v-model="localInput" />
   </div>
 </template>
 

@@ -1,4 +1,4 @@
-import { expect } from "vitest";
+import { vi, expect } from "vitest";
 import { test, describe } from "../../drivers/vitest/driver";
 import { enterFilterString } from "./actions/enterFilterString";
 import { groupEndpointsBy } from "./actions/groupEndpointsBy";
@@ -7,6 +7,11 @@ import { endpointGroup } from "./questions/endpointGroup";
 import { currentFilterValueToBe } from "./questions/currentFilterValueToBe";
 import { endpointsNames } from "./questions/endpointsNames";
 import * as precondition from "../../preconditions";
+
+vi.mock("lodash/debounce", () => ({
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+  default: (fn: Function) => fn,
+}));
 
 describe("FEATURE: Endpoint filtering", () => {
   describe("RULE: List of monitoring endpoints should be filterable by the name", () => {
