@@ -1,6 +1,6 @@
 import { test, describe } from "../../drivers/vitest/driver";
 import * as precondition from "../../preconditions";
-import { expect } from "vitest";
+import { expect, vi } from "vitest";
 import { getNothingToConfigureStatus } from "./questions/getNothingToConfigureStatus";
 import { navigateToHeartbeatsConfiguration, navigateToUnHealthyHeartbeats } from "./actions/navigateToHeartbeatsTabs";
 import { getEndpointsForConfiguration } from "./questions/getEndpointsForConfiguration";
@@ -11,6 +11,11 @@ import flushPromises from "flush-promises";
 import { healthyEndpointTemplate } from "../../mocks/heartbeat-endpoint-template";
 import { setHeartbeatFilter } from "./actions/setHeartbeatFilter";
 import { getHeartbeatFilterValue } from "./questions/getHeartbeatFilterValue";
+
+vi.mock("lodash/debounce", () => ({
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+  default: (fn: Function) => fn,
+}));
 
 describe("FEATURE: Heartbeats configuration", () => {
   describe("RULE: A list of all endpoints with the heartbeats plug-in installed should be displayed", () => {
