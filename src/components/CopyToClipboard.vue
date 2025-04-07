@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Tippy, TippyComponent } from "vue-tippy";
-import { useTemplateRef } from "vue";
+import { ref, useTemplateRef, watch } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -11,14 +11,16 @@ const props = withDefaults(
 );
 
 const tippyRef = useTemplateRef<TippyComponent | null>("tippyRef");
-let timeoutId: number;
+const timeoutId = ref(0);
 
 async function copyToClipboard() {
   await navigator.clipboard.writeText(props.value);
-  window.clearTimeout(timeoutId);
+
   tippyRef.value?.show();
-  timeoutId = window.setTimeout(() => tippyRef.value?.hide(), 3000);
+  timeoutId.value = window.setTimeout(() => tippyRef.value?.hide(), 3000);
 }
+
+watch(timeoutId, (_, previousTimeoutId) => window.clearTimeout(previousTimeoutId));
 </script>
 
 <template>
