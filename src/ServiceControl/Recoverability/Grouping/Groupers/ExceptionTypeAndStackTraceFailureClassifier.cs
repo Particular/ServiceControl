@@ -47,7 +47,7 @@ namespace ServiceControl.Recoverability
             }
             catch (RegexMatchTimeoutException)
             {
-                return GetNonStandardClassification(exception.ExceptionType);
+                // Intentionally empty - if the parsing fails, treat it as if exception.Message is null or empty, not throw an exception
             }
 
 
