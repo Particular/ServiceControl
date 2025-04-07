@@ -36,6 +36,7 @@ const handleConfirm = async () => {
         @confirm="handleConfirm"
         heading="Are you sure you want to delete this message?"
         body="If you delete, this message won't be available for retrying unless it is later restored."
-      /> </Teleport
-  ></template>
+      /> 
+    </Teleport>
+  </template>
 </template>
