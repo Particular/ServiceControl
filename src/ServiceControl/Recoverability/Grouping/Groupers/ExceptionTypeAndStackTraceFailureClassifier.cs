@@ -1,6 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System.Linq;
+    using System.Text.RegularExpressions;
 
     public class ExceptionTypeAndStackTraceFailureClassifier : IFailureClassifier
     {
@@ -28,20 +29,27 @@ namespace ServiceControl.Recoverability
                 // We need to remove the message in order to make sure the stack trace parser does not get into catastrophic backtracking mode.
                 exceptionStackTrace = exceptionStackTrace.Replace(exception.Message, string.Empty);
             }
-
-            var firstStackTraceFrame = StackTraceParser.Parse(exceptionStackTrace, (frame, type, method, parameterList, parameters, file, line) => new StackFrame
+            try
             {
-                Type = type,
-                Method = method,
-                Params = parameterList,
-                File = file,
-                Line = line
-            }).FirstOrDefault();
+                var firstStackTraceFrame = StackTraceParser.Parse(exceptionStackTrace, (frame, type, method, parameterList, parameters, file, line) => new StackFrame
+                {
+                    Type = type,
+                    Method = method,
+                    Params = parameterList,
+                    File = file,
+                    Line = line
+                }).FirstOrDefault();
 
-            if (firstStackTraceFrame != null)
-            {
-                return exception.ExceptionType + ": " + firstStackTraceFrame.ToMethodIdentifier();
+                if (firstStackTraceFrame != null)
+                {
+                    return exception.ExceptionType + ": " + firstStackTraceFrame.ToMethodIdentifier();
+                }
             }
+            catch (RegexMatchTimeoutException)
+            {
+                return GetNonStandardClassification(exception.ExceptionType);
+            }
+
 
             return GetNonStandardClassification(exception.ExceptionType);
         }
