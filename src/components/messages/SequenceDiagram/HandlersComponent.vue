@@ -41,8 +41,15 @@ const handlerItems = computed(() => {
       return 0;
     })();
 
+    //determine which side of the handler to render the messageType on. If it's the left side (for a right arrow) then we apply a negative offset
+    const messageTypeOffset = handler.direction === Direction.Right ? ((messageTypeElement?.getBBox().width ?? 0) + 24) * -1 : 20;
+    if (messageTypeOffset < 0) {
+      store.setStartX(-1 * messageTypeOffset);
+    }
+
     return {
       id: handler.id,
+      endpointName: handler.endpoint.name,
       incomingId: handler.route?.name,
       left: (endpoint?.centre ?? 0) - Handler_Width / 2,
       right: (endpoint?.centre ?? 0) + Handler_Width / 2,
@@ -52,13 +59,13 @@ const handlerItems = computed(() => {
       icon,
       iconSize,
       messageType: handler.name,
-      messageTypeOffset: handler.direction === Direction.Right ? ((messageTypeElement?.getBBox().width ?? 0) + 24) * -1 : 20,
+      messageTypeOffset,
       messageTypeHighlight: handler.route?.name === highlightId.value,
     };
   });
 
   store.setMaxHeight(nextY);
-  store.setHandlerLocations(result.map((handler) => ({ id: handler.id, left: handler.left, right: handler.right, y: handler.y, height: handler.height })));
+  store.setHandlerLocations(result.map((handler) => ({ id: handler.id, endpointName: handler.endpointName, left: handler.left, right: handler.right, y: handler.y, height: handler.height })));
 
   return result;
 });

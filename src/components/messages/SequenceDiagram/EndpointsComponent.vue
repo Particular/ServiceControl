@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Endpoint } from "@/resources/SequenceDiagram/Endpoint";
-import { EndpointCentrePoint, useSequenceDiagramStore } from "@/stores/SequenceDiagramStore";
+import { Endpoint_Width, EndpointCentrePoint, useSequenceDiagramStore } from "@/stores/SequenceDiagramStore";
 import { storeToRefs } from "pinia";
 import { computed, ref, watch } from "vue";
 
@@ -8,7 +8,7 @@ interface EndpointWithLocation extends Endpoint {
   width: number;
   textWidth: number;
   x?: number;
-  surround: EndpointSurround;
+  surround?: EndpointSurround;
 }
 
 interface EndpointSurround {
@@ -22,12 +22,11 @@ interface EndpointSurround {
   stroke: string;
 }
 
-const Endpoint_Width = 260;
 const Endpoint_Gap = 30;
 const Endpoint_Image_Width = 20;
 
 const store = useSequenceDiagramStore();
-const { endpoints } = storeToRefs(store);
+const { startX, endpoints } = storeToRefs(store);
 
 const epRefs = ref<SVGTextElement[]>([]);
 const endpointItems = computed(() =>
@@ -39,7 +38,7 @@ const endpointItems = computed(() =>
       const previousEndpoint = index > 0 ? endpointItems.value[index - 1] : undefined;
       endpoint.width = Math.max(Endpoint_Width, bounds.width);
       endpoint.textWidth = bounds.width;
-      endpoint.x = (previousEndpoint?.x ?? Endpoint_Width / 2) + (previousEndpoint?.width ?? 0) + Endpoint_Gap;
+      endpoint.x = (previousEndpoint?.x ?? startX.value) + (previousEndpoint?.width ?? 0) + Endpoint_Gap;
 
       if (!endpoint.surround && el.isConnected) {
         const style = getComputedStyle(el);
@@ -67,6 +66,11 @@ watch(endpointItems, () => {
   store.setEndpointCentrePoints(endpointItems.value.map((endpoint) => ({ name: endpoint.name, centre: endpoint.x ?? 0, top: (endpoint.surround?.y ?? 0) + (endpoint.surround?.height ?? 0) + 15 }) as EndpointCentrePoint));
   const lastEndpoint = endpointItems.value[endpointItems.value.length - 1];
   store.setMaxWidth((lastEndpoint.x ?? 0) + lastEndpoint.width);
+});
+
+watch(startX, () => {
+  epRefs.value = [];
+  endpoints.value.forEach((endpoint) => ((endpoint as EndpointWithLocation).surround = undefined));
 });
 
 function setEndpointRef(el: SVGTextElement, index: number) {

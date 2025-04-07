@@ -5,6 +5,7 @@ import { Handler } from "./Handler";
 import { friendlyTypeName } from "./SequenceModel";
 
 export interface RoutedMessage {
+  id: string;
   name: string;
   readonly selectedMessage: Message;
   fromHandler?: Handler;
@@ -66,7 +67,7 @@ class MessageProcessingRouteItem implements MessageProcessingRoute {
     this.processingHandler = processingHandler;
 
     if (routedMessage && this.processingHandler) {
-      this.name = `${processingHandler?.name}(${routedMessage.messageId})`;
+      this.name = `${processingHandler?.name}(${routedMessage.id})`;
     }
 
     if (routedMessage) routedMessage.route = this;
@@ -90,6 +91,10 @@ class RoutedMessageItem implements RoutedMessage {
   constructor(message: Message) {
     this.selectedMessage = message;
     this.name = friendlyTypeName(message.message_type) ?? "";
+  }
+
+  get id() {
+    return this.selectedMessage.id;
   }
 
   get receiving() {

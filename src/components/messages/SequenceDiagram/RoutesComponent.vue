@@ -4,7 +4,7 @@ import { computed, ref } from "vue";
 import { useSequenceDiagramStore } from "@/stores/SequenceDiagramStore";
 import { storeToRefs } from "pinia";
 
-const Arrow_Head_Width = 4;
+const Arrow_Head_Width = 10;
 const Message_Type_Margin = 4;
 
 const store = useSequenceDiagramStore();
@@ -17,25 +17,27 @@ const arrows = computed(() =>
     if (!route.name) return;
     const fromHandler = route.fromRoutedMessage?.fromHandler;
     if (!fromHandler) return;
-    const fromHandlerLocation = handlerLocations.value.find((hl) => hl.id === fromHandler.id);
+    const fromHandlerLocation = handlerLocations.value.find((hl) => hl.id === fromHandler.id && hl.endpointName === fromHandler.endpoint.name);
     if (!fromHandlerLocation) return;
-    const toHandlerLocation = handlerLocations.value.find((hl) => hl.id === route.fromRoutedMessage?.toHandler?.id);
+    const toHandlerLocation = handlerLocations.value.find((hl) => hl.id === route.fromRoutedMessage?.toHandler?.id && hl.endpointName === route.fromRoutedMessage?.receiving.name);
     if (!toHandlerLocation) return;
 
-    //TODO: is messageId enough to uniquely identify?
-    const arrowIndex = fromHandler.outMessages.findIndex((out) => route.fromRoutedMessage?.messageId === out.messageId) + 1;
+    const messageTypeElement = messageTypeRefs.value[index];
+    const messageTypeElementBounds = messageTypeElement?.getBBox();
+    const arrowIndex = fromHandler.outMessages.findIndex((out) => route.fromRoutedMessage?.messageId === out.messageId && route.fromRoutedMessage?.receiving.name === out.receiving.name) + 1;
     const y = fromHandlerLocation.y + (fromHandlerLocation.height / (fromHandler.outMessages.length + 1)) * arrowIndex; //TODO work out the reason - 15 is applied in WPF;
 
-    const [direction, width, fromX] = (() => {
-      if (fromHandlerLocation.id === toHandlerLocation.id) return [Direction.Right, 15 + Arrow_Head_Width, fromHandlerLocation.right];
-      if (handlerLocations.value.indexOf(fromHandlerLocation) < handlerLocations.value.indexOf(toHandlerLocation)) return [Direction.Right, toHandlerLocation.left - fromHandlerLocation.right - Arrow_Head_Width, fromHandlerLocation.right];
-      return [Direction.Left, toHandlerLocation.left - fromHandlerLocation.right - Arrow_Head_Width, toHandlerLocation.left];
+    const toHandlerCentre = toHandlerLocation.left + (toHandlerLocation.right - toHandlerLocation.left) / 2;
+    const [direction, width, fromX, messageTypeOffset] = (() => {
+      if (fromHandlerLocation.left === toHandlerLocation.left) return [Direction.Right, 15 + Arrow_Head_Width, fromHandlerLocation.right, toHandlerCentre + 45];
+      if (fromHandlerLocation.left < toHandlerLocation.left) return [Direction.Right, toHandlerCentre - fromHandlerLocation.right - Arrow_Head_Width - 1, fromHandlerLocation.right, toHandlerCentre + 3];
+      return [Direction.Left, toHandlerCentre - fromHandlerLocation.left + Arrow_Head_Width + 1, fromHandlerLocation.left, toHandlerCentre - ((messageTypeElementBounds?.width ?? 0) + 15 + Message_Type_Margin * 3 + 3)];
     })();
     route.fromRoutedMessage.direction = direction;
 
-    const toX = toHandlerLocation.left + (toHandlerLocation.right - toHandlerLocation.left) / 2;
-    const messageTypeElement = messageTypeRefs.value[index];
-    const messageTypeElementBounds = messageTypeElement?.getBBox();
+    if (messageTypeOffset < 0) {
+      store.setStartX(-1 * messageTypeOffset);
+    }
 
     return {
       id: route.name,
@@ -43,11 +45,11 @@ const arrows = computed(() =>
       y,
       direction,
       width,
-      toX,
+      toHandlerCentre,
       height: Math.abs(y - toHandlerLocation.y),
       type: route.fromRoutedMessage.type,
       messageType: route.fromRoutedMessage.name,
-      messageTypeOffset: toX + 3, //TODO: apply using messageTypeRef if arrow is left
+      messageTypeOffset,
       highlight: highlightId.value === route.name,
       highlightTextWidth: messageTypeElementBounds?.width,
       highlightTextHeight: messageTypeElementBounds?.height,
@@ -65,12 +67,12 @@ function setMessageTypeRef(el: SVGTextElement, index: number) {
     <g v-if="arrow != null">
       <!--Main Arrow-->
       <g>
-        <path :d="`M${arrow.fromX} ${arrow.y} h${arrow.width}`" stroke-width="4" stroke="black" />
+        <path :d="`M${arrow.fromX} ${arrow.y} h${arrow.width}`" stroke-width="3.5" stroke="black" :stroke-dasharray="arrow.type === RoutedMessageType.Event ? '12 8' : undefined" />
         <path v-if="arrow.direction === Direction.Right" :d="`M${arrow.fromX + arrow.width} ${arrow.y - 7.5} l10 7.5 -10,7.5z`" fill="black" />
-        <path v-if="arrow.direction === Direction.Left" :d="`M${arrow.fromX - Arrow_Head_Width} ${arrow.y} l10,-7.5 0,15z`" fill="black" />
+        <path v-if="arrow.direction === Direction.Left" :d="`M${arrow.toHandlerCentre + 1} ${arrow.y} l10,-7.5 0,15z`" fill="black" />
       </g>
       <!--Highlight Arrow-->
-      <g v-if="arrow.highlight" :transform="`translate(${arrow.toX},${arrow.y})`" stroke="var(--highlight)" fill="var(--highlight)">
+      <g v-if="arrow.highlight" :transform="`translate(${arrow.toHandlerCentre},${arrow.y})`" stroke="var(--highlight)" fill="var(--highlight)">
         <path :d="`M0 0 v${arrow.height - 6}`" stroke-width="2" />
         <path :d="`M0 ${arrow.height} l-3,-6 6,0z`" />
       </g>
@@ -96,10 +98,10 @@ function setMessageTypeRef(el: SVGTextElement, index: number) {
           />
           <path
             v-else-if="arrow.type === RoutedMessageType.Event"
-            d="M 0,0 M 32,32 M 0,16 A 6,6 0 1 1 12,16 A 6,6 0 1 1 0,16   M 14,13 v6 h10 v2 L32,16 L24,11 v2   M13.78,19.54 L9.54,23.78 L16.61,30.85 L15.19,32.26 L24.38,34.38 L22.26,25.19 L20.85,26.61   M9.54,8.22 L13.78,12.46 L20.85,5.39 L22.26,6.81 L24.38,-2.38 L15.19,-0.26 L16.61,1.15"
+            d="M 0 2 M 27.8 29.8 M 0 15.9 A 5.2 5.2 90 1 1 10.4 15.9 A 5.2 5.2 90 1 1 0 15.9 M 12.1 13.3 v 5.2 h 8.7 v 1.8 L 27.8 15.9 L 20.8 11.6 v 1.8 M 11.9 19 L 8.3 22.6 L 14.3 28.8 L 13.1 30 L 21.2 31.9 L 19.3 23.9 L 18.1 25.1 M 8.3 9.1 L 11.9 12.9 L 18.1 6.7 L 19.3 7.9 L 21.2 0 L 13.1 1.9 L 14.3 3.1"
           />
           <path v-else-if="arrow.type === RoutedMessageType.Command" d="M 0,0 M 32,32 M 0,16 A 6,6 0 1 1 12,16 A 6,6 0 1 1 0,16   M 14,13 v6 h10 v2 L32,16 L24,11 v2 z" />
-          <path v-else-if="arrow.type === RoutedMessageType.Local" d="M17-1h-7v2h5v7H9V5.8L3,9l6,3.2V10h8V-1z M9,0.1C9,1.7,7.7,3,6,3S3,1.7,3,0.1S4.3-3,6-3S9-1.6,9,0.1z" />
+          <path v-else-if="arrow.type === RoutedMessageType.Local" d="M 32 6 h -14 v 4 h 10 v 14 H 16 V 19.6 L 4 26 l 12 6.4 V 28 h 16 V 6 z M 16 8.2 C 16 11.4 13.4 14 10 14 S 4 11.4 4 8.2 S 6.6 2 10 2 S 16 4.8 16 8 z" />
         </svg>
         <text :x="15 + Message_Type_Margin + Message_Type_Margin" :y="Message_Type_Margin" alignment-baseline="before-edge" :ref="(el) => setMessageTypeRef(el as SVGTextElement, i)">{{ arrow.messageType }}</text>
       </g>
