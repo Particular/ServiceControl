@@ -1,5 +1,6 @@
 import type EndpointDetails from "@/resources/EndpointDetails";
 import type Header from "@/resources/Header";
+import { ConversationModel } from "./SequenceDiagram/SequenceModel";
 
 export default interface FailedMessage {
   id: string;
@@ -37,6 +38,7 @@ export interface ExtendedFailedMessage extends FailedMessage {
   bodyUnavailable: boolean;
   headers: Header[];
   conversationId: string;
+  conversation?: ConversationModel;
   messageBody: string;
   contentType: string;
   isEditAndRetryEnabled: boolean;
