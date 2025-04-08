@@ -17,7 +17,7 @@
         {
             var api = new TestApi(null, null, null);
 
-            Results = api.AggregateResults(new ScatterGatherApiMessageViewContext(null, new SortInfo()), GetData());
+            Results = api.AggregateResults(new ScatterGatherApiMessageViewContext(new PagingInfo(), new SortInfo()), GetData());
         }
 
         protected abstract QueryResult<IList<MessagesView>>[] GetData();
