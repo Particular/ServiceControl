@@ -10,6 +10,7 @@ import TimeSince from "../TimeSince.vue";
 import moment from "moment";
 import ConfirmDialog from "../ConfirmDialog.vue";
 import FlowDiagram from "./FlowDiagram.vue";
+import SequenceDiagram from "./SequenceDiagram.vue";
 import EditRetryDialog from "../failedmessages/EditRetryDialog.vue";
 import routeLinks from "@/router/routeLinks";
 import { EditAndRetryConfig } from "@/resources/Configuration";
@@ -43,6 +44,7 @@ const showEditRetryModal = ref(false);
 
 const configuration = useConfiguration();
 const isMassTransitConnected = useIsMassTransitConnected();
+const showAllMessages = window.defaultConfig.showAllMessages;
 
 async function loadFailedMessage() {
   const response = await useFetchFromServiceControl(`errors/last/${id.value}`);
@@ -71,7 +73,7 @@ async function loadFailedMessage() {
   }
 
   updateMessageDeleteDate(message);
-  await downloadHeadersAndBody(message);
+  await fetchMessageDetails(message);
   failedMessage.value = message;
 }
 
@@ -115,7 +117,7 @@ async function retryMessage() {
   }
 }
 
-async function downloadHeadersAndBody(message: ExtendedFailedMessage) {
+async function fetchMessageDetails(message: ExtendedFailedMessage) {
   if (isError(message)) return;
 
   try {
@@ -349,11 +351,13 @@ onUnmounted(() => {
                 <h5 :class="{ active: panel === 2 }" class="nav-item" @click.prevent="togglePanel(2)"><a href="#">Message body</a></h5>
                 <h5 :class="{ active: panel === 3 }" class="nav-item" @click.prevent="togglePanel(3)"><a href="#">Headers</a></h5>
                 <h5 v-if="!isMassTransitConnected" :class="{ active: panel === 4 }" class="nav-item" @click.prevent="togglePanel(4)"><a href="#">Flow Diagram</a></h5>
+                <h5 v-if="showAllMessages" :class="{ active: panel === 5 }" class="nav-item" @click.prevent="togglePanel(5)"><a href="#">Sequence Diagram</a></h5>
               </div>
               <StackTraceView v-if="panel === 1 && failedMessage.exception?.stack_trace" :message="failedMessage" />
               <BodyView v-if="panel === 2" :message="failedMessage" />
               <HeadersView v-if="panel === 3" :message="failedMessage" />
               <FlowDiagram v-if="panel === 4" :message="failedMessage" />
+              <SequenceDiagram v-if="showAllMessages && panel === 5" />
             </div>
           </div>
 
