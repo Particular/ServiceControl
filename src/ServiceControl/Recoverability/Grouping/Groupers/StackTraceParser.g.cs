@@ -34,7 +34,7 @@ namespace ServiceControl.Recoverability
         const string Space = @"[\x20\t]";
         const string NotSpace = @"[^\x20\t]";
 
-        static readonly Regex Regex = new Regex(@"
+        [GeneratedRegex(@"
             ^
             " + Space + @"*
             \w+ " + Space + @"+
@@ -71,7 +71,10 @@ namespace ServiceControl.Recoverability
             // fall into the "catastrophic backtracking" trap due to over
             // generalization.
             // https://github.com/atifaziz/StackTraceParser/issues/4
-            TimeSpan.FromSeconds(5));
+            5000)]
+        private static partial Regex StackTraceRegex();
+
+        static readonly Regex StackTraceRegexInstance = StackTraceRegex();
 
         public static IEnumerable<T> Parse<T>(
             string text,
@@ -104,7 +107,7 @@ namespace ServiceControl.Recoverability
             if (sourceLocationSelector == null) throw new ArgumentNullException("sourceLocationSelector");
             if (selector == null) throw new ArgumentNullException("selector");
 
-            return from Match m in Regex.Matches(text)
+            return from Match m in StackTraceRegexInstance.Matches(text)
                    select m.Groups into groups
                    let pt = groups["pt"].Captures
                    let pn = groups["pn"].Captures
