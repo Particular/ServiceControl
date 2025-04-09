@@ -18,6 +18,8 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.ServiceBus;
 using BrokerThroughput;
+using DnsClient;
+using DnsClient.Protocol;
 using Microsoft.Extensions.Logging;
 
 public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings)
@@ -263,6 +265,17 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        var validNamespaces = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { serviceBusName };
+
+        var dnsLookup = new LookupClient();
+        var dnsResult = await dnsLookup.QueryAsync($"{serviceBusName}.servicebus.windows.net", QueryType.CNAME, cancellationToken: cancellationToken);
+        var domain = (dnsResult.Answers.FirstOrDefault() as CNameRecord)?.CanonicalName.Value;
+        if (domain is not null && domain.EndsWith(".servicebus.windows.net."))
+        {
+            var otherName = domain.Split('.').First();
+            validNamespaces.Add(otherName);
+        }
+
         SubscriptionResource? subscription = await armClient!.GetDefaultSubscriptionAsync(cancellationToken);
         var namespaces =
             subscription.GetServiceBusNamespacesAsync(cancellationToken);
@@ -270,7 +283,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         await foreach (var serviceBusNamespaceResource in namespaces.WithCancellation(
                            cancellationToken))
         {
-            if (serviceBusNamespaceResource.Data.Name == serviceBusName)
+            if (validNamespaces.Contains(serviceBusNamespaceResource.Data.Name))
             {
                 resourceId = serviceBusNamespaceResource.Id;
                 await foreach (var queue in serviceBusNamespaceResource.GetServiceBusQueues()
