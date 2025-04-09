@@ -19,6 +19,26 @@
             return source;
         }
 
+        public static IQueryable<MessagesViewIndex.SortAndFilterOptions> FilterBySentTimeRange(this IQueryable<MessagesViewIndex.SortAndFilterOptions> source, DateTimeRange range)
+        {
+            if (range == null)
+            {
+                return source;
+            }
+
+            if (range.From.HasValue)
+            {
+                source = source.Where(m => m.TimeSent >= range.From);
+            }
+
+            if (range.To.HasValue)
+            {
+                source = source.Where(m => m.TimeSent <= range.To);
+            }
+
+            return source;
+        }
+
         public static IQueryable<TSource> Paging<TSource>(this IQueryable<TSource> source, PagingInfo pagingInfo)
             => source.Skip(pagingInfo.Offset).Take(pagingInfo.PageSize);
 

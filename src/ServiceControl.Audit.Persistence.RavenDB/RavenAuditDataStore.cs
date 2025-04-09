@@ -31,11 +31,12 @@
             return sagaHistory == null ? QueryResult<SagaHistory>.Empty() : new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults));
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
+        public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                 .Statistics(out var stats)
+                .FilterBySentTimeRange(timeSentRange)
                 .IncludeSystemMessagesWhere(includeSystemMessages)
                 .Sort(sortInfo)
                 .Paging(pagingInfo)
@@ -45,12 +46,13 @@
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                 .Statistics(out var stats)
                 .Search(x => x.Query, searchParam)
+                .FilterBySentTimeRange(timeSentRange)
                 .Sort(sortInfo)
                 .Paging(pagingInfo)
                 .ToMessagesView()
@@ -59,13 +61,14 @@
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                 .Statistics(out var stats)
                 .Search(x => x.Query, keyword)
                 .Where(m => m.ReceivingEndpointName == endpoint)
+                .FilterBySentTimeRange(timeSentRange)
                 .Sort(sortInfo)
                 .Paging(pagingInfo)
                 .ToMessagesView()
@@ -74,13 +77,14 @@
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                 .Statistics(out var stats)
                 .IncludeSystemMessagesWhere(includeSystemMessages)
                 .Where(m => m.ReceivingEndpointName == endpointName)
+                .FilterBySentTimeRange(timeSentRange)
                 .Sort(sortInfo)
                 .Paging(pagingInfo)
                 .ToMessagesView()

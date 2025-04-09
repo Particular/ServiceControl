@@ -45,6 +45,7 @@ GET /messages => ServiceControl.CompositeViews.Messages.GetMessagesController:Me
 GET /messages/{id}/body => ServiceControl.CompositeViews.Messages.GetMessagesController:Get(String id, String instanceId)
 GET /messages/search => ServiceControl.CompositeViews.Messages.GetMessagesController:Search(PagingInfo pagingInfo, SortInfo sortInfo, String q)
 GET /messages/search/{keyword} => ServiceControl.CompositeViews.Messages.GetMessagesController:SearchByKeyWord(PagingInfo pagingInfo, SortInfo sortInfo, String keyword)
+GET /messages2 => ServiceControl.CompositeViews.Messages.GetMessages2Controller:Messages(SortInfo sortInfo, Int32 pageSize, String endpointName, String from, String to, String q)
 GET /notifications/email => ServiceControl.Notifications.Api.NotificationsController:GetEmailNotificationsSettings()
 POST /notifications/email => ServiceControl.Notifications.Api.NotificationsController:UpdateSettings(UpdateEmailNotificationsSettingsRequest request)
 POST /notifications/email/test => ServiceControl.Notifications.Api.NotificationsController:SendTestEmail()

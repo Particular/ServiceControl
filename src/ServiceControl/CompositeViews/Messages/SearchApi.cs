@@ -10,8 +10,9 @@ namespace ServiceControl.CompositeViews.Messages
     public record SearchApiContext(
         PagingInfo PagingInfo,
         SortInfo SortInfo,
-        string SearchQuery)
-        : ScatterGatherApiMessageViewContext(PagingInfo, SortInfo);
+        string SearchQuery,
+        DateTimeRange TimeSentRange = null)
+        : ScatterGatherApiMessageViewContext(PagingInfo, SortInfo, TimeSentRange);
 
     public class SearchApi : ScatterGatherApiMessageView<IErrorMessageDataStore, SearchApiContext>
     {
@@ -21,6 +22,6 @@ namespace ServiceControl.CompositeViews.Messages
         }
 
         protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(SearchApiContext input) =>
-            DataStore.GetAllMessagesForSearch(input.SearchQuery, input.PagingInfo, input.SortInfo);
+            DataStore.GetAllMessagesForSearch(input.SearchQuery, input.PagingInfo, input.SortInfo, input.TimeSentRange);
     }
 }
