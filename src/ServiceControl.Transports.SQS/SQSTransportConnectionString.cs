@@ -1,5 +1,6 @@
 namespace ServiceControl.Transports.SQS;
 
+using System;
 using System.Data.Common;
 
 public class SQSTransportConnectionString
@@ -50,6 +51,12 @@ public class SQSTransportConnectionString
         {
             DoNotWrapOutgoingMessages = doNotWrapOutgoingMessagesAsBool;
         }
+
+
+        if (builder.TryGetValue("ReservedBytes", out object reservedBytes))
+        {
+            ReservedBytesInMessageSize = Convert.ToInt32(reservedBytes);
+        }
     }
 
     public string AccessKey { get; }
@@ -60,4 +67,5 @@ public class SQSTransportConnectionString
     public string S3BucketForLargeMessages { get; }
     public string S3KeyPrefix { get; }
     public bool DoNotWrapOutgoingMessages { get; }
+    public int ReservedBytesInMessageSize { get; }
 }
