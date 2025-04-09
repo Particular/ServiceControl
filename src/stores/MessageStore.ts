@@ -60,7 +60,7 @@ interface Model {
   }>;
 }
 
-export const useMessageViewStore = defineStore("MessageViewStore", () => {
+export const useMessageStore = defineStore("MessageStore", () => {
   const headers = ref<DataContainer<Header[]>>({ data: [] });
   const body = ref<DataContainer<{ value?: string; content_type?: string }>>({ data: {} });
   const state = reactive<DataContainer<Model>>({ data: { failure_metadata: {}, failure_status: {}, dialog_status: {} } });
@@ -78,7 +78,6 @@ export const useMessageViewStore = defineStore("MessageViewStore", () => {
   }
 
   async function loadFailedMessage(id: string) {
-    state.data.id = id;
     state.loading = true;
     state.failed_to_load = false;
     state.not_found = false;
@@ -308,7 +307,7 @@ export const useMessageViewStore = defineStore("MessageViewStore", () => {
 });
 
 if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useMessageViewStore, import.meta.hot));
+  import.meta.hot.accept(acceptHMRUpdate(useMessageStore, import.meta.hot));
 }
 
-export type MessageViewStore = ReturnType<typeof useMessageViewStore>;
+export type MessageStore = ReturnType<typeof useMessageStore>;

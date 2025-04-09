@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import CopyToClipboard from "@/components/CopyToClipboard.vue";
 import { computed, ref } from "vue";
-import { useMessageViewStore } from "@/stores/MessageViewStore";
+import { useMessageStore } from "@/stores/MessageStore";
 import { storeToRefs } from "pinia";
 
-const { headers } = storeToRefs(useMessageViewStore());
+const { headers } = storeToRefs(useMessageStore());
 
 const hoverStates = ref<Record<number, boolean>>({});
 const searchTerm = ref<string>("");

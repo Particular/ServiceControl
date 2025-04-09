@@ -9,7 +9,7 @@ import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnect
 import BodyView from "@/components/messages2/BodyView.vue";
 import HeadersView from "@/components/messages2/HeadersView.vue";
 import StackTraceView from "@/components/messages2/StacktraceView.vue";
-import { useMessageViewStore } from "@/stores/MessageViewStore";
+import { useMessageStore } from "@/stores/MessageStore";
 import DeleteMessageButton from "@/components/messages2/DeleteMessageButton.vue";
 import RestoreMessageButton from "@/components/messages2/RestoreMessageButton.vue";
 import RetryMessageButton from "@/components/messages2/RetryMessageButton.vue";
@@ -25,7 +25,7 @@ const id = computed(() => route.params.id as string);
 const messageId = computed(() => route.params.messageId as string);
 const isError = computed(() => messageId.value === undefined);
 const isMassTransitConnected = useIsMassTransitConnected();
-const store = useMessageViewStore();
+const store = useMessageStore();
 const { state } = storeToRefs(store);
 const tabs = computed(() => {
   const currentTabs = [

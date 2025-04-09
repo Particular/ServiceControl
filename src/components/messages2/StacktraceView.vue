@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import CodeEditor from "@/components/CodeEditor.vue";
-import { useMessageViewStore } from "@/stores/MessageViewStore";
+import { useMessageStore } from "@/stores/MessageStore";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { storeToRefs } from "pinia";
 
-const { state } = storeToRefs(useMessageViewStore());
+const { state } = storeToRefs(useMessageStore());
 </script>
 
 <template>

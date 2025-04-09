@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
-import { useMessageViewStore } from "@/stores/MessageViewStore";
+import { useMessageStore } from "@/stores/MessageStore";
 import { computed, ref } from "vue";
 import { showToastAfterOperation } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import { storeToRefs } from "pinia";
 import { FailedMessageStatus } from "@/resources/FailedMessage";
 
-const store = useMessageViewStore();
+const store = useMessageStore();
 const { state } = storeToRefs(store);
 const isConfirmDialogVisible = ref(false);
 

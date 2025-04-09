@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useMessageViewStore } from "@/stores/MessageViewStore";
+import { useMessageStore } from "@/stores/MessageStore";
 import { useDownloadFileFromString } from "@/composables/fileDownloadCreator";
 import { showToastAfterOperation } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import { ref } from "vue";
 
-const store = useMessageViewStore();
+const store = useMessageStore();
 const executing = ref(false);
 
 async function exportMessage() {

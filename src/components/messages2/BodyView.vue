@@ -2,11 +2,11 @@
 import { computed, watch } from "vue";
 import CodeEditor from "@/components/CodeEditor.vue";
 import parseContentType from "@/composables/contentTypeParser";
-import { useMessageViewStore } from "@/stores/MessageViewStore";
+import { useMessageStore } from "@/stores/MessageStore";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { storeToRefs } from "pinia";
 
-const store = useMessageViewStore();
+const store = useMessageStore();
 const { body: bodyState, state } = storeToRefs(store);
 
 watch(

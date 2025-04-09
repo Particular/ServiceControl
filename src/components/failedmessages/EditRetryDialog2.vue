@@ -6,7 +6,7 @@ import type Header from "@/resources/Header";
 import parseContentType from "@/composables/contentTypeParser";
 import { CodeLanguage } from "@/components/codeEditorTypes";
 import CodeEditor from "@/components/CodeEditor.vue";
-import { useMessageViewStore } from "@/stores/MessageViewStore";
+import { useMessageStore } from "@/stores/MessageStore";
 import { storeToRefs } from "pinia";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
@@ -52,7 +52,7 @@ let origMessageBody: string;
 const showEditAndRetryConfirmation = ref(false);
 const showCancelConfirmation = ref(false);
 const showEditRetryGenericError = ref(false);
-const store = useMessageViewStore();
+const store = useMessageStore();
 const { state, headers, body, edit_and_retry_config } = storeToRefs(store);
 const id = computed(() => state.value.data.id ?? "");
 const messageBody = computed(() => body.value.data.value);
@@ -123,7 +123,7 @@ async function retryEditedMessage() {
 
 function initializeMessageBodyAndHeaders() {
   origMessageBody = body.value.data.value ?? "";
-  localMessage.value = {
+  const local = <LocalMessageState>{
     isBodyChanged: false,
     isBodyEmpty: false,
     isContentTypeSupported: false,
@@ -134,17 +134,15 @@ function initializeMessageBodyAndHeaders() {
     headers: headers.value.data.map((header: Header) => ({ ...header })) as HeaderWithEditing[],
     messageBody: body.value.data.value ?? "",
   };
-  localMessage.value.isBodyEmpty = false;
-  localMessage.value.isBodyChanged = false;
 
   const contentType = getContentType();
-  localMessage.value.bodyContentType = contentType;
+  local.bodyContentType = contentType;
   const parsedContentType = parseContentType(contentType);
-  localMessage.value.isContentTypeSupported = parsedContentType.isSupported;
-  localMessage.value.language = parsedContentType.language;
+  local.isContentTypeSupported = parsedContentType.isSupported;
+  local.language = parsedContentType.language;
 
   const messageIntent = getMessageIntent();
-  localMessage.value.isEvent = messageIntent === "Publish";
+  local.isEvent = messageIntent === "Publish";
 
   for (let index = 0; index < headers.value.data.length; index++) {
     const header: HeaderWithEditing = headers.value.data[index] as HeaderWithEditing;
@@ -160,13 +158,14 @@ function initializeMessageBodyAndHeaders() {
       header.isSensitive = true;
     }
 
-    localMessage.value.headers[index] = header;
+    local.headers[index] = header;
   }
+
+  localMessage.value = local;
 }
 
 function togglePanel(panelNum: number) {
   panel.value = panelNum;
-  return false;
 }
 
 onMounted(() => {

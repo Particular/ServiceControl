@@ -6,7 +6,7 @@ import routeLinks from "@/router/routeLinks";
 import Message from "@/resources/Message";
 import { NServiceBusHeaders } from "@/resources/Header";
 import { Controls } from "@vue-flow/controls";
-import { useMessageViewStore } from "@/stores/MessageViewStore";
+import { useMessageStore } from "@/stores/MessageStore";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { storeToRefs } from "pinia";
 
@@ -40,8 +40,8 @@ interface MappedMessage {
 const nodeSpacingX = 300;
 const nodeSpacingY = 200;
 
-const store = useMessageViewStore();
-const { state } = storeToRefs(useMessageViewStore());
+const store = useMessageStore();
+const { state } = storeToRefs(useMessageStore());
 
 async function getConversation(conversationId: string) {
   await store.loadConversation(conversationId);
