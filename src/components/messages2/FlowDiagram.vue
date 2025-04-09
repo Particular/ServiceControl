@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { type DefaultEdge, MarkerType, VueFlow, type Styles, type Node } from "@vue-flow/core";
+import { type DefaultEdge, MarkerType, type Node, type Styles, VueFlow } from "@vue-flow/core";
 import TimeSince from "../TimeSince.vue";
 import routeLinks from "@/router/routeLinks";
-import Message from "@/resources/Message";
+import Message, { MessageStatus } from "@/resources/Message";
 import { NServiceBusHeaders } from "@/resources/Header";
-import { Controls } from "@vue-flow/controls";
+import { ControlButton, Controls } from "@vue-flow/controls";
 import { useMessageStore } from "@/stores/MessageStore";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { storeToRefs } from "pinia";
+import EndpointDetails from "@/resources/EndpointDetails.ts";
+import { hexToCSSFilter } from "hex-to-css-filter";
+import TextEllipses from "@/components/TextEllipses.vue";
 
 enum MessageType {
   Event = "Event message",
@@ -20,8 +23,8 @@ interface MappedMessage {
   nodeName: string;
   id: string;
   messageId: string;
-  sendingEndpoint: string;
-  receivingEndpoint: string;
+  sendingEndpoint: EndpointDetails;
+  receivingEndpoint: EndpointDetails;
   parentId: string;
   parentEndpoint: string;
   type: MessageType;
@@ -74,15 +77,12 @@ function mapMessage(message: Message): MappedMessage {
     nodeName: message.message_type,
     id: message.id,
     messageId: message.message_id,
-    sendingEndpoint: message.sending_endpoint?.name,
-    receivingEndpoint: message.receiving_endpoint?.name,
+    sendingEndpoint: message.sending_endpoint,
+    receivingEndpoint: message.receiving_endpoint,
     parentId,
     parentEndpoint,
     type,
-    isError:
-      message.headers.findIndex(function (x) {
-        return x.key === NServiceBusHeaders.ExceptionInfoExceptionType;
-      }) > -1,
+    isError: message.status !== MessageStatus.Successful && message.status !== MessageStatus.ResolvedSuccessfully,
     sagaName,
     link: {
       name: `Link ${message.id}`,
@@ -105,8 +105,8 @@ function constructNodes(mappedMessages: MappedMessage[]): Node[] {
         const previousLevel = level > 0 ? messagesByLevel[level - 1] : null;
         return group.sort(
           (a, b) =>
-            (previousLevel?.findIndex((plMessage) => a.parentId === plMessage.messageId && a.parentEndpoint === plMessage.receivingEndpoint) ?? 1) -
-            (previousLevel?.findIndex((plMessage) => b.parentId === plMessage.messageId && b.parentEndpoint === plMessage.receivingEndpoint) ?? 1)
+            (previousLevel?.findIndex((plMessage) => a.parentId === plMessage.messageId && a.parentEndpoint === plMessage.receivingEndpoint.name) ?? 1) -
+            (previousLevel?.findIndex((plMessage) => b.parentId === plMessage.messageId && b.parentEndpoint === plMessage.receivingEndpoint.name) ?? 1)
         );
       })
       //flatten to actual flow diagram nodes, with positioning based on parent node/level
@@ -115,7 +115,7 @@ function constructNodes(mappedMessages: MappedMessage[]): Node[] {
         return group.reduce(
           ({ result, currentWidth, previousParent }, message) => {
             //position on current level needs to be based on parent Node, so see if one exists
-            const parentMessage = previousLevel?.find((plMessage) => message.parentId === plMessage.messageId && message.parentEndpoint === plMessage.receivingEndpoint) ?? null;
+            const parentMessage = previousLevel?.find((plMessage) => message.parentId === plMessage.messageId && message.parentEndpoint === plMessage.receivingEndpoint.name) ?? null;
             //if the current parent node is the same as the previous parent node, then the current position needs to be to the right of siblings
             const currentParentWidth = previousParent === parentMessage ? currentWidth : 0;
             const startX = parentMessage == null ? 0 : parentMessage.XPos! - parentMessage.width! / 2;
@@ -125,7 +125,7 @@ function constructNodes(mappedMessages: MappedMessage[]): Node[] {
               result: [
                 ...result,
                 {
-                  id: `${message.messageId}##${message.receivingEndpoint}`,
+                  id: `${message.messageId}##${message.receivingEndpoint.name}`,
                   type: "message",
                   data: message,
                   label: message.nodeName,
@@ -148,7 +148,7 @@ function constructEdges(mappedMessages: MappedMessage[]): DefaultEdge[] {
     .map((message) => ({
       id: `${message.parentId}##${message.messageId}`,
       source: `${message.parentId}##${message.parentEndpoint}`,
-      target: `${message.messageId}##${message.receivingEndpoint}`,
+      target: `${message.messageId}##${message.receivingEndpoint.name}`,
       markerEnd: MarkerType.ArrowClosed,
       style: {
         "stroke-dasharray": message.type === MessageType.Event && "5, 3",
@@ -166,7 +166,7 @@ onMounted(async () => {
 
   const assignDescendantLevelsAndWidth = (message: MappedMessage, level = 0) => {
     message.level = level;
-    const children = mappedMessages.filter((mm) => mm.parentId === message.messageId && mm.parentEndpoint === message.receivingEndpoint);
+    const children = mappedMessages.filter((mm) => mm.parentId === message.messageId && mm.parentEndpoint === message.receivingEndpoint.name);
     message.width =
       children.length === 0
         ? 1 //leaf node
@@ -188,6 +188,14 @@ function typeIcon(type: MessageType) {
       return "pa-flow-command";
   }
 }
+
+const showAddress = ref(false);
+
+function toggleAddress() {
+  showAddress.value = !showAddress.value;
+}
+
+const blackColor = hexToCSSFilter("#000000").filter;
 </script>
 
 <template>
@@ -195,26 +203,36 @@ function typeIcon(type: MessageType) {
   <LoadingSpinner v-else-if="store.conversationData.loading" />
   <div v-else id="tree-container">
     <VueFlow v-model="elements" :min-zoom="0.1" :fit-view-on-init="true">
-      <Controls />
+      <Controls position="top-left" class="controls">
+        <ControlButton v-tippy="`Show endpoints`" @click="toggleAddress">
+          <i class="fa pa-flow-endpoint" :style="{ filter: blackColor }"></i>
+        </ControlButton>
+      </Controls>
       <template #node-message="{ data }: { data: MappedMessage }">
+        <div v-if="showAddress">
+          <TextEllipses class="address" :text="`${data.sendingEndpoint.name}@${data.sendingEndpoint.host}`" />
+        </div>
         <div class="node" :class="{ error: data.isError, 'current-message': data.id === store.state.data.id }">
-          <div class="node-text wordwrap">
+          <div class="node-text">
             <i v-if="data.isError" class="fa pa-flow-failed" />
-            <i class="fa" :class="typeIcon(data.type)" :title="data.type" />
-            <div class="lead right-side-ellipsis" :title="data.nodeName">
+            <i class="fa" :class="typeIcon(data.type)" v-tippy="data.type" />
+            <div class="lead">
               <strong>
-                <RouterLink v-if="data.isError" :to="{ path: routeLinks.messages.failedMessage.link(data.id) }">{{ data.nodeName }}</RouterLink>
-                <RouterLink v-else :to="{ path: routeLinks.messages.successMessage.link(data.messageId, data.id) }">{{ data.nodeName }}</RouterLink>
+                <RouterLink v-if="data.isError" :to="{ path: routeLinks.messages.failedMessage.link(data.id) }"><TextEllipses style="width: 204px" :text="data.nodeName" ellipses-style="LeftSide" /></RouterLink>
+                <RouterLink v-else :to="{ path: routeLinks.messages.successMessage.link(data.messageId, data.id) }"><TextEllipses style="width: 204px" :text="data.nodeName" ellipses-style="LeftSide" /></RouterLink>
               </strong>
             </div>
-            <span class="time-sent">
+            <div class="time-sent">
               <time-since class="time-since" :date-utc="data.timeSent" />
-            </span>
+            </div>
             <template v-if="data.sagaName">
               <i class="fa pa-flow-saga" />
-              <div class="saga lead right-side-ellipsis" :title="data.sagaName">{{ data.sagaName }}</div>
+              <div class="saga lead"><TextEllipses style="width: 182px" :text="data.sagaName" ellipses-style="LeftSide" /></div>
             </template>
           </div>
+        </div>
+        <div v-if="showAddress">
+          <TextEllipses class="address" :text="`${data.receivingEndpoint.name}@${data.receivingEndpoint.host}`" />
         </div>
       </template>
     </VueFlow>
@@ -230,6 +248,12 @@ function typeIcon(type: MessageType) {
 <style scoped>
 @import "../list.css";
 
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 #tree-container {
   width: 90vw;
   height: 60vh;
@@ -240,17 +264,11 @@ function typeIcon(type: MessageType) {
   --vf-box-shadow: var(--vf-node-color, #1a192b);
   background: var(--vf-node-bg);
   border-color: var(--vf-node-color, #1a192b);
-  padding: 10px;
   border-radius: 3px;
   font-size: 12px;
   border-width: 1px;
   border-style: solid;
   color: var(--vf-node-text);
-  text-align: left;
-}
-
-.right-side-ellipsis {
-  direction: rtl;
   text-align: left;
 }
 
@@ -269,7 +287,6 @@ function typeIcon(type: MessageType) {
 }
 
 .node .time-sent .time-since {
-  display: block;
   margin-left: 20px;
   padding-top: 0;
   color: #777f7f;
@@ -290,7 +307,6 @@ function typeIcon(type: MessageType) {
 
 .node-text .lead {
   display: inline-block;
-  width: 204px;
   position: relative;
   top: 4px;
 }
@@ -302,7 +318,12 @@ function typeIcon(type: MessageType) {
 
 .node-text .lead.saga {
   font-weight: normal;
-  width: 182px;
+}
+
+.address {
+  color: #777f7f;
+  font-size: 0.8em;
+  width: 264px;
 }
 
 .current-message {
@@ -368,6 +389,14 @@ function typeIcon(type: MessageType) {
 
 .error .node-text a:hover {
   text-decoration: underline;
+}
+
+.pa-flow-endpoint {
+  background-image: url("@/assets/endpoint.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 15px;
+  width: 15px;
 }
 
 .pa-flow-failed {

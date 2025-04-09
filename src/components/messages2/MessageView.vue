@@ -19,6 +19,7 @@ import ExportMessageButton from "@/components/messages2/ExportMessageButton.vue"
 import TabsLayout from "@/components/TabsLayout.vue";
 import { storeToRefs } from "pinia";
 import MetadataLabel from "@/components/messages2/MetadataLabel.vue";
+import { hexToCSSFilter } from "hex-to-css-filter";
 import LoadingOverlay from "@/components/LoadingOverlay.vue";
 
 const route = useRoute();
@@ -76,6 +77,7 @@ watch(
   },
   { immediate: true }
 );
+const endpointColor = hexToCSSFilter("#929E9E").filter;
 </script>
 
 <template>
@@ -116,7 +118,7 @@ watch(
               <span v-if="state.data.failure_metadata.time_of_failure" class="metadata"><i class="fa fa-clock-o"></i> Failed: <time-since :date-utc="state.data.failure_metadata.time_of_failure"></time-since></span>
               <span v-else class="metadata"><i class="fa fa-clock-o"></i> Processed at: <time-since :date-utc="state.data.processed_at"></time-since></span>
               <template v-if="state.data.receiving_endpoint">
-                <span class="metadata"><i class="fa pa-endpoint"></i> Endpoint: {{ state.data.receiving_endpoint.name }}</span>
+                <span class="metadata"><i class="fa pa-endpoint" :style="{ filter: endpointColor }"></i> Endpoint: {{ state.data.receiving_endpoint.name }}</span>
                 <span class="metadata"><i class="fa fa-laptop"></i> Machine: {{ state.data.receiving_endpoint.host }}</span>
               </template>
               <span v-if="state.data.failure_metadata.redirect" class="metadata"><i class="fa pa-redirect-source pa-redirect-small"></i> Redirect: {{ state.data.failure_metadata.redirect }}</span>

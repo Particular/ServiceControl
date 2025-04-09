@@ -13,7 +13,7 @@ defineProps<{ date?: string; tooltipTarget: string }>();
         <p>No heartbeat data received for this {{ tooltipTarget }}.</p>
         <p>Have you installed and configured the <a target="_blank" href="https://docs.particular.net/monitoring/heartbeats/install-plugin">heartbeats plugin</a> for this {{ tooltipTarget }}?</p>
       </template>
-      <span title="Last Heartbeat">No data available</span>
+      <span>No data available</span>
     </tippy>
   </p>
 </template>

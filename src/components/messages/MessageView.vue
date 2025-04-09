@@ -24,6 +24,7 @@ import HeadersView from "@/components/messages/HeadersView.vue";
 import StackTraceView from "@/components/messages/StacktraceView.vue";
 import { stringify, parse } from "lossless-json";
 import xmlFormat from "xml-formatter";
+import { hexToCSSFilter } from "hex-to-css-filter";
 
 let refreshInterval: number | undefined;
 let pollingFaster = false;
@@ -278,6 +279,7 @@ onMounted(async () => {
 onUnmounted(() => {
   stopRefreshInterval();
 });
+const endpointColor = hexToCSSFilter("#929E9E").filter;
 </script>
 
 <template>
@@ -315,7 +317,7 @@ onUnmounted(() => {
                   <i class="fa fa-history"></i> <RouterLink :to="{ path: routeLinks.messages.failedMessage.link(failedMessage.edit_of), query: { back: route.path } }">View previous version</RouterLink>
                 </span>
                 <span v-if="failedMessage.time_of_failure" class="metadata"><i class="fa fa-clock-o"></i> Failed: <time-since :date-utc="failedMessage.time_of_failure"></time-since></span>
-                <span class="metadata"><i class="fa pa-endpoint"></i> Endpoint: {{ failedMessage.receiving_endpoint.name }}</span>
+                <span class="metadata"><i class="fa pa-endpoint" :style="{ filter: endpointColor }"></i> Endpoint: {{ failedMessage.receiving_endpoint.name }}</span>
                 <span class="metadata"><i class="fa fa-laptop"></i> Machine: {{ failedMessage.receiving_endpoint.host }}</span>
                 <span v-if="failedMessage.redirect" class="metadata"><i class="fa pa-redirect-source pa-redirect-small"></i> Redirect: {{ failedMessage.redirect }}</span>
               </div>

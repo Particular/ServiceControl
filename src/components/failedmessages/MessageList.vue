@@ -4,6 +4,7 @@ import TimeSince from "../TimeSince.vue";
 import NoData from "../NoData.vue";
 import routeLinks from "@/router/routeLinks";
 import { FailedMessageStatus, ExtendedFailedMessage } from "@/resources/FailedMessage";
+import { hexToCSSFilter } from "hex-to-css-filter";
 
 export interface IMessageList {
   getSelectedMessages(): ExtendedFailedMessage[];
@@ -89,6 +90,7 @@ defineExpose<IMessageList>({
   isAnythingDisplayed,
   numberDisplayed,
 });
+const endpointColor = hexToCSSFilter("#929E9E").filter;
 </script>
 
 <template>
@@ -122,7 +124,7 @@ defineExpose<IMessageList>({
                 <span v-if="message.edited" :title="'Message was edited'" class="label sidebar-label label-info metadata-label">Edited</span>
 
                 <span class="metadata"><i class="fa fa-clock-o"></i> Failed: <time-since :dateUtc="message.time_of_failure"></time-since></span>
-                <span class="metadata"><i class="fa pa-endpoint"></i> Endpoint: {{ message.receiving_endpoint.name }}</span>
+                <span class="metadata"><i class="fa pa-endpoint" :style="{ filter: endpointColor }"></i> Endpoint: {{ message.receiving_endpoint.name }}</span>
                 <span class="metadata"><i class="fa fa-laptop"></i> Machine: {{ message.receiving_endpoint.host }}</span>
                 <span class="metadata" v-if="message.redirect"><i class="fa pa-redirect-source pa-redirect-small"></i> Redirect: {{ message.redirect }}</span>
                 <!-- for deleted messages-->
