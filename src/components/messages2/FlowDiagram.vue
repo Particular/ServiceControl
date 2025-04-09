@@ -35,9 +35,9 @@ interface MappedMessage {
     nodeName: string;
   };
   timeSent: string;
-  level?: number;
-  width?: number;
-  XPos?: number;
+  level: number;
+  width: number;
+  XPos: number;
 }
 
 const nodeSpacingX = 300;
@@ -84,6 +84,9 @@ function mapMessage(message: Message): MappedMessage {
     type,
     isError: message.status !== MessageStatus.Successful && message.status !== MessageStatus.ResolvedSuccessfully,
     sagaName,
+    level: 0,
+    width: 0,
+    XPos: 0,
     link: {
       name: `Link ${message.id}`,
       nodeName: message.id,
@@ -92,12 +95,12 @@ function mapMessage(message: Message): MappedMessage {
   };
 }
 
-function constructNodes(mappedMessages: MappedMessage[]): Node[] {
+function constructNodes(mappedMessages: MappedMessage[]): Node<MappedMessage>[] {
   return (
     mappedMessages
       //group by level
       .reduce((groups: MappedMessage[][], message: MappedMessage) => {
-        groups[message.level!] = [...(groups[message.level!] ?? []), message];
+        groups[message.level] = [...(groups[message.level] ?? []), message];
         return groups;
       }, [])
       //ensure each level has their items in the same "grouped" order as the level above
@@ -118,9 +121,9 @@ function constructNodes(mappedMessages: MappedMessage[]): Node[] {
             const parentMessage = previousLevel?.find((plMessage) => message.parentId === plMessage.messageId && message.parentEndpoint === plMessage.receivingEndpoint.name) ?? null;
             //if the current parent node is the same as the previous parent node, then the current position needs to be to the right of siblings
             const currentParentWidth = previousParent === parentMessage ? currentWidth : 0;
-            const startX = parentMessage == null ? 0 : parentMessage.XPos! - parentMessage.width! / 2;
+            const startX = parentMessage == null ? 0 : parentMessage.XPos - parentMessage.width / 2;
             //store the position of the node against the message, so child nodes can use it to determine their start position
-            message.XPos = startX + (currentParentWidth + message.width! / 2);
+            message.XPos = startX + (currentParentWidth + message.width / 2);
             return {
               result: [
                 ...result,
@@ -129,10 +132,10 @@ function constructNodes(mappedMessages: MappedMessage[]): Node[] {
                   type: "message",
                   data: message,
                   label: message.nodeName,
-                  position: { x: message.XPos * nodeSpacingX, y: message.level! * nodeSpacingY },
+                  position: { x: message.XPos * nodeSpacingX, y: message.level * nodeSpacingY },
                 },
               ],
-              currentWidth: currentParentWidth + message.width!,
+              currentWidth: currentParentWidth + message.width,
               previousParent: parentMessage,
             };
           },
@@ -170,12 +173,17 @@ onMounted(async () => {
     message.width =
       children.length === 0
         ? 1 //leaf node
-        : children.map((child) => (child.width == null ? assignDescendantLevelsAndWidth(child, level + 1) : child)).reduce((sum, { width }) => sum + width!, 0);
+        : children.map((child) => (child.width === 0 ? assignDescendantLevelsAndWidth(child, level + 1) : child)).reduce((sum, { width }) => sum + width, 0);
     return message;
   };
-  for (const root of mappedMessages.filter((message) => !message.parentId)) assignDescendantLevelsAndWidth(root);
+  for (const root of mappedMessages.filter((message) => !message.parentId)) {
+    assignDescendantLevelsAndWidth(root);
+  }
 
-  elements.value = [...constructNodes(mappedMessages), ...constructEdges(mappedMessages)];
+  const nodes = constructNodes(mappedMessages);
+  const edges = constructEdges(nodes.map((n) => n.data as MappedMessage));
+
+  elements.value = [...nodes, ...edges];
 });
 
 function typeIcon(type: MessageType) {
@@ -196,16 +204,17 @@ function toggleAddress() {
 }
 
 const blackColor = hexToCSSFilter("#000000").filter;
+const greenColor = hexToCSSFilter("#00c468").filter;
 </script>
 
 <template>
   <div v-if="store.conversationData.failed_to_load" class="alert alert-info">FlowDiagram data is unavailable.</div>
   <LoadingSpinner v-else-if="store.conversationData.loading" />
   <div v-else id="tree-container">
-    <VueFlow v-model="elements" :min-zoom="0.1" :fit-view-on-init="true">
+    <VueFlow v-model="elements" :min-zoom="0.1" :fit-view-on-init="true" :only-render-visible-elements="true">
       <Controls position="top-left" class="controls">
-        <ControlButton v-tippy="`Show endpoints`" @click="toggleAddress">
-          <i class="fa pa-flow-endpoint" :style="{ filter: blackColor }"></i>
+        <ControlButton v-tippy="showAddress ? `Hide endpoints` : `Show endpoints`" @click="toggleAddress">
+          <i class="fa pa-flow-endpoint" :style="{ filter: showAddress ? greenColor : blackColor }"></i>
         </ControlButton>
       </Controls>
       <template #node-message="{ data }: { data: MappedMessage }">
