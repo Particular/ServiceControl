@@ -291,19 +291,25 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         throw new Exception($"Could not find a ServiceBus named \"{serviceBusName}\"");
     }
 
+    // ArmEnvironment Audience Values: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/resourcemanager/Azure.ResourceManager/src/ArmEnvironment.cs
+    // Service Bus Domains: https://learn.microsoft.com/en-us/rest/api/servicebus/
+    static readonly Dictionary<ArmEnvironment, string> ServiceBusDomains = new()
+    {
+        { ArmEnvironment.AzurePublicCloud, "servicebus.windows.net" },
+        { ArmEnvironment.AzureGovernment, "servicebus.usgovcloudapi.net" },
+        { ArmEnvironment.AzureGermany, "servicebus.cloudapi.de" },
+        { ArmEnvironment.AzureChina, "servicebus.chinacloudapi.cn" },
+    };
+
     async Task<HashSet<string>> GetValidNamespaceNames(CancellationToken cancellationToken = default)
     {
         var validNamespaces = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { serviceBusName };
 
-        // ArmEnvironment Audience Values: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/resourcemanager/Azure.ResourceManager/src/ArmEnvironment.cs
-        // Service Bus Domains: https://learn.microsoft.com/en-us/rest/api/servicebus/
-        var serviceBusCloudDomain = armEnvironment.Audience switch
+        if (!ServiceBusDomains.TryGetValue(armEnvironment, out var serviceBusCloudDomain))
         {
-            "https://management.usgovcloudapi.net" => "servicebus.usgovcloudapi.net",
-            "https://management.microsoftazure.de" => "servicebus.cloudapi.de",
-            "https://management.chinacloudapi.cn" => "servicebus.chinacloudapi.cn",
-            _ => "servicebus.windows.net"
-        };
+            // Worst case: the DNS lookup finds nothing additional to match
+            serviceBusCloudDomain = "servicebus.windows.net";
+        }
 
         var queryDomain = $"{serviceBusName}.{serviceBusCloudDomain}";
         var validDomainTail = $".{serviceBusCloudDomain}.";
