@@ -29,6 +29,8 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     MetricsQueryClient? client;
     ArmClient? armClient;
     string? resourceId;
+    ArmEnvironment armEnvironment;
+    MetricsQueryAudience metricsQueryAudience;
 
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
@@ -101,11 +103,11 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             Diagnostics.AppendLine("Client secret set");
         }
 
-        (ArmEnvironment armEnvironment, MetricsQueryAudience metricsQueryAudience) environment = GetEnvironment();
+        (armEnvironment, metricsQueryAudience) = GetEnvironment();
 
         if (managementUrl == null)
         {
-            Diagnostics.AppendLine($"Management Url not set, defaulted to \"{environment.armEnvironment.Endpoint}\"");
+            Diagnostics.AppendLine($"Management Url not set, defaulted to \"{armEnvironment.Endpoint}\"");
         }
         else
         {
@@ -128,10 +130,10 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
         }
 
-        client = new MetricsQueryClient(environment.armEnvironment.Endpoint, clientCredentials,
+        client = new MetricsQueryClient(armEnvironment.Endpoint, clientCredentials,
             new MetricsQueryClientOptions
             {
-                Audience = environment.metricsQueryAudience,
+                Audience = metricsQueryAudience,
                 Transport = new HttpClientTransport(
                     new HttpClient(new SocketsHttpHandler
                     {
@@ -141,7 +143,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         armClient = new ArmClient(clientCredentials, subscriptionId,
             new ArmClientOptions
             {
-                Environment = environment.armEnvironment,
+                Environment = armEnvironment,
                 Transport = new HttpClientTransport(
                     new HttpClient(new SocketsHttpHandler
                     {
@@ -265,16 +267,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var validNamespaces = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { serviceBusName };
-
-        var dnsLookup = new LookupClient();
-        var dnsResult = await dnsLookup.QueryAsync($"{serviceBusName}.servicebus.windows.net", QueryType.CNAME, cancellationToken: cancellationToken);
-        var domain = (dnsResult.Answers.FirstOrDefault() as CNameRecord)?.CanonicalName.Value;
-        if (domain is not null && domain.EndsWith(".servicebus.windows.net."))
-        {
-            var otherName = domain.Split('.').First();
-            validNamespaces.Add(otherName);
-        }
+        var validNamespaces = await GetValidNamespaceNames(cancellationToken);
 
         SubscriptionResource? subscription = await armClient!.GetDefaultSubscriptionAsync(cancellationToken);
         var namespaces =
@@ -297,6 +290,37 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         }
 
         throw new Exception($"Could not find a ServiceBus named \"{serviceBusName}\"");
+    }
+
+    async Task<HashSet<string>> GetValidNamespaceNames(CancellationToken cancellationToken = default)
+    {
+        var validNamespaces = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { serviceBusName };
+
+        // ArmEnvironment Audience Values: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/resourcemanager/Azure.ResourceManager/src/ArmEnvironment.cs
+        // Service Bus Domains: https://learn.microsoft.com/en-us/rest/api/servicebus/
+        var serviceBusCloudDomain = armEnvironment.Audience switch
+        {
+            "https://management.usgovcloudapi.net" => "servicebus.usgovcloudapi.net",
+            "https://management.microsoftazure.de" => "servicebus.cloudapi.de",
+            "https://management.chinacloudapi.cn" => "servicebus.chinacloudapi.cn",
+            _ => "servicebus.windows.net"
+        };
+
+        var queryDomain = $"{serviceBusName}.{serviceBusCloudDomain}";
+        var validDomainTail = $".{serviceBusCloudDomain}.";
+
+        var dnsLookup = new LookupClient();
+        var dnsResult = await dnsLookup.QueryAsync(queryDomain, QueryType.CNAME, cancellationToken: cancellationToken);
+        var domain = (dnsResult.Answers.FirstOrDefault() as CNameRecord)?.CanonicalName.Value;
+        if (domain is not null && domain.EndsWith(validDomainTail))
+        {
+            // In some cases, like private networking access, result might be something like `namespacename.private` with a dot in the middle
+            // which is not a big deal because that will not actually match a namespace name in metrics
+            var otherName = domain[..^validDomainTail.Length];
+            validNamespaces.Add(otherName);
+        }
+
+        return validNamespaces;
     }
 
     public override string SanitizedEndpointNameCleanser(string endpointName) => endpointName.ToLower();
