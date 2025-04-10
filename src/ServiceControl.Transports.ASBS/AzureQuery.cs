@@ -30,7 +30,6 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     ArmClient? armClient;
     string? resourceId;
     ArmEnvironment armEnvironment;
-    MetricsQueryAudience metricsQueryAudience;
 
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
@@ -103,7 +102,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             Diagnostics.AppendLine("Client secret set");
         }
 
-        (armEnvironment, metricsQueryAudience) = GetEnvironment();
+        (armEnvironment, var metricsQueryAudience) = GetEnvironment();
 
         if (managementUrl == null)
         {
