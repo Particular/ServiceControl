@@ -9,6 +9,7 @@ import { ControlButton, Controls } from "@vue-flow/controls";
 import { useMessageStore } from "@/stores/MessageStore.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { storeToRefs } from "pinia";
+import { useRouter } from "vue-router";
 import EndpointDetails from "@/resources/EndpointDetails.ts";
 import { hexToCSSFilter } from "hex-to-css-filter";
 import TextEllipses from "@/components/TextEllipses.vue";
@@ -193,8 +194,14 @@ const nodes = ref<Node[]>([]);
 const edges = ref<DefaultEdge[]>([]);
 const { layout } = useLayout();
 const { fitView } = useVueFlow();
+const backLink = ref<string>(routeLinks.failedMessage.failedMessages.link);
 
 onMounted(async () => {
+  const back = useRouter().currentRoute.value.query.back as string;
+  if (back) {
+    backLink.value = back;
+  }
+
   if (!state.value.data.conversation_id) return;
 
   const messages = await getConversation(state.value.data.conversation_id);
@@ -244,8 +251,8 @@ const errorColor = hexToCSSFilter("#be514a").filter;
             <i class="fa" :class="{ 'pa-flow-timeout': data.isTimeout, 'pa-flow-command': data.isCommand, 'pa-flow-event': data.isEvent }" v-tippy="data.type" />
             <div class="lead">
               <strong>
-                <RouterLink v-if="data.isError" :to="{ path: routeLinks.messages.failedMessage.link(id) }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
-                <RouterLink v-else :to="{ path: routeLinks.messages.successMessage.link(data.messageId, id) }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
+                <RouterLink v-if="data.isError" :to="{ path: routeLinks.messages.failedMessage.link(id), query: { back: backLink } }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
+                <RouterLink v-else :to="{ path: routeLinks.messages.successMessage.link(data.messageId, id), query: { back: backLink } }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
               </strong>
             </div>
             <i v-if="data.isError" class="fa pa-flow-failed" :style="id !== store.state.data.id ? { filter: errorColor } : {}" />

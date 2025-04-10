@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, watch } from "vue";
-import { RouterLink, useRoute } from "vue-router";
+import { computed, onMounted, ref, watch } from "vue";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 import NoData from "../NoData.vue";
 import TimeSince from "../TimeSince.vue";
 import FlowDiagram from "./FlowDiagram/FlowDiagram.vue";
@@ -29,6 +29,7 @@ const isError = computed(() => messageId.value === undefined);
 const isMassTransitConnected = useIsMassTransitConnected();
 const store = useMessageStore();
 const { state } = storeToRefs(store);
+const backLink = ref<string>(routeLinks.failedMessage.failedMessages.link);
 const tabs = computed(() => {
   const currentTabs = [
     {
@@ -78,6 +79,13 @@ watch(
   { immediate: true }
 );
 const endpointColor = hexToCSSFilter("#929E9E").filter;
+
+onMounted(() => {
+  const back = useRouter().currentRoute.value.query.back as string;
+  if (back) {
+    backLink.value = back;
+  }
+});
 </script>
 
 <template>
@@ -89,6 +97,7 @@ const endpointColor = hexToCSSFilter("#929E9E").filter;
         <LoadingOverlay v-if="state.loading ?? false" />
         <div class="row">
           <div class="col-sm-12 no-side-padding">
+            <RouterLink :to="backLink"><i class="fa fa-chevron-left"></i> Back</RouterLink>
             <div class="active break group-title">
               <h1 class="message-type-title">{{ state.data.message_type }}</h1>
             </div>
@@ -112,7 +121,7 @@ const endpointColor = hexToCSSFilter("#929E9E").filter;
               <template v-if="state.data.failure_metadata.edited">
                 <MetadataLabel tooltip="Message was edited" type="info" text="Edited" />
                 <span v-if="state.data.failure_metadata.edit_of" class="metadata metadata-link">
-                  <i class="fa fa-history"></i> <RouterLink :to="{ path: routeLinks.messages.failedMessage.link(state.data.failure_metadata.edit_of) }">View previous version</RouterLink>
+                  <i class="fa fa-history"></i> <RouterLink :to="{ path: routeLinks.messages.failedMessage.link(state.data.failure_metadata.edit_of), query: { back: backLink } }">View previous version</RouterLink>
                 </span>
               </template>
               <span v-if="state.data.failure_metadata.time_of_failure" class="metadata"><i class="fa fa-clock-o"></i> Failed: <time-since :date-utc="state.data.failure_metadata.time_of_failure"></time-since></span>
@@ -171,10 +180,6 @@ button img {
   position: relative;
   top: -1px;
   width: 17px;
-}
-
-.msg-tabs {
-  margin-bottom: 20px;
 }
 
 .pa-redirect-source {

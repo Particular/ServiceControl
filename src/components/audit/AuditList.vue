@@ -9,9 +9,11 @@ import { useFormatTime } from "@/composables/formatter";
 import RefreshConfig from "../RefreshConfig.vue";
 import ItemsPerPage from "../ItemsPerPage.vue";
 import PaginationStrip from "../PaginationStrip.vue";
+import { useRoute } from "vue-router";
 
 const store = useAuditStore();
 const { messages, sortByInstances, itemsPerPage, selectedPage, totalCount } = storeToRefs(store);
+const route = useRoute();
 
 function statusToName(messageStatus: MessageStatus) {
   switch (messageStatus) {
@@ -99,10 +101,15 @@ function formatDotNetTimespan(timespan: string) {
               <template #content>
                 <p :style="{ overflowWrap: 'break-word' }">{{ message.message_id }}</p>
               </template>
-              <RouterLink v-if="message.status === MessageStatus.Successful" class="hackToPreventSafariFromShowingTooltip" aria-label="details-link" :to="{ path: routeLinks.messages.successMessage.link(message.message_id, message.id) }">
+              <RouterLink
+                v-if="message.status === MessageStatus.Successful"
+                class="hackToPreventSafariFromShowingTooltip"
+                aria-label="details-link"
+                :to="{ path: routeLinks.messages.successMessage.link(message.message_id, message.id), query: { back: route.path } }"
+              >
                 {{ message.message_id }}
               </RouterLink>
-              <RouterLink v-else class="hackToPreventSafariFromShowingTooltip" aria-label="details-link" :to="{ path: routeLinks.messages.failedMessage.link(message.id) }">
+              <RouterLink v-else class="hackToPreventSafariFromShowingTooltip" aria-label="details-link" :to="{ path: routeLinks.messages.failedMessage.link(message.id), query: { back: route.path } }">
                 {{ message.message_id }}
               </RouterLink>
             </tippy>
