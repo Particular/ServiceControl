@@ -16,10 +16,10 @@ import RestoreMessageButton from "@/components/messages2/RestoreMessageButton.vu
 import RetryMessageButton from "@/components/messages2/RetryMessageButton.vue";
 import EditAndRetryButton from "@/components/messages2/EditAndRetryButton.vue";
 import ExportMessageButton from "@/components/messages2/ExportMessageButton.vue";
-import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import TabsLayout from "@/components/TabsLayout.vue";
 import { storeToRefs } from "pinia";
 import MetadataLabel from "@/components/messages2/MetadataLabel.vue";
+import LoadingOverlay from "@/components/LoadingOverlay.vue";
 
 const route = useRoute();
 const id = computed(() => route.params.id as string);
@@ -84,68 +84,66 @@ watch(
       <no-data v-if="state.not_found" title="message failures" message="Could not find message. This could be because the message URL is invalid or the corresponding message was processed and is no longer tracked by ServiceControl."></no-data>
       <no-data v-else-if="state.failed_to_load" title="message failures" message="An error occurred while trying to load the message. Please check the ServiceControl logs to learn what the issue is."></no-data>
       <template v-else>
-        <LoadingSpinner v-if="state.loading ?? false" />
-        <template v-else>
-          <div class="row">
-            <div class="col-sm-12 no-side-padding">
-              <div class="active break group-title">
-                <h1 class="message-type-title">{{ state.data.message_type }}</h1>
-              </div>
+        <LoadingOverlay v-if="state.loading ?? false" />
+        <div class="row">
+          <div class="col-sm-12 no-side-padding">
+            <div class="active break group-title">
+              <h1 class="message-type-title">{{ state.data.message_type }}</h1>
             </div>
           </div>
-          <div class="row">
-            <div class="col-sm-12 no-side-padding">
-              <div class="metadata group-message-count message-metadata">
-                <MetadataLabel v-if="state.data.failure_status.retry_in_progress" tooltip="Message is being added to the retries queue" type="info" text="Requesting retry..." />
-                <MetadataLabel v-if="state.data.failure_status.retried" tooltip="Message is enqueued to be retried" type="info" text="Waiting for retry" />
-                <MetadataLabel v-if="state.data.failure_status.restoring" tooltip="Message is being restored" type="info" text="Restoring..." />
-                <MetadataLabel v-if="state.data.failure_status.archiving" tooltip="Message is being deleted" type="info" text="Deleting..." />
-                <MetadataLabel v-if="state.data.failure_status.archived" tooltip="Message is deleted" type="warning" text="Deleted" />
-                <MetadataLabel v-if="state.data.failure_status.resolved" tooltip="Message was processed successfully" type="warning" text="Processed" />
-                <MetadataLabel
-                  v-if="state.data.failure_metadata.number_of_processing_attempts !== undefined && state.data.failure_metadata.number_of_processing_attempts > 1"
-                  :tooltip="`This message has already failed ${state.data.failure_metadata.number_of_processing_attempts} times`"
-                  type="important"
-                  :text="`${(state.data.failure_metadata.number_of_processing_attempts ?? 0) - 1} Retry Failures`"
-                />
-                <template v-if="state.data.failure_metadata.edited">
-                  <MetadataLabel tooltip="Message was edited" type="info" text="Edited" />
-                  <span v-if="state.data.failure_metadata.edit_of" class="metadata metadata-link">
-                    <i class="fa fa-history"></i> <RouterLink :to="{ path: routeLinks.messages.failedMessage.link(state.data.failure_metadata.edit_of) }">View previous version</RouterLink>
-                  </span>
-                </template>
-                <span v-if="state.data.failure_metadata.time_of_failure" class="metadata"><i class="fa fa-clock-o"></i> Failed: <time-since :date-utc="state.data.failure_metadata.time_of_failure"></time-since></span>
-                <span v-else class="metadata"><i class="fa fa-clock-o"></i> Processed at: <time-since :date-utc="state.data.processed_at"></time-since></span>
-                <template v-if="state.data.receiving_endpoint">
-                  <span class="metadata"><i class="fa pa-endpoint"></i> Endpoint: {{ state.data.receiving_endpoint.name }}</span>
-                  <span class="metadata"><i class="fa fa-laptop"></i> Machine: {{ state.data.receiving_endpoint.host }}</span>
-                </template>
-                <span v-if="state.data.failure_metadata.redirect" class="metadata"><i class="fa pa-redirect-source pa-redirect-small"></i> Redirect: {{ state.data.failure_metadata.redirect }}</span>
-                <template v-if="state.data.failure_status.archived">
-                  <span class="metadata"><i class="fa fa-clock-o"></i> Deleted: <time-since :date-utc="state.data.failure_metadata.last_modified"></time-since></span>
-                  <span class="metadata danger" v-if="state.data.failure_status.delete_soon"><i class="fa fa-trash-o danger"></i> Scheduled for permanent deletion: immediately</span>
-                  <span class="metadata danger" v-else><i class="fa fa-trash-o danger"></i> Scheduled for permanent deletion: <time-since :date-utc="state.data.failure_metadata.deleted_in"></time-since></span>
-                </template>
-              </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-12 no-side-padding">
+            <div class="metadata group-message-count message-metadata">
+              <MetadataLabel v-if="state.data.failure_status.retry_in_progress" tooltip="Message is being added to the retries queue" type="info" text="Requesting retry..." />
+              <MetadataLabel v-if="state.data.failure_status.retried" tooltip="Message is enqueued to be retried" type="info" text="Waiting for retry" />
+              <MetadataLabel v-if="state.data.failure_status.restoring" tooltip="Message is being restored" type="info" text="Restoring..." />
+              <MetadataLabel v-if="state.data.failure_status.archiving" tooltip="Message is being deleted" type="info" text="Deleting..." />
+              <MetadataLabel v-if="state.data.failure_status.archived" tooltip="Message is deleted" type="warning" text="Deleted" />
+              <MetadataLabel v-if="state.data.failure_status.resolved" tooltip="Message was processed successfully" type="warning" text="Processed" />
+              <MetadataLabel
+                v-if="state.data.failure_metadata.number_of_processing_attempts !== undefined && state.data.failure_metadata.number_of_processing_attempts > 1"
+                :tooltip="`This message has already failed ${state.data.failure_metadata.number_of_processing_attempts} times`"
+                type="important"
+                :text="`${(state.data.failure_metadata.number_of_processing_attempts ?? 0) - 1} Retry Failures`"
+              />
+              <template v-if="state.data.failure_metadata.edited">
+                <MetadataLabel tooltip="Message was edited" type="info" text="Edited" />
+                <span v-if="state.data.failure_metadata.edit_of" class="metadata metadata-link">
+                  <i class="fa fa-history"></i> <RouterLink :to="{ path: routeLinks.messages.failedMessage.link(state.data.failure_metadata.edit_of) }">View previous version</RouterLink>
+                </span>
+              </template>
+              <span v-if="state.data.failure_metadata.time_of_failure" class="metadata"><i class="fa fa-clock-o"></i> Failed: <time-since :date-utc="state.data.failure_metadata.time_of_failure"></time-since></span>
+              <span v-else class="metadata"><i class="fa fa-clock-o"></i> Processed at: <time-since :date-utc="state.data.processed_at"></time-since></span>
+              <template v-if="state.data.receiving_endpoint">
+                <span class="metadata"><i class="fa pa-endpoint"></i> Endpoint: {{ state.data.receiving_endpoint.name }}</span>
+                <span class="metadata"><i class="fa fa-laptop"></i> Machine: {{ state.data.receiving_endpoint.host }}</span>
+              </template>
+              <span v-if="state.data.failure_metadata.redirect" class="metadata"><i class="fa pa-redirect-source pa-redirect-small"></i> Redirect: {{ state.data.failure_metadata.redirect }}</span>
+              <template v-if="state.data.failure_status.archived">
+                <span class="metadata"><i class="fa fa-clock-o"></i> Deleted: <time-since :date-utc="state.data.failure_metadata.last_modified"></time-since></span>
+                <span class="metadata danger" v-if="state.data.failure_status.delete_soon"><i class="fa fa-trash-o danger"></i> Scheduled for permanent deletion: immediately</span>
+                <span class="metadata danger" v-else><i class="fa fa-trash-o danger"></i> Scheduled for permanent deletion: <time-since :date-utc="state.data.failure_metadata.deleted_in"></time-since></span>
+              </template>
             </div>
           </div>
-          <div class="row">
-            <div class="col-sm-12 no-side-padding">
-              <div class="btn-toolbar message-toolbar">
-                <DeleteMessageButton />
-                <RestoreMessageButton />
-                <RetryMessageButton />
-                <EditAndRetryButton />
-                <ExportMessageButton />
-              </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-12 no-side-padding">
+            <div class="btn-toolbar message-toolbar">
+              <DeleteMessageButton />
+              <RestoreMessageButton />
+              <RetryMessageButton />
+              <EditAndRetryButton />
+              <ExportMessageButton />
             </div>
           </div>
-          <div class="row">
-            <div class="col-sm-12 no-side-padding">
-              <TabsLayout :tabs="tabs" />
-            </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-12 no-side-padding">
+            <TabsLayout :tabs="tabs" />
           </div>
-        </template>
+        </div>
       </template>
     </section>
   </div>
