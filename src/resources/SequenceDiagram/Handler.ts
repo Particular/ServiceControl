@@ -19,6 +19,7 @@ export interface Handler {
   readonly direction: Direction;
   route?: MessageProcessingRoute;
   readonly selectedMessage?: Message;
+  uiRef?: SVGElement;
   updateProcessedAt(timeSent: Date): void;
   addOutMessage(routedMessage: RoutedMessage): void;
 }
@@ -88,6 +89,7 @@ class HandlerItem implements Handler {
   processedAt?: Date;
   processingTime?: number;
   route?: MessageProcessingRoute;
+  uiRef?: SVGElement;
 
   constructor(id: string, endpoint: Endpoint) {
     this._id = id;

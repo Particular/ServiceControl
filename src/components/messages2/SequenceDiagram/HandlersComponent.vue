@@ -43,16 +43,18 @@ const handlerItems = computed(() => {
 
     //determine which side of the handler to render the messageType on. If it's the left side (for a right arrow) then we apply a negative offset
     const messageTypeOffset = handler.direction === Direction.Right ? ((messageTypeElement?.getBBox().width ?? 0) + 24) * -1 : 20;
-    if (messageTypeOffset < 0) {
-      store.setStartX(-1 * messageTypeOffset);
+    const left = (endpoint?.centre ?? 0) - Handler_Width / 2;
+    const right = (endpoint?.centre ?? 0) + Handler_Width / 2;
+    if (left + messageTypeOffset < 0) {
+      store.setStartX(-1 * (left + messageTypeOffset) + 20);
     }
 
     return {
       id: handler.id,
       endpointName: handler.endpoint.name,
       incomingId: handler.route?.name,
-      left: (endpoint?.centre ?? 0) - Handler_Width / 2,
-      right: (endpoint?.centre ?? 0) + Handler_Width / 2,
+      left,
+      right,
       y,
       height,
       fill,
@@ -61,6 +63,7 @@ const handlerItems = computed(() => {
       messageType: handler.name,
       messageTypeOffset,
       messageTypeHighlight: handler.route?.name === highlightId.value,
+      setUIRef: (el: SVGElement) => (handler.uiRef = el),
     };
   });
 
@@ -76,10 +79,12 @@ function setMessageTypeRef(el: SVGTextElement, index: number) {
 </script>
 
 <template>
-  <g v-for="(handler, i) in handlerItems" :key="handler.id" :transform="`translate(${handler.left}, ${handler.y})`">
+  <g v-for="(handler, i) in handlerItems" :key="`${handler.id}###${handler.endpointName}`" :transform="`translate(${handler.left}, ${handler.y})`">
     <!--Handler Activation Box-->
-    <rect :width="Handler_Width" :height="handler.height" :class="handler.incomingId && 'clickable'" :fill="handler.fill" @mouseover="() => store.setHighlightId(handler.incomingId)" @mouseleave="() => store.setHighlightId()" />
-    <path v-if="handler.icon" :d="handler.icon" fill="white" :transform="`translate(${Handler_Width / 2 - handler.iconSize / 2}, ${handler.height / 2 - handler.iconSize / 2})`" />
+    <g :ref="(el) => handler.setUIRef(el as SVGElement)">
+      <rect :width="Handler_Width" :height="handler.height" :class="handler.incomingId && 'clickable'" :fill="handler.fill" @mouseover="() => store.setHighlightId(handler.incomingId)" @mouseleave="() => store.setHighlightId()" />
+      <path v-if="handler.icon" :d="handler.icon" fill="white" :transform="`translate(${Handler_Width / 2 - handler.iconSize / 2}, ${handler.height / 2 - handler.iconSize / 2})`" />
+    </g>
     <!--Message Type and Icon-->
     <g
       v-if="handler.messageType"

@@ -4,6 +4,7 @@ import { RouterLink, useRoute } from "vue-router";
 import NoData from "../NoData.vue";
 import TimeSince from "../TimeSince.vue";
 import FlowDiagram from "./FlowDiagram.vue";
+import SequenceDiagram from "./SequenceDiagram.vue";
 import routeLinks from "@/router/routeLinks";
 import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnected";
 import BodyView from "@/components/messages2/BodyView.vue";
@@ -50,6 +51,10 @@ const tabs = computed(() => {
     currentTabs.push({
       text: "Flow Diagram",
       component: FlowDiagram,
+    });
+    currentTabs.push({
+      text: "Sequence Diagram",
+      component: SequenceDiagram,
     });
   }
 

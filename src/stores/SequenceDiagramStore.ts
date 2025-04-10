@@ -1,11 +1,10 @@
-import { useFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { ref, watch } from "vue";
 import { ModelCreator } from "@/resources/SequenceDiagram/SequenceModel";
-import Message from "@/resources/Message";
 import { Endpoint } from "@/resources/SequenceDiagram/Endpoint";
 import { Handler } from "@/resources/SequenceDiagram/Handler";
 import { MessageProcessingRoute } from "@/resources/SequenceDiagram/RoutedMessage";
+import { useMessageStore } from "./MessageStore";
 
 export interface EndpointCentrePoint {
   name: string;
@@ -25,7 +24,7 @@ export interface HandlerLocation {
 export const Endpoint_Width = 260;
 
 export const useSequenceDiagramStore = defineStore("SequenceDiagramStore", () => {
-  const conversationId = ref<string>();
+  const messageStore = useMessageStore();
 
   const startX = ref(Endpoint_Width / 2);
   const endpoints = ref<Endpoint[]>([]);
@@ -37,26 +36,19 @@ export const useSequenceDiagramStore = defineStore("SequenceDiagramStore", () =>
   const handlerLocations = ref<HandlerLocation[]>([]);
   const highlightId = ref<string>();
 
-  watch(conversationId, async () => {
-    if (!conversationId.value) return;
-    const response = await useFetchFromServiceControl(`conversations/${conversationId.value}`);
-    if (response.status === 404) {
-      return;
-    }
-
-    const model = new ModelCreator((await response.json()) as Message[]);
-    endpoints.value = model.endpoints;
-    handlers.value = model.handlers;
-    routes.value = model.routes;
-  });
-
-  function setConversationId(id: string) {
-    endpoints.value = [];
-    handlers.value = [];
-    routes.value = [];
-    startX.value = Endpoint_Width / 2;
-    conversationId.value = id;
-  }
+  watch(
+    () => messageStore.conversationData.data,
+    (conversationData) => {
+      if (conversationData.length) {
+        startX.value = Endpoint_Width / 2;
+        const model = new ModelCreator(conversationData);
+        endpoints.value = model.endpoints;
+        handlers.value = model.handlers;
+        routes.value = model.routes;
+      }
+    },
+    { immediate: true }
+  );
 
   function setStartX(offset: number) {
     const newValue = Math.max(offset + Endpoint_Width / 2, startX.value);
@@ -84,8 +76,11 @@ export const useSequenceDiagramStore = defineStore("SequenceDiagramStore", () =>
     highlightId.value = id;
   }
 
+  function refreshConversation() {
+    if (messageStore.state.data.conversation_id) messageStore.loadConversation(messageStore.state.data.conversation_id);
+  }
+
   return {
-    setConversationId,
     startX,
     endpoints,
     handlers,
@@ -101,6 +96,7 @@ export const useSequenceDiagramStore = defineStore("SequenceDiagramStore", () =>
     setEndpointCentrePoints,
     setHandlerLocations,
     setHighlightId,
+    refreshConversation,
   };
 });
 

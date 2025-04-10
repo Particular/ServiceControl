@@ -28,11 +28,11 @@ const Endpoint_Image_Width = 20;
 const store = useSequenceDiagramStore();
 const { startX, endpoints } = storeToRefs(store);
 
-const epRefs = ref<SVGTextElement[]>([]);
+const epTextRefs = ref<SVGTextElement[]>([]);
 const endpointItems = computed(() =>
   endpoints.value.map((x, index) => {
     const endpoint = x as EndpointWithLocation;
-    const el = epRefs.value[index];
+    const el = epTextRefs.value[index];
     if (el) {
       const bounds = el.getBBox();
       const previousEndpoint = index > 0 ? endpointItems.value[index - 1] : undefined;
@@ -69,17 +69,17 @@ watch(endpointItems, () => {
 });
 
 watch(startX, () => {
-  epRefs.value = [];
+  epTextRefs.value = [];
   endpoints.value.forEach((endpoint) => ((endpoint as EndpointWithLocation).surround = undefined));
 });
 
-function setEndpointRef(el: SVGTextElement, index: number) {
-  if (el) epRefs.value[index] = el;
+function setEndpointTextRef(el: SVGTextElement, index: number) {
+  if (el) epTextRefs.value[index] = el;
 }
 </script>
 
 <template>
-  <g v-for="(endpoint, i) in endpointItems" :key="endpoint.name" transform="translate(0,15)">
+  <g v-for="(endpoint, i) in endpointItems" :key="endpoint.name" transform="translate(0,15)" :ref="(el) => (endpoint.uiRef = el as SVGElement)">
     <rect
       v-if="endpoint.surround"
       :x="endpoint.surround.x"
@@ -93,7 +93,7 @@ function setEndpointRef(el: SVGTextElement, index: number) {
     ></rect>
     <g :transform="`translate(${(endpoint.x ?? Endpoint_Width / 2) - ((endpoint.textWidth ?? 0) + Endpoint_Image_Width) / 2}, 0)`">
       <path fill="var(--gray40)" d="M 0,0 M 18,18 M 0,2 v 14 h 14 v -4 h -6 v -6 h 6 v -4 h -14 M 9,7 v 4 h 9 v -4"></path>
-      <text :x="Endpoint_Image_Width" y="10" alignment-baseline="middle" text-anchor="start" :ref="(el) => setEndpointRef(el as SVGTextElement, i)">{{ endpoint.name }}</text>
+      <text :x="Endpoint_Image_Width" y="10" alignment-baseline="middle" text-anchor="start" :ref="(el) => setEndpointTextRef(el as SVGTextElement, i)">{{ endpoint.name }}</text>
     </g>
   </g>
 </template>

@@ -36,7 +36,7 @@ const arrows = computed(() =>
     route.fromRoutedMessage.direction = direction;
 
     if (messageTypeOffset < 0) {
-      store.setStartX(-1 * messageTypeOffset);
+      store.setStartX(-1 * messageTypeOffset + 20);
     }
 
     return {
@@ -53,6 +53,7 @@ const arrows = computed(() =>
       highlight: highlightId.value === route.name,
       highlightTextWidth: messageTypeElementBounds?.width,
       highlightTextHeight: messageTypeElementBounds?.height,
+      setUIRef: (el: SVGElement) => (route.uiRef = el),
     };
   })
 );
@@ -78,11 +79,12 @@ function setMessageTypeRef(el: SVGTextElement, index: number) {
       </g>
       <!--Message Type and Icon-->
       <g
-        class="clickable"
+        class="clickable message-type"
         :transform="`translate(${arrow.messageTypeOffset}, ${arrow.y - 7.5 - Message_Type_Margin})`"
         :fill="arrow.highlight ? 'var(--highlight)' : 'black'"
         @mouseover="() => store.setHighlightId(arrow.id)"
         @mouseleave="() => store.setHighlightId()"
+        :ref="(el) => arrow.setUIRef(el as SVGElement)"
       >
         <!--19 is width of MessageType icon, plus a gap-->
         <rect
@@ -112,5 +114,9 @@ function setMessageTypeRef(el: SVGTextElement, index: number) {
 <style scoped>
 .clickable {
   cursor: pointer;
+}
+
+.message-type text::selection {
+  fill: white;
 }
 </style>

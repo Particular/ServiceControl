@@ -7,6 +7,9 @@ export interface Endpoint {
   readonly hosts: EndpointHost[];
   readonly hostId: string;
   readonly handlers: Handler[];
+  readonly host: string;
+  readonly version: string;
+  uiRef?: SVGElement;
   addHandler(handler: Handler): void;
 }
 
@@ -51,6 +54,7 @@ class EndpointItem implements Endpoint {
   private _hosts: Map<string, Host>;
   private _name: string;
   private _handlers: Handler[] = [];
+  uiRef?: SVGElement;
 
   constructor(name: string, host: string, id: string, version?: string) {
     const initialHost = new Host(host, id, version);
@@ -72,6 +76,9 @@ class EndpointItem implements Endpoint {
   }
   get handlers() {
     return [...this._handlers];
+  }
+  get version() {
+    return [...this._hosts].flatMap(([, host]) => host.versions).join(",");
   }
 
   addHost(host: Host) {

@@ -41,7 +41,7 @@ const nodeSpacingX = 300;
 const nodeSpacingY = 200;
 
 const store = useMessageStore();
-const { state } = storeToRefs(useMessageStore());
+const { state } = storeToRefs(store);
 
 async function getConversation(conversationId: string) {
   await store.loadConversation(conversationId);
