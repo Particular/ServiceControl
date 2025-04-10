@@ -91,20 +91,6 @@ function resetBodyChanges() {
   localMessage.value.isBodyChanged = false;
 }
 
-function findHeadersByKey(key: string) {
-  return localMessage.value.headers.find((header: HeaderWithEditing) => header.key === key);
-}
-
-function getContentType() {
-  const header = findHeadersByKey("NServiceBus.ContentType");
-  return header?.value;
-}
-
-function getMessageIntent() {
-  const intent = findHeadersByKey("NServiceBus.MessageIntent");
-  return intent?.value;
-}
-
 function removeHeadersMarkedAsRemoved() {
   localMessage.value.headers = localMessage.value.headers.filter((header: HeaderWithEditing) => !header.isMarkedAsRemoved);
 }
@@ -122,6 +108,11 @@ async function retryEditedMessage() {
 }
 
 function initializeMessageBodyAndHeaders() {
+  function getHeaderValue(key: string) {
+    const header = local.headers.find((header: HeaderWithEditing) => header.key === key);
+    return header?.value;
+  }
+
   origMessageBody = body.value.data.value ?? "";
   const local = <LocalMessageState>{
     isBodyChanged: false,
@@ -135,13 +126,13 @@ function initializeMessageBodyAndHeaders() {
     messageBody: body.value.data.value ?? "",
   };
 
-  const contentType = getContentType();
+  const contentType = getHeaderValue("NServiceBus.ContentType");
   local.bodyContentType = contentType;
   const parsedContentType = parseContentType(contentType);
   local.isContentTypeSupported = parsedContentType.isSupported;
   local.language = parsedContentType.language;
 
-  const messageIntent = getMessageIntent();
+  const messageIntent = getHeaderValue("NServiceBus.MessageIntent");
   local.isEvent = messageIntent === "Publish";
 
   for (let index = 0; index < headers.value.data.length; index++) {
