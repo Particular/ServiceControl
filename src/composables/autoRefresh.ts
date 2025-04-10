@@ -9,7 +9,7 @@ export default function useAutoRefresh(refreshAction: () => Promise<void>, defau
 
   function stopTimer() {
     if (refreshInterval !== null) {
-      window?.clearTimeout(refreshInterval);
+      window.clearTimeout(refreshInterval);
       refreshInterval = null;
     }
   }
@@ -18,7 +18,7 @@ export default function useAutoRefresh(refreshAction: () => Promise<void>, defau
     if (timeout.value === null) return;
 
     stopTimer();
-    refreshInterval = window?.setTimeout(() => {
+    refreshInterval = window.setTimeout(() => {
       executeAndResetTimer();
     }, timeout.value as number);
   }
