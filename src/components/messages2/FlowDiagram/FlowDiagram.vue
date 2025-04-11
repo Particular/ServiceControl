@@ -1,0 +1,467 @@
+<script setup lang="ts">
+import { onMounted, ref, nextTick } from "vue";
+import { type DefaultEdge, MarkerType, type Node, type Styles, useVueFlow, VueFlow, XYPosition } from "@vue-flow/core";
+import TimeSince from "../../TimeSince.vue";
+import routeLinks from "@/router/routeLinks.ts";
+import Message, { MessageIntent, MessageStatus, SagaInfo } from "@/resources/Message.ts";
+import { NServiceBusHeaders } from "@/resources/Header.ts";
+import { ControlButton, Controls } from "@vue-flow/controls";
+import { useMessageStore } from "@/stores/MessageStore.ts";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { storeToRefs } from "pinia";
+import EndpointDetails from "@/resources/EndpointDetails.ts";
+import { hexToCSSFilter } from "hex-to-css-filter";
+import TextEllipses from "@/components/TextEllipses.vue";
+import { useLayout } from "@/components/messages2/FlowDiagram/useLayout.ts";
+
+enum MessageType {
+  Event = "Event message",
+  Timeout = "Timeout message",
+  Command = "Command message",
+}
+
+const store = useMessageStore();
+const { state } = storeToRefs(store);
+
+async function getConversation(conversationId: string) {
+  await store.loadConversation(conversationId);
+
+  return store.conversationData.data;
+}
+
+class SagaInvocation {
+  id: string;
+  sagaType: string;
+  isSagaCompleted: boolean;
+  isSagaInitiated: boolean;
+
+  constructor(saga: SagaInfo, message: Message) {
+    const sagaIdHeader = getHeaderByKey(message, NServiceBusHeaders.SagaId);
+    const originatedSagaIdHeader = getHeaderByKey(message, NServiceBusHeaders.OriginatingSagaId);
+    this.id = saga.saga_id;
+    this.sagaType = saga.saga_type;
+    this.isSagaCompleted = saga.change_status === "Completed";
+    this.isSagaInitiated = sagaIdHeader === undefined && originatedSagaIdHeader !== undefined;
+  }
+}
+
+interface NodeData {
+  label: string;
+  timeSent: string;
+  messageId: string;
+  sendingEndpoint: EndpointDetails;
+  receivingEndpoint: EndpointDetails;
+  isError: boolean;
+  sagaInvocations: SagaInvocation[];
+  isPublished: boolean;
+  isTimeout: boolean;
+  isEvent: boolean;
+  isCommand: boolean;
+  message: Message;
+  type: MessageType;
+}
+
+class MessageNode implements Node<NodeData> {
+  readonly id: string;
+  readonly type: string;
+  readonly data: NodeData;
+  readonly position: XYPosition;
+  readonly draggable: boolean;
+
+  constructor(message: Message) {
+    this.id = message.id;
+    this.type = "message";
+    this.position = { x: 0, y: 0 };
+    this.draggable = false;
+
+    const isPublished = message.message_intent === MessageIntent.Publish;
+    const isTimeout = getHeaderByKey(message, NServiceBusHeaders.IsSagaTimeoutMessage)?.toLowerCase() === "true";
+    this.data = {
+      label: message.message_type,
+      timeSent: message.time_sent,
+      messageId: message.message_id,
+      sendingEndpoint: message.sending_endpoint,
+      receivingEndpoint: message.receiving_endpoint,
+      isError: message.status !== MessageStatus.Successful && message.status !== MessageStatus.ResolvedSuccessfully,
+      sagaInvocations: message.invoked_sagas?.map((saga) => new SagaInvocation(saga, message)) || [],
+      isPublished,
+      isTimeout,
+      isEvent: isPublished && isTimeout,
+      isCommand: !isPublished && isTimeout,
+      message,
+      type: isPublished ? MessageType.Event : isTimeout ? MessageType.Timeout : MessageType.Command,
+    };
+  }
+}
+
+function constructNodes(messages: Message[]): Node<NodeData>[] {
+  const messageMap = new Map();
+
+  messages.forEach((message) => {
+    if (!messageMap.has(message.id)) {
+      messageMap.set(message.id, new MessageNode(message));
+    }
+  });
+
+  return Array.from(messageMap.values());
+}
+
+function getHeaderByKey(message: Message, key: NServiceBusHeaders) {
+  return message.headers.find((header) => header.key === key)?.value;
+}
+
+function constructEdges(nodes: Node<NodeData>[]): DefaultEdge[] {
+  const edges: DefaultEdge[] = [];
+
+  for (const node of nodes) {
+    const message = node.data?.message;
+    if (message === undefined) continue;
+
+    const relatedTo = getHeaderByKey(message, NServiceBusHeaders.RelatedTo);
+    if (!relatedTo && relatedTo !== message.message_id) {
+      continue;
+    }
+
+    let parentMessages = nodes.filter((n) => {
+      const m = n.data?.message;
+      if (m === undefined) return false;
+      return m.receiving_endpoint !== undefined && m.sending_endpoint !== undefined && m.message_id === relatedTo && m.receiving_endpoint.name === message.sending_endpoint.name;
+    });
+
+    if (parentMessages.length === 0) {
+      parentMessages = nodes.filter((n) => {
+        const m = n.data?.message;
+        if (m === undefined) return false;
+        return m.receiving_endpoint !== undefined && m.sending_endpoint !== undefined && m.message_id === relatedTo && m.message_intent !== MessageIntent.Publish;
+      });
+
+      if (parentMessages.length === 0) {
+        console.log(`Fall back to match only on RelatedToMessageId for message with Id '${message.message_id}' matched but link could be invalid.`);
+      }
+    }
+
+    switch (parentMessages.length) {
+      case 0:
+        console.log(
+          `No parent could be resolved for the message with Id '${message.message_id}' which has RelatedToMessageId set. This can happen if the parent has been purged due to retention expiration, an ServiceControl node to be unavailable, or because the parent message not been stored (yet).`
+        );
+        break;
+      case 1:
+        // Log nothing, this is what it should be
+        break;
+      default:
+        console.log(`Multiple parents matched for message id '${message.message_id}' possibly due to more-than-once processing, linking to all as it is unknown which processing attempt generated the message.`);
+        break;
+    }
+
+    for (const parentMessage of parentMessages) {
+      edges.push(addConnection(parentMessage, node));
+    }
+  }
+
+  return edges;
+}
+
+function addConnection(parentMessage: Node<NodeData>, childMessage: Node<NodeData>): DefaultEdge {
+  return {
+    id: `${parentMessage.id}##${childMessage.id}`,
+    source: `${parentMessage.id}`,
+    target: `${childMessage.id}`,
+    markerEnd: MarkerType.ArrowClosed,
+    style: {
+      "stroke-dasharray": childMessage.data?.isEvent && "5, 3",
+    } as Styles,
+  };
+}
+
+const nodes = ref<Node[]>([]);
+const edges = ref<DefaultEdge[]>([]);
+const { layout } = useLayout();
+const { fitView } = useVueFlow();
+
+onMounted(async () => {
+  if (!state.value.data.conversation_id) return;
+
+  const messages = await getConversation(state.value.data.conversation_id);
+
+  nodes.value = constructNodes(messages);
+  edges.value = constructEdges(nodes.value);
+});
+
+async function layoutGraph() {
+  nodes.value = layout(nodes.value, edges.value);
+
+  await nextTick(() => {
+    fitView();
+  });
+}
+
+function typeIcon(type: MessageType) {
+  switch (type) {
+    case MessageType.Timeout:
+      return "pa-flow-timeout";
+    case MessageType.Event:
+      return "pa-flow-event";
+    default:
+      return "pa-flow-command";
+  }
+}
+
+const showAddress = ref(false);
+
+function toggleAddress() {
+  showAddress.value = !showAddress.value;
+}
+
+const blackColor = hexToCSSFilter("#000000").filter;
+const greenColor = hexToCSSFilter("#00c468").filter;
+</script>
+
+<template>
+  <div v-if="store.conversationData.failed_to_load" class="alert alert-info">FlowDiagram data is unavailable.</div>
+  <LoadingSpinner v-else-if="store.conversationData.loading" />
+  <div v-else id="tree-container">
+    <VueFlow :nodes="nodes" :edges="edges" :min-zoom="0.1" :fit-view-on-init="true" :only-render-visible-elements="true" @nodes-initialized="layoutGraph">
+      <Controls position="top-left" class="controls">
+        <ControlButton v-tippy="showAddress ? `Hide endpoints` : `Show endpoints`" @click="toggleAddress">
+          <i class="fa pa-flow-endpoint" :style="{ filter: showAddress ? greenColor : blackColor }"></i>
+        </ControlButton>
+      </Controls>
+      <template #node-message="{ id, data }: { id: string; data: NodeData }">
+        <div v-if="showAddress">
+          <TextEllipses class="address" :text="`${data.sendingEndpoint.name}@${data.sendingEndpoint.host}`" />
+        </div>
+        <div class="node" :class="{ error: data.isError, 'current-message': id === store.state.data.id }">
+          <div class="node-text">
+            <i v-if="data.isError" class="fa pa-flow-failed" />
+            <i class="fa" :class="typeIcon(data.type)" v-tippy="data.type" />
+            <div class="lead">
+              <strong>
+                <RouterLink v-if="data.isError" :to="{ path: routeLinks.messages.failedMessage.link(id) }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
+                <RouterLink v-else :to="{ path: routeLinks.messages.successMessage.link(data.messageId, id) }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
+              </strong>
+            </div>
+            <div class="time-sent">
+              <time-since class="time-since" :date-utc="data.timeSent" />
+            </div>
+            <template v-for="saga in data.sagaInvocations" :key="saga.id">
+              <i class="fa pa-flow-saga" />
+              <div class="saga lead"><TextEllipses style="width: 182px" :text="saga.sagaType" ellipses-style="LeftSide" /></div>
+            </template>
+          </div>
+        </div>
+        <div v-if="showAddress">
+          <TextEllipses class="address" :text="`${data.receivingEndpoint.name}@${data.receivingEndpoint.host}`" />
+        </div>
+      </template>
+    </VueFlow>
+  </div>
+</template>
+
+<style>
+@import "@vue-flow/core/dist/style.css";
+@import "@vue-flow/core/dist/theme-default.css";
+@import "@vue-flow/controls/dist/style.css";
+</style>
+
+<style scoped>
+@import "../../list.css";
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+#tree-container {
+  width: 90vw;
+  height: 60vh;
+}
+
+.node {
+  --vf-handle: var(--vf-node-color, #1a192b);
+  --vf-box-shadow: var(--vf-node-color, #1a192b);
+  background: var(--vf-node-bg);
+  border-color: var(--vf-node-color, #1a192b);
+  border-radius: 3px;
+  font-size: 12px;
+  border-width: 1px;
+  border-style: solid;
+  color: var(--vf-node-text);
+  text-align: left;
+}
+
+.node {
+  background-color: #fff;
+  border-color: #cccbcc;
+  border-width: 3px;
+}
+
+.node .error {
+  border-color: red;
+}
+
+.node text {
+  font: 12px sans-serif;
+}
+
+.node .time-sent .time-since {
+  margin-left: 20px;
+  padding-top: 0;
+  color: #777f7f;
+  text-transform: capitalize;
+}
+
+.node-text {
+  padding: 3px 8px 1px;
+}
+
+.node-text i {
+  display: inline-block;
+  position: relative;
+  top: -1px;
+  margin-right: 5px;
+  filter: brightness(0) saturate(100%) invert(0%) sepia(0%) saturate(0%) hue-rotate(346deg) brightness(104%) contrast(104%);
+}
+
+.node-text .lead {
+  display: inline-block;
+  position: relative;
+  top: 4px;
+}
+
+.error .node-text .lead,
+.current-message.error .node-text .lead {
+  width: 184px;
+}
+
+.node-text .lead.saga {
+  font-weight: normal;
+}
+
+.address {
+  color: #777f7f;
+  font-size: 0.8em;
+  width: 264px;
+}
+
+.current-message {
+  border-color: #cccbcc;
+  background-color: #cccbcc !important;
+}
+
+.current-message.error {
+  border-color: #be514a;
+  background-color: #be514a !important;
+}
+
+.current-message.error .node-text,
+.current-message .node-text .lead {
+  color: #fff !important;
+}
+
+.error .node-text i:not(.pa-flow-saga) {
+  filter: brightness(0) saturate(100%) invert(46%) sepia(9%) saturate(4493%) hue-rotate(317deg) brightness(81%) contrast(82%);
+}
+
+.current-message.error .node-text i {
+  color: #fff;
+  filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7475%) hue-rotate(21deg) brightness(100%) contrast(106%);
+}
+
+.current-message.error .node-text strong {
+  color: #fff;
+}
+
+.current-message.error .node-text .time-sent .time-since {
+  color: #ffcecb !important;
+}
+
+.error {
+  border-color: #be514a;
+}
+
+.current-message.error .node-text a {
+  color: #fff;
+}
+
+.current-message.error .node-text a:hover {
+  cursor: text;
+  text-decoration: none;
+}
+
+.node-text a {
+  color: #000;
+}
+
+.error .node-text a {
+  color: #be514a;
+}
+
+.error .node-text .time-sent .time-since {
+  color: #be514a;
+}
+
+.error .node-text .lead.saga {
+  color: #be514a;
+}
+
+.error .node-text a:hover {
+  text-decoration: underline;
+}
+
+.pa-flow-endpoint {
+  background-image: url("@/assets/endpoint.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 15px;
+  width: 15px;
+}
+
+.pa-flow-failed {
+  background-image: url("@/assets/failed-msg.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 15px;
+  width: 15px;
+}
+
+.pa-flow-saga {
+  background-image: url("@/assets/saga.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 15px;
+  width: 15px;
+  margin-left: 20px;
+}
+
+.pa-flow-timeout {
+  background-image: url("@/assets/timeout.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 15px;
+  width: 15px;
+}
+
+.pa-flow-event {
+  background-image: url("@/assets/event.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 15px;
+  width: 15px;
+}
+
+.pa-flow-command {
+  background-image: url("@/assets/command.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 15px;
+  width: 15px;
+}
+
+path.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 2px;
+}
+</style>

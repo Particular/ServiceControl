@@ -42,7 +42,7 @@ export enum MessageIntent {
   Init = "init",
 }
 
-interface SagaInfo {
+export interface SagaInfo {
   change_status?: string;
   saga_type: string;
   saga_id: string;

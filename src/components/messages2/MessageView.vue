@@ -3,7 +3,7 @@ import { computed, watch } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import NoData from "../NoData.vue";
 import TimeSince from "../TimeSince.vue";
-import FlowDiagram from "./FlowDiagram.vue";
+import FlowDiagram from "./FlowDiagram/FlowDiagram.vue";
 import SequenceDiagram from "./SequenceDiagram.vue";
 import routeLinks from "@/router/routeLinks";
 import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnected";
