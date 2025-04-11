@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, nextTick } from "vue";
-import { type DefaultEdge, MarkerType, type Node, type Styles, useVueFlow, VueFlow, XYPosition } from "@vue-flow/core";
+import { type DefaultEdge, MarkerType, type Node, useVueFlow, VueFlow, XYPosition } from "@vue-flow/core";
 import TimeSince from "../../TimeSince.vue";
 import routeLinks from "@/router/routeLinks.ts";
 import Message, { MessageIntent, MessageStatus, SagaInfo } from "@/resources/Message.ts";
@@ -39,9 +39,17 @@ class SagaInvocation {
     const sagaIdHeader = getHeaderByKey(message, NServiceBusHeaders.SagaId);
     const originatedSagaIdHeader = getHeaderByKey(message, NServiceBusHeaders.OriginatingSagaId);
     this.id = saga.saga_id;
-    this.sagaType = saga.saga_type;
+    this.sagaType = this.toName(saga.saga_type);
     this.isSagaCompleted = saga.change_status === "Completed";
     this.isSagaInitiated = sagaIdHeader === undefined && originatedSagaIdHeader !== undefined;
+  }
+
+  private toName(type: string) {
+    const clazz = type.split(",")[0];
+    let objectName = clazz.split(".").pop() ?? "";
+    objectName = objectName.replace("+", ".");
+
+    return objectName;
   }
 }
 
@@ -55,8 +63,8 @@ interface NodeData {
   sagaInvocations: SagaInvocation[];
   isPublished: boolean;
   isTimeout: boolean;
-  isEvent: boolean;
   isCommand: boolean;
+  isEvent: boolean;
   message: Message;
   type: MessageType;
 }
@@ -76,6 +84,12 @@ class MessageNode implements Node<NodeData> {
 
     const isPublished = message.message_intent === MessageIntent.Publish;
     const isTimeout = getHeaderByKey(message, NServiceBusHeaders.IsSagaTimeoutMessage)?.toLowerCase() === "true";
+    const sagas = message.invoked_sagas ?? [];
+
+    if (message.originates_from_saga) {
+      sagas.push(message.originates_from_saga);
+    }
+
     this.data = {
       label: message.message_type,
       timeSent: message.time_sent,
@@ -83,11 +97,11 @@ class MessageNode implements Node<NodeData> {
       sendingEndpoint: message.sending_endpoint,
       receivingEndpoint: message.receiving_endpoint,
       isError: message.status !== MessageStatus.Successful && message.status !== MessageStatus.ResolvedSuccessfully,
-      sagaInvocations: message.invoked_sagas?.map((saga) => new SagaInvocation(saga, message)) || [],
+      sagaInvocations: sagas.map((saga) => new SagaInvocation(saga, message)),
       isPublished,
       isTimeout,
-      isEvent: isPublished && isTimeout,
-      isCommand: !isPublished && isTimeout,
+      isEvent: isPublished && !isTimeout,
+      isCommand: !isPublished && !isTimeout,
       message,
       type: isPublished ? MessageType.Event : isTimeout ? MessageType.Timeout : MessageType.Command,
     };
@@ -169,8 +183,9 @@ function addConnection(parentMessage: Node<NodeData>, childMessage: Node<NodeDat
     target: `${childMessage.id}`,
     markerEnd: MarkerType.ArrowClosed,
     style: {
-      "stroke-dasharray": childMessage.data?.isEvent && "5, 3",
-    } as Styles,
+      strokeDasharray: childMessage.data?.isPublished ? "5, 3" : "",
+      strokeWidth: 2,
+    },
   };
 }
 
@@ -189,32 +204,23 @@ onMounted(async () => {
 });
 
 async function layoutGraph() {
-  nodes.value = layout(nodes.value, edges.value);
+  nodes.value = layout(nodes.value, edges.value, showAddress.value);
 
   await nextTick(() => {
     fitView();
   });
 }
 
-function typeIcon(type: MessageType) {
-  switch (type) {
-    case MessageType.Timeout:
-      return "pa-flow-timeout";
-    case MessageType.Event:
-      return "pa-flow-event";
-    default:
-      return "pa-flow-command";
-  }
-}
+const showAddress = ref(true);
 
-const showAddress = ref(false);
-
-function toggleAddress() {
+async function toggleAddress() {
   showAddress.value = !showAddress.value;
+  await layoutGraph();
 }
 
 const blackColor = hexToCSSFilter("#000000").filter;
-const greenColor = hexToCSSFilter("#00c468").filter;
+const greenColor = hexToCSSFilter("#1E5E3C").filter;
+const errorColor = hexToCSSFilter("#be514a").filter;
 </script>
 
 <template>
@@ -222,7 +228,7 @@ const greenColor = hexToCSSFilter("#00c468").filter;
   <LoadingSpinner v-else-if="store.conversationData.loading" />
   <div v-else id="tree-container">
     <VueFlow :nodes="nodes" :edges="edges" :min-zoom="0.1" :fit-view-on-init="true" :only-render-visible-elements="true" @nodes-initialized="layoutGraph">
-      <Controls position="top-left" class="controls">
+      <Controls :show-interactive="false" position="top-left" class="controls">
         <ControlButton v-tippy="showAddress ? `Hide endpoints` : `Show endpoints`" @click="toggleAddress">
           <i class="fa pa-flow-endpoint" :style="{ filter: showAddress ? greenColor : blackColor }"></i>
         </ControlButton>
@@ -233,21 +239,27 @@ const greenColor = hexToCSSFilter("#00c468").filter;
         </div>
         <div class="node" :class="{ error: data.isError, 'current-message': id === store.state.data.id }">
           <div class="node-text">
-            <i v-if="data.isError" class="fa pa-flow-failed" />
-            <i class="fa" :class="typeIcon(data.type)" v-tippy="data.type" />
+            <i class="fa" :class="{ 'pa-flow-timeout': data.isTimeout, 'pa-flow-command': data.isCommand, 'pa-flow-event': data.isEvent }" v-tippy="data.type" />
             <div class="lead">
               <strong>
                 <RouterLink v-if="data.isError" :to="{ path: routeLinks.messages.failedMessage.link(id) }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
                 <RouterLink v-else :to="{ path: routeLinks.messages.successMessage.link(data.messageId, id) }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
               </strong>
             </div>
+            <i v-if="data.isError" class="fa pa-flow-failed" :style="id !== store.state.data.id ? { filter: errorColor } : {}" />
             <div class="time-sent">
               <time-since class="time-since" :date-utc="data.timeSent" />
             </div>
-            <template v-for="saga in data.sagaInvocations" :key="saga.id">
-              <i class="fa pa-flow-saga" />
-              <div class="saga lead"><TextEllipses style="width: 182px" :text="saga.sagaType" ellipses-style="LeftSide" /></div>
-            </template>
+            <div class="sagas" v-if="data.sagaInvocations.length > 0">
+              <div class="saga" v-for="saga in data.sagaInvocations" :key="saga.id">
+                <i
+                  class="fa"
+                  v-tippy="saga.isSagaInitiated ? 'Message originated from Saga' : !saga.isSagaInitiated && saga.isSagaCompleted ? 'Saga Completed' : 'Saga Initiated / Updated'"
+                  :class="{ 'pa-flow-saga-initiated': saga.isSagaInitiated, 'pa-flow-saga-completed': !saga.isSagaInitiated && saga.isSagaCompleted, 'pa-flow-saga-trigger': !saga.isSagaInitiated && !saga.isSagaCompleted }"
+                />
+                <div class="sagaName"><TextEllipses style="width: 182px" :text="saga.sagaType" ellipses-style="LeftSide" /></div>
+              </div>
+            </div>
           </div>
         </div>
         <div v-if="showAddress">
@@ -278,6 +290,17 @@ const greenColor = hexToCSSFilter("#00c468").filter;
   height: 60vh;
 }
 
+.sagas {
+  background-color: #333333;
+}
+
+.saga {
+  display: flex;
+}
+
+.sagaName {
+  color: #e6e6e6;
+}
 .node {
   --vf-handle: var(--vf-node-color, #1a192b);
   --vf-box-shadow: var(--vf-node-color, #1a192b);
@@ -298,7 +321,7 @@ const greenColor = hexToCSSFilter("#00c468").filter;
 }
 
 .node .error {
-  border-color: red;
+  border-color: #be514a;
 }
 
 .node text {
@@ -308,7 +331,7 @@ const greenColor = hexToCSSFilter("#00c468").filter;
 .node .time-sent .time-since {
   margin-left: 20px;
   padding-top: 0;
-  color: #777f7f;
+  color: #262727;
   text-transform: capitalize;
 }
 
@@ -319,24 +342,13 @@ const greenColor = hexToCSSFilter("#00c468").filter;
 .node-text i {
   display: inline-block;
   position: relative;
-  top: -1px;
   margin-right: 5px;
-  filter: brightness(0) saturate(100%) invert(0%) sepia(0%) saturate(0%) hue-rotate(346deg) brightness(104%) contrast(104%);
 }
 
 .node-text .lead {
   display: inline-block;
   position: relative;
   top: 4px;
-}
-
-.error .node-text .lead,
-.current-message.error .node-text .lead {
-  width: 184px;
-}
-
-.node-text .lead.saga {
-  font-weight: normal;
 }
 
 .address {
@@ -355,34 +367,8 @@ const greenColor = hexToCSSFilter("#00c468").filter;
   background-color: #be514a !important;
 }
 
-.current-message.error .node-text,
-.current-message .node-text .lead {
-  color: #fff !important;
-}
-
-.error .node-text i:not(.pa-flow-saga) {
-  filter: brightness(0) saturate(100%) invert(46%) sepia(9%) saturate(4493%) hue-rotate(317deg) brightness(81%) contrast(82%);
-}
-
-.current-message.error .node-text i {
-  color: #fff;
-  filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7475%) hue-rotate(21deg) brightness(100%) contrast(106%);
-}
-
-.current-message.error .node-text strong {
-  color: #fff;
-}
-
-.current-message.error .node-text .time-sent .time-since {
-  color: #ffcecb !important;
-}
-
 .error {
   border-color: #be514a;
-}
-
-.current-message.error .node-text a {
-  color: #fff;
 }
 
 .current-message.error .node-text a:hover {
@@ -392,18 +378,6 @@ const greenColor = hexToCSSFilter("#00c468").filter;
 
 .node-text a {
   color: #000;
-}
-
-.error .node-text a {
-  color: #be514a;
-}
-
-.error .node-text .time-sent .time-since {
-  color: #be514a;
-}
-
-.error .node-text .lead.saga {
-  color: #be514a;
 }
 
 .error .node-text a:hover {
@@ -426,13 +400,26 @@ const greenColor = hexToCSSFilter("#00c468").filter;
   width: 15px;
 }
 
-.pa-flow-saga {
-  background-image: url("@/assets/saga.svg");
+.pa-flow-saga-completed {
+  background-image: url("@/assets/saga-completed.svg");
   background-position: center;
   background-repeat: no-repeat;
   height: 15px;
   width: 15px;
-  margin-left: 20px;
+}
+.pa-flow-saga-initiated {
+  background-image: url("@/assets/saga-initiated.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 15px;
+  width: 15px;
+}
+.pa-flow-saga-trigger {
+  background-image: url("@/assets/saga-trigger.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 15px;
+  width: 15px;
 }
 
 .pa-flow-timeout {
@@ -457,11 +444,5 @@ const greenColor = hexToCSSFilter("#00c468").filter;
   background-repeat: no-repeat;
   height: 15px;
   width: 15px;
-}
-
-path.link {
-  fill: none;
-  stroke: #ccc;
-  stroke-width: 2px;
 }
 </style>
