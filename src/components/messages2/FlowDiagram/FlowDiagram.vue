@@ -286,8 +286,8 @@ const errorColor = hexToCSSFilter("#be514a").filter;
 }
 
 #tree-container {
-  width: 90vw;
-  height: 60vh;
+  width: 92vw;
+  height: 70vh;
 }
 
 .sagas {
