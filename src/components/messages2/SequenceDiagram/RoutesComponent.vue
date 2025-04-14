@@ -114,7 +114,7 @@ function setMessageTypeRef(el: SVGTextElement, index: number) {
           <path v-else-if="arrow.type === RoutedMessageType.Command" d="M 0,0 M 32,32 M 0,16 A 6,6 0 1 1 12,16 A 6,6 0 1 1 0,16   M 14,13 v6 h10 v2 L32,16 L24,11 v2 z" />
           <path v-else-if="arrow.type === RoutedMessageType.Local" d="M 32 6 h -14 v 4 h 10 v 14 H 16 V 19.6 L 4 26 l 12 6.4 V 28 h 16 V 6 z M 16 8.2 C 16 11.4 13.4 14 10 14 S 4 11.4 4 8.2 S 6.6 2 10 2 S 16 4.8 16 8 z" />
         </svg>
-        <text :x="15 + Message_Type_Margin + Message_Type_Margin" :y="Message_Type_Margin" alignment-baseline="before-edge" :ref="(el) => setMessageTypeRef(el as SVGTextElement, i)">{{ arrow.messageType }}</text>
+        <text :x="15 + Message_Type_Margin + Message_Type_Margin" :y="Message_Type_Margin" dominant-baseline="text-before-edge" :ref="(el) => setMessageTypeRef(el as SVGTextElement, i)">{{ arrow.messageType }}</text>
       </g>
     </g>
   </template>

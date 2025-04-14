@@ -19,7 +19,7 @@ onMounted(() => store.refreshConversation());
 
 <template>
   <div class="outer" @scroll="(ev) => (endpointYOffset = (ev.target as Element).scrollTop)">
-    <svg class="sequence-diagram" :width="`max(100%, ${isNaN(maxWidth) ? 0 : maxWidth}px)`" :height="maxHeight + 20">
+    <svg class="sequence-diagram" :style="{ width: `max(100%, ${isNaN(maxWidth) ? 0 : maxWidth}px)` }" :height="maxHeight + 20">
       <Timeline />
       <Handlers />
       <Routes />

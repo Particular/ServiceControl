@@ -130,7 +130,7 @@ function scrollToIfSelected(el: SVGElement, handlerId: string | undefined) {
       @click="handler.incomingId && !handler.messageTypeSelected && store.navigateTo(handler.messageId.uniqueId, handler.messageId.id, handler.isError)"
     >
       <path d="M9,3L9,3 9,0 0,0 0,3 4,3 4,6 0,6 0,9 4,9 4,12 0,12 0,15 9,15 9,12 5,12 5,9 9,9 9,6 5,6 5,3z" />
-      <text x="14" y="10" alignment-baseline="middle" :ref="(el) => setMessageTypeRef(el as SVGTextElement, i)">{{ handler.messageType }}</text>
+      <text x="14" y="0" dominant-baseline="text-before-edge" :ref="(el) => setMessageTypeRef(el as SVGTextElement, i)">{{ handler.messageType }}</text>
     </g>
   </g>
 </template>
