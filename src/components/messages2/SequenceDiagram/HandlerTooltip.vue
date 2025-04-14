@@ -18,7 +18,7 @@ function formatTime(milliseconds: number) {
       <label>Processing Time:</label>
       <span>{{ formatTime(handler.processingTime ?? 0) }}</span>
       <label>Processing Of:</label>
-      <span>{{ handler.name }}</span>
+      <span>{{ handler.friendlyName }}</span>
       <label v-if="handler.partOfSaga">Sagas Invoked:</label>
       <span v-if="handler.partOfSaga">{{ handler.partOfSaga }}</span>
     </div>

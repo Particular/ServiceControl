@@ -3,12 +3,13 @@ import { Direction, RoutedMessageType } from "@/resources/SequenceDiagram/Routed
 import { computed, ref } from "vue";
 import { useSequenceDiagramStore } from "@/stores/SequenceDiagramStore";
 import { storeToRefs } from "pinia";
+import { HandlerState } from "@/resources/SequenceDiagram/Handler";
 
 const Arrow_Head_Width = 10;
 const Message_Type_Margin = 4;
 
 const store = useSequenceDiagramStore();
-const { routes, handlerLocations, highlightId } = storeToRefs(store);
+const { selectedId, routes, handlerLocations, highlightId } = storeToRefs(store);
 
 const messageTypeRefs = ref<SVGTextElement[]>([]);
 
@@ -41,6 +42,9 @@ const arrows = computed(() =>
 
     return {
       id: route.name,
+      selected: route.name === selectedId.value,
+      messageId: { uniqueId: route.fromRoutedMessage.selectedMessage.id, id: route.fromRoutedMessage.selectedMessage.message_id },
+      isHandlerError: route.processingHandler?.state === HandlerState.Fail,
       fromX,
       y,
       direction,
@@ -73,25 +77,30 @@ function setMessageTypeRef(el: SVGTextElement, index: number) {
         <path v-if="arrow.direction === Direction.Left" :d="`M${arrow.toHandlerCentre + 1} ${arrow.y} l10,-7.5 0,15z`" fill="black" />
       </g>
       <!--Highlight Arrow-->
-      <g v-if="arrow.highlight" :transform="`translate(${arrow.toHandlerCentre},${arrow.y})`" stroke="var(--highlight)" fill="var(--highlight)">
+      <g v-if="arrow.highlight || arrow.selected" :transform="`translate(${arrow.toHandlerCentre},${arrow.y})`" stroke="var(--highlight)" fill="var(--highlight)">
         <path :d="`M0 0 v${arrow.height - 6}`" stroke-width="2" />
         <path :d="`M0 ${arrow.height} l-3,-6 6,0z`" />
       </g>
       <!--Message Type and Icon-->
       <g
-        class="clickable message-type"
+        :class="{
+          clickable: !arrow.selected,
+          'message-type': true,
+          highlight: arrow.highlight,
+          selected: arrow.selected,
+        }"
         :transform="`translate(${arrow.messageTypeOffset}, ${arrow.y - 7.5 - Message_Type_Margin})`"
-        :fill="arrow.highlight ? 'var(--highlight)' : 'black'"
         @mouseover="() => store.setHighlightId(arrow.id)"
         @mouseleave="() => store.setHighlightId()"
+        @click="!arrow.selected && store.navigateTo(arrow.messageId.uniqueId, arrow.messageId.id, arrow.isHandlerError)"
         :ref="(el) => arrow.setUIRef(el as SVGElement)"
       >
         <!--19 is width of MessageType icon, plus a gap-->
         <rect
-          v-if="arrow.highlight && arrow.messageTypeOffset"
-          :width="arrow.highlightTextWidth + 19 + Message_Type_Margin + Message_Type_Margin"
-          :height="arrow.highlightTextHeight + Message_Type_Margin + Message_Type_Margin"
-          fill="var(--highlight-background)"
+          v-if="(arrow.highlight || arrow.selected) && arrow.messageTypeOffset"
+          :width="(arrow.highlightTextWidth ?? 0) + 19 + Message_Type_Margin + Message_Type_Margin"
+          :height="(arrow.highlightTextHeight ?? 0) + Message_Type_Margin + Message_Type_Margin"
+          class="border"
         />
         <svg :x="Message_Type_Margin" :y="Message_Type_Margin" width="15" height="15" viewBox="0 0 32 32">
           <path
@@ -116,7 +125,32 @@ function setMessageTypeRef(el: SVGTextElement, index: number) {
   cursor: pointer;
 }
 
+.message-type {
+  fill: black;
+  outline: none;
+}
+
+.message-type.selected {
+  fill: white;
+}
+
+.message-type .border {
+  fill: var(--highlight-background);
+}
+
+.message-type.selected .border {
+  fill: var(--highlight);
+}
+
+.message-type:not(.selected).highlight {
+  fill: var(--highlight);
+}
+
 .message-type text::selection {
   fill: white;
+}
+
+.message-type.selected text::selection {
+  background-color: black;
 }
 </style>

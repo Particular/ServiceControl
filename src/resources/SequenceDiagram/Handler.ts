@@ -7,6 +7,7 @@ import { friendlyTypeName } from "./SequenceModel";
 export interface Handler {
   readonly id: string;
   name?: string;
+  friendlyName?: string;
   readonly endpoint: Endpoint;
   readonly isPartOfSaga: boolean;
   partOfSaga?: string;
@@ -27,6 +28,7 @@ export interface Handler {
 export enum HandlerState {
   Fail,
   Success,
+  Unknown,
 }
 
 export const ConversationStartHandlerName = "First";
@@ -60,7 +62,8 @@ export function updateProcessingHandler(handler: Handler, message: Message) {
   //TODO: extract logic since it's also currently used in AuditList
   const [hh, mm, ss] = message.processing_time.split(":");
   handler.processingTime = ((parseInt(hh) * 60 + parseInt(mm)) * 60 + parseFloat(ss)) * 1000;
-  handler.name = friendlyTypeName(message.message_type);
+  handler.name = message.message_type;
+  handler.friendlyName = friendlyTypeName(message.message_type);
 
   if ((message.invoked_sagas?.length ?? 0) > 0) {
     handler.partOfSaga = message.invoked_sagas!.map((saga) => friendlyTypeName(saga.saga_type)).join(", ");
@@ -85,7 +88,7 @@ class HandlerItem implements Handler {
   name?: string;
   partOfSaga?: string;
   inMessage?: RoutedMessage;
-  state: HandlerState = HandlerState.Fail;
+  state: HandlerState = HandlerState.Unknown;
   processedAt?: Date;
   processingTime?: number;
   route?: MessageProcessingRoute;

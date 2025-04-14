@@ -5,6 +5,7 @@ import { useTippy } from "vue-tippy";
 import EndpointTooltip from "./EndpointTooltip.vue";
 import HandlerTooltip from "./HandlerTooltip.vue";
 import RouteTooltip from "./RouteTooltip.vue";
+import { HandlerState } from "@/resources/SequenceDiagram/Handler";
 
 export default function useTooltips() {
   const store = useSequenceDiagramStore();
@@ -30,7 +31,7 @@ export default function useTooltips() {
     () => handlers.value.map((handler) => handler.uiRef),
     () =>
       handlers.value
-        .filter((handler) => handler.uiRef)
+        .filter((handler) => handler.uiRef && handler.state !== HandlerState.Unknown)
         .forEach((handler) =>
           useTippy(handler.uiRef, {
             interactive: true,

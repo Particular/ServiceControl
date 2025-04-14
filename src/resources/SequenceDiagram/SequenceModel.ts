@@ -72,10 +72,10 @@ export class ModelCreator implements ConversationModel {
       sendingHandler.addOutMessage(routedMessage);
     }
 
-    const start = firstOrderHandlers.find((h) => h.id === ConversationStartHandlerName);
+    const start = firstOrderHandlers.filter((h) => h.id === ConversationStartHandlerName);
     const orderByHandledAt = firstOrderHandlers.filter((h) => h.id !== ConversationStartHandlerName).sort((a, b) => (a.handledAt?.getTime() ?? 0) - (b.handledAt?.getTime() ?? 0));
 
-    this.#handlers = [start!, ...orderByHandledAt];
+    this.#handlers = [...start, ...orderByHandledAt];
   }
 
   get endpoints(): Endpoint[] {

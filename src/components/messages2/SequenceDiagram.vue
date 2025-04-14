@@ -6,10 +6,11 @@ import Routes from "./SequenceDiagram/RoutesComponent.vue";
 import { useSequenceDiagramStore } from "@/stores/SequenceDiagramStore";
 import { storeToRefs } from "pinia";
 import useTooltips from "./SequenceDiagram/tooltipOverlay.ts";
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 
 const store = useSequenceDiagramStore();
 const { maxWidth, maxHeight } = storeToRefs(store);
+const endpointYOffset = ref(0);
 
 useTooltips();
 
@@ -17,12 +18,12 @@ onMounted(() => store.refreshConversation());
 </script>
 
 <template>
-  <div class="outer">
+  <div class="outer" @scroll="(ev) => (endpointYOffset = (ev.target as Element).scrollTop)">
     <svg class="sequence-diagram" :width="`max(100%, ${isNaN(maxWidth) ? 0 : maxWidth}px)`" :height="maxHeight + 20">
-      <Endpoints />
       <Timeline />
       <Handlers />
       <Routes />
+      <Endpoints :yOffset="endpointYOffset" />
     </svg>
   </div>
 </template>

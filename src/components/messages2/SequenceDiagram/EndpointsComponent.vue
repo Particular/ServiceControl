@@ -25,6 +25,10 @@ interface EndpointSurround {
 const Endpoint_Gap = 30;
 const Endpoint_Image_Width = 20;
 
+defineProps<{
+  yOffset: number;
+}>();
+
 const store = useSequenceDiagramStore();
 const { startX, endpoints } = storeToRefs(store);
 
@@ -79,7 +83,7 @@ function setEndpointTextRef(el: SVGTextElement, index: number) {
 </script>
 
 <template>
-  <g v-for="(endpoint, i) in endpointItems" :key="endpoint.name" transform="translate(0,15)" :ref="(el) => (endpoint.uiRef = el as SVGElement)">
+  <g v-for="(endpoint, i) in endpointItems" :key="endpoint.name" :transform="`translate(0,${yOffset + 15})`" :ref="(el) => (endpoint.uiRef = el as SVGElement)">
     <rect
       v-if="endpoint.surround"
       :x="endpoint.surround.x"
