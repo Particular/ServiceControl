@@ -207,7 +207,9 @@ async function layoutGraph() {
   nodes.value = layout(nodes.value, edges.value, showAddress.value);
 
   await nextTick(() => {
-    fitView();
+    if (store.state.data.id) {
+      fitView({ nodes: [store.state.data.id], maxZoom: 0.9 });
+    }
   });
 }
 
@@ -227,7 +229,7 @@ const errorColor = hexToCSSFilter("#be514a").filter;
   <div v-if="store.conversationData.failed_to_load" class="alert alert-info">FlowDiagram data is unavailable.</div>
   <LoadingSpinner v-else-if="store.conversationData.loading" />
   <div v-else id="tree-container">
-    <VueFlow :nodes="nodes" :edges="edges" :min-zoom="0.1" :fit-view-on-init="true" :only-render-visible-elements="true" @nodes-initialized="layoutGraph">
+    <VueFlow :nodes="nodes" :edges="edges" :min-zoom="0.1" :max-zoom="1.2" :only-render-visible-elements="true" @nodes-initialized="layoutGraph">
       <Controls :show-interactive="false" position="top-left" class="controls">
         <ControlButton v-tippy="showAddress ? `Hide endpoints` : `Show endpoints`" @click="toggleAddress">
           <i class="fa pa-flow-endpoint" :style="{ filter: showAddress ? greenColor : blackColor }"></i>
