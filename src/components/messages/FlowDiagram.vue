@@ -371,7 +371,7 @@ function typeIcon(type: MessageType) {
 }
 
 .pa-flow-saga {
-  background-image: url("@/assets/saga.svg");
+  background-image: url("@/assets/saga-completed.svg");
   background-position: center;
   background-repeat: no-repeat;
   height: 15px;
