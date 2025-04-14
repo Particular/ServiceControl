@@ -150,13 +150,13 @@ function constructEdges(nodes: Node<NodeData>[]): DefaultEdge[] {
       });
 
       if (parentMessages.length === 0) {
-        console.log(`Fall back to match only on RelatedToMessageId for message with Id '${message.message_id}' matched but link could be invalid.`);
+        console.debug(`Fall back to match only on RelatedToMessageId for message with Id '${message.message_id}' matched but link could be invalid.`);
       }
     }
 
     switch (parentMessages.length) {
       case 0:
-        console.log(
+        console.warn(
           `No parent could be resolved for the message with Id '${message.message_id}' which has RelatedToMessageId set. This can happen if the parent has been purged due to retention expiration, an ServiceControl node to be unavailable, or because the parent message not been stored (yet).`
         );
         break;
@@ -164,7 +164,7 @@ function constructEdges(nodes: Node<NodeData>[]): DefaultEdge[] {
         // Log nothing, this is what it should be
         break;
       default:
-        console.log(`Multiple parents matched for message id '${message.message_id}' possibly due to more-than-once processing, linking to all as it is unknown which processing attempt generated the message.`);
+        console.warn(`Multiple parents matched for message id '${message.message_id}' possibly due to more-than-once processing, linking to all as it is unknown which processing attempt generated the message.`);
         break;
     }
 
