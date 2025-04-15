@@ -71,7 +71,10 @@
                 snsClient = new AmazonSimpleNotificationServiceClient();
             }
 
-            var transport = new SqsTransport(sqsClient, snsClient, disableUnrestrictedDelayedDelivery: true);
+            var transport = new SqsTransport(sqsClient, snsClient, disableUnrestrictedDelayedDelivery: true)
+            {
+                MaxAutoMessageVisibilityRenewalDuration = TimeSpan.Zero
+            };
 
             if (!string.IsNullOrEmpty(builder.QueueNamePrefix))
             {
