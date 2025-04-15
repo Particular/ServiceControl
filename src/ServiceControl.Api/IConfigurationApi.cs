@@ -6,8 +6,10 @@
 
     public interface IConfigurationApi
     {
-        public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken);
-        public Task<object> GetConfig(CancellationToken cancellationToken);
-        public Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken);
+        Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken);
+
+        Task<object> GetConfig(CancellationToken cancellationToken);
+
+        Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken);
     }
 }

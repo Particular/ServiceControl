@@ -75,11 +75,12 @@
 
         public Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues)
         {
-            QueuesCreated = new List<string>(additionalQueues)
-            {
+            QueuesCreated =
+            [
+                .. additionalQueues,
                 transportSettings.EndpointName,
                 transportSettings.ErrorQueue
-            };
+            ];
             return Task.CompletedTask;
         }
 

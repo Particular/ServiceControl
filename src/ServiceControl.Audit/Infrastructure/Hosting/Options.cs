@@ -167,7 +167,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
 
         public List<string> ToList()
         {
-            return new List<string>(values);
+            return [.. values];
         }
 
         public string[] ToArray()

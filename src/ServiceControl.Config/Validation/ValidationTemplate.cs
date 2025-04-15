@@ -29,7 +29,7 @@
 
             errorsChangedSubject = new Subject<DataErrorsChangedEventArgs>();
             target.PropertyChanged += Validate;
-            properties = new HashSet<string>(target.GetType().GetProperties().Select(p => p.Name));
+            properties = [.. target.GetType().GetProperties().Select(p => p.Name)];
         }
 
         public IObservable<DataErrorsChangedEventArgs> ErrorsChangedObservable => errorsChangedSubject.AsObservable();

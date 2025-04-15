@@ -219,13 +219,13 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         public void CheckQueueNamesAreNotTakenByAnotherInstance_ShouldThrow()
         {
             var expectedError = "Some queue names specified are already assigned to another ServiceControl instance - Correct the values for ErrorLogQueue, ErrorQueue";
+
             var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
-            {
-                newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
-                newInstance.ErrorLogQueue = "errorlog";
-                newInstance.ErrorQueue = "error";
-                newInstance.ForwardErrorMessages = true;
-            };
+
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
+            newInstance.ErrorLogQueue = "errorlog";
+            newInstance.ErrorQueue = "error";
+            newInstance.ForwardErrorMessages = true;
 
             var p = new QueueNameValidator(newInstance)
             {
