@@ -58,12 +58,17 @@ interface Model {
     show_retry_confirm: boolean;
     show_edit_retry_modal: boolean;
   }>;
+  invoked_saga: Partial<{
+    has_saga: boolean;
+    saga_id: string;
+    saga_type: string;
+  }>;
 }
 
 export const useMessageStore = defineStore("MessageStore", () => {
   const headers = ref<DataContainer<Header[]>>({ data: [] });
   const body = ref<DataContainer<{ value?: string; content_type?: string }>>({ data: {} });
-  const state = reactive<DataContainer<Model>>({ data: { failure_metadata: {}, failure_status: {}, dialog_status: {} } });
+  const state = reactive<DataContainer<Model>>({ data: { failure_metadata: {}, failure_status: {}, dialog_status: {}, invoked_saga: {} } });
   let bodyLoadedId = "";
   let conversationLoadedId = "";
   const conversationData = ref<DataContainer<Message[]>>({ data: [] });
@@ -74,7 +79,7 @@ export const useMessageStore = defineStore("MessageStore", () => {
   configStore.loadConfig();
 
   function reset() {
-    state.data = { failure_metadata: {}, failure_status: {}, dialog_status: {} };
+    state.data = { failure_metadata: {}, failure_status: {}, dialog_status: {}, invoked_saga: {} };
     headers.value.data = [];
     body.value.data = { value: "", content_type: "" };
     bodyLoadedId = "";
@@ -141,7 +146,7 @@ export const useMessageStore = defineStore("MessageStore", () => {
         state.not_found = headers.value.not_found = true;
         return;
       }
-
+      const invokedSaga = message?.invoked_sagas?.[0];
       state.data.message_id = message.message_id;
       state.data.conversation_id = message.conversation_id;
       state.data.body_url = message.body_url;
@@ -150,7 +155,11 @@ export const useMessageStore = defineStore("MessageStore", () => {
       state.data.receiving_endpoint = message.receiving_endpoint;
       state.data.status = message.status;
       state.data.processed_at = message.processed_at;
-
+      if (invokedSaga) {
+        state.data.invoked_saga.has_saga = true;
+        state.data.invoked_saga.saga_id = invokedSaga.saga_id;
+        state.data.invoked_saga.saga_type = invokedSaga.saga_type;
+      }
       headers.value.data = message.headers;
     } catch {
       state.failed_to_load = headers.value.failed_to_load = true;

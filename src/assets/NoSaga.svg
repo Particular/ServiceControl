@@ -1,0 +1,10 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+    <path d="M44 42.9C29.7 37.2 19.1 27.3 19.1 0h-16c0 40.7 20.6 53.3 40.9 59.9V42.9z" 
+          fill="#D3D3D3" fill-rule="nonzero" />
+    
+    <path d="M114.3 97C110.1 67.7 93 57.7 75 52.1V69c12 4.5 20.4 12 23.3 29.1l-9.4 0.2l18.5 29.7L124 97H114.3z" 
+          fill="#D3D3D3" fill-rule="nonzero" />
+
+    <polygon points="68,98 68,0 51,0 51,98 41.6,98 59.1,128 76.7,98" 
+             fill="#E4E4E4" fill-rule="nonzero" />
+</svg>

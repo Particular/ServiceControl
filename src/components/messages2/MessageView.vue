@@ -21,6 +21,7 @@ import { storeToRefs } from "pinia";
 import MetadataLabel from "@/components/messages2/MetadataLabel.vue";
 import { hexToCSSFilter } from "hex-to-css-filter";
 import LoadingOverlay from "@/components/LoadingOverlay.vue";
+import SagaDiagram from "./SagaDiagram.vue";
 
 const route = useRoute();
 const id = computed(() => route.params.id as string);
@@ -57,6 +58,10 @@ const tabs = computed(() => {
     currentTabs.push({
       text: "Sequence Diagram",
       component: SequenceDiagram,
+    });
+    currentTabs.push({
+      text: "Saga Diagram",
+      component: SagaDiagram,
     });
   }
 

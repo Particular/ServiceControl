@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { mockServer } from "./mock-server";
 import { Driver } from "./driver";
 
-export { render, screen } from "@testing-library/vue";
+export { render, screen, within } from "@testing-library/vue";
 export { expect, test, describe } from "vitest";
 export { userEvent };
 
