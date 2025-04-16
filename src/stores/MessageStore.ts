@@ -3,11 +3,11 @@ import { reactive, ref } from "vue";
 import Header from "@/resources/Header";
 import type EndpointDetails from "@/resources/EndpointDetails";
 import FailedMessage, { ExceptionDetails, FailedMessageStatus } from "@/resources/FailedMessage";
-import { editRetryConfig } from "@/composables/useEditAndRetry";
+import { useEditRetryStore } from "@/stores/EditRetryStore";
+import { useConfigurationStore } from "@/stores/ConfigurationStore";
 import { useFetchFromServiceControl, useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
 import Message, { MessageStatus } from "@/resources/Message";
 import moment from "moment/moment";
-import { useConfiguration } from "@/composables/configuration";
 import { parse, stringify } from "lossless-json";
 import xmlFormat from "xml-formatter";
 import { useArchiveMessage, useRetryMessages, useUnarchiveMessage } from "@/composables/serviceFailedMessage";
@@ -67,6 +67,11 @@ export const useMessageStore = defineStore("MessageStore", () => {
   let bodyLoadedId = "";
   let conversationLoadedId = "";
   const conversationData = ref<DataContainer<Message[]>>({ data: [] });
+  const editRetryStore = useEditRetryStore();
+  const configStore = useConfigurationStore();
+
+  editRetryStore.loadConfig();
+  configStore.loadConfig();
 
   function reset() {
     state.data = { failure_metadata: {}, failure_status: {}, dialog_status: {} };
@@ -284,14 +289,13 @@ export const useMessageStore = defineStore("MessageStore", () => {
     return exportString;
   }
 
-  const configuration = useConfiguration();
-  const error_retention_period = moment.duration(configuration.value?.data_retention.error_retention_period).asHours();
+  const error_retention_period = moment.duration(configStore.configuration?.data_retention?.error_retention_period).asHours();
 
   return {
     headers,
     body,
     state,
-    edit_and_retry_config: editRetryConfig,
+    edit_and_retry_config: editRetryStore.config,
     reset,
     loadMessage,
     loadFailedMessage,
