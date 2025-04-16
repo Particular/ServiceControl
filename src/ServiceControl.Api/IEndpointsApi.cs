@@ -7,6 +7,6 @@
 
     public interface IEndpointsApi
     {
-        public Task<List<Endpoint>> GetEndpoints(CancellationToken cancellationToken);
+        Task<List<Endpoint>> GetEndpoints(CancellationToken cancellationToken);
     }
 }

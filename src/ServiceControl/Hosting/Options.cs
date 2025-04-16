@@ -167,7 +167,7 @@ namespace Particular.ServiceControl.Hosting
 
         public List<string> ToList()
         {
-            return new List<string>(values);
+            return [.. values];
         }
 
         public string[] ToArray()

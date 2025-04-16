@@ -43,7 +43,7 @@
             {
                 Hostname = SettingsReader.Read(SettingsRootNamespace, "Hostname", "localhost");
                 Port = SettingsReader.Read(SettingsRootNamespace, "Port", 44444);
-            };
+            }
 
             MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
             ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");

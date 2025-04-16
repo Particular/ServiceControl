@@ -167,7 +167,7 @@ namespace ServiceControl.Monitoring
 
         public List<string> ToList()
         {
-            return new List<string>(values);
+            return [.. values];
         }
 
         public string[] ToArray()

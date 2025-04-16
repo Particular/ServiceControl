@@ -28,7 +28,7 @@
             AddAndRemoveInstances();
         }
 
-        public BindableCollection<InstanceDetailsViewModel> OrderedInstances => new BindableCollection<InstanceDetailsViewModel>(Instances.OrderBy(x => x.Name));
+        public BindableCollection<InstanceDetailsViewModel> OrderedInstances => [.. Instances.OrderBy(x => x.Name)];
 
         [AlsoNotifyFor(nameof(OrderedInstances))]
         IList<InstanceDetailsViewModel> Instances { get; }
