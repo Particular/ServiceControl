@@ -4,14 +4,9 @@ namespace ServiceControl.Contracts.Operations
 
     public class FailureDetails
     {
-        public FailureDetails()
-        {
-            TimeOfFailure = DateTime.UtcNow;
-        }
-
         public string AddressOfFailingEndpoint { get; set; }
 
-        public DateTime TimeOfFailure { get; set; }
+        public DateTime TimeOfFailure { get; set; } = DateTime.UtcNow;
 
         public ExceptionDetails Exception { get; set; }
     }

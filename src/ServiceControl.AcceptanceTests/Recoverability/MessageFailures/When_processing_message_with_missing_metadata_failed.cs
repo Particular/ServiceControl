@@ -42,13 +42,13 @@
 
             var sentTime = DateTime.Parse("2014-11-11T02:26:58.000462Z");
 
-            await Define<MyContext>(ctx => { ctx.TimeSent = sentTime; })
+            await Define<MyContext>(ctx => ctx.TimeSent = sentTime)
                 .WithEndpoint<Failing>()
                 .Done(async c =>
                 {
                     var result = await this.TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
                     failure = result;
-                    return c.UniqueMessageId != null & result;
+                    return (c.UniqueMessageId != null) & result;
                 })
                 .Run();
 
@@ -61,22 +61,31 @@
         {
             FailedMessageView failure = null;
 
-            await Define<MyContext>()
+            var testStartTime = DateTime.UtcNow;
+
+            var context = await Define<MyContext>()
                 .WithEndpoint<Failing>()
                 .Done(async c =>
                 {
                     var result = await this.TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
                     failure = result;
-                    return c.UniqueMessageId != null & result;
+                    return (c.UniqueMessageId != null) & result;
                 })
                 .Run();
 
             Assert.That(failure, Is.Not.Null);
+
+            //No failure time will result in utc now being used
+            Assert.That(failure.TimeOfFailure, Is.GreaterThan(testStartTime));
+
+            // ServicePulse assumes that the receiving endpoint name is set making sure that its present
+            Assert.That(failure.ReceivingEndpoint, Is.Not.Null);
+            Assert.That(failure.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
         }
 
-        public class Failing : EndpointConfigurationBuilder
+        class Failing : EndpointConfigurationBuilder
         {
-            public Failing() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.Recoverability().Delayed(x => x.NumberOfRetries(0)); });
+            public Failing() => EndpointSetup<DefaultServerWithoutAudit>(c => c.Recoverability().Delayed(x => x.NumberOfRetries(0)));
 
             class SendFailedMessage : DispatchRawMessages<MyContext>
             {
@@ -89,30 +98,23 @@
                     var headers = new Dictionary<string, string>
                     {
                         [Headers.MessageId] = context.MessageId,
-                        [Headers.ProcessingEndpoint] = context.EndpointNameOfReceivingEndpoint,
-                        ["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z",
-                        ["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage",
-                        ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
-                        ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
-                        ["NServiceBus.ExceptionInfo.StackTrace"] = string.Empty,
                         ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(Failing)),
-                        ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z"
+                        [Headers.ProcessingMachine] = "unknown", // This is needed for endpoint detection to work, endpoint name is detected from the FailedQ header
                     };
+
                     if (context.TimeSent.HasValue)
                     {
                         headers["NServiceBus.TimeSent"] = DateTimeOffsetHelper.ToWireFormattedString(context.TimeSent.Value);
                     }
 
-                    var outgoingMessage = new OutgoingMessage(context.MessageId, headers, new byte[0]);
+                    var outgoingMessage = new OutgoingMessage(context.MessageId, headers, Array.Empty<byte>());
 
-                    return new TransportOperations(
-                        new TransportOperation(outgoingMessage, new UnicastAddressTag("error"))
-                    );
+                    return new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag("error")));
                 }
             }
         }
 
-        public class MyContext : ScenarioContext
+        class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
 

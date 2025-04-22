@@ -5,13 +5,8 @@
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Persistence;
 
-    class DetectNewEndpointsFromErrorImportsEnricher : IEnrichImportedErrorMessages
+    class DetectNewEndpointsFromErrorImportsEnricher(IEndpointInstanceMonitoring monitoring) : IEnrichImportedErrorMessages
     {
-        public DetectNewEndpointsFromErrorImportsEnricher(IEndpointInstanceMonitoring monitoring)
-        {
-            this.monitoring = monitoring;
-        }
-
         public void Enrich(ErrorEnricherContext context)
         {
             var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(context.Headers);
@@ -47,7 +42,5 @@
                 context.Add(endpointDetails);
             }
         }
-
-        IEndpointInstanceMonitoring monitoring;
     }
 }
