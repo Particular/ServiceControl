@@ -99,7 +99,7 @@
                     {
                         [Headers.MessageId] = context.MessageId,
                         ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(Failing)),
-                        [Headers.ProcessingMachine] = "unknown", // This is needed for endpoint detection to work, endpoint name is detected from the FailedQ header
+                        [Headers.ProcessingMachine] = "unknown", // This is needed for endpoint detection to work since "host" is required, endpoint name is detected from the FailedQ header
                     };
 
                     if (context.TimeSent.HasValue)
