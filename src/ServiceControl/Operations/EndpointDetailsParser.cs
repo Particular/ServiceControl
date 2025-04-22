@@ -80,8 +80,8 @@ namespace ServiceControl.Contracts.Operations
                     endpoint.Host = queueAndMachinename.Machine;
                 }
 
-                // If we've been now able to get the endpoint details, return the new info.
-                if (!string.IsNullOrEmpty(endpoint.Name) && !string.IsNullOrEmpty(endpoint.Host))
+                // If we've been now able to get at least the endpoint name, return the new info.
+                if (!string.IsNullOrEmpty(endpoint.Name))
                 {
                     return endpoint;
                 }
