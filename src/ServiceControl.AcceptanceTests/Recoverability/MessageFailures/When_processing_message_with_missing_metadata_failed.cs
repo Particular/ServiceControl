@@ -78,7 +78,7 @@
             //No failure time will result in utc now being used
             Assert.That(failure.TimeOfFailure, Is.GreaterThan(testStartTime));
 
-            // ServicePulse assumes that the receiving endpoint name
+            // ServicePulse assumes that the receiving endpoint name is present
             Assert.That(failure.ReceivingEndpoint, Is.Not.Null);
             Assert.That(failure.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
         }
