@@ -14,25 +14,15 @@
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Recoverability;
 
-    class RavenRecoverabilityIngestionUnitOfWork : IRecoverabilityIngestionUnitOfWork
+    class RavenRecoverabilityIngestionUnitOfWork(RavenIngestionUnitOfWork parentUnitOfWork, ExpirationManager expirationManager, RavenPersisterSettings settings)
+        : IRecoverabilityIngestionUnitOfWork
     {
-        readonly RavenIngestionUnitOfWork parentUnitOfWork;
-        readonly ExpirationManager expirationManager;
-        readonly bool doFullTextIndexing;
-
-        public RavenRecoverabilityIngestionUnitOfWork(RavenIngestionUnitOfWork parentUnitOfWork, ExpirationManager expirationManager, RavenPersisterSettings settings)
-        {
-            this.parentUnitOfWork = parentUnitOfWork;
-            this.expirationManager = expirationManager;
-            doFullTextIndexing = settings.EnableFullTextSearchOnBodies;
-        }
-
         public Task RecordFailedProcessingAttempt(
             MessageContext context,
             FailedMessage.ProcessingAttempt processingAttempt,
             List<FailedMessage.FailureGroup> groups)
         {
-            var uniqueMessageId = context.Headers.UniqueId();
+            var uniqueMessageId = GetUniqueMessageId(context);
             var contentType = GetContentType(context.Headers, "text/xml");
             var bodySize = context.Body.Length;
 
@@ -147,7 +137,7 @@
 
         void AddStoreBodyCommands(MessageContext context, string contentType)
         {
-            var uniqueId = context.Headers.UniqueId();
+            var uniqueId = GetUniqueMessageId(context);
             var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueId);
 
             var stream = new ReadOnlyStream(context.Body);
@@ -156,12 +146,31 @@
             parentUnitOfWork.AddCommand(putAttachmentCmd);
         }
 
+        static string GetUniqueMessageId(MessageContext context)
+        {
+            var headers = context.Headers;
+
+            if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var existingUniqueMessageId))
+            {
+                return existingUniqueMessageId;
+            }
+
+            if (!headers.TryGetValue(Headers.MessageId, out var messageId))
+            {
+                messageId = context.NativeMessageId;
+            }
+
+            return DeterministicGuid.MakeId(messageId, headers.ProcessingEndpointName()).ToString();
+        }
+
+        readonly bool doFullTextIndexing = settings.EnableFullTextSearchOnBodies;
+
         static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
             => headers.GetValueOrDefault(Headers.ContentType, defaultContentType);
 
-        static int MaxProcessingAttempts = 10;
+        static readonly int MaxProcessingAttempts = 10;
         // large object heap starts above 85000 bytes and not above 85 KB!
-        internal const int LargeObjectHeapThreshold = 85_000;
+        const int LargeObjectHeapThreshold = 85_000;
         static readonly Encoding utf8 = new UTF8Encoding(true, true);
 
     }

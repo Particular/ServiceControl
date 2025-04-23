@@ -36,51 +36,8 @@
             throw new Exception($"No processing endpoint could be determined for message ({headers.MessageId()})");
         }
 
-        public static string UniqueId(this IReadOnlyDictionary<string, string> headers)
-        {
-            return headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var existingUniqueMessageId)
-                ? existingUniqueMessageId
-                : DeterministicGuid.MakeId(headers.MessageId(), headers.ProcessingEndpointName()).ToString();
-        }
-
-        public static string ProcessingId(this IReadOnlyDictionary<string, string> headers)
-        {
-            var messageId = headers.MessageId();
-            var processingEndpointName = headers.ProcessingEndpointName();
-            var processingStarted = headers.ProcessingStarted();
-
-            if (messageId == default || processingEndpointName == default || processingStarted == default)
-            {
-                return Guid.NewGuid().ToString();
-            }
-
-            return DeterministicGuid.MakeId(messageId, processingEndpointName, processingStarted).ToString();
-        }
-
         // NOTE: Duplicated from TransportMessage
-        public static string MessageId(this IReadOnlyDictionary<string, string> headers)
-        {
-            return headers.TryGetValue(Headers.MessageId, out var str) ? str : default;
-        }
-
-        // NOTE: Duplicated from TransportMessage
-        public static string CorrelationId(this IReadOnlyDictionary<string, string> headers)
-        {
-            return headers.TryGetValue(Headers.CorrelationId, out var correlationId) ? correlationId : null;
-        }
-
-        // NOTE: Duplicated from TransportMessage
-        public static MessageIntent MessageIntent(this IReadOnlyDictionary<string, string> headers)
-        {
-            var messageIntent = default(MessageIntent);
-
-            if (headers.TryGetValue(Headers.MessageIntent, out var messageIntentString))
-            {
-                Enum.TryParse(messageIntentString, true, out messageIntent);
-            }
-
-            return messageIntent;
-        }
+        public static string MessageId(this IReadOnlyDictionary<string, string> headers) => headers.GetValueOrDefault(Headers.MessageId);
 
         // NOTE: Duplicated from ~/src/ServiceControl/Infrastructure/TransportMessageExtensions.cs
         public static bool IsBinary(this IReadOnlyDictionary<string, string> headers)
@@ -102,15 +59,8 @@
 
             return true;
         }
-        static string ReplyToAddress(this IReadOnlyDictionary<string, string> headers)
-        {
-            return headers.TryGetValue(Headers.ReplyToAddress, out var destination) ? destination : null;
-        }
 
-        static string ProcessingStarted(this IReadOnlyDictionary<string, string> headers)
-        {
-            return headers.TryGetValue(Headers.ProcessingStarted, out var processingStarted) ? processingStarted : null;
-        }
+        static string ReplyToAddress(this IReadOnlyDictionary<string, string> headers) => headers.GetValueOrDefault(Headers.ReplyToAddress);
 
         static string ExtractQueue(string address)
         {

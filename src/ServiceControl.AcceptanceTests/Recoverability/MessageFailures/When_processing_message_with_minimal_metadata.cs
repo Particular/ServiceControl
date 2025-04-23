@@ -2,19 +2,18 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
-    using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures.Api;
-    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    class When_processing_message_with_missing_metadata_failed : AcceptanceTest
+    class When_processing_message_with_minimal_metadata : AcceptanceTest
     {
         [Test]
         public async Task Null_TimeSent_should_not_be_cast_to_DateTimeMin()
@@ -25,9 +24,8 @@
                 .WithEndpoint<Failing>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == c.UniqueMessageId);
-                    failure = result;
-                    return result;
+                    failure = await TryGetFailureFromApi(c);
+                    return failure != null;
                 })
                 .Run();
 
@@ -40,15 +38,14 @@
         {
             FailedMessageView failure = null;
 
-            var sentTime = DateTime.Parse("2014-11-11T02:26:58.000462Z");
+            var sentTime = DateTime.Parse("2014-11-11T02:26:58.000462Z").ToUniversalTime();
 
             await Define<MyContext>(ctx => ctx.TimeSent = sentTime)
                 .WithEndpoint<Failing>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
-                    failure = result;
-                    return (c.UniqueMessageId != null) & result;
+                    failure = await TryGetFailureFromApi(c);
+                    return failure != null;
                 })
                 .Run();
 
@@ -57,7 +54,7 @@
         }
 
         [Test]
-        public async Task Should_be_able_to_get_the_message_by_id()
+        public async Task Should_be_able_ingest_the_failed_message()
         {
             FailedMessageView failure = null;
 
@@ -67,9 +64,8 @@
                 .WithEndpoint<Failing>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
-                    failure = result;
-                    return (c.UniqueMessageId != null) & result;
+                    failure = await TryGetFailureFromApi(c);
+                    return failure != null;
                 })
                 .Run();
 
@@ -80,7 +76,7 @@
 
             // ServicePulse assumes that the receiving endpoint name is present
             Assert.That(failure.ReceivingEndpoint, Is.Not.Null);
-            Assert.That(failure.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
+            Assert.That(failure.ReceivingEndpoint.Name, Is.EqualTo(context.FailedQueueAddress));
         }
 
         class Failing : EndpointConfigurationBuilder
@@ -91,14 +87,9 @@
             {
                 protected override TransportOperations CreateMessage(MyContext context)
                 {
-                    context.EndpointNameOfReceivingEndpoint = Conventions.EndpointNamingConvention(typeof(Failing));
-                    context.MessageId = Guid.NewGuid().ToString();
-                    context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, context.EndpointNameOfReceivingEndpoint).ToString();
-
                     var headers = new Dictionary<string, string>
                     {
-                        [Headers.MessageId] = context.MessageId,
-                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(Failing)),
+                        ["NServiceBus.FailedQ"] = context.FailedQueueAddress,
                         [Headers.ProcessingMachine] = "unknown", // This is needed for endpoint detection to work since "host" is required, endpoint name is detected from the FailedQ header
                     };
 
@@ -107,22 +98,32 @@
                         headers["NServiceBus.TimeSent"] = DateTimeOffsetHelper.ToWireFormattedString(context.TimeSent.Value);
                     }
 
-                    var outgoingMessage = new OutgoingMessage(context.MessageId, headers, Array.Empty<byte>());
+                    var outgoingMessage = new OutgoingMessage(Guid.NewGuid().ToString(), headers, Array.Empty<byte>());
 
                     return new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag("error")));
                 }
             }
         }
 
+        async Task<FailedMessageView> TryGetFailureFromApi(MyContext context)
+        {
+            // Since we are running without a known message id and the learning transport doesn't allow the native message id to be controlled
+            // we use a unique failed queue address to find it instead
+            var result = await this.TryGetMany<FailedMessageView>($"/api/errors/");
+
+            if (!result.HasResult)
+            {
+                return null;
+            }
+
+            return result.Items.SingleOrDefault(f => f.QueueAddress == context.FailedQueueAddress);
+        }
+
         class MyContext : ScenarioContext
         {
-            public string MessageId { get; set; }
-
-            public string EndpointNameOfReceivingEndpoint { get; set; }
-
-            public string UniqueMessageId { get; set; }
-
             public DateTime? TimeSent { get; set; }
+
+            public string FailedQueueAddress { get; set; } = $"MyFailingEndpoint{Guid.NewGuid()}";
         }
     }
 }
