@@ -37,7 +37,13 @@
             bulkInsertDurationMeter = metrics.GetMeter("Error ingestion - bulk insert duration", FrequencyInMilliseconds);
             var ingestedMeter = metrics.GetCounter("Error ingestion - ingested");
 
-            var enrichers = new IEnrichImportedErrorMessages[] { new MessageTypeEnricher(), new EnrichWithTrackingIds(), new ProcessingStatisticsEnricher() }.Concat(errorEnrichers).ToArray();
+            var enrichers = new IEnrichImportedErrorMessages[]
+            {
+                new MessageTypeEnricher(),
+                new EnrichWithTrackingIds(),
+                new ProcessingStatisticsEnricher()
+
+            }.Concat(errorEnrichers).ToArray();
 
             errorProcessor = new ErrorProcessor(enrichers, failedMessageEnrichers.ToArray(), domainEvents, ingestedMeter);
             retryConfirmationProcessor = new RetryConfirmationProcessor(domainEvents);
@@ -61,6 +67,7 @@
                 }
             }
 
+
             var storedFailed = await PersistFailedMessages(failedMessages, retriedMessages, cancellationToken);
 
             try
@@ -70,7 +77,6 @@
                 {
                     announcerTasks.Add(errorProcessor.Announce(context));
                 }
-
                 foreach (var context in retriedMessages)
                 {
                     announcerTasks.Add(retryConfirmationProcessor.Announce(context));
@@ -84,7 +90,6 @@
                     {
                         Logger.Debug($"Forwarding {storedFailed.Count} messages");
                     }
-
                     await Forward(storedFailed, cancellationToken);
                     if (Logger.IsDebugEnabled)
                     {
@@ -128,7 +133,6 @@
                 {
                     await unitOfWork.Complete(cancellationToken);
                 }
-
                 return storedFailedMessageContexts;
             }
             catch (Exception e)
