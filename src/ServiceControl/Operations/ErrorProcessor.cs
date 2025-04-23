@@ -15,11 +15,17 @@
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.UnitOfWork;
 
-    class ErrorProcessor(IEnrichImportedErrorMessages[] enrichers,
-        IFailedMessageEnricher[] failedMessageEnrichers,
-        IDomainEvents domainEvents,
-        Counter ingestedCounter)
+    class ErrorProcessor
     {
+        public ErrorProcessor(IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers, IDomainEvents domainEvents,
+            Counter ingestedCounter)
+        {
+            this.enrichers = enrichers;
+            this.domainEvents = domainEvents;
+            this.ingestedCounter = ingestedCounter;
+            failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
+        }
+
         public async Task<IReadOnlyList<MessageContext>> Process(IReadOnlyList<MessageContext> contexts, IIngestionUnitOfWork unitOfWork)
         {
             var storedContexts = new List<MessageContext>(contexts.Count);
@@ -163,7 +169,10 @@
             }
         }
 
-        readonly FailedMessageFactory failedMessageFactory = new(failedMessageEnrichers);
+        readonly IEnrichImportedErrorMessages[] enrichers;
+        readonly IDomainEvents domainEvents;
+        readonly Counter ingestedCounter;
+        readonly FailedMessageFactory failedMessageFactory;
         static readonly ILog Logger = LogManager.GetLogger<ErrorProcessor>();
     }
 }
