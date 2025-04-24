@@ -32,7 +32,7 @@
             FailedMessage.ProcessingAttempt processingAttempt,
             List<FailedMessage.FailureGroup> groups)
         {
-            var uniqueMessageId = context.Headers.UniqueId();
+            var uniqueMessageId = GetUniqueMessageId(context);
             var contentType = GetContentType(context.Headers, "text/xml");
             var bodySize = context.Body.Length;
 
@@ -61,7 +61,7 @@
             var storeMessageCmd = CreateFailedMessagesPatchCommand(uniqueMessageId, processingAttempt, groups);
             parentUnitOfWork.AddCommand(storeMessageCmd);
 
-            AddStoreBodyCommands(context, contentType);
+            AddStoreBodyCommands(uniqueMessageId, context, contentType);
 
             return Task.CompletedTask;
         }
@@ -71,10 +71,7 @@
             var failedMessageDocumentId = FailedMessageIdGenerator.MakeDocumentId(retriedMessageUniqueId);
             var failedMessageRetryDocumentId = FailedMessageRetry.MakeDocumentId(retriedMessageUniqueId);
 
-            var patchRequest = new PatchRequest
-            {
-                Script = $@"this.{nameof(FailedMessage.Status)} = {(int)FailedMessageStatus.Resolved};"
-            };
+            var patchRequest = new PatchRequest { Script = $@"this.{nameof(FailedMessage.Status)} = {(int)FailedMessageStatus.Resolved};" };
 
             expirationManager.EnableExpiration(patchRequest);
 
@@ -82,6 +79,21 @@
 
             parentUnitOfWork.AddCommand(new DeleteCommandData(failedMessageRetryDocumentId, null));
             return Task.CompletedTask;
+        }
+
+        static string GetUniqueMessageId(MessageContext context)
+        {
+            if (context.Headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var existingUniqueMessageId))
+            {
+                return existingUniqueMessageId;
+            }
+
+            if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
+            {
+                messageId = context.NativeMessageId;
+            }
+
+            return DeterministicGuid.MakeId(messageId, context.Headers.ProcessingEndpointName()).ToString();
         }
 
         ICommandData CreateFailedMessagesPatchCommand(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt,
@@ -119,9 +131,9 @@
                                 ",
                 Values = new Dictionary<string, object>
                     {
-                        {"status", (int)FailedMessageStatus.Unresolved},
-                        {"failureGroups", groups},
-                        {"attempt", processingAttempt}
+                        { "status", (int)FailedMessageStatus.Unresolved },
+                        { "failureGroups", groups },
+                        { "attempt", processingAttempt }
                     },
             },
                 patchIfMissing: new PatchRequest
@@ -137,18 +149,17 @@
                              ",
                     Values = new Dictionary<string, object>
                     {
-                        {"status", (int)FailedMessageStatus.Unresolved},
-                        {"failureGroups", groups},
-                        {"attempt", processingAttempt},
-                        {"uniqueMessageId", uniqueMessageId}
+                        { "status", (int)FailedMessageStatus.Unresolved },
+                        { "failureGroups", groups },
+                        { "attempt", processingAttempt },
+                        { "uniqueMessageId", uniqueMessageId }
                     }
                 });
         }
 
-        void AddStoreBodyCommands(MessageContext context, string contentType)
+        void AddStoreBodyCommands(string uniqueMessageId, MessageContext context, string contentType)
         {
-            var uniqueId = context.Headers.UniqueId();
-            var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueId);
+            var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueMessageId);
 
             var stream = new ReadOnlyStream(context.Body);
             var putAttachmentCmd = new PutAttachmentCommandData(documentId, "body", stream, contentType, changeVector: null);
@@ -160,9 +171,9 @@
             => headers.GetValueOrDefault(Headers.ContentType, defaultContentType);
 
         static int MaxProcessingAttempts = 10;
+
         // large object heap starts above 85000 bytes and not above 85 KB!
         internal const int LargeObjectHeapThreshold = 85_000;
         static readonly Encoding utf8 = new UTF8Encoding(true, true);
-
     }
 }

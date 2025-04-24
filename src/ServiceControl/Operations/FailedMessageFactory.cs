@@ -59,14 +59,14 @@
             return exceptionDetails;
         }
 
-        public FailedMessage.ProcessingAttempt CreateProcessingAttempt(Dictionary<string, string> headers, Dictionary<string, object> metadata, FailureDetails failureDetails)
+        public FailedMessage.ProcessingAttempt CreateProcessingAttempt(string messageId, Dictionary<string, string> headers, Dictionary<string, object> metadata, FailureDetails failureDetails)
         {
             return new FailedMessage.ProcessingAttempt
             {
                 AttemptedAt = failureDetails.TimeOfFailure,
                 FailureDetails = failureDetails,
                 MessageMetadata = metadata,
-                MessageId = headers[Headers.MessageId],
+                MessageId = messageId,
                 Headers = headers
             };
         }

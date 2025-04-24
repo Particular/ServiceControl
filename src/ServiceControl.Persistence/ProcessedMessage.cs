@@ -2,9 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using NServiceBus;
-    using ServiceControl.Persistence;
-    using ServiceControl.Persistence.Infrastructure;
 
     public class ProcessedMessage
     {
@@ -12,16 +9,6 @@
         {
             MessageMetadata = [];
             Headers = [];
-        }
-
-        public ProcessedMessage(Dictionary<string, string> headers, Dictionary<string, object> metadata)
-        {
-            UniqueMessageId = headers.UniqueId();
-            MessageMetadata = metadata;
-            Headers = headers;
-
-            ProcessedAt = Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out var processedAt) ?
-                DateTimeOffsetHelper.ToDateTimeOffset(processedAt).UtcDateTime : DateTime.UtcNow; // best guess
         }
 
         public string Id { get; set; }

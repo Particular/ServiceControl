@@ -116,6 +116,7 @@
                 var failureDetails = failedMessageFactory.ParseFailureDetails(context.Headers);
 
                 var processingAttempt = failedMessageFactory.CreateProcessingAttempt(
+                    messageId,
                     context.Headers,
                     new Dictionary<string, object>(metadata),
                     failureDetails);
