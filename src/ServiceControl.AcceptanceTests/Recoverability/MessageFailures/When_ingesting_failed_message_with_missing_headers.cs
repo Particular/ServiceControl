@@ -16,31 +16,6 @@
     class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
     {
         [Test]
-        public async Task TimeSent_should_not_be_casted()
-        {
-            FailedMessageView failure = null;
-
-            var sentTime = DateTime.Parse("2014-11-11T02:26:58.000462Z");
-
-            await Define<MyContext>(c =>
-                {
-                    c.AddMinimalRequiredHeaders();
-                    c.Headers.Add("NServiceBus.TimeSent", DateTimeOffsetHelper.ToWireFormattedString(sentTime));
-                })
-                .WithEndpoint<FailingEndpoint>()
-                .Done(async c =>
-                {
-                    var result = await this.TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
-                    failure = result;
-                    return (c.UniqueMessageId != null) & result;
-                })
-                .Run();
-
-            Assert.That(failure, Is.Not.Null);
-            Assert.That(failure.TimeSent, Is.EqualTo(sentTime));
-        }
-
-        [Test]
         public async Task Should_be_ingested_when_minimal_required_headers_is_present()
         {
             FailedMessageView failure = null;
@@ -66,7 +41,7 @@
             //No failure time will result in utc now being used
             Assert.That(failure.TimeOfFailure, Is.GreaterThan(testStartTime));
 
-            // Both host and endpoint name is currently needed so this will be null since no host can be detected from the failed q header5
+            // Both host and endpoint name is currently needed so this will be null since no host can be detected from the failed q header
             Assert.That(failure.ReceivingEndpoint, Is.Null);
         }
 
@@ -80,7 +55,7 @@
                     c.AddMinimalRequiredHeaders();
 
                     // This is needed for ServiceControl to be able to detect both endpoint (via failed q header) and host via the processing machine header
-                    // Missing endpoint or host will case a null ref in ServicePulse
+                    // Missing endpoint or host will cause a null ref in ServicePulse
                     c.Headers[Headers.ProcessingMachine] = "MyMachine";
 
                     c.Headers["NServiceBus.ExceptionInfo.ExceptionType"] = "SomeExceptionType";
@@ -105,6 +80,31 @@
             // ServicePulse needs both an exception type and description to render the UI in a resonable way
             Assert.That(failure.Exception.ExceptionType, Is.EqualTo("SomeExceptionType"));
             Assert.That(failure.Exception.Message, Is.EqualTo("Some message"));
+        }
+
+        [Test]
+        public async Task TimeSent_should_not_be_casted()
+        {
+            FailedMessageView failure = null;
+
+            var sentTime = DateTime.Parse("2014-11-11T02:26:58.000462Z");
+
+            await Define<MyContext>(c =>
+                {
+                    c.AddMinimalRequiredHeaders();
+                    c.Headers.Add("NServiceBus.TimeSent", DateTimeOffsetHelper.ToWireFormattedString(sentTime));
+                })
+                .WithEndpoint<FailingEndpoint>()
+                .Done(async c =>
+                {
+                    var result = await this.TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
+                    failure = result;
+                    return (c.UniqueMessageId != null) & result;
+                })
+                .Run();
+
+            Assert.That(failure, Is.Not.Null);
+            Assert.That(failure.TimeSent, Is.EqualTo(sentTime));
         }
 
         class MyContext : ScenarioContext
