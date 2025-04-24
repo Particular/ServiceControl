@@ -45,6 +45,8 @@
         {
             FailedMessageView failure = null;
 
+            var testStartTime = DateTime.UtcNow;
+
             await Define<MyContext>(c =>
                 {
                     c.AddMinimalRequiredHeaders();
@@ -60,14 +62,18 @@
 
             Assert.That(failure, Is.Not.Null);
             Assert.That(failure.TimeSent, Is.Null);
+
+            //No failure time will result in utc now being used
+            Assert.That(failure.TimeOfFailure, Is.GreaterThan(testStartTime));
+
+            // Both host and endpoint name is currently needed so this will be null since no host can be detected from the failed q header5
+            Assert.That(failure.ReceivingEndpoint, Is.Null);
         }
 
         [Test]
         public async Task Should_include_headers_required_by_ServicePulse()
         {
             FailedMessageView failure = null;
-
-            var testStartTime = DateTime.UtcNow;
 
             var context = await Define<MyContext>(c =>
                 {
@@ -90,9 +96,6 @@
                 .Run();
 
             Assert.That(failure, Is.Not.Null);
-
-            //No failure time will result in utc now being used
-            Assert.That(failure.TimeOfFailure, Is.GreaterThan(testStartTime));
 
             // ServicePulse assumes that the receiving endpoint name is present
             Assert.That(failure.ReceivingEndpoint, Is.Not.Null);
