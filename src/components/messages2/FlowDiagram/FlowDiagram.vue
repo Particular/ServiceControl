@@ -14,6 +14,7 @@ import EndpointDetails from "@/resources/EndpointDetails.ts";
 import { hexToCSSFilter } from "hex-to-css-filter";
 import TextEllipses from "@/components/TextEllipses.vue";
 import { useLayout } from "@/components/messages2/FlowDiagram/useLayout.ts";
+import { formatTypeName } from "@/composables/formatUtils.ts";
 
 enum MessageType {
   Event = "Event message",
@@ -40,17 +41,9 @@ class SagaInvocation {
     const sagaIdHeader = getHeaderByKey(message, NServiceBusHeaders.SagaId);
     const originatedSagaIdHeader = getHeaderByKey(message, NServiceBusHeaders.OriginatingSagaId);
     this.id = saga.saga_id;
-    this.sagaType = this.toName(saga.saga_type);
+    this.sagaType = formatTypeName(saga.saga_type);
     this.isSagaCompleted = saga.change_status === "Completed";
     this.isSagaInitiated = sagaIdHeader === undefined && originatedSagaIdHeader !== undefined;
-  }
-
-  private toName(type: string) {
-    const clazz = type.split(",")[0];
-    let objectName = clazz.split(".").pop() ?? "";
-    objectName = objectName.replace("+", ".");
-
-    return objectName;
   }
 }
 

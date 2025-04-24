@@ -3,6 +3,7 @@ import CopyToClipboard from "@/components/CopyToClipboard.vue";
 import { computed, ref } from "vue";
 import { useMessageStore } from "@/stores/MessageStore";
 import { storeToRefs } from "pinia";
+import FilterInput from "@/components/FilterInput.vue";
 
 const { headers } = storeToRefs(useMessageStore());
 
@@ -26,7 +27,9 @@ const filteredHeaders = computed(() => {
       <div class="col">
         <div class="text-search-container">
           <div class="text-search">
-            <input type="search" aria-label="Filter by name" v-model="searchTerm" class="form-control format-text" placeholder="Search for a header key or value..." />
+            <div>
+              <FilterInput v-model="searchTerm" :aria-label="`Search for a header key or value`" :placeholder="'Search for a header key or value...'" />
+            </div>
           </div>
         </div>
       </div>

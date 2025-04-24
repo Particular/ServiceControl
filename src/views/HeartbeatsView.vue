@@ -82,13 +82,6 @@ const isMassTransitConnected = useIsMassTransitConnected();
   padding: 0;
 }
 
-.form-control-static {
-  min-height: 34px;
-  padding-top: 7px;
-  padding-bottom: 7px;
-  margin-bottom: 0;
-}
-
 .filter-group > *:not(:first-child) {
   margin-left: 1.5em;
 }

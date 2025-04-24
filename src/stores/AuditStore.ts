@@ -1,46 +1,51 @@
 import { useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { ref, watch } from "vue";
-import useAutoRefresh from "@/composables/autoRefresh";
+import { ref } from "vue";
 import type { SortInfo } from "@/components/SortInfo";
 import Message from "@/resources/Message";
+import { EndpointsView } from "@/resources/EndpointView.ts";
+import useAutoRefresh from "@/composables/autoRefresh";
 
-export enum ColumnNames {
-  Status = "status",
-  MessageId = "messageId",
-  MessageType = "messageType",
-  TimeSent = "timeSent",
-  ProcessingTime = "processingTime",
+export type DateRange = [fromDate: Date, toDate: Date] | [];
+
+export enum FieldNames {
+  TimeSent = "time_sent",
+  ProcessingTime = "processing_time",
+  CriticalTime = "critical_time",
+  DeliveryTime = "delivery_time",
 }
-
-const columnSortings = new Map<string, string>([
-  [ColumnNames.Status, "status"],
-  [ColumnNames.MessageId, "id"],
-  [ColumnNames.MessageType, "message_type"],
-  [ColumnNames.TimeSent, "time_sent"],
-  [ColumnNames.ProcessingTime, "processing_time"],
-]);
 
 export const useAuditStore = defineStore("AuditStore", () => {
   const sortByInstances = ref<SortInfo>({
-    property: ColumnNames.TimeSent,
+    property: FieldNames.TimeSent,
     isAscending: false,
   });
 
+  const dateRange = ref<DateRange>([]);
   const messageFilterString = ref("");
-  const itemsPerPage = ref(35);
-  const selectedPage = ref(1);
+  const itemsPerPage = ref(100);
   const totalCount = ref(0);
   const messages = ref<Message[]>([]);
-  // const filteredMessages = computed<Message[]>(() => sortedMessages.value.filter((message) => !messageFilterString.value || message.id.toLowerCase().includes(messageFilterString.value.toLowerCase())));
-  watch(messageFilterString, (newValue) => {
-    setMessageFilterString(newValue);
-  });
+  const selectedEndpointName = ref<string>("");
+  const endpoints = ref<EndpointsView[]>([]);
+
+  async function loadEndpoints() {
+    try {
+      const [, data] = await useTypedFetchFromServiceControl<EndpointsView[]>(`endpoints`);
+      endpoints.value = data;
+    } catch (e) {
+      endpoints.value = [];
+      throw e;
+    }
+  }
 
   const dataRetriever = useAutoRefresh(async () => {
     try {
+      const [fromDate, toDate] = dateRange.value;
+      const from = fromDate?.toISOString() ?? "";
+      const to = toDate?.toISOString() ?? "";
       const [response, data] = await useTypedFetchFromServiceControl<Message[]>(
-        `messages/?include_system_messages=false&per_page=${itemsPerPage.value}&page=${selectedPage.value}&sort=${columnSortings.get(sortByInstances.value.property)}&direction=${sortByInstances.value.isAscending ? "asc" : "desc"}`
+        `messages2/?endpoint_name=${selectedEndpointName.value}&from=${from}&to=${to}&q=${messageFilterString.value}&page_size=${itemsPerPage.value}&sort=${sortByInstances.value.property}&direction=${sortByInstances.value.isAscending ? "asc" : "desc"}`
       );
       totalCount.value = parseInt(response.headers.get("total-count") ?? "0");
       messages.value = data;
@@ -50,22 +55,18 @@ export const useAuditStore = defineStore("AuditStore", () => {
     }
   }, null);
 
-  const refresh = dataRetriever.executeAndResetTimer;
-  watch([itemsPerPage, selectedPage, sortByInstances], () => refresh());
-
-  function setMessageFilterString(filter: string) {
-    messageFilterString.value = filter;
-  }
-
   return {
-    refresh,
+    refresh: dataRetriever.executeAndResetTimer,
     updateRefreshTimer: dataRetriever.updateTimeout,
-    sortByInstances,
+    loadEndpoints,
+    sortBy: sortByInstances,
     messages,
     messageFilterString,
+    selectedEndpointName,
     itemsPerPage,
-    selectedPage,
     totalCount,
+    endpoints,
+    dateRange,
   };
 });
 

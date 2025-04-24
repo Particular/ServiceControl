@@ -16,13 +16,6 @@ const monitoringStore = useMonitoringStore();
 </template>
 
 <style scoped>
-.form-control-static {
-  min-height: 34px;
-  padding-top: 7px;
-  padding-bottom: 7px;
-  margin-bottom: 0;
-}
-
 .filter-group.filter-monitoring {
   width: 100%;
   margin-top: 0.5em;

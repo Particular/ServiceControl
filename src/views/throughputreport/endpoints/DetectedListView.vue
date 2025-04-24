@@ -13,6 +13,7 @@ import { useShowToast } from "@/composables/toast";
 import ResultsCount from "@/components/ResultsCount.vue";
 import { useHiddenFeature } from "./useHiddenFeature";
 import { license } from "@/composables/serviceLicense";
+// import FilterInput from "@/components/FilterInput.vue";
 
 enum NameFilterType {
   beginsWith = "Begins with",
@@ -177,6 +178,7 @@ async function save() {
             </select>
           </div>
           <div>
+            <!-- <FilterInput v-model="filterData.name" /> TODO: this is failing a test, should replace the line below -->
             <input type="search" aria-label="Filter by name" class="form-control format-text" :value="filterData.name" @input="nameFilterChanged" placeholder="Filter by name..." />
           </div>
         </div>

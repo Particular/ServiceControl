@@ -24,6 +24,7 @@
     "@tinyhttp/content-disposition": "^2.2.2",
     "@vue-flow/controls": "^1.1.2",
     "@vue-flow/core": "^1.42.5",
+    "@vuepic/vue-datepicker": "^11.0.2",
     "bootstrap": "^5.3.5",
     "bootstrap-icons": "^1.11.3",
     "codemirror": "^6.0.1",

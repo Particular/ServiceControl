@@ -1,8 +1,8 @@
 import moment from "moment";
 
-const secondDuration = moment.duration(10 * 1000);
+const secondDuration = moment.duration(1000);
 const minuteDuration = moment.duration(60 * 1000);
-const hourDuration = moment.duration(60 * 1000); //this ensures that we never use minute formatting
+const hourDuration = moment.duration(60 * 60 * 1000); //this ensures that we never use minute formatting
 const dayDuration = moment.duration(24 * 60 * 60 * 1000);
 
 export interface ValueWithUnit {
@@ -14,7 +14,6 @@ export function useFormatTime(value?: number): ValueWithUnit {
   const time = { value: "0", unit: "ms" };
   if (value) {
     const duration = moment.duration(value);
-
     if (duration >= dayDuration) {
       time.value = formatTimeValue(duration.days()) + " d " + formatTimeValue(duration.hours()) + " hrs";
     } else if (duration >= hourDuration) {
