@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AcceptanceTesting;
 using AcceptanceTesting.EndpointTemplates;
@@ -72,7 +73,7 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
     [Test]
     public async Task TimeSent_should_not_be_casted()
     {
-        var sentTime = DateTime.Parse("2014-11-11T02:26:58.000462Z");
+        var sentTime = DateTime.Parse("2014-11-11T02:26:58.000462Z").ToUniversalTime();
 
         var context = await Define<TestContext>(c =>
             {
@@ -91,27 +92,23 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
 
     async Task<bool> TryGetFailureFromApi(TestContext context)
     {
-        context.Failure = await this.TryGet<FailedMessageView>($"/api/errors/last/{context.UniqueMessageId}");
+        var allFailures = await this.TryGetMany<FailedMessageView>("/api/errors/");
+
+        context.Failure = allFailures.Items.SingleOrDefault(f => f.QueueAddress == context.EndpointNameOfReceivingEndpoint);
+
         return context.Failure != null;
     }
 
     class TestContext : ScenarioContext
     {
-        public string MessageId { get; } = Guid.NewGuid().ToString();
-
-        public string EndpointNameOfReceivingEndpoint => "MyEndpoint";
-
-        public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
+        // Endpoint name is made unique since we are using it to find the failure once ingestion is complete
+        public string EndpointNameOfReceivingEndpoint => $"MyEndpoint-{NUnit.Framework.TestContext.CurrentContext.Test.ID}";
 
         public Dictionary<string, string> Headers { get; } = [];
 
         public FailedMessageView Failure { get; set; }
 
-        public void AddMinimalRequiredHeaders()
-        {
-            Headers["NServiceBus.FailedQ"] = EndpointNameOfReceivingEndpoint;
-            Headers[NServiceBus.Headers.MessageId] = MessageId;
-        }
+        public void AddMinimalRequiredHeaders() => Headers["NServiceBus.FailedQ"] = EndpointNameOfReceivingEndpoint;
     }
 
     class FailingEndpoint : EndpointConfigurationBuilder
@@ -122,7 +119,9 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
         {
             protected override TransportOperations CreateMessage(TestContext context)
             {
-                var outgoingMessage = new OutgoingMessage(context.MessageId, context.Headers, Array.Empty<byte>());
+                // we can't control the native message id so any guid will do here, we need to find the failed messsage using 
+                // the endpoint name instead
+                var outgoingMessage = new OutgoingMessage(Guid.NewGuid().ToString(), context.Headers, Array.Empty<byte>());
 
                 return new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag("error")));
             }
