@@ -7,6 +7,7 @@
     using Contracts.MessageFailures;
     using Infrastructure;
     using NServiceBus;
+    using NServiceBus.Faults;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using ServiceControl.Audit.Persistence.Infrastructure;
@@ -64,7 +65,7 @@
                 yield return DeterministicGuid.MakeId(messageId, processingEndpoint).ToString();
             }
 
-            if (headers.TryGetValue("NServiceBus.FailedQ", out var failedQ))
+            if (headers.TryGetValue(FaultsHeaderKeys.FailedQ, out var failedQ))
             {
                 yield return DeterministicGuid.MakeId(messageId, ExtractQueueNameForLegacyReasons(failedQ)).ToString();
             }
