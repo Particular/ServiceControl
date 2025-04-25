@@ -54,7 +54,7 @@ jobs:
         id: date
         run: echo "date=$(date '+%FT%TZ')" >> $GITHUB_OUTPUT
       - name: Build and push image to GitHub container registry
-        uses: docker/build-push-action@v6.15.0
+        uses: docker/build-push-action@v6.16.0
         with:
           context: .
           push: true
