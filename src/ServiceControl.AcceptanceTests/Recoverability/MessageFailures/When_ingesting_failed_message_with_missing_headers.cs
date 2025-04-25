@@ -34,8 +34,8 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
         //No failure time will result in utc now being used
         Assert.That(failure.TimeOfFailure, Is.GreaterThan(testStartTime));
 
-        // Both host and endpoint name is currently needed so this will be null since no host can be detected from the failed q header
-        Assert.That(failure.ReceivingEndpoint, Is.Null);
+        Assert.That(failure.ReceivingEndpoint, Is.Not.Null);
+        Assert.That(failure.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
     }
 
     [Test]
@@ -55,10 +55,6 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
         var failure = context.Failure;
 
         Assert.That(failure, Is.Not.Null);
-
-        // ServicePulse assumes that the receiving endpoint name is present
-        Assert.That(failure.ReceivingEndpoint, Is.Not.Null);
-        Assert.That(failure.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
 
         // ServicePulse needs both an exception type and description to render the UI in a resonable way
         Assert.That(failure.Exception.ExceptionType, Is.EqualTo("SomeExceptionType"));
