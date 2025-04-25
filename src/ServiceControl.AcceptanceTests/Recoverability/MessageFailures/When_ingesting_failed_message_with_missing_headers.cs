@@ -8,6 +8,7 @@ using AcceptanceTesting.EndpointTemplates;
 using Infrastructure;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting;
+using NServiceBus.Faults;
 using NServiceBus.Routing;
 using NServiceBus.Transport;
 using NUnit.Framework;
@@ -48,8 +49,8 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
                 // Missing endpoint or host will cause a null ref in ServicePulse
                 c.Headers[Headers.ProcessingMachine] = "MyMachine";
 
-                c.Headers["NServiceBus.ExceptionInfo.ExceptionType"] = "SomeExceptionType";
-                c.Headers["NServiceBus.ExceptionInfo.Message"] = "Some message";
+                c.Headers[FaultsHeaderKeys.ExceptionType] = "SomeExceptionType";
+                c.Headers[FaultsHeaderKeys.Message] = "Some message";
             })
             .WithEndpoint<FailingEndpoint>()
             .Done(async c => await TryGetFailureFromApi(c))
@@ -77,7 +78,7 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
         var context = await Define<TestContext>(c =>
             {
                 c.AddMinimalRequiredHeaders();
-                c.Headers.Add("NServiceBus.TimeSent", DateTimeOffsetHelper.ToWireFormattedString(sentTime));
+                c.Headers.Add(Headers.TimeSent, DateTimeOffsetHelper.ToWireFormattedString(sentTime));
             })
             .WithEndpoint<FailingEndpoint>()
             .Done(async c => await TryGetFailureFromApi(c))
@@ -109,7 +110,7 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
 
         public void AddMinimalRequiredHeaders()
         {
-            Headers["NServiceBus.FailedQ"] = EndpointNameOfReceivingEndpoint;
+            Headers[FaultsHeaderKeys.FailedQ] = EndpointNameOfReceivingEndpoint;
             Headers[NServiceBus.Headers.MessageId] = MessageId;
         }
     }
