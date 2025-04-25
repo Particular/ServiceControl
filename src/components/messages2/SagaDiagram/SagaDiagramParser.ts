@@ -1,37 +1,40 @@
 import { SagaHistory } from "@/resources/SagaHistory";
 import { typeToName } from "@/composables/typeHumanizer";
+import { SagaMessageData, SagaMessageDataItem } from "@/stores/SagaDiagramStore";
+import { getTimeoutFriendly } from "@/composables/deliveryDelayParser";
 
-export interface SagaMessageDataItem {
-  Key: string;
-  Value: string;
-}
-
-export interface SagaMessage {
+export interface SagaMessageViewModel {
+  MessageId: string;
   MessageFriendlyTypeName: string;
   FormattedTimeSent: string;
   Data: SagaMessageDataItem[];
   IsEventMessage: boolean;
   IsCommandMessage: boolean;
 }
-
-export interface SagaTimeoutMessage extends SagaMessage {
+export interface InitiatingMessageViewModel {
+  MessageType: string;
+  IsSagaTimeoutMessage: boolean;
+  FormattedMessageTimestamp: string;
+  MessageData: SagaMessageDataItem[];
+}
+export interface SagaTimeoutMessageViewModel extends SagaMessageViewModel {
   TimeoutFriendly: string;
 }
 
 export interface SagaUpdateViewModel {
+  MessageId: string;
   StartTime: Date;
   FinishTime: Date;
   FormattedStartTime: string;
-  InitiatingMessageType: string;
-  FormattedInitiatingMessageTimestamp: string;
+  InitiatingMessage: InitiatingMessageViewModel;
   Status: string;
   StatusDisplay: string;
   HasTimeout: boolean;
   IsFirstNode: boolean;
-  NonTimeoutMessages: SagaMessage[];
-  TimeoutMessages: SagaTimeoutMessage[];
-  HasNonTimeoutMessages: boolean;
-  HasTimeoutMessages: boolean;
+  OutgoingMessages: SagaMessageViewModel[];
+  OutgoingTimeoutMessages: SagaTimeoutMessageViewModel[];
+  HasOutgoingMessages: boolean;
+  HasOutgoingTimeoutMessages: boolean;
 }
 
 export interface SagaViewModel {
@@ -47,7 +50,7 @@ export interface SagaViewModel {
   ShowMessageData: boolean;
 }
 
-export function parseSagaUpdates(sagaHistory: SagaHistory | null): SagaUpdateViewModel[] {
+export function parseSagaUpdates(sagaHistory: SagaHistory | null, messagesData: SagaMessageData[]): SagaUpdateViewModel[] {
   if (!sagaHistory || !sagaHistory.changes || !sagaHistory.changes.length) return [];
 
   return sagaHistory.changes
@@ -55,6 +58,9 @@ export function parseSagaUpdates(sagaHistory: SagaHistory | null): SagaUpdateVie
       const startTime = new Date(update.start_time);
       const finishTime = new Date(update.finish_time);
       const initiatingMessageTimestamp = new Date(update.initiating_message?.time_sent || Date.now());
+
+      // Find message data for initiating message
+      const initiatingMessageData = update.initiating_message ? messagesData.find((m) => m.message_id === update.initiating_message.message_id)?.data || [] : [];
 
       // Create common base message objects with shared properties
       const outgoingMessages = update.outgoing_messages.map((msg) => {
@@ -64,47 +70,55 @@ export function parseSagaUpdates(sagaHistory: SagaHistory | null): SagaUpdateVie
         const timeoutSeconds = delivery_delay.split(":")[2] || "0";
         const isEventMessage = msg.intent === "Publish";
 
+        // Find corresponding message data
+        const messageData = messagesData.find((m) => m.message_id === msg.message_id)?.data || [];
         return {
           MessageType: msg.message_type || "",
           MessageId: msg.message_id,
           FormattedTimeSent: `${timeSent.toLocaleDateString()} ${timeSent.toLocaleTimeString()}`,
           HasTimeout: hasTimeout,
           TimeoutSeconds: timeoutSeconds,
+          TimeoutFriendly: getTimeoutFriendly(delivery_delay),
           MessageFriendlyTypeName: typeToName(msg.message_type || ""),
-          Data: [] as SagaMessageDataItem[],
+          Data: messageData,
           IsEventMessage: isEventMessage,
           IsCommandMessage: !isEventMessage,
         };
       });
 
-      const timeoutMessages = outgoingMessages
+      const outgoingTimeoutMessages = outgoingMessages
         .filter((msg) => msg.HasTimeout)
         .map(
           (msg) =>
             ({
               ...msg,
-              TimeoutFriendly: `${msg.TimeoutSeconds}s`, //TODO: Update with logic from ServiceInsight
-            }) as SagaTimeoutMessage
+              TimeoutFriendly: `${msg.TimeoutFriendly}`,
+            }) as SagaTimeoutMessageViewModel
         );
 
-      const nonTimeoutMessages = outgoingMessages.filter((msg) => !msg.HasTimeout) as SagaMessage[];
+      const regularMessages = outgoingMessages.filter((msg) => !msg.HasTimeout) as SagaMessageViewModel[];
 
-      const hasTimeout = timeoutMessages.length > 0;
+      const hasTimeout = outgoingTimeoutMessages.length > 0;
 
       return {
+        MessageId: update.initiating_message?.message_id || "",
         StartTime: startTime,
         FinishTime: finishTime,
         FormattedStartTime: `${startTime.toLocaleDateString()} ${startTime.toLocaleTimeString()}`,
         Status: update.status,
         StatusDisplay: update.status === "new" ? "Saga Initiated" : "Saga Updated",
-        InitiatingMessageType: typeToName(update.initiating_message?.message_type || "Unknown Message") || "",
-        FormattedInitiatingMessageTimestamp: `${initiatingMessageTimestamp.toLocaleDateString()} ${initiatingMessageTimestamp.toLocaleTimeString()}`,
+        InitiatingMessage: <InitiatingMessageViewModel>{
+          MessageType: typeToName(update.initiating_message?.message_type || "Unknown Message") || "",
+          FormattedMessageTimestamp: `${initiatingMessageTimestamp.toLocaleDateString()} ${initiatingMessageTimestamp.toLocaleTimeString()}`,
+          MessageData: initiatingMessageData,
+          IsSagaTimeoutMessage: update.initiating_message?.is_saga_timeout_message || false,
+        },
         HasTimeout: hasTimeout,
         IsFirstNode: update.status === "new",
-        TimeoutMessages: timeoutMessages,
-        NonTimeoutMessages: nonTimeoutMessages,
-        HasNonTimeoutMessages: nonTimeoutMessages.length > 0,
-        HasTimeoutMessages: timeoutMessages.length > 0,
+        OutgoingTimeoutMessages: outgoingTimeoutMessages,
+        OutgoingMessages: regularMessages,
+        HasOutgoingMessages: regularMessages.length > 0,
+        HasOutgoingTimeoutMessages: outgoingTimeoutMessages.length > 0,
       };
     })
     .sort((a, b) => a.StartTime.getTime() - b.StartTime.getTime())

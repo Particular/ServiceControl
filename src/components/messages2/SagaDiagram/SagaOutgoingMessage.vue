@@ -1,40 +1,23 @@
 <script setup lang="ts">
-import { SagaTimeoutMessage } from "./useSagaDiagramParser";
 import MessageDataBox from "./MessageDataBox.vue";
-import TimeoutIcon from "@/assets/TimeoutIcon.svg";
-import SagaTimeoutIcon from "@/assets/SagaTimeoutIcon.svg";
+import CommandIcon from "@/assets/command.svg";
+import EventIcon from "@/assets/event.svg";
+import { SagaMessageViewModel } from "./SagaDiagramParser";
 
 defineProps<{
-  message: SagaTimeoutMessage;
-  isLastMessage: boolean;
+  message: SagaMessageViewModel;
   showMessageData?: boolean;
 }>();
 </script>
 
 <template>
-  <div class="row row--right">
-    <div class="cell cell--center">
-      <div class="cell-inner cell-inner-line">
-        <img class="saga-icon saga-icon--center-cell saga-icon--overlap" :src="SagaTimeoutIcon" alt="" />
-        <a class="timeout-status" href="" aria-label="timeout requested">Timeout Requested = {{ message.TimeoutFriendly }}</a>
-      </div>
-    </div>
-    <div class="cell cell--side"></div>
-    <div class="cell cell--center cell--top-border">
-      <div class="cell-inner cell-inner-top"></div>
-      <div v-if="!isLastMessage" class="cell-inner cell-inner-line"></div>
-    </div>
-    <div class="cell cell--side">
-      <div class="cell-inner cell-inner-right"></div>
-      <div class="cell-inner cell-inner-side cell-inner-side--active">
-        <img class="saga-icon saga-icon--side-cell" :src="TimeoutIcon" alt="" />
-        <h2 class="message-title" aria-label="timeout message type">{{ message.MessageFriendlyTypeName }}</h2>
-        <div class="timestamp" aria-label="timeout message timestamp">{{ message.FormattedTimeSent }}</div>
-      </div>
-      <div v-if="showMessageData" class="message-data message-data--active">
-        <MessageDataBox />
-      </div>
-    </div>
+  <div class="cell-inner cell-inner-side">
+    <img class="saga-icon saga-icon--side-cell" :src="message.IsEventMessage ? EventIcon : CommandIcon" :alt="message.IsEventMessage ? 'Event' : 'Command'" />
+    <h2 class="message-title">{{ message.MessageFriendlyTypeName }}</h2>
+    <div class="timestamp">{{ message.FormattedTimeSent }}</div>
+  </div>
+  <div v-if="showMessageData" class="message-data message-data--active">
+    <MessageDataBox :messageData="message.Data" />
   </div>
 </template>
 
@@ -78,12 +61,6 @@ defineProps<{
   padding: 0.25rem 0.5rem;
   border-left: solid 2px #000000;
   margin-left: 1rem;
-}
-
-.cell-inner-side {
-  padding: 0.25rem 0.25rem 0;
-  border: solid 2px #cccccc;
-  background-color: #cccccc;
 }
 
 .cell-inner-side--active {
@@ -144,18 +121,6 @@ defineProps<{
   font-weight: 900;
 }
 
-.saga-icon {
-  display: block;
-  float: left;
-  margin-right: 0.35rem;
-}
-
-.saga-icon--side-cell {
-  width: 2rem;
-  height: 2rem;
-  padding: 0.23rem;
-}
-
 .saga-icon--center-cell {
   float: none;
   display: inline;
@@ -166,5 +131,31 @@ defineProps<{
 
 .saga-icon--overlap {
   margin-left: -1rem;
+}
+
+.cell-inner-side:nth-child(-n + 2) {
+  margin-top: 0;
+}
+
+.cell-inner-side {
+  margin-top: 1rem;
+  padding: 0.25rem 0.25rem 0;
+  border: solid 2px #cccccc;
+  background-color: #cccccc;
+}
+
+.cell-inner-side--active {
+  border: solid 2px #000000;
+}
+.saga-icon {
+  display: block;
+  float: left;
+  margin-right: 0.35rem;
+}
+
+.saga-icon--side-cell {
+  width: 2rem;
+  height: 2rem;
+  padding: 0.23rem;
 }
 </style>

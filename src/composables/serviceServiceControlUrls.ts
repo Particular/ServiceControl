@@ -47,8 +47,15 @@ export function useIsMonitoringEnabled() {
   return !useIsMonitoringDisabled();
 }
 
-export function useFetchFromServiceControl(suffix: string) {
-  return fetch(serviceControlUrl.value + suffix);
+export function useFetchFromServiceControl(suffix: string, options?: { cache?: RequestCache }) {
+  const requestOptions: RequestInit = {
+    method: "GET",
+    cache: options?.cache ?? "default", // Default  if not specified
+    headers: {
+      Accept: "application/json",
+    },
+  };
+  return fetch(serviceControlUrl.value + suffix, requestOptions);
 }
 
 export async function useTypedFetchFromServiceControl<T>(suffix: string): Promise<[Response, T]> {

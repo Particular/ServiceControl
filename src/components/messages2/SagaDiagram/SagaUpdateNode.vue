@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { SagaUpdateViewModel } from "./useSagaDiagramParser";
+import { SagaUpdateViewModel } from "./SagaDiagramParser";
 import MessageDataBox from "./MessageDataBox.vue";
-import SagaTimeoutMessage from "./SagaTimeoutMessage.vue";
+import SagaOutgoingTimeoutMessage from "./SagaOutgoingTimeoutMessage.vue";
+import SagaOutgoingMessage from "./SagaOutgoingMessage.vue";
 
 // Import the images directly
 import CommandIcon from "@/assets/command.svg";
-import EventIcon from "@/assets/event.svg";
 import SagaInitiatedIcon from "@/assets/SagaInitiatedIcon.svg";
 import SagaUpdatedIcon from "@/assets/SagaUpdatedIcon.svg";
-
+import TimeoutIcon from "@/assets/timeout.svg";
+import SagaTimeoutIcon from "@/assets/SagaTimeoutIcon.svg";
 defineProps<{
   update: SagaUpdateViewModel;
   showMessageData?: boolean;
@@ -21,13 +22,18 @@ defineProps<{
     <div class="row">
       <div class="cell cell--side">
         <div class="cell-inner cell-inner-side">
-          <img class="saga-icon saga-icon--side-cell" :src="CommandIcon" alt="" />
-          <h2 class="message-title" aria-label="initiating message type">{{ update.InitiatingMessageType }}</h2>
-          <div class="timestamp" aria-label="initiating message timestamp">{{ update.FormattedInitiatingMessageTimestamp }}</div>
+          <img class="saga-icon saga-icon--side-cell" :src="update.InitiatingMessage.IsSagaTimeoutMessage ? TimeoutIcon : CommandIcon" alt="" />
+          <h2 class="message-title" aria-label="initiating message type">{{ update.InitiatingMessage.MessageType }}</h2>
+          <div class="timestamp" aria-label="initiating message timestamp">{{ update.InitiatingMessage.FormattedMessageTimestamp }}</div>
         </div>
       </div>
       <div class="cell cell--center cell-flex">
         <div class="cell-inner cell-inner-center cell-inner--align-bottom">
+          <template v-if="update.InitiatingMessage.IsSagaTimeoutMessage">
+            <img class="saga-icon saga-icon--center-cell" :src="SagaTimeoutIcon" alt="" />
+            <h2 class="saga-status-title saga-status-title--inline timeout-status" aria-label="timeout invoked">Timeout Invoked</h2>
+            <br />
+          </template>
           <img class="saga-icon saga-icon--center-cell" :src="update.IsFirstNode ? SagaInitiatedIcon : SagaUpdatedIcon" alt="" />
           <h2 class="saga-status-title saga-status-title--inline">{{ update.StatusDisplay }}</h2>
           <div class="timestamp timestamp--inline" aria-label="time stamp">{{ update.FormattedStartTime }}</div>
@@ -41,7 +47,7 @@ defineProps<{
       <div class="cell cell--side cell--left-border cell--aling-top">
         <div v-if="showMessageData" class="message-data message-data--active">
           <!-- Generic message data box -->
-          <MessageDataBox v-if="update.InitiatingMessageType" />
+          <MessageDataBox v-if="update.InitiatingMessage.MessageType" :messageData="update.InitiatingMessage.MessageData" />
         </div>
       </div>
 
@@ -65,23 +71,14 @@ defineProps<{
       </div>
 
       <!-- Right side - outgoing messages (non-timeout) -->
-      <div class="cell cell--side cell--aling-top" v-if="update.HasNonTimeoutMessages">
+      <div class="cell cell--side cell--aling-top" v-if="update.HasOutgoingMessages">
         <div class="cell-inner cell-inner-right"></div>
-        <template v-for="(msg, msgIndex) in update.NonTimeoutMessages" :key="msgIndex">
-          <div class="cell-inner cell-inner-side">
-            <img class="saga-icon saga-icon--side-cell" :src="msg.IsEventMessage ? EventIcon : CommandIcon" :alt="msg.IsEventMessage ? 'Event' : 'Command'" />
-            <h2 class="message-title">{{ msg.MessageFriendlyTypeName }}</h2>
-            <div class="timestamp">{{ msg.FormattedTimeSent }}</div>
-          </div>
-          <div v-if="showMessageData" class="message-data message-data--active">
-            <MessageDataBox />
-          </div>
-        </template>
+        <SagaOutgoingMessage v-for="(msg, msgIndex) in update.OutgoingMessages" :key="msgIndex" :message="msg" :showMessageData="showMessageData" />
       </div>
     </div>
 
     <!-- Display each outgoing timeout message in separate rows -->
-    <SagaTimeoutMessage v-for="(msg, msgIndex) in update.TimeoutMessages" :key="'timeout-' + msgIndex" :message="msg" :isLastMessage="msgIndex === update.TimeoutMessages.length - 1" :showMessageData="showMessageData" />
+    <SagaOutgoingTimeoutMessage v-for="(msg, msgIndex) in update.OutgoingTimeoutMessages" :key="'timeout-' + msgIndex" :message="msg" :isLastMessage="msgIndex === update.OutgoingTimeoutMessages.length - 1" :showMessageData="showMessageData" />
   </div>
 </template>
 
@@ -304,5 +301,11 @@ defineProps<{
   width: 1rem;
   height: 1rem;
   margin-top: -0.3rem;
+}
+.timeout-status {
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: 900;
+  color: #00a3c4;
 }
 </style>

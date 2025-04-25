@@ -4,6 +4,7 @@ import { SagaHistory } from "@/resources/SagaHistory";
 import makeRouter from "@/router";
 import { createTestingPinia } from "@pinia/testing";
 import { MessageStore } from "@/stores/MessageStore";
+import { MessageStatus } from "@/resources/Message";
 
 //Defines a domain-specific language (DSL) for interacting with the system under test (sut)
 interface componentDSL {
@@ -38,7 +39,7 @@ describe("Feature: Message not involved in Saga", () => {
       const componentDriver = rendercomponent({
         initialState: {
           MessageStore: messageStore,
-          sagaHistory: undefined, // Lets pass undefined to simulate no saga data available
+          SagaDiagramStore: undefined, // Lets pass undefined to simulate no saga data available
         },
       });
 
@@ -63,7 +64,7 @@ describe("Feature: Detecting no Audited Saga Data Available", () => {
       const componentDriver = rendercomponent({
         initialState: {
           MessageStore: messageStore,
-          sagaHistory: undefined, // Lets pass undefined to simulate no saga data available
+          SagaDiagramStore: undefined, // Lets pass undefined to simulate no saga data available
         },
       });
 
@@ -97,7 +98,7 @@ describe("Feature: Navigation and Contextual Information", () => {
       const componentDriver = rendercomponent({
         initialState: {
           MessageStore: messageStore,
-          sagaHistory: { sagaHistory: sampleSagaHistory },
+          SagaDiagramStore: { sagaHistory: sampleSagaHistory },
         },
       });
 
@@ -120,7 +121,7 @@ describe("Feature: Navigation and Contextual Information", () => {
       const componentDriver = rendercomponent({
         initialState: {
           MessageStore: messageStore,
-          sagaHistory: { sagaHistory: sampleSagaHistory },
+          SagaDiagramStore: { sagaHistory: sampleSagaHistory },
         },
       });
 
@@ -181,7 +182,7 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
       const componentDriver = rendercomponent({
         initialState: {
           MessageStore: messageStore,
-          sagaHistory: { sagaHistory: sampleSagaHistory },
+          SagaDiagramStore: { sagaHistory: sampleSagaHistory },
         },
       });
 
@@ -247,7 +248,7 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
       const componentDriver = rendercomponent({
         initialState: {
           MessageStore: messageStore,
-          sagaHistory: { sagaHistory: sampleSagaHistory },
+          SagaDiagramStore: { sagaHistory: sampleSagaHistory },
         },
       });
 
@@ -271,7 +272,7 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
   });
 });
 
-function rendercomponent({ initialState = {} }: { initialState?: { MessageStore?: MessageStore; sagaHistory?: { sagaHistory: SagaHistory } } }): componentDSL {
+function rendercomponent({ initialState = {} }: { initialState?: { MessageStore?: MessageStore; SagaDiagramStore?: { sagaHistory: SagaHistory } } }): componentDSL {
   const router = makeRouter();
 
   // Render with createTestingPinia
@@ -380,6 +381,8 @@ const sampleSagaHistory: SagaHistory = {
         time_sent: new Date("2025-03-28T03:04:06.321561Z"),
         message_type: "ServiceControl.SmokeTest.MyCustomTimeout",
         intent: "Send",
+        body_url: "body_url",
+        message_status: MessageStatus.Successful,
       },
       outgoing_messages: [],
       endpoint: "Endpoint1",
@@ -397,6 +400,8 @@ const sampleSagaHistory: SagaHistory = {
         time_sent: new Date("2025-03-28T03:04:05.37723Z"),
         message_type: "ServiceControl.SmokeTest.MyCustomTimeout",
         intent: "Send",
+        body_url: "body_url",
+        message_status: MessageStatus.Successful,
       },
       outgoing_messages: [],
       endpoint: "Endpoint1",
@@ -414,6 +419,8 @@ const sampleSagaHistory: SagaHistory = {
         time_sent: new Date("2025-03-28T03:04:06.293765Z"),
         message_type: "ServiceControl.SmokeTest.SagaMessage2",
         intent: "Send",
+        body_url: "body_url",
+        message_status: MessageStatus.Successful,
       },
       outgoing_messages: [
         {
@@ -423,6 +430,12 @@ const sampleSagaHistory: SagaHistory = {
           time_sent: new Date("2025-03-28T03:04:06.3214397Z"),
           message_type: "ServiceControl.SmokeTest.MyCustomTimeout",
           intent: "Send",
+          deliver_at: new Date("2025-03-28T03:04:06.293765Z"),
+          is_saga_timeout_message: false,
+          originating_endpoint: "Sender",
+          originating_machine: "mobvm2",
+          body_url: "body_url",
+          message_status: MessageStatus.Successful,
         },
       ],
       endpoint: "Endpoint1",
@@ -440,6 +453,8 @@ const sampleSagaHistory: SagaHistory = {
         time_sent: new Date("2025-03-28T03:04:05.235534Z"),
         message_type: "ServiceControl.SmokeTest.SagaMessage1",
         intent: "Send",
+        body_url: "body_url",
+        message_status: MessageStatus.Successful,
       },
       outgoing_messages: [
         {
@@ -449,6 +464,12 @@ const sampleSagaHistory: SagaHistory = {
           time_sent: new Date("2025-03-28T03:04:05.3715034Z"),
           message_type: "ServiceControl.SmokeTest.MyCustomTimeout",
           intent: "Send",
+          deliver_at: new Date("2025-03-28T03:04:06.293765Z"),
+          is_saga_timeout_message: false,
+          originating_endpoint: "Sender",
+          originating_machine: "mobvm2",
+          body_url: "body_url",
+          message_status: MessageStatus.Successful,
         },
       ],
       endpoint: "Endpoint1",

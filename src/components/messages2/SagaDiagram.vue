@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { computed, onUnmounted, watch, ref } from "vue";
+import { computed, onUnmounted, watch } from "vue";
 import routeLinks from "@/router/routeLinks";
 import { useSagaDiagramStore } from "@/stores/SagaDiagramStore";
 import { useMessageStore } from "@/stores/MessageStore";
 import { storeToRefs } from "pinia";
 import ToolbarEndpointIcon from "@/assets/Shell_ToolbarEndpoint.svg";
-import { SagaViewModel, parseSagaUpdates } from "./SagaDiagram/useSagaDiagramParser";
+import { SagaViewModel, parseSagaUpdates } from "./SagaDiagram/SagaDiagramParser";
 import { typeToName } from "@/composables/typeHumanizer";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 //Subcomponents
 import NoSagaData from "./SagaDiagram/NoSagaData.vue";
@@ -15,23 +16,17 @@ import SagaHeader from "./SagaDiagram/SagaHeader.vue";
 import SagaUpdateNode from "./SagaDiagram/SagaUpdateNode.vue";
 import SagaCompletedNode from "./SagaDiagram/SagaCompletedNode.vue";
 
-const showMessageData = ref(false);
-
-const toggleMessageData = () => {
-  showMessageData.value = !showMessageData.value;
-};
-
-const store = useMessageStore();
-const { state: messageState } = storeToRefs(store);
-
 const sagaDiagramStore = useSagaDiagramStore();
+const { showMessageData, loading } = storeToRefs(sagaDiagramStore);
 
-//Watch for message and set saga ID when component mounts or message changes
+const messageStore = useMessageStore();
+
 watch(
-  () => messageState.value.data.invoked_saga,
-  (newSagas) => {
-    if (newSagas.has_saga) {
-      sagaDiagramStore.setSagaId(newSagas.saga_id || "");
+  () => messageStore.state.data.invoked_saga?.has_saga,
+  (hasSaga) => {
+    const saga = messageStore.state.data.invoked_saga;
+    if (hasSaga && saga?.saga_id) {
+      sagaDiagramStore.setSagaId(saga.saga_id);
     } else {
       sagaDiagramStore.clearSagaHistory();
     }
@@ -47,7 +42,7 @@ const vm = computed<SagaViewModel>(() => {
   const completedUpdate = sagaDiagramStore.sagaHistory?.changes.find((update) => update.status === "completed");
   const completionTime = completedUpdate ? new Date(completedUpdate.finish_time) : null;
 
-  const { data } = messageState.value;
+  const { data } = messageStore.state;
   const { invoked_saga: saga } = data;
   const sagaHistory = sagaDiagramStore.sagaHistory;
 
@@ -67,7 +62,7 @@ const vm = computed<SagaViewModel>(() => {
 
     // Display data
     FormattedCompletionTime: completionTime ? `${completionTime.toLocaleDateString()} ${completionTime.toLocaleTimeString()}` : "",
-    SagaUpdates: parseSagaUpdates(sagaHistory),
+    SagaUpdates: parseSagaUpdates(sagaHistory, sagaDiagramStore.messagesData),
     ShowMessageData: showMessageData.value,
   };
 });
@@ -77,20 +72,25 @@ const vm = computed<SagaViewModel>(() => {
   <div class="saga-container">
     <!-- Toolbar header -->
     <div v-if="vm.HasSagaData" class="header">
-      <button :class="['saga-button', { 'saga-button--active': vm.ShowMessageData }]" aria-label="show-message-data-button" @click="toggleMessageData">
+      <button :class="['saga-button', { 'saga-button--active': vm.ShowMessageData }]" aria-label="show-message-data-button" @click="sagaDiagramStore.toggleMessageData">
         <img class="saga-button-icon" :src="ToolbarEndpointIcon" alt="" />
         {{ vm.ShowMessageData ? "Hide Message Data" : "Show Message Data" }}
       </button>
     </div>
 
+    <!-- Loading Spinner -->
+    <div v-if="loading" class="loading-container">
+      <LoadingSpinner />
+    </div>
+
     <!-- No saga Data Available container -->
-    <NoSagaData v-if="!vm.ParticipatedInSaga" />
+    <NoSagaData v-else-if="!vm.ParticipatedInSaga" />
 
     <!-- Saga Audit Plugin Needed container -->
-    <SagaPluginNeeded v-if="vm.ShowNoPluginActiveLegend" />
+    <SagaPluginNeeded v-else-if="vm.ShowNoPluginActiveLegend" />
 
     <!-- Main Saga Data container -->
-    <div v-if="vm.HasSagaData" role="table" aria-label="saga-sequence-list" class="body" style="display: flex">
+    <div v-else-if="vm.HasSagaData" role="table" aria-label="saga-sequence-list" class="body" style="display: flex">
       <div class="container">
         <!-- Saga header with title and navigation -->
         <SagaHeader :saga-title="vm.SagaTitle" :saga-guid="vm.SagaGuid" :message-id-url="vm.MessageIdUrl" />
@@ -131,6 +131,14 @@ const vm = computed<SagaViewModel>(() => {
 .container {
   width: 66.6667%;
   min-width: 50rem;
+}
+
+.loading-container {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
 }
 
 /* Button styles */
