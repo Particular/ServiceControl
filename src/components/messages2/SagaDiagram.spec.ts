@@ -224,8 +224,8 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
       // JSDOM, used by Vitest, defaults to PST timezone
       // To ensure consistency, explicitly set the timezone to PST
       // This ensures that the rendered local time of the saga changes
-      // will always be interpreted and displayed in PST, avoiding flakiness
-      process.env.TZ = "PST";
+      // will always be interpreted and displayed in "America/Los_Angeles"
+      process.env.TZ = "America/Los_Angeles";
 
       //access each of the saga changes and update its start time and finish time to the same values being read from the variable declaration,
       // but set them again explicitly here
@@ -240,9 +240,6 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
       sampleSagaHistory.changes[3].start_time = new Date("2025-03-28T03:04:05.3332078Z"); //D
       sampleSagaHistory.changes[3].finish_time = new Date("2025-03-28T03:04:05.3799483Z"); //D1
       sampleSagaHistory.changes[3].status = "new";
-
-      //B(1), C(2),  A(0), D(3)
-      //B(1), C1(2), C(2), A1(0)
 
       // Set up the store with sample saga history
       const componentDriver = rendercomponent({
