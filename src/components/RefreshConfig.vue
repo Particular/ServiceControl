@@ -1,45 +1,54 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import OnOffSwitch from "./OnOffSwitch.vue";
+import { ref, watch } from "vue";
+import ListFilterSelector from "@/components/audit/ListFilterSelector.vue";
 
-const props = defineProps<{
-  id: string;
-  initialTimeout?: number;
-  onManualRefresh: () => void;
-}>();
+const props = defineProps<{ isLoading: boolean }>();
+const model = defineModel<number | null>({ required: true });
+const emit = defineEmits<{ (e: "manualRefresh"): Promise<void> }>();
+const autoRefreshOptionsText = ["Off", "Every 5 seconds", "Every 15 seconds", "Every 30 seconds"];
+let selectValue = "Off";
 
-const emit = defineEmits<{ change: [newValue: number | null]; manualRefresh: [] }>();
-
-const autoRefresh = ref(props.initialTimeout != null);
-const refreshTimeout = ref(props.initialTimeout ?? 5);
-
-function toggleRefresh() {
-  autoRefresh.value = !autoRefresh.value;
-  updateTimeout();
+if (model.value === 5000) {
+  selectValue = "Every 5 seconds";
+}
+if (model.value === 15000) {
+  selectValue = "Every 15 seconds";
+}
+if (model.value === 30000) {
+  selectValue = "Every 30 seconds";
 }
 
-function updateTimeout() {
-  validateTimeout();
-  emit("change", autoRefresh.value ? refreshTimeout.value * 1000 : null);
-}
+const selectedRefresh = ref<string>(selectValue);
 
-function validateTimeout() {
-  refreshTimeout.value = Math.max(1, Math.min(600, refreshTimeout.value));
+watch(selectedRefresh, (newValue) => {
+  if (newValue === autoRefreshOptionsText[0]) {
+    model.value = null;
+  }
+  if (newValue === autoRefreshOptionsText[1]) {
+    model.value = 5000;
+  }
+  if (newValue === autoRefreshOptionsText[2]) {
+    model.value = 15000;
+  }
+  if (newValue === autoRefreshOptionsText[3]) {
+    model.value = 30000;
+  }
+});
+
+async function refresh() {
+  await emit("manualRefresh");
 }
 </script>
 
 <template>
   <div class="refresh-config">
-    <button class="fa" title="refresh" @click="() => emit('manualRefresh')">
-      <i class="fa fa-lg fa-refresh" />
-    </button>
-    <span>|</span>
-    <label>Auto-Refresh:</label>
-    <div>
-      <OnOffSwitch :id="id" @toggle="toggleRefresh" :value="autoRefresh" />
+    <button class="btn btn-sm" title="refresh" @click="refresh"><i class="fa fa-refresh" :class="{ spinning: props.isLoading }" /> Refresh List</button>
+    <div class="filter">
+      <div class="filter-label">Auto-Refresh:</div>
+      <div class="filter-component">
+        <ListFilterSelector :items="autoRefreshOptionsText" v-model="selectedRefresh" item-name="result" :can-clear="false" :show-clear="false" :show-filter="false" />
+      </div>
     </div>
-    <input type="number" v-model="refreshTimeout" min="1" max="600" v-on:change="updateTimeout" />
-    <span class="unit">s</span>
   </div>
 </template>
 
@@ -47,40 +56,34 @@ function validateTimeout() {
 .refresh-config {
   display: flex;
   align-items: center;
-  gap: 0.5em;
+  gap: 1em;
+  margin-bottom: 0.5em;
 }
 
-.refresh-config .unit {
-  margin-left: -0.45em;
+.filter {
+  display: flex;
+  align-items: center;
 }
 
-.refresh-config label {
-  margin: 0;
+.filter-label {
+  font-weight: bold;
 }
 
-.refresh-config input {
-  width: 3.5em;
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.refresh-config button {
-  background: none;
-  border: none;
-  width: 2em;
+.fa-refresh {
+  display: inline-block;
 }
 
-.refresh-config button .fa {
-  transition: all 0.15s ease-in-out;
-  transition: rotate 0.05s ease-in-out;
-  transform-origin: center;
-}
-
-.refresh-config button:hover .fa {
-  color: #00a3c4;
-  transform: scale(1.1);
-}
-
-.refresh-config button:active .fa {
-  transform: rotate(25deg);
-  text-shadow: #929e9e 0.25px 0.25px;
+/* You can add this class dynamically when needed */
+.fa-refresh.spinning {
+  animation: spin 1s linear infinite;
 }
 </style>
