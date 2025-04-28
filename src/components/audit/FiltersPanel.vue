@@ -3,7 +3,7 @@ import FilterInput from "@/components/FilterInput.vue";
 import { storeToRefs } from "pinia";
 import { FieldNames, useAuditStore } from "@/stores/AuditStore.ts";
 import ListFilterSelector from "@/components/audit/ListFilterSelector.vue";
-import { computed, ref, watch } from "vue";
+import { computed } from "vue";
 import DatePickerRange from "@/components/audit/DatePickerRange.vue";
 
 const store = useAuditStore();
@@ -20,8 +20,28 @@ const sortByItemsMap = new Map([
 ]);
 const numberOfItemsPerPage = ["50", "100", "250", "500"];
 const sortByItems = computed(() => [...sortByItemsMap.keys()]);
-const selectedSortByItem = ref(findKeyByValue(`${sortBy.value.property},${sortBy.value.isAscending ? "asc" : "desc"}`));
-const selectedItemsPerPage = ref(itemsPerPage.value.toString());
+const selectedSortByItem = computed({
+  get() {
+    return findKeyByValue(`${sortBy.value.property},${sortBy.value.isAscending ? "asc" : "desc"}`);
+  },
+  set(newValue) {
+    const item = sortByItemsMap.get(newValue);
+    if (item) {
+      const strings = item.split(",");
+      sortBy.value = { isAscending: strings[1] === "asc", property: strings[0] };
+    } else {
+      sortBy.value = { isAscending: true, property: FieldNames.TimeSent };
+    }
+  },
+});
+const selectedItemsPerPage = computed({
+  get() {
+    return itemsPerPage.value.toString();
+  },
+  set(newValue) {
+    itemsPerPage.value = parseInt(newValue);
+  },
+});
 
 function findKeyByValue(searchValue: string) {
   for (const [key, value] of sortByItemsMap.entries()) {
@@ -31,28 +51,6 @@ function findKeyByValue(searchValue: string) {
   }
   return "";
 }
-
-watch(itemsPerPage, (newValue) => {
-  selectedItemsPerPage.value = newValue.toString();
-});
-
-watch(sortBy, (newValue) => {
-  selectedSortByItem.value = findKeyByValue(`${newValue.property},${newValue.isAscending ? "asc" : "desc"}`);
-});
-
-watch(selectedItemsPerPage, (newValue) => {
-  itemsPerPage.value = parseInt(newValue, 10);
-});
-
-watch(selectedSortByItem, (newValue) => {
-  const item = sortByItemsMap.get(newValue);
-  if (item) {
-    const strings = item.split(",");
-    sortBy.value = { isAscending: strings[1] === "asc", property: strings[0] };
-  } else {
-    sortBy.value = { isAscending: true, property: FieldNames.TimeSent };
-  }
-});
 </script>
 
 <template>

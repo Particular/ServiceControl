@@ -161,7 +161,6 @@ function setQuery() {
           <div class="processing-time"><span class="label-name">Processing Time:</span>{{ formatDotNetTimespan(message.processing_time) }}</div>
           <div class="delivery-time"><span class="label-name">Delivery Time:</span>{{ formatDotNetTimespan(message.delivery_time) }}</div>
         </div>
-        <div class="spacer"></div>
       </template>
     </div>
   </div>
@@ -185,14 +184,10 @@ function setQuery() {
   margin-bottom: 5rem;
   background-color: #ffffff;
 }
-.spacer {
-  border-bottom: 1px solid #b1afaf;
-  margin-top: 0.1rem;
-  margin-bottom: 0.1rem;
-}
 .item {
-  padding: 3px;
+  padding: 0.3rem 0.2rem;
   border: 1px solid #ffffff;
+  border-bottom: 1px solid #eee;
   display: grid;
   grid-template-columns: 1.8em 1fr 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr;
@@ -201,8 +196,11 @@ function setQuery() {
     "status message-type message-type message-type time-sent"
     "status message-id processing-time critical-time delivery-time";
 }
+.item:not(:first-child) {
+  border-top-color: #eee;
+}
 .item:hover {
-  border: 1px solid #00a3c4;
+  border-color: #00a3c4;
   background-color: #edf6f7;
   cursor: pointer;
 }
