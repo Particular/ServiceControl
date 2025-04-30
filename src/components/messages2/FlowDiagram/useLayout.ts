@@ -7,7 +7,7 @@ export function useLayout() {
 
   const graph = ref(new dagre.graphlib.Graph());
 
-  function layout(nodes: Node[], edges: DefaultEdge[], showAddress: boolean) {
+  function layout(nodes: Node[], edges: DefaultEdge[]) {
     // we create a new graph instance, in case some nodes/edges were removed, otherwise dagre would act as if they were still there
     const dagreGraph = new dagre.graphlib.Graph();
 
@@ -22,7 +22,7 @@ export function useLayout() {
       const graphNode = findNode(node.id);
       if (graphNode === undefined) continue;
 
-      dagreGraph.setNode(node.id, { width: graphNode.dimensions.width || 250, height: (graphNode.dimensions.height || 55) + (showAddress ? 40 : 0) });
+      dagreGraph.setNode(node.id, { width: graphNode.dimensions.width || 250, height: graphNode.dimensions.height || 55 });
     }
 
     for (const edge of edges) {
