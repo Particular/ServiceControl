@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { RouterLink, useRoute, useRouter } from "vue-router";
+import { RouteLocationAsPathGeneric, RouterLink, useRoute } from "vue-router";
 import NoData from "../NoData.vue";
 import TimeSince from "../TimeSince.vue";
 import FlowDiagram from "./FlowDiagram/FlowDiagram.vue";
@@ -30,7 +30,7 @@ const isError = computed(() => messageId.value === undefined);
 const isMassTransitConnected = useIsMassTransitConnected();
 const store = useMessageStore();
 const { state } = storeToRefs(store);
-const backLink = ref<string>(routeLinks.failedMessage.failedMessages.link);
+const backLink = ref<RouteLocationAsPathGeneric>({ path: routeLinks.failedMessage.failedMessages.link });
 const tabs = computed(() => {
   const currentTabs = [
     {
@@ -86,9 +86,9 @@ watch(
 const endpointColor = hexToCSSFilter("#929E9E").filter;
 
 onMounted(() => {
-  const back = useRouter().currentRoute.value.query.back as string;
+  const { back, ...otherArgs } = route.query;
   if (back) {
-    backLink.value = back;
+    backLink.value = { path: back.toString(), query: otherArgs };
   }
 });
 </script>
@@ -126,7 +126,7 @@ onMounted(() => {
               <template v-if="state.data.failure_metadata.edited">
                 <MetadataLabel tooltip="Message was edited" type="info" text="Edited" />
                 <span v-if="state.data.failure_metadata.edit_of" class="metadata metadata-link">
-                  <i class="fa fa-history"></i> <RouterLink :to="{ path: routeLinks.messages.failedMessage.link(state.data.failure_metadata.edit_of), query: { back: backLink } }">View previous version</RouterLink>
+                  <i class="fa fa-history"></i> <RouterLink :to="{ path: routeLinks.messages.failedMessage.link(state.data.failure_metadata.edit_of), query: route.query }">View previous version</RouterLink>
                 </span>
               </template>
               <span v-if="state.data.failure_metadata.time_of_failure" class="metadata"><i class="fa fa-clock-o"></i> Failed: <time-since :date-utc="state.data.failure_metadata.time_of_failure"></time-since></span>
