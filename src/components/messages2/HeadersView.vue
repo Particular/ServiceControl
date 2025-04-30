@@ -35,19 +35,15 @@ const filteredHeaders = computed(() => {
       </div>
     </div>
   </div>
-  <table class="table" v-if="filteredHeaders.length > 0 && !headers.not_found">
-    <tbody>
-      <tr class="interactiveList" v-for="(header, index) in filteredHeaders" :key="index">
-        <td nowrap="nowrap">{{ header.key }}</td>
-        <td>
-          <div class="headercopy" @mouseover="toggleHover(index, true)" @mouseleave="toggleHover(index, false)">
-            <pre>{{ header.value }}</pre>
-            <CopyToClipboard v-if="hoverStates[index] && header.value" :value="header.value" :isIconOnly="true" />
-          </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="header-list" v-if="filteredHeaders.length > 0 && !headers.not_found">
+    <template v-for="(header, index) in filteredHeaders" :key="index">
+      <div class="header-key">{{ header.key }}</div>
+      <div class="header-value" @mouseover="toggleHover(index, true)" @mouseleave="toggleHover(index, false)">
+        <pre class="removeBootStrap">{{ header.value }}</pre>
+        <div class="clippy-button"><CopyToClipboard v-if="header.value && hoverStates[index]" :value="header.value" :isIconOnly="true" /></div>
+      </div>
+    </template>
+  </div>
 
   <!-- Message if filtered list is empty -->
   <div v-if="filteredHeaders.length <= 0 && !headers.not_found" class="alert alert-warning">No headers found matching the search term.</div>
@@ -55,9 +51,11 @@ const filteredHeaders = computed(() => {
 </template>
 
 <style scoped>
-.headercopy {
-  display: flex;
-  gap: 0.4rem;
+.removeBootStrap {
+  background: initial;
+  border: none;
+  margin: 0;
+  padding: 0;
 }
 
 /*  empty filtered list message */
@@ -78,16 +76,41 @@ const filteredHeaders = computed(() => {
   width: 100%;
   max-width: 40rem;
 }
-.format-text {
-  font-weight: unset;
-  font-size: 14px;
-  min-width: 120px;
-}
 .filters {
   background-color: #f3f3f3;
   margin-top: 5px;
   border: #8c8c8c 1px solid;
   border-radius: 3px;
   padding: 5px;
+}
+
+.header-list {
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: 20rem 1fr;
+  align-items: flex-start;
+  justify-content: center;
+  row-gap: 2px;
+}
+
+.header-value,
+.header-key {
+  padding: 1rem;
+  display: flex;
+  height: 100%;
+  min-height: 2rem;
+  position: relative;
+  background: white;
+}
+
+.header-value {
+  padding-left: 2.7rem;
+}
+
+.clippy-button {
+  position: absolute;
+  left: 0;
+  top: 0.3rem;
 }
 </style>
