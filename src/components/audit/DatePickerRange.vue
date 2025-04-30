@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { DateRange } from "@/stores/AuditStore";
 import VueDatePicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
 import { ref, useTemplateRef, watch } from "vue";
 
 const model = defineModel<DateRange>({ required: true });

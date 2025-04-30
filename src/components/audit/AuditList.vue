@@ -6,7 +6,6 @@ import Message, { MessageStatus } from "@/resources/Message";
 import { useRoute, useRouter } from "vue-router";
 import ResultsCount from "@/components/ResultsCount.vue";
 import { dotNetTimespanToMilliseconds, formatDotNetTimespan } from "@/composables/formatUtils.ts";
-import "@vuepic/vue-datepicker/dist/main.css";
 import FiltersPanel from "@/components/audit/FiltersPanel.vue";
 import { onBeforeMount, watch } from "vue";
 import RefreshConfig from "../RefreshConfig.vue";
