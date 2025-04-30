@@ -23,12 +23,12 @@ enum MessageType {
 }
 
 const store = useMessageStore();
-const { state } = storeToRefs(store);
+const { state, conversationData } = storeToRefs(store);
 
 async function getConversation(conversationId: string) {
   await store.loadConversation(conversationId);
 
-  return store.conversationData.data;
+  return conversationData.value.data;
 }
 
 class SagaInvocation {

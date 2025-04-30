@@ -9,6 +9,7 @@ import CodeEditor from "@/components/CodeEditor.vue";
 import { useMessageStore } from "@/stores/MessageStore";
 import { storeToRefs } from "pinia";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import debounce from "lodash/debounce";
 
 interface HeaderWithEditing extends Header {
   isLocked: boolean;
@@ -41,28 +42,32 @@ const localMessage = ref<LocalMessageState>({
   isBodyEmpty: false,
   isContentTypeSupported: false,
   bodyContentType: undefined,
-  bodyUnavailable: true,
+  bodyUnavailable: false,
   isEvent: false,
   retried: false,
   headers: [],
   messageBody: "",
 });
-let origMessageBody: string;
-
 const showEditAndRetryConfirmation = ref(false);
 const showCancelConfirmation = ref(false);
 const showEditRetryGenericError = ref(false);
 const store = useMessageStore();
 const { state, headers, body, edit_and_retry_config } = storeToRefs(store);
 const id = computed(() => state.value.data.id ?? "");
-const messageBody = computed(() => body.value.data.value);
-
-watch(messageBody, (newValue) => {
-  if (newValue !== origMessageBody) {
-    localMessage.value.isBodyChanged = true;
-  }
+const uneditedMessageBody = computed(() => body.value.data.value ?? "");
+const regExToPruneLineEndings = new RegExp(/[\n\r]*/, "g");
+const debounceBodyUpdate = debounce((value: string) => {
+  const newValue = value.replaceAll(regExToPruneLineEndings, "");
+  localMessage.value.isBodyChanged = newValue !== uneditedMessageBody.value.replaceAll(regExToPruneLineEndings, "");
   localMessage.value.isBodyEmpty = newValue === "";
-});
+}, 1000);
+
+watch(
+  () => localMessage.value.messageBody,
+  (newValue) => {
+    debounceBodyUpdate(newValue);
+  }
+);
 
 function close() {
   emit("cancel");
@@ -87,7 +92,7 @@ function confirmCancel() {
 }
 
 function resetBodyChanges() {
-  localMessage.value.messageBody = origMessageBody;
+  localMessage.value.messageBody = uneditedMessageBody.value;
   localMessage.value.isBodyChanged = false;
 }
 
@@ -113,7 +118,6 @@ function initializeMessageBodyAndHeaders() {
     return header?.value;
   }
 
-  origMessageBody = body.value.data.value ?? "";
   const local = <LocalMessageState>{
     isBodyChanged: false,
     isBodyEmpty: false,
@@ -211,15 +215,22 @@ onMounted(() => {
                           </tr>
                         </tbody>
                       </table>
-                      <div role="tabpanel" v-if="panel === 2 && !localMessage.bodyUnavailable" style="height: calc(100% - 260px)">
-                        <div style="margin-top: 1.25rem">
-                          <LoadingSpinner v-if="body.loading" />
-                          <CodeEditor v-else aria-label="message body" :read-only="!localMessage.isContentTypeSupported" v-model="localMessage.messageBody" :language="localMessage.language" :show-gutter="true"></CodeEditor>
+                      <template v-if="panel === 2">
+                        <div role="tabpanel" v-if="!localMessage.bodyUnavailable">
+                          <div style="margin-top: 1.25rem">
+                            <LoadingSpinner v-if="body.loading" />
+                            <CodeEditor v-else aria-label="message body" :read-only="!localMessage.isContentTypeSupported" v-model="localMessage.messageBody" :language="localMessage.language" :show-gutter="true">
+                              <template #toolbarLeft>
+                                <span class="empty-error" v-if="localMessage.isBodyEmpty"><i class="fa fa-exclamation-triangle"></i> Message body cannot be empty</span>
+                              </template>
+                              <template #toolbarRight>
+                                <button v-if="localMessage.isBodyChanged" type="button" class="btn btn-secondary btn-sm" @click="resetBodyChanges"><i class="fa fa-undo"></i> Reset changes</button>
+                              </template>
+                            </CodeEditor>
+                          </div>
                         </div>
-                        <span class="empty-error" v-if="localMessage.isBodyEmpty"><i class="fa fa-exclamation-triangle"></i> Message body cannot be empty</span>
-                        <span class="reset-body" v-if="localMessage.isBodyChanged"><i class="fa fa-undo" v-tippy="`Reset changes`"></i> <a @click="resetBodyChanges()" href="javascript:void(0)">Reset changes</a></span>
-                        <div class="alert alert-info" v-if="panel === 2 && localMessage.bodyUnavailable">{{ localMessage.bodyUnavailable }}</div>
-                      </div>
+                        <div role="tabpanel" class="alert alert-info" v-else>{{ localMessage.bodyUnavailable }}</div>
+                      </template>
                     </div>
                   </div>
                 </div>
@@ -267,14 +278,6 @@ onMounted(() => {
   margin-right: 20px;
 }
 
-.modal-msg-editor .reset-body {
-  color: #00a3c4;
-  font-weight: bold;
-  text-align: left;
-  margin-top: 15px;
-  display: inline-block;
-}
-
 .modal-msg-editor .reset-body a:hover {
   cursor: pointer;
 }
@@ -284,8 +287,6 @@ onMounted(() => {
 }
 
 .modal-msg-editor .empty-error {
-  float: right;
-  margin-top: 15px;
   color: #ce4844;
   font-weight: bold;
 }

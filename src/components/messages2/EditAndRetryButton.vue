@@ -9,12 +9,12 @@ import { storeToRefs } from "pinia";
 import { FailedMessageStatus } from "@/resources/FailedMessage";
 
 const store = useMessageStore();
-const { state } = storeToRefs(store);
+const { state, edit_and_retry_config } = storeToRefs(store);
 const isConfirmDialogVisible = ref(false);
 
 const failureStatus = computed(() => state.value.data.failure_status);
 const isDisabled = computed(() => failureStatus.value.retried || failureStatus.value.archived || failureStatus.value.resolved);
-const isVisible = computed(() => store.edit_and_retry_config.enabled && state.value.data.status !== MessageStatus.Successful && state.value.data.status !== MessageStatus.ResolvedSuccessfully);
+const isVisible = computed(() => edit_and_retry_config.value.enabled && state.value.data.status !== MessageStatus.Successful && state.value.data.status !== MessageStatus.ResolvedSuccessfully);
 const handleConfirm = async () => {
   isConfirmDialogVisible.value = false;
 

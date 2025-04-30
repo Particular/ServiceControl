@@ -51,8 +51,12 @@ const extensions = computed(() => {
 
 <template>
   <div class="wrapper" :aria-label="ariaLabel" :class="css">
-    <div v-if="props.showCopyToClipboard" class="toolbar">
-      <CopyToClipboard :value="code" />
+    <div v-if="props.showCopyToClipboard || $slots.toolbarLeft || $slots.toolbarRight" class="toolbar">
+      <div><slot name="toolbarLeft"></slot></div>
+      <div>
+        <slot name="toolbarRight"></slot>
+        <CopyToClipboard class="clipboard" v-if="props.showCopyToClipboard" :value="code" />
+      </div>
     </div>
     <CodeMirror v-model="code" :extensions="extensions" :basic="props.showGutter" :minimal="!props.showGutter" :readonly="props.readOnly" :gutter="!props.readOnly" :wrap="true"></CodeMirror>
   </div>
@@ -76,6 +80,10 @@ const extensions = computed(() => {
   margin-bottom: 0.5rem;
   display: flex;
   flex-direction: row;
-  justify-content: end;
+  justify-content: space-between;
+  align-items: center;
+}
+.clipboard {
+  margin-left: 0.5rem;
 }
 </style>

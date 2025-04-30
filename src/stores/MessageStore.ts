@@ -1,5 +1,5 @@
-import { acceptHMRUpdate, defineStore } from "pinia";
-import { reactive, ref } from "vue";
+import { acceptHMRUpdate, defineStore, storeToRefs } from "pinia";
+import { computed, reactive, ref } from "vue";
 import Header from "@/resources/Header";
 import type EndpointDetails from "@/resources/EndpointDetails";
 import FailedMessage, { ExceptionDetails, FailedMessageStatus } from "@/resources/FailedMessage";
@@ -75,8 +75,12 @@ export const useMessageStore = defineStore("MessageStore", () => {
   const editRetryStore = useEditRetryStore();
   const configStore = useConfigurationStore();
 
-  editRetryStore.loadConfig();
-  configStore.loadConfig();
+  const { config: edit_and_retry_config } = storeToRefs(editRetryStore);
+  const { configuration } = storeToRefs(configStore);
+  const error_retention_period = computed(() => moment.duration(configuration.value?.data_retention?.error_retention_period).asHours());
+
+  // eslint-disable-next-line promise/catch-or-return,promise/prefer-await-to-then,promise/valid-params
+  Promise.all([editRetryStore.loadConfig(), configStore.loadConfig()]).then();
 
   function reset() {
     state.data = { failure_metadata: {}, failure_status: {}, dialog_status: {}, invoked_saga: {} };
@@ -126,7 +130,7 @@ export const useMessageStore = defineStore("MessageStore", () => {
       state.loading = false;
     }
 
-    const countdown = moment(state.data.failure_metadata.last_modified).add(error_retention_period, "hours");
+    const countdown = moment(state.data.failure_metadata.last_modified).add(error_retention_period.value, "hours");
     state.data.failure_status.delete_soon = countdown < moment();
     state.data.failure_metadata.deleted_in = countdown.format();
   }
@@ -298,13 +302,11 @@ export const useMessageStore = defineStore("MessageStore", () => {
     return exportString;
   }
 
-  const error_retention_period = moment.duration(configStore.configuration?.data_retention?.error_retention_period).asHours();
-
   return {
     headers,
     body,
     state,
-    edit_and_retry_config: editRetryStore.config,
+    edit_and_retry_config,
     reset,
     loadMessage,
     loadFailedMessage,
