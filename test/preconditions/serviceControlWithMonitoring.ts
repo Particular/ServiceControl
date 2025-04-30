@@ -7,6 +7,9 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
   //http://localhost:33333/api/license
   await driver.setUp(precondition.hasActiveLicense);
 
+  //Default handler for /api/licensing/settings/test
+  await driver.setUp(precondition.hasLicensingSettingTest());
+
   //http://localhost:33333/api/
   await driver.setUp(precondition.hasServiceControlMainInstance());
 
@@ -72,9 +75,6 @@ export const serviceControlWithMonitoring = async ({ driver }: SetupFactoryOptio
 
   //Default handler for /api/licensing/endpoints
   await driver.setUp(precondition.hasLicensingEndpoints());
-
-  //Default handler for /api/licensing/settings/test
-  await driver.setUp(precondition.hasLicensingSettingTest());
 
   await driver.setUp(precondition.hasEndpointSettings([]));
 
