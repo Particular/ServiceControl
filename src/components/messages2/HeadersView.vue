@@ -22,17 +22,11 @@ const filteredHeaders = computed(() => {
 </script>
 
 <template>
-  <div class="gap">
-    <div>
-      <div class="row filters">
-        <div class="col">
-          <div class="text-search-container">
-            <div class="text-search">
-              <div>
-                <FilterInput v-model="searchTerm" :aria-label="`Search for a header key or value`" :placeholder="'Search for a header key or value...'" />
-              </div>
-            </div>
-          </div>
+  <div class="wrapper">
+    <div class="filters">
+      <div class="text-search-container">
+        <div class="text-search">
+          <FilterInput v-model="searchTerm" :aria-label="`Search for a header key or value`" :placeholder="'Search for a header key or value...'" />
         </div>
       </div>
     </div>
@@ -45,21 +39,22 @@ const filteredHeaders = computed(() => {
         </div>
       </template>
     </div>
-
-    <!-- Message if filtered list is empty -->
-    <div v-if="filteredHeaders.length <= 0 && !headers.not_found" class="alert alert-warning">No headers found matching the search term.</div>
-    <div v-if="headers.not_found" class="alert alert-info">Could not find message headers. This could be because the message URL is invalid or the corresponding message was processed and is no longer tracked by ServiceControl.</div>
   </div>
+
+  <!-- Message if filtered list is empty -->
+  <div v-if="filteredHeaders.length <= 0 && !headers.not_found" class="alert alert-warning">No headers found matching the search term.</div>
+  <div v-if="headers.not_found" class="alert alert-info">Could not find message headers. This could be because the message URL is invalid or the corresponding message was processed and is no longer tracked by ServiceControl.</div>
 </template>
 
 <style scoped>
-.gap {
+.wrapper {
   margin-top: 5px;
   border-radius: 0.5rem;
   padding: 0.5rem;
   border: 1px solid #ccc;
   background: white;
 }
+
 .removeBootStrap {
   background: initial;
   border: none;
@@ -86,6 +81,9 @@ const filteredHeaders = computed(() => {
   max-width: 40rem;
 }
 .filters {
+  top: -2.5rem;
+  position: sticky;
+  z-index: 100;
   background-color: #f3f3f3;
   border: #8c8c8c 1px solid;
   border-radius: 3px;
