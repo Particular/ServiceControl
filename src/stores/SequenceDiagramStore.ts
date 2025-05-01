@@ -10,7 +10,7 @@ import routeLinks from "@/router/routeLinks";
 
 export interface EndpointCentrePoint {
   name: string;
-  centre: number;
+  centre?: number;
   top: number;
 }
 

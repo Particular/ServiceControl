@@ -8,6 +8,6 @@ const { endpointCentrePoints, maxHeight } = storeToRefs(store);
 
 <template>
   <g v-for="timeline in endpointCentrePoints" :key="timeline.name">
-    <path :d="`M${timeline.centre} ${timeline.top} v0 ${maxHeight - timeline.top}`" stroke="var(--gray90)" stroke-width="2" />
+    <path v-if="timeline.centre" :d="`M${timeline.centre} ${timeline.top} v0 ${maxHeight - timeline.top}`" stroke="var(--gray90)" stroke-width="2" />
   </g>
 </template>
