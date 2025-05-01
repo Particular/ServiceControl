@@ -5,7 +5,7 @@ import TimeSince from "../../TimeSince.vue";
 import routeLinks from "@/router/routeLinks.ts";
 import Message, { MessageIntent, MessageStatus, SagaInfo } from "@/resources/Message.ts";
 import { NServiceBusHeaders } from "@/resources/Header.ts";
-import { ControlButton, Controls } from "@vue-flow/controls";
+import { Controls } from "@vue-flow/controls";
 import { useMessageStore } from "@/stores/MessageStore.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { storeToRefs } from "pinia";
@@ -204,7 +204,7 @@ onMounted(async () => {
 });
 
 async function layoutGraph() {
-  nodes.value = layout(nodes.value, edges.value, showAddress.value);
+  nodes.value = layout(nodes.value, edges.value);
 
   await nextTick(() => {
     if (store.state.data.id) {
@@ -213,16 +213,8 @@ async function layoutGraph() {
   });
 }
 
-const showAddress = ref(true);
-
-async function toggleAddress() {
-  showAddress.value = !showAddress.value;
-  await layoutGraph();
-}
-
-const blackColor = hexToCSSFilter("#000000").filter;
-const greenColor = hexToCSSFilter("#1E5E3C").filter;
 const errorColor = hexToCSSFilter("#be514a").filter;
+const selectedErrorColor = hexToCSSFilter("#e8e6e8").filter;
 </script>
 
 <template>
@@ -230,25 +222,22 @@ const errorColor = hexToCSSFilter("#be514a").filter;
   <LoadingSpinner v-else-if="store.conversationData.loading" />
   <div v-else id="tree-container">
     <VueFlow :nodes="nodes" :edges="edges" :min-zoom="0.1" :max-zoom="1.2" :only-render-visible-elements="true" @nodes-initialized="layoutGraph">
-      <Controls :show-interactive="false" position="top-left" class="controls">
-        <ControlButton v-tippy="showAddress ? `Hide endpoints` : `Show endpoints`" @click="toggleAddress">
-          <i class="fa pa-flow-endpoint" :style="{ filter: showAddress ? greenColor : blackColor }"></i>
-        </ControlButton>
-      </Controls>
+      <Controls :show-interactive="false" position="top-left" class="controls" />
       <template #node-message="{ id, data }: { id: string; data: NodeData }">
-        <div v-if="showAddress">
-          <TextEllipses class="address" :text="`${data.sendingEndpoint.name}@${data.sendingEndpoint.host}`" />
-        </div>
+        <TextEllipses class="address" :text="`${data.sendingEndpoint.name}@${data.sendingEndpoint.host}`" />
         <div class="node" :class="{ error: data.isError, 'current-message': id === store.state.data.id }">
           <div class="node-text">
-            <i class="fa" :class="{ 'pa-flow-timeout': data.isTimeout, 'pa-flow-command': data.isCommand, 'pa-flow-event': data.isEvent }" v-tippy="data.type" />
-            <div class="lead">
-              <strong>
-                <RouterLink v-if="data.isError" :to="{ path: routeLinks.messages.failedMessage.link(id), query: { back: backLink } }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
-                <RouterLink v-else :to="{ path: routeLinks.messages.successMessage.link(data.messageId, id), query: { back: backLink } }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
-              </strong>
+            <i
+              class="fa"
+              :style="data.isError && id === store.state.data.id ? { filter: selectedErrorColor } : {}"
+              :class="{ 'pa-flow-timeout': data.isTimeout, 'pa-flow-command': data.isCommand, 'pa-flow-event': data.isEvent }"
+              v-tippy="data.type"
+            />
+            <div class="typeName">
+              <RouterLink v-if="data.isError" :to="{ path: routeLinks.messages.failedMessage.link(id), query: { back: backLink } }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
+              <RouterLink v-else :to="{ path: routeLinks.messages.successMessage.link(data.messageId, id), query: { back: backLink } }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
             </div>
-            <i v-if="data.isError" class="fa pa-flow-failed" :style="id !== store.state.data.id ? { filter: errorColor } : {}" />
+            <i v-if="data.isError" class="fa pa-flow-failed" :style="id !== store.state.data.id ? { filter: errorColor } : { filter: selectedErrorColor }" />
             <div class="time-sent">
               <time-since class="time-since" :date-utc="data.timeSent" />
             </div>
@@ -264,9 +253,7 @@ const errorColor = hexToCSSFilter("#be514a").filter;
             </div>
           </div>
         </div>
-        <div v-if="showAddress">
-          <TextEllipses class="address" :text="`${data.receivingEndpoint.name}@${data.receivingEndpoint.host}`" />
-        </div>
+        <TextEllipses class="address" :text="`${data.receivingEndpoint.name}@${data.receivingEndpoint.host}`" />
       </template>
     </VueFlow>
   </div>
@@ -347,10 +334,14 @@ const errorColor = hexToCSSFilter("#be514a").filter;
   margin-right: 5px;
 }
 
-.node-text .lead {
+.node-text .typeName {
   display: inline-block;
   position: relative;
-  top: 4px;
+  font-weight: bold;
+}
+
+.node-text a {
+  color: #777f7f;
 }
 
 .address {
@@ -369,6 +360,15 @@ const errorColor = hexToCSSFilter("#be514a").filter;
   background-color: #be514a !important;
 }
 
+.current-message.error .node-text .typeName a {
+  color: #e8e6e8;
+  font-weight: 900;
+}
+
+.current-message.error .node-text .time-since {
+  color: #e8e6e8;
+}
+
 .error {
   border-color: #be514a;
 }
@@ -384,14 +384,6 @@ const errorColor = hexToCSSFilter("#be514a").filter;
 
 .error .node-text a:hover {
   text-decoration: underline;
-}
-
-.pa-flow-endpoint {
-  background-image: url("@/assets/endpoint.svg");
-  background-position: center;
-  background-repeat: no-repeat;
-  height: 15px;
-  width: 15px;
 }
 
 .pa-flow-failed {
