@@ -22,6 +22,7 @@ export const useSagaDiagramStore = defineStore("SagaDiagramStore", () => {
   const showMessageData = ref(false);
   const fetchedMessages = ref(new Set<string>());
   const messagesData = ref<SagaMessageData[]>([]);
+  const selectedMessageId = ref<string | null>(null);
   const MessageBodyEndpoint = "messages/{0}/body";
 
   // Watch the sagaId and fetch saga history when it changes
@@ -188,6 +189,7 @@ export const useSagaDiagramStore = defineStore("SagaDiagramStore", () => {
     error.value = null;
     fetchedMessages.value.clear();
     messagesData.value = [];
+    selectedMessageId.value = null;
   }
 
   function formatUrl(template: string, id: string): string {
@@ -248,6 +250,10 @@ export const useSagaDiagramStore = defineStore("SagaDiagramStore", () => {
     }
   }
 
+  function setSelectedMessageId(messageId: string | null) {
+    selectedMessageId.value = messageId;
+  }
+
   return {
     sagaHistory,
     sagaId,
@@ -256,9 +262,11 @@ export const useSagaDiagramStore = defineStore("SagaDiagramStore", () => {
     error,
     showMessageData,
     messagesData,
+    selectedMessageId,
     setSagaId,
     clearSagaHistory,
     toggleMessageData,
+    setSelectedMessageId,
   };
 });
 

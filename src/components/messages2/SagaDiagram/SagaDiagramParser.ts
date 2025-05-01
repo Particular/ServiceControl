@@ -19,6 +19,7 @@ export interface InitiatingMessageViewModel {
 }
 export interface SagaTimeoutMessageViewModel extends SagaMessageViewModel {
   TimeoutFriendly: string;
+  HasBeenProcessed: boolean;
 }
 
 export interface SagaUpdateViewModel {
@@ -88,19 +89,22 @@ export function parseSagaUpdates(sagaHistory: SagaHistory | null, messagesData: 
 
       const outgoingTimeoutMessages = outgoingMessages
         .filter((msg) => msg.HasTimeout)
-        .map(
-          (msg) =>
-            ({
-              ...msg,
-              TimeoutFriendly: `${msg.TimeoutFriendly}`,
-            }) as SagaTimeoutMessageViewModel
-        );
+        .map((msg) => {
+          // Check if this timeout message has been processed by checking if there's an initiating message with matching ID
+          const hasBeenProcessed = sagaHistory.changes.some((update) => update.initiating_message?.message_id === msg.MessageId);
+
+          return {
+            ...msg,
+            TimeoutFriendly: `${msg.TimeoutFriendly}`,
+            HasBeenProcessed: hasBeenProcessed,
+          } as SagaTimeoutMessageViewModel;
+        });
 
       const regularMessages = outgoingMessages.filter((msg) => !msg.HasTimeout) as SagaMessageViewModel[];
 
       const hasTimeout = outgoingTimeoutMessages.length > 0;
 
-      return {
+      return <SagaUpdateViewModel>{
         MessageId: update.initiating_message?.message_id || "",
         StartTime: startTime,
         FinishTime: finishTime,
