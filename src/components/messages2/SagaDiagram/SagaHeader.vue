@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import { RouterLink } from "vue-router";
-
 defineProps<{
   sagaTitle: string;
   sagaGuid: string;
-  messageIdUrl: string;
 }>();
 </script>
 
@@ -13,7 +10,6 @@ defineProps<{
     <div class="row row--center">
       <div class="cell cell--center">
         <div class="cell-inner cell-inner-center">
-          <RouterLink :to="messageIdUrl">← Back to Messages</RouterLink>
           <h1 aria-label="saga name" class="main-title">{{ sagaTitle }}</h1>
           <div>
             <b>guid</b> <span role="note" aria-label="saga guid">{{ sagaGuid }}</span>

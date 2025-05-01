@@ -44,7 +44,6 @@ export interface SagaUpdateViewModel {
 export interface SagaViewModel {
   SagaTitle: string;
   SagaGuid: string;
-  MessageIdUrl: string;
   ParticipatedInSaga: boolean;
   HasSagaData: boolean;
   ShowNoPluginActiveLegend: boolean;

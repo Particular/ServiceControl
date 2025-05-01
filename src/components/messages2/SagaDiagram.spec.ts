@@ -77,35 +77,6 @@ describe("Feature: Detecting no Audited Saga Data Available", () => {
 });
 
 describe("Feature: Navigation and Contextual Information", () => {
-  describe("Rule: Provide clear navigational elements to move between the message flow diagram and the saga view.", () => {
-    test("EXAMPLE: A message record with id '123' and with a saga Id '88878' gets selected", () => {
-      //A "← Back to Messages" link allows users to easily navigate back to the flow diagram.
-      const storedMessageRecordId = "123";
-      const message_id = "456";
-
-      const messageStore = {} as MessageStore;
-      messageStore.state = {} as MessageStore["state"];
-      messageStore.state.data = {} as MessageStore["state"]["data"];
-      messageStore.state.data.message_id = message_id;
-      messageStore.state.data.id = storedMessageRecordId;
-      messageStore.state.data.invoked_saga = {
-        has_saga: true,
-        saga_id: "saga-id-123",
-        saga_type: "Shipping.ShipOrderWorkflow",
-      };
-
-      // Set initial state with sample saga history
-      const componentDriver = rendercomponent({
-        initialState: {
-          MessageStore: messageStore,
-          SagaDiagramStore: { sagaHistory: sampleSagaHistory },
-        },
-      });
-
-      componentDriver.assert.linkIsShown({ withText: "← Back to Messages", withHref: `#/messages/${message_id}/${storedMessageRecordId}` });
-    });
-  });
-
   describe("Rule: Clearly indicate contextual information like Saga ID and Saga Type.", () => {
     test("EXAMPLE: A message with a Saga Id '123' and a Saga Type 'ServiceControl.SmokeTest.AuditingSaga' gets selected", () => {
       const messageStore = {} as MessageStore;

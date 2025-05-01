@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onUnmounted, watch } from "vue";
-import routeLinks from "@/router/routeLinks";
 import { useSagaDiagramStore } from "@/stores/SagaDiagramStore";
 import { useMessageStore } from "@/stores/MessageStore";
 import { storeToRefs } from "pinia";
@@ -50,9 +49,6 @@ const vm = computed<SagaViewModel>(() => {
     SagaTitle: typeToName(saga.saga_type) || "Unknown saga",
     SagaGuid: saga.saga_id || "Missing guid",
 
-    // Navigation
-    MessageIdUrl: routeLinks.messages.successMessage.link(data.message_id || "", data.id || ""),
-
     // Status flags
     ParticipatedInSaga: saga.has_saga || false,
     HasSagaData: !!sagaHistory,
@@ -89,7 +85,7 @@ const vm = computed<SagaViewModel>(() => {
     <div v-else-if="vm.HasSagaData" role="table" aria-label="saga-sequence-list" class="body" style="display: flex">
       <div class="container">
         <!-- Saga header with title and navigation -->
-        <SagaHeader :saga-title="vm.SagaTitle" :saga-guid="vm.SagaGuid" :message-id-url="vm.MessageIdUrl" />
+        <SagaHeader :saga-title="vm.SagaTitle" :saga-guid="vm.SagaGuid" />
 
         <!-- Iterate through each saga update -->
         <SagaUpdateNode v-for="(update, index) in vm.SagaUpdates" :key="index" :update="update" :show-message-data="vm.ShowMessageData" />
