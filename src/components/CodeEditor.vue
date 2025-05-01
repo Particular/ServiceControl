@@ -59,15 +59,19 @@ const extensions = computed(() => {
 
 <style scoped>
 .wrapper {
+  margin-top: 5px;
   border-radius: 0.5rem;
   padding: 0.5rem;
   border: 1px solid #ccc;
+  background: white;
   display: flex;
   flex-direction: column;
 }
 .toolbar {
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 0.5rem;
+  background-color: #f3f3f3;
+  border: #8c8c8c 1px solid;
+  border-radius: 3px;
+  padding: 5px;
   margin-bottom: 0.5rem;
   display: flex;
   flex-direction: row;

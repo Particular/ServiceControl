@@ -18,18 +18,42 @@ onMounted(() => store.refreshConversation());
 </script>
 
 <template>
-  <a class="help-link" target="_blank" href="https://docs.particular.net/servicepulse/sequence-diagram"><i class="fa fa-info-circle" /> Sequence Diagram Help</a>
-  <div class="outer" @scroll="(ev) => (endpointYOffset = (ev.target as Element).scrollTop)">
-    <svg class="sequence-diagram" :style="{ width: `max(100%, ${isNaN(maxWidth) ? 0 : maxWidth}px)` }" :height="maxHeight + 20">
-      <Timeline />
-      <Handlers />
-      <Routes />
-      <Endpoints :yOffset="endpointYOffset" />
-    </svg>
+  <div class="wrapper">
+    <div class="toolbar">
+      <a class="help-link" target="_blank" href="https://docs.particular.net/servicepulse/sequence-diagram"><i class="fa fa-info-circle" /> Sequence Diagram Help</a>
+    </div>
+    <div class="outer" @scroll="(ev) => (endpointYOffset = (ev.target as Element).scrollTop)">
+      <svg class="sequence-diagram" :style="{ width: `max(100%, ${isNaN(maxWidth) ? 0 : maxWidth}px)` }" :height="maxHeight + 20">
+        <Timeline />
+        <Handlers />
+        <Routes />
+        <Endpoints :yOffset="endpointYOffset" />
+      </svg>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.wrapper {
+  margin-top: 5px;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+.toolbar {
+  background-color: #f3f3f3;
+  border: #8c8c8c 1px solid;
+  border-radius: 3px;
+  padding: 5px;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: end;
+  min-height: 40px;
+}
 .outer {
   max-width: 100%;
   max-height: calc(100vh - 27em);

@@ -22,35 +22,44 @@ const filteredHeaders = computed(() => {
 </script>
 
 <template>
-  <div>
-    <div class="row filters">
-      <div class="col">
-        <div class="text-search-container">
-          <div class="text-search">
-            <div>
-              <FilterInput v-model="searchTerm" :aria-label="`Search for a header key or value`" :placeholder="'Search for a header key or value...'" />
+  <div class="gap">
+    <div>
+      <div class="row filters">
+        <div class="col">
+          <div class="text-search-container">
+            <div class="text-search">
+              <div>
+                <FilterInput v-model="searchTerm" :aria-label="`Search for a header key or value`" :placeholder="'Search for a header key or value...'" />
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="header-list" v-if="filteredHeaders.length > 0 && !headers.not_found">
-    <template v-for="(header, index) in filteredHeaders" :key="index">
-      <div class="header-key">{{ header.key }}</div>
-      <div class="header-value" @mouseover="toggleHover(index, true)" @mouseleave="toggleHover(index, false)">
-        <pre class="removeBootStrap">{{ header.value }}</pre>
-        <div class="clippy-button"><CopyToClipboard v-if="header.value && hoverStates[index]" :value="header.value" :isIconOnly="true" /></div>
-      </div>
-    </template>
-  </div>
+    <div class="header-list" v-if="filteredHeaders.length > 0 && !headers.not_found">
+      <template v-for="(header, index) in filteredHeaders" :key="index">
+        <div class="header-key">{{ header.key }}</div>
+        <div class="header-value" @mouseover="toggleHover(index, true)" @mouseleave="toggleHover(index, false)">
+          <pre class="removeBootStrap">{{ header.value }}</pre>
+          <div class="clippy-button"><CopyToClipboard v-if="header.value && hoverStates[index]" :value="header.value" :isIconOnly="true" /></div>
+        </div>
+      </template>
+    </div>
 
-  <!-- Message if filtered list is empty -->
-  <div v-if="filteredHeaders.length <= 0 && !headers.not_found" class="alert alert-warning">No headers found matching the search term.</div>
-  <div v-if="headers.not_found" class="alert alert-info">Could not find message headers. This could be because the message URL is invalid or the corresponding message was processed and is no longer tracked by ServiceControl.</div>
+    <!-- Message if filtered list is empty -->
+    <div v-if="filteredHeaders.length <= 0 && !headers.not_found" class="alert alert-warning">No headers found matching the search term.</div>
+    <div v-if="headers.not_found" class="alert alert-info">Could not find message headers. This could be because the message URL is invalid or the corresponding message was processed and is no longer tracked by ServiceControl.</div>
+  </div>
 </template>
 
 <style scoped>
+.gap {
+  margin-top: 5px;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  background: white;
+}
 .removeBootStrap {
   background: initial;
   border: none;
@@ -78,7 +87,6 @@ const filteredHeaders = computed(() => {
 }
 .filters {
   background-color: #f3f3f3;
-  margin-top: 5px;
   border: #8c8c8c 1px solid;
   border-radius: 3px;
   padding: 5px;
@@ -92,6 +100,7 @@ const filteredHeaders = computed(() => {
   align-items: flex-start;
   justify-content: center;
   row-gap: 2px;
+  background-color: #f3f3f3;
 }
 
 .header-value,

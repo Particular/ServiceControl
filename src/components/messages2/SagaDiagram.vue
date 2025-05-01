@@ -4,7 +4,6 @@ import routeLinks from "@/router/routeLinks";
 import { useSagaDiagramStore } from "@/stores/SagaDiagramStore";
 import { useMessageStore } from "@/stores/MessageStore";
 import { storeToRefs } from "pinia";
-import ToolbarEndpointIcon from "@/assets/Shell_ToolbarEndpoint.svg";
 import { SagaViewModel, parseSagaUpdates } from "./SagaDiagram/SagaDiagramParser";
 import { typeToName } from "@/composables/typeHumanizer";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -71,11 +70,8 @@ const vm = computed<SagaViewModel>(() => {
 <template>
   <div class="saga-container">
     <!-- Toolbar header -->
-    <div v-if="vm.HasSagaData" class="header">
-      <button :class="['saga-button', { 'saga-button--active': vm.ShowMessageData }]" aria-label="show-message-data-button" @click="sagaDiagramStore.toggleMessageData">
-        <img class="saga-button-icon" :src="ToolbarEndpointIcon" alt="" />
-        {{ vm.ShowMessageData ? "Hide Message Data" : "Show Message Data" }}
-      </button>
+    <div v-if="vm.HasSagaData" class="toolbar">
+      <button type="button" class="btn btn-secondary btn-sm" aria-label="show-message-data-button" @click="sagaDiagramStore.toggleMessageData"><i class="fa fa-list-ul"></i> {{ vm.ShowMessageData ? "Hide Message Data" : "Show Message Data" }}</button>
     </div>
 
     <!-- Loading Spinner -->
@@ -111,16 +107,24 @@ const vm = computed<SagaViewModel>(() => {
 .saga-container {
   display: flex;
   flex-direction: column;
-  /* Must validate parent height in order to set this element min-height value */
-  min-height: 500px;
-  background-color: #ffffff;
+  margin-top: 5px;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  background: white;
 }
 
 /* Main containers */
 
-.header {
-  padding: 0.5rem;
-  border-bottom: solid 2px #ddd;
+.toolbar {
+  background-color: #f3f3f3;
+  border: #8c8c8c 1px solid;
+  border-radius: 3px;
+  padding: 5px;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: row;
+  min-height: 40px;
 }
 .body {
   display: flex;
@@ -139,31 +143,5 @@ const vm = computed<SagaViewModel>(() => {
   justify-content: center;
   align-items: center;
   min-height: 200px;
-}
-
-/* Button styles */
-
-.saga-button {
-  display: block;
-  padding: 0.2rem 0.7rem 0.1rem;
-  color: #555555;
-  font-size: 0.75rem;
-  border: solid 2px #00a3c4;
-  background-color: #e3e4e5;
-}
-.saga-button:focus,
-.saga-button:hover {
-  background-color: #daebfc;
-}
-
-.saga-button:active,
-.saga-button--active {
-  background-color: #c3dffc;
-}
-.saga-button-icon {
-  width: 0.75rem;
-  height: 0.75rem;
-  margin-top: -0.2rem;
-  margin-right: 0.25rem;
 }
 </style>

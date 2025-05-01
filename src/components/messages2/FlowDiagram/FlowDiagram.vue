@@ -218,44 +218,46 @@ const selectedErrorColor = hexToCSSFilter("#e8e6e8").filter;
 </script>
 
 <template>
-  <div v-if="store.conversationData.failed_to_load" class="alert alert-info">FlowDiagram data is unavailable.</div>
-  <LoadingSpinner v-else-if="store.conversationData.loading" />
-  <div v-else id="tree-container">
-    <VueFlow :nodes="nodes" :edges="edges" :min-zoom="0.1" :max-zoom="1.2" :only-render-visible-elements="true" @nodes-initialized="layoutGraph">
-      <Controls :show-interactive="false" position="top-left" class="controls" />
-      <template #node-message="{ id, data }: { id: string; data: NodeData }">
-        <TextEllipses class="address" :text="`${data.sendingEndpoint.name}@${data.sendingEndpoint.host}`" />
-        <div class="node" :class="{ error: data.isError, 'current-message': id === store.state.data.id }">
-          <div class="node-text">
-            <i
-              class="fa"
-              :style="data.isError && id === store.state.data.id ? { filter: selectedErrorColor } : {}"
-              :class="{ 'pa-flow-timeout': data.isTimeout, 'pa-flow-command': data.isCommand, 'pa-flow-event': data.isEvent }"
-              v-tippy="data.type"
-            />
-            <div class="typeName">
-              <RouterLink v-if="data.isError" :to="{ path: routeLinks.messages.failedMessage.link(id), query: { back: backLink } }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
-              <RouterLink v-else :to="{ path: routeLinks.messages.successMessage.link(data.messageId, id), query: { back: backLink } }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
-            </div>
-            <i v-if="data.isError" class="fa pa-flow-failed" :style="id !== store.state.data.id ? { filter: errorColor } : { filter: selectedErrorColor }" />
-            <div class="time-sent">
-              <time-since class="time-since" :date-utc="data.timeSent" />
-            </div>
-            <div class="sagas" v-if="data.sagaInvocations.length > 0">
-              <div class="saga" v-for="saga in data.sagaInvocations" :key="saga.id">
-                <i
-                  class="fa"
-                  v-tippy="saga.isSagaInitiated ? 'Message originated from Saga' : !saga.isSagaInitiated && saga.isSagaCompleted ? 'Saga Completed' : 'Saga Initiated / Updated'"
-                  :class="{ 'pa-flow-saga-initiated': saga.isSagaInitiated, 'pa-flow-saga-completed': !saga.isSagaInitiated && saga.isSagaCompleted, 'pa-flow-saga-trigger': !saga.isSagaInitiated && !saga.isSagaCompleted }"
-                />
-                <div class="sagaName"><TextEllipses style="width: 182px" :text="saga.sagaType" ellipses-style="LeftSide" /></div>
+  <div class="gap">
+    <div v-if="store.conversationData.failed_to_load" class="alert alert-info">FlowDiagram data is unavailable.</div>
+    <LoadingSpinner v-else-if="store.conversationData.loading" />
+    <div v-else id="tree-container">
+      <VueFlow :nodes="nodes" :edges="edges" :min-zoom="0.1" :max-zoom="1.2" :only-render-visible-elements="true" @nodes-initialized="layoutGraph">
+        <Controls :show-interactive="false" position="top-left" class="controls" />
+        <template #node-message="{ id, data }: { id: string; data: NodeData }">
+          <TextEllipses class="address" :text="`${data.sendingEndpoint.name}@${data.sendingEndpoint.host}`" />
+          <div class="node" :class="{ error: data.isError, 'current-message': id === store.state.data.id }">
+            <div class="node-text">
+              <i
+                class="fa"
+                :style="data.isError && id === store.state.data.id ? { filter: selectedErrorColor } : {}"
+                :class="{ 'pa-flow-timeout': data.isTimeout, 'pa-flow-command': data.isCommand, 'pa-flow-event': data.isEvent }"
+                v-tippy="data.type"
+              />
+              <div class="typeName">
+                <RouterLink v-if="data.isError" :to="{ path: routeLinks.messages.failedMessage.link(id), query: { back: backLink } }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
+                <RouterLink v-else :to="{ path: routeLinks.messages.successMessage.link(data.messageId, id), query: { back: backLink } }"><TextEllipses style="width: 204px" :text="data.label" ellipses-style="LeftSide" /></RouterLink>
+              </div>
+              <i v-if="data.isError" class="fa pa-flow-failed" :style="id !== store.state.data.id ? { filter: errorColor } : { filter: selectedErrorColor }" />
+              <div class="time-sent">
+                <time-since class="time-since" :date-utc="data.timeSent" />
+              </div>
+              <div class="sagas" v-if="data.sagaInvocations.length > 0">
+                <div class="saga" v-for="saga in data.sagaInvocations" :key="saga.id">
+                  <i
+                    class="fa"
+                    v-tippy="saga.isSagaInitiated ? 'Message originated from Saga' : !saga.isSagaInitiated && saga.isSagaCompleted ? 'Saga Completed' : 'Saga Initiated / Updated'"
+                    :class="{ 'pa-flow-saga-initiated': saga.isSagaInitiated, 'pa-flow-saga-completed': !saga.isSagaInitiated && saga.isSagaCompleted, 'pa-flow-saga-trigger': !saga.isSagaInitiated && !saga.isSagaCompleted }"
+                  />
+                  <div class="sagaName"><TextEllipses style="width: 182px" :text="saga.sagaType" ellipses-style="LeftSide" /></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <TextEllipses class="address" :text="`${data.receivingEndpoint.name}@${data.receivingEndpoint.host}`" />
-      </template>
-    </VueFlow>
+          <TextEllipses class="address" :text="`${data.receivingEndpoint.name}@${data.receivingEndpoint.host}`" />
+        </template>
+      </VueFlow>
+    </div>
   </div>
 </template>
 
@@ -268,6 +270,13 @@ const selectedErrorColor = hexToCSSFilter("#e8e6e8").filter;
 <style scoped>
 @import "../../list.css";
 
+.gap {
+  margin-top: 5px;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  background: white;
+}
 .controls {
   display: flex;
   flex-wrap: wrap;
