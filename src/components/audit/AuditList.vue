@@ -62,10 +62,7 @@ function navigateToMessage(message: Message) {
   const query = router.currentRoute.value.query;
 
   router.push({
-    path:
-      message.status === MessageStatus.Successful //
-        ? routeLinks.messages.successMessage.link(message.message_id, message.id)
-        : routeLinks.messages.failedMessage.link(message.id),
+    path: message.status === MessageStatus.Successful || message.status === MessageStatus.ResolvedSuccessfully ? routeLinks.messages.successMessage.link(message.message_id, message.id) : routeLinks.messages.failedMessage.link(message.id),
     query: { ...query, ...{ back: route.path } },
   });
 }
