@@ -282,6 +282,9 @@ function rendercomponent({ initialState = {} }: { initialState?: { MessageStore?
           stubActions: true, // Explicitly stub actions (this is the default)
         }),
       ],
+      stubs: {
+        CodeEditor: true,
+      },
     },
   });
 

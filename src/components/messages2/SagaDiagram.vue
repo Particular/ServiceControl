@@ -133,8 +133,8 @@ const vm = computed<SagaViewModel>(() => {
 }
 
 .container {
-  width: 66.6667%;
   min-width: 50rem;
+  max-width: 100rem;
 }
 
 .loading-container {

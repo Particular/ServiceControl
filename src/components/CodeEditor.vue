@@ -19,6 +19,7 @@ const props = withDefaults(
     showGutter?: boolean;
     showCopyToClipboard?: boolean;
     ariaLabel?: string;
+    css?: string;
   }>(),
   { readOnly: true, showGutter: true, showCopyToClipboard: true }
 );
@@ -49,7 +50,7 @@ const extensions = computed(() => {
 </script>
 
 <template>
-  <div class="wrapper" :aria-label="ariaLabel">
+  <div class="wrapper" :aria-label="ariaLabel" :class="css">
     <div v-if="props.showCopyToClipboard" class="toolbar">
       <CopyToClipboard :value="code" />
     </div>

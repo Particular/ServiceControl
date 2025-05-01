@@ -3,8 +3,10 @@ import { SagaUpdateViewModel } from "./SagaDiagramParser";
 import MessageDataBox from "./MessageDataBox.vue";
 import SagaOutgoingTimeoutMessage from "./SagaOutgoingTimeoutMessage.vue";
 import SagaOutgoingMessage from "./SagaOutgoingMessage.vue";
+import DiffViewer from "@/components/messages2/DiffViewer.vue";
+import CodeEditor from "@/components/CodeEditor.vue";
 import { useSagaDiagramStore } from "@/stores/SagaDiagramStore";
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 
 // Import the images directly
 import CommandIcon from "@/assets/command.svg";
@@ -12,6 +14,13 @@ import SagaInitiatedIcon from "@/assets/SagaInitiatedIcon.svg";
 import SagaUpdatedIcon from "@/assets/SagaUpdatedIcon.svg";
 import TimeoutIcon from "@/assets/timeout.svg";
 import SagaTimeoutIcon from "@/assets/SagaTimeoutIcon.svg";
+
+// Define types for JSON values and properties
+type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
+interface JsonObject {
+  [key: string]: JsonValue;
+}
+type JsonArray = Array<JsonValue>;
 
 const props = defineProps<{
   update: SagaUpdateViewModel;
@@ -21,6 +30,7 @@ const props = defineProps<{
 const store = useSagaDiagramStore();
 const initiatingMessageRef = ref<HTMLElement | null>(null);
 const isActive = ref(false);
+const hasParsingError = ref(false);
 
 // Watch for changes to selectedMessageId
 watch(
@@ -41,6 +51,76 @@ watch(
     }
   }
 );
+
+// Format a JSON value for display
+const formatJsonValue = (value: unknown): string => {
+  if (value === null || value === undefined) return "null";
+  if (typeof value === "object") {
+    return JSON.stringify(value, null, 2);
+  }
+  return String(value);
+};
+
+// Process JSON state and remove standard properties
+const processState = (state: string | undefined): Record<string, JsonValue> => {
+  if (!state) return {};
+
+  let stateObj: Record<string, unknown>;
+  try {
+    stateObj = JSON.parse(state);
+  } catch (e) {
+    console.error("Error parsing state:", e);
+    hasParsingError.value = true;
+    return {};
+  }
+
+  // Filter out standard properties using delete
+  const standardKeys = ["$type", "Id", "Originator", "OriginalMessageId"];
+  standardKeys.forEach((key) => {
+    if (key in stateObj) {
+      delete stateObj[key];
+    }
+  });
+
+  return stateObj as Record<string, JsonValue>;
+};
+
+const sagaUpdateStateChanges = computed(() => {
+  const currentState = processState(props.update.stateAfterChange);
+  const previousState = processState(props.update.previousStateAfterChange);
+  const isFirstNode = props.update.IsFirstNode;
+
+  // Format the current state
+  const currentFormatted = formatJsonValue(currentState);
+
+  // If it's the first node, just return the current state
+  if (isFirstNode) {
+    return {
+      formattedState: currentFormatted,
+      // Provide default empty strings for diff view to prevent type errors
+      previousFormatted: "",
+      currentFormatted: currentFormatted,
+    };
+  }
+
+  // Format the JSON state objects
+  const previousFormatted = formatJsonValue(previousState);
+
+  return {
+    previousFormatted,
+    currentFormatted,
+  };
+});
+
+// Determine if there are changes to display
+const hasStateChanges = computed(() => {
+  if (props.update.IsFirstNode) return true;
+
+  const currentState = processState(props.update.stateAfterChange);
+  const previousState = processState(props.update.previousStateAfterChange);
+
+  return JSON.stringify(currentState) !== JSON.stringify(previousState);
+});
 </script>
 
 <template>
@@ -89,19 +169,38 @@ watch(
       <!-- Center - Saga properties -->
       <div class="cell cell--center cell--center--border">
         <div :class="{ 'cell-inner': true, 'cell-inner-line': update.HasTimeout, 'cell-inner-center': !update.HasTimeout }">
-          <div class="saga-properties">
-            <a class="saga-properties-link" href="">All Properties</a> /
-            <a class="saga-properties-link saga-properties-link--active" href="">Updated Properties</a>
-          </div>
+          <div class="saga-state-container">
+            <h3 class="saga-state-title" v-if="update.IsFirstNode">Initial Saga State</h3>
+            <h3 class="saga-state-title" v-else>State Changes</h3>
 
-          <!-- Display saga properties if available -->
-          <ul class="saga-properties-list">
-            <li class="saga-properties-list-item">
-              <span class="saga-properties-list-text" title="Property (new)">Property (new)</span>
-              <span class="saga-properties-list-text">=</span>
-              <span class="saga-properties-list-text" title="Sample Value"> Sample Value</span>
-            </li>
-          </ul>
+            <!-- Error message when parsing fails -->
+            <div v-if="hasParsingError" class="json-container">
+              <div class="parsing-error-message">An error occurred while parsing and displaying the saga state for this update</div>
+            </div>
+
+            <!-- Initial state display -->
+            <div v-else-if="update.IsFirstNode" class="json-container">
+              <CodeEditor css="monospace-code" :model-value="sagaUpdateStateChanges.formattedState || ''" language="json" :showCopyToClipboard="false" :showGutter="false" />
+            </div>
+
+            <!-- No changes message -->
+            <div v-else-if="!hasStateChanges" class="json-container">
+              <div class="no-changes-message">No state changes in this update</div>
+            </div>
+
+            <!-- Side-by-side diff view for state changes -->
+            <div v-else-if="hasStateChanges && !update.IsFirstNode">
+              <DiffViewer
+                :hide-line-numbers="true"
+                :showDiffOnly="true"
+                :oldValue="sagaUpdateStateChanges.previousFormatted"
+                :newValue="sagaUpdateStateChanges.currentFormatted"
+                leftTitle="Previous State"
+                rightTitle="Updated State"
+                :showMaximizeIcon="true"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -118,10 +217,6 @@ watch(
 </template>
 
 <style scoped>
-.block {
-  /* block container style */
-}
-
 .row {
   display: flex;
 }
@@ -162,10 +257,6 @@ watch(
   display: flex;
   flex-direction: column;
   border-top: solid 2px #000000;
-}
-
-.cell-inner {
-  /* padding: 0.5rem; */
 }
 
 .cell-inner-center {
@@ -262,54 +353,6 @@ watch(
   font-size: 0.8rem;
 }
 
-.saga-properties {
-  margin: 0 -0.25rem;
-  padding: 0.25rem;
-  font-size: 0.6rem;
-  text-transform: uppercase;
-}
-
-.saga-properties-link {
-  padding: 0 0.25rem;
-  text-decoration: underline;
-}
-
-.saga-properties-link--active {
-  font-weight: 900;
-  color: #000000;
-}
-
-.saga-properties-list {
-  margin: 0;
-  padding-left: 0.25rem;
-  list-style: none;
-}
-
-.saga-properties-list-item {
-  display: flex;
-}
-
-.saga-properties-list-text {
-  display: inline-block;
-  padding-top: 0.25rem;
-  padding-right: 0.75rem;
-  overflow: hidden;
-  font-size: 0.75rem;
-  white-space: nowrap;
-}
-
-.saga-properties-list-text:first-child {
-  min-width: 8rem;
-  max-width: 8rem;
-  display: inline-block;
-  text-overflow: ellipsis;
-}
-
-.saga-properties-list-text:last-child {
-  padding-right: 0;
-  text-overflow: ellipsis;
-}
-
 .message-data {
   display: none;
   padding: 0.2rem;
@@ -341,6 +384,7 @@ watch(
   height: 1rem;
   margin-top: -0.3rem;
 }
+
 .timeout-status {
   display: inline-block;
   font-size: 1rem;
@@ -348,10 +392,56 @@ watch(
   color: #00a3c4;
 }
 
+/* Styles for DiffViewer integration */
+.saga-state-container {
+  padding: 0.5rem;
+}
+
+.saga-state-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.json-container {
+  background-color: transparent;
+}
+
+.no-changes-message {
+  padding: 1rem;
+  text-align: center;
+  font-style: italic;
+  color: #666;
+}
+
+.parsing-error-message {
+  padding: 1rem;
+  text-align: center;
+  font-style: italic;
+  color: #a94442;
+}
+
+/* Monospace font styling that matches DiffViewer */
+:deep(.monospace-code) {
+  border-radius: 0;
+  border: none;
+  background-color: #f2f2f2;
+}
+
+:deep(.monospace-code) .cm-editor {
+  font-family: monospace;
+  font-size: 0.75rem;
+  background-color: #f2f2f2;
+}
+
+:deep(.monospace-code) .cm-scroller {
+  background-color: #f2f2f2;
+}
+
 @-webkit-keyframes blink-border {
   0%,
   100% {
-    border-color: #000000;
+    border-color: #00a3c4;
   }
   20%,
   60% {
@@ -359,7 +449,52 @@ watch(
   }
   40%,
   80% {
-    border-color: #000000;
+    border-color: #00a3c4;
+  }
+}
+
+@-moz-keyframes blink-border {
+  0%,
+  100% {
+    border-color: #00a3c4;
+  }
+  20%,
+  60% {
+    border-color: #cccccc;
+  }
+  40%,
+  80% {
+    border-color: #00a3c4;
+  }
+}
+
+@-o-keyframes blink-border {
+  0%,
+  100% {
+    border-color: #00a3c4;
+  }
+  20%,
+  60% {
+    border-color: #cccccc;
+  }
+  40%,
+  80% {
+    border-color: #00a3c4;
+  }
+}
+
+@keyframes blink-border {
+  0%,
+  100% {
+    border-color: #00a3c4;
+  }
+  20%,
+  60% {
+    border-color: #cccccc;
+  }
+  40%,
+  80% {
+    border-color: #00a3c4;
   }
 }
 
