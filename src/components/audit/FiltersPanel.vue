@@ -75,7 +75,7 @@ function toggleWildcardToolTip(show: boolean) {
               Example: <i><i class="fa fa-asterisk asterisk" />World!</i> or <i>Hello<i class="fa fa-asterisk asterisk" /></i>, to look for <i>Hello World!</i>
             </p>
           </template>
-          <FilterInput v-model="messageFilterString" placeholder="Search messages..." aria-label="Search messages" @focus="() => toggleWildcardToolTip(true)" @blur="() => toggleWildcardToolTip(false)" />
+          <FilterInput v-model="messageFilterString" placeholder="Search messages..." aria-label="Search messages" @focus="() => toggleWildcardToolTip(true)" @blur="() => toggleWildcardToolTip(false)" @input="() => toggleWildcardToolTip(false)" />
         </Tippy>
       </div>
     </div>
