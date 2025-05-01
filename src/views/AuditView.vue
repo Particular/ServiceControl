@@ -2,7 +2,7 @@
 import { licenseStatus } from "../composables/serviceLicense";
 import LicenseExpired from "../components/LicenseExpired.vue";
 import AuditList from "@/components/audit/AuditList.vue";
-import isAllMessagesSupported, { minimumSCVersionForThroughput } from "@/components/audit/isAllMessagesSupported.ts";
+import isAllMessagesSupported, { minimumSCVersionForAllMessages } from "@/components/audit/isAllMessagesSupported.ts";
 import ConditionalRender from "@/components/ConditionalRender.vue";
 </script>
 
@@ -12,7 +12,7 @@ import ConditionalRender from "@/components/ConditionalRender.vue";
       <div class="not-supported">
         <p>
           The minimum version of ServiceControl required to enable this feature is
-          <span> {{ minimumSCVersionForThroughput }} </span>.
+          <span> {{ minimumSCVersionForAllMessages }} </span>.
         </p>
         <div>
           <a class="btn btn-default btn-primary" href="https://particular.net/downloads" target="_blank">Update ServiceControl to latest version</a>
