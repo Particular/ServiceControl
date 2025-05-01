@@ -70,7 +70,7 @@ function toggleWildcardToolTip(show: boolean) {
       <div class="filter-component text-search-container">
         <Tippy ref="wildcardTooltipRef" trigger="click" :hideOnClick="false">
           <template #content>
-            <h4>Use <i class="fa fa-asterisk asterisk" /> to do wildcard searches <i class="fa fa-lightbulb-o" style="color: #e6c201" /></h4>
+            <h4>Use <i class="fa fa-asterisk asterisk" /> to do wildcard searches</h4>
             <p>
               Example: <i><i class="fa fa-asterisk asterisk" />World!</i> or <i>Hello<i class="fa fa-asterisk asterisk" /></i>, to look for <i>Hello World!</i>
             </p>
