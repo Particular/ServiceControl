@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FilterInput from "@/components/FilterInput.vue";
-import { ref, watch } from "vue";
+import { onMounted, ref, useTemplateRef, watch } from "vue";
 
 const selected = defineModel<string>({ required: true });
 const props = withDefaults(
@@ -29,17 +29,24 @@ watch([filter, () => props.items], () => {
 function setFilter(item: string, isSelected: boolean) {
   selected.value = isSelected && props.canClear ? "" : item;
 }
+const bootstrapDropDown = useTemplateRef<HTMLElement | null>("bootstrapDropDown");
+const filterInput = useTemplateRef<{ focus: () => void } | null>("filterInput");
+onMounted(() => {
+  bootstrapDropDown.value?.addEventListener("shown.bs.dropdown", () => {
+    filterInput.value?.focus();
+  });
+});
 </script>
 
 <template>
-  <div class="dropdown">
+  <div ref="bootstrapDropDown" class="dropdown">
     <button type="button" aria-label="open dropdown menu" class="btn btn-dropdown dropdown-toggle sp-btn-menu" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       <span class="wrap-text">{{ selected || defaultEmptyText }}</span>
     </button>
     <div class="dropdown-menu wrapper">
       <div class="instructions">{{ instructions }}</div>
       <div v-if="showFilter" class="filter-input">
-        <FilterInput v-model="filter" :placeholder="`Filter ${itemName}s`" />
+        <FilterInput ref="filterInput" v-model="filter" :placeholder="`Filter ${itemName}s`" />
       </div>
       <div class="items-container">
         <div class="item-container" v-if="showClear && selected" @click.prevent="() => setFilter('', true)">

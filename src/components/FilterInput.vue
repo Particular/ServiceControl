@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useTemplateRef } from "vue";
 import debounce from "lodash/debounce";
 
 const model = defineModel<string>({ required: true });
@@ -13,15 +13,21 @@ const localInput = computed({
     debounceUpdateModel(newValue);
   },
 });
-
+const textField = useTemplateRef<HTMLInputElement>("textField");
 const debounceUpdateModel = debounce((value: string) => {
   model.value = value;
 }, 600);
+
+defineExpose({ focus });
+
+function focus() {
+  textField.value?.focus();
+}
 </script>
 
 <template>
   <div role="search" aria-label="filter" class="filter-input">
-    <input type="search" @focus="() => emit('focus')" @blur="() => emit('blur')" :placeholder="props.placeholder" :aria-label="props.ariaLabel" class="form-control filter-input" v-model="localInput" />
+    <input ref="textField" type="search" @focus="() => emit('focus')" @blur="() => emit('blur')" :placeholder="props.placeholder" :aria-label="props.ariaLabel" class="form-control filter-input" v-model="localInput" />
   </div>
 </template>
 
