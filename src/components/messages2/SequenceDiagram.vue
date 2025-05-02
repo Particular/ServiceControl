@@ -56,7 +56,7 @@ onMounted(() => store.refreshConversation());
 }
 .outer {
   max-width: 100%;
-  max-height: calc(100vh - 27em);
+  max-height: calc(100vh - 30em);
   overflow: auto;
 }
 

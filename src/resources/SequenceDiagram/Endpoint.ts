@@ -9,7 +9,7 @@ export interface Endpoint {
   readonly handlers: Handler[];
   readonly host: string;
   readonly version: string;
-  uiRef?: SVGElement;
+  uiRef?: Element;
   addHandler(handler: Handler): void;
 }
 
