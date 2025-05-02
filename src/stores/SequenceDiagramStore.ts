@@ -43,11 +43,11 @@ export const useSequenceDiagramStore = defineStore("SequenceDiagramStore", () =>
   const selectedId = computed(() => `${state.value.data.message_type ?? ""}(${state.value.data.id})`);
 
   watch(
-    () => conversationData,
+    () => conversationData.value.data,
     (conversationData) => {
-      if (conversationData.value.data.length) {
+      if (conversationData.length) {
         startX.value = Endpoint_Width / 2;
-        const model = new ModelCreator(conversationData.value.data);
+        const model = new ModelCreator(conversationData);
         endpoints.value = model.endpoints;
         handlers.value = model.handlers;
         routes.value = model.routes;
