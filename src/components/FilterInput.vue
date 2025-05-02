@@ -3,6 +3,7 @@ import { computed } from "vue";
 import debounce from "lodash/debounce";
 
 const model = defineModel<string>({ required: true });
+const emit = defineEmits<{ focus: []; blur: [] }>();
 const props = withDefaults(defineProps<{ placeholder?: string; ariaLabel?: string }>(), { placeholder: "Filter by name...", ariaLabel: "Filter by name" });
 const localInput = computed({
   get() {
@@ -20,7 +21,7 @@ const debounceUpdateModel = debounce((value: string) => {
 
 <template>
   <div role="search" aria-label="filter" class="filter-input">
-    <input type="search" :placeholder="props.placeholder" :aria-label="props.ariaLabel" class="form-control filter-input" v-model="localInput" />
+    <input type="search" @focus="() => emit('focus')" @blur="() => emit('blur')" :placeholder="props.placeholder" :aria-label="props.ariaLabel" class="form-control filter-input" v-model="localInput" />
   </div>
 </template>
 

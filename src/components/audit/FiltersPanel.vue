@@ -3,14 +3,16 @@ import FilterInput from "@/components/FilterInput.vue";
 import { storeToRefs } from "pinia";
 import { FieldNames, useAuditStore } from "@/stores/AuditStore.ts";
 import ListFilterSelector from "@/components/audit/ListFilterSelector.vue";
-import { computed } from "vue";
+import { computed, useTemplateRef } from "vue";
 import DatePickerRange from "@/components/audit/DatePickerRange.vue";
+import { Tippy, TippyComponent } from "vue-tippy";
 
 const store = useAuditStore();
 const { sortBy, messageFilterString, selectedEndpointName, endpoints, itemsPerPage, dateRange } = storeToRefs(store);
 const endpointNames = computed(() => {
   return [...new Set(endpoints.value.map((endpoint) => endpoint.name))].sort();
 });
+const wildcardTooltipRef = useTemplateRef<TippyComponent | null>("wildcardTooltipRef");
 const sortByItemsMap = new Map([
   ["Latest sent", `${FieldNames.TimeSent},desc`],
   ["Oldest sent", `${FieldNames.TimeSent},asc`],
@@ -51,13 +53,31 @@ function findKeyByValue(searchValue: string) {
   }
   return "";
 }
+
+function toggleWildcardToolTip(show: boolean) {
+  if (show) {
+    wildcardTooltipRef.value?.show();
+  } else {
+    wildcardTooltipRef.value?.hide();
+  }
+}
 </script>
 
 <template>
   <div class="filters">
     <div class="filter">
       <div class="filter-label"></div>
-      <div class="filter-component text-search-container"><FilterInput v-model="messageFilterString" placeholder="Search messages..." aria-label="Search messages" /></div>
+      <div class="filter-component text-search-container">
+        <Tippy ref="wildcardTooltipRef" trigger="click" :hideOnClick="false">
+          <template #content>
+            <h4>Use <i class="fa fa-asterisk asterisk" /> to do wildcard searches</h4>
+            <p>
+              Example: <i><i class="fa fa-asterisk asterisk" />World!</i> or <i>Hello<i class="fa fa-asterisk asterisk" /></i>, to look for <i>Hello World!</i>
+            </p>
+          </template>
+          <FilterInput v-model="messageFilterString" placeholder="Search messages..." aria-label="Search messages" @focus="() => toggleWildcardToolTip(true)" @blur="() => toggleWildcardToolTip(false)" @input="() => toggleWildcardToolTip(false)" />
+        </Tippy>
+      </div>
     </div>
     <div class="filter">
       <div class="filter-label">Endpoint:</div>
@@ -87,6 +107,10 @@ function findKeyByValue(searchValue: string) {
 </template>
 
 <style scoped>
+.asterisk {
+  color: #04b9ff;
+  font-size: 1.2rem;
+}
 .filters {
   background-color: #f3f3f3;
   border: #8c8c8c 1px solid;
