@@ -7,6 +7,7 @@ import DiffViewer from "@/components/messages2/DiffViewer.vue";
 import CodeEditor from "@/components/CodeEditor.vue";
 import { useSagaDiagramStore } from "@/stores/SagaDiagramStore";
 import { ref, watch, computed } from "vue";
+import { parse, stringify } from "lossless-json";
 
 // Import the images directly
 import CommandIcon from "@/assets/command.svg";
@@ -15,13 +16,6 @@ import SagaUpdatedIcon from "@/assets/SagaUpdatedIcon.svg";
 import TimeoutIcon from "@/assets/timeout.svg";
 import EventIcon from "@/assets/event.svg";
 import SagaTimeoutIcon from "@/assets/SagaTimeoutIcon.svg";
-
-// Define types for JSON values and properties
-type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
-interface JsonObject {
-  [key: string]: JsonValue;
-}
-type JsonArray = Array<JsonValue>;
 
 const props = defineProps<{
   update: SagaUpdateViewModel;
@@ -57,18 +51,20 @@ watch(
 const formatJsonValue = (value: unknown): string => {
   if (value === null || value === undefined) return "null";
   if (typeof value === "object") {
-    return JSON.stringify(value, null, 2);
+    return stringify(value as object, null, 2) || "{}";
   }
   return String(value);
 };
 
 // Process JSON state and remove standard properties
-const processState = (state: string | undefined): Record<string, JsonValue> => {
+const processState = (state: string | undefined): object => {
   if (!state) return {};
 
   let stateObj: Record<string, unknown>;
   try {
-    stateObj = JSON.parse(state);
+    const parsedState = parse(state);
+
+    stateObj = parsedState as Record<string, unknown>;
   } catch (e) {
     console.error("Error parsing state:", e);
     hasParsingError.value = true;
@@ -83,7 +79,7 @@ const processState = (state: string | undefined): Record<string, JsonValue> => {
     }
   });
 
-  return stateObj as Record<string, JsonValue>;
+  return stateObj;
 };
 
 const sagaUpdateStateChanges = computed(() => {
@@ -120,7 +116,7 @@ const hasStateChanges = computed(() => {
   const currentState = processState(props.update.stateAfterChange);
   const previousState = processState(props.update.previousStateAfterChange);
 
-  return JSON.stringify(currentState) !== JSON.stringify(previousState);
+  return stringify(currentState) !== stringify(previousState);
 });
 </script>
 

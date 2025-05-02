@@ -3,6 +3,7 @@ import { ref, watch } from "vue";
 import { SagaHistory, SagaMessage } from "@/resources/SagaHistory";
 import { useFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
 import Message from "@/resources/Message";
+import { parse } from "lossless-json";
 
 const StandardKeys = ["$type", "Id", "Originator", "OriginalMessageId"];
 export interface SagaMessageDataItem {
@@ -155,12 +156,11 @@ export const useSagaDiagramStore = defineStore("SagaDiagramStore", () => {
     }
   }
 
-  // Replace or modify the existing processJsonValues function
   function processJsonValues(jsonBody: string | Record<string, unknown>): SagaMessageDataItem[] {
     let parsedBody: Record<string, unknown>;
     if (typeof jsonBody === "string") {
       try {
-        parsedBody = JSON.parse(jsonBody);
+        parsedBody = parse(jsonBody) as Record<string, unknown>;
       } catch (e) {
         console.error("Error parsing JSON:", e);
         return [];
