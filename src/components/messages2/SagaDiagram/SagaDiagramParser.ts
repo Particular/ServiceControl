@@ -15,6 +15,7 @@ export interface InitiatingMessageViewModel {
   MessageType: string;
   IsSagaTimeoutMessage: boolean;
   FormattedMessageTimestamp: string;
+  IsEventMessage: boolean;
   MessageData: SagaMessageDataItem[];
 }
 export interface SagaTimeoutMessageViewModel extends SagaMessageViewModel {
@@ -117,6 +118,7 @@ export function parseSagaUpdates(sagaHistory: SagaHistory | null, messagesData: 
           MessageType: typeToName(update.initiating_message?.message_type || "Unknown Message") || "",
           FormattedMessageTimestamp: `${initiatingMessageTimestamp.toLocaleDateString()} ${initiatingMessageTimestamp.toLocaleTimeString()}`,
           MessageData: initiatingMessageData,
+          IsEventMessage: update.initiating_message?.intent === "Publish",
           IsSagaTimeoutMessage: update.initiating_message?.is_saga_timeout_message || false,
         },
         HasTimeout: hasTimeout,
