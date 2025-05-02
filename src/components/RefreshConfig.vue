@@ -41,7 +41,18 @@ watch(selectedRefresh, (newValue) => {
     }
   }
 });
-
+const showSpinning = ref(false);
+watch(
+  () => props.isLoading,
+  (newValue) => {
+    if (newValue) {
+      showSpinning.value = true;
+      window.setTimeout(() => {
+        showSpinning.value = false;
+      }, 1000);
+    }
+  }
+);
 async function refresh() {
   await emit("manualRefresh");
 }
@@ -49,7 +60,7 @@ async function refresh() {
 
 <template>
   <div class="refresh-config">
-    <button class="btn btn-sm" title="refresh" @click="refresh"><i class="fa fa-refresh" :class="{ spinning: props.isLoading }" /> Refresh List</button>
+    <button class="btn btn-sm" title="refresh" @click="refresh"><i class="fa fa-refresh" :class="{ spinning: showSpinning }" /> Refresh List</button>
     <div class="filter">
       <div class="filter-label">Auto-Refresh:</div>
       <div class="filter-component">
