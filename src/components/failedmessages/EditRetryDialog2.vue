@@ -60,7 +60,7 @@ const debounceBodyUpdate = debounce((value: string) => {
   const newValue = value.replaceAll(regExToPruneLineEndings, "");
   localMessage.value.isBodyChanged = newValue !== uneditedMessageBody.value.replaceAll(regExToPruneLineEndings, "");
   localMessage.value.isBodyEmpty = newValue === "";
-}, 1000);
+}, 100);
 
 watch(
   () => localMessage.value.messageBody,
