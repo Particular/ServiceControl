@@ -4,7 +4,6 @@ import { ref } from "vue";
 import type { SortInfo } from "@/components/SortInfo";
 import Message from "@/resources/Message";
 import { EndpointsView } from "@/resources/EndpointView.ts";
-import useAutoRefresh from "@/composables/autoRefresh";
 
 export type DateRange = [fromDate: Date, toDate: Date] | [];
 
@@ -39,7 +38,7 @@ export const useAuditStore = defineStore("AuditStore", () => {
     }
   }
 
-  const dataRetriever = useAutoRefresh(async () => {
+  async function refresh() {
     try {
       const [fromDate, toDate] = dateRange.value;
       const from = fromDate?.toISOString() ?? "";
@@ -53,11 +52,10 @@ export const useAuditStore = defineStore("AuditStore", () => {
       messages.value = [];
       throw e;
     }
-  }, null);
+  }
 
   return {
-    refresh: dataRetriever.executeAndResetTimer,
-    updateRefreshTimer: dataRetriever.updateTimeout,
+    refresh,
     loadEndpoints,
     sortBy: sortByInstances,
     messages,

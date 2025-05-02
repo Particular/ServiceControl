@@ -1,45 +1,72 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import OnOffSwitch from "./OnOffSwitch.vue";
+import { ref, watch } from "vue";
+import ListFilterSelector from "@/components/audit/ListFilterSelector.vue";
 
-const props = defineProps<{
-  id: string;
-  initialTimeout?: number;
-  onManualRefresh: () => void;
-}>();
+const props = defineProps<{ isLoading: boolean }>();
+const model = defineModel<number | null>({ required: true });
+const emit = defineEmits<{ (e: "manualRefresh"): Promise<void> }>();
+const autoRefreshOptionsText: [number, string][] = [
+  [0, "Off"],
+  [5000, "Every 5 seconds"],
+  [15000, "Every 15 seconds"],
+  [30000, "Every 30 seconds"],
+  [60000, "Every 1 minute"],
+  [600000, "Every 10 minute"],
+  [1800000, "Every 30 minute"],
+  [3600000, "Every 1 hour"],
+];
 
-const emit = defineEmits<{ change: [newValue: number | null]; manualRefresh: [] }>();
+function extracted() {
+  const item = autoRefreshOptionsText.find((item) => item[0] === model.value);
 
-const autoRefresh = ref(props.initialTimeout != null);
-const refreshTimeout = ref(props.initialTimeout ?? 5);
+  if (item) {
+    return item[1];
+  }
 
-function toggleRefresh() {
-  autoRefresh.value = !autoRefresh.value;
-  updateTimeout();
+  return "Off";
 }
 
-function updateTimeout() {
-  validateTimeout();
-  emit("change", autoRefresh.value ? refreshTimeout.value * 1000 : null);
-}
+const selectValue = extracted();
 
-function validateTimeout() {
-  refreshTimeout.value = Math.max(1, Math.min(600, refreshTimeout.value));
+const selectedRefresh = ref<string>(selectValue);
+
+watch(selectedRefresh, (newValue) => {
+  const item = autoRefreshOptionsText.find((item) => item[1] === newValue);
+
+  if (item) {
+    if (item[0] === 0) {
+      model.value = null;
+    } else {
+      model.value = item[0];
+    }
+  }
+});
+const showSpinning = ref(false);
+watch(
+  () => props.isLoading,
+  (newValue) => {
+    if (newValue) {
+      showSpinning.value = true;
+      window.setTimeout(() => {
+        showSpinning.value = false;
+      }, 1000);
+    }
+  }
+);
+async function refresh() {
+  await emit("manualRefresh");
 }
 </script>
 
 <template>
   <div class="refresh-config">
-    <button class="fa" title="refresh" @click="() => emit('manualRefresh')">
-      <i class="fa fa-lg fa-refresh" />
-    </button>
-    <span>|</span>
-    <label>Auto-Refresh:</label>
-    <div>
-      <OnOffSwitch :id="id" @toggle="toggleRefresh" :value="autoRefresh" />
+    <button class="btn btn-sm" title="refresh" @click="refresh"><i class="fa fa-refresh" :class="{ spinning: showSpinning }" /> Refresh List</button>
+    <div class="filter">
+      <div class="filter-label">Auto-Refresh:</div>
+      <div class="filter-component">
+        <ListFilterSelector :items="autoRefreshOptionsText.map((i) => i[1])" v-model="selectedRefresh" item-name="result" :can-clear="false" :show-clear="false" :show-filter="false" />
+      </div>
     </div>
-    <input type="number" v-model="refreshTimeout" min="1" max="600" v-on:change="updateTimeout" />
-    <span class="unit">s</span>
   </div>
 </template>
 
@@ -47,40 +74,34 @@ function validateTimeout() {
 .refresh-config {
   display: flex;
   align-items: center;
-  gap: 0.5em;
+  gap: 1em;
+  margin-bottom: 0.5em;
 }
 
-.refresh-config .unit {
-  margin-left: -0.45em;
+.filter {
+  display: flex;
+  align-items: center;
 }
 
-.refresh-config label {
-  margin: 0;
+.filter-label {
+  font-weight: bold;
 }
 
-.refresh-config input {
-  width: 3.5em;
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.refresh-config button {
-  background: none;
-  border: none;
-  width: 2em;
+.fa-refresh {
+  display: inline-block;
 }
 
-.refresh-config button .fa {
-  transition: all 0.15s ease-in-out;
-  transition: rotate 0.05s ease-in-out;
-  transform-origin: center;
-}
-
-.refresh-config button:hover .fa {
-  color: #00a3c4;
-  transform: scale(1.1);
-}
-
-.refresh-config button:active .fa {
-  transform: rotate(25deg);
-  text-shadow: #929e9e 0.25px 0.25px;
+/* You can add this class dynamically when needed */
+.fa-refresh.spinning {
+  animation: spin 1s linear infinite;
 }
 </style>
