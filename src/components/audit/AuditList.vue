@@ -160,6 +160,11 @@ watch(autoRefreshValue, (newValue) => dataRetriever.updateTimeout(newValue));
         <FiltersPanel />
       </div>
       <div class="row">
+        <div class="col format-showing-tip">
+          <div>Use <i class="fa fa-asterisk asterisk" /> as a wildcard. Eg: <i class="fa fa-asterisk asterisk"></i>World! or Hello<i class="fa fa-asterisk asterisk"></i> finds Hello World!</div>
+        </div>
+      </div>
+      <div class="row">
         <ResultsCount :displayed="messages.length" :total="totalCount" />
       </div>
     </div>
@@ -296,5 +301,10 @@ watch(autoRefreshValue, (newValue) => dataRetriever.updateTimeout(newValue));
 
 .retry-issued {
   background-image: url("@/assets/status_retry_issued.svg");
+}
+.format-showing-tip {
+  display: flex;
+  align-items: flex-end;
+  font-style: italic;
 }
 </style>
