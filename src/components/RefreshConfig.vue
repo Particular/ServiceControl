@@ -5,33 +5,40 @@ import ListFilterSelector from "@/components/audit/ListFilterSelector.vue";
 const props = defineProps<{ isLoading: boolean }>();
 const model = defineModel<number | null>({ required: true });
 const emit = defineEmits<{ (e: "manualRefresh"): Promise<void> }>();
-const autoRefreshOptionsText = ["Off", "Every 5 seconds", "Every 15 seconds", "Every 30 seconds"];
-let selectValue = "Off";
+const autoRefreshOptionsText: [number, string][] = [
+  [0, "Off"],
+  [5000, "Every 5 seconds"],
+  [15000, "Every 15 seconds"],
+  [30000, "Every 30 seconds"],
+  [60000, "Every 1 minute"],
+  [600000, "Every 10 minute"],
+  [1800000, "Every 30 minute"],
+  [3600000, "Every 1 hour"],
+];
 
-if (model.value === 5000) {
-  selectValue = "Every 5 seconds";
+function extracted() {
+  const item = autoRefreshOptionsText.find((item) => item[0] === model.value);
+
+  if (item) {
+    return item[1];
+  }
+
+  return "Off";
 }
-if (model.value === 15000) {
-  selectValue = "Every 15 seconds";
-}
-if (model.value === 30000) {
-  selectValue = "Every 30 seconds";
-}
+
+const selectValue = extracted();
 
 const selectedRefresh = ref<string>(selectValue);
 
 watch(selectedRefresh, (newValue) => {
-  if (newValue === autoRefreshOptionsText[0]) {
-    model.value = null;
-  }
-  if (newValue === autoRefreshOptionsText[1]) {
-    model.value = 5000;
-  }
-  if (newValue === autoRefreshOptionsText[2]) {
-    model.value = 15000;
-  }
-  if (newValue === autoRefreshOptionsText[3]) {
-    model.value = 30000;
+  const item = autoRefreshOptionsText.find((item) => item[1] === newValue);
+
+  if (item) {
+    if (item[0] === 0) {
+      model.value = null;
+    } else {
+      model.value = item[0];
+    }
   }
 });
 
@@ -46,7 +53,7 @@ async function refresh() {
     <div class="filter">
       <div class="filter-label">Auto-Refresh:</div>
       <div class="filter-component">
-        <ListFilterSelector :items="autoRefreshOptionsText" v-model="selectedRefresh" item-name="result" :can-clear="false" :show-clear="false" :show-filter="false" />
+        <ListFilterSelector :items="autoRefreshOptionsText.map((i) => i[1])" v-model="selectedRefresh" item-name="result" :can-clear="false" :show-clear="false" :show-filter="false" />
       </div>
     </div>
   </div>
