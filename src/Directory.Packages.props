@@ -17,6 +17,9 @@
     <PackageVersion Include="Fody" Version="6.9.1" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
     <PackageVersion Include="HdrHistogram" Version="2.5.0" />
+    <PackageVersion Include="JustSaying" Version="7.3.0" />
+    <PackageVersion Include="JustSaying.Extensions.DependencyInjection.Microsoft" Version="7.3.0" />
+    <PackageVersion Include="JustSaying.Models" Version="7.3.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.12" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.12" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
