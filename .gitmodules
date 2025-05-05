@@ -1,0 +1,3 @@
+[submodule "nsb-sqs"]
+	path = nsb-sqs
+	url = https://github.com/Particular/NServiceBus.AmazonSQS

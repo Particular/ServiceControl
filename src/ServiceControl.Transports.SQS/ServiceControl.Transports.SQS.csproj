@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <!-- Private=false & ExcludeAssets=runtime prevent repeatedly including binary dependencies of ServiceControl.Transports in each transport directory -->
+    <ProjectReference Include="..\..\nsb-sqs\src\NServiceBus.Transport.SQS\NServiceBus.Transport.SQS.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" Private="false" ExcludeAssets="runtime" />
   </ItemGroup>
 
@@ -14,7 +15,6 @@
     <PackageReference Include="AWSSDK.CloudWatch" />
     <!-- Required for IAM Roles for Service Accounts even though no API is added -->
     <PackageReference Include="AWSSDK.SecurityToken" />
-    <PackageReference Include="NServiceBus.AmazonSQS" />
   </ItemGroup>
 
   <ItemGroup>
