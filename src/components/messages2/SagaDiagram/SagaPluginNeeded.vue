@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import NoSagaIcon from "@/assets/NoSaga.svg";
-import CopyClipboardIcon from "@/assets/Shell_CopyClipboard.svg";
+import CopyToClipboard from "@/components/CopyToClipboard.vue";
 </script>
 
 <template>
@@ -12,7 +12,7 @@ import CopyClipboardIcon from "@/assets/Shell_CopyClipboard.svg";
         <div class="saga-message-box">
           <p class="saga-message-text">To visualize your saga, please install the appropriate nuget package in your endpoint</p>
           <a href="https://www.nuget.org/packages/NServiceBus.SagaAudit" class="saga-message-link">install-package NServiceBus.SagaAudit</a>
-          <img class="saga-message-icon" :src="CopyClipboardIcon" alt="" />
+          <span class="clippy-button"><CopyToClipboard value="install-package NServiceBus.SagaAudit" :isIconOnly="true" /></span>
         </div>
       </div>
     </div>
@@ -62,9 +62,11 @@ import CopyClipboardIcon from "@/assets/Shell_CopyClipboard.svg";
   color: #aaaaaa;
 }
 
-.saga-message-icon {
-  display: inline-block;
-  margin-left: 0.5rem;
-  width: 1.5rem;
+.clippy-button {
+  white-space: pre;
+}
+
+.clippy-button::before {
+  content: "\00a0";
 }
 </style>
