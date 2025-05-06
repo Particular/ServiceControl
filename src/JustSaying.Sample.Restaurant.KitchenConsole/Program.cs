@@ -42,36 +42,23 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole
                 {
                     config.AddJsonFile("appsettings.json", optional: false);
                     config.AddJsonFile($"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true);
+                    config.AddJsonFile("local.settings.json", true, true);
                     config.AddEnvironmentVariables();
                 })
                 .UseSerilog()
                 .ConfigureServices((hostContext, services) =>
                 {
-                    var configuration = hostContext.Configuration;
                     services.AddJustSaying(config =>
                     {
                         config.Client(x =>
                         {
-                            if (configuration.HasAWSServiceUrl())
-                            {
-                                // The AWS client SDK allows specifying a custom HTTP endpoint.
-                                // For testing purposes it is useful to specify a value that
-                                // points to a docker image such as `p4tin/goaws` or `localstack/localstack`
-                                x.WithServiceUri(configuration.GetAWSServiceUri())
-                                 .WithAnonymousCredentials();
-                            }
-                            else
-                            {
-                                // The real AWS environment will require some means of authentication
-                                //x.WithBasicCredentials("###", "###");
-                                //x.WithSessionCredentials("###", "###", "###");
-                            }
+                            x.WithBasicCredentials(hostContext.Configuration["Aws:AccessKey"], hostContext.Configuration["Aws:SecretAccessKey"]);
                         });
 
                         config.Messaging(x =>
                         {
                             // Configures which AWS Region to operate in
-                            x.WithRegion(configuration.GetAWSRegion());
+                            x.WithRegion(hostContext.Configuration["Aws:Region"]);
                         });
 
                         config.Subscriptions(x =>

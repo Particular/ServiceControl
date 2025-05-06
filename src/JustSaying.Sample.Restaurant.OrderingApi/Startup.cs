@@ -16,7 +16,10 @@ namespace JustSaying.Sample.Restaurant.OrderingApi
 
         public Startup(IConfiguration configuration)
         {
-            _configuration = configuration;
+            var configurationBuilder = new ConfigurationBuilder();
+            configurationBuilder.AddConfiguration(configuration);
+            configurationBuilder.AddJsonFile("local.settings.json", true, true);
+            _configuration = configurationBuilder.Build();
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -28,25 +31,12 @@ namespace JustSaying.Sample.Restaurant.OrderingApi
             {
                 config.Client(x =>
                 {
-                    if (_configuration.HasAWSServiceUrl())
-                    {
-                        // The AWS client SDK allows specifying a custom HTTP endpoint.
-                        // For testing purposes it is useful to specify a value that
-                        // points to a docker image such as `p4tin/goaws` or `localstack/localstack`
-                        x.WithServiceUri(_configuration.GetAWSServiceUri())
-                         .WithAnonymousCredentials();
-                    }
-                    else
-                    {
-                        // The real AWS environment will require some means of authentication
-                        //x.WithBasicCredentials("###", "###");
-                        //x.WithSessionCredentials("###", "###", "###");
-                    }
+                    x.WithBasicCredentials(_configuration["Aws:AccessKey"], _configuration["Aws:SecretAccessKey"]);
                 });
                 config.Messaging(x =>
                 {
                     // Configures which AWS Region to operate in
-                    x.WithRegion(_configuration.GetAWSRegion());
+                    x.WithRegion(_configuration["Aws:Region"]);
                 });
                 config.Subscriptions(x =>
                 {
