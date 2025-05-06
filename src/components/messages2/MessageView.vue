@@ -20,7 +20,6 @@ import TabsLayout from "@/components/TabsLayout.vue";
 import { storeToRefs } from "pinia";
 import MetadataLabel from "@/components/messages2/MetadataLabel.vue";
 import { hexToCSSFilter } from "hex-to-css-filter";
-import LoadingOverlay from "@/components/LoadingOverlay.vue";
 import SagaDiagram from "./SagaDiagram.vue";
 
 const route = useRoute();
@@ -105,7 +104,6 @@ onMounted(() => {
       <no-data v-if="state.not_found" title="message failures" message="Could not find message. This could be because the message URL is invalid or the corresponding message was processed and is no longer tracked by ServiceControl."></no-data>
       <no-data v-else-if="state.failed_to_load" title="message failures" message="An error occurred while trying to load the message. Please check the ServiceControl logs to learn what the issue is."></no-data>
       <template v-else>
-        <LoadingOverlay v-if="state.loading ?? false" />
         <div class="row">
           <div class="col-sm-12 no-side-padding">
             <RouterLink :to="backLink"><i class="fa fa-chevron-left"></i> Back</RouterLink>
