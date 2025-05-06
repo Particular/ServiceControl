@@ -7,6 +7,7 @@ import DiffViewer from "@/components/messages2/DiffViewer.vue";
 import CodeEditor from "@/components/CodeEditor.vue";
 import { useSagaDiagramStore } from "@/stores/SagaDiagramStore";
 import { ref, watch, computed } from "vue";
+import { EditorView } from "@codemirror/view";
 import { parse, stringify } from "lossless-json";
 
 // Import the images directly
@@ -16,6 +17,30 @@ import SagaUpdatedIcon from "@/assets/SagaUpdatedIcon.svg";
 import TimeoutIcon from "@/assets/timeout.svg";
 import EventIcon from "@/assets/event.svg";
 import SagaTimeoutIcon from "@/assets/SagaTimeoutIcon.svg";
+
+// Define the monospace theme for CodeEditor
+const monospaceTheme = EditorView.baseTheme({
+  "&": {
+    fontFamily: "monospace",
+    fontSize: "0.75rem",
+    backgroundColor: "#f2f2f2",
+  },
+  ".cm-editor": {
+    fontFamily: "monospace",
+    fontSize: "0.75rem",
+    backgroundColor: "#f2f2f2",
+  },
+  ".cm-scroller": {
+    backgroundColor: "#f2f2f2",
+  },
+});
+
+// Define types for JSON values and properties
+type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
+interface JsonObject {
+  [key: string]: JsonValue;
+}
+type JsonArray = Array<JsonValue>;
 
 const props = defineProps<{
   update: SagaUpdateViewModel;
@@ -176,8 +201,8 @@ const hasStateChanges = computed(() => {
             </div>
 
             <!-- Initial state display -->
-            <div v-else-if="update.IsFirstNode" class="json-container">
-              <CodeEditor css="monospace-code" :model-value="sagaUpdateStateChanges.formattedState || ''" language="json" :showCopyToClipboard="false" :showGutter="false" />
+            <div v-else-if="update.IsFirstNode" class="json-container json-container--first-node">
+              <CodeEditor :model-value="sagaUpdateStateChanges.formattedState || ''" language="json" :showCopyToClipboard="false" :showGutter="false" :extensions="[monospaceTheme]" />
             </div>
 
             <!-- No changes message -->
@@ -288,9 +313,6 @@ const hasStateChanges = computed(() => {
 
 .cell-inner-side--active {
   border: solid 5px #00a3c4;
-  -webkit-animation: blink-border 1.8s ease-in-out;
-  -moz-animation: blink-border 1.8s ease-in-out;
-  -o-animation: blink-border 1.8s ease-in-out;
   animation: blink-border 1.8s ease-in-out;
 }
 
@@ -404,6 +426,19 @@ const hasStateChanges = computed(() => {
   background-color: transparent;
 }
 
+.json-container--first-node {
+  max-height: 300px;
+  overflow: auto;
+}
+
+/* Override CodeEditor wrapper styles */
+.json-container :deep(.wrapper) {
+  border-radius: 0;
+  border: none;
+  background-color: #f2f2f2;
+  margin-top: 0;
+}
+
 .no-changes-message {
   padding: 1rem;
   text-align: center;
@@ -416,113 +451,6 @@ const hasStateChanges = computed(() => {
   text-align: center;
   font-style: italic;
   color: #a94442;
-}
-
-/* Monospace font styling that matches DiffViewer */
-:deep(.monospace-code) {
-  border-radius: 0;
-  border: none;
-  background-color: #f2f2f2;
-}
-
-:deep(.monospace-code) .cm-editor {
-  font-family: monospace;
-  font-size: 0.75rem;
-  background-color: #f2f2f2;
-}
-
-:deep(.monospace-code) .cm-scroller {
-  background-color: #f2f2f2;
-}
-
-@-webkit-keyframes blink-border {
-  0%,
-  100% {
-    border-color: #00a3c4;
-  }
-  20%,
-  60% {
-    border-color: #cccccc;
-  }
-  40%,
-  80% {
-    border-color: #00a3c4;
-  }
-}
-
-@-moz-keyframes blink-border {
-  0%,
-  100% {
-    border-color: #00a3c4;
-  }
-  20%,
-  60% {
-    border-color: #cccccc;
-  }
-  40%,
-  80% {
-    border-color: #00a3c4;
-  }
-}
-
-@-o-keyframes blink-border {
-  0%,
-  100% {
-    border-color: #00a3c4;
-  }
-  20%,
-  60% {
-    border-color: #cccccc;
-  }
-  40%,
-  80% {
-    border-color: #00a3c4;
-  }
-}
-
-@keyframes blink-border {
-  0%,
-  100% {
-    border-color: #00a3c4;
-  }
-  20%,
-  60% {
-    border-color: #cccccc;
-  }
-  40%,
-  80% {
-    border-color: #00a3c4;
-  }
-}
-
-@-moz-keyframes blink-border {
-  0%,
-  100% {
-    border-color: #000000;
-  }
-  20%,
-  60% {
-    border-color: #cccccc;
-  }
-  40%,
-  80% {
-    border-color: #000000;
-  }
-}
-
-@-o-keyframes blink-border {
-  0%,
-  100% {
-    border-color: #000000;
-  }
-  20%,
-  60% {
-    border-color: #cccccc;
-  }
-  40%,
-  80% {
-    border-color: #000000;
-  }
 }
 
 @keyframes blink-border {

@@ -19,38 +19,38 @@ const props = withDefaults(
     showGutter?: boolean;
     showCopyToClipboard?: boolean;
     ariaLabel?: string;
-    css?: string;
+    extensions?: Extension[];
   }>(),
-  { readOnly: true, showGutter: true, showCopyToClipboard: true }
+  { readOnly: true, showGutter: true, showCopyToClipboard: true, extensions: () => [] }
 );
 
 const extensions = computed(() => {
-  const extensions: Extension[] = [];
+  const allExtensions: Extension[] = [...(props.extensions || [])];
 
   switch (props.language) {
     case "json":
-      extensions.push(json());
+      allExtensions.push(json());
       break;
     case "xml":
-      extensions.push(xml());
+      allExtensions.push(xml());
       break;
     case "shell":
-      extensions.push(StreamLanguage.define(shell));
+      allExtensions.push(StreamLanguage.define(shell));
       break;
     case "powershell":
-      extensions.push(StreamLanguage.define(powerShell));
+      allExtensions.push(StreamLanguage.define(powerShell));
       break;
     case "csharp":
-      extensions.push(StreamLanguage.define(csharp));
+      allExtensions.push(StreamLanguage.define(csharp));
       break;
   }
 
-  return extensions;
+  return allExtensions;
 });
 </script>
 
 <template>
-  <div class="wrapper" :aria-label="ariaLabel" :class="css">
+  <div class="wrapper" :aria-label="ariaLabel">
     <div v-if="props.showCopyToClipboard || $slots.toolbarLeft || $slots.toolbarRight" class="toolbar">
       <div><slot name="toolbarLeft"></slot></div>
       <div>
