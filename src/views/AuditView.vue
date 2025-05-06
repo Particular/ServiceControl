@@ -1,38 +1,40 @@
 <script setup lang="ts">
-import { licenseStatus } from "../composables/serviceLicense";
-import LicenseExpired from "../components/LicenseExpired.vue";
 import AuditList from "@/components/audit/AuditList.vue";
 import isAllMessagesSupported, { minimumSCVersionForAllMessages } from "@/components/audit/isAllMessagesSupported.ts";
 import ConditionalRender from "@/components/ConditionalRender.vue";
+import ServiceControlAvailable from "@/components/ServiceControlAvailable.vue";
+import LicenseNotExpired from "@/components/LicenseNotExpired.vue";
 </script>
 
 <template>
-  <ConditionalRender :supported="isAllMessagesSupported">
-    <template #unsupported>
-      <div class="not-supported">
-        <p>
-          The minimum version of ServiceControl required to enable this feature is
-          <span> {{ minimumSCVersionForAllMessages }} </span>.
-        </p>
-        <div>
-          <a class="btn btn-default btn-primary" href="https://particular.net/downloads" target="_blank">Update ServiceControl to latest version</a>
-        </div>
-      </div>
-    </template>
-    <LicenseExpired />
-    <template v-if="!licenseStatus.isExpired">
-      <div class="container">
-        <div class="row title">
-          <div class="col-12">
-            <h1>All Messages</h1>
+  <ServiceControlAvailable>
+    <LicenseNotExpired>
+      <ConditionalRender :supported="isAllMessagesSupported">
+        <template #unsupported>
+          <div class="not-supported">
+            <p>
+              The minimum version of ServiceControl required to enable this feature is
+              <span> {{ minimumSCVersionForAllMessages }} </span>.
+            </p>
+            <div>
+              <a class="btn btn-default btn-primary" href="https://particular.net/downloads" target="_blank">Update ServiceControl to latest version</a>
+            </div>
+          </div>
+        </template>
+
+        <div class="container">
+          <div class="row title">
+            <div class="col-12">
+              <h1>All Messages</h1>
+            </div>
+          </div>
+          <div class="row">
+            <AuditList />
           </div>
         </div>
-        <div class="row">
-          <AuditList />
-        </div>
-      </div>
-    </template>
-  </ConditionalRender>
+      </ConditionalRender>
+    </LicenseNotExpired>
+  </ServiceControlAvailable>
 </template>
 
 <style scoped>
