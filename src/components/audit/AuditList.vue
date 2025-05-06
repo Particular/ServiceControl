@@ -11,6 +11,7 @@ import { onBeforeMount, onUnmounted, ref, watch } from "vue";
 import RefreshConfig from "../RefreshConfig.vue";
 import useAutoRefresh from "@/composables/autoRefresh.ts";
 import throttle from "lodash/throttle";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 const store = useAuditStore();
 const { messages, totalCount, sortBy, messageFilterString, selectedEndpointName, itemsPerPage, dateRange } = storeToRefs(store);
@@ -164,6 +165,7 @@ watch(autoRefreshValue, (newValue) => dataRetriever.updateTimeout(newValue));
       </div>
     </div>
     <div class="row results-table">
+      <LoadingSpinner v-if="isLoading" />
       <template v-for="message in messages" :key="message.id">
         <div class="item" @click="navigateToMessage(message)">
           <div class="status">
