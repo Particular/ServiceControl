@@ -5,7 +5,7 @@ import routeLinks from "@/router/routeLinks";
 
 <template>
   <RouterLink :to="routeLinks.messages.root">
-    <i class="fa fa-envelope icon-white" title="All Messages"></i>
+    <i class="fa fa-archive icon-white" title="All Messages"></i>
     <span class="navbar-label">All Messages</span>
   </RouterLink>
 </template>
