@@ -7,7 +7,7 @@ import { useSequenceDiagramStore } from "@/stores/SequenceDiagramStore";
 import { storeToRefs } from "pinia";
 import useTooltips from "./SequenceDiagram/tooltipOverlay.ts";
 import { onMounted, ref } from "vue";
-
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 const store = useSequenceDiagramStore();
 const { maxWidth, maxHeight } = storeToRefs(store);
 const endpointYOffset = ref(0);
@@ -22,6 +22,7 @@ onMounted(() => store.refreshConversation());
     <div class="toolbar">
       <a class="help-link" target="_blank" href="https://docs.particular.net/servicepulse/sequence-diagram"><i class="fa fa-info-circle" /> Sequence Diagram Help</a>
     </div>
+    <LoadingSpinner v-if="store.isLoading" />
     <div class="outer" @scroll="(ev) => (endpointYOffset = (ev.target as Element).scrollTop)">
       <svg class="sequence-diagram" :style="{ width: `max(100%, ${isNaN(maxWidth) ? 0 : maxWidth}px)` }" :height="maxHeight + 20">
         <Timeline />
