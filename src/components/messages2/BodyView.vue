@@ -26,7 +26,7 @@ const body = computed(() => bodyState.value.data.value);
     <div v-else-if="bodyState.failed_to_load" class="alert alert-info">Message body unavailable.</div>
     <LoadingSpinner v-else-if="bodyState.loading" />
     <CodeEditor v-else-if="body !== undefined && contentType.isSupported" :model-value="body" :language="contentType.language" :read-only="true" :show-gutter="true"></CodeEditor>
-    <div v-else class="alert alert-warning">Message body cannot be displayed because content type "{{ bodyState.data.content_type }}" is not supported.</div>
+    <div v-if="body && !contentType.isSupported" class="alert alert-warning">Message body cannot be displayed because content type "{{ bodyState.data.content_type }}" is not supported.</div>
   </div>
 </template>
 
