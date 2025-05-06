@@ -82,18 +82,21 @@ onMounted(() => {
 }
 .item {
   font-size: 0.875rem;
-  margin-left: 1.25rem;
+  padding-left: 1.25rem;
   font-weight: 400;
   color: #262626;
-  word-wrap: break-word;
   text-decoration: none;
   width: 100%;
+  display: flex;
+  overflow-wrap: anywhere;
 }
 .item-container {
   padding: 0.25rem 0;
   display: flex;
   place-items: center;
   cursor: pointer;
+  max-width: 100%;
+  width: max-content;
 }
 
 .item-container:hover {
@@ -111,7 +114,7 @@ onMounted(() => {
 }
 
 .selected {
-  margin-left: 0.375rem;
+  padding-left: 0.375rem;
 }
 
 .dropdown .btn {
