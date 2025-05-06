@@ -42,7 +42,10 @@ namespace JustSaying.Sample.Restaurant.OrderingApi
         {
             return Host.CreateDefaultBuilder(args)
                 .UseSerilog()
-                .ConfigureWebHostDefaults((builder) => builder.UseStartup<Startup>());
-        }
+                .ConfigureWebHostDefaults((builder) =>
+                {
+                    builder.UseStartup<Startup>();
+                });
+    }
     }
 }
