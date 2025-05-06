@@ -88,16 +88,16 @@ function navigateToMessage(message: Message) {
   });
 }
 
-let firstLoad = true;
+const firstLoad = ref(true);
 
 onBeforeMount(() => {
   setQuery();
 
   //without setTimeout, this happens before the store is properly initialised, and therefore the query route values aren't applied to the refresh
-  //TODO: is there a better way to achieve this?
-  setTimeout(async () => await Promise.all([dataRetriever.executeAndResetTimer(), store.loadEndpoints()]), 0);
-
-  firstLoad = false;
+  setTimeout(async () => {
+    await Promise.all([dataRetriever.executeAndResetTimer(), store.loadEndpoints()]);
+    firstLoad.value = false;
+  }, 0);
 });
 
 watch(
@@ -110,7 +110,7 @@ watch(
 );
 
 const watchHandle = watch([() => route.query, itemsPerPage, sortBy, messageFilterString, selectedEndpointName, dateRange], async () => {
-  if (firstLoad) {
+  if (firstLoad.value) {
     return;
   }
 
@@ -165,7 +165,7 @@ watch(autoRefreshValue, (newValue) => dataRetriever.updateTimeout(newValue));
       </div>
     </div>
     <div class="row results-table">
-      <LoadingSpinner v-if="isLoading" />
+      <LoadingSpinner v-if="firstLoad" />
       <template v-for="message in messages" :key="message.id">
         <div class="item" @click="navigateToMessage(message)">
           <div class="status">
