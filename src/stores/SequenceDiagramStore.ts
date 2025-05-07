@@ -40,6 +40,7 @@ export const useSequenceDiagramStore = defineStore("SequenceDiagramStore", () =>
   const handlerLocations = ref<HandlerLocation[]>([]);
   const highlightId = ref<string>();
 
+  const isLoading = computed(() => conversationData.value.loading);
   const selectedId = computed(() => `${state.value.data.message_type ?? ""}(${state.value.data.id})`);
 
   watch(
@@ -104,6 +105,7 @@ export const useSequenceDiagramStore = defineStore("SequenceDiagramStore", () =>
     handlerLocations,
     highlightId,
     selectedId,
+    isLoading,
     setStartX,
     setMaxWidth,
     setMaxHeight,
