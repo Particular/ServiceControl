@@ -1,5 +1,6 @@
 ﻿namespace Particular.LicensingComponent.WebApi
 {
+    using System.IO.Compression;
     using System.Text.Json;
     using System.Threading;
     using Contracts;
@@ -42,17 +43,28 @@
         public async Task<IActionResult> GetThroughputReportFile([FromQuery(Name = "spVersion")] string? spVersion, CancellationToken cancellationToken)
         {
             var reportStatus = await CanThroughputReportBeGenerated(cancellationToken);
-            if (reportStatus.ReportCanBeGenerated)
+            if (!reportStatus.ReportCanBeGenerated)
             {
-                var report = await throughputCollector.GenerateThroughputReport(
-                    spVersion ?? "Unknown",
-                    null,
-                    cancellationToken);
-
-                return File(JsonSerializer.SerializeToUtf8Bytes(report, SerializationOptions.IndentedWithNoEscaping), "application/json", fileDownloadName: $"{report.ReportData.CustomerName}.throughput-report-{report.ReportData.EndTime:yyyyMMdd-HHmmss}.json");
+                return BadRequest($"Report cannot be generated - {reportStatus.Reason}");
             }
 
-            return BadRequest($"Report cannot be generated - {reportStatus.Reason}");
+            var report = await throughputCollector.GenerateThroughputReport(
+                spVersion ?? "Unknown",
+                null,
+                cancellationToken);
+
+            var fileName = $"{report.ReportData.CustomerName}.throughput-report-{report.ReportData.EndTime:yyyyMMdd-HHmmss}";
+
+            using var memoryStream = new MemoryStream();
+            using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+            {
+                var entry = archive.CreateEntry($"{fileName}.json");
+                await using var entryStream = entry.Open();
+                await JsonSerializer.SerializeAsync(entryStream, report, SerializationOptions.IndentedWithNoEscaping, cancellationToken);
+            }
+
+            memoryStream.Position = 0;
+            return File(memoryStream, "application/zip", fileDownloadName: $"{fileName}.zip");
         }
 
         [Route("settings/info")]
