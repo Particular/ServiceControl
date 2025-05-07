@@ -20,7 +20,7 @@ const menuItems = computed(
   DashboardMenuItem,
   HeartbeatsMenuItem,
   ...(useIsMonitoringEnabled() ? [MonitoringMenuItem] : []),
-  ...(window.defaultConfig.showAllMessages ? [AuditMenuItem] : []),
+  AuditMenuItem,
   FailedMessagesMenuItem,
   CustomChecksMenuItem,
   EventsMenuItem,
