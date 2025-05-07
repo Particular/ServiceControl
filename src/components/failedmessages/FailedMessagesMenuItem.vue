@@ -6,7 +6,7 @@ import { stats } from "@/composables/serviceServiceControl";
 
 <template>
   <RouterLink :to="routeLinks.failedMessage.root">
-    <i class="fa fa-envelope icon-white" title="Failed Messages"></i>
+    <i class="fa fa-ban icon-white" title="Failed Messages"></i>
     <span class="navbar-label">Failed Messages</span>
     <span v-if="stats.number_of_failed_messages > 0" class="badge badge-important">{{ stats.number_of_failed_messages }}</span>
   </RouterLink>
