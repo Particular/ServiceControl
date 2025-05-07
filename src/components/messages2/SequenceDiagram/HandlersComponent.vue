@@ -29,7 +29,7 @@ const handlerItems = computed(() => {
     const messageTypeElement = messageTypeRefs.value[index];
     const count = handler.outMessages.length;
     const height = (count === 0 ? 1 : count) * Height_Per_Out;
-    if (nextY === 0) nextY += Handler_Gap + (Math.max(...endpointCentrePoints.value.map((cp) => cp.top)) ?? 0);
+    if (nextY === 0) nextY += Handler_Gap + Math.max(...[0, ...endpointCentrePoints.value.map((cp) => cp.top)]);
     const y = nextY;
     nextY += height + Handler_Gap;
     const fill = (() => {
