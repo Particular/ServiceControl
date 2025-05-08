@@ -1,3 +1,8 @@
 [submodule "nsb-sqs"]
 	path = nsb-sqs
 	url = https://github.com/Particular/NServiceBus.AmazonSQS
+	branch = envelope-experiment
+[submodule "nsb-core"]
+	path = nsb-core
+	url = https://github.com/Particular/NServiceBus
+	branch = envelope-experiment
