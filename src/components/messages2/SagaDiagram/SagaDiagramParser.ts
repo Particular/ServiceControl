@@ -1,22 +1,22 @@
 import { SagaHistory } from "@/resources/SagaHistory";
 import { typeToName } from "@/composables/typeHumanizer";
-import { SagaMessageData, SagaMessageDataItem } from "@/stores/SagaDiagramStore";
+import { SagaMessageData } from "@/stores/SagaDiagramStore";
 import { getTimeoutFriendly } from "@/composables/deliveryDelayParser";
 
 export interface SagaMessageViewModel {
   MessageId: string;
-  MessageFriendlyTypeName: string;
+  FriendlyTypeName: string;
   FormattedTimeSent: string;
-  Data: SagaMessageDataItem[];
+  Data: SagaMessageData;
   IsEventMessage: boolean;
   IsCommandMessage: boolean;
 }
 export interface InitiatingMessageViewModel {
-  MessageType: string;
+  FriendlyTypeName: string;
   IsSagaTimeoutMessage: boolean;
   FormattedMessageTimestamp: string;
   IsEventMessage: boolean;
-  MessageData: SagaMessageDataItem[];
+  MessageData: SagaMessageData;
   HasRelatedTimeoutRequest?: boolean;
   MessageId: string;
 }
@@ -78,7 +78,7 @@ export function parseSagaUpdates(sagaHistory: SagaHistory | null, messagesData: 
       const initiatingMessageTimestamp = new Date(update.initiating_message?.time_sent || Date.now());
 
       // Find message data for initiating message
-      const initiatingMessageData = update.initiating_message ? messagesData.find((m) => m.message_id === update.initiating_message.message_id)?.data || [] : [];
+      const initiatingMessageData = update.initiating_message ? findMessageData(messagesData, update.initiating_message.message_id) : createEmptyMessageData();
 
       // Create common base message objects with shared properties
       const outgoingMessages = update.outgoing_messages.map((msg) => {
@@ -89,7 +89,7 @@ export function parseSagaUpdates(sagaHistory: SagaHistory | null, messagesData: 
         const isEventMessage = msg.intent === "Publish";
 
         // Find corresponding message data
-        const messageData = messagesData.find((m) => m.message_id === msg.message_id)?.data || [];
+        const messageData = findMessageData(messagesData, msg.message_id);
         return {
           MessageType: msg.message_type || "",
           MessageId: msg.message_id,
@@ -97,7 +97,7 @@ export function parseSagaUpdates(sagaHistory: SagaHistory | null, messagesData: 
           HasTimeout: hasTimeout,
           TimeoutSeconds: timeoutSeconds,
           TimeoutFriendly: getTimeoutFriendly(delivery_delay),
-          MessageFriendlyTypeName: typeToName(msg.message_type || ""),
+          FriendlyTypeName: typeToName(msg.message_type || ""),
           Data: messageData,
           IsEventMessage: isEventMessage,
           IsCommandMessage: !isEventMessage,
@@ -132,8 +132,8 @@ export function parseSagaUpdates(sagaHistory: SagaHistory | null, messagesData: 
         Status: update.status,
         StatusDisplay: update.status === "new" ? "Saga Initiated" : "Saga Updated",
         InitiatingMessage: <InitiatingMessageViewModel>{
+          FriendlyTypeName: typeToName(update.initiating_message?.message_type || "Unknown Message") || "",
           MessageId: update.initiating_message?.message_id || "",
-          MessageType: typeToName(update.initiating_message?.message_type || "Unknown Message") || "",
           FormattedMessageTimestamp: `${initiatingMessageTimestamp.toLocaleDateString()} ${initiatingMessageTimestamp.toLocaleTimeString()}`,
           MessageData: initiatingMessageData,
           IsEventMessage: update.initiating_message?.intent === "Publish",
@@ -159,4 +159,23 @@ export function parseSagaUpdates(sagaHistory: SagaHistory | null, messagesData: 
   }
 
   return updates;
+}
+
+// Helper function to find message data or create empty data if not found
+function findMessageData(messagesData: SagaMessageData[], messageId: string): SagaMessageData {
+  const messageData = messagesData.find((m) => m.message_id === messageId);
+  return messageData || createEmptyMessageData();
+}
+
+// Helper function to create an empty message data object
+function createEmptyMessageData(): SagaMessageData {
+  return {
+    message_id: "",
+    body: {
+      data: {},
+      loading: false,
+      failed_to_load: false,
+      not_found: false,
+    },
+  };
 }

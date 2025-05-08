@@ -257,12 +257,16 @@ function rendercomponent({ initialState = {} }: { initialState?: { MessageStore?
         CodeEditor: true,
         CopyToClipboard: true,
       },
+      directives: {
+        // Add stub for tippy directive
+        tippy: () => {},
+      },
     },
   });
 
   const dslAPI: componentDSL = {
     action1: () => {
-      // Add actions here;dl;;lksd;lksd;lkdmdslm,.mc,.
+      // Add actions here;
     },
     assert: {
       NoSagaDataAvailableMessageIsShownWithMessage(message: RegExp) {

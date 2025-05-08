@@ -27,11 +27,11 @@ const props = defineProps<{
     }"
   >
     <img class="saga-icon saga-icon--side-cell" :src="message.IsEventMessage ? EventIcon : CommandIcon" :alt="message.IsEventMessage ? 'Event' : 'Command'" />
-    <h2 class="message-title">{{ message.MessageFriendlyTypeName }}</h2>
+    <h2 class="message-title">{{ message.FriendlyTypeName }}</h2>
     <div class="timestamp">{{ message.FormattedTimeSent }}</div>
   </div>
   <div v-if="showMessageData" class="message-data message-data--active">
-    <MessageDataBox :messageData="message.Data" />
+    <MessageDataBox :messageData="message.Data" :maximizedTitle="message.FriendlyTypeName" />
   </div>
 </template>
 

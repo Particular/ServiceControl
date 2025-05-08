@@ -4,7 +4,7 @@ import MessageDataBox from "./MessageDataBox.vue";
 import SagaOutgoingTimeoutMessage from "./SagaOutgoingTimeoutMessage.vue";
 import SagaOutgoingMessage from "./SagaOutgoingMessage.vue";
 import DiffViewer from "@/components/messages2/DiffViewer.vue";
-import CodeEditor from "@/components/CodeEditor.vue";
+import MaximizableCodeEditor from "@/components/MaximizableCodeEditor.vue";
 import { useSagaDiagramStore } from "@/stores/SagaDiagramStore";
 import { ref, watch, computed } from "vue";
 import { EditorView } from "@codemirror/view";
@@ -18,29 +18,17 @@ import TimeoutIcon from "@/assets/timeout.svg";
 import EventIcon from "@/assets/event.svg";
 import SagaTimeoutIcon from "@/assets/SagaTimeoutIcon.svg";
 
-// Define the monospace theme for CodeEditor
+// Define monospace theme with specific selectors for this component
 const monospaceTheme = EditorView.baseTheme({
-  "&": {
+  ".maximazable-code-editor--inline-instance .cm-editor": {
     fontFamily: "monospace",
     fontSize: "0.75rem",
     backgroundColor: "#f2f2f2",
   },
-  ".cm-editor": {
-    fontFamily: "monospace",
-    fontSize: "0.75rem",
-    backgroundColor: "#f2f2f2",
-  },
-  ".cm-scroller": {
+  ".maximazable-code-editor--inline-instance .cm-scroller": {
     backgroundColor: "#f2f2f2",
   },
 });
-
-// Define types for JSON values and properties
-type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
-interface JsonObject {
-  [key: string]: JsonValue;
-}
-type JsonArray = Array<JsonValue>;
 
 const props = defineProps<{
   update: SagaUpdateViewModel;
@@ -163,7 +151,7 @@ const hasStateChanges = computed(() => {
           :data-message-id="update.InitiatingMessage.IsSagaTimeoutMessage ? update.MessageId : ''"
         >
           <img class="saga-icon saga-icon--side-cell" :src="update.InitiatingMessage.IsSagaTimeoutMessage ? TimeoutIcon : update.InitiatingMessage.IsEventMessage ? EventIcon : CommandIcon" alt="" />
-          <h2 class="message-title" aria-label="initiating message type">{{ update.InitiatingMessage.MessageType }}</h2>
+          <h2 class="message-title" aria-label="initiating message type">{{ update.InitiatingMessage.FriendlyTypeName }}</h2>
           <div class="timestamp" aria-label="initiating message timestamp">{{ update.InitiatingMessage.FormattedMessageTimestamp }}</div>
         </div>
       </div>
@@ -171,7 +159,16 @@ const hasStateChanges = computed(() => {
         <div class="cell-inner cell-inner-center cell-inner--align-bottom">
           <template v-if="update.InitiatingMessage.IsSagaTimeoutMessage">
             <img class="saga-icon saga-icon--center-cell" :src="SagaTimeoutIcon" alt="" />
-            <a v-if="update.InitiatingMessage.HasRelatedTimeoutRequest" href="#" @click.prevent="navigateToTimeoutRequest" class="saga-status-title saga-status-title--inline timeout-status" aria-label="timeout invoked"> Timeout Invoked </a>
+            <a
+              v-if="update.InitiatingMessage.HasRelatedTimeoutRequest"
+              v-tippy="`Scroll to timeout request`"
+              href="#"
+              @click.prevent="navigateToTimeoutRequest"
+              class="saga-status-title saga-status-title--inline timeout-status"
+              aria-label="timeout invoked"
+            >
+              Timeout Invoked
+            </a>
             <h2 v-else class="saga-status-title saga-status-title--inline timeout-status" aria-label="timeout invoked">Timeout Invoked</h2>
             <br />
           </template>
@@ -188,7 +185,7 @@ const hasStateChanges = computed(() => {
       <div class="cell cell--side cell--left-border cell--aling-top">
         <div v-if="showMessageData" class="message-data message-data--active">
           <!-- Generic message data box -->
-          <MessageDataBox v-if="update.InitiatingMessage.MessageType" :messageData="update.InitiatingMessage.MessageData" />
+          <MessageDataBox v-if="update.InitiatingMessage" :messageData="update.InitiatingMessage.MessageData" :maximizedTitle="update.InitiatingMessage.FriendlyTypeName" />
         </div>
       </div>
 
@@ -206,7 +203,7 @@ const hasStateChanges = computed(() => {
 
             <!-- Initial state display -->
             <div v-else-if="update.IsFirstNode" class="json-container json-container--first-node">
-              <CodeEditor :model-value="sagaUpdateStateChanges.formattedState || ''" language="json" :showCopyToClipboard="false" :showGutter="false" :extensions="[monospaceTheme]" />
+              <MaximizableCodeEditor :model-value="sagaUpdateStateChanges.formattedState || ''" language="json" :showGutter="false" modalTitle="Initial Saga State" :extensions="[monospaceTheme]" />
             </div>
 
             <!-- No changes message -->
@@ -381,7 +378,6 @@ const hasStateChanges = computed(() => {
   padding: 0.2rem;
   background-color: #ffffff;
   border: solid 1px #cccccc;
-  font-size: 0.75rem;
 }
 
 .message-data--active {
@@ -435,12 +431,24 @@ const hasStateChanges = computed(() => {
 }
 
 /* Override CodeEditor wrapper styles */
-.json-container :deep(.wrapper) {
+.json-container :deep(.wrapper.maximazable-code-editor--inline-instance) {
   border-radius: 0;
   border: none;
   background-color: #f2f2f2;
   margin-top: 0;
+  font-size: 0.75rem;
 }
+.json-container :deep(.wrapper.maximazable-code-editor--inline-instance .toolbar) {
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+  padding: 0;
+  margin-bottom: 0;
+}
+
+/* :deep(.maximazable-code-editor--inline-instance .cm-scroller) {
+  background-color: #f2f2f2;
+} */
 
 .no-changes-message {
   padding: 1rem;

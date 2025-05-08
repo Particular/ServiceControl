@@ -11,13 +11,7 @@ import moment from "moment/moment";
 import { parse, stringify } from "lossless-json";
 import xmlFormat from "xml-formatter";
 import { useArchiveMessage, useRetryMessages, useUnarchiveMessage } from "@/composables/serviceFailedMessage";
-
-interface DataContainer<T> {
-  loading?: boolean;
-  failed_to_load?: boolean;
-  not_found?: boolean;
-  data: T;
-}
+import { DataContainer } from "./DataContainer";
 
 interface Model {
   id?: string;
