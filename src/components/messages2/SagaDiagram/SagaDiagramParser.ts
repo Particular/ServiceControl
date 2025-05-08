@@ -17,6 +17,8 @@ export interface InitiatingMessageViewModel {
   FormattedMessageTimestamp: string;
   IsEventMessage: boolean;
   MessageData: SagaMessageDataItem[];
+  HasRelatedTimeoutRequest?: boolean;
+  MessageId: string;
 }
 export interface SagaTimeoutMessageViewModel extends SagaMessageViewModel {
   TimeoutFriendly: string;
@@ -56,6 +58,18 @@ export interface SagaViewModel {
 
 export function parseSagaUpdates(sagaHistory: SagaHistory | null, messagesData: SagaMessageData[]): SagaUpdateViewModel[] {
   if (!sagaHistory || !sagaHistory.changes || !sagaHistory.changes.length) return [];
+
+  const timeoutMessageIds = new Set<string>();
+  sagaHistory.changes.forEach((update) => {
+    if (update.outgoing_messages) {
+      update.outgoing_messages.forEach((msg) => {
+        const delivery_delay = msg.delivery_delay || "00:00:00";
+        if (delivery_delay && delivery_delay !== "00:00:00") {
+          timeoutMessageIds.add(msg.message_id);
+        }
+      });
+    }
+  });
 
   const updates = sagaHistory.changes
     .map((update) => {
@@ -107,6 +121,9 @@ export function parseSagaUpdates(sagaHistory: SagaHistory | null, messagesData: 
 
       const hasTimeout = outgoingTimeoutMessages.length > 0;
 
+      // Check if initiating message is a timeout and if so, if it has a corresponding request in the diagram
+      const hasRelatedTimeoutRequest = update.initiating_message?.is_saga_timeout_message && timeoutMessageIds.has(update.initiating_message?.message_id);
+
       return <SagaUpdateViewModel>{
         MessageId: update.initiating_message?.message_id || "",
         StartTime: startTime,
@@ -115,11 +132,13 @@ export function parseSagaUpdates(sagaHistory: SagaHistory | null, messagesData: 
         Status: update.status,
         StatusDisplay: update.status === "new" ? "Saga Initiated" : "Saga Updated",
         InitiatingMessage: <InitiatingMessageViewModel>{
+          MessageId: update.initiating_message?.message_id || "",
           MessageType: typeToName(update.initiating_message?.message_type || "Unknown Message") || "",
           FormattedMessageTimestamp: `${initiatingMessageTimestamp.toLocaleDateString()} ${initiatingMessageTimestamp.toLocaleTimeString()}`,
           MessageData: initiatingMessageData,
           IsEventMessage: update.initiating_message?.intent === "Publish",
           IsSagaTimeoutMessage: update.initiating_message?.is_saga_timeout_message || false,
+          HasRelatedTimeoutRequest: hasRelatedTimeoutRequest,
         },
         HasTimeout: hasTimeout,
         IsFirstNode: update.status === "new",

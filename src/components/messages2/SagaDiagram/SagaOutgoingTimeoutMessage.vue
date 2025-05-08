@@ -4,6 +4,7 @@ import MessageDataBox from "./MessageDataBox.vue";
 import TimeoutIcon from "@/assets/TimeoutIcon.svg";
 import SagaTimeoutIcon from "@/assets/SagaTimeoutIcon.svg";
 import { useSagaDiagramStore } from "@/stores/SagaDiagramStore";
+import { computed, ref, watch } from "vue";
 
 const props = defineProps<{
   message: SagaTimeoutMessageViewModel;
@@ -12,11 +13,32 @@ const props = defineProps<{
 }>();
 
 const store = useSagaDiagramStore();
+const timeoutMessageRef = ref<HTMLElement | null>(null);
+const shouldBeActive = computed(() => {
+  return store.selectedMessageId === props.message.MessageId;
+});
 
+// This sets the store with the required values so the timeout invocation node exists, it will react by scrolling to the node
 const navigateToTimeout = () => {
   // Set the selected message ID in the store
   store.setSelectedMessageId(props.message.MessageId);
+  store.scrollToTimeout = true;
 };
+
+watch(
+  [() => store.scrollToTimeoutRequest, () => shouldBeActive.value, () => timeoutMessageRef.value !== null],
+  ([scrollRequest, shouldScroll, refExists]) => {
+    if (scrollRequest && shouldScroll && refExists && timeoutMessageRef.value) {
+      timeoutMessageRef.value.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      store.scrollToTimeoutRequest = false;
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
@@ -35,7 +57,14 @@ const navigateToTimeout = () => {
     </div>
     <div class="cell cell--side">
       <div class="cell-inner cell-inner-right"></div>
-      <div class="cell-inner cell-inner-side">
+      <div
+        ref="timeoutMessageRef"
+        :class="{
+          'cell-inner': true,
+          'cell-inner-side': true,
+          'cell-inner-side--active': shouldBeActive,
+        }"
+      >
         <img class="saga-icon saga-icon--side-cell" :src="TimeoutIcon" alt="" />
         <h2 class="message-title" aria-label="timeout message type">{{ message.MessageFriendlyTypeName }}</h2>
         <div class="timestamp" aria-label="timeout message timestamp">{{ message.FormattedTimeSent }}</div>
@@ -96,7 +125,8 @@ const navigateToTimeout = () => {
 }
 
 .cell-inner-side--active {
-  border: solid 2px #000000;
+  border: solid 5px #0b6eef;
+  animation: blink-border 1.8s ease-in-out;
 }
 
 .cell-inner-right {
@@ -175,5 +205,20 @@ const navigateToTimeout = () => {
 
 .saga-icon--overlap {
   margin-left: -1rem;
+}
+
+@keyframes blink-border {
+  0%,
+  100% {
+    border-color: #0b6eef;
+  }
+  20%,
+  60% {
+    border-color: #cccccc;
+  }
+  40%,
+  80% {
+    border-color: #0b6eef;
+  }
 }
 </style>

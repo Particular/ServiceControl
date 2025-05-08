@@ -49,27 +49,30 @@ const props = defineProps<{
 
 const store = useSagaDiagramStore();
 const initiatingMessageRef = ref<HTMLElement | null>(null);
-const isActive = ref(false);
 const hasParsingError = ref(false);
 
-// Watch for changes to selectedMessageId
+const shouldBeActive = computed(() => {
+  return store.selectedMessageId === props.update.MessageId;
+});
+
+const navigateToTimeoutRequest = () => {
+  store.setSelectedMessageId(props.update.InitiatingMessage.MessageId);
+  store.scrollToTimeoutRequest = true;
+};
+
 watch(
-  () => store.selectedMessageId,
-  (newMessageId) => {
-    // Check if this node contains the selected message
-    const isSelected = props.update.InitiatingMessage.IsSagaTimeoutMessage && newMessageId === props.update.MessageId;
-
-    // Update active state
-    isActive.value = isSelected;
-
-    // If this is the selected message, scroll to it
-    if (isSelected && initiatingMessageRef.value) {
+  [() => store.scrollToTimeout, () => shouldBeActive.value, () => initiatingMessageRef.value !== null],
+  ([scrollTimeout, shouldScroll, refExists]) => {
+    if (scrollTimeout && shouldScroll && refExists && initiatingMessageRef.value) {
       initiatingMessageRef.value.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
+
+      store.scrollToTimeout = false;
     }
-  }
+  },
+  { immediate: true }
 );
 
 // Format a JSON value for display
@@ -155,7 +158,7 @@ const hasStateChanges = computed(() => {
           :class="{
             'cell-inner': true,
             'cell-inner-side': true,
-            'cell-inner-side--active': isActive || (update.InitiatingMessage.IsSagaTimeoutMessage && update.MessageId === store.selectedMessageId),
+            'cell-inner-side--active': shouldBeActive || (update.InitiatingMessage.IsSagaTimeoutMessage && update.MessageId === store.selectedMessageId),
           }"
           :data-message-id="update.InitiatingMessage.IsSagaTimeoutMessage ? update.MessageId : ''"
         >
@@ -168,7 +171,8 @@ const hasStateChanges = computed(() => {
         <div class="cell-inner cell-inner-center cell-inner--align-bottom">
           <template v-if="update.InitiatingMessage.IsSagaTimeoutMessage">
             <img class="saga-icon saga-icon--center-cell" :src="SagaTimeoutIcon" alt="" />
-            <h2 class="saga-status-title saga-status-title--inline timeout-status" aria-label="timeout invoked">Timeout Invoked</h2>
+            <a v-if="update.InitiatingMessage.HasRelatedTimeoutRequest" href="#" @click.prevent="navigateToTimeoutRequest" class="saga-status-title saga-status-title--inline timeout-status" aria-label="timeout invoked"> Timeout Invoked </a>
+            <h2 v-else class="saga-status-title saga-status-title--inline timeout-status" aria-label="timeout invoked">Timeout Invoked</h2>
             <br />
           </template>
           <img class="saga-icon saga-icon--center-cell" :src="update.IsFirstNode ? SagaInitiatedIcon : SagaUpdatedIcon" alt="" />
@@ -312,7 +316,7 @@ const hasStateChanges = computed(() => {
 }
 
 .cell-inner-side--active {
-  border: solid 5px #00a3c4;
+  border: solid 5px #0b6eef;
   animation: blink-border 1.8s ease-in-out;
 }
 
@@ -408,7 +412,6 @@ const hasStateChanges = computed(() => {
   display: inline-block;
   font-size: 1rem;
   font-weight: 900;
-  color: #00a3c4;
 }
 
 /* Styles for DiffViewer integration */
@@ -456,7 +459,7 @@ const hasStateChanges = computed(() => {
 @keyframes blink-border {
   0%,
   100% {
-    border-color: #00a3c4;
+    border-color: #0b6eef;
   }
   20%,
   60% {
@@ -464,7 +467,7 @@ const hasStateChanges = computed(() => {
   }
   40%,
   80% {
-    border-color: #00a3c4;
+    border-color: #0b6eef;
   }
 }
 </style>

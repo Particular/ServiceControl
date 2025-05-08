@@ -255,6 +255,7 @@ function rendercomponent({ initialState = {} }: { initialState?: { MessageStore?
       ],
       stubs: {
         CodeEditor: true,
+        CopyToClipboard: true,
       },
     },
   });
