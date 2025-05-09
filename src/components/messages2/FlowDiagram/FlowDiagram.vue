@@ -284,7 +284,7 @@ const selectedErrorColor = hexToCSSFilter("#e8e6e8").filter;
 }
 
 #tree-container {
-  width: 92vw;
+  width: inherit;
   height: 70vh;
 }
 
