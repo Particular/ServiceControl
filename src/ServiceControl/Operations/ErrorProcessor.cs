@@ -1,4 +1,6 @@
-﻿using NServiceBus.Faults;
+﻿using System.IO;
+using System.Text.Json;
+using NServiceBus.Faults;
 
 namespace ServiceControl.Operations
 {
@@ -114,8 +116,10 @@ namespace ServiceControl.Operations
             try
             {
                 context.Headers[FaultsHeaderKeys.FailedQ] = context.ReceiveAddress.Replace("_error", "");
-                context.Headers[Headers.EnclosedMessageTypes] = "OrderPlacedEvent";
                 context.Headers[Headers.MessageId] = context.NativeMessageId;
+                using var ms = new MemoryStream(context.Body.ToArray());
+                var jsMessage = JsonSerializer.Deserialize<JustSayingWrapper>(ms);
+                context.Headers[Headers.EnclosedMessageTypes] = jsMessage.Subject;
                 var (metadata, enricherContext) = ExecuteEnrichRoutinesAndCreateMetaData(context, messageId);
 
                 var failureDetails = failedMessageFactory.ParseFailureDetails(context.Headers);
@@ -179,5 +183,13 @@ namespace ServiceControl.Operations
         readonly Counter ingestedCounter;
         readonly FailedMessageFactory failedMessageFactory;
         static readonly ILog Logger = LogManager.GetLogger<ErrorProcessor>();
+    }
+
+    class JustSayingWrapper
+    {
+        public string MessageId { get; set; }
+        public DateTimeOffset Timestamp { get; set; }
+        public string Subject { get; set; }
+        public string Message { get; set; }
     }
 }
