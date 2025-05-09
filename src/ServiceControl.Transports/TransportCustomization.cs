@@ -26,6 +26,8 @@ namespace ServiceControl.Transports
         string ToTransportQualifiedQueueName(string queueName);
 
         Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly);
+
+        Task<TransportInfrastructure> CreateTransportInfrastructure(string name, string[] queues, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly);
     }
 
     public abstract class TransportCustomization<TTransport> : ITransportCustomization where TTransport : TransportDefinition
@@ -152,6 +154,11 @@ namespace ServiceControl.Transports
 
         public async Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
+            return await CreateTransportInfrastructure(name, new[] { name }, transportSettings, onMessage, onError, onCriticalError, preferredTransactionMode);
+        }
+
+        public async Task<TransportInfrastructure> CreateTransportInfrastructure(string name, string[] queues, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
+        {
             var transport = CreateTransport(transportSettings, preferredTransactionMode);
 
             onCriticalError ??= (_, __) => Task.CompletedTask;
@@ -165,29 +172,39 @@ namespace ServiceControl.Transports
                 null); //null means "not hosted by core", transport SHOULD adjust accordingly to not assume things
 
 
-            ReceiveSettings[] receivers;
-            var createReceiver = onMessage != null && onError != null;
+            var receiverSettings = new ReceiveSettings[queues.Length];
+            var createReceivers = onMessage != null && onError != null;
 
-            if (createReceiver)
+            if (createReceivers)
             {
-                receivers = [new ReceiveSettings(name, new QueueAddress(name), false, false, transportSettings.ErrorQueue)];
+                for (var i = 0; i < queues.Length; i++)
+                {
+                    receiverSettings[i] = new ReceiveSettings(queues[i], new QueueAddress(queues[i]), false, false, transportSettings.ErrorQueue);
+                }
             }
             else
             {
-                receivers = [];
+                receiverSettings = [];
             }
 
-            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { ToTransportQualifiedQueueNameCore(transportSettings.ErrorQueue) });
+            var transportInfrastructure = await transport.Initialize(hostSettings, receiverSettings, new[] { ToTransportQualifiedQueueNameCore(transportSettings.ErrorQueue) });
 
-            if (createReceiver)
+            if (createReceivers)
             {
                 if (!transportSettings.MaxConcurrency.HasValue)
                 {
                     throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
                 }
 
-                var transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
-                await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency.Value), onMessage, onError, CancellationToken.None);
+                var transportInitializeTasks = new Task[receiverSettings.Length];
+
+                for (var i = 0; i < receiverSettings.Length; i++)
+                {
+                    var transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
+                    transportInitializeTasks[i] = transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency.Value), onMessage, onError, CancellationToken.None);
+                }
+
+                await Task.WhenAll(transportInitializeTasks);
             }
 
             return transportInfrastructure;
