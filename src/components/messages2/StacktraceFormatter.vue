@@ -145,7 +145,6 @@ watch(
 </script>
 
 <template>
-  <!-- prettier-ignore -->
   <div class="stack-trace-container">
     <template v-for="line in formattedStack" :key="line">
       <template v-if="typeof line === 'string'">
@@ -154,15 +153,18 @@ watch(
       <div v-else>
         {{ line.spaces }}{{ selectedLanguage.at }}
         <span :class="props.options.frame">
-          <span :class="props.options.type">{{ line.type }}</span>.<span :class="props.options.method">{{ line.method }}</span>(<span :class="props.options.paramsList">
+          <span :class="props.options.type">{{ line.type }}</span
+          >.<span :class="props.options.method">{{ line.method }}</span
+          >(<span :class="props.options.paramsList">
             <template v-for="(param, index) in line.params" :key="param.name">
               <span :class="props.options.paramType"> {{ param.type }}</span> <span :class="props.options.paramName">{{ param.name }}</span>
               <span v-if="index !== line.params.length - 1">, </span>
-            </template>
-        </span>)
+            </template> </span
+          >)
         </span>
         <template v-if="line.file">
-          {{ selectedLanguage.in }} <span :class="props.options.file">{{ line.file }}</span>:{{ selectedLanguage.line }} <span :class="props.options.line">{{ line.lineNumber }}</span>
+          {{ selectedLanguage.in }} <span :class="props.options.file">{{ line.file }}</span
+          >:{{ selectedLanguage.line }} <span :class="props.options.line">{{ line.lineNumber }}</span>
         </template>
       </div>
     </template>
