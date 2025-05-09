@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Threading;
+    using System.Linq;
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Infrastructure;
@@ -192,7 +193,7 @@
 
         async Task SetUpAndStartInfrastructure(CancellationToken cancellationToken)
         {
-            if (messageReceiver != null)
+            if (messageReceivers != null)
             {
                 Logger.Debug("Infrastructure already Started");
                 return;
@@ -202,7 +203,8 @@
             {
                 Logger.Info("Starting infrastructure");
                 transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
-                    errorQueue,
+                    "ErrorIngestion",
+                    [errorQueue],
                     transportSettings,
                     OnMessage,
                     errorHandlingPolicy.OnError,
@@ -210,14 +212,21 @@
                     TransportTransactionMode.ReceiveOnly
                 );
 
-                messageReceiver = transportInfrastructure.Receivers[errorQueue];
+                messageReceivers = transportInfrastructure.Receivers.Values.ToArray();
 
                 if (settings.ForwardErrorMessages)
                 {
                     await ingestor.VerifyCanReachForwardingAddress(cancellationToken);
                 }
 
-                await messageReceiver.StartReceive(cancellationToken);
+                var startReceiveTasks = new Task[messageReceivers.Length];
+
+                for (var i = 0; i < messageReceivers.Length; i++)
+                {
+                    startReceiveTasks[i] = messageReceivers[i].StartReceive(cancellationToken);
+                }
+
+                await Task.WhenAll(startReceiveTasks);
 
                 Logger.Info(LogMessages.StartedInfrastructure);
             }
@@ -239,9 +248,16 @@
                 Logger.Info("Stopping infrastructure");
                 try
                 {
-                    if (messageReceiver != null)
+                    if (messageReceivers != null)
                     {
-                        await messageReceiver.StopReceive(cancellationToken);
+                        var stopReceiveTasks = new Task[messageReceivers.Length];
+
+                        for (var i = 0; i < messageReceivers.Length; i++)
+                        {
+                            stopReceiveTasks[i] = messageReceivers[i].StopReceive(cancellationToken);
+                        }
+
+                        await Task.WhenAll(stopReceiveTasks);
                     }
                 }
                 finally
@@ -249,7 +265,7 @@
                     await transportInfrastructure.Shutdown(cancellationToken);
                 }
 
-                messageReceiver = null;
+                messageReceivers = null;
                 transportInfrastructure = null;
 
                 Logger.Info(LogMessages.StoppedInfrastructure);
@@ -308,7 +324,7 @@
         string errorQueue;
         ErrorIngestionFaultPolicy errorHandlingPolicy;
         TransportInfrastructure transportInfrastructure;
-        IMessageReceiver messageReceiver;
+        IMessageReceiver[] messageReceivers;
 
         readonly Settings settings;
         readonly ITransportCustomization transportCustomization;
