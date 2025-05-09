@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.Operations
+﻿using NServiceBus.Faults;
+
+namespace ServiceControl.Operations
 {
     using System;
     using System.Collections.Generic;
@@ -111,6 +113,9 @@
 
             try
             {
+                context.Headers[FaultsHeaderKeys.FailedQ] = context.ReceiveAddress.Replace("_error", "");
+                context.Headers[Headers.EnclosedMessageTypes] = "OrderPlacedEvent";
+                context.Headers[Headers.MessageId] = context.NativeMessageId;
                 var (metadata, enricherContext) = ExecuteEnrichRoutinesAndCreateMetaData(context, messageId);
 
                 var failureDetails = failedMessageFactory.ParseFailureDetails(context.Headers);

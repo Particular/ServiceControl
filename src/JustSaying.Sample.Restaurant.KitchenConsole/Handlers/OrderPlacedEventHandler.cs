@@ -33,6 +33,8 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole.Handlers
             //   The message handling should be retried (configured by default)
             //   The message should be moved to the error queue if all retries fail
 
+            throw new Exception("Failing intentionally");
+
             try
             {
                 _logger.LogInformation("Order {orderId} for {description} received", message.OrderId, message.Description);
