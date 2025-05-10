@@ -150,18 +150,23 @@ const hasStateChanges = computed(() => {
           }"
           :data-message-id="update.InitiatingMessage.IsSagaTimeoutMessage ? update.MessageId : ''"
         >
-          <img class="saga-icon saga-icon--side-cell" :src="update.InitiatingMessage.IsSagaTimeoutMessage ? TimeoutIcon : update.InitiatingMessage.IsEventMessage ? EventIcon : CommandIcon" alt="" />
-          <h2 class="message-title" aria-label="initiating message type">{{ update.InitiatingMessage.FriendlyTypeName }}</h2>
-          <div class="timestamp" aria-label="initiating message timestamp">{{ update.InitiatingMessage.FormattedMessageTimestamp }}</div>
+          <img
+            class="saga-icon saga-icon--side-cell"
+            :src="update.InitiatingMessage.IsSagaTimeoutMessage ? TimeoutIcon : update.InitiatingMessage.IsEventMessage ? EventIcon : CommandIcon"
+            alt=""
+            v-tippy="update.InitiatingMessage.IsSagaTimeoutMessage ? `Timeout Message` : update.InitiatingMessage.IsEventMessage ? `Event Message` : `Command Message`"
+          />
+          <h2 class="message-title" aria-label="initiating message type" v-tippy="update.InitiatingMessage.FriendlyTypeName">{{ update.InitiatingMessage.FriendlyTypeName }}</h2>
+          <div class="timestamp" aria-label="initiating message timestamp" v-tippy="`Received at: ${update.InitiatingMessage.FormattedMessageTimestamp}`">{{ update.InitiatingMessage.FormattedMessageTimestamp }}</div>
         </div>
       </div>
       <div class="cell cell--center cell-flex">
         <div class="cell-inner cell-inner-center cell-inner--align-bottom">
           <template v-if="update.InitiatingMessage.IsSagaTimeoutMessage">
-            <img class="saga-icon saga-icon--center-cell" :src="SagaTimeoutIcon" alt="" />
+            <img class="saga-icon saga-icon--center-cell" :src="SagaTimeoutIcon" alt="" v-tippy="`Saga Timeout`" />
             <a
               v-if="update.InitiatingMessage.HasRelatedTimeoutRequest"
-              v-tippy="`Scroll to timeout request`"
+              v-tippy="`View original timeout request`"
               href="#"
               @click.prevent="navigateToTimeoutRequest"
               class="saga-status-title saga-status-title--inline timeout-status"
@@ -172,9 +177,13 @@ const hasStateChanges = computed(() => {
             <h2 v-else class="saga-status-title saga-status-title--inline timeout-status" aria-label="timeout invoked">Timeout Invoked</h2>
             <br />
           </template>
-          <img class="saga-icon saga-icon--center-cell" :src="update.IsFirstNode ? SagaInitiatedIcon : SagaUpdatedIcon" alt="" />
-          <h2 class="saga-status-title saga-status-title--inline">{{ update.StatusDisplay }}</h2>
-          <div class="timestamp timestamp--inline" aria-label="time stamp">{{ update.FormattedStartTime }}</div>
+          <img class="saga-icon saga-icon--center-cell" :src="update.IsFirstNode ? SagaInitiatedIcon : SagaUpdatedIcon" alt="" v-tippy="update.IsFirstNode ? `Saga Initiated` : `Saga Updated`" />
+          <h2 class="saga-status-title saga-status-title--inline">
+            {{ update.StatusDisplay }}
+          </h2>
+          <div class="timestamp timestamp--inline" aria-label="time stamp" v-tippy="`Update time: ${update.FormattedStartTime}`">
+            {{ update.FormattedStartTime }}
+          </div>
         </div>
       </div>
     </div>
@@ -198,17 +207,17 @@ const hasStateChanges = computed(() => {
 
             <!-- Error message when parsing fails -->
             <div v-if="hasParsingError" class="json-container">
-              <div class="parsing-error-message">An error occurred while parsing and displaying the saga state for this update</div>
+              <div class="parsing-error-message" v-tippy="`There was an error parsing the JSON data for the saga state`">An error occurred while parsing and displaying the saga state for this update</div>
             </div>
 
             <!-- Initial state display -->
-            <div v-else-if="update.IsFirstNode" class="json-container json-container--first-node">
+            <div v-else-if="update.IsFirstNode" class="json-container json-container--first-node" v-tippy="`Initial state when saga was created`">
               <MaximizableCodeEditor :model-value="sagaUpdateStateChanges.formattedState || ''" language="json" :showGutter="false" modalTitle="Initial Saga State" :extensions="[monospaceTheme]" />
             </div>
 
             <!-- No changes message -->
             <div v-else-if="!hasStateChanges" class="json-container">
-              <div class="no-changes-message">No state changes in this update</div>
+              <div class="no-changes-message" v-tippy="`This saga update didn't modify the saga's state data`">No state changes in this update</div>
             </div>
 
             <!-- Side-by-side diff view for state changes -->

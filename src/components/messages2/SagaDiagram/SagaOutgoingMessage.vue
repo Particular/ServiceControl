@@ -26,9 +26,9 @@ const props = defineProps<{
       'cell-inner-side--active': shouldBeActive,
     }"
   >
-    <img class="saga-icon saga-icon--side-cell" :src="message.IsEventMessage ? EventIcon : CommandIcon" :alt="message.IsEventMessage ? 'Event' : 'Command'" />
-    <h2 class="message-title">{{ message.FriendlyTypeName }}</h2>
-    <div class="timestamp">{{ message.FormattedTimeSent }}</div>
+    <img class="saga-icon saga-icon--side-cell" :src="message.IsEventMessage ? EventIcon : CommandIcon" :alt="message.IsEventMessage ? 'Event' : 'Command'" v-tippy="message.IsEventMessage ? `Event Message` : `Command Message`" />
+    <h2 class="message-title" v-tippy="message.FriendlyTypeName">{{ message.FriendlyTypeName }}</h2>
+    <div class="timestamp" v-tippy="`Sent at: ${message.FormattedTimeSent}`">{{ message.FormattedTimeSent }}</div>
   </div>
   <div v-if="showMessageData" class="message-data message-data--active">
     <MessageDataBox :messageData="message.Data" :maximizedTitle="message.FriendlyTypeName" />
