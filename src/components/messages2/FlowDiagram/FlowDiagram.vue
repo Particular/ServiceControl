@@ -225,7 +225,7 @@ const selectedErrorColor = hexToCSSFilter("#e8e6e8").filter;
       <VueFlow :nodes="nodes" :edges="edges" :min-zoom="0.1" :max-zoom="1.2" :only-render-visible-elements="true" @nodes-initialized="layoutGraph">
         <Controls :show-interactive="false" position="top-left" class="controls" />
         <template #node-message="{ id, data }: { id: string; data: NodeData }">
-          <TextEllipses class="address" :text="`${data.sendingEndpoint.name}@${data.sendingEndpoint.host}`" />
+          <TextEllipses class="address" :text="`${data.sendingEndpoint.name}@${data.sendingEndpoint.host}`" v-tippy="'Sending Endpoint'" />
           <div class="node" :class="{ error: data.isError, 'current-message': id === store.state.data.id }">
             <div class="node-text">
               <i
@@ -246,7 +246,7 @@ const selectedErrorColor = hexToCSSFilter("#e8e6e8").filter;
                 <div class="saga" v-for="saga in data.sagaInvocations" :key="saga.id">
                   <i
                     class="fa"
-                    v-tippy="saga.isSagaInitiated ? 'Message originated from Saga' : !saga.isSagaInitiated && saga.isSagaCompleted ? 'Saga Completed' : 'Saga Initiated / Updated'"
+                    v-tippy="saga.isSagaInitiated ? 'Saga Initiated / Updated' : !saga.isSagaInitiated && saga.isSagaCompleted ? 'Saga Completed' : 'Message originated from Saga'"
                     :class="{ 'pa-flow-saga-initiated': saga.isSagaInitiated, 'pa-flow-saga-completed': !saga.isSagaInitiated && saga.isSagaCompleted, 'pa-flow-saga-trigger': !saga.isSagaInitiated && !saga.isSagaCompleted }"
                   />
                   <div class="sagaName"><TextEllipses style="width: 182px" :text="saga.sagaType" ellipses-style="LeftSide" /></div>
@@ -254,7 +254,7 @@ const selectedErrorColor = hexToCSSFilter("#e8e6e8").filter;
               </div>
             </div>
           </div>
-          <TextEllipses class="address" :text="`${data.receivingEndpoint.name}@${data.receivingEndpoint.host}`" />
+          <TextEllipses class="address" :text="`${data.receivingEndpoint.name}@${data.receivingEndpoint.host}`" v-tippy="'Processing Endpoint'" />
         </template>
       </VueFlow>
     </div>
