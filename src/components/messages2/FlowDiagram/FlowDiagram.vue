@@ -225,7 +225,7 @@ const selectedErrorColor = hexToCSSFilter("#e8e6e8").filter;
       <VueFlow :nodes="nodes" :edges="edges" :min-zoom="0.1" :max-zoom="1.2" :only-render-visible-elements="true" @nodes-initialized="layoutGraph">
         <Controls :show-interactive="false" position="top-left" class="controls" />
         <template #node-message="{ id, data }: { id: string; data: NodeData }">
-          <TextEllipses class="address" :text="`${data.sendingEndpoint.name}@${data.sendingEndpoint.host}`" v-tippy="'Sending Endpoint'" />
+          <TextEllipses class="address" :text="`${data.sendingEndpoint.name}@${data.sendingEndpoint.host}`" />
           <div class="node" :class="{ error: data.isError, 'current-message': id === store.state.data.id }">
             <div class="node-text">
               <i
@@ -254,7 +254,7 @@ const selectedErrorColor = hexToCSSFilter("#e8e6e8").filter;
               </div>
             </div>
           </div>
-          <TextEllipses class="address" :text="`${data.receivingEndpoint.name}@${data.receivingEndpoint.host}`" v-tippy="'Processing Endpoint'" />
+          <TextEllipses class="address" :text="`${data.receivingEndpoint.name}@${data.receivingEndpoint.host}`" />
         </template>
       </VueFlow>
     </div>
