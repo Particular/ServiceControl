@@ -45,7 +45,7 @@ watch(
   <div class="row row--right">
     <div class="cell cell--center">
       <div class="cell-inner cell-inner-line">
-        <img class="saga-icon saga-icon--center-cell saga-icon--overlap" :src="SagaTimeoutIcon" alt="" v-tippy="`Timeout Request`" />
+        <img class="saga-icon saga-icon--center-cell saga-icon--overlap" :src="SagaTimeoutIcon" alt="Timeout Request" />
         <a v-if="message.HasBeenProcessed" v-tippy="`View timeout processing details`" class="timeout-status" href="#" @click.prevent="navigateToTimeout" aria-label="timeout requested">Timeout Requested = {{ message.TimeoutFriendly }}</a>
         <span v-else class="timeout-status" aria-label="timeout requested" v-tippy="`This timeout has been requested but not yet processed`">Timeout Requested = {{ message.TimeoutFriendly }}</span>
       </div>
