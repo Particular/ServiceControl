@@ -28,10 +28,10 @@ const body = computed(() => props.messageData.body.data.value || "");
     <LoadingSpinner />
   </div>
   <div v-else-if="messageData.body.failed_to_load" class="message-data-box message-data-box-error">
-    <span class="message-data-box-text--error">An error occurred while retrieving the message data</span>
+    <span class="message-data-box-text--error">Failed to load message data, there might be a connection issue or the message may no longer be available.</span>
   </div>
   <div v-else-if="!messageDataLoading && (!messageData.body.data.value || messageData.body.not_found)" class="message-data-box">
-    <span class="message-data-box-text--empty">Empty</span>
+    <span class="message-data-box-text--empty">No message body data available</span>
   </div>
   <div v-else-if="contentType.isSupported" class="message-data-box message-data-box-content">
     <MaximizableCodeEditor :model-value="body" :language="contentType.language" :readOnly="true" :showGutter="false" :modalTitle="modalTitle" />

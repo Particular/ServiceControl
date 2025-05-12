@@ -150,18 +150,23 @@ const hasStateChanges = computed(() => {
           }"
           :data-message-id="update.InitiatingMessage.IsSagaTimeoutMessage ? update.MessageId : ''"
         >
-          <img class="saga-icon saga-icon--side-cell" :src="update.InitiatingMessage.IsSagaTimeoutMessage ? TimeoutIcon : update.InitiatingMessage.IsEventMessage ? EventIcon : CommandIcon" alt="" />
-          <h2 class="message-title" aria-label="initiating message type">{{ update.InitiatingMessage.FriendlyTypeName }}</h2>
-          <div class="timestamp" aria-label="initiating message timestamp">{{ update.InitiatingMessage.FormattedMessageTimestamp }}</div>
+          <img
+            class="saga-icon saga-icon--side-cell"
+            :src="update.InitiatingMessage.IsSagaTimeoutMessage ? TimeoutIcon : update.InitiatingMessage.IsEventMessage ? EventIcon : CommandIcon"
+            alt=""
+            v-tippy="update.InitiatingMessage.IsSagaTimeoutMessage ? `Timeout Message` : update.InitiatingMessage.IsEventMessage ? `Event Message` : `Command Message`"
+          />
+          <h2 class="message-title" aria-label="initiating message type" v-tippy="update.InitiatingMessage.FriendlyTypeName">{{ update.InitiatingMessage.FriendlyTypeName }}</h2>
+          <div class="timestamp" aria-label="initiating message timestamp" v-tippy="`Received at: ${update.InitiatingMessage.FormattedMessageTimestamp}`">{{ update.InitiatingMessage.FormattedMessageTimestamp }}</div>
         </div>
       </div>
       <div class="cell cell--center cell-flex">
         <div class="cell-inner cell-inner-center cell-inner--align-bottom">
           <template v-if="update.InitiatingMessage.IsSagaTimeoutMessage">
-            <img class="saga-icon saga-icon--center-cell" :src="SagaTimeoutIcon" alt="" />
+            <img class="saga-icon saga-icon--center-cell" :src="SagaTimeoutIcon" alt="" v-tippy="`Saga Timeout`" />
             <a
               v-if="update.InitiatingMessage.HasRelatedTimeoutRequest"
-              v-tippy="`Scroll to timeout request`"
+              v-tippy="`View original timeout request`"
               href="#"
               @click.prevent="navigateToTimeoutRequest"
               class="saga-status-title saga-status-title--inline timeout-status"
@@ -172,9 +177,13 @@ const hasStateChanges = computed(() => {
             <h2 v-else class="saga-status-title saga-status-title--inline timeout-status" aria-label="timeout invoked">Timeout Invoked</h2>
             <br />
           </template>
-          <img class="saga-icon saga-icon--center-cell" :src="update.IsFirstNode ? SagaInitiatedIcon : SagaUpdatedIcon" alt="" />
-          <h2 class="saga-status-title saga-status-title--inline">{{ update.StatusDisplay }}</h2>
-          <div class="timestamp timestamp--inline" aria-label="time stamp">{{ update.FormattedStartTime }}</div>
+          <img class="saga-icon saga-icon--center-cell" :src="update.IsFirstNode ? SagaInitiatedIcon : SagaUpdatedIcon" alt="" v-tippy="update.IsFirstNode ? `Saga Initiated` : `Saga Updated`" />
+          <h2 class="saga-status-title saga-status-title--inline">
+            {{ update.StatusDisplay }}
+          </h2>
+          <div class="timestamp timestamp--inline" aria-label="time stamp" v-tippy="`Update time: ${update.FormattedStartTime}`">
+            {{ update.FormattedStartTime }}
+          </div>
         </div>
       </div>
     </div>

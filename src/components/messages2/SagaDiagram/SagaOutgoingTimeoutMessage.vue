@@ -45,9 +45,9 @@ watch(
   <div class="row row--right">
     <div class="cell cell--center">
       <div class="cell-inner cell-inner-line">
-        <img class="saga-icon saga-icon--center-cell saga-icon--overlap" :src="SagaTimeoutIcon" alt="" />
-        <a v-if="message.HasBeenProcessed" v-tippy="`Scroll to invoked timeout`" class="timeout-status" href="#" @click.prevent="navigateToTimeout" aria-label="timeout requested">Timeout Requested = {{ message.TimeoutFriendly }}</a>
-        <span v-else class="timeout-status" aria-label="timeout requested">Timeout Requested = {{ message.TimeoutFriendly }}</span>
+        <img class="saga-icon saga-icon--center-cell saga-icon--overlap" :src="SagaTimeoutIcon" alt="Timeout Request" />
+        <a v-if="message.HasBeenProcessed" v-tippy="`View timeout processing details`" class="timeout-status" href="#" @click.prevent="navigateToTimeout" aria-label="timeout requested">Timeout Requested = {{ message.TimeoutFriendly }}</a>
+        <span v-else class="timeout-status" aria-label="timeout requested" v-tippy="`This timeout has been requested but not yet processed`">Timeout Requested = {{ message.TimeoutFriendly }}</span>
       </div>
     </div>
     <div class="cell cell--side"></div>
@@ -65,9 +65,9 @@ watch(
           'cell-inner-side--active': shouldBeActive,
         }"
       >
-        <img class="saga-icon saga-icon--side-cell" :src="TimeoutIcon" alt="" />
-        <h2 class="message-title" aria-label="timeout message type">{{ message.FriendlyTypeName }}</h2>
-        <div class="timestamp" aria-label="timeout message timestamp">{{ message.FormattedTimeSent }}</div>
+        <img class="saga-icon saga-icon--side-cell" :src="TimeoutIcon" alt="" v-tippy="`Timeout Message`" />
+        <h2 class="message-title" aria-label="timeout message type" v-tippy="message.FriendlyTypeName">{{ message.FriendlyTypeName }}</h2>
+        <div class="timestamp" aria-label="timeout message timestamp" v-tippy="`Sent at: ${message.FormattedTimeSent}`">{{ message.FormattedTimeSent }}</div>
       </div>
       <div v-if="showMessageData" class="message-data message-data--active">
         <MessageDataBox :messageData="message.Data" :maximizedTitle="message.FriendlyTypeName" />

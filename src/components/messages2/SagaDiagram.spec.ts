@@ -43,7 +43,7 @@ describe("Feature: Message not involved in Saga", () => {
         },
       });
 
-      componentDriver.assert.NoSagaDataAvailableMessageIsShownWithMessage(/no saga data/i);
+      componentDriver.assert.NoSagaDataAvailableMessageIsShownWithMessage(/This message is not part of any saga/i);
     });
   });
 });
