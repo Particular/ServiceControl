@@ -6,8 +6,8 @@ import NoSagaIcon from "@/assets/NoSaga.svg";
   <div class="body">
     <div class="saga-message">
       <div class="saga-message-container">
-        <img class="saga-message-image" :src="NoSagaIcon" alt="" v-tippy="`No saga data found`" />
-        <h1 role="status" aria-label="message-not-involved-in-saga" class="saga-message-title" v-tippy="`This message is not part of any saga`">No Saga Data Available</h1>
+        <img class="saga-message-image" :src="NoSagaIcon" alt="No saga data found" />
+        <h1 role="status" aria-label="message-not-involved-in-saga" class="saga-message-title">This message is not part of any saga</h1>
       </div>
     </div>
   </div>
