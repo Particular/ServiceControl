@@ -37,7 +37,7 @@ const body = computed(() => props.messageData.body.data.value || "");
     <MaximizableCodeEditor :model-value="body" :language="contentType.language" :readOnly="true" :showGutter="false" :modalTitle="modalTitle" />
   </div>
   <div v-else class="message-data-box message-data-box-error">
-    <span class="message-data-box-text--unsupported" v-tippy="`Content type '${messageData.body.data.content_type}' cannot be displayed in the message viewer`"
+    <span class="message-data-box-text--unsupported"
       >Message body cannot be displayed because content type "{{ messageData.body.data.content_type }}" is not supported.</span
     >
   </div>
