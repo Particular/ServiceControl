@@ -8,7 +8,7 @@ import CopyToClipboard from "@/components/CopyToClipboard.vue";
     <div class="saga-message">
       <div class="saga-message-container">
         <img class="saga-message-image" :src="NoSagaIcon" alt="Saga plugin required" />
-        <h1 class="saga-message-title" v-tippy="`The saga audit plugin is required to show saga visualization`">Saga audit plugin needed to visualize saga</h1>
+        <h1 class="saga-message-title">Saga audit plugin needed to visualize saga</h1>
         <div class="saga-message-box">
           <p class="saga-message-text" v-tippy="`You need to install the NServiceBus.SagaAudit package in your endpoint`">To visualize your saga, please install the appropriate nuget package in your endpoint</p>
           <a href="https://www.nuget.org/packages/NServiceBus.SagaAudit" class="saga-message-link" v-tippy="`Go to NServiceBus.SagaAudit NuGet page`">install-package NServiceBus.SagaAudit</a>
