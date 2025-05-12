@@ -211,7 +211,7 @@ const hasStateChanges = computed(() => {
             </div>
 
             <!-- Initial state display -->
-            <div v-else-if="update.IsFirstNode" class="json-container json-container--first-node" v-tippy="`Initial state when saga was created`">
+            <div v-else-if="update.IsFirstNode" class="json-container json-container--first-node">
               <MaximizableCodeEditor :model-value="sagaUpdateStateChanges.formattedState || ''" language="json" :showGutter="false" modalTitle="Initial Saga State" :extensions="[monospaceTheme]" />
             </div>
 
