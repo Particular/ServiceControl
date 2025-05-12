@@ -178,19 +178,19 @@ watch(
 }
 
 .st-frame {
-  color: #007bff;
+  color: #00729c;
 }
 
 .st-type {
-  color: #d63384;
+  color: #a11;
 }
 
 .st-method {
-  color: #28a745;
+  color: #164;
 }
 
 .st-file {
-  color: #fd7e14;
+  color: #c67b3d;
 }
 
 .st-line {
@@ -199,7 +199,7 @@ watch(
 
 .st-param-type {
   font-style: italic;
-  color: #6f42c1;
+  color: #6b82ce;
 }
 
 .st-param-name {
