@@ -207,7 +207,7 @@ const hasStateChanges = computed(() => {
 
             <!-- Error message when parsing fails -->
             <div v-if="hasParsingError" class="json-container">
-              <div class="parsing-error-message" v-tippy="`There was an error parsing the JSON data for the saga state`">An error occurred while parsing and displaying the saga state for this update</div>
+              <div class="parsing-error-message">An error occurred while parsing and displaying the saga state for this update</div>
             </div>
 
             <!-- Initial state display -->
