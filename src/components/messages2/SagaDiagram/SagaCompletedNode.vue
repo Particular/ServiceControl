@@ -11,7 +11,7 @@ defineProps<{
     <div class="row row--center">
       <div class="cell cell--center cell--inverted">
         <div class="cell-inner cell-inner-center">
-          <img class="saga-icon saga-icon--center-cell" :src="SagaCompletedIcon" alt="" v-tippy="`Saga Completed`" />
+          <img class="saga-icon saga-icon--center-cell" :src="SagaCompletedIcon" alt="Saga Completed" />
           <h2 class="saga-status-title saga-status-title--inline" v-tippy="`The saga has completed its lifecycle`">Saga Completed</h2>
           <div class="timestamp" v-tippy="`Completion timestamp: ${completionTime}`">{{ completionTime }}</div>
         </div>
