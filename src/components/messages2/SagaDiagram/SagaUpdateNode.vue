@@ -217,7 +217,7 @@ const hasStateChanges = computed(() => {
 
             <!-- No changes message -->
             <div v-else-if="!hasStateChanges" class="json-container">
-              <div class="no-changes-message" v-tippy="`This saga update didn't modify the saga's state data`">No state changes in this update</div>
+              <div class="no-changes-message">No state changes in this update</div>
             </div>
 
             <!-- Side-by-side diff view for state changes -->
