@@ -20,10 +20,15 @@
     {
         EditHandler handler;
         readonly TestableUnicastDispatcher dispatcher = new();
+        readonly ErrorQueueNameCache errorQueueNameCache = new()
+        {
+            ResolvedErrorAddress = "TestAddress"
+        };
 
         public EditMessageTests() =>
             RegisterServices = services => services
                 .AddSingleton<IMessageDispatcher>(dispatcher)
+                .AddSingleton<ErrorQueueNameCache>(errorQueueNameCache)
                 .AddTransient<EditHandler>();
 
         [SetUp]
@@ -210,6 +215,20 @@
             Assert.That(
                 sentMessage.Item1.Message.MessageId,
                 Is.Not.EqualTo(messageFailure.ProcessingAttempts.Last().MessageId));
+        }
+
+        [Test]
+        public async Task Should_assign_edited_message_correct_akcnowledgment_queue_address()
+        {
+            var messageFailure = await CreateAndStoreFailedMessage();
+            var message = CreateEditMessage(messageFailure.UniqueMessageId);
+
+            await handler.Handle(message, new TestableInvokeHandlerContext());
+
+            var sentMessage = dispatcher.DispatchedMessages.Single();
+            Assert.That(
+                sentMessage.Item1.Message.Headers["ServiceControl.Retry.AcknowledgementQueue"],
+                Is.EqualTo(errorQueueNameCache.ResolvedErrorAddress));
         }
 
         static EditAndSend CreateEditMessage(string failedMessageId, byte[] newBodyContent = null, Dictionary<string, string> newHeaders = null)

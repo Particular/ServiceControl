@@ -14,13 +14,15 @@ namespace ServiceControl.Recoverability
 
     class ReturnToSenderDequeuer : IHostedService
     {
-        public ReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore dataStore, IDomainEvents domainEvents, ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings)
+        public ReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore dataStore, IDomainEvents domainEvents,
+            ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings, ErrorQueueNameCache errorQueueNameCache)
         {
             InputAddress = transportCustomization.ToTransportQualifiedQueueName(settings.StagingQueue);
             this.returnToSender = returnToSender;
             errorQueue = settings.ErrorQueue;
             this.transportCustomization = transportCustomization;
             this.transportSettings = transportSettings;
+            this.errorQueueNameCache = errorQueueNameCache;
 
             faultManager = new CaptureIfMessageSendingFails(dataStore, domainEvents, IncrementCounterOrProlongTimer);
             timer = new Timer(state => StopInternal().GetAwaiter().GetResult());
@@ -35,6 +37,7 @@ namespace ServiceControl.Recoverability
             messageDispatcher = transportInfrastructure.Dispatcher;
 
             errorQueueTransportAddress = transportInfrastructure.ToTransportAddress(new QueueAddress(errorQueue));
+            errorQueueNameCache.ResolvedErrorAddress = errorQueueTransportAddress;
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
@@ -185,6 +188,7 @@ namespace ServiceControl.Recoverability
         string errorQueueTransportAddress;
         readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
+        readonly ErrorQueueNameCache errorQueueNameCache;
         TransportInfrastructure transportInfrastructure;
         IMessageDispatcher messageDispatcher;
         IMessageReceiver messageReceiver;

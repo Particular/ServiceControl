@@ -17,6 +17,7 @@
     using ServiceControl.Persistence;
     using ServiceControl.Recoverability;
     using ServiceControl.Transports;
+    using QueueAddress = NServiceBus.Transport.QueueAddress;
 
     [NonParallelizable]
     class RetryStateTests : PersistenceTestBase
@@ -52,6 +53,29 @@
         }
 
         [Test]
+        public async Task When_the_dequeuer_is_created_then_the_error_address_is_cached()
+        {
+            var domainEvents = new FakeDomainEvents();
+            var errorQueueNameCache = new ErrorQueueNameCache();
+            var transportInfrastructure = new TestTransportInfrastructure(new Dictionary<string, IMessageReceiver>
+            {
+                ["TestEndpoint.staging"] = null
+            })
+            {
+                TransportAddress = "TestAddress"
+            };
+
+            var transportCustomization = new TestTransportCustomization { TransportInfrastructure = transportInfrastructure };
+
+            var testReturnToSenderDequeuer = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint",
+                errorQueueNameCache, transportCustomization);
+
+            await testReturnToSenderDequeuer.StartAsync(new CancellationToken());
+
+            Assert.That(errorQueueNameCache.ResolvedErrorAddress, Is.EqualTo(transportInfrastructure.TransportAddress));
+        }
+
+        [Test]
         public async Task When_a_group_is_prepared_with_three_batches_and_SC_is_restarted_while_the_first_group_is_being_forwarded_then_the_count_still_matches()
         {
             var domainEvents = new FakeDomainEvents();
@@ -60,7 +84,7 @@
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 2001);
 
             var sender = new TestSender();
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager, new Lazy<IMessageDispatcher>(() => sender));
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, new Lazy<IMessageDispatcher>(() => sender));
 
             // Needs index RetryBatches_ByStatus_ReduceInitialBatchSize
             CompleteDatabaseOperation();
@@ -74,7 +98,7 @@
 
             await documentManager.RebuildRetryOperationState();
 
-            processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager, new Lazy<IMessageDispatcher>(() => sender));
+            processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, new Lazy<IMessageDispatcher>(() => sender));
 
             await processor.ProcessBatches();
 
@@ -92,7 +116,7 @@
 
             var sender = new TestSender();
 
-            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint");
+            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
             var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender));
 
             await processor.ProcessBatches(); // mark ready
@@ -122,7 +146,7 @@
                 }
             };
 
-            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint");
+            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
             var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender));
 
             bool c;
@@ -163,7 +187,7 @@
 
             var sender = new TestSender();
 
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, ErrorStore, domainEvents, "TestEndpoint"), retryManager, new Lazy<IMessageDispatcher>(() => sender));
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, new Lazy<IMessageDispatcher>(() => sender));
 
             CompleteDatabaseOperation();
 
@@ -281,8 +305,9 @@
 
         class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
         {
-            public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore store, IDomainEvents domainEvents, string endpointName)
-                : base(returnToSender, store, domainEvents, new TestTransportCustomization(), null, new Settings { InstanceName = endpointName })
+            public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore store, IDomainEvents domainEvents, string endpointName,
+                ErrorQueueNameCache cache, ITransportCustomization transportCustomization)
+                : base(returnToSender, store, domainEvents, transportCustomization, null, new Settings { InstanceName = endpointName }, cache)
             {
             }
 
@@ -294,10 +319,17 @@
 
         public class TestTransportCustomization : ITransportCustomization
         {
+            public TransportInfrastructure TransportInfrastructure { get; set; }
+
             public void AddTransportForAudit(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
             public void AddTransportForMonitoring(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
             public void AddTransportForPrimary(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
-            public Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, NServiceBus.TransportTransactionMode preferredTransactionMode = NServiceBus.TransportTransactionMode.ReceiveOnly) => throw new NotImplementedException();
+
+            public Task<TransportInfrastructure> CreateTransportInfrastructure(string name,
+                TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null,
+                Func<string, Exception, Task> onCriticalError = null,
+                NServiceBus.TransportTransactionMode preferredTransactionMode =
+                    NServiceBus.TransportTransactionMode.ReceiveOnly) => Task.FromResult(TransportInfrastructure);
             public void CustomizeAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
             public void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
             public void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
@@ -318,6 +350,17 @@
 
                 return Task.CompletedTask;
             }
+        }
+
+        public class TestTransportInfrastructure : TransportInfrastructure
+        {
+            public TestTransportInfrastructure(IReadOnlyDictionary<string, IMessageReceiver> receivers = null) => Receivers = receivers ?? new Dictionary<string, IMessageReceiver>();
+
+            public string TransportAddress { get; set; }
+
+            public override Task Shutdown(CancellationToken cancellationToken = new CancellationToken()) => throw new NotImplementedException();
+
+            public override string ToTransportAddress(QueueAddress address) => TransportAddress;
         }
     }
 }
