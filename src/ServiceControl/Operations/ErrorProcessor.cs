@@ -116,10 +116,29 @@ namespace ServiceControl.Operations
             try
             {
                 context.Headers[FaultsHeaderKeys.FailedQ] = context.ReceiveAddress.Replace("_error", "");
-                context.Headers[Headers.MessageId] = context.NativeMessageId;
+
+                context.Headers[FaultsHeaderKeys.Message] = "JustSaying had a problem";
                 using var ms = new MemoryStream(context.Body.ToArray());
                 var jsMessage = JsonSerializer.Deserialize<JustSayingWrapper>(ms);
+                context.Headers[Headers.MessageId] = jsMessage.Message.Id.ToString();
                 context.Headers[Headers.EnclosedMessageTypes] = jsMessage.Subject;
+                context.Headers[Headers.ConversationId] = jsMessage.Conversation ?? Guid.NewGuid().ToString();
+                context.Headers[Headers.OriginatingEndpoint] = jsMessage.RaisingComponent ?? "JustSaying";
+                context.Headers[Headers.TimeSent] = DateTimeOffsetHelper.ToWireFormattedString(jsMessage.Timestamp ?? DateTimeOffset.UtcNow);
+                context.Headers[Headers.ProcessingMachine] = jsMessage.SourceIp ?? "❌";
+
+                context.Headers[Headers.ContentType] = ContentTypes.Json;
+                context.Headers[FaultsHeaderKeys.TimeOfFailure] = DateTimeOffsetHelper.ToWireFormattedString(jsMessage.Timestamp ?? DateTimeOffset.UtcNow);
+                context.Headers[FaultsHeaderKeys.ExceptionType] = "System.Exception";
+                context.Headers[FaultsHeaderKeys.Source] = "JustSaying";
+                context.Headers[FaultsHeaderKeys.StackTrace] = @"System.Exception: Failing intentionally
+   at JustSaying.Sample.Restaurant.KitchenConsole.Handlers.OrderPlacedEventHandler.Handle(OrderPlacedEvent message) in /Users/nick/repos/particular/ServiceControl/src/JustSaying.Sample.Restaurant.KitchenConsole/Handlers/OrderPlacedEventHandler.cs:line 36
+   at JustSaying.Messaging.Middleware.HandlerInvocationMiddleware`1.RunInnerAsync(HandleMessageContext context, Func`2 func, CancellationToken stoppingToken) in /_/src/JustSaying/Messaging/Middleware/Handle/HandlerInvocationMiddleware.cs:line 28
+   at JustSaying.Messaging.Middleware.MiddlewareBase`2.RunAsync(TContext context, Func`2 func, CancellationToken stoppingToken) in /_/src/JustSaying/Messaging/Middleware/MiddlewareBase`2.cs:line 22
+   at JustSaying.Messaging.Middleware.MiddlewareBase`2.<>c__DisplayClass4_0.<<RunAsync>b__0>d.MoveNext() in /_/src/JustSaying/Messaging/Middleware/MiddlewareBase`2.cs:line 27
+--- End of stack trace from previous location ---
+   at JustSaying.Messaging.Middleware.ErrorHandling.ErrorHandlerMiddleware.RunInnerAsync(HandleMessageContext context, Func`2 func, CancellationToken stoppingToken) in /_/src/JustSaying/Messaging/Middleware/ErrorHandling/ErrorHandlerMiddleware.cs:line 23
+";
                 var (metadata, enricherContext) = ExecuteEnrichRoutinesAndCreateMetaData(context, messageId);
 
                 var failureDetails = failedMessageFactory.ParseFailureDetails(context.Headers);
@@ -188,8 +207,17 @@ namespace ServiceControl.Operations
     class JustSayingWrapper
     {
         public string MessageId { get; set; }
-        public DateTimeOffset Timestamp { get; set; }
+        public DateTimeOffset? Timestamp { get; set; }
         public string Subject { get; set; }
-        public string Message { get; set; }
+        public JustSayingMessage Message { get; set; }
+        public string Conversation { get; set; }
+        public string RaisingComponent { get; set; }
+        public string SourceIp { get; set; }
+    }
+
+    class JustSayingMessage
+    {
+        public Guid Id { get; set; }
+        public DateTime Timestamp { get; set; }
     }
 }
