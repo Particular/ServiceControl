@@ -117,7 +117,7 @@ namespace ServiceControl.Operations
             {
                 context.Headers[FaultsHeaderKeys.FailedQ] = context.ReceiveAddress.Replace("_error", "");
 
-                context.Headers[FaultsHeaderKeys.Message] = "JustSaying had a problem";
+                context.Headers[FaultsHeaderKeys.Message] = "No error information provided by JustSaying";
                 using var ms = new MemoryStream(context.Body.ToArray());
                 var jsMessage = JsonSerializer.Deserialize<JustSayingWrapper>(ms);
                 context.Headers[Headers.MessageId] = jsMessage.Message.Id.ToString();
@@ -129,16 +129,8 @@ namespace ServiceControl.Operations
 
                 context.Headers[Headers.ContentType] = ContentTypes.Json;
                 context.Headers[FaultsHeaderKeys.TimeOfFailure] = DateTimeOffsetHelper.ToWireFormattedString(jsMessage.Timestamp ?? DateTimeOffset.UtcNow);
-                context.Headers[FaultsHeaderKeys.ExceptionType] = "System.Exception";
-                context.Headers[FaultsHeaderKeys.Source] = "JustSaying";
-                context.Headers[FaultsHeaderKeys.StackTrace] = @"System.Exception: Failing intentionally
-   at JustSaying.Sample.Restaurant.KitchenConsole.Handlers.OrderPlacedEventHandler.Handle(OrderPlacedEvent message) in /Users/nick/repos/particular/ServiceControl/src/JustSaying.Sample.Restaurant.KitchenConsole/Handlers/OrderPlacedEventHandler.cs:line 36
-   at JustSaying.Messaging.Middleware.HandlerInvocationMiddleware`1.RunInnerAsync(HandleMessageContext context, Func`2 func, CancellationToken stoppingToken) in /_/src/JustSaying/Messaging/Middleware/Handle/HandlerInvocationMiddleware.cs:line 28
-   at JustSaying.Messaging.Middleware.MiddlewareBase`2.RunAsync(TContext context, Func`2 func, CancellationToken stoppingToken) in /_/src/JustSaying/Messaging/Middleware/MiddlewareBase`2.cs:line 22
-   at JustSaying.Messaging.Middleware.MiddlewareBase`2.<>c__DisplayClass4_0.<<RunAsync>b__0>d.MoveNext() in /_/src/JustSaying/Messaging/Middleware/MiddlewareBase`2.cs:line 27
---- End of stack trace from previous location ---
-   at JustSaying.Messaging.Middleware.ErrorHandling.ErrorHandlerMiddleware.RunInnerAsync(HandleMessageContext context, Func`2 func, CancellationToken stoppingToken) in /_/src/JustSaying/Messaging/Middleware/ErrorHandling/ErrorHandlerMiddleware.cs:line 23
-";
+                context.Headers[FaultsHeaderKeys.ExceptionType] = "Exception from a JustSaying endpoint";
+                context.Headers[FaultsHeaderKeys.StackTrace] = "No stack trace provided by JustSaying";
                 var (metadata, enricherContext) = ExecuteEnrichRoutinesAndCreateMetaData(context, messageId);
 
                 var failureDetails = failedMessageFactory.ParseFailureDetails(context.Headers);
