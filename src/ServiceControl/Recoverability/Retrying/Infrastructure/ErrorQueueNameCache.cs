@@ -1,23 +1,22 @@
-﻿namespace ServiceControl.Recoverability
+﻿namespace ServiceControl.Recoverability;
+
+using System;
+
+class ErrorQueueNameCache
 {
-    using System;
+    string resolvedErrorAddress;
 
-    class ErrorQueueNameCache
+    public string ResolvedErrorAddress
     {
-        string resolvedErrorAddress;
-
-        public string ResolvedErrorAddress
+        get
         {
-            get
+            if (string.IsNullOrEmpty(resolvedErrorAddress))
             {
-                if (string.IsNullOrEmpty(resolvedErrorAddress))
-                {
-                    throw new InvalidOperationException($"{nameof(ResolvedErrorAddress)} is not set. Please set it before accessing.");
-                }
-
-                return resolvedErrorAddress;
+                throw new InvalidOperationException($"{nameof(ResolvedErrorAddress)} is not set. Please set it before accessing.");
             }
-            set => resolvedErrorAddress = value;
+
+            return resolvedErrorAddress;
         }
+        set => resolvedErrorAddress = value;
     }
 }

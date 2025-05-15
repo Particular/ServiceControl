@@ -1,260 +1,266 @@
-namespace ServiceControl.Recoverability
+namespace ServiceControl.Recoverability;
+
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Infrastructure.DomainEvents;
+using Microsoft.Extensions.Hosting;
+using NServiceBus;
+using NServiceBus.Logging;
+using NServiceBus.Transport;
+using Persistence;
+using ServiceBus.Management.Infrastructure.Settings;
+using ServiceControl.Transports;
+
+class ReturnToSenderDequeuer : IHostedService
 {
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Infrastructure.DomainEvents;
-    using Microsoft.Extensions.Hosting;
-    using NServiceBus;
-    using NServiceBus.Logging;
-    using NServiceBus.Transport;
-    using Persistence;
-    using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Transports;
-
-    class ReturnToSenderDequeuer : IHostedService
+    public ReturnToSenderDequeuer(
+        ReturnToSender returnToSender,
+        IErrorMessageDataStore dataStore,
+        IDomainEvents domainEvents,
+        ITransportCustomization transportCustomization,
+        TransportSettings transportSettings,
+        Settings settings,
+        ErrorQueueNameCache errorQueueNameCache
+    )
     {
-        public ReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore dataStore, IDomainEvents domainEvents,
-            ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings, ErrorQueueNameCache errorQueueNameCache)
-        {
-            InputAddress = transportCustomization.ToTransportQualifiedQueueName(settings.StagingQueue);
-            this.returnToSender = returnToSender;
-            errorQueue = settings.ErrorQueue;
-            this.transportCustomization = transportCustomization;
-            this.transportSettings = transportSettings;
-            this.errorQueueNameCache = errorQueueNameCache;
+        InputAddress = transportCustomization.ToTransportQualifiedQueueName(settings.StagingQueue);
+        this.returnToSender = returnToSender;
+        errorQueue = settings.ErrorQueue;
+        this.transportCustomization = transportCustomization;
+        this.transportSettings = transportSettings;
+        this.errorQueueNameCache = errorQueueNameCache;
 
-            faultManager = new CaptureIfMessageSendingFails(dataStore, domainEvents, IncrementCounterOrProlongTimer);
-            timer = new Timer(state => StopInternal().GetAwaiter().GetResult());
+        faultManager = new CaptureIfMessageSendingFails(dataStore, domainEvents, IncrementCounterOrProlongTimer);
+        timer = new Timer(state => StopInternal().GetAwaiter().GetResult());
+    }
+
+    public string InputAddress { get; }
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(InputAddress, transportSettings, Handle, faultManager.OnError, (_, __) => Task.CompletedTask, TransportTransactionMode.SendsAtomicWithReceive);
+        messageReceiver = transportInfrastructure.Receivers[InputAddress];
+        messageDispatcher = transportInfrastructure.Dispatcher;
+
+        errorQueueTransportAddress = transportInfrastructure.ToTransportAddress(new QueueAddress(errorQueue));
+        errorQueueNameCache.ResolvedErrorAddress = errorQueueTransportAddress;
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        timer.Dispose();
+        endedPrematurely = true;
+        await StopInternal();
+        await transportInfrastructure.Shutdown(cancellationToken);
+    }
+
+    bool IsCounting => targetMessageCount.HasValue;
+
+    async Task Handle(MessageContext message, CancellationToken cancellationToken)
+    {
+        if (Log.IsDebugEnabled)
+        {
+            var stagingId = message.Headers["ServiceControl.Retry.StagingId"];
+            Log.DebugFormat("Handling message with id {0} and staging id {1} in input queue {2}", message.NativeMessageId, stagingId, InputAddress);
         }
 
-        public string InputAddress { get; }
-
-        public async Task StartAsync(CancellationToken cancellationToken)
+        if (shouldProcess(message))
         {
-            transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(InputAddress, transportSettings, Handle, faultManager.OnError, (_, __) => Task.CompletedTask, TransportTransactionMode.SendsAtomicWithReceive);
-            messageReceiver = transportInfrastructure.Receivers[InputAddress];
-            messageDispatcher = transportInfrastructure.Dispatcher;
-
-            errorQueueTransportAddress = transportInfrastructure.ToTransportAddress(new QueueAddress(errorQueue));
-            errorQueueNameCache.ResolvedErrorAddress = errorQueueTransportAddress;
+            await returnToSender.HandleMessage(message, messageDispatcher, errorQueueTransportAddress, cancellationToken);
+            IncrementCounterOrProlongTimer();
         }
-
-        public async Task StopAsync(CancellationToken cancellationToken)
+        else
         {
-            timer.Dispose();
-            endedPrematurely = true;
-            await StopInternal();
-            await transportInfrastructure.Shutdown(cancellationToken);
+            Log.WarnFormat("Rejecting message from staging queue as it's not part of a fully staged batch: {0}", message.NativeMessageId);
         }
+    }
 
-        bool IsCounting => targetMessageCount.HasValue;
-
-        async Task Handle(MessageContext message, CancellationToken cancellationToken)
+    void IncrementCounterOrProlongTimer()
+    {
+        if (IsCounting)
+        {
+            CountMessageAndStopIfReachedTarget();
+        }
+        else
         {
             if (Log.IsDebugEnabled)
             {
-                var stagingId = message.Headers["ServiceControl.Retry.StagingId"];
-                Log.DebugFormat("Handling message with id {0} and staging id {1} in input queue {2}", message.NativeMessageId, stagingId, InputAddress);
+                Log.Debug("Resetting timer");
             }
 
-            if (shouldProcess(message))
-            {
-                await returnToSender.HandleMessage(message, messageDispatcher, errorQueueTransportAddress, cancellationToken);
-                IncrementCounterOrProlongTimer();
-            }
-            else
-            {
-                Log.WarnFormat("Rejecting message from staging queue as it's not part of a fully staged batch: {0}", message.NativeMessageId);
-            }
+            timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    void CountMessageAndStopIfReachedTarget()
+    {
+        var currentMessageCount = Interlocked.Increment(ref actualMessageCount);
+        if (Log.IsDebugEnabled)
+        {
+            Log.Debug($"Forwarding message {currentMessageCount} of {targetMessageCount}.");
         }
 
-        void IncrementCounterOrProlongTimer()
+        if (currentMessageCount >= targetMessageCount.GetValueOrDefault())
         {
-            if (IsCounting)
+            if (Log.IsDebugEnabled)
             {
-                CountMessageAndStopIfReachedTarget();
+                Log.DebugFormat("Target count reached. Shutting down forwarder");
             }
-            else
+
+            // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
+            _ = Task.Run(StopInternal);
+        }
+    }
+
+    public virtual async Task Run(string forwardingBatchId, Predicate<MessageContext> filter, int? expectedMessageCount, CancellationToken cancellationToken = default)
+    {
+        CancellationTokenRegistration? registration = null;
+        try
+        {
+            shouldProcess = filter;
+            targetMessageCount = expectedMessageCount;
+            actualMessageCount = 0;
+
+            if (Log.IsDebugEnabled)
+            {
+                Log.DebugFormat("Starting receiver");
+            }
+
+            syncEvent = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            stopCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            registration = cancellationToken.Register(() => _ = syncEvent.TrySetResult(true));
+
+            await messageReceiver.StartReceive(cancellationToken);
+
+            Log.Info($"Forwarder for batch {forwardingBatchId} started receiving messages from {messageReceiver.ReceiveAddress}.");
+
+            if (!expectedMessageCount.HasValue)
             {
                 if (Log.IsDebugEnabled)
                 {
-                    Log.Debug("Resetting timer");
+                    Log.Debug("Running in timeout mode. Starting timer.");
                 }
 
                 timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
             }
         }
-
-        void CountMessageAndStopIfReachedTarget()
+        finally
         {
-            var currentMessageCount = Interlocked.Increment(ref actualMessageCount);
             if (Log.IsDebugEnabled)
             {
-                Log.Debug($"Forwarding message {currentMessageCount} of {targetMessageCount}.");
+                Log.DebugFormat($"Waiting for forwarder for batch {forwardingBatchId} to finish.");
             }
 
-            if (currentMessageCount >= targetMessageCount.GetValueOrDefault())
-            {
-                if (Log.IsDebugEnabled)
-                {
-                    Log.DebugFormat("Target count reached. Shutting down forwarder");
-                }
+            await syncEvent.Task;
+            registration?.Dispose();
+            await messageReceiver.StopReceive(cancellationToken);
 
-                // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
-                _ = Task.Run(StopInternal);
-            }
+            Log.Info($"Forwarder for batch {forwardingBatchId} finished forwarding all messages.");
+
+            stopCompletionSource.TrySetResult(true);
         }
 
-        public virtual async Task Run(string forwardingBatchId, Predicate<MessageContext> filter, int? expectedMessageCount, CancellationToken cancellationToken = default)
+        if (endedPrematurely || cancellationToken.IsCancellationRequested)
         {
-            CancellationTokenRegistration? registration = null;
+            throw new Exception("We are in the process of shutting down. Safe to ignore.");
+        }
+    }
+
+    async Task StopInternal()
+    {
+        if (Log.IsDebugEnabled)
+        {
+            Log.Debug("Completing forwarding.");
+        }
+
+        syncEvent?.TrySetResult(true);
+        await (stopCompletionSource?.Task ?? Task.CompletedTask);
+        if (Log.IsDebugEnabled)
+        {
+            Log.Debug("Forwarding completed.");
+        }
+    }
+
+    Timer timer;
+    TaskCompletionSource<bool> syncEvent;
+    TaskCompletionSource<bool> stopCompletionSource;
+    bool endedPrematurely;
+    int? targetMessageCount;
+    int actualMessageCount;
+    Predicate<MessageContext> shouldProcess;
+    CaptureIfMessageSendingFails faultManager;
+    ReturnToSender returnToSender;
+    readonly string errorQueue;
+    string errorQueueTransportAddress;
+    readonly ITransportCustomization transportCustomization;
+    readonly TransportSettings transportSettings;
+    readonly ErrorQueueNameCache errorQueueNameCache;
+    TransportInfrastructure transportInfrastructure;
+    IMessageDispatcher messageDispatcher;
+    IMessageReceiver messageReceiver;
+
+    static readonly ILog Log = LogManager.GetLogger(typeof(ReturnToSenderDequeuer));
+
+    class CaptureIfMessageSendingFails
+    {
+        public CaptureIfMessageSendingFails(IErrorMessageDataStore dataStore, IDomainEvents domainEvents, Action executeOnFailure)
+        {
+            this.dataStore = dataStore;
+            this.executeOnFailure = executeOnFailure;
+            this.domainEvents = domainEvents;
+        }
+
+        public async Task<ErrorHandleResult> OnError(ErrorContext errorContext, CancellationToken cancellationToken = default)
+        {
+            // We are currently not propagating the cancellation token further since it would require to change
+            // the data store APIs and domain handlers to take a cancellation token. If this is needed it can be done
+            // at a later time.
+            _ = cancellationToken;
+
             try
             {
-                shouldProcess = filter;
-                targetMessageCount = expectedMessageCount;
-                actualMessageCount = 0;
+                var message = errorContext.Message;
+                var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
+                var messageUniqueId = message.Headers["ServiceControl.Retry.UniqueMessageId"];
+                Log.Warn($"Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again.", errorContext.Exception);
 
-                if (Log.IsDebugEnabled)
+                await dataStore.RevertRetry(messageUniqueId);
+
+                string reason;
+                try
                 {
-                    Log.DebugFormat("Starting receiver");
+                    reason = errorContext.Exception.GetBaseException().Message;
+                }
+                catch (Exception)
+                {
+                    reason = "Failed to retrieve reason!";
                 }
 
-                syncEvent = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                stopCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                registration = cancellationToken.Register(() => _ = syncEvent.TrySetResult(true));
-
-                await messageReceiver.StartReceive(cancellationToken);
-
-                Log.Info($"Forwarder for batch {forwardingBatchId} started receiving messages from {messageReceiver.ReceiveAddress}.");
-
-                if (!expectedMessageCount.HasValue)
+                await domainEvents.Raise(new MessagesSubmittedForRetryFailed
                 {
-                    if (Log.IsDebugEnabled)
-                    {
-                        Log.Debug("Running in timeout mode. Starting timer.");
-                    }
-
-                    timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
-                }
+                    Reason = reason,
+                    FailedMessageId = messageUniqueId,
+                    Destination = destination
+                }, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                // If something goes wrong here we just ignore, not the end of the world!
+                Log.Error("A failure occurred when trying to handle a retry failure.", ex);
             }
             finally
             {
-                if (Log.IsDebugEnabled)
-                {
-                    Log.DebugFormat($"Waiting for forwarder for batch {forwardingBatchId} to finish.");
-                }
-
-                await syncEvent.Task;
-                registration?.Dispose();
-                await messageReceiver.StopReceive(cancellationToken);
-
-                Log.Info($"Forwarder for batch {forwardingBatchId} finished forwarding all messages.");
-
-                stopCompletionSource.TrySetResult(true);
+                executeOnFailure();
             }
 
-            if (endedPrematurely || cancellationToken.IsCancellationRequested)
-            {
-                throw new Exception("We are in the process of shutting down. Safe to ignore.");
-            }
+            return ErrorHandleResult.Handled;
         }
 
-        async Task StopInternal()
-        {
-            if (Log.IsDebugEnabled)
-            {
-                Log.Debug("Completing forwarding.");
-            }
-
-            syncEvent?.TrySetResult(true);
-            await (stopCompletionSource?.Task ?? Task.CompletedTask);
-            if (Log.IsDebugEnabled)
-            {
-                Log.Debug("Forwarding completed.");
-            }
-        }
-
-        Timer timer;
-        TaskCompletionSource<bool> syncEvent;
-        TaskCompletionSource<bool> stopCompletionSource;
-        bool endedPrematurely;
-        int? targetMessageCount;
-        int actualMessageCount;
-        Predicate<MessageContext> shouldProcess;
-        CaptureIfMessageSendingFails faultManager;
-        ReturnToSender returnToSender;
-        readonly string errorQueue;
-        string errorQueueTransportAddress;
-        readonly ITransportCustomization transportCustomization;
-        readonly TransportSettings transportSettings;
-        readonly ErrorQueueNameCache errorQueueNameCache;
-        TransportInfrastructure transportInfrastructure;
-        IMessageDispatcher messageDispatcher;
-        IMessageReceiver messageReceiver;
-
-        static readonly ILog Log = LogManager.GetLogger(typeof(ReturnToSenderDequeuer));
-
-        class CaptureIfMessageSendingFails
-        {
-            public CaptureIfMessageSendingFails(IErrorMessageDataStore dataStore, IDomainEvents domainEvents, Action executeOnFailure)
-            {
-                this.dataStore = dataStore;
-                this.executeOnFailure = executeOnFailure;
-                this.domainEvents = domainEvents;
-            }
-
-            public async Task<ErrorHandleResult> OnError(ErrorContext errorContext, CancellationToken cancellationToken = default)
-            {
-                // We are currently not propagating the cancellation token further since it would require to change
-                // the data store APIs and domain handlers to take a cancellation token. If this is needed it can be done
-                // at a later time.
-                _ = cancellationToken;
-
-                try
-                {
-                    var message = errorContext.Message;
-                    var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
-                    var messageUniqueId = message.Headers["ServiceControl.Retry.UniqueMessageId"];
-                    Log.Warn($"Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again.", errorContext.Exception);
-
-                    await dataStore.RevertRetry(messageUniqueId);
-
-                    string reason;
-                    try
-                    {
-                        reason = errorContext.Exception.GetBaseException().Message;
-                    }
-                    catch (Exception)
-                    {
-                        reason = "Failed to retrieve reason!";
-                    }
-
-                    await domainEvents.Raise(new MessagesSubmittedForRetryFailed
-                    {
-                        Reason = reason,
-                        FailedMessageId = messageUniqueId,
-                        Destination = destination
-                    }, cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    // If something goes wrong here we just ignore, not the end of the world!
-                    Log.Error("A failure occurred when trying to handle a retry failure.", ex);
-                }
-                finally
-                {
-                    executeOnFailure();
-                }
-
-                return ErrorHandleResult.Handled;
-            }
-
-            readonly Action executeOnFailure;
-            readonly IErrorMessageDataStore dataStore;
-            readonly IDomainEvents domainEvents;
-            static readonly ILog Log = LogManager.GetLogger(typeof(CaptureIfMessageSendingFails));
-        }
-
+        readonly Action executeOnFailure;
+        readonly IErrorMessageDataStore dataStore;
+        readonly IDomainEvents domainEvents;
+        static readonly ILog Log = LogManager.GetLogger(typeof(CaptureIfMessageSendingFails));
     }
+
 }
