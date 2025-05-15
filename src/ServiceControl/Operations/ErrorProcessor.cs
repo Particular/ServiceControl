@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using NServiceBus.Faults;
 
 namespace ServiceControl.Operations
@@ -119,7 +120,8 @@ namespace ServiceControl.Operations
 
                 context.Headers[FaultsHeaderKeys.Message] = "No error information provided by JustSaying";
                 using var ms = new MemoryStream(context.Body.ToArray());
-                var jsMessage = JsonSerializer.Deserialize<JustSayingWrapper>(ms);
+                var bodyString = await new StreamReader(ms).ReadToEndAsync();
+                var jsMessage = JsonSerializer.Deserialize<JustSayingWrapper>(bodyString);
                 context.Headers[Headers.MessageId] = jsMessage.Message.Id.ToString();
                 context.Headers[Headers.EnclosedMessageTypes] = jsMessage.Subject;
                 context.Headers[Headers.ConversationId] = jsMessage.Conversation ?? Guid.NewGuid().ToString();
@@ -201,7 +203,10 @@ namespace ServiceControl.Operations
         public string MessageId { get; set; }
         public DateTimeOffset? Timestamp { get; set; }
         public string Subject { get; set; }
-        public JustSayingMessage Message { get; set; }
+        [JsonPropertyName("Message")]
+        public string MessageJson { get; set; }
+
+        [JsonIgnore] public JustSayingMessage Message => JsonSerializer.Deserialize<JustSayingMessage>(MessageJson);
         public string Conversation { get; set; }
         public string RaisingComponent { get; set; }
         public string SourceIp { get; set; }
@@ -210,6 +215,6 @@ namespace ServiceControl.Operations
     class JustSayingMessage
     {
         public Guid Id { get; set; }
-        public DateTime Timestamp { get; set; }
+        public DateTime TimeStamp { get; set; }
     }
 }
