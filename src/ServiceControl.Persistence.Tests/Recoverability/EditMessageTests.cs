@@ -218,7 +218,7 @@
         }
 
         [Test]
-        public async Task Should_assign_edited_message_correct_akcnowledgment_queue_address()
+        public async Task Should_assign_correct_akcnowledgment_queue_address_when_editing_and_retyring()
         {
             var messageFailure = await CreateAndStoreFailedMessage();
             var message = CreateEditMessage(messageFailure.UniqueMessageId);
