@@ -14,12 +14,14 @@
 
     class EditHandler : IHandleMessages<EditAndSend>
     {
-        public EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher)
+        public EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher, ErrorQueueNameCache errorQueueNameCache)
         {
             this.store = store;
             this.redirectsStore = redirectsStore;
             this.dispatcher = dispatcher;
+            this.errorQueueNameCache = errorQueueNameCache;
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
+
         }
 
         public async Task Handle(EditAndSend message, IMessageHandlerContext context)
@@ -67,7 +69,8 @@
             var outgoingMessage = BuildMessage(message);
             // mark the new message with a link to the original message id
             outgoingMessage.Headers.Add("ServiceControl.EditOf", message.FailedMessageId);
-            outgoingMessage.Headers.Remove("ServiceControl.Retry.AcknowledgementQueue");
+            outgoingMessage.Headers["ServiceControl.Retry.AcknowledgementQueue"] = errorQueueNameCache.ResolvedErrorAddress;
+
             var address = ApplyRedirect(attempt.FailureDetails.AddressOfFailingEndpoint, redirects);
 
             if (outgoingMessage.Headers.TryGetValue("ServiceControl.RetryTo", out var retryTo))
@@ -116,6 +119,7 @@
         readonly IErrorMessageDataStore store;
         readonly IMessageRedirectsDataStore redirectsStore;
         readonly IMessageDispatcher dispatcher;
+        readonly ErrorQueueNameCache errorQueueNameCache;
         static readonly ILog log = LogManager.GetLogger<EditHandler>();
     }
 }
