@@ -22,7 +22,7 @@
         readonly TestableUnicastDispatcher dispatcher = new();
         readonly ErrorQueueNameCache errorQueueNameCache = new()
         {
-            ResolvedErrorAddress = "TestAddress"
+            ResolvedErrorAddress = "errorQueueName"
         };
 
         public EditMessageTests() =>
