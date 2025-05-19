@@ -1,0 +1,7 @@
+{
+  "Aws": {
+    "Region": "us-west-2", // or whatever region you pick
+    "AccessKey": "YOUR_ACCESS_KEY",
+    "SecretAccessKey": "YOUR_SECRET_ACCESS_KEY"
+  }
+}
