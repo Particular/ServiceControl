@@ -23,4 +23,8 @@
     <Content Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="local.settings.sample.json" />
+  </ItemGroup>
+
 </Project>
