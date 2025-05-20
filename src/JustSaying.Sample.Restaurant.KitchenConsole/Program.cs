@@ -79,8 +79,8 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole
                             x.ForTopic<OrderPlacedEvent>(cfg =>
                                 cfg.WithTag("IsOrderEvent")
                                     .WithTag("Subscriber", nameof(KitchenConsole))
-                                    .WithReadConfiguration(rc  =>
-                                        rc.WithSubscriptionGroup("GroupA")));
+                                    .WithReadConfiguration(rc => rc.WithSubscriptionGroup("GroupA"))
+                                    .WithMiddlewareConfiguration(m => m.Use<ExceptionLoggerMiddleware>()));
 
                             x.ForTopic<OrderOnItsWayEvent>(cfg =>
                                 cfg.WithReadConfiguration(rc =>

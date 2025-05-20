@@ -40,7 +40,6 @@ namespace JustSaying.Sample.Restaurant.OrderingApi
                 });
                 config.Subscriptions(x =>
                 {
-                    // Creates the following if they do not already exist
                     //  - a SQS queue of name `orderreadyevent`
                     //  - a SQS queue of name `orderreadyevent_error`
                     //  - a SNS topic of name `orderreadyevent`

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Immutable;
 using Amazon;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 
 namespace JustSaying.Sample.Restaurant.KitchenConsole
@@ -23,6 +25,11 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole
         public static RegionEndpoint GetAWSRegion(this IConfiguration configuration)
         {
             return RegionEndpoint.GetBySystemName(configuration[AWSRegionKey]);
+        }
+        
+        public static IApplicationBuilder UseExceptionLogger(this IApplicationBuilder app)
+        {
+            return app.UseMiddleware<ExceptionLoggerMiddleware>();
         }
     }
 }
