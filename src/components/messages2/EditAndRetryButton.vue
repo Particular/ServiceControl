@@ -3,7 +3,7 @@ import { useMessageStore } from "@/stores/MessageStore";
 import { computed, ref } from "vue";
 import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
-import EditRetryDialog2 from "@/components/failedmessages/EditRetryDialog2.vue";
+import EditRetryDialog from "@/components/failedmessages/EditRetryDialog.vue";
 import { MessageStatus } from "@/resources/Message";
 import { storeToRefs } from "pinia";
 import { FailedMessageStatus } from "@/resources/FailedMessage";
@@ -33,7 +33,7 @@ async function openDialog() {
   <template v-if="isVisible">
     <button type="button" class="btn btn-default" aria-label="Edit & retry" :disabled="isDisabled" @click="openDialog"><i class="fa fa-pencil"></i> Edit & retry</button>
     <Teleport to="#modalDisplay">
-      <EditRetryDialog2 v-if="isConfirmDialogVisible" @cancel="isConfirmDialogVisible = false" @confirm="handleConfirm"></EditRetryDialog2>
+      <EditRetryDialog v-if="isConfirmDialogVisible" @cancel="isConfirmDialogVisible = false" @confirm="handleConfirm"></EditRetryDialog>
     </Teleport>
   </template>
 </template>

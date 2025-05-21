@@ -2,12 +2,14 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRetryEditedMessage } from "@/composables/serviceFailedMessage";
 import MessageHeader from "./EditMessageHeader.vue";
-import { EditAndRetryConfig } from "@/resources/Configuration";
 import type Header from "@/resources/Header";
-import { ExtendedFailedMessage } from "@/resources/FailedMessage";
 import parseContentType from "@/composables/contentTypeParser";
 import { CodeLanguage } from "@/components/codeEditorTypes";
 import CodeEditor from "@/components/CodeEditor.vue";
+import { useMessageStore } from "@/stores/MessageStore";
+import { storeToRefs } from "pinia";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import debounce from "lodash/debounce";
 
 interface HeaderWithEditing extends Header {
   isLocked: boolean;
@@ -18,13 +20,7 @@ interface HeaderWithEditing extends Header {
 
 const emit = defineEmits<{
   cancel: [];
-  retried: [];
-}>();
-
-const props = defineProps<{
-  id: string;
-  message: ExtendedFailedMessage;
-  configuration: EditAndRetryConfig;
+  confirm: [];
 }>();
 
 interface LocalMessageState {
@@ -46,27 +42,32 @@ const localMessage = ref<LocalMessageState>({
   isBodyEmpty: false,
   isContentTypeSupported: false,
   bodyContentType: undefined,
-  bodyUnavailable: true,
+  bodyUnavailable: false,
   isEvent: false,
   retried: false,
   headers: [],
   messageBody: "",
 });
-let origMessageBody: string;
-
 const showEditAndRetryConfirmation = ref(false);
 const showCancelConfirmation = ref(false);
 const showEditRetryGenericError = ref(false);
-
-const id = computed(() => props.id);
-const messageBody = computed(() => props.message.messageBody);
-
-watch(messageBody, (newValue) => {
-  if (newValue !== origMessageBody) {
-    localMessage.value.isBodyChanged = true;
-  }
+const store = useMessageStore();
+const { state, headers, body, edit_and_retry_config } = storeToRefs(store);
+const id = computed(() => state.value.data.id ?? "");
+const uneditedMessageBody = computed(() => body.value.data.value ?? "");
+const regExToPruneLineEndings = new RegExp(/[\n\r]*/, "g");
+const debounceBodyUpdate = debounce((value: string) => {
+  const newValue = value.replaceAll(regExToPruneLineEndings, "");
+  localMessage.value.isBodyChanged = newValue !== uneditedMessageBody.value.replaceAll(regExToPruneLineEndings, "");
   localMessage.value.isBodyEmpty = newValue === "";
-});
+}, 100);
+
+watch(
+  () => localMessage.value.messageBody,
+  (newValue) => {
+    debounceBodyUpdate(newValue);
+  }
+);
 
 function close() {
   emit("cancel");
@@ -91,22 +92,8 @@ function confirmCancel() {
 }
 
 function resetBodyChanges() {
-  localMessage.value.messageBody = origMessageBody;
+  localMessage.value.messageBody = uneditedMessageBody.value;
   localMessage.value.isBodyChanged = false;
-}
-
-function findHeadersByKey(key: string) {
-  return localMessage.value.headers.find((header: HeaderWithEditing) => header.key === key);
-}
-
-function getContentType() {
-  const header = findHeadersByKey("NServiceBus.ContentType");
-  return header?.value;
-}
-
-function getMessageIntent() {
-  const intent = findHeadersByKey("NServiceBus.MessageIntent");
-  return intent?.value;
 }
 
 function removeHeadersMarkedAsRemoved() {
@@ -118,7 +105,7 @@ async function retryEditedMessage() {
   try {
     await useRetryEditedMessage(id.value, localMessage);
     localMessage.value.retried = true;
-    return emit("retried");
+    return emit("confirm");
   } catch {
     showEditAndRetryConfirmation.value = false;
     showEditRetryGenericError.value = true;
@@ -126,51 +113,54 @@ async function retryEditedMessage() {
 }
 
 function initializeMessageBodyAndHeaders() {
-  origMessageBody = props.message.messageBody;
-  localMessage.value = {
+  function getHeaderValue(key: string) {
+    const header = local.headers.find((header: HeaderWithEditing) => header.key === key);
+    return header?.value;
+  }
+
+  const local = <LocalMessageState>{
     isBodyChanged: false,
     isBodyEmpty: false,
     isContentTypeSupported: false,
     bodyContentType: undefined,
-    bodyUnavailable: props.message.bodyUnavailable,
+    bodyUnavailable: body.value.not_found ?? false,
     isEvent: false,
-    retried: props.message.retried,
-    headers: props.message.headers.map((header: Header) => ({ ...header })) as HeaderWithEditing[],
-    messageBody: props.message.messageBody,
+    retried: state.value.data.failure_status.retried ?? false,
+    headers: headers.value.data.map((header: Header) => ({ ...header })) as HeaderWithEditing[],
+    messageBody: body.value.data.value ?? "",
   };
-  localMessage.value.isBodyEmpty = false;
-  localMessage.value.isBodyChanged = false;
 
-  const contentType = getContentType();
-  localMessage.value.bodyContentType = contentType;
+  const contentType = getHeaderValue("NServiceBus.ContentType");
+  local.bodyContentType = contentType;
   const parsedContentType = parseContentType(contentType);
-  localMessage.value.isContentTypeSupported = parsedContentType.isSupported;
-  localMessage.value.language = parsedContentType.language;
+  local.isContentTypeSupported = parsedContentType.isSupported;
+  local.language = parsedContentType.language;
 
-  const messageIntent = getMessageIntent();
-  localMessage.value.isEvent = messageIntent === "Publish";
+  const messageIntent = getHeaderValue("NServiceBus.MessageIntent");
+  local.isEvent = messageIntent === "Publish";
 
-  for (let index = 0; index < props.message.headers.length; index++) {
-    const header: HeaderWithEditing = props.message.headers[index] as HeaderWithEditing;
+  for (let index = 0; index < headers.value.data.length; index++) {
+    const header: HeaderWithEditing = headers.value.data[index] as HeaderWithEditing;
 
     header.isLocked = false;
     header.isSensitive = false;
     header.isMarkedAsRemoved = false;
     header.isChanged = false;
 
-    if (props.configuration.locked_headers.includes(header.key)) {
+    if (edit_and_retry_config.value.locked_headers.includes(header.key)) {
       header.isLocked = true;
-    } else if (props.configuration.sensitive_headers.includes(header.key)) {
+    } else if (edit_and_retry_config.value.sensitive_headers.includes(header.key)) {
       header.isSensitive = true;
     }
 
-    localMessage.value.headers[index] = header;
+    local.headers[index] = header;
   }
+
+  localMessage.value = local;
 }
 
 function togglePanel(panelNum: number) {
   panel.value = panelNum;
-  return false;
 }
 
 onMounted(() => {
@@ -225,14 +215,22 @@ onMounted(() => {
                           </tr>
                         </tbody>
                       </table>
-                      <div role="tabpanel" v-if="panel === 2 && !localMessage.bodyUnavailable" style="height: calc(100% - 260px)">
-                        <div style="margin-top: 1.25rem">
-                          <CodeEditor aria-label="message body" :read-only="!localMessage.isContentTypeSupported" v-model="localMessage.messageBody" :language="localMessage.language" :show-gutter="true"></CodeEditor>
+                      <template v-if="panel === 2">
+                        <div role="tabpanel" v-if="!localMessage.bodyUnavailable">
+                          <div style="margin-top: 1.25rem">
+                            <LoadingSpinner v-if="body.loading" />
+                            <CodeEditor v-else aria-label="message body" :read-only="!localMessage.isContentTypeSupported" v-model="localMessage.messageBody" :language="localMessage.language" :show-gutter="true">
+                              <template #toolbarLeft>
+                                <span class="empty-error" v-if="localMessage.isBodyEmpty"><i class="fa fa-exclamation-triangle"></i> Message body cannot be empty</span>
+                              </template>
+                              <template #toolbarRight>
+                                <button v-if="localMessage.isBodyChanged" type="button" class="btn btn-secondary btn-sm" @click="resetBodyChanges"><i class="fa fa-undo"></i> Reset changes</button>
+                              </template>
+                            </CodeEditor>
+                          </div>
                         </div>
-                        <span class="empty-error" v-if="localMessage.isBodyEmpty"><i class="fa fa-exclamation-triangle"></i> Message body cannot be empty</span>
-                        <span class="reset-body" v-if="localMessage.isBodyChanged"><i class="fa fa-undo" v-tippy="`Reset changes`"></i> <a @click="resetBodyChanges()" href="javascript:void(0)">Reset changes</a></span>
-                        <div class="alert alert-info" v-if="panel === 2 && localMessage.bodyUnavailable">{{ localMessage.bodyUnavailable }}</div>
-                      </div>
+                        <div role="tabpanel" class="alert alert-info" v-else>{{ localMessage.bodyUnavailable }}</div>
+                      </template>
                     </div>
                   </div>
                 </div>
@@ -280,14 +278,6 @@ onMounted(() => {
   margin-right: 20px;
 }
 
-.modal-msg-editor .reset-body {
-  color: #00a3c4;
-  font-weight: bold;
-  text-align: left;
-  margin-top: 15px;
-  display: inline-block;
-}
-
 .modal-msg-editor .reset-body a:hover {
   cursor: pointer;
 }
@@ -297,8 +287,6 @@ onMounted(() => {
 }
 
 .modal-msg-editor .empty-error {
-  float: right;
-  margin-top: 15px;
   color: #ce4844;
   font-weight: bold;
 }
