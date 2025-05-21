@@ -26,10 +26,5 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole
         {
             return RegionEndpoint.GetBySystemName(configuration[AWSRegionKey]);
         }
-        
-        public static IApplicationBuilder UseExceptionLogger(this IApplicationBuilder app)
-        {
-            return app.UseMiddleware<ExceptionLoggerMiddleware>();
-        }
     }
 }

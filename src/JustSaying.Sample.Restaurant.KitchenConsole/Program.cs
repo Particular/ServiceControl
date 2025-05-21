@@ -79,8 +79,7 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole
                             x.ForTopic<OrderPlacedEvent>(cfg =>
                                 cfg.WithTag("IsOrderEvent")
                                     .WithTag("Subscriber", nameof(KitchenConsole))
-                                    .WithReadConfiguration(rc => rc.WithSubscriptionGroup("GroupA"))
-                                    .WithMiddlewareConfiguration(m => m.Use<ExceptionLoggerMiddleware>()));
+                                    .WithReadConfiguration(rc => rc.WithSubscriptionGroup("GroupA")));
 
                             x.ForTopic<OrderOnItsWayEvent>(cfg =>
                                 cfg.WithReadConfiguration(rc =>
@@ -100,6 +99,8 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole
                             });
                             x.WithTopic<OrderDeliveredEvent>();
                         });
+                        config.Services((options) =>
+                            options.WithMessageMonitoring(() => new NServiceBusExceptionMonitor()));
                     });
 
                     // Added a message handler for message type for 'OrderPlacedEvent' on topic 'orderplacedevent' and queue 'orderplacedevent'
