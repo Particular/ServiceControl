@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useMessageStore } from "@/stores/MessageStore";
 import { computed, ref } from "vue";
-import { showToastAfterOperation } from "@/composables/toast";
+import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import EditRetryDialog2 from "@/components/failedmessages/EditRetryDialog2.vue";
 import { MessageStatus } from "@/resources/Message";
@@ -19,8 +19,7 @@ const handleConfirm = async () => {
   isConfirmDialogVisible.value = false;
 
   const message = `Retrying the edited message ${state.value.data.id} ...`;
-  await showToastAfterOperation(store.retryMessage, TYPE.INFO, "Info", message);
-
+  useShowToast(TYPE.INFO, "Info", message);
   await store.pollForNextUpdate(FailedMessageStatus.Resolved);
 };
 
