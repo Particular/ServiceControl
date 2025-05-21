@@ -2,7 +2,7 @@
 import { useMessageStore } from "@/stores/MessageStore";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { storeToRefs } from "pinia";
-import StacktraceFormatter from "@/components/messages2/StacktraceFormatter.vue";
+import StacktraceFormatter from "@/components/messages/StacktraceFormatter.vue";
 import CopyToClipboard from "@/components/CopyToClipboard.vue";
 
 const { state } = storeToRefs(useMessageStore());

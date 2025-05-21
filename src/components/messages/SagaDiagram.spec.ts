@@ -1,5 +1,5 @@
 import { render, describe, test, screen, expect, within } from "@component-test-utils";
-import sut from "../messages2/SagaDiagram.vue";
+import sut from "@/components/messages/SagaDiagram.vue";
 import { SagaHistory } from "@/resources/SagaHistory";
 import makeRouter from "@/router";
 import { createTestingPinia } from "@pinia/testing";

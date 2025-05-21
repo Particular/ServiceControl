@@ -13,7 +13,7 @@ import { useRouter } from "vue-router";
 import EndpointDetails from "@/resources/EndpointDetails.ts";
 import { hexToCSSFilter } from "hex-to-css-filter";
 import TextEllipses from "@/components/TextEllipses.vue";
-import { useLayout } from "@/components/messages2/FlowDiagram/useLayout.ts";
+import { useLayout } from "@/components/messages/FlowDiagram/useLayout.ts";
 import { formatTypeName } from "@/composables/formatUtils.ts";
 
 enum MessageType {

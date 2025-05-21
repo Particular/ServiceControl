@@ -3,7 +3,7 @@ import { SagaUpdateViewModel } from "./SagaDiagramParser";
 import MessageDataBox from "./MessageDataBox.vue";
 import SagaOutgoingTimeoutMessage from "./SagaOutgoingTimeoutMessage.vue";
 import SagaOutgoingMessage from "./SagaOutgoingMessage.vue";
-import DiffViewer from "@/components/messages2/DiffViewer.vue";
+import DiffViewer from "@/components/messages/DiffViewer.vue";
 import MaximizableCodeEditor from "@/components/MaximizableCodeEditor.vue";
 import { useSagaDiagramStore } from "@/stores/SagaDiagramStore";
 import { ref, watch, computed } from "vue";
