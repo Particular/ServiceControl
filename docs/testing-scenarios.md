@@ -45,7 +45,7 @@ A long (though not exhaustive) list, although not every change will merit runnin
    - [ ] Download [integration events sample](https://docs.particular.net/samples/servicecontrol/events-subscription/). Switch the sample to the appropriate transport. 
    - [ ] Generate a failing message in the `NServiceBusEndptoin` and validate that an integration event `MessageFailed` is received by the `EndpointsMonitor` 
 - [ ] Monitoring
-   - [ ] Nativate to the [Monitoring] tab in ServicePulse and verify that all 6 endpoints are visible
+   - [ ] Navigate to the [Monitoring] tab in ServicePulse and verify that all 6 endpoints are visible
    - [ ] Verify that the failed messages indicator is rendered for endpoints with failed messages
    - [ ] Navigate to the details of `Endpoint0` and verify that all the graphs are properly rendered  
 
