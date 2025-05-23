@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Text;
     using Contracts.Operations;
     using Infrastructure;
     using NServiceBus;
@@ -28,7 +29,7 @@
             return groups;
         }
 
-        public FailureDetails ParseFailureDetails(IReadOnlyDictionary<string, string> headers)
+        public FailureDetails ParseFailureDetails(IReadOnlyDictionary<string, string> headers, Dictionary<string, object> metadata)
         {
             var result = new FailureDetails();
 
@@ -36,11 +37,26 @@
 
             result.Exception = GetException(headers);
 
-            if (!headers.ContainsKey(FaultsHeaderKeys.FailedQ))
+            var hasFailedQHeader = headers.ContainsKey(FaultsHeaderKeys.FailedQ);
+            var hasFailedQHeaderValue = headers.TryGetValue(FaultsHeaderKeys.FailedQ, out var failedQHeaderValue) && !string.IsNullOrEmpty(failedQHeaderValue);
+            var hasReturnToQueueHeader = metadata.ContainsKey("ReturnToQueue");
+            var hasReturnToQueueHeaderValue = metadata.TryGetValue("ReturnToQueue", out var returnToQueueHeaderValue) && returnToQueueHeaderValue is string && !string.IsNullOrEmpty(returnToQueueHeaderValue as string);
+
+            if ((!hasFailedQHeader && !hasReturnToQueueHeader) || (!hasFailedQHeaderValue && !hasReturnToQueueHeaderValue))
             {
-                throw new Exception($"Missing '{FaultsHeaderKeys.FailedQ}' header. Message is poison message or incorrectly send to (error) queue.");
+                var sb = new StringBuilder();
+
+                sb.Append("Could not determine the address of the failing endpoint. ");
+
+                if (!hasFailedQHeader && !hasReturnToQueueHeader))
+                {
+                    sb.Append($"Could not find an {FaultsHeaderKeys.FailedQ}" header or could not determine the return queue from the metadata.");
+
+                    throw new Exception($"Missing '{FaultsHeaderKeys.FailedQ}' header. Message is poison message or incorrectly send to (error) queue.");
+                }
             }
-            result.AddressOfFailingEndpoint = headers[FaultsHeaderKeys.FailedQ];
+
+            result.AddressOfFailingEndpoint = headers.ContainsKey(FaultsHeaderKeys.FailedQ) ? headers[FaultsHeaderKeys.FailedQ] : metadata["ReturnToQueue"].ToString();
 
             return result;
         }

@@ -159,6 +159,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool ForwardErrorMessages { get; set; }
 
         public bool IngestErrorMessages { get; set; } = true;
+
+        public string[] ErrorQueueDiscoveryMethods { get; set; }
+
         public bool RunRetryProcessor { get; set; } = true;
 
         public TimeSpan? AuditRetentionPeriod { get; set; }
@@ -391,18 +394,24 @@ namespace ServiceBus.Management.Infrastructure.Settings
         void LoadErrorIngestionSettings()
         {
             var serviceBusRootNamespace = new SettingsRootNamespace("ServiceBus");
-            ErrorQueue = SettingsReader.Read(serviceBusRootNamespace, "ErrorQueue", "error");
-
-            if (string.IsNullOrEmpty(ErrorQueue))
-            {
-                throw new Exception("ServiceBus/ErrorQueue requires a value to start the instance");
-            }
 
             IngestErrorMessages = SettingsReader.Read(SettingsRootNamespace, "IngestErrorMessages", true);
 
             if (!IngestErrorMessages)
             {
                 logger.Info("Error ingestion disabled.");
+                return;
+            }
+
+            ErrorQueue = SettingsReader.Read(serviceBusRootNamespace, "ErrorQueue", string.Empty);
+
+            var defaultDiscoveryMethod = !string.IsNullOrEmpty(ErrorQueue) ? ["CentralizedErrorQueue"] : Array.Empty<string>();
+
+            ErrorQueueDiscoveryMethods = SettingsReader.Read(SettingsRootNamespace, "ErrorQueueDiscoveryMethods", defaultDiscoveryMethod);
+
+            if (ErrorQueueDiscoveryMethods.Length == 0)
+            {
+                throw new Exception("Unable to start the instance. ServiceBus/ErrorQueue and/or ServiceBus/ErrorQueueDiscoveryMethods requires a value.");
             }
 
             ErrorLogQueue = SettingsReader.Read<string>(serviceBusRootNamespace, "ErrorLogQueue", null);

@@ -51,6 +51,8 @@
             services.AddHostedService(provider => provider.GetRequiredService<ReturnToSenderDequeuer>());
 
             //Error importer
+            services.AddTransient<IErrorQueueDiscoveryMethod, CentralizedErrorQueueDiscoveryMethod>();
+            services.AddSingleton<ErrorQueueDiscoveryExecutor>();
             services.AddSingleton<ImportFailedErrors>();
             services.AddSingleton<ErrorIngestor>();
             services.AddSingleton<ErrorIngestionCustomCheck.State>();

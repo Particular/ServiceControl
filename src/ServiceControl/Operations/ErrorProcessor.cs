@@ -133,7 +133,7 @@ namespace ServiceControl.Operations
                 context.Headers[FaultsHeaderKeys.StackTrace] = "No stack trace provided by JustSaying";
                 var (metadata, enricherContext) = ExecuteEnrichRoutinesAndCreateMetaData(context, messageId);
 
-                var failureDetails = failedMessageFactory.ParseFailureDetails(context.Headers);
+                var failureDetails = failedMessageFactory.ParseFailureDetails(context.Headers, metadata);
 
                 var processingAttempt = failedMessageFactory.CreateProcessingAttempt(
                     context.Headers,

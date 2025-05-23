@@ -31,6 +31,7 @@
             TransportSettings transportSettings)
         {
             services.AddSingleton<IBrokerThroughputQuery, AmazonSQSQuery>();
+            services.AddSingleton<IErrorQueueDiscoveryMethod, object>();
         }
 
         protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)

@@ -31,16 +31,16 @@
             ErrorIngestionCustomCheck.State ingestionState,
             ErrorIngestor ingestor,
             IIngestionUnitOfWorkFactory unitOfWorkFactory,
-            IHostApplicationLifetime applicationLifetime)
+            IHostApplicationLifetime applicationLifetime,
+            ErrorQueueDiscoveryExecutor errorQueueDiscoveryExecutor)
         {
             this.settings = settings;
             this.transportCustomization = transportCustomization;
             this.transportSettings = transportSettings;
-            errorQueue = settings.ErrorQueue;
             this.ingestor = ingestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.applicationLifetime = applicationLifetime;
-
+            this.errorQueueDiscoveryExecutor = errorQueueDiscoveryExecutor;
             receivedMeter = metrics.GetCounter("Error ingestion - received");
             batchSizeMeter = metrics.GetMeter("Error ingestion - batch size");
             batchDurationMeter = metrics.GetMeter("Error ingestion - batch processing duration", FrequencyInMilliseconds);
@@ -201,10 +201,17 @@
 
             try
             {
+                var errorQueuesAndResolvers = await errorQueueDiscoveryExecutor.GetErrorQueueNamesAndReturnQueueResolvers(cancellationToken);
+
+                if (!errorQueuesAndResolvers.Any())
+                {
+                    throw new Exception("No error queues found. Please check your configuration.");
+                }
+
                 Logger.Info("Starting infrastructure");
                 transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
                     "ErrorIngestion",
-                    [errorQueue],
+                    errorQueuesAndResolvers.Keys.ToArray(),
                     transportSettings,
                     OnMessage,
                     errorHandlingPolicy.OnError,
@@ -321,7 +328,6 @@
         }
 
         SemaphoreSlim startStopSemaphore = new(1);
-        string errorQueue;
         ErrorIngestionFaultPolicy errorHandlingPolicy;
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver[] messageReceivers;
@@ -337,7 +343,7 @@
         readonly ErrorIngestor ingestor;
         readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly IHostApplicationLifetime applicationLifetime;
-
+        readonly ErrorQueueDiscoveryExecutor errorQueueDiscoveryExecutor;
         static readonly ILog Logger = LogManager.GetLogger<ErrorIngestion>();
 
         internal static class LogMessages
