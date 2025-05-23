@@ -1,11 +1,21 @@
-using System;
-using System.Threading.Tasks;
+﻿using Amazon;
+using Amazon.SQS;
+using Amazon.SQS.Model;
+using JustSaying.Fluent;
+using JustSaying.Messaging.MessageHandling;
+using JustSaying.Messaging.Middleware;
+using JustSaying.Messaging.Middleware.MessageContext;
 using JustSaying.Sample.Restaurant.KitchenConsole.Handlers;
 using JustSaying.Sample.Restaurant.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Particular.JustSaying.RetryMiddleware;
 using Serilog;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace JustSaying.Sample.Restaurant.KitchenConsole
 {
@@ -79,8 +89,13 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole
                             x.ForTopic<OrderPlacedEvent>(cfg =>
                                 cfg.WithTag("IsOrderEvent")
                                     .WithTag("Subscriber", nameof(KitchenConsole))
-                                    .WithReadConfiguration(rc  =>
-                                        rc.WithSubscriptionGroup("GroupA")));
+                                    .WithReadConfiguration(rc =>
+                                        rc.WithSubscriptionGroup("GroupA"))
+                                    .WithMiddlewareConfiguration(mw =>
+                                    {
+                                        mw.Use<RetryAcknowledgementMiddleware>();
+                                        mw.UseDefaults<OrderPlacedEvent>(typeof(OrderPlacedEventHandler));
+                                    }));
 
                             x.ForTopic<OrderOnItsWayEvent>(cfg =>
                                 cfg.WithReadConfiguration(rc =>
@@ -105,6 +120,22 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole
                     // Added a message handler for message type for 'OrderPlacedEvent' on topic 'orderplacedevent' and queue 'orderplacedevent'
                     services.AddJustSayingHandler<OrderPlacedEvent, OrderPlacedEventHandler>();
                     services.AddJustSayingHandler<OrderOnItsWayEvent, OrderOnItsWayEventHandler>();
+
+                    services.AddTransient<RetryAcknowledgementMiddleware>();
+                    services.AddSingleton<Microsoft.Extensions.Logging.ILogger>(log =>
+                    {
+                        var logger = log.GetRequiredService<ILoggerFactory>().CreateLogger(nameof(KitchenConsole));
+                        return (Microsoft.Extensions.Logging.ILogger)logger;
+                    });
+                    
+                    services.AddSingleton<IAmazonSQS>(sp =>
+                    {
+                        var config = new AmazonSQSConfig
+                        {
+                            RegionEndpoint = RegionEndpoint.GetBySystemName(hostContext.Configuration["Aws:Region"])
+                        };
+                        return new AmazonSQSClient(config);
+                    });
 
                     // Add a background service that is listening for messages related to the above subscriptions
                     services.AddHostedService<Subscriber>();
