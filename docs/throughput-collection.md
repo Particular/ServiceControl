@@ -18,7 +18,7 @@ The usage collection queue needs to be known to the Monitoring instance.
 
 At the time of creating this feature it was decided that having a queue name that is not dependent on the name of the Error instance means less setup for majority of customers since the feature would "just work" out of the box. 
 
-If the queue name was based on the Error instance name (i.e. "ErrorInstanceQueueName.throughput") then **every ** customer would have to make updates to their Monitoring instance config to set the correct queue name.
+If the queue name was based on the Error instance name (i.e. "ErrorInstanceQueueName.throughput") then **every** customer would have to make updates to their Monitoring instance config to set the correct queue name.
 
 The decision favoured simplicity of upgrade over existing ServiceControl queue name conventions, keeping in line with the tech lead preferences for [software that "just works"](https://github.com/Particular/Strategy/blob/master/tech-lead-preferences/it-just-works.md#it-just-works) and [convenience](https://github.com/Particular/Strategy/blob/master/tech-lead-preferences/usability.md#convenience).
 
