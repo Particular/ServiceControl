@@ -97,24 +97,3 @@ public sealed class RetryAcknowledgementMiddleware(IAmazonSQS sqs, ILogger logge
         return false;
     }
 }
-
-public class RetryAcknowledgementMessage : Message
-{
-    public string MessageId { get; set; } = string.Empty;
-    public Dictionary<string, string> headers { get; set; } = new Dictionary<string, string>();
-    public ReadOnlyMemory<byte> Body { get; set; } = Array.Empty<byte>();
-}
-
-
-
-
-
-//Check if the message is coming from a manual retry attempt
-//if (context.Message.Headers.TryGetValue(RetryAcknowledgementBehavior.RetryUniqueMessageIdHeaderKey, out var uniqueMessageId) &&
-//    context.Message.Headers.TryGetValue(RetryAcknowledgementBehavior.RetryConfirmationQueueHeaderKey, out var acknowledgementQueue))
-//{
-//    // Notify the ServiceControl audit instance that the retry has already been acknowledged by the endpoint
-//    context.Extensions.Set(MarkAsAcknowledgedBehavior.State.Instance);
-//    // Confirm successful retry
-//    await ConfirmSuccessfulRetry(context, uniqueMessageId, acknowledgementQueue).ConfigureAwait(false);
-//}
