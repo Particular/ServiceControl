@@ -46,7 +46,7 @@ public class RegexErrorQueueDiscoveryMethod : IErrorQueueDiscoveryMethod
 
         if (match.Success)
         {
-            if (match.Groups.Count != 1)
+            if (match.Groups.Count != 2)
             {
                 throw new Exception($"The regex pattern '{Pattern}' must have exactly one capture group that will match the return queue name");
             }

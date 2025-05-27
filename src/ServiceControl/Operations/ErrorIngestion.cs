@@ -288,7 +288,7 @@
         {
             var resolver = resolvers[messageContext.ReceiveAddress];
 
-            messageContext.Extensions.Set("ErrorQueueResolver", resolver);
+            messageContext.Extensions.Set("ReturnQueueResolver", resolver);
 
             if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
             {

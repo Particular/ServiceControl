@@ -38,7 +38,7 @@
 
             result.Exception = GetException(context.Headers);
 
-            var returnQueueResolver = context.Extensions.Get<ReturnQueueResolver>("ReturnQueueName");
+            var returnQueueResolver = context.Extensions.Get<ReturnQueueResolver>("ReturnQueueResolver");
 
             try
             {
