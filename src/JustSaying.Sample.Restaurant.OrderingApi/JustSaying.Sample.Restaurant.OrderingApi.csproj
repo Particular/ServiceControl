@@ -5,12 +5,13 @@
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <UserSecretsId>JustSaying.Sample.Restaurant.OrderingApi</UserSecretsId>
-    <NoWarn>$(NoWarn);CA2007</NoWarn>
+    <NoWarn>$(NoWarn);CA2007;NU1902;</NoWarn>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JustSaying" />
-    <PackageReference Include="JustSaying.Extensions.DependencyInjection.Microsoft" />
+    <PackageReference Include="JustSaying" Version="7.3.0" />
+    <PackageReference Include="JustSaying.Extensions.DependencyInjection.Microsoft" Version="7.3.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.1" />
   </ItemGroup>

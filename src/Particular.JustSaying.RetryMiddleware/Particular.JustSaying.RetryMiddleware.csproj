@@ -4,10 +4,11 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="JustSaying" />
+		<PackageReference Include="JustSaying" Version="7.3.0" />
 	</ItemGroup>
 
 	<ItemGroup>

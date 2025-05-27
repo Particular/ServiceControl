@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <NoWarn>$(NoWarn);CA1031;CA2007</NoWarn>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="JustSaying" />
-    <PackageReference Include="JustSaying.Extensions.DependencyInjection.Microsoft" />
+    <PackageReference Include="JustSaying" Version="7.3.0" />
+    <PackageReference Include="JustSaying.Extensions.DependencyInjection.Microsoft" Version="7.3.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
@@ -27,5 +28,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\JustSaying.Sample.Restaurant.Models\JustSaying.Sample.Restaurant.Models.csproj" />
+    <ProjectReference Include="..\Particular.JustSaying.RetryMiddleware\Particular.JustSaying.RetryMiddleware.csproj" />
   </ItemGroup>
 </Project>
