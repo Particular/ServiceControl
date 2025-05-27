@@ -17,7 +17,7 @@ public class AmazonSearchByTagErrorQueueDiscoveryMethod : IErrorQueueDiscoveryMe
 {
     public string Name => "AmazonSearchByTag";
 
-    public Func<(MessageContext Context, string ErrorQueueName), string> GetReturnQueueName => faultInfo => tagCache[faultInfo.ErrorQueueName];
+    public Func<MessageContext, string> GetReturnQueueName => context => tagCache[context.ReceiveAddress];
 
     public string TagKey { get; set; } = "ServiceControlErrorQueue";
 

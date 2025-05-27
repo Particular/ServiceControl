@@ -115,25 +115,9 @@ namespace ServiceControl.Operations
 
             try
             {
-                context.Headers[FaultsHeaderKeys.FailedQ] = context.ReceiveAddress.Replace("_error", "");
-
-                context.Headers[FaultsHeaderKeys.Message] = "No error information provided by JustSaying";
-                using var ms = new MemoryStream(context.Body.ToArray());
-                var jsMessage = JsonSerializer.Deserialize<JustSayingWrapper>(ms);
-                context.Headers[Headers.MessageId] = jsMessage.Message.Id.ToString();
-                context.Headers[Headers.EnclosedMessageTypes] = jsMessage.Subject;
-                context.Headers[Headers.ConversationId] = jsMessage.Conversation ?? Guid.NewGuid().ToString();
-                context.Headers[Headers.OriginatingEndpoint] = jsMessage.RaisingComponent ?? "JustSaying";
-                context.Headers[Headers.TimeSent] = DateTimeOffsetHelper.ToWireFormattedString(jsMessage.Timestamp ?? DateTimeOffset.UtcNow);
-                context.Headers[Headers.ProcessingMachine] = jsMessage.SourceIp ?? "❌";
-
-                context.Headers[Headers.ContentType] = ContentTypes.Json;
-                context.Headers[FaultsHeaderKeys.TimeOfFailure] = DateTimeOffsetHelper.ToWireFormattedString(jsMessage.Timestamp ?? DateTimeOffset.UtcNow);
-                context.Headers[FaultsHeaderKeys.ExceptionType] = "Exception from a JustSaying endpoint";
-                context.Headers[FaultsHeaderKeys.StackTrace] = "No stack trace provided by JustSaying";
                 var (metadata, enricherContext) = ExecuteEnrichRoutinesAndCreateMetaData(context, messageId);
 
-                var failureDetails = failedMessageFactory.ParseFailureDetails(context.Headers, metadata);
+                var failureDetails = failedMessageFactory.ParseFailureDetails(context);
 
                 var processingAttempt = failedMessageFactory.CreateProcessingAttempt(
                     context.Headers,

@@ -38,11 +38,11 @@ public class RegexErrorQueueDiscoveryMethod : IErrorQueueDiscoveryMethod
         }
     }
 
-    public Func<(MessageContext Context, string ErrorQueueName), string> GetReturnQueueName => faultInfo =>
+    public Func<MessageContext, string> GetReturnQueueName => context =>
     {
         regex ??= new Regex(Pattern, RegexOptions.Compiled);
 
-        var match = regex.Match(faultInfo.ErrorQueueName);
+        var match = regex.Match(context.ReceiveAddress);
 
         if (match.Success)
         {

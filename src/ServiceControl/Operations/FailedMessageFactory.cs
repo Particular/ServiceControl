@@ -7,6 +7,7 @@
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.Faults;
+    using NServiceBus.Transport;
     using Recoverability;
     using FailedMessage = MessageFailures.FailedMessage;
 
@@ -29,34 +30,31 @@
             return groups;
         }
 
-        public FailureDetails ParseFailureDetails(IReadOnlyDictionary<string, string> headers, Dictionary<string, object> metadata)
+        public FailureDetails ParseFailureDetails(MessageContext context)
         {
             var result = new FailureDetails();
 
-            DictionaryExtensions.CheckIfKeyExists("NServiceBus.TimeOfFailure", headers, s => result.TimeOfFailure = DateTimeOffsetHelper.ToDateTimeOffset(s).UtcDateTime);
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.TimeOfFailure", context.Headers, s => result.TimeOfFailure = DateTimeOffsetHelper.ToDateTimeOffset(s).UtcDateTime);
 
-            result.Exception = GetException(headers);
+            result.Exception = GetException(context.Headers);
 
-            var hasFailedQHeader = headers.ContainsKey(FaultsHeaderKeys.FailedQ);
-            var hasFailedQHeaderValue = headers.TryGetValue(FaultsHeaderKeys.FailedQ, out var failedQHeaderValue) && !string.IsNullOrEmpty(failedQHeaderValue);
-            var hasReturnToQueueHeader = metadata.ContainsKey("ReturnToQueue");
-            var hasReturnToQueueHeaderValue = metadata.TryGetValue("ReturnToQueue", out var returnToQueueHeaderValue) && returnToQueueHeaderValue is string && !string.IsNullOrEmpty(returnToQueueHeaderValue as string);
+            var returnQueueResolver = context.Extensions.Get<ReturnQueueResolver>("ReturnQueueName");
 
-            if ((!hasFailedQHeader && !hasReturnToQueueHeader) || (!hasFailedQHeaderValue && !hasReturnToQueueHeaderValue))
+            try
             {
-                var sb = new StringBuilder();
+                var returnQueueName = returnQueueResolver.Resolve(context);
 
-                sb.Append("Could not determine the address of the failing endpoint. ");
-
-                if (!hasFailedQHeader && !hasReturnToQueueHeader))
+                if (string.IsNullOrEmpty(returnQueueName))
                 {
-                    sb.Append($"Could not find an {FaultsHeaderKeys.FailedQ}" header or could not determine the return queue from the metadata.");
+                    throw new Exception($"The calculated return queue name for error queue '{context.ReceiveAddress}' by resolver '{returnQueueResolver.ResolverName}' is null or empty.");
+                }                
 
-                    throw new Exception($"Missing '{FaultsHeaderKeys.FailedQ}' header. Message is poison message or incorrectly send to (error) queue.");
-                }
+                result.AddressOfFailingEndpoint = returnQueueName;
             }
-
-            result.AddressOfFailingEndpoint = headers.ContainsKey(FaultsHeaderKeys.FailedQ) ? headers[FaultsHeaderKeys.FailedQ] : metadata["ReturnToQueue"].ToString();
+            catch (Exception ex)
+            {
+                throw new Exception($"Unable to determine the return queue address from message with native id {context.NativeMessageId} received from queue {context.ReceiveAddress}.", ex);
+            }            
 
             return result;
         }

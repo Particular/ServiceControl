@@ -42,7 +42,6 @@ namespace ServiceControl.Transports
         {
             services.AddSingleton<ITransportCustomization>(this);
             services.AddSingleton(transportSettings);
-            services.AddTransient<IErrorQueueDiscoveryMethod, DirectErrorQueueDiscoveryMethod>();
 
             AddTransportForPrimaryCore(services, transportSettings);
         }

@@ -88,6 +88,8 @@
             OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null,
             TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly) =>
             throw new NotImplementedException();
+        public Task<TransportInfrastructure> CreateTransportInfrastructure(string name, string[] queues, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly) => throw new NotImplementedException();
+
         public string ToTransportQualifiedQueueName(string queueName) => queueName;
     }
 }

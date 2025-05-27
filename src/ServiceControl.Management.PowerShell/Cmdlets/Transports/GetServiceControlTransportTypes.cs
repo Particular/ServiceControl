@@ -15,18 +15,4 @@
             WriteObject(transportInfos, true);
         }
     }
-
-    public class GetSupportedErrorQueueDiscoveryMethods : Cmdlet
-    {
-        protected override void ProcessRecord()
-        {
-            WriteObject()
-            var methods = InstanceFinder.ServiceControlInstances()
-                .SelectMany(instance => instance.GetErrorQueueDiscoveryMethods())
-                .Distinct()
-                .ToList();
-
-            WriteObject(methods, true);
-        }
-    }
 }

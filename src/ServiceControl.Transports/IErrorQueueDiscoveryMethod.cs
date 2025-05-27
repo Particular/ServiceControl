@@ -10,7 +10,7 @@ public interface IErrorQueueDiscoveryMethod
 {
     string Name { get; }
 
-    Func<(MessageContext Context, string ErrorQueueName), string> GetReturnQueueName { get; }
+    Func<MessageContext, string> GetReturnQueueName { get; }
 
     Task<IEnumerable<string>> GetErrorQueueNames(CancellationToken cancellationToken = default);
 }

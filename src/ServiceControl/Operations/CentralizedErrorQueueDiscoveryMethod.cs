@@ -15,7 +15,7 @@ public class CentralizedErrorQueueDiscoveryMethod(Settings settings) : IErrorQue
 
     public string ReturnQueueHeaderKey { get; set; } = FaultsHeaderKeys.FailedQ;
 
-    public Func<(MessageContext Context, string ErrorQueueName), string> GetReturnQueueName => faultInfo => faultInfo.Context.Headers[ReturnQueueHeaderKey];
+    public Func<MessageContext, string> GetReturnQueueName => context => context.Headers[ReturnQueueHeaderKey];
 
     public Task<IEnumerable<string>> GetErrorQueueNames(CancellationToken cancellationToken = default)
     {

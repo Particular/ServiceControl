@@ -201,9 +201,9 @@
 
             try
             {
-                var errorQueuesAndResolvers = await errorQueueDiscoveryExecutor.GetErrorQueueNamesAndReturnQueueResolvers(cancellationToken);
+                resolvers = await errorQueueDiscoveryExecutor.GetErrorQueueNamesAndReturnQueueResolvers(cancellationToken);
 
-                if (!errorQueuesAndResolvers.Any())
+                if (!resolvers.Any())
                 {
                     throw new Exception("No error queues found. Please check your configuration.");
                 }
@@ -211,7 +211,7 @@
                 Logger.Info("Starting infrastructure");
                 transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
                     "ErrorIngestion",
-                    errorQueuesAndResolvers.Keys.ToArray(),
+                    resolvers.Keys.ToArray(),
                     transportSettings,
                     OnMessage,
                     errorHandlingPolicy.OnError,
@@ -286,6 +286,10 @@
 
         async Task OnMessage(MessageContext messageContext, CancellationToken cancellationToken)
         {
+            var resolver = resolvers[messageContext.ReceiveAddress];
+
+            messageContext.Extensions.Set("ErrorQueueResolver", resolver);
+
             if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
             {
                 return;
@@ -331,6 +335,7 @@
         ErrorIngestionFaultPolicy errorHandlingPolicy;
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver[] messageReceivers;
+        Dictionary<string, ReturnQueueResolver> resolvers;
 
         readonly Settings settings;
         readonly ITransportCustomization transportCustomization;
