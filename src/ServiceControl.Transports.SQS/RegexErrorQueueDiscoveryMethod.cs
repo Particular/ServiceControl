@@ -62,28 +62,42 @@ public class RegexErrorQueueDiscoveryMethod : IErrorQueueDiscoveryMethod
     {
         using var client = clientFactory();
 
-        var request = new ListQueuesRequest();
-
-        if (!string.IsNullOrEmpty(queueNamePrefix))
-        {
-            request.QueueNamePrefix = queueNamePrefix;
-        }
-
-        var response = await client.ListQueuesAsync(request, cancellationToken);
-
         var errorQueueNames = new List<string>();
 
-        foreach (var queueUrl in response.QueueUrls)
+        var nextToken = (string)null;
+
+        do
         {
-            var queueName = queueUrl.Substring(queueUrl.LastIndexOf('/') + 1);
-
-            regex ??= new Regex(Pattern, RegexOptions.Compiled);
-
-            if (regex.IsMatch(queueName))
+            var request = new ListQueuesRequest
             {
-                errorQueueNames.Add(queueName);
+                MaxResults = 1000
+            };
+
+            if (!string.IsNullOrEmpty(queueNamePrefix))
+            {
+                request.QueueNamePrefix = queueNamePrefix;
             }
-        }
+
+            if (nextToken is not null)
+            {
+                request.NextToken = nextToken;
+            }
+
+            var response = await client.ListQueuesAsync(request, cancellationToken);
+            nextToken = response.NextToken;
+
+            foreach (var queueUrl in response.QueueUrls)
+            {
+                var queueName = queueUrl.Substring(queueUrl.LastIndexOf('/') + 1);
+
+                regex ??= new Regex(Pattern, RegexOptions.Compiled);
+
+                if (regex.IsMatch(queueName))
+                {
+                    errorQueueNames.Add(queueName);
+                }
+            }
+        } while (nextToken is not null);
 
         return errorQueueNames;
     }

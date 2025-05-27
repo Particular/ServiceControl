@@ -11,12 +11,12 @@ namespace ServiceControl.Recoverability
 
     class ReturnToSender(IErrorMessageDataStore errorMessageStore)
     {
-        public virtual async Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress, CancellationToken cancellationToken = default)
+        public virtual async Task HandleMessage(MessageContext message, IMessageDispatcher sender, CancellationToken cancellationToken = default)
         {
             var outgoingHeaders = new Dictionary<string, string>(message.Headers);
 
             outgoingHeaders.Remove("ServiceControl.Retry.StagingId");
-            outgoingHeaders["ServiceControl.Retry.AcknowledgementQueue"] = errorQueueTransportAddress;
+            //outgoingHeaders["ServiceControl.Retry.AcknowledgementQueue"] = errorQueueTransportAddress;
 
             byte[] body = null;
             var messageId = message.NativeMessageId;

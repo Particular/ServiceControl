@@ -331,6 +331,7 @@ namespace ServiceControl.Recoverability
             headersToRetryWith["ServiceControl.Retry.UniqueMessageId"] = message.UniqueMessageId;
             headersToRetryWith["ServiceControl.Retry.StagingId"] = stagingId;
             headersToRetryWith["ServiceControl.Retry.Attempt.MessageId"] = attempt.MessageId;
+            headersToRetryWith["ServiceControl.Retry.AcknowledgementQueue"] = attempt.FailureDetails.AcknowledgementQueue;
 
             corruptedReplyToHeaderStrategy.FixCorruptedReplyToHeader(headersToRetryWith);
 

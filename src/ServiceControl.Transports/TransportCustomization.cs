@@ -200,7 +200,7 @@ namespace ServiceControl.Transports
 
                 for (var i = 0; i < receiverSettings.Length; i++)
                 {
-                    var transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
+                    var transportInfrastructureReceiver = transportInfrastructure.Receivers[queues[i]];
                     transportInitializeTasks[i] = transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency.Value), onMessage, onError, CancellationToken.None);
                 }
 

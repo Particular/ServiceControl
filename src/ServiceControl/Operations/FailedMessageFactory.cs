@@ -47,9 +47,10 @@
                 if (string.IsNullOrEmpty(returnQueueName))
                 {
                     throw new Exception($"The calculated return queue name for error queue '{context.ReceiveAddress}' by resolver '{returnQueueResolver.ResolverName}' is null or empty.");
-                }                
+                }
 
                 result.AddressOfFailingEndpoint = returnQueueName;
+                result.AcknowledgementQueue = context.ReceiveAddress;
             }
             catch (Exception ex)
             {

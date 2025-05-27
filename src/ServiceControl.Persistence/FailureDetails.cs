@@ -10,6 +10,7 @@ namespace ServiceControl.Contracts.Operations
         }
 
         public string AddressOfFailingEndpoint { get; set; }
+        public string AcknowledgementQueue { get; set; }
 
         public DateTime TimeOfFailure { get; set; }
 

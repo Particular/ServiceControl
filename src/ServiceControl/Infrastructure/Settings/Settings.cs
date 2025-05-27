@@ -160,7 +160,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool IngestErrorMessages { get; set; } = true;
 
-        public string[] ErrorQueueDiscoveryMethods { get; set; }
+        public string[] ErrorQueueDiscoveryMethods { get; set; } = new string[] { "Regex" };
 
         public bool RunRetryProcessor { get; set; } = true;
 
@@ -407,7 +407,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
             var defaultDiscoveryMethod = !string.IsNullOrEmpty(ErrorQueue) ? ["CentralizedErrorQueue"] : Array.Empty<string>();
 
-            ErrorQueueDiscoveryMethods = SettingsReader.Read(SettingsRootNamespace, "ErrorQueueDiscoveryMethods", defaultDiscoveryMethod);
+            //ErrorQueueDiscoveryMethods = SettingsReader.Read(SettingsRootNamespace, "ErrorQueueDiscoveryMethods", defaultDiscoveryMethod);
 
             if (ErrorQueueDiscoveryMethods.Length == 0)
             {

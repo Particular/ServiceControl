@@ -18,7 +18,6 @@ namespace ServiceControl.Recoverability
         {
             InputAddress = transportCustomization.ToTransportQualifiedQueueName(settings.StagingQueue);
             this.returnToSender = returnToSender;
-            errorQueue = settings.ErrorQueue;
             this.transportCustomization = transportCustomization;
             this.transportSettings = transportSettings;
 
@@ -33,8 +32,6 @@ namespace ServiceControl.Recoverability
             transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(InputAddress, transportSettings, Handle, faultManager.OnError, (_, __) => Task.CompletedTask, TransportTransactionMode.SendsAtomicWithReceive);
             messageReceiver = transportInfrastructure.Receivers[InputAddress];
             messageDispatcher = transportInfrastructure.Dispatcher;
-
-            errorQueueTransportAddress = transportInfrastructure.ToTransportAddress(new QueueAddress(errorQueue));
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
@@ -56,8 +53,8 @@ namespace ServiceControl.Recoverability
             }
 
             if (shouldProcess(message))
-            {
-                await returnToSender.HandleMessage(message, messageDispatcher, errorQueueTransportAddress, cancellationToken);
+            {                
+                await returnToSender.HandleMessage(message, messageDispatcher, cancellationToken);
                 IncrementCounterOrProlongTimer();
             }
             else
