@@ -35,6 +35,7 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole.Handlers
 
             throw new Exception("Failing intentionally");
 
+#pragma warning disable CS0162 // Unreachable code detected
             try
             {
                 _logger.LogInformation("Order {orderId} for {description} received", message.OrderId, message.Description);
@@ -59,6 +60,7 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole.Handlers
                 _logger.LogError(ex, "Failed to handle message for {orderId}", message.OrderId);
                 return false;
             }
+#pragma warning restore CS0162 // Unreachable code detected
         }
     }
 }
