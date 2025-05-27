@@ -2,9 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JustSaying.Models" />
+    <PackageReference Include="JustSaying.Models" Version="7.3.0" />
   </ItemGroup>
 </Project>
