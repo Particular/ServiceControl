@@ -15,6 +15,11 @@ namespace ServiceControl.Recoverability
         {
             var outgoingHeaders = new Dictionary<string, string>(message.Headers);
 
+            if (outgoingHeaders.TryGetValue("ServiceControl.Retry.EnvelopeFormat", out string envelopeFormat))
+            {
+                outgoingHeaders.Remove("ServiceControl.Retry.EnvelopeFormat");
+            }
+
             outgoingHeaders.Remove("ServiceControl.Retry.StagingId");
             //outgoingHeaders["ServiceControl.Retry.AcknowledgementQueue"] = errorQueueTransportAddress;
 
@@ -57,6 +62,7 @@ namespace ServiceControl.Recoverability
             }
 
             var transportOp = new TransportOperation(outgoingMessage, new UnicastAddressTag(retryTo));
+            transportOp.Properties.Add("EnvelopeFormat", envelopeFormat);
 
             await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction, cancellationToken);
 

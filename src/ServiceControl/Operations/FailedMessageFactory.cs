@@ -51,6 +51,7 @@
 
                 result.AddressOfFailingEndpoint = returnQueueName;
                 result.AcknowledgementQueue = context.ReceiveAddress;
+                result.EnvelopeFormat = context.Extensions.Get<string>("EnvelopeFormat");
             }
             catch (Exception ex)
             {
