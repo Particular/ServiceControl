@@ -47,7 +47,8 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(null).HandleMessage(message, sender, "error");
+            await new ReturnToSender(null).HandleMessage(message, sender);
+            // await new ReturnToSender(null).HandleMessage(message, sender, "error");
 
             Assert.That(sender.Message.Headers.ContainsKey("ServiceControl.Retry.StagingId"), Is.False);
         }
@@ -66,7 +67,8 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeErrorMessageDataStore()).HandleMessage(message, sender, "error");
+            await new ReturnToSender(new FakeErrorMessageDataStore()).HandleMessage(message, sender);
+            // await new ReturnToSender(new FakeErrorMessageDataStore()).HandleMessage(message, sender, "error");
 
             Assert.That(Encoding.UTF8.GetString(sender.Message.Body.ToArray()), Is.EqualTo("MessageBodyId"));
         }
@@ -84,7 +86,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(null).HandleMessage(message, sender, "error");
+            await new ReturnToSender(null).HandleMessage(message, sender);
 
             Assert.Multiple(() =>
             {
@@ -105,7 +107,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(null).HandleMessage(message, sender, "error");
+            await new ReturnToSender(null).HandleMessage(message, sender);
 
             Assert.Multiple(() =>
             {
@@ -129,7 +131,7 @@
 
             try
             {
-                await new ReturnToSender(null).HandleMessage(message, sender, "error");
+                await new ReturnToSender(null).HandleMessage(message, sender);
             }
             catch (Exception)
             {

@@ -89,6 +89,7 @@
                     try
                     {
                         // as long as there is something to read this will fetch up to MaximumConcurrency items
+                        // 
                         while (channel.Reader.TryRead(out var context))
                         {
                             contexts.Add(context);
@@ -333,23 +334,23 @@
 
         SemaphoreSlim startStopSemaphore = new(1);
         ErrorIngestionFaultPolicy errorHandlingPolicy;
-        TransportInfrastructure transportInfrastructure;
+        private protected TransportInfrastructure transportInfrastructure;
         IMessageReceiver[] messageReceivers;
         Dictionary<string, ReturnQueueResolver> resolvers;
 
         readonly Settings settings;
         readonly ITransportCustomization transportCustomization;
-        readonly TransportSettings transportSettings;
-        readonly Watchdog watchdog;
-        readonly Channel<MessageContext> channel;
-        readonly Meter batchDurationMeter;
-        readonly Meter batchSizeMeter;
+        private protected readonly TransportSettings transportSettings;
+        private protected readonly Watchdog watchdog;
+        private protected readonly Channel<MessageContext> channel;
+        private protected readonly Meter batchDurationMeter;
+        private protected readonly Meter batchSizeMeter;
         readonly Counter receivedMeter;
         readonly ErrorIngestor ingestor;
         readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly IHostApplicationLifetime applicationLifetime;
         readonly ErrorQueueDiscoveryExecutor errorQueueDiscoveryExecutor;
-        static readonly ILog Logger = LogManager.GetLogger<ErrorIngestion>();
+        private protected static readonly ILog Logger = LogManager.GetLogger<ErrorIngestion>();
 
         internal static class LogMessages
         {

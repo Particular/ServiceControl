@@ -148,14 +148,15 @@
         public class FakeReturnToSender(IErrorMessageDataStore errorMessageStore, MyContext myContext)
             : ReturnToSender(errorMessageStore)
         {
-            public override Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress, CancellationToken cancellationToken = default)
+            // public override Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress, CancellationToken cancellationToken = default)
+            public override Task HandleMessage(MessageContext message, IMessageDispatcher sender, CancellationToken cancellationToken = default)
             {
                 if (message.Headers[Headers.MessageId] == myContext.DecommissionedEndpointMessageId)
                 {
                     throw new Exception("This endpoint is unreachable");
                 }
 
-                return base.HandleMessage(message, sender, "error", cancellationToken);
+                return base.HandleMessage(message, sender, cancellationToken);
             }
         }
     }

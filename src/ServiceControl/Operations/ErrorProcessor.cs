@@ -118,6 +118,17 @@ namespace ServiceControl.Operations
                 var (metadata, enricherContext) = ExecuteEnrichRoutinesAndCreateMetaData(context, messageId);
 
                 var failureDetails = failedMessageFactory.ParseFailureDetails(context);
+                //
+                // if (failureDetails.Exception.IsEmpty())
+                // {
+                //     // look for the ExtraExceptionData
+                //     var extraExceptionData = GetExtraExceptionData(context);
+                //     if (extraExceptionData != null)
+                //     {
+                //         // smush them together
+                //         var messageContext = GetExtra
+                //     }
+                // }
 
                 var processingAttempt = failedMessageFactory.CreateProcessingAttempt(
                     context.Headers,
