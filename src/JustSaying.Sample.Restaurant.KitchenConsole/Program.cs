@@ -60,9 +60,10 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole
                 {
                     services.AddJustSaying(config =>
                     {
+                        AwsClientFactoryBuilder awsClientFactoryBuilder = null;
                         config.Client(x =>
                         {
-                            x.WithBasicCredentials(hostContext.Configuration["Aws:AccessKey"], hostContext.Configuration["Aws:SecretAccessKey"]);
+                            awsClientFactoryBuilder = x.WithBasicCredentials(hostContext.Configuration["Aws:AccessKey"], hostContext.Configuration["Aws:SecretAccessKey"]);
                         });
 
                         config.Messaging(x =>
@@ -115,6 +116,15 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole
                             });
                             x.WithTopic<OrderDeliveredEvent>();
                         });
+                        config.Services((options) =>
+                            options.WithMessageMonitoring(() =>
+                            {
+                                // var sqs = services.BuildServiceProvider().GetService<IAmazonSQS>();
+                                // var region = hostContext.Configuration["Aws:Region"].ToString())
+                                var sqs = awsClientFactoryBuilder.Build()
+                                    .GetSqsClient(RegionEndpoint.GetBySystemName(hostContext.Configuration["Aws:Region"]));
+                                return new NServiceBusExceptionMonitor(sqs);
+                            }));
                     });
 
                     // Added a message handler for message type for 'OrderPlacedEvent' on topic 'orderplacedevent' and queue 'orderplacedevent'
