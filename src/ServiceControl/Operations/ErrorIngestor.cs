@@ -1,4 +1,7 @@
-﻿namespace ServiceControl.Operations
+﻿using NServiceBus;
+using NServiceBus.Faults;
+
+namespace ServiceControl.Operations
 {
     using System;
     using System.Collections.Generic;
@@ -34,7 +37,8 @@
             this.messageDispatcher = messageDispatcher;
             this.settings = settings;
 
-            bulkInsertDurationMeter = metrics.GetMeter("Error ingestion - bulk insert duration", FrequencyInMilliseconds);
+            bulkInsertDurationMeter =
+                metrics.GetMeter("Error ingestion - bulk insert duration", FrequencyInMilliseconds);
             var ingestedMeter = metrics.GetCounter("Error ingestion - ingested");
 
             var enrichers = new IEnrichImportedErrorMessages[]
@@ -42,18 +46,45 @@
                 new MessageTypeEnricher(),
                 new EnrichWithTrackingIds(),
                 new ProcessingStatisticsEnricher()
-
             }.Concat(errorEnrichers).ToArray();
 
-            errorProcessor = new ErrorProcessor(enrichers, failedMessageEnrichers.ToArray(), domainEvents, ingestedMeter);
+            errorProcessor =
+                new ErrorProcessor(enrichers, failedMessageEnrichers.ToArray(), domainEvents, ingestedMeter);
             retryConfirmationProcessor = new RetryConfirmationProcessor(domainEvents);
-            logQueueAddress = new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(this.settings.ErrorLogQueue));
+            logQueueAddress =
+                new UnicastAddressTag(
+                    transportCustomization.ToTransportQualifiedQueueName(this.settings.ErrorLogQueue));
+        }
+
+        async Task<MessageContext> LookupExtraExceptionInfo(MessageContext messageContext) => null;
+        
+        async Task<(List<MessageContext>, List<MessageContext>)> HandleNoExceptionMessages(List<MessageContext> messages)
+        {
+            List<MessageContext> enrichedMessages = new List<MessageContext>();
+            List<MessageContext> unenrichedMessages = new List<MessageContext>();
+
+            foreach (var message in messages)
+            {
+                var extraExceptionInfo = await LookupExtraExceptionInfo(message);
+                if (extraExceptionInfo != null)
+                {
+                    // Mush them together
+                    // enrichedMessages.Add(combine(message, extraExceptionInfo));
+                }
+                else
+                {
+                    unenrichedMessages.Add(message);
+                }
+            }
+            
+            return (enrichedMessages, unenrichedMessages);
         }
 
         public async Task Ingest(List<MessageContext> contexts, CancellationToken cancellationToken)
         {
             var failedMessages = new List<MessageContext>(contexts.Count);
             var retriedMessages = new List<MessageContext>(contexts.Count);
+            var noExceptionMessages = new List<MessageContext>(contexts.Count);
 
             foreach (var context in contexts)
             {
@@ -61,14 +92,22 @@
                 {
                     retriedMessages.Add(context);
                 }
-                else
+                else if (context.Headers.ContainsKey(FaultsHeaderKeys.FailedQ))
                 {
                     failedMessages.Add(context);
                 }
+                else
+                {
+                    noExceptionMessages.Add(context);
+                }
             }
 
-
+            IEnumerable<MessageContext> enriched;
+            IEnumerable<MessageContext> unenriched;
+            (enriched, unenriched) = await HandleNoExceptionMessages(retriedMessages);
+            failedMessages.AddRange(enriched);
             var storedFailed = await PersistFailedMessages(failedMessages, retriedMessages, cancellationToken);
+            // await PersistUnenrichedMessages(unenriched, cancellationToken);
 
             try
             {
@@ -77,6 +116,7 @@
                 {
                     announcerTasks.Add(errorProcessor.Announce(context));
                 }
+
                 foreach (var context in retriedMessages)
                 {
                     announcerTasks.Add(retryConfirmationProcessor.Announce(context));
@@ -90,6 +130,7 @@
                     {
                         Logger.Debug($"Forwarding {storedFailed.Count} messages");
                     }
+
                     await Forward(storedFailed, cancellationToken);
                     if (Logger.IsDebugEnabled)
                     {
@@ -114,7 +155,8 @@
             }
         }
 
-        async Task<IReadOnlyList<MessageContext>> PersistFailedMessages(List<MessageContext> failedMessageContexts, List<MessageContext> retriedMessageContexts, CancellationToken cancellationToken)
+        async Task<IReadOnlyList<MessageContext>> PersistFailedMessages(List<MessageContext> failedMessageContexts,
+            List<MessageContext> retriedMessageContexts, CancellationToken cancellationToken)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -133,6 +175,7 @@
                 {
                     await unitOfWork.Complete(cancellationToken);
                 }
+
                 return storedFailedMessageContexts;
             }
             catch (Exception e)
@@ -157,7 +200,9 @@
 
         Task Forward(IReadOnlyCollection<MessageContext> messageContexts, CancellationToken cancellationToken)
         {
-            var transportOperations = new TransportOperation[messageContexts.Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
+            var transportOperations =
+                new TransportOperation[messageContexts
+                    .Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
             var index = 0;
             MessageContext anyContext = null;
             foreach (var messageContext in messageContexts)
@@ -194,7 +239,8 @@
                     )
                 );
 
-                await messageDispatcher.Value.Dispatch(transportOperations, new TransportTransaction(), cancellationToken);
+                await messageDispatcher.Value.Dispatch(transportOperations, new TransportTransaction(),
+                    cancellationToken);
             }
             catch (Exception e)
             {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Text.Json;
@@ -24,15 +25,11 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole
         {
             Console.WriteLine($"NServiceBusHandler: {ex.Message}");
             var url = await sqsClient.GetQueueUrlAsync("JustSaying_exceptions");
-            // var x = JsonSerializer.Deserialize<JustSaying.Models.Message>(message.Body);
-            var x = JsonNode.Parse(message.Body);
-            var exception = JsonSerializer.Serialize(new
-            {
-                ex.Message,
-                message.MessageId,
-                ex.StackTrace,
-                type = x["Subject"].ToString().ToLower()
-            });
+            var nserviceBusHeaders = new Dictionary<string, string>();
+            nserviceBusHeaders["NserviceBus.MessageId"] = message.MessageId;
+            nserviceBusHeaders["NServiceBus.ExceptionInfo.ExceptionType"] = ex.GetType().FullName;
+            nserviceBusHeaders["NServiceBus.ExceptionInfo.StackTrace"] = ex.ToString();
+            var exception = JsonSerializer.Serialize(nserviceBusHeaders);
             await sqsClient.SendMessageAsync(new SendMessageRequest(url.QueueUrl,exception));
         }
 
@@ -46,7 +43,6 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole
 
         public void Handled(JustSaying.Models.Message message)
         {
-            Console.WriteLine($"NServiceBusHandler.Handled: {message.GetType().Name}");
         }
 
         public void IncrementThrottlingStatistic()

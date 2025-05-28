@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.Recoverability
+﻿using System.Runtime.InteropServices.JavaScript;
+
+namespace ServiceControl.Recoverability
 {
     using System;
     using System.Threading;
@@ -59,6 +61,7 @@
             if (settings.IngestErrorMessages)
             {
                 services.AddHostedService<ErrorIngestion>();
+                services.AddHostedService<ExtraExceptionDataIngestion>();
             }
 
             //Retries
