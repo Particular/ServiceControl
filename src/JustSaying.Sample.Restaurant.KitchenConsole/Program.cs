@@ -61,10 +61,7 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole
                     services.AddJustSaying(config =>
                     {
                         AwsClientFactoryBuilder awsClientFactoryBuilder = null;
-                        config.Client(x =>
-                        {
-                            awsClientFactoryBuilder = x.WithBasicCredentials(hostContext.Configuration["Aws:AccessKey"], hostContext.Configuration["Aws:SecretAccessKey"]);
-                        });
+                        config.Client(x => { awsClientFactoryBuilder = x.WithBasicCredentials(hostContext.Configuration["Aws:AccessKey"], hostContext.Configuration["Aws:SecretAccessKey"]); });
 
                         config.Messaging(x =>
                         {
@@ -87,8 +84,11 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole
                             //      - "IsOrderEvent" with no value
                             //      - "Subscriber" with the value "KitchenConsole"
                             //  - a SNS topic subscription on topic 'orderonitswayevent' and queue 'orderonitswayevent'
-                            x.ForTopic<OrderPlacedEvent>(cfg =>
-                                cfg.WithTag("IsOrderEvent")
+                            //x.ForQueue(cfg => cfg.WithQueueName())
+
+                            x.ForTopic<OrderPlacedEvent>("orderplacedevent_from_nsb", cfg =>
+                                cfg.WithQueueName("orderplacedevent_from_nsb")
+                                    .WithTag("IsOrderEvent")
                                     .WithTag("Subscriber", nameof(KitchenConsole))
                                     .WithReadConfiguration(rc =>
                                         rc.WithSubscriptionGroup("GroupA"))
@@ -137,7 +137,7 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole
                         var logger = log.GetRequiredService<ILoggerFactory>().CreateLogger(nameof(KitchenConsole));
                         return (Microsoft.Extensions.Logging.ILogger)logger;
                     });
-                    
+
                     services.AddSingleton<IAmazonSQS>(sp =>
                     {
                         var config = new AmazonSQSConfig

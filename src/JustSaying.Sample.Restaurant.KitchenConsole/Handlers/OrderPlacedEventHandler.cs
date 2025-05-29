@@ -1,5 +1,6 @@
 using System;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Threading.Tasks;
 using JustSaying.Messaging;
 using JustSaying.Messaging.MessageHandling;
@@ -33,11 +34,12 @@ namespace JustSaying.Sample.Restaurant.KitchenConsole.Handlers
             //   The message handling should be retried (configured by default)
             //   The message should be moved to the error queue if all retries fail
 
-            throw new Exception("Failing intentionally");
+            //throw new Exception("Failing intentionally");
 
 #pragma warning disable CS0162 // Unreachable code detected
             try
             {
+                _logger.LogInformation($"OrderPlacedEvent: {JsonSerializer.Serialize(message, new JsonSerializerOptions { WriteIndented = true })}");
                 _logger.LogInformation("Order {orderId} for {description} received", message.OrderId, message.Description);
 
                 // This is where you would actually handle the order placement
