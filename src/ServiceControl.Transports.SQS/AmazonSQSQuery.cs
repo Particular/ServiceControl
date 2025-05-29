@@ -92,9 +92,15 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
             }
         }
 
+        bool IsValidAwsRegion(string region) => RegionEndpoint.EnumerableAllRegions.Any(r => r.SystemName.Equals(region, StringComparison.OrdinalIgnoreCase));
+
         if (settings.TryGetValue(AmazonSQSSettings.Region, out string? region))
         {
             string? previousSetSystemName = regionEndpoint?.SystemName;
+            if (!IsValidAwsRegion(region))
+            {
+                throw new ArgumentException("Invalid region endpoint provided");
+            }
             regionEndpoint = RegionEndpoint.GetBySystemName(region);
 
             Diagnostics.Append($"Region set to \"{regionEndpoint.SystemName}\"");
@@ -109,6 +115,10 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         {
             if (sqsConnectionString.Region != null)
             {
+                if (!IsValidAwsRegion(sqsConnectionString.Region))
+                {
+                    throw new ArgumentException("Invalid region endpoint provided");
+                }
                 regionEndpoint = RegionEndpoint.GetBySystemName(sqsConnectionString.Region);
                 Diagnostics.AppendLine(
                     $"Region not set, defaulted to using \"{regionEndpoint.SystemName}\" from the ConnectionString used by instance");
