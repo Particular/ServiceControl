@@ -14,6 +14,7 @@ using Amazon.CloudWatch;
 using Amazon.CloudWatch.Model;
 using Amazon.Runtime;
 using Amazon.Runtime.CredentialManagement;
+using Amazon.Runtime.Credentials;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using BrokerThroughput;
@@ -29,7 +30,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
         var sqsConnectionString = new SQSTransportConnectionString(transportSettings.ConnectionString);
-        AWSCredentials credentials = FallbackCredentialsFactory.GetCredentials();
+        AWSCredentials credentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
         RegionEndpoint? regionEndpoint = null;
         if (settings.TryGetValue(AmazonSQSSettings.Profile, out string? profile))
         {
@@ -197,8 +198,8 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         {
             Namespace = "AWS/SQS",
             MetricName = "NumberOfMessagesDeleted",
-            StartTimeUtc = startDate.ToDateTime(TimeOnly.MinValue),
-            EndTimeUtc = endDate.ToDateTime(TimeOnly.MaxValue),
+            StartTime = startDate.ToDateTime(TimeOnly.MinValue),
+            EndTime = endDate.ToDateTime(TimeOnly.MaxValue),
             Period = 24 * 60 * 60, // 1 day
             Statistics = ["Sum"],
             Dimensions = [
@@ -217,12 +218,15 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
             currentDate = currentDate.AddDays(1);
         }
 
-        foreach (var datapoint in resp.Datapoints)
+        foreach (var datapoint in resp.Datapoints ?? [])
         {
             // There is a bug in the AWS SDK. The timestamp is actually UTC time, eventhough the DateTime returned type says Local
             // See https://github.com/aws/aws-sdk-net/issues/167
             // So do not convert the timestamp to UTC time!
-            data[DateOnly.FromDateTime(datapoint.Timestamp)].TotalThroughput = (long)datapoint.Sum;
+            if (datapoint.Timestamp.HasValue)
+            {
+                data[DateOnly.FromDateTime(datapoint.Timestamp.Value)].TotalThroughput = (long)datapoint.Sum.GetValueOrDefault(0);
+            }
         }
 
         foreach (QueueThroughput queueThroughput in data.Values)
@@ -244,7 +248,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         {
             var response = await sqs!.ListQueuesAsync(request, cancellationToken);
 
-            foreach (var queue in response.QueueUrls.Select(url => url.Split('/')[4]))
+            foreach (var queue in (response.QueueUrls ?? []).Select(url => url.Split('/')[4]))
             {
                 if (!queue.EndsWith("-delay.fifo", StringComparison.OrdinalIgnoreCase))
                 {
