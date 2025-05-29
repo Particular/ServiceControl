@@ -1,17 +1,10 @@
 ﻿using Amazon.SQS;
 using Amazon.SQS.Model;
-using JustSaying.Messaging;
 using JustSaying.Messaging.Middleware;
 using Microsoft.Extensions.Logging;
 using NServiceBus;
-using NServiceBus.Pipeline;
-using NServiceBus.Routing;
-using NServiceBus.Transport;
-using System.Reflection.PortableExecutable;
-using System.Threading;
 
 namespace Particular.JustSaying.RetryMiddleware;
-
 
 public sealed class RetryAcknowledgementMiddleware(IAmazonSQS sqs, ILogger logger) : MiddlewareBase<HandleMessageContext, bool>
 {
@@ -61,12 +54,12 @@ public sealed class RetryAcknowledgementMiddleware(IAmazonSQS sqs, ILogger logge
         var messageBody = string.Empty;
 
         var messageAttributes = headers.ToDictionary(
-        kvp => kvp.Key,
-        kvp => new Amazon.SQS.Model.MessageAttributeValue
-        {
-            DataType = "String",
-            StringValue = kvp.Value
-        });
+            kvp => kvp.Key,
+            kvp => new Amazon.SQS.Model.MessageAttributeValue
+            {
+                DataType = "String",
+                StringValue = kvp.Value
+            });
 
         var request = new SendMessageRequest
         {

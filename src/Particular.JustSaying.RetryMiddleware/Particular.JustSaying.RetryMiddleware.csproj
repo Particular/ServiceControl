@@ -1,17 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-	<ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="JustSaying" Version="7.3.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\..\..\NServiceBus\src\NServiceBus.Core\NServiceBus.Core.csproj" />
-	</ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="JustSaying" Version="7.3.0"/>
+        <PackageReference Include="NServiceBus" Version="9.2.7"/>
+    </ItemGroup>
 </Project>

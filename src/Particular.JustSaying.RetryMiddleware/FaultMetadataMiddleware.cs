@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using JustSaying.Messaging.Middleware;
@@ -11,11 +12,12 @@ public class FaultMetadataMiddleware(IAmazonSQS sqs, ILogger logger) : Middlewar
     {
         // var url = await sqsClient.GetQueueUrlAsync("JustSaying_exceptions");
         var successful = await func(stoppingToken).ConfigureAwait(false);
-        
+
         if (successful)
         {
             return successful;
         }
+
         var nserviceBusHeaders = new Dictionary<string, string>();
 
         nserviceBusHeaders["NserviceBus.MessageId"] = context.Message.Id.ToString();
@@ -24,7 +26,8 @@ public class FaultMetadataMiddleware(IAmazonSQS sqs, ILogger logger) : Middlewar
             nserviceBusHeaders["NServiceBus.ExceptionInfo.ExceptionType"] = context.HandledException.GetType().FullName;
             nserviceBusHeaders["NServiceBus.ExceptionInfo.StackTrace"] = context.HandledException.ToString();
         }
-        nserviceBusHeaders[""]
+
+        //nserviceBusHeaders[""];
         var exception = JsonSerializer.Serialize(nserviceBusHeaders);
 
         var request = new SendMessageRequest
@@ -33,5 +36,8 @@ public class FaultMetadataMiddleware(IAmazonSQS sqs, ILogger logger) : Middlewar
             MessageBody = exception
         };
         sqs.SendMessageAsync(request);
+
+        // TODO - just returning this so things will build
+        return false;
     }
 }
