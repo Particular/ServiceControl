@@ -5,8 +5,8 @@
   </PropertyGroup>
   <ItemGroup Label="Versions for direct package references">
     <PackageVersion Include="Autofac" Version="8.2.0" />
-    <PackageVersion Include="AWSSDK.CloudWatch" Version="3.7.402.63" />
-    <PackageVersion Include="AWSSDK.SecurityToken" Version="3.7.401.78" />
+    <PackageVersion Include="AWSSDK.CloudWatch" Version="4.0.1" />
+    <PackageVersion Include="AWSSDK.SecurityToken" Version="4.0.0.4" />
     <PackageVersion Include="Azure.Identity" Version="1.13.2" />
     <PackageVersion Include="Azure.Monitor.Query" Version="1.6.0" />
     <PackageVersion Include="Azure.ResourceManager.ServiceBus" Version="1.1.0" />
@@ -31,7 +31,7 @@
     <PackageVersion Include="NLog.Extensions.Logging" Version="5.4.0" />
     <PackageVersion Include="NServiceBus" Version="9.2.7" />
     <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="9.2.7" />
-    <PackageVersion Include="NServiceBus.AmazonSQS" Version="7.3.0" />
+    <PackageVersion Include="NServiceBus.AmazonSQS" Version="7.4.0" />
     <PackageVersion Include="NServiceBus.CustomChecks" Version="5.0.1" />
     <PackageVersion Include="NServiceBus.Extensions.Hosting" Version="3.0.1" />
     <PackageVersion Include="NServiceBus.Extensions.Logging" Version="3.0.1" />
