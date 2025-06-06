@@ -5,7 +5,7 @@ import Handlers from "./SequenceDiagram/HandlersComponent.vue";
 import Routes from "./SequenceDiagram/RoutesComponent.vue";
 import { useSequenceDiagramStore } from "@/stores/SequenceDiagramStore";
 import { storeToRefs } from "pinia";
-import useTooltips from "./SequenceDiagram/tooltipOverlay.ts";
+import useTooltips from "./SequenceDiagram/tooltipOverlay";
 import { onMounted, ref } from "vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 const store = useSequenceDiagramStore();

@@ -3,7 +3,7 @@ import { acceptHMRUpdate, defineStore } from "pinia";
 import { ref } from "vue";
 import type { SortInfo } from "@/components/SortInfo";
 import Message from "@/resources/Message";
-import { EndpointsView } from "@/resources/EndpointView.ts";
+import { EndpointsView } from "@/resources/EndpointView";
 
 export type DateRange = [fromDate: Date, toDate: Date] | [];
 

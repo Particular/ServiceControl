@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import FilterInput from "@/components/FilterInput.vue";
 import { storeToRefs } from "pinia";
-import { FieldNames, useAuditStore } from "@/stores/AuditStore.ts";
+import { FieldNames, useAuditStore } from "@/stores/AuditStore";
 import ListFilterSelector from "@/components/audit/ListFilterSelector.vue";
 import { computed } from "vue";
 import DatePickerRange from "@/components/audit/DatePickerRange.vue";
