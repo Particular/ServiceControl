@@ -13,7 +13,7 @@ async function exportMessage() {
   await showToastAfterOperation(
     async () => {
       const exportedString = await store.exportMessage();
-      useDownloadFileFromString(exportedString, "text/txt", "failedMessage.txt");
+      useDownloadFileFromString(exportedString, "text/txt", "message.txt");
     },
     TYPE.INFO,
     "Info",
