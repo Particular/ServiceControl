@@ -4,8 +4,8 @@ namespace ServiceControl.Audit.Auditing
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Settings;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.Extensibility;
-    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence;
 
@@ -14,11 +14,13 @@ namespace ServiceControl.Audit.Auditing
         public ImportFailedAudits(
             IFailedAuditStorage failedAuditStore,
             AuditIngestor auditIngestor,
-            Settings settings)
+            Settings settings,
+            ILogger<ImportFailedAudits> logger)
         {
             this.settings = settings;
             this.failedAuditStore = failedAuditStore;
             this.auditIngestor = auditIngestor;
+            this.logger = logger;
         }
 
         public async Task Run(CancellationToken cancellationToken = default)
@@ -50,37 +52,34 @@ namespace ServiceControl.Audit.Auditing
 
                             await markComplete(token);
                             succeeded++;
-                            if (Logger.IsDebugEnabled)
-                            {
-                                Logger.Debug($"Successfully re-imported failed audit message {transportMessage.Id}.");
-                            }
+                            logger.LogDebug("Successfully re-imported failed audit message {transportMessageId}.", transportMessage.Id);
                         }
                         catch (OperationCanceledException e) when (token.IsCancellationRequested)
                         {
-                            Logger.Info("Cancelled", e);
+                            logger.LogInformation(e, "Cancelled");
                         }
                         catch (Exception e)
                         {
-                            Logger.Error($"Error while attempting to re-import failed audit message {transportMessage.Id}.", e);
+                            logger.LogError(e, "Error while attempting to re-import failed audit message {transportMessageId}.", transportMessage.Id);
                             failed++;
                         }
 
                     }, cancellationToken);
 
-            Logger.Info($"Done re-importing failed audits. Successfully re-imported {succeeded} messages. Failed re-importing {failed} messages.");
+            logger.LogInformation("Done re-importing failed audits. Successfully re-imported {succeeded} messages. Failed re-importing {failed} messages.", succeeded, failed);
 
             if (failed > 0)
             {
-                Logger.Warn($"{failed} messages could not be re-imported. This could indicate a problem with the data. Contact Particular support if you need help with recovering the messages.");
+                logger.LogWarning("{failed} messages could not be re-imported. This could indicate a problem with the data. Contact Particular support if you need help with recovering the messages.", failed);
             }
         }
 
         readonly IFailedAuditStorage failedAuditStore;
         readonly AuditIngestor auditIngestor;
         readonly Settings settings;
+        readonly ILogger<ImportFailedAudits> logger;
 
         static readonly TransportTransaction EmptyTransaction = new TransportTransaction();
         static readonly ContextBag EmptyContextBag = new ContextBag();
-        static readonly ILog Logger = LogManager.GetLogger(typeof(ImportFailedAudits));
     }
 }

@@ -8,8 +8,8 @@
     using Infrastructure.Settings;
     using Metrics;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence;
     using Persistence.UnitOfWork;
@@ -27,7 +27,8 @@
             AuditIngestor auditIngestor,
             IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
             IHostApplicationLifetime applicationLifetime,
-            IngestionMetrics metrics
+            IngestionMetrics metrics,
+            ILogger<AuditIngestion> logger
         )
         {
             inputEndpoint = settings.AuditQueue;
@@ -38,7 +39,7 @@
             this.settings = settings;
             this.applicationLifetime = applicationLifetime;
             this.metrics = metrics;
-
+            this.logger = logger;
             if (!transportSettings.MaxConcurrency.HasValue)
             {
                 throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
@@ -54,7 +55,7 @@
                 FullMode = BoundedChannelFullMode.Wait
             });
 
-            errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, settings.LoggingSettings, OnCriticalError, metrics);
+            errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, settings.LoggingSettings, OnCriticalError, metrics, logger);
 
             watchdog = new Watchdog(
                 "audit message ingestion",
@@ -69,7 +70,7 @@
 
         Task OnCriticalError(string failure, Exception exception)
         {
-            logger.Fatal($"OnCriticalError. '{failure}'", exception);
+            logger.LogCritical(exception, "OnCriticalError. '{failure}'", failure);
             return watchdog.OnFailure(failure);
         }
 
@@ -81,7 +82,7 @@
 
                 var canIngest = unitOfWorkFactory.CanIngestMore();
 
-                logger.DebugFormat("Ensure started {0}", canIngest);
+                logger.LogDebug("Ensure started {canIngest}", canIngest);
 
                 if (canIngest)
                 {
@@ -115,13 +116,13 @@
         {
             if (messageReceiver != null)
             {
-                logger.Debug("Infrastructure already Started");
+                logger.LogDebug("Infrastructure already Started");
                 return;
             }
 
             try
             {
-                logger.Info("Starting infrastructure");
+                logger.LogInformation("Starting infrastructure");
                 transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
                     inputEndpoint,
                     transportSettings,
@@ -136,11 +137,11 @@
                 await auditIngestor.VerifyCanReachForwardingAddress(cancellationToken);
                 await messageReceiver.StartReceive(cancellationToken);
 
-                logger.Info(LogMessages.StartedInfrastructure);
+                logger.LogInformation(LogMessages.StartedInfrastructure);
             }
             catch (Exception e)
             {
-                logger.Error("Failed to start infrastructure", e);
+                logger.LogError(e, "Failed to start infrastructure");
                 throw;
             }
         }
@@ -149,13 +150,13 @@
         {
             if (transportInfrastructure == null)
             {
-                logger.Debug("Infrastructure already Stopped");
+                logger.LogDebug("Infrastructure already Stopped");
                 return;
             }
 
             try
             {
-                logger.Info("Stopping infrastructure");
+                logger.LogInformation("Stopping infrastructure");
                 try
                 {
                     if (messageReceiver != null)
@@ -171,11 +172,11 @@
                 messageReceiver = null;
                 transportInfrastructure = null;
 
-                logger.Info(LogMessages.StoppedInfrastructure);
+                logger.LogInformation(LogMessages.StoppedInfrastructure);
             }
             catch (Exception e)
             {
-                logger.Error("Failed to stop infrastructure", e);
+                logger.LogError(e, "Failed to stop infrastructure");
                 throw;
             }
         }
@@ -254,11 +255,11 @@
 
                         if (e is OperationCanceledException && stoppingToken.IsCancellationRequested)
                         {
-                            logger.Info("Batch cancelled", e);
+                            logger.LogInformation(e, "Batch cancelled");
                             break;
                         }
 
-                        logger.Info("Ingesting messages failed", e);
+                        logger.LogInformation(e, "Ingesting messages failed");
                     }
                     finally
                     {
@@ -291,7 +292,7 @@
                     }
                     catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
                     {
-                        logger.Info("Shutdown cancelled", e);
+                        logger.LogInformation(e, "Shutdown cancelled");
                     }
                 }
             }
@@ -313,8 +314,7 @@
         readonly Watchdog watchdog;
         readonly IHostApplicationLifetime applicationLifetime;
         readonly IngestionMetrics metrics;
-
-        static readonly ILog logger = LogManager.GetLogger<AuditIngestion>();
+        readonly ILogger<AuditIngestion> logger;
 
         internal static class LogMessages
         {

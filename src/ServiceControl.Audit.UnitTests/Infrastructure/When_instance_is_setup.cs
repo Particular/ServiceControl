@@ -12,6 +12,7 @@
     using NServiceBus;
     using NServiceBus.Transport;
     using NUnit.Framework;
+    using ServiceControl.Infrastructure;
     using Transports;
 
     class When_instance_is_setup
@@ -41,7 +42,7 @@
                 AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
             };
 
-            var setupCommand = new SetupCommand();
+            var setupCommand = new SetupCommand(LoggerUtil.CreateStaticLogger<SetupCommand>());
             await setupCommand.Execute(new HostArguments([]), settings);
 
             Assert.That(FakeTransport.QueuesCreated, Is.EquivalentTo(new[]

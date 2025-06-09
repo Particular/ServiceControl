@@ -5,8 +5,8 @@
     using System.Runtime.Loader;
     using System.Text.Json.Serialization;
     using Configuration;
+    using Microsoft.Extensions.Logging;
     using NLog.Common;
-    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using ServiceControl.Infrastructure;
     using Transports;
@@ -75,14 +75,14 @@
 
             if (IngestAuditMessages == false)
             {
-                logger.Info("Audit ingestion disabled.");
+                logger.LogInformation("Audit ingestion disabled.");
             }
 
             AuditLogQueue = SettingsReader.Read<string>(serviceBusRootNamespace, "AuditLogQueue", null);
 
             if (AuditLogQueue == null)
             {
-                logger.Info("No settings found for audit log queue to import, default name will be used");
+                logger.LogInformation("No settings found for audit log queue to import, default name will be used");
                 AuditLogQueue = Subscope(AuditQueue);
             }
         }
@@ -141,7 +141,7 @@
             {
                 if (maxBodySizeToStore <= 0)
                 {
-                    logger.Error($"MaxBodySizeToStore settings is invalid, {1} is the minimum value. Defaulting to {MaxBodySizeToStoreDefault}");
+                    logger.LogError("MaxBodySizeToStore settings is invalid, 1 is the minimum value. Defaulting to {MaxBodySizeToStoreDefault}", MaxBodySizeToStoreDefault);
                     return MaxBodySizeToStoreDefault;
                 }
 
@@ -266,6 +266,7 @@
             else
             {
                 message = "AuditRetentionPeriod settings is invalid, please make sure it is a TimeSpan.";
+                //TODO: should these InternalLoggers (NLog) be replaced?
                 InternalLogger.Fatal(message);
                 throw new Exception(message);
             }
@@ -288,7 +289,7 @@
         }
 
         // logger is intentionally not static to prevent it from being initialized before LoggingConfigurator.ConfigureLogging has been called
-        readonly ILog logger = LogManager.GetLogger(typeof(Settings));
+        readonly ILogger logger = LoggerUtil.CreateStaticLogger<Settings>();
 
         int maxBodySizeToStore = SettingsReader.Read(SettingsRootNamespace, "MaxBodySizeToStore", MaxBodySizeToStoreDefault);
 

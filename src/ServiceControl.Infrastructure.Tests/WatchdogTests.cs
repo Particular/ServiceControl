@@ -3,14 +3,14 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using NUnit.Framework;
     using ServiceControl.Infrastructure;
 
     [TestFixture]
     public class WatchdogTests
     {
-        static ILog log = LogManager.GetLogger<WatchdogTests>();
+        static ILogger log = LoggerUtil.CreateStaticLogger<WatchdogTests>();
 
         [Test]
         public async Task It_shuts_down_gracefully()

@@ -6,14 +6,12 @@
     using Auditing;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using Settings;
 
-    class ImportFailedAuditsCommand : AbstractCommand
+    class ImportFailedAuditsCommand(ILogger<ImportFailedAuditsCommand> logger) : AbstractCommand
     {
-        readonly ILog logger = LogManager.GetLogger<ImportFailedAuditsCommand>();
-
         public override async Task Execute(HostArguments args, Settings settings)
         {
             settings.IngestAuditMessages = false;
@@ -42,7 +40,7 @@
             }
             catch (OperationCanceledException e) when (tokenSource.IsCancellationRequested)
             {
-                logger.Info("Cancelled", e);
+                logger.LogInformation(e, "Cancelled");
             }
             finally
             {

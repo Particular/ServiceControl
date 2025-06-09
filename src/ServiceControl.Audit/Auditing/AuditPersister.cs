@@ -6,9 +6,9 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
+    using Microsoft.Extensions.Logging;
     using Monitoring;
     using NServiceBus;
-    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence.UnitOfWork;
     using ServiceControl.Audit.Persistence.Infrastructure;
@@ -20,7 +20,8 @@
     class AuditPersister(IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
         IEnrichImportedAuditMessages[] enrichers,
         IMessageSession messageSession,
-        Lazy<IMessageDispatcher> messageDispatcher)
+        Lazy<IMessageDispatcher> messageDispatcher,
+        ILogger logger)
     {
         public async Task<IReadOnlyList<MessageContext>> Persist(IReadOnlyList<MessageContext> contexts, CancellationToken cancellationToken)
         {
@@ -72,20 +73,14 @@
 
                 foreach (var endpoint in knownEndpoints.Values)
                 {
-                    if (Logger.IsDebugEnabled)
-                    {
-                        Logger.Debug($"Adding known endpoint '{endpoint.Name}' for bulk storage");
-                    }
+                    logger.LogDebug("Adding known endpoint '{endpointName}' for bulk storage", endpoint.Name);
 
                     await unitOfWork.RecordKnownEndpoint(endpoint, cancellationToken);
                 }
             }
             catch (Exception e)
             {
-                if (Logger.IsWarnEnabled)
-                {
-                    Logger.Warn("Bulk insertion failed", e);
-                }
+                logger.LogWarning(e, "Bulk insertion failed");
 
                 // making sure to rethrow so that all messages get marked as failed
                 throw;
@@ -94,10 +89,7 @@
             {
                 if (unitOfWork != null)
                 {
-                    if (Logger.IsDebugEnabled)
-                    {
-                        Logger.Debug("Performing bulk session dispose");
-                    }
+                    logger.LogDebug("Performing bulk session dispose");
 
                     try
                     {
@@ -106,10 +98,7 @@
                     }
                     catch (Exception e)
                     {
-                        if (Logger.IsWarnEnabled)
-                        {
-                            Logger.Warn("Bulk insertion dispose failed", e);
-                        }
+                        logger.LogWarning(e, "Bulk insertion dispose failed");
 
                         // making sure to rethrow so that all messages get marked as failed
                         throw;
@@ -166,10 +155,7 @@
             }
             catch (Exception e)
             {
-                if (Logger.IsWarnEnabled)
-                {
-                    Logger.Warn($"Processing of saga audit message '{context.NativeMessageId}' failed.", e);
-                }
+                logger.LogWarning(e, "Processing of saga audit message '{contextNativeMessageId}' failed.", context.NativeMessageId);
 
                 // releasing the failed message context early so that they can be retried outside the current batch
                 context.GetTaskCompletionSource().TrySetException(e);
@@ -202,10 +188,7 @@
 
                 var auditMessage = new ProcessedMessage(context.Headers, new Dictionary<string, object>(metadata));
 
-                if (Logger.IsDebugEnabled)
-                {
-                    Logger.Debug($"Emitting {commandsToEmit.Count} commands and {messagesToEmit.Count} control messages.");
-                }
+                logger.LogDebug("Emitting {commandsToEmitCount} commands and {messagesToEmitCount} control messages.", commandsToEmit.Count, messagesToEmit.Count);
 
                 foreach (var commandToEmit in commandsToEmit)
                 {
@@ -215,10 +198,7 @@
                 await messageDispatcher.Value.Dispatch(new TransportOperations(messagesToEmit.ToArray()),
                     new TransportTransaction()); //Do not hook into the incoming transaction
 
-                if (Logger.IsDebugEnabled)
-                {
-                    Logger.Debug($"{commandsToEmit.Count} commands and {messagesToEmit.Count} control messages emitted.");
-                }
+                logger.LogDebug("{commandsToEmitCount} commands and {messagesToEmitCount} control messages emitted.", commandsToEmit.Count, messagesToEmit.Count);
 
                 if (metadata.TryGetValue("SendingEndpoint", out var sendingEndpoint))
                 {
@@ -235,16 +215,11 @@
             }
             catch (Exception e)
             {
-                if (Logger.IsWarnEnabled)
-                {
-                    Logger.Warn($"Processing of message '{messageId}' failed.", e);
-                }
+                logger.LogWarning(e, "Processing of message '{messageId}' failed.", messageId);
 
                 // releasing the failed message context early so that they can be retried outside the current batch
                 context.GetTaskCompletionSource().TrySetException(e);
             }
         }
-
-        static readonly ILog Logger = LogManager.GetLogger<AuditPersister>();
     }
 }
