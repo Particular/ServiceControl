@@ -60,7 +60,7 @@
                         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(shutdownTokenSource.Token);
                         cancellationTokenSource.CancelAfter(MaxStartDurationMs);
 
-                        log.LogDebug("Ensuring {taskName} is running", taskName);
+                        log.LogDebug("Ensuring {TaskName} is running", taskName);
                         await ensureStarted(cancellationTokenSource.Token).ConfigureAwait(false);
                         clearFailure();
                         startup = false;
@@ -76,12 +76,12 @@
 
                         if (startup)
                         {
-                            log.LogError(e, "Error during initial startup attempt for {taskName}.", taskName);
+                            log.LogError(e, "Error during initial startup attempt for {TaskName}.", taskName);
                             onFailedOnStartup();
                             return;
                         }
 
-                        log.LogError(e, "Error while trying to start {taskName}. Starting will be retried in {timeToWaitBetweenStartupAttempts}.", taskName, timeToWaitBetweenStartupAttempts);
+                        log.LogError(e, "Error while trying to start {TaskName}. Starting will be retried in {TimeToWaitBetweenStartupAttempts}.", taskName, timeToWaitBetweenStartupAttempts);
                     }
                     try
                     {
@@ -101,13 +101,13 @@
         {
             try
             {
-                log.LogDebug("Starting watching {taskName}", taskName);
+                log.LogDebug("Starting watching {TaskName}", taskName);
                 await shutdownTokenSource.CancelAsync().ConfigureAwait(false);
                 await watchdog.ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                log.LogError(e, "Ensuring {taskName} is running", taskName);
+                log.LogError(e, "Ensuring {TaskName} is running", taskName);
                 throw;
             }
             finally

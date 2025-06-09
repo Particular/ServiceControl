@@ -52,7 +52,7 @@ namespace ServiceControl.Audit.Auditing
 
                             await markComplete(token);
                             succeeded++;
-                            logger.LogDebug("Successfully re-imported failed audit message {transportMessageId}.", transportMessage.Id);
+                            logger.LogDebug("Successfully re-imported failed audit message {MessageId}.", transportMessage.Id);
                         }
                         catch (OperationCanceledException e) when (token.IsCancellationRequested)
                         {
@@ -60,17 +60,17 @@ namespace ServiceControl.Audit.Auditing
                         }
                         catch (Exception e)
                         {
-                            logger.LogError(e, "Error while attempting to re-import failed audit message {transportMessageId}.", transportMessage.Id);
+                            logger.LogError(e, "Error while attempting to re-import failed audit message {MessageId}.", transportMessage.Id);
                             failed++;
                         }
 
                     }, cancellationToken);
 
-            logger.LogInformation("Done re-importing failed audits. Successfully re-imported {succeeded} messages. Failed re-importing {failed} messages.", succeeded, failed);
+            logger.LogInformation("Done re-importing failed audits. Successfully re-imported {SuccessCount} messages. Failed re-importing {FailureCount} messages.", succeeded, failed);
 
             if (failed > 0)
             {
-                logger.LogWarning("{failed} messages could not be re-imported. This could indicate a problem with the data. Contact Particular support if you need help with recovering the messages.", failed);
+                logger.LogWarning("{FailureCount} messages could not be re-imported. This could indicate a problem with the data. Contact Particular support if you need help with recovering the messages.", failed);
             }
         }
 
