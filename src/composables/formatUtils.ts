@@ -1,4 +1,4 @@
-import { useFormatTime } from "@/composables/formatter.ts";
+import { useFormatTime } from "@/composables/formatter";
 
 export function formatTypeName(type: string) {
   const clazz = type.split(",")[0];

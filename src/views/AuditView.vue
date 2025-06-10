@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AuditList from "@/components/audit/AuditList.vue";
-import isAllMessagesSupported, { minimumSCVersionForAllMessages } from "@/components/audit/isAllMessagesSupported.ts";
+import isAllMessagesSupported, { minimumSCVersionForAllMessages } from "@/components/audit/isAllMessagesSupported";
 import ConditionalRender from "@/components/ConditionalRender.vue";
 import ServiceControlAvailable from "@/components/ServiceControlAvailable.vue";
 import LicenseNotExpired from "@/components/LicenseNotExpired.vue";

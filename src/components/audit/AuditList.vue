@@ -5,11 +5,11 @@ import { storeToRefs } from "pinia";
 import Message, { MessageStatus } from "@/resources/Message";
 import { useRoute, useRouter } from "vue-router";
 import ResultsCount from "@/components/ResultsCount.vue";
-import { dotNetTimespanToMilliseconds, formatDotNetTimespan } from "@/composables/formatUtils.ts";
+import { dotNetTimespanToMilliseconds, formatDotNetTimespan } from "@/composables/formatUtils";
 import FiltersPanel from "@/components/audit/FiltersPanel.vue";
 import { onBeforeMount, onUnmounted, ref, watch } from "vue";
 import RefreshConfig from "../RefreshConfig.vue";
-import useAutoRefresh from "@/composables/autoRefresh.ts";
+import useAutoRefresh from "@/composables/autoRefresh";
 import throttle from "lodash/throttle";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
