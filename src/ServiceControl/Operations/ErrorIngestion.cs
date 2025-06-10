@@ -66,7 +66,8 @@
                 ingestionState.ReportError,
                 ingestionState.Clear,
                 settings.TimeToRestartErrorIngestionAfterFailure,
-                Logger
+                //TODO replace when converting this class to ILogger Logger
+                LoggerUtil.CreateStaticLogger<ErrorIngestion>()
             );
         }
 
