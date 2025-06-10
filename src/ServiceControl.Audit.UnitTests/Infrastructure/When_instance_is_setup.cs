@@ -42,7 +42,7 @@
                 AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
             };
 
-            var setupCommand = new SetupCommand(LoggerUtil.CreateStaticLogger<SetupCommand>());
+            var setupCommand = new SetupCommand();
             await setupCommand.Execute(new HostArguments([]), settings);
 
             Assert.That(FakeTransport.QueuesCreated, Is.EquivalentTo(new[]

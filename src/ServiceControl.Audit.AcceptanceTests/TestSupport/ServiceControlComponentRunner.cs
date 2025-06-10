@@ -98,7 +98,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupCommand = new SetupCommand(LoggerUtil.CreateStaticLogger<SetupCommand>());
+                var setupCommand = new SetupCommand();
                 await setupCommand.Execute(new HostArguments([]), settings);
             }
 

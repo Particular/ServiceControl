@@ -5,10 +5,11 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using ServiceControl.Infrastructure;
     using Settings;
     using Transports;
 
-    class SetupCommand(ILogger<SetupCommand> logger) : AbstractCommand
+    class SetupCommand() : AbstractCommand
     {
         public override async Task Execute(HostArguments args, Settings settings)
         {
@@ -16,7 +17,7 @@
             {
                 if (args.SkipQueueCreation)
                 {
-                    logger.LogInformation("Skipping queue creation");
+                    LoggerUtil.CreateStaticLogger<SetupCommand>().LogInformation("Skipping queue creation");
                 }
                 else
                 {
