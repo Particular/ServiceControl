@@ -5,17 +5,18 @@
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
-    using NServiceBus.Logging;
     using RavenDB;
+    using ServiceControl.Infrastructure;
 
-    class CheckFreeDiskSpace(DatabaseConfiguration databaseConfiguration) : CustomCheck("ServiceControl.Audit database", "Storage space", TimeSpan.FromMinutes(5))
+    class CheckFreeDiskSpace(DatabaseConfiguration databaseConfiguration, ILogger<CheckFreeDiskSpace> logger) : CustomCheck("ServiceControl.Audit database", "Storage space", TimeSpan.FromMinutes(5))
     {
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
-            if (Logger.IsDebugEnabled)
+            if (logger.IsEnabled(LogLevel.Debug))
             {
-                Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {percentageThreshold:P0}");
+                logger.LogDebug("Check ServiceControl data drive space remaining custom check starting. Threshold {PercentageThreshold:P0}", percentageThreshold);
             }
 
             if (!databaseConfiguration.ServerConfiguration.UseEmbeddedServer)
@@ -34,9 +35,9 @@
 
             var percentRemaining = (decimal)dataDriveInfo.AvailableFreeSpace / dataDriveInfo.TotalSize;
 
-            if (Logger.IsDebugEnabled)
+            if (logger.IsEnabled(LogLevel.Debug))
             {
-                Logger.Debug($"Free space: {availableFreeSpace:N0}B | Total: {totalSpace:N0}B | Percent remaining {percentRemaining:P1}");
+                logger.LogDebug("Free space: {AvailableFreeSpace:N0}B | Total: {TotalSpace:N0}B | Percent remaining {PercentRemaining:P1}", availableFreeSpace, totalSpace, percentRemaining);
             }
 
             return percentRemaining > percentageThreshold
@@ -51,26 +52,22 @@
                 thresholdValue = $"{DataSpaceRemainingThresholdDefault}";
             }
 
-            string message;
             if (!int.TryParse(thresholdValue, out var threshold))
             {
-                message = $"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} must be an integer.";
-                Logger.Fatal(message);
-                throw new Exception(message);
+                Logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} must be an integer.", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
+                throw new Exception($"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} must be an integer.");
             }
 
             if (threshold < 0)
             {
-                message = $"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, minimum value is 0.";
-                Logger.Fatal(message);
-                throw new Exception(message);
+                Logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} is invalid, minimum value is 0.", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
+                throw new Exception($"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, minimum value is 0.");
             }
 
             if (threshold > 100)
             {
-                message = $"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, maximum value is 100.";
-                Logger.Fatal(message);
-                throw new Exception(message);
+                Logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} is invalid, maximum value is 100.", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
+                throw new Exception($"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, maximum value is 100.");
             }
 
             return threshold;
@@ -78,8 +75,7 @@
 
         readonly string dataPathRoot = Path.GetPathRoot(databaseConfiguration.ServerConfiguration.DbPath);
         readonly decimal percentageThreshold = databaseConfiguration.DataSpaceRemainingThreshold / 100m;
-
+        static readonly ILogger<CheckFreeDiskSpace> Logger = LoggerUtil.CreateStaticLogger<CheckFreeDiskSpace>();
         public const int DataSpaceRemainingThresholdDefault = 20;
-        static readonly ILog Logger = LogManager.GetLogger(typeof(CheckFreeDiskSpace));
     }
 }

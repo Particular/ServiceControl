@@ -1,16 +1,16 @@
 namespace ServiceControl.Monitoring
 {
     using System.Threading.Tasks;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using Transports;
 
-    class SetupCommand : AbstractCommand
+    class SetupCommand(ILogger<SetupCommand> logger) : AbstractCommand
     {
         public override Task Execute(HostArguments args, Settings settings)
         {
             if (args.SkipQueueCreation)
             {
-                Logger.Info("Skipping queue creation");
+                logger.LogInformation("Skipping queue creation");
                 return Task.CompletedTask;
             }
 
@@ -19,7 +19,5 @@ namespace ServiceControl.Monitoring
             var transportCustomization = TransportFactory.Create(transportSettings);
             return transportCustomization.ProvisionQueues(transportSettings, []);
         }
-
-        static readonly ILog Logger = LogManager.GetLogger<SetupCommand>();
     }
 }
