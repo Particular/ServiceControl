@@ -29,27 +29,27 @@ const sortOptions: SortOptions<GroupOperation>[] = [
   {
     description: "Name",
     selector: (group) => group.title,
-    icon: "bi-sort-alpha-",
+    icon: "fa-sort-alpha-",
   },
   {
     description: "Number of messages",
     selector: (group) => group.count,
-    icon: "bi-sort-numeric-",
+    icon: "fa-sort-numeric-",
   },
   {
     description: "First Failed Time",
     selector: (group) => group.first!,
-    icon: "bi-sort-",
+    icon: "fa-sort-amount-",
   },
   {
     description: "Last Failed Time",
     selector: (group) => group.last!,
-    icon: "bi-sort-",
+    icon: "fa-sort-amount-",
   },
   {
     description: "Last Retried Time",
     selector: (group) => group.last_operation_completion_time!,
-    icon: "bi-sort-",
+    icon: "fa-sort-amount-",
   },
 ];
 

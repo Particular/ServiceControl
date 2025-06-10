@@ -38,15 +38,15 @@ const isInitialLoad = ref(true);
 const sortOptions: SortOptions<GroupOperation>[] = [
   {
     description: "Time of failure",
-    icon: "bi-sort-",
+    icon: "fa-sort-amount-",
   },
   {
     description: "Message Type",
-    icon: "bi-sort-alpha-",
+    icon: "fa-sort-alpha-",
   },
   {
     description: "Time of retry request",
-    icon: "bi-sort-",
+    icon: "fa-sort-amount-",
   },
 ];
 const periodOptions = ["All Pending Retries", "Retried in the last 2 Hours", "Retried in the last 1 Day", "Retried in the last 7 Days"];

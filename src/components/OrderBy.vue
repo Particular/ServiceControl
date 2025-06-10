@@ -85,10 +85,10 @@ onMounted(() => {
     <ul class="dropdown-menu">
       <span v-for="(sort, index) in getSortOptions()" :key="index">
         <li>
-          <button @click="sortUpdated(sort, SortDirection.Ascending)"><i class="bi" :class="`${sort.icon}up`"></i>{{ sort.description }}</button>
+          <button @click="sortUpdated(sort, SortDirection.Ascending)"><i class="fa" :class="`${sort.icon}asc`"></i>{{ sort.description }}</button>
         </li>
         <li>
-          <button @click="sortUpdated(sort, SortDirection.Descending)"><i class="bi" :class="`${sort.icon}down`"></i>{{ sort.description }}<span> (Descending)</span></button>
+          <button @click="sortUpdated(sort, SortDirection.Descending)"><i class="fa" :class="`${sort.icon}desc`"></i>{{ sort.description }}<span> (Descending)</span></button>
         </li>
       </span>
     </ul>
@@ -98,7 +98,7 @@ onMounted(() => {
 <style scoped>
 @import "@/assets/dropdown.css";
 
-.dropdown-menu .bi {
+.dropdown-menu .fa {
   padding-right: 5px;
 }
 

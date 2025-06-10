@@ -36,11 +36,11 @@ const messages = ref<ExtendedFailedMessage[]>([]);
 const sortOptions: SortOptions<GroupOperation>[] = [
   {
     description: "Time of failure",
-    icon: "bi-sort-",
+    icon: "fa-sort-amount-",
   },
   {
     description: "Message Type",
-    icon: "bi-sort-alpha-",
+    icon: "fa-sort-alpha-",
   },
 ];
 
