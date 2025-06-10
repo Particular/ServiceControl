@@ -5,7 +5,8 @@
     using System.IO;
     using System.Reflection;
     using CustomChecks;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
+    using ServiceControl.Infrastructure;
 
     public class RavenPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -141,15 +142,17 @@
                 expirationProcessTimerInSeconds = int.Parse(expirationProcessTimerInSecondsString);
             }
 
+            var maxExpirationProcessTimerInSeconds = TimeSpan.FromHours(3).TotalSeconds;
+
             if (expirationProcessTimerInSeconds < 0)
             {
-                Logger.Error($"ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
+                Logger.LogError("ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}", ExpirationProcessTimerInSecondsDefault);
                 return ExpirationProcessTimerInSecondsDefault;
             }
 
-            if (expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds)
+            if (expirationProcessTimerInSeconds > maxExpirationProcessTimerInSeconds)
             {
-                Logger.Error($"ExpirationProcessTimerInSeconds cannot be larger than {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
+                Logger.LogError("ExpirationProcessTimerInSeconds cannot be larger than {MaxExpirationProcessTimerInSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}", maxExpirationProcessTimerInSeconds, ExpirationProcessTimerInSecondsDefault);
                 return ExpirationProcessTimerInSecondsDefault;
             }
 
@@ -165,15 +168,17 @@
                 bulkInsertCommitTimeoutInSeconds = int.Parse(bulkInsertCommitTimeoutString);
             }
 
+            var maxBulkInsertCommitTimeoutInSeconds = TimeSpan.FromHours(1).TotalSeconds;
+
             if (bulkInsertCommitTimeoutInSeconds < 0)
             {
-                Logger.Error($"BulkInsertCommitTimeout cannot be negative. Defaulting to {BulkInsertCommitTimeoutInSecondsDefault}");
+                Logger.LogError("BulkInsertCommitTimeout cannot be negative. Defaulting to {BulkInsertCommitTimeoutInSecondsDefault}", BulkInsertCommitTimeoutInSecondsDefault);
                 return BulkInsertCommitTimeoutInSecondsDefault;
             }
 
-            if (bulkInsertCommitTimeoutInSeconds > TimeSpan.FromHours(1).TotalSeconds)
+            if (bulkInsertCommitTimeoutInSeconds > maxBulkInsertCommitTimeoutInSeconds)
             {
-                Logger.Error($"BulkInsertCommitTimeout cannot be larger than {TimeSpan.FromHours(1).TotalSeconds}. Defaulting to {BulkInsertCommitTimeoutInSecondsDefault}");
+                Logger.LogError("BulkInsertCommitTimeout cannot be larger than {MaxBulkInsertCommitTimeoutInSeconds}. Defaulting to {BulkInsertCommitTimeoutInSecondsDefault}", maxBulkInsertCommitTimeoutInSeconds, BulkInsertCommitTimeoutInSecondsDefault);
                 return BulkInsertCommitTimeoutInSecondsDefault;
             }
 
@@ -193,9 +198,8 @@
             return logPath;
         }
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(RavenPersistenceConfiguration));
-
         const int ExpirationProcessTimerInSecondsDefault = 600;
         const int BulkInsertCommitTimeoutInSecondsDefault = 60;
+        static readonly ILogger<RavenPersistenceConfiguration> Logger = LoggerUtil.CreateStaticLogger<RavenPersistenceConfiguration>();
     }
 }
