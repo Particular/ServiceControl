@@ -45,7 +45,7 @@
         {
             watchdog = Task.Run(async () =>
             {
-                log.LogDebug("Starting watching {taskName}", taskName);
+                log.LogDebug("Starting watching {TaskName}", taskName);
 
                 bool startup = true;
 
