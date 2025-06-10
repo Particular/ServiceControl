@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import * as diff from "diff";
+import { diffLines, diffWords, diffWordsWithSpace, diffChars, diffTrimmedLines, diffSentences, diffCss } from "diff";
 
 // Types needed for the diff viewer
 interface DiffChange {
@@ -67,7 +67,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Component state
 const lineInformation = ref<LineInformation[]>([]);
-const diffLines = ref<number[]>([]);
+const diffLineIndexes = ref<number[]>([]);
 const expandedBlocks = ref<number[]>([]);
 
 // Compute diff when inputs change
@@ -92,7 +92,7 @@ const computeDiff = (): void => {
     });
 
     lineInformation.value = result;
-    diffLines.value = [];
+    diffLineIndexes.value = [];
     return;
   }
 
@@ -100,26 +100,26 @@ const computeDiff = (): void => {
   let diffOutput: DiffChange[];
   switch (compareMethod) {
     case "diffChars":
-      diffOutput = diff.diffChars(oldValue, newValue);
+      diffOutput = diffChars(oldValue, newValue);
       break;
     case "diffWords":
-      diffOutput = diff.diffWords(oldValue, newValue);
+      diffOutput = diffWords(oldValue, newValue);
       break;
     case "diffWordsWithSpace":
-      diffOutput = diff.diffWordsWithSpace(oldValue, newValue);
+      diffOutput = diffWordsWithSpace(oldValue, newValue);
       break;
     case "diffTrimmedLines":
-      diffOutput = diff.diffTrimmedLines(oldValue, newValue);
+      diffOutput = diffTrimmedLines(oldValue, newValue);
       break;
     case "diffSentences":
-      diffOutput = diff.diffSentences(oldValue, newValue);
+      diffOutput = diffSentences(oldValue, newValue);
       break;
     case "diffCss":
-      diffOutput = diff.diffCss(oldValue, newValue);
+      diffOutput = diffCss(oldValue, newValue);
       break;
     case "diffLines":
     default:
-      diffOutput = diff.diffLines(oldValue, newValue);
+      diffOutput = diffLines(oldValue, newValue);
       break;
   }
 
@@ -170,7 +170,7 @@ const computeDiff = (): void => {
   });
 
   lineInformation.value = result;
-  diffLines.value = diffLinesArray;
+  diffLineIndexes.value = diffLinesArray;
 
   // Reset expanded blocks when diff changes
   expandedBlocks.value = [];
@@ -194,7 +194,7 @@ const renderDiff = computed<DiffItem[]>(() => {
   const result: DiffItem[] = [];
 
   // Create a mutable copy of diffLines for manipulation in the loop
-  const currentDiffLines = [...diffLines.value];
+  const currentDiffLines = [...diffLineIndexes.value];
 
   lineInformation.value.forEach((line, i) => {
     const diffBlockStart = currentDiffLines[0];
