@@ -70,7 +70,7 @@
 
         Task OnCriticalError(string failure, Exception exception)
         {
-            logger.LogCritical(exception, "OnCriticalError. '{failure}'", failure);
+            logger.LogCritical(exception, "OnCriticalError. '{Failure}'", failure);
             return watchdog.OnFailure(failure);
         }
 
@@ -82,7 +82,7 @@
 
                 var canIngest = unitOfWorkFactory.CanIngestMore();
 
-                logger.LogDebug("Ensure started {canIngest}", canIngest);
+                logger.LogDebug("Ensure started {CanIngest}", canIngest);
 
                 if (canIngest)
                 {
