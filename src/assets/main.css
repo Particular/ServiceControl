@@ -526,32 +526,3 @@ div.alert.alert-warning strong {
 .tooltip {
   font-size: 12px;
 }
-
-/* Endpoint graph table*/
-
-.table-head-row {
-  display: flex;
-  padding-bottom: 5px;
-  padding-top: 20px;
-  border-bottom: 1px solid #ced6d3;
-  border-top: 1px solid #eee;
-  font-size: 12px;
-  text-transform: uppercase;
-  color: #181919;
-}
-.table-first-col {
-  width: 20%;
-  padding-left: 15px;
-  padding-right: 15px;
-}
-.table-col {
-  width: 16%;
-}
-@media only screen and (min-width: 1730px) {
-  .table-first-col {
-    width: 30%;
-  }
-  .table-col {
-    width: 14%;
-  }
-}
