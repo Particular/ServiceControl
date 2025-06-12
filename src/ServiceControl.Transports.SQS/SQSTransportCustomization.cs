@@ -2,7 +2,6 @@
 {
     using System;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using Amazon;
     using Amazon.Runtime;
     using Amazon.S3;
@@ -10,11 +9,11 @@
     using Amazon.SQS;
     using BrokerThroughput;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
-    using NServiceBus.Logging;
 
-    public class SQSTransportCustomization : TransportCustomization<SqsTransport>
+    public class SQSTransportCustomization(ILogger<SQSTransportCustomization> logger) : TransportCustomization<SqsTransport>
     {
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition, TransportSettings transportSettings)
         {
@@ -65,7 +64,7 @@
             else
             {
                 //See https://docs.aws.amazon.com/sdk-for-net/v3/developer-guide/net-dg-config-creds.html#creds-assign
-                log.Info(
+                logger.LogInformation(
                     "BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials for SQS Client.");
                 sqsClient = new AmazonSQSClient();
                 snsClient = new AmazonSimpleNotificationServiceClient();
@@ -101,7 +100,7 @@
                 }
                 else
                 {
-                    log.Info(
+                    logger.LogInformation(
                         "BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials for S3 Client.");
                     s3Client = new AmazonS3Client();
                 }
@@ -121,6 +120,5 @@
             PromoteEnvironmentVariableFromConnectionString(string value, string environmentVariableName) =>
             Environment.SetEnvironmentVariable(environmentVariableName, value, EnvironmentVariableTarget.Process);
 
-        static readonly ILog log = LogManager.GetLogger<SQSTransportCustomization>();
     }
 }
