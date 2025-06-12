@@ -22,6 +22,7 @@ using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Features;
 using NServiceBus.Transport;
 using QueueLength;
+using ServiceControl.Infrastructure;
 using Timings;
 using Transports;
 
@@ -31,9 +32,8 @@ public static class HostApplicationBuilderExtensions
         Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, Settings settings,
         EndpointConfiguration endpointConfiguration)
     {
-        hostBuilder.Logging.ClearProviders();
-        hostBuilder.Logging.AddNLog();
-        hostBuilder.Logging.SetMinimumLevel(settings.LoggingSettings.ToHostLogLevel());
+        hostBuilder.Services.AddLogging();
+        hostBuilder.Logging.BuildLogger(settings.LoggingSettings.LogLevel);
 
         var services = hostBuilder.Services;
 

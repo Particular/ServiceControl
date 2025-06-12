@@ -2,15 +2,16 @@ namespace ServiceControl.Monitoring
 {
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
+    using ServiceControl.Infrastructure;
     using Transports;
 
-    class SetupCommand(ILogger<SetupCommand> logger) : AbstractCommand
+    class SetupCommand : AbstractCommand
     {
         public override Task Execute(HostArguments args, Settings settings)
         {
             if (args.SkipQueueCreation)
             {
-                logger.LogInformation("Skipping queue creation");
+                LoggerUtil.CreateStaticLogger<SetupCommand>().LogInformation("Skipping queue creation");
                 return Task.CompletedTask;
             }
 

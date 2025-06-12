@@ -114,7 +114,7 @@
                 serverConfiguration = new ServerConfiguration(dbPath, serverUrl, logPath, logsMode);
             }
 
-            var dataSpaceRemainingThreshold = CheckFreeDiskSpace.Parse(settings.PersisterSpecificSettings);
+            var dataSpaceRemainingThreshold = CheckFreeDiskSpace.Parse(settings.PersisterSpecificSettings, Logger);
             var minimumStorageLeftRequiredForIngestion = CheckMinimumStorageRequiredForIngestion.Parse(settings.PersisterSpecificSettings);
 
             var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);

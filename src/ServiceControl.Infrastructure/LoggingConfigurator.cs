@@ -60,11 +60,15 @@ namespace ServiceControl.Infrastructure
             nlogConfig.LoggingRules.Add(aspNetCoreRule);
             nlogConfig.LoggingRules.Add(httpClientRule);
 
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, consoleTarget));
+            // HACK: Fix LogLevel to Info for testing purposes only.
+            // nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, consoleTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
 
             if (!AppEnvironment.RunningInContainer)
             {
-                nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, fileTarget));
+                // HACK: Fix LogLevel to Info for testing purposes only.
+                //nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, fileTarget));
+                nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
             }
 
             NLog.LogManager.Configuration = nlogConfig;
@@ -74,7 +78,7 @@ namespace ServiceControl.Infrastructure
             var logger = LogManager.GetLogger("LoggingConfiguration");
             var logEventInfo = new LogEventInfo { TimeStamp = DateTime.UtcNow };
             var loggingTo = AppEnvironment.RunningInContainer ? "console" : fileTarget.FileName.Render(logEventInfo);
-            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", loggingTo, loggingSettings.LogLevel.Name);
+            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", loggingTo, LogLevel.Info.Name);
         }
 
         const long megaByte = 1024 * 1024;

@@ -41,7 +41,7 @@ static class HostApplicationBuilderExtensions
 
         builder.Logging.ClearProviders();
         builder.Logging.AddNLog();
-        builder.Logging.SetMinimumLevel(settings.LoggingSettings.ToHostLogLevel());
+        builder.Logging.SetMinimumLevel(settings.LoggingSettings.LogLevel);
 
         var services = builder.Services;
         var transportSettings = settings.ToTransportSettings();
