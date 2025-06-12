@@ -17,8 +17,8 @@
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
     <PackageVersion Include="HdrHistogram" Version="2.5.0" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.16" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.16" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.17" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.17" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="8.0.2" />
@@ -63,7 +63,7 @@
     <PackageVersion Include="ReactiveUI.WPF" Version="20.1.1" />
     <PackageVersion Include="ServiceControl.Contracts" Version="5.0.0" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="8.0.1" />
-    <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="8.0.0" />
+    <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="8.0.1" />
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="8.0.1" />
     <PackageVersion Include="System.Linq.Async" Version="6.0.1" />
     <PackageVersion Include="System.Management" Version="8.0.0" />
