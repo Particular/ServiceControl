@@ -12,7 +12,6 @@
     using NServiceBus;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceControl.Infrastructure;
     using Transports;
 
     class When_instance_is_setup
