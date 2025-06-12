@@ -18,7 +18,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Logging;
-    using ServiceControl.Infrastructure;
 
     class ServiceControlComponentRunner(
         ITransportIntegration transportToUse,
@@ -73,7 +72,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {settings.InstanceName}"))
             {
-                var setupCommand = new SetupCommand(LoggerUtil.CreateStaticLogger<SetupCommand>());
+                var setupCommand = new SetupCommand();
                 await setupCommand.Execute(new HostArguments([]), settings);
             }
 

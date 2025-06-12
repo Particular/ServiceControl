@@ -8,7 +8,6 @@
     using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
     using RavenDB;
-    using ServiceControl.Infrastructure;
 
     class CheckFreeDiskSpace(DatabaseConfiguration databaseConfiguration, ILogger<CheckFreeDiskSpace> logger) : CustomCheck("ServiceControl.Audit database", "Storage space", TimeSpan.FromMinutes(5))
     {
@@ -45,7 +44,7 @@
                 : CheckResult.Failed($"{percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'.");
         }
 
-        public static int Parse(IDictionary<string, string> settings)
+        public static int Parse(IDictionary<string, string> settings, ILogger logger)
         {
             if (!settings.TryGetValue(RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey, out var thresholdValue))
             {
@@ -54,19 +53,19 @@
 
             if (!int.TryParse(thresholdValue, out var threshold))
             {
-                Logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} must be an integer.", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
+                logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} must be an integer.", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
                 throw new Exception($"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} must be an integer.");
             }
 
             if (threshold < 0)
             {
-                Logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} is invalid, minimum value is 0.", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
+                logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} is invalid, minimum value is 0.", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
                 throw new Exception($"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, minimum value is 0.");
             }
 
             if (threshold > 100)
             {
-                Logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} is invalid, maximum value is 100.", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
+                logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} is invalid, maximum value is 100.", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
                 throw new Exception($"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, maximum value is 100.");
             }
 
@@ -75,7 +74,6 @@
 
         readonly string dataPathRoot = Path.GetPathRoot(databaseConfiguration.ServerConfiguration.DbPath);
         readonly decimal percentageThreshold = databaseConfiguration.DataSpaceRemainingThreshold / 100m;
-        static readonly ILogger<CheckFreeDiskSpace> Logger = LoggerUtil.CreateStaticLogger<CheckFreeDiskSpace>();
         public const int DataSpaceRemainingThresholdDefault = 20;
     }
 }
