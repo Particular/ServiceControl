@@ -4,12 +4,12 @@
     using System.Runtime.CompilerServices;
     using BrokerThroughput;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
-    using NServiceBus.Logging;
     using NServiceBus.Transport.SqlServer;
 
-    public class SqlServerTransportCustomization : TransportCustomization<SqlServerTransport>
+    public class SqlServerTransportCustomization(ILogger<SqlServerTransportCustomization> logger) : TransportCustomization<SqlServerTransport>
     {
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition, TransportSettings transportSettings)
         {
@@ -73,7 +73,7 @@
 
             if (transportSettings.GetOrDefault<bool>("TransportSettings.EnableDtc"))
             {
-                Logger.Error("The EnableDtc setting is no longer supported natively within ServiceControl. If you require distributed transactions, you will have to use a Transport Adapter (https://docs.particular.net/servicecontrol/transport-adapter/)");
+                logger.LogError("The EnableDtc setting is no longer supported natively within ServiceControl. If you require distributed transactions, you will have to use a Transport Adapter (https://docs.particular.net/servicecontrol/transport-adapter/)");
             }
 
             DisableDelayedDelivery(transport) = true;
@@ -87,7 +87,5 @@
         static extern ref bool DisableDelayedDelivery(SqlServerTransport transport);
 
         const string defaultSubscriptionTableName = "SubscriptionRouting";
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(SqlServerTransportCustomization));
     }
 }
