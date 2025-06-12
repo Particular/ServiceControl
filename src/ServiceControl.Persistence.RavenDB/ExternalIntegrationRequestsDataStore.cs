@@ -33,7 +33,7 @@
                 "EventDispatcher",
                 timeToWait,
                 ex => criticalError.Raise("Repeated failures when dispatching external integration events.", ex),
-                delayAfterFailure
+                timeToWaitWhenArmed: delayAfterFailure
             );
         }
 
@@ -98,7 +98,7 @@
             catch (Exception ex)
             {
                 Logger.Error("An exception occurred when dispatching external integration events", ex);
-                await circuitBreaker.Failure(ex);
+                await circuitBreaker.Failure(ex, cancellationToken);
 
                 if (!tokenSource.IsCancellationRequested)
                 {
@@ -192,7 +192,6 @@
             }
 
             tokenSource?.Dispose();
-            circuitBreaker?.Dispose();
         }
 
         readonly RavenPersisterSettings settings;
