@@ -4,11 +4,12 @@
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
+    using ServiceControl.Infrastructure;
     using Settings;
     using Transports;
 
-    class SetupCommand : AbstractCommand
+    class SetupCommand() : AbstractCommand
     {
         public override async Task Execute(HostArguments args, Settings settings)
         {
@@ -16,7 +17,7 @@
             {
                 if (args.SkipQueueCreation)
                 {
-                    Logger.Info("Skipping queue creation");
+                    LoggerUtil.CreateStaticLogger<SetupCommand>().LogInformation("Skipping queue creation");
                 }
                 else
                 {
@@ -47,7 +48,5 @@
             await host.StartAsync();
             await host.StopAsync();
         }
-
-        static readonly ILog Logger = LogManager.GetLogger<SetupCommand>();
     }
 }

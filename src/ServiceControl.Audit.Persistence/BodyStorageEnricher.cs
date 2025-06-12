@@ -5,12 +5,12 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using ServiceControl.Audit.Persistence;
     using ServiceControl.Infrastructure;
 
-    public class BodyStorageEnricher(IBodyStorage bodyStorage, PersistenceSettings settings)
+    public class BodyStorageEnricher(IBodyStorage bodyStorage, PersistenceSettings settings, ILogger<BodyStorageEnricher> logger)
     {
         public async ValueTask StoreAuditMessageBody(ReadOnlyMemory<byte> body, ProcessedMessage processedMessage, CancellationToken cancellationToken)
         {
@@ -66,7 +66,7 @@
                     catch (DecoderFallbackException e)
                     {
                         useBodyStore = true;
-                        log.Info($"Body for {bodyId} could not be stored embedded, fallback to body storage ({e.Message})");
+                        logger.LogInformation("Body for {BodyId} could not be stored embedded, fallback to body storage ({ErrorMessage})", bodyId, e.Message);
                     }
                 }
 
@@ -111,7 +111,6 @@
         }
 
         static readonly Encoding enc = new UTF8Encoding(true, true);
-        static readonly ILog log = LogManager.GetLogger<BodyStorageEnricher>();
 
         // large object heap starts above 85000 bytes and not above 85 KB!
         public const int LargeObjectHeapThreshold = 85 * 1000;

@@ -14,6 +14,7 @@
             services.AddSingleton<IBodyStorage, InMemoryAttachmentsBodyStorage>();
             services.AddSingleton<IFailedAuditStorage, InMemoryFailedAuditStorage>();
             services.AddSingleton<IAuditIngestionUnitOfWorkFactory, InMemoryAuditIngestionUnitOfWorkFactory>();
+            services.AddSingleton<BodyStorageEnricher>();
         }
 
         public void AddInstaller(IServiceCollection services)
