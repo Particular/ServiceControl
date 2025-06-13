@@ -24,8 +24,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" />
-    <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="NServiceBus.Persistence.NonDurable" />
+    <PackageReference Include="Seq.Extensions.Logging" />
   </ItemGroup>
 
   <ItemGroup>

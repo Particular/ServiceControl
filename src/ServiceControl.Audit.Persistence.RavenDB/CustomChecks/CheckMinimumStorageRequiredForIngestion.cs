@@ -5,19 +5,20 @@
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
-    using NServiceBus.Logging;
     using RavenDB;
+    using ServiceControl.Infrastructure;
 
-    class CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder, DatabaseConfiguration databaseConfiguration) : CustomCheck("Audit Message Ingestion Process", "ServiceControl.Audit Health", TimeSpan.FromSeconds(5))
+    class CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder, DatabaseConfiguration databaseConfiguration, ILogger<CheckMinimumStorageRequiredForIngestion> logger) : CustomCheck("Audit Message Ingestion Process", "ServiceControl.Audit Health", TimeSpan.FromSeconds(5))
     {
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var percentageThreshold = databaseConfiguration.MinimumStorageLeftRequiredForIngestion / 100m;
 
-            if (Logger.IsDebugEnabled)
+            if (logger.IsEnabled(LogLevel.Debug))
             {
-                Logger.Debug($"Check ServiceControl data drive space starting. Threshold {percentageThreshold:P0}");
+                logger.LogDebug("Check ServiceControl data drive space starting. Threshold {PercentageThreshold:P0}", percentageThreshold);
             }
 
             // Should be checking UseEmbeddedServer but need to check DbPath instead for the ATT hack to work
@@ -35,9 +36,9 @@
 
             var percentRemaining = (decimal)dataDriveInfo.AvailableFreeSpace / dataDriveInfo.TotalSize;
 
-            if (Logger.IsDebugEnabled)
+            if (logger.IsEnabled(LogLevel.Debug))
             {
-                Logger.Debug($"Free space: {availableFreeSpace} | Total: {totalSpace} | Percent remaining {percentRemaining:P0}");
+                logger.LogDebug("Free space: {AvailableFreeSpace} | Total: {TotalSpace} | Percent remaining {PercentRemaining:P0}", availableFreeSpace, totalSpace, percentRemaining);
             }
 
             if (percentRemaining > percentageThreshold)
@@ -46,10 +47,9 @@
                 return SuccessResult;
             }
 
-            var message = $"Audit message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} configuration setting.";
-            Logger.Warn(message);
+            logger.LogWarning("Audit message ingestion stopped! {PercentRemaining:P0} disk space remaining on data drive '{DataDriveInfoVolumeLabel} ({DataDriveInfoRootDirectory})' on '{EnvironmentMachineName}'. This is less than {PercentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenPersistenceConfigurationMinimumStorageLeftRequiredForIngestionKey} configuration setting.", percentRemaining, dataDriveInfo.VolumeLabel, dataDriveInfo.RootDirectory, Environment.MachineName, percentageThreshold, RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
             stateHolder.CanIngestMore = false;
-            return CheckResult.Failed(message);
+            return CheckResult.Failed($"Audit message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} configuration setting.");
         }
 
         public static int Parse(IDictionary<string, string> settings)
@@ -61,23 +61,20 @@
 
             if (!int.TryParse(thresholdValue, out var threshold))
             {
-                var message = $"{RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} must be an integer.";
-                Logger.Fatal(message);
-                throw new Exception(message);
+                Logger.LogCritical("{RavenPersistenceConfigurationMinimumStorageLeftRequiredForIngestionKey} must be an integer.", RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
+                throw new Exception($"{RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} must be an integer.");
             }
 
             if (threshold < 0)
             {
-                var message = $"{RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.";
-                Logger.Fatal(message);
-                throw new Exception(message);
+                Logger.LogCritical("{RavenPersistenceConfigurationMinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.", RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
+                throw new Exception($"{RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.");
             }
 
             if (threshold > 100)
             {
-                var message = $"{RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.";
-                Logger.Fatal(message);
-                throw new Exception(message);
+                Logger.LogCritical("{RavenPersistenceConfigurationMinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.", RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
+                throw new Exception($"{RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.");
             }
 
             return threshold;
@@ -85,6 +82,6 @@
 
         public const int MinimumStorageLeftRequiredForIngestionDefault = 5;
         static readonly Task<CheckResult> SuccessResult = Task.FromResult(CheckResult.Pass);
-        static readonly ILog Logger = LogManager.GetLogger(typeof(CheckMinimumStorageRequiredForIngestion));
+        static readonly ILogger<CheckMinimumStorageRequiredForIngestion> Logger = LoggerUtil.CreateStaticLogger<CheckMinimumStorageRequiredForIngestion>();
     }
 }
