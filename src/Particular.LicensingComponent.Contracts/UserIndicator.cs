@@ -7,7 +7,6 @@ public enum UserIndicator
 {
     NServiceBusEndpoint,
     NotNServiceBusEndpoint,
-    SendOnlyOrTransactionSessionEndpoint, // For backward compatibility with older versions of Usage Report in ServicePulse    
     TransactionalSessionProcessorEndpoint,
     SendOnlyEndpoint,
     NServiceBusEndpointNoLongerInUse,
