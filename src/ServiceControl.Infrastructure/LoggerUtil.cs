@@ -6,8 +6,18 @@
 
     public static class LoggerUtil
     {
+        /// <summary>
+        /// used for tests
+        /// </summary>
+        public static ILoggerFactory LoggerFactory { private get; set; }
+
         public static void BuildLogger(this ILoggingBuilder loggingBuilder, LogLevel level)
         {
+            if (LoggerFactory != null)
+            {
+                return;
+            }
+
             //TODO: can we get these from settings too?
             loggingBuilder.AddNLog();
             loggingBuilder.AddSeq();
@@ -16,13 +26,13 @@
 
         public static ILogger<T> CreateStaticLogger<T>(LogLevel level = LogLevel.Information)
         {
-            var factory = LoggerFactory.Create(configure => configure.BuildLogger(level));
+            var factory = LoggerFactory ?? Microsoft.Extensions.Logging.LoggerFactory.Create(configure => configure.BuildLogger(level));
             return factory.CreateLogger<T>();
         }
 
         public static ILogger CreateStaticLogger(Type type, LogLevel level = LogLevel.Information)
         {
-            var factory = LoggerFactory.Create(configure => configure.BuildLogger(level));
+            var factory = LoggerFactory ?? Microsoft.Extensions.Logging.LoggerFactory.Create(configure => configure.BuildLogger(level));
             return factory.CreateLogger(type);
         }
     }

@@ -1,12 +1,17 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
-    using System;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
 
     class TestContextAppenderFactory : ILoggerFactory
     {
-        public ILog GetLogger(Type type) => GetLogger(type.FullName);
+        public void AddProvider(ILoggerProvider provider)
+        {
+        }
 
-        public ILog GetLogger(string name) => new TestContextAppender();
+        public ILogger CreateLogger(string categoryName) => new TestContextAppender(categoryName);
+
+        public void Dispose()
+        {
+        }
     }
 }

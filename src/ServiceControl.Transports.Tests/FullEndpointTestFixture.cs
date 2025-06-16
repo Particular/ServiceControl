@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
+    using ServiceControl.Infrastructure;
 
     [TestFixture]
     class FullEndpointTestFixture
@@ -11,6 +12,7 @@
         [SetUp]
         public virtual async Task Setup()
         {
+            LoggerUtil.LoggerFactory = new TestContextAppenderFactory();
             configuration = new TransportTestsConfiguration();
             var queueSuffix = $"-{System.IO.Path.GetRandomFileName().Replace(".", string.Empty)}";
 

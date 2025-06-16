@@ -7,6 +7,7 @@
     using System.Runtime.InteropServices;
     using NUnit.Framework;
     using Particular.Approvals;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Transports;
 
     [TestFixture]
@@ -15,6 +16,12 @@
         const string transportName = "NetStandardAzureServiceBus";
         const string transportType = "ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS";
         const string transportAlias = "ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus";
+
+        [SetUp]
+        public void SetUp()
+        {
+            LoggerUtil.LoggerFactory = new TestContextAppenderFactory();
+        }
 
         [Test]
         public void Should_find_transport_manifest_by_name()

@@ -9,6 +9,7 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
+    using NServiceBus.Extensions.Logging;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using NUnit.Framework;
@@ -21,7 +22,7 @@
         public virtual async Task Setup()
         {
             //TODO remove LogManager usage
-            LogManager.UseFactory(new TestContextAppenderFactory());
+            LogManager.UseFactory(new ExtensionsLoggerFactory(new TestContextAppenderFactory()));
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
             registrations = [];
