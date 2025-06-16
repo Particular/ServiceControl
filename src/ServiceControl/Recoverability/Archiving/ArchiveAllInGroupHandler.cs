@@ -1,23 +1,24 @@
 namespace ServiceControl.Recoverability
 {
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using ServiceControl.Persistence.Recoverability;
 
     class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {
-        public ArchiveAllInGroupHandler(IArchiveMessages archiver, RetryingManager retryingManager)
+        public ArchiveAllInGroupHandler(IArchiveMessages archiver, RetryingManager retryingManager, ILogger<ArchiveAllInGroupHandler> logger)
         {
             this.archiver = archiver;
             this.retryingManager = retryingManager;
+            this.logger = logger;
         }
 
         public async Task Handle(ArchiveAllInGroup message, IMessageHandlerContext context)
         {
             if (retryingManager.IsRetryInProgressFor(message.GroupId))
             {
-                Log.Warn($"Attempt to archive a group ({message.GroupId}) which is currently in the process of being retried");
+                logger.LogWarning("Attempt to archive a group ({messageGroupId}) which is currently in the process of being retried", message.GroupId);
                 return;
             }
 
@@ -26,7 +27,6 @@ namespace ServiceControl.Recoverability
 
         readonly IArchiveMessages archiver;
         readonly RetryingManager retryingManager;
-
-        static ILog Log = LogManager.GetLogger<ArchiveAllInGroupHandler>();
+        readonly ILogger<ArchiveAllInGroupHandler> logger;
     }
 }

@@ -4,12 +4,12 @@ namespace ServiceControl.Recoverability
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using ServiceControl.Persistence;
 
-    class ReturnToSender(IErrorMessageDataStore errorMessageStore)
+    class ReturnToSender(IErrorMessageDataStore errorMessageStore, ILogger<ReturnToSender> logger)
     {
         public virtual async Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress, CancellationToken cancellationToken = default)
         {
@@ -20,10 +20,8 @@ namespace ServiceControl.Recoverability
 
             byte[] body = null;
             var messageId = message.NativeMessageId;
-            if (Log.IsDebugEnabled)
-            {
-                Log.DebugFormat("{0}: Retrieving message body", messageId);
-            }
+
+            logger.LogDebug("{messageId}: Retrieving message body", messageId);
 
             if (outgoingHeaders.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out var attemptMessageId))
             {
@@ -32,16 +30,14 @@ namespace ServiceControl.Recoverability
             }
             else
             {
-                Log.WarnFormat("{0}: Can't find message body. Missing header ServiceControl.Retry.Attempt.MessageId", messageId);
+                logger.LogWarning("{messageId}: Can't find message body. Missing header ServiceControl.Retry.Attempt.MessageId", messageId);
             }
 
             var outgoingMessage = new OutgoingMessage(messageId, outgoingHeaders, body ?? EmptyBody);
 
             var destination = outgoingHeaders["ServiceControl.TargetEndpointAddress"];
-            if (Log.IsDebugEnabled)
-            {
-                Log.DebugFormat("{0}: Forwarding message to {1}", messageId, destination);
-            }
+
+            logger.LogDebug("{messageId}: Forwarding message to {destination}", messageId, destination);
 
             if (!outgoingHeaders.TryGetValue("ServiceControl.RetryTo", out var retryTo))
             {
@@ -50,20 +46,14 @@ namespace ServiceControl.Recoverability
             }
             else
             {
-                if (Log.IsDebugEnabled)
-                {
-                    Log.DebugFormat("{0}: Found ServiceControl.RetryTo header. Rerouting to {1}", messageId, retryTo);
-                }
+                logger.LogDebug("{messageId}: Found ServiceControl.RetryTo header. Rerouting to {retryTo}", messageId, retryTo);
             }
 
             var transportOp = new TransportOperation(outgoingMessage, new UnicastAddressTag(retryTo));
 
             await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction, cancellationToken);
 
-            if (Log.IsDebugEnabled)
-            {
-                Log.DebugFormat("{0}: Forwarded message to {1}", messageId, retryTo);
-            }
+            logger.LogDebug("{messageId}: Forwarded message to {retryTo}", messageId, retryTo);
         }
 
         async Task<byte[]> FetchFromFailedMessage(Dictionary<string, string> outgoingHeaders, string messageId, string attemptMessageId)
@@ -73,17 +63,17 @@ namespace ServiceControl.Recoverability
 
             if (body == null)
             {
-                Log.WarnFormat("{0}: Message Body not found in failed message with unique id {1} for attempt Id {1}", messageId, uniqueMessageId, attemptMessageId);
+                logger.LogWarning("{messageId}: Message Body not found in failed message with unique id {uniqueMessageId} for attempt Id {attemptMessageId}", messageId, uniqueMessageId, attemptMessageId);
             }
-            else if (Log.IsDebugEnabled)
+            else
             {
-                Log.DebugFormat("{0}: Body size: {1} bytes retrieved from failed message attachment", messageId, body.LongLength);
+                logger.LogDebug("{messageId}: Body size: {messageLength} bytes retrieved from failed message attachment", messageId, body.LongLength);
             }
 
             return body;
         }
 
         static readonly byte[] EmptyBody = Array.Empty<byte>();
-        static readonly ILog Log = LogManager.GetLogger(typeof(ReturnToSender));
+        readonly ILogger<ReturnToSender> logger = logger;
     }
 }

@@ -3,16 +3,22 @@ namespace NServiceBus
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Logging;
+    using Microsoft.Extensions.Logging;
 
     class RepeatedFailuresOverTimeCircuitBreaker : IDisposable
     {
-        public RepeatedFailuresOverTimeCircuitBreaker(string name, TimeSpan timeToWaitBeforeTriggering, Action<Exception> triggerAction, TimeSpan delayAfterFailure)
+        public RepeatedFailuresOverTimeCircuitBreaker(
+            string name,
+            TimeSpan timeToWaitBeforeTriggering,
+            Action<Exception> triggerAction,
+            TimeSpan delayAfterFailure,
+            ILogger<RepeatedFailuresOverTimeCircuitBreaker> logger)
         {
-            this.delayAfterFailure = delayAfterFailure;
             this.name = name;
-            this.triggerAction = triggerAction;
             this.timeToWaitBeforeTriggering = timeToWaitBeforeTriggering;
+            this.triggerAction = triggerAction;
+            this.delayAfterFailure = delayAfterFailure;
+            this.logger = logger;
 
             timer = new Timer(CircuitBreakerTriggered);
         }
@@ -32,8 +38,14 @@ namespace NServiceBus
                 return;
             }
 
-            timer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
-            Logger.InfoFormat("The circuit breaker for {0} is now disarmed", name);
+            if (timer.Change(Timeout.Infinite, Timeout.Infinite))
+            {
+                logger.LogInformation("The circuit breaker for {circuitBreakerName} is now disarmed", name);
+            }
+            else
+            {
+                logger.LogError("Attempted to disarm circuit breaker for {circuitBreakerName} but failed", name);
+            }
         }
 
         public Task Failure(Exception exception)
@@ -43,8 +55,14 @@ namespace NServiceBus
 
             if (newValue == 1)
             {
-                timer.Change(timeToWaitBeforeTriggering, NoPeriodicTriggering);
-                Logger.WarnFormat("The circuit breaker for {0} is now in the armed state", name);
+                if (timer.Change(timeToWaitBeforeTriggering, NoPeriodicTriggering))
+                {
+                    logger.LogWarning("The circuit breaker for {circuitBreakerName} is now in the armed state", name);
+                }
+                else
+                {
+                    logger.LogError("Attempted to arm circuit breaker for {circuitBreakerName} but failed", name);
+                }
             }
 
             return Task.Delay(delayAfterFailure);
@@ -54,13 +72,12 @@ namespace NServiceBus
         {
             if (Interlocked.Read(ref failureCount) > 0)
             {
-                Logger.WarnFormat("The circuit breaker for {0} will now be triggered", name);
+                logger.LogWarning("The circuit breaker for {circuitBreakerName} will now be triggered", name);
                 triggerAction(lastException);
             }
         }
 
         readonly TimeSpan delayAfterFailure;
-
         long failureCount;
         Exception lastException;
 
@@ -70,6 +87,6 @@ namespace NServiceBus
         readonly Action<Exception> triggerAction;
 
         static readonly TimeSpan NoPeriodicTriggering = TimeSpan.FromMilliseconds(-1);
-        static readonly ILog Logger = LogManager.GetLogger<RepeatedFailuresOverTimeCircuitBreaker>();
+        readonly ILogger<RepeatedFailuresOverTimeCircuitBreaker> logger;
     }
 }

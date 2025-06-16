@@ -15,6 +15,7 @@
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging.Abstractions;
     using NLog;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -102,7 +103,7 @@
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupCommand = new SetupCommand();
+                var setupCommand = new SetupCommand(NullLogger<SetupCommand>.Instance);
                 await setupCommand.Execute(new HostArguments([]), settings);
             }
 

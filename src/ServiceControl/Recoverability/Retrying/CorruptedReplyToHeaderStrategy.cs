@@ -1,14 +1,15 @@
 namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
 
     class CorruptedReplyToHeaderStrategy
     {
-        public CorruptedReplyToHeaderStrategy(string localMachineName)
+        public CorruptedReplyToHeaderStrategy(string localMachineName, ILogger logger)
         {
             this.localMachineName = localMachineName;
+            this.logger = logger;
         }
 
         public void FixCorruptedReplyToHeader(IDictionary<string, string> headers)
@@ -35,14 +36,13 @@ namespace ServiceControl.Recoverability
             if (machineName == localMachineName && machineName != originatingMachine)
             {
                 var fixedReplyToAddress = $"{queueName}@{originatingMachine}";
-                log.Info($"Detected corrupted ReplyToAddress `{replyToAddress}`. Correcting to `{fixedReplyToAddress}`.");
+                logger.LogInformation("Detected corrupted ReplyToAddress `{replyToAddress}`. Correcting to `{fixedReplyToAddress}`", replyToAddress, fixedReplyToAddress);
                 headers["ServiceControl.OldReplyToAddress"] = replyToAddress;
                 headers[Headers.ReplyToAddress] = fixedReplyToAddress;
             }
         }
 
         string localMachineName;
-
-        static ILog log = LogManager.GetLogger(typeof(RetryProcessor));
+        readonly ILogger logger;
     }
 }

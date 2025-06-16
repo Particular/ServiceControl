@@ -5,10 +5,10 @@
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class RemotePlatformConnectionDetailsProvider(Settings settings, IHttpClientFactory clientFactory)
+    class RemotePlatformConnectionDetailsProvider(Settings settings, IHttpClientFactory clientFactory, ILogger<RemotePlatformConnectionDetailsProvider> logger)
         : IProvidePlatformConnectionDetails
     {
         public Task ProvideConnectionDetails(PlatformConnectionDetails connection) =>
@@ -36,10 +36,8 @@
 
                 connection.Errors.Add(message);
 
-                Log.Error(message, ex);
+                logger.LogError(ex, "Unable to get connection details from ServiceControl Audit instance at {remoteConnectionUri}", remoteConnectionUri);
             }
         }
-
-        static readonly ILog Log = LogManager.GetLogger<RemotePlatformConnectionDetailsProvider>();
     }
 }

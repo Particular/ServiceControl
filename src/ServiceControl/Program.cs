@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Reflection;
-using NServiceBus.Logging;
+using Microsoft.Extensions.Logging;
 using Particular.ServiceControl.Hosting;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Configuration;
 using ServiceControl.Hosting.Commands;
 using ServiceControl.Infrastructure;
 
+var logger = LoggerUtil.CreateStaticLogger(typeof(Program));
+
 try
 {
-    AppDomain.CurrentDomain.UnhandledException += (s, e) => LogManager.GetLogger(typeof(Program)).Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
+    AppDomain.CurrentDomain.UnhandledException += (s, e) => logger.LogError(e.ExceptionObject as Exception, "Unhandled exception was caught.");
 
     // Hack: See https://github.com/Particular/ServiceControl/issues/4392
     var exitCode = await IntegratedSetup.Run();
@@ -40,12 +42,12 @@ try
 }
 catch (Exception ex)
 {
-    NLog.LogManager.GetCurrentClassLogger().Fatal(ex, "Unrecoverable error");
+    logger.LogCritical(ex, "Unrecoverable error");
     throw;
 }
 finally
 {
     // The following log statement is meant to leave a trail in the logs to determine if the process was killed
-    NLog.LogManager.GetCurrentClassLogger().Info("Shutdown complete");
+    logger.LogInformation("Shutdown complete");
     NLog.LogManager.Shutdown();
 }

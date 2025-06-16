@@ -7,7 +7,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Net.Http;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
     using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -27,12 +27,12 @@ namespace ServiceControl.CompositeViews.Messages
         where TIn : ScatterGatherContext
         where TOut : class
     {
-        protected ScatterGatherApi(TDataStore store, Settings settings, IHttpClientFactory httpClientFactory)
+        protected ScatterGatherApi(TDataStore store, Settings settings, IHttpClientFactory httpClientFactory, ILogger logger)
         {
             DataStore = store;
             Settings = settings;
             HttpClientFactory = httpClientFactory;
-            logger = LogManager.GetLogger(GetType());
+            this.logger = logger;
         }
 
         protected TDataStore DataStore { get; }
@@ -120,19 +120,21 @@ namespace ServiceControl.CompositeViews.Messages
             catch (HttpRequestException httpRequestException)
             {
                 remoteInstanceSetting.TemporarilyUnavailable = true;
-                logger.Warn(
-                    $"An HttpRequestException occurred when querying remote instance at {remoteInstanceSetting.BaseAddress}. The instance at uri: {remoteInstanceSetting.BaseAddress} will be temporarily disabled.",
-                    httpRequestException);
+                logger.LogWarning(
+                    httpRequestException,
+                    "An HttpRequestException occurred when querying remote instance at {remoteInstanceSettingBaseAddress}. The instance at uri: {remoteInstanceSettingBaseAddress} will be temporarily disabled",
+                    remoteInstanceSetting.BaseAddress,
+                    remoteInstanceSetting.BaseAddress);
                 return QueryResult<TOut>.Empty();
             }
             catch (OperationCanceledException) // Intentional, used to gracefully handle timeout
             {
-                logger.Warn($"Failed to query remote instance at {remoteInstanceSetting.BaseAddress} due to a timeout");
+                logger.LogWarning("Failed to query remote instance at {remoteInstanceSettingBaseAddress} due to a timeout", remoteInstanceSetting.BaseAddress);
                 return QueryResult<TOut>.Empty();
             }
             catch (Exception exception)
             {
-                logger.Warn($"Failed to query remote instance at {remoteInstanceSetting.BaseAddress}.", exception);
+                logger.LogWarning(exception, "Failed to query remote instance at {remoteInstanceSettingBaseAddress}", remoteInstanceSetting.BaseAddress);
                 return QueryResult<TOut>.Empty();
             }
         }
@@ -162,6 +164,6 @@ namespace ServiceControl.CompositeViews.Messages
             return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount, isStale: false));
         }
 
-        readonly ILog logger;
+        readonly ILogger logger;
     }
 }

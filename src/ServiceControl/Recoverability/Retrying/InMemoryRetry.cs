@@ -3,16 +3,17 @@
     using System;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using ServiceControl.Persistence;
 
     public class InMemoryRetry
     {
-        public InMemoryRetry(string requestId, RetryType retryType, IDomainEvents domainEvents)
+        public InMemoryRetry(string requestId, RetryType retryType, IDomainEvents domainEvents, ILogger logger)
         {
             RequestId = requestId;
             this.retryType = retryType;
             this.domainEvents = domainEvents;
+            this.logger = logger;
         }
 
         public string RequestId { get; }
@@ -177,7 +178,11 @@
                 });
             }
 
-            Log.Info($"Retry operation {RequestId} completed. {NumberOfMessagesSkipped} messages skipped, {NumberOfMessagesForwarded} forwarded. Total {TotalNumberOfMessages}.");
+            logger.LogInformation("Retry operation {requestId} completed. {numberOfMessagesSkipped} messages skipped, {numberOfMessagesForwarded} forwarded. Total {totalNumberOfMessages}",
+                RequestId,
+                NumberOfMessagesSkipped,
+                NumberOfMessagesForwarded,
+                TotalNumberOfMessages);
         }
 
         public RetryProgress GetProgress()
@@ -203,6 +208,6 @@
         readonly RetryType retryType;
 
         IDomainEvents domainEvents;
-        static readonly ILog Log = LogManager.GetLogger(typeof(InMemoryRetry));
+        readonly ILogger logger;
     }
 }

@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using Infrastructure.BackgroundTasks;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
     using NServiceBus.Hosting;
     using ServiceControl.Operations;
@@ -15,14 +16,15 @@
         HostInformation hostInfo,
         IAsyncTimer scheduler,
         CustomCheckResultProcessor checkResultProcessor,
-        string endpointName)
+        string endpointName,
+        ILogger<InternalCustomChecksHostedService> logger)
         : IHostedService
     {
         public Task StartAsync(CancellationToken cancellationToken)
         {
             foreach (var check in customChecks)
             {
-                var checkManager = new InternalCustomCheckManager(check, localEndpointDetails, scheduler, checkResultProcessor);
+                var checkManager = new InternalCustomCheckManager(check, localEndpointDetails, scheduler, checkResultProcessor, logger);
                 checkManager.Start();
 
                 managers.Add(checkManager);

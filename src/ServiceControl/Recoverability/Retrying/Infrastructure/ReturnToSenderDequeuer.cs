@@ -5,8 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Infrastructure.DomainEvents;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using NServiceBus;
-using NServiceBus.Logging;
 using NServiceBus.Transport;
 using Persistence;
 using ServiceBus.Management.Infrastructure.Settings;
@@ -21,7 +21,8 @@ class ReturnToSenderDequeuer : IHostedService
         ITransportCustomization transportCustomization,
         TransportSettings transportSettings,
         Settings settings,
-        ErrorQueueNameCache errorQueueNameCache
+        ErrorQueueNameCache errorQueueNameCache,
+        ILogger<ReturnToSenderDequeuer> logger
     )
     {
         InputAddress = transportCustomization.ToTransportQualifiedQueueName(settings.StagingQueue);
@@ -30,8 +31,8 @@ class ReturnToSenderDequeuer : IHostedService
         this.transportCustomization = transportCustomization;
         this.transportSettings = transportSettings;
         this.errorQueueNameCache = errorQueueNameCache;
-
-        faultManager = new CaptureIfMessageSendingFails(dataStore, domainEvents, IncrementCounterOrProlongTimer);
+        this.logger = logger;
+        faultManager = new CaptureIfMessageSendingFails(dataStore, domainEvents, IncrementCounterOrProlongTimer, logger);
         timer = new Timer(state => StopInternal().GetAwaiter().GetResult());
     }
 
@@ -59,11 +60,8 @@ class ReturnToSenderDequeuer : IHostedService
 
     async Task Handle(MessageContext message, CancellationToken cancellationToken)
     {
-        if (Log.IsDebugEnabled)
-        {
-            var stagingId = message.Headers["ServiceControl.Retry.StagingId"];
-            Log.DebugFormat("Handling message with id {0} and staging id {1} in input queue {2}", message.NativeMessageId, stagingId, InputAddress);
-        }
+        var stagingId = message.Headers["ServiceControl.Retry.StagingId"];
+        logger.LogDebug("Handling message with id {nativeMessageId} and staging id {stagingId} in input queue {inputAddress}", message.NativeMessageId, stagingId, InputAddress);
 
         if (shouldProcess(message))
         {
@@ -72,7 +70,7 @@ class ReturnToSenderDequeuer : IHostedService
         }
         else
         {
-            Log.WarnFormat("Rejecting message from staging queue as it's not part of a fully staged batch: {0}", message.NativeMessageId);
+            logger.LogWarning("Rejecting message from staging queue as it's not part of a fully staged batch: {nativeMessageId}", message.NativeMessageId);
         }
     }
 
@@ -84,10 +82,7 @@ class ReturnToSenderDequeuer : IHostedService
         }
         else
         {
-            if (Log.IsDebugEnabled)
-            {
-                Log.Debug("Resetting timer");
-            }
+            logger.LogDebug("Resetting timer");
 
             timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
         }
@@ -96,17 +91,12 @@ class ReturnToSenderDequeuer : IHostedService
     void CountMessageAndStopIfReachedTarget()
     {
         var currentMessageCount = Interlocked.Increment(ref actualMessageCount);
-        if (Log.IsDebugEnabled)
-        {
-            Log.Debug($"Forwarding message {currentMessageCount} of {targetMessageCount}.");
-        }
+
+        logger.LogDebug("Forwarding message {currentMessageCount} of {targetMessageCount}", currentMessageCount, targetMessageCount);
 
         if (currentMessageCount >= targetMessageCount.GetValueOrDefault())
         {
-            if (Log.IsDebugEnabled)
-            {
-                Log.DebugFormat("Target count reached. Shutting down forwarder");
-            }
+            logger.LogDebug("Target count reached. Shutting down forwarder");
 
             // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
             _ = Task.Run(StopInternal);
@@ -122,10 +112,7 @@ class ReturnToSenderDequeuer : IHostedService
             targetMessageCount = expectedMessageCount;
             actualMessageCount = 0;
 
-            if (Log.IsDebugEnabled)
-            {
-                Log.DebugFormat("Starting receiver");
-            }
+            logger.LogDebug("Starting receiver");
 
             syncEvent = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             stopCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -133,30 +120,24 @@ class ReturnToSenderDequeuer : IHostedService
 
             await messageReceiver.StartReceive(cancellationToken);
 
-            Log.Info($"Forwarder for batch {forwardingBatchId} started receiving messages from {messageReceiver.ReceiveAddress}.");
+            logger.LogInformation("Forwarder for batch {forwardingBatchId} started receiving messages from {receiveAddress}", forwardingBatchId, messageReceiver.ReceiveAddress);
 
             if (!expectedMessageCount.HasValue)
             {
-                if (Log.IsDebugEnabled)
-                {
-                    Log.Debug("Running in timeout mode. Starting timer.");
-                }
+                logger.LogDebug("Running in timeout mode. Starting timer");
 
                 timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
             }
         }
         finally
         {
-            if (Log.IsDebugEnabled)
-            {
-                Log.DebugFormat($"Waiting for forwarder for batch {forwardingBatchId} to finish.");
-            }
+            logger.LogDebug("Waiting for forwarder for batch {forwardingBatchId} to finish", forwardingBatchId);
 
             await syncEvent.Task;
             registration?.Dispose();
             await messageReceiver.StopReceive(cancellationToken);
 
-            Log.Info($"Forwarder for batch {forwardingBatchId} finished forwarding all messages.");
+            logger.LogInformation("Forwarder for batch {forwardingBatchId} finished forwarding all messages", forwardingBatchId);
 
             stopCompletionSource.TrySetResult(true);
         }
@@ -169,17 +150,12 @@ class ReturnToSenderDequeuer : IHostedService
 
     async Task StopInternal()
     {
-        if (Log.IsDebugEnabled)
-        {
-            Log.Debug("Completing forwarding.");
-        }
+        logger.LogDebug("Completing forwarding");
 
         syncEvent?.TrySetResult(true);
         await (stopCompletionSource?.Task ?? Task.CompletedTask);
-        if (Log.IsDebugEnabled)
-        {
-            Log.Debug("Forwarding completed.");
-        }
+
+        logger.LogDebug("Forwarding completed");
     }
 
     Timer timer;
@@ -200,14 +176,15 @@ class ReturnToSenderDequeuer : IHostedService
     IMessageDispatcher messageDispatcher;
     IMessageReceiver messageReceiver;
 
-    static readonly ILog Log = LogManager.GetLogger(typeof(ReturnToSenderDequeuer));
+    readonly ILogger<ReturnToSenderDequeuer> logger;
 
     class CaptureIfMessageSendingFails
     {
-        public CaptureIfMessageSendingFails(IErrorMessageDataStore dataStore, IDomainEvents domainEvents, Action executeOnFailure)
+        public CaptureIfMessageSendingFails(IErrorMessageDataStore dataStore, IDomainEvents domainEvents, Action executeOnFailure, ILogger logger)
         {
             this.dataStore = dataStore;
             this.executeOnFailure = executeOnFailure;
+            this.logger = logger;
             this.domainEvents = domainEvents;
         }
 
@@ -223,7 +200,7 @@ class ReturnToSenderDequeuer : IHostedService
                 var message = errorContext.Message;
                 var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
                 var messageUniqueId = message.Headers["ServiceControl.Retry.UniqueMessageId"];
-                Log.Warn($"Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again.", errorContext.Exception);
+                logger.LogWarning(errorContext.Exception, "Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again", messageUniqueId, destination);
 
                 await dataStore.RevertRetry(messageUniqueId);
 
@@ -247,7 +224,7 @@ class ReturnToSenderDequeuer : IHostedService
             catch (Exception ex)
             {
                 // If something goes wrong here we just ignore, not the end of the world!
-                Log.Error("A failure occurred when trying to handle a retry failure.", ex);
+                logger.LogError(ex, "A failure occurred when trying to handle a retry failure");
             }
             finally
             {
@@ -260,7 +237,6 @@ class ReturnToSenderDequeuer : IHostedService
         readonly Action executeOnFailure;
         readonly IErrorMessageDataStore dataStore;
         readonly IDomainEvents domainEvents;
-        static readonly ILog Log = LogManager.GetLogger(typeof(CaptureIfMessageSendingFails));
+        readonly ILogger logger;
     }
-
 }

@@ -3,14 +3,14 @@
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
     using Transports;
 
-    class SetupCommand : AbstractCommand
+    class SetupCommand(ILogger<SetupCommand> logger) : AbstractCommand
     {
         public override async Task Execute(HostArguments args, Settings settings)
         {
@@ -35,7 +35,7 @@
 
             if (args.SkipQueueCreation)
             {
-                Logger.Info("Skipping queue creation");
+                logger.LogInformation("Skipping queue creation");
             }
             else
             {
@@ -48,7 +48,5 @@
 
             await host.StopAsync();
         }
-
-        static readonly ILog Logger = LogManager.GetLogger<SetupCommand>();
     }
 }

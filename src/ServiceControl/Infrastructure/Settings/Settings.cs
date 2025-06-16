@@ -6,8 +6,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using System.Linq;
     using System.Runtime.Loader;
     using System.Text.Json.Serialization;
+    using Microsoft.Extensions.Logging;
     using NLog.Common;
-    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using ServiceControl.Configuration;
     using ServiceControl.Infrastructure;
@@ -145,7 +145,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
                 }
                 catch (Exception ex)
                 {
-                    logger.Error($"HeartbeatGracePeriod settings invalid - {ex}. Defaulting HeartbeatGracePeriod to '00:00:40'");
+                    logger.LogError(ex, "HeartbeatGracePeriod settings invalid. Defaulting HeartbeatGracePeriod to '00:00:40'");
                     return TimeSpan.FromSeconds(40);
                 }
             }
@@ -234,15 +234,15 @@ namespace ServiceBus.Management.Infrastructure.Settings
                     string message;
                     if (ValidateConfiguration && result < TimeSpan.FromHours(1))
                     {
-                        message = "EventRetentionPeriod settings is invalid, value should be minimum 1 hour.";
-                        logger.Fatal(message);
+                        message = "EventRetentionPeriod settings is invalid, value should be minimum 1 hour";
+                        logger.LogCritical(message);
                         throw new Exception(message);
                     }
 
                     if (ValidateConfiguration && result > TimeSpan.FromDays(200))
                     {
-                        message = "EventRetentionPeriod settings is invalid, value should be maximum 200 days.";
-                        logger.Fatal(message);
+                        message = "EventRetentionPeriod settings is invalid, value should be maximum 200 days";
+                        logger.LogCritical(message);
                         throw new Exception(message);
                     }
 
@@ -259,8 +259,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
             var valueRead = SettingsReader.Read<string>(SettingsRootNamespace, "ErrorRetentionPeriod");
             if (valueRead == null)
             {
-                message = "ErrorRetentionPeriod settings is missing, please make sure it is included.";
-                logger.Fatal(message);
+                message = "ErrorRetentionPeriod settings is missing, please make sure it is included";
+                logger.LogCritical(message);
                 throw new Exception(message);
             }
 
@@ -268,22 +268,22 @@ namespace ServiceBus.Management.Infrastructure.Settings
             {
                 if (ValidateConfiguration && result < TimeSpan.FromDays(5))
                 {
-                    message = "ErrorRetentionPeriod settings is invalid, value should be minimum 5 days.";
-                    logger.Fatal(message);
+                    message = "ErrorRetentionPeriod settings is invalid, value should be minimum 5 days";
+                    logger.LogCritical(message);
                     throw new Exception(message);
                 }
 
                 if (ValidateConfiguration && result > TimeSpan.FromDays(45))
                 {
-                    message = "ErrorRetentionPeriod settings is invalid, value should be maximum 45 days.";
-                    logger.Fatal(message);
+                    message = "ErrorRetentionPeriod settings is invalid, value should be maximum 45 days";
+                    logger.LogCritical(message);
                     throw new Exception(message);
                 }
             }
             else
             {
-                message = "ErrorRetentionPeriod settings is invalid, please make sure it is a TimeSpan.";
-                logger.Fatal(message);
+                message = "ErrorRetentionPeriod settings is invalid, please make sure it is a TimeSpan";
+                logger.LogCritical(message);
                 throw new Exception(message);
             }
 
@@ -402,20 +402,20 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
             if (!IngestErrorMessages)
             {
-                logger.Info("Error ingestion disabled.");
+                logger.LogInformation("Error ingestion disabled.");
             }
 
             ErrorLogQueue = SettingsReader.Read<string>(serviceBusRootNamespace, "ErrorLogQueue", null);
 
             if (ErrorLogQueue == null)
             {
-                logger.Info("No settings found for error log queue to import, default name will be used");
+                logger.LogInformation("No settings found for error log queue to import, default name will be used");
                 ErrorLogQueue = Subscope(ErrorQueue);
             }
         }
 
         // logger is intentionally not static to prevent it from being initialized before LoggingConfigurator.ConfigureLogging has been called
-        readonly ILog logger = LogManager.GetLogger(typeof(Settings));
+        readonly ILogger logger = LoggerUtil.CreateStaticLogger<Settings>();
 
         public const string DEFAULT_INSTANCE_NAME = "Particular.ServiceControl";
         public static readonly SettingsRootNamespace SettingsRootNamespace = new("ServiceControl");

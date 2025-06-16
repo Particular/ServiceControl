@@ -6,8 +6,8 @@
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using Persistence;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -17,7 +17,8 @@
     public class EditFailedMessagesController(
         Settings settings,
         IErrorMessageDataStore store,
-        IMessageSession session)
+        IMessageSession session,
+        ILogger<EditFailedMessagesController> logger)
         : ControllerBase
     {
         [Route("edit/config")]
@@ -30,7 +31,7 @@
         {
             if (!settings.AllowMessageEditing)
             {
-                Log.Info("Message edit-retry has not been enabled.");
+                logger.LogInformation("Message edit-retry has not been enabled");
                 return NotFound();
             }
 
@@ -38,7 +39,7 @@
 
             if (failedMessage == null)
             {
-                Log.WarnFormat("The original failed message could not be loaded for id={0}", failedMessageId);
+                logger.LogWarning("The original failed message could not be loaded for id={failedMessageId}", failedMessageId);
                 return BadRequest();
             }
 
@@ -54,13 +55,13 @@
 
             if (LockedHeaderModificationValidator.Check(GetEditConfiguration().LockedHeaders, edit.MessageHeaders, failedMessage.ProcessingAttempts.Last().Headers))
             {
-                Log.WarnFormat("Locked headers have been modified on the edit-retry for MessageID {0}.", failedMessageId);
+                logger.LogWarning("Locked headers have been modified on the edit-retry for MessageID {failedMessageId}", failedMessageId);
                 return BadRequest();
             }
 
             if (string.IsNullOrWhiteSpace(edit.MessageBody) || edit.MessageHeaders == null)
             {
-                Log.WarnFormat("There is no message body on the edit-retry for MessageID {0}.", failedMessageId);
+                logger.LogWarning("There is no message body on the edit-retry for MessageID {failedMessageId}", failedMessageId);
                 return BadRequest();
             }
 
@@ -122,7 +123,7 @@
                 }
             };
 
-        static readonly ILog Log = LogManager.GetLogger(typeof(EditFailedMessagesController));
+        readonly ILogger<EditFailedMessagesController> logger = logger;
     }
 
     public class EditConfigurationModel

@@ -5,9 +5,9 @@
     using System.Threading.Tasks;
     using global::ServiceControl.LicenseManagement;
     using global::ServiceControl.Persistence;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
 
-    public class ActiveLicense(ITrialLicenseDataProvider trialLicenseDataProvider)
+    public class ActiveLicense(ITrialLicenseDataProvider trialLicenseDataProvider, ILogger<ActiveLicense> logger)
     {
         public bool IsValid { get; set; }
         public bool IsEvaluation { get; set; }
@@ -16,7 +16,7 @@
 
         public async Task Refresh(CancellationToken cancellationToken)
         {
-            Logger.Debug("Refreshing ActiveLicense");
+            logger.LogDebug("Refreshing ActiveLicense");
 
             var detectedLicense = LicenseManager.FindLicense();
 
@@ -59,6 +59,6 @@
         }
         static readonly int MaxTrialPeriodInDays = 14;
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(ActiveLicense));
+        readonly ILogger<ActiveLicense> logger = logger;
     }
 }

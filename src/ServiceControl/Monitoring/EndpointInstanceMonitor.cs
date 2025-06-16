@@ -5,17 +5,18 @@ namespace ServiceControl.Monitoring
     using Contracts.HeartbeatMonitoring;
     using EndpointControl.Contracts;
     using Infrastructure.DomainEvents;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using ServiceControl.Operations;
     using ServiceControl.Persistence;
 
     class EndpointInstanceMonitor
     {
-        public EndpointInstanceMonitor(EndpointInstanceId endpointInstanceId, bool monitored, IDomainEvents domainEvents)
+        public EndpointInstanceMonitor(EndpointInstanceId endpointInstanceId, bool monitored, IDomainEvents domainEvents, ILogger<EndpointInstanceMonitor> logger)
         {
             Id = endpointInstanceId;
             Monitored = monitored;
             this.domainEvents = domainEvents;
+            this.logger = logger;
         }
 
         public EndpointInstanceId Id { get; }
@@ -39,7 +40,7 @@ namespace ServiceControl.Monitoring
             if (newStatus != status)
             {
                 await RaiseStateChangeEvents(newStatus, latestTimestamp);
-                Log.DebugFormat("Endpoint {0} status updated from {1} to {2}", Id.LogicalName, status, newStatus);
+                logger.LogDebug("Endpoint {logicalEndpointName} status updated from {oldHeartbeatStatus} to {newHeartbeatStatus}", Id.LogicalName, status, newStatus);
             }
 
             lastSeen = latestTimestamp;
@@ -134,7 +135,7 @@ namespace ServiceControl.Monitoring
             };
         }
 
-        static readonly ILog Log = LogManager.GetLogger<EndpointInstanceMonitor>();
+        readonly ILogger<EndpointInstanceMonitor> logger;
 
         IDomainEvents domainEvents;
         DateTime? lastSeen;
