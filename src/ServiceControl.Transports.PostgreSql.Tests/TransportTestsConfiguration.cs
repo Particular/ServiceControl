@@ -2,7 +2,6 @@
 {
     using System;
     using System.Threading.Tasks;
-    using ServiceControl.Infrastructure;
     using ServiceControl.Transports.PostgreSql;
     using Transports;
 
@@ -14,7 +13,7 @@
 
         public Task Configure()
         {
-            TransportCustomization = new PostgreSqlTransportCustomization(LoggerUtil.CreateStaticLogger<PostgreSqlTransportCustomization>());
+            TransportCustomization = new PostgreSqlTransportCustomization();
             ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
 
             if (string.IsNullOrEmpty(ConnectionString))

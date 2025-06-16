@@ -20,6 +20,7 @@
         [SetUp]
         public virtual async Task Setup()
         {
+            //TODO remove LogManager usage
             LogManager.UseFactory(new TestContextAppenderFactory());
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
@@ -102,6 +103,7 @@
             configuration.TransportCustomization.CustomizeMonitoringEndpoint(new EndpointConfiguration("queueName"), transportSettings);
 
             serviceCollection.AddSingleton<Action<QueueLengthEntry[], EndpointToQueueMapping>>((qlt, _) => onQueueLengthReported(qlt.First()));
+            serviceCollection.AddLogging();
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
             queueLengthProvider = serviceProvider.GetRequiredService<IProvideQueueLength>();

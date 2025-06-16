@@ -2,7 +2,6 @@
 {
     using System;
     using System.Threading.Tasks;
-    using ServiceControl.Infrastructure;
     using Transports;
     using Transports.SqlServer;
 
@@ -14,7 +13,7 @@
 
         public Task Configure()
         {
-            TransportCustomization = new SqlServerTransportCustomization(LoggerUtil.CreateStaticLogger<SqlServerTransportCustomization>());
+            TransportCustomization = new SqlServerTransportCustomization();
             ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
 
             if (string.IsNullOrEmpty(ConnectionString))

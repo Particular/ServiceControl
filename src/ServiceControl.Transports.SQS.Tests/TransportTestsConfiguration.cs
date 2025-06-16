@@ -2,7 +2,6 @@
 {
     using System;
     using System.Threading.Tasks;
-    using ServiceControl.Infrastructure;
     using Transports;
     using Transports.SQS;
 
@@ -14,7 +13,7 @@
 
         public Task Configure()
         {
-            TransportCustomization = new SQSTransportCustomization(LoggerUtil.CreateStaticLogger<SQSTransportCustomization>());
+            TransportCustomization = new SQSTransportCustomization();
             ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
 
             if (string.IsNullOrEmpty(ConnectionString))
