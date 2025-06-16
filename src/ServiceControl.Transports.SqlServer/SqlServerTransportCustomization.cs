@@ -8,8 +8,9 @@
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Transport.SqlServer;
+    using ServiceControl.Infrastructure;
 
-    public class SqlServerTransportCustomization(ILogger<SqlServerTransportCustomization> logger) : TransportCustomization<SqlServerTransport>
+    public class SqlServerTransportCustomization() : TransportCustomization<SqlServerTransport>
     {
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition, TransportSettings transportSettings)
         {
@@ -87,5 +88,7 @@
         static extern ref bool DisableDelayedDelivery(SqlServerTransport transport);
 
         const string defaultSubscriptionTableName = "SubscriptionRouting";
+
+        static readonly ILogger<SqlServerTransportCustomization> logger = LoggerUtil.CreateStaticLogger<SqlServerTransportCustomization>();
     }
 }

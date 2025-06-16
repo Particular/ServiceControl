@@ -12,8 +12,9 @@
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
+    using ServiceControl.Infrastructure;
 
-    public class SQSTransportCustomization(ILogger<SQSTransportCustomization> logger) : TransportCustomization<SqsTransport>
+    public class SQSTransportCustomization() : TransportCustomization<SqsTransport>
     {
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition, TransportSettings transportSettings)
         {
@@ -119,6 +120,8 @@
         static void
             PromoteEnvironmentVariableFromConnectionString(string value, string environmentVariableName) =>
             Environment.SetEnvironmentVariable(environmentVariableName, value, EnvironmentVariableTarget.Process);
+
+        static readonly ILogger<SQSTransportCustomization> logger = LoggerUtil.CreateStaticLogger<SQSTransportCustomization>();
 
     }
 }

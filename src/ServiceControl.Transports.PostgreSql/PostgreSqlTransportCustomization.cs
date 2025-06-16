@@ -7,8 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NServiceBus;
 using NServiceBus.Transport.PostgreSql;
+using ServiceControl.Infrastructure;
 
-public class PostgreSqlTransportCustomization(ILogger<PostgreSqlTransportCustomization> logger) : TransportCustomization<PostgreSqlTransport>
+public class PostgreSqlTransportCustomization() : TransportCustomization<PostgreSqlTransport>
 {
     protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, PostgreSqlTransport transportDefinition, TransportSettings transportSettings)
     {
@@ -93,4 +94,6 @@ public class PostgreSqlTransportCustomization(ILogger<PostgreSqlTransportCustomi
     static extern ref bool DisableDelayedDelivery(PostgreSqlTransport transport);
 
     const string DefaultSubscriptionTableName = "SubscriptionRouting";
+
+    static readonly ILogger<PostgreSqlTransportCustomization> logger = LoggerUtil.CreateStaticLogger<PostgreSqlTransportCustomization>();
 }
