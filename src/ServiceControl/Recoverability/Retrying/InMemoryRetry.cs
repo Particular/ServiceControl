@@ -178,7 +178,7 @@
                 });
             }
 
-            logger.LogInformation("Retry operation {requestId} completed. {numberOfMessagesSkipped} messages skipped, {numberOfMessagesForwarded} forwarded. Total {totalNumberOfMessages}",
+            logger.LogInformation("Retry operation {RequestId} completed. {NumberOfMessagesSkipped} messages skipped, {NumberOfMessagesForwarded} forwarded. Total {TotalNumberOfMessages}",
                 RequestId,
                 NumberOfMessagesSkipped,
                 NumberOfMessagesForwarded,

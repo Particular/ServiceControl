@@ -21,12 +21,12 @@ namespace ServiceControl.Recoverability
         {
             var orphanedBatches = await store.QueryOrphanedBatches(RetrySessionId);
 
-            logger.LogInformation("Found {orphanedBatchCount} orphaned retry batches from previous sessions", orphanedBatches.Results.Count);
+            logger.LogInformation("Found {OrphanedBatchCount} orphaned retry batches from previous sessions", orphanedBatches.Results.Count);
 
             // let's leave Task.Run for now due to sync sends
             await Task.WhenAll(orphanedBatches.Results.Select(b => Task.Run(async () =>
             {
-                logger.LogInformation("Adopting retry batch {b.Id} with {b.FailureRetries.Count} messages", b.Id, b.FailureRetries.Count);
+                logger.LogInformation("Adopting retry batch {BatchId} with {BatchMessageCount} messages", b.Id, b.FailureRetries.Count);
                 await MoveBatchToStaging(b.Id);
             })));
 
@@ -56,7 +56,7 @@ namespace ServiceControl.Recoverability
             {
                 if (!string.IsNullOrWhiteSpace(group.RequestId))
                 {
-                    logger.LogDebug("Rebuilt retry operation status for {retryType}/{retryRequestId}. Aggregated batchsize: {retryBatchSize}", group.RetryType, group.RequestId, group.InitialBatchSize);
+                    logger.LogDebug("Rebuilt retry operation status for {RetryType}/{RetryRequestId}. Aggregated batchsize: {RetryBatchSize}", group.RetryType, group.RequestId, group.InitialBatchSize);
 
                     await operationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last);
                 }

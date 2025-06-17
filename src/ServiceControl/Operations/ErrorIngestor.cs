@@ -87,7 +87,7 @@
 
                 if (settings.ForwardErrorMessages)
                 {
-                    logger.LogDebug("Forwarding {failedMessageCount} messages", storedFailed.Count);
+                    logger.LogDebug("Forwarding {FailedMessageCount} messages", storedFailed.Count);
 
                     await Forward(storedFailed, cancellationToken);
 
@@ -112,7 +112,7 @@
         {
             var stopwatch = Stopwatch.StartNew();
 
-            logger.LogDebug("Batch size {failedMessageBatchSize}", failedMessageContexts.Count);
+            logger.LogDebug("Batch size {FailedMessageBatchSize}", failedMessageContexts.Count);
 
             try
             {
@@ -137,7 +137,7 @@
             {
                 stopwatch.Stop();
 
-                logger.LogDebug("Batch size {failedMessageBatchSize} took {failedMessageBatchProcessingTime} ms", failedMessageContexts.Count, stopwatch.ElapsedMilliseconds);
+                logger.LogDebug("Batch size {FailedMessageBatchSize} took {FailedMessageBatchProcessingTime} ms", failedMessageContexts.Count, stopwatch.ElapsedMilliseconds);
             }
         }
 

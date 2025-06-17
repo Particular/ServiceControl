@@ -122,19 +122,19 @@ namespace ServiceControl.CompositeViews.Messages
                 remoteInstanceSetting.TemporarilyUnavailable = true;
                 logger.LogWarning(
                     httpRequestException,
-                    "An HttpRequestException occurred when querying remote instance at {remoteInstanceSettingBaseAddress}. The instance at uri: {remoteInstanceSettingBaseAddress} will be temporarily disabled",
+                    "An HttpRequestException occurred when querying remote instance at {RemoteInstanceBaseAddress}. The instance at uri: {RemoteInstanceBaseAddress} will be temporarily disabled",
                     remoteInstanceSetting.BaseAddress,
                     remoteInstanceSetting.BaseAddress);
                 return QueryResult<TOut>.Empty();
             }
             catch (OperationCanceledException) // Intentional, used to gracefully handle timeout
             {
-                logger.LogWarning("Failed to query remote instance at {remoteInstanceSettingBaseAddress} due to a timeout", remoteInstanceSetting.BaseAddress);
+                logger.LogWarning("Failed to query remote instance at {RemoteInstanceBaseAddress} due to a timeout", remoteInstanceSetting.BaseAddress);
                 return QueryResult<TOut>.Empty();
             }
             catch (Exception exception)
             {
-                logger.LogWarning(exception, "Failed to query remote instance at {remoteInstanceSettingBaseAddress}", remoteInstanceSetting.BaseAddress);
+                logger.LogWarning(exception, "Failed to query remote instance at {RemoteInstanceBaseAddress}", remoteInstanceSetting.BaseAddress);
                 return QueryResult<TOut>.Empty();
             }
         }

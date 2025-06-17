@@ -40,11 +40,11 @@ namespace NServiceBus
 
             if (timer.Change(Timeout.Infinite, Timeout.Infinite))
             {
-                logger.LogInformation("The circuit breaker for {circuitBreakerName} is now disarmed", name);
+                logger.LogInformation("The circuit breaker for {CircuitBreakerName} is now disarmed", name);
             }
             else
             {
-                logger.LogError("Attempted to disarm circuit breaker for {circuitBreakerName} but failed", name);
+                logger.LogError("Attempted to disarm circuit breaker for {CircuitBreakerName} but failed", name);
             }
         }
 
@@ -57,11 +57,11 @@ namespace NServiceBus
             {
                 if (timer.Change(timeToWaitBeforeTriggering, NoPeriodicTriggering))
                 {
-                    logger.LogWarning("The circuit breaker for {circuitBreakerName} is now in the armed state", name);
+                    logger.LogWarning("The circuit breaker for {CircuitBreakerName} is now in the armed state", name);
                 }
                 else
                 {
-                    logger.LogError("Attempted to arm circuit breaker for {circuitBreakerName} but failed", name);
+                    logger.LogError("Attempted to arm circuit breaker for {CircuitBreakerName} but failed", name);
                 }
             }
 
@@ -72,7 +72,7 @@ namespace NServiceBus
         {
             if (Interlocked.Read(ref failureCount) > 0)
             {
-                logger.LogWarning("The circuit breaker for {circuitBreakerName} will now be triggered", name);
+                logger.LogWarning("The circuit breaker for {CircuitBreakerName} will now be triggered", name);
                 triggerAction(lastException);
             }
         }

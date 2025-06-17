@@ -40,7 +40,7 @@ namespace ServiceControl.Monitoring
             if (newStatus != status)
             {
                 await RaiseStateChangeEvents(newStatus, latestTimestamp);
-                logger.LogDebug("Endpoint {logicalEndpointName} status updated from {oldHeartbeatStatus} to {newHeartbeatStatus}", Id.LogicalName, status, newStatus);
+                logger.LogDebug("Endpoint {LogicalEndpointName} status updated from {OldHeartbeatStatus} to {NewHeartbeatStatus}", Id.LogicalName, status, newStatus);
             }
 
             lastSeen = latestTimestamp;

@@ -51,7 +51,7 @@
                 var customCheckType = check.GetType();
                 var reason = $"`{customCheckType}` implementation failed to run.";
                 result = CheckResult.Failed(reason);
-                logger.LogError(ex, "`{customCheckType}` implementation failed to run", customCheckType);
+                logger.LogError(ex, "`{CustomCheckType}` implementation failed to run", customCheckType);
             }
 
             var detail = new CustomCheckDetail

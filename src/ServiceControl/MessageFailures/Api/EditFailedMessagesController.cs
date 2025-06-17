@@ -39,7 +39,7 @@
 
             if (failedMessage == null)
             {
-                logger.LogWarning("The original failed message could not be loaded for id={failedMessageId}", failedMessageId);
+                logger.LogWarning("The original failed message could not be loaded for id={FailedMessageId}", failedMessageId);
                 return BadRequest();
             }
 
@@ -55,13 +55,13 @@
 
             if (LockedHeaderModificationValidator.Check(GetEditConfiguration().LockedHeaders, edit.MessageHeaders, failedMessage.ProcessingAttempts.Last().Headers))
             {
-                logger.LogWarning("Locked headers have been modified on the edit-retry for MessageID {failedMessageId}", failedMessageId);
+                logger.LogWarning("Locked headers have been modified on the edit-retry for MessageID {FailedMessageId}", failedMessageId);
                 return BadRequest();
             }
 
             if (string.IsNullOrWhiteSpace(edit.MessageBody) || edit.MessageHeaders == null)
             {
-                logger.LogWarning("There is no message body on the edit-retry for MessageID {failedMessageId}", failedMessageId);
+                logger.LogWarning("There is no message body on the edit-retry for MessageID {FailedMessageId}", failedMessageId);
                 return BadRequest();
             }
 

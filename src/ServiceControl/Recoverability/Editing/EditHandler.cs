@@ -34,7 +34,7 @@
 
                 if (failedMessage == null)
                 {
-                    logger.LogWarning("Discarding edit {messageId} because no message failure for id {failedMessageId} has been found", context.MessageId, message.FailedMessageId);
+                    logger.LogWarning("Discarding edit {MessageId} because no message failure for id {FailedMessageId} has been found", context.MessageId, message.FailedMessageId);
                     return;
                 }
 
@@ -43,7 +43,7 @@
                 {
                     if (failedMessage.Status != FailedMessageStatus.Unresolved)
                     {
-                        logger.LogWarning("Discarding edit {messageId} because message failure {failedMessageId} doesn't have state 'Unresolved'", context.MessageId, message.FailedMessageId);
+                        logger.LogWarning("Discarding edit {MessageId} because message failure {FailedMessageId} doesn't have state 'Unresolved'", context.MessageId, message.FailedMessageId);
                         return;
                     }
 
@@ -52,7 +52,7 @@
                 }
                 else if (editId != context.MessageId)
                 {
-                    logger.LogWarning("Discarding edit & retry request because the failed message id {failedMessageId} has already been edited by Message ID {editedMessageId}", message.FailedMessageId, editId);
+                    logger.LogWarning("Discarding edit & retry request because the failed message id {FailedMessageId} has already been edited by Message ID {EditedMessageId}", message.FailedMessageId, editId);
                     return;
                 }
 

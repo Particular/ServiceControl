@@ -402,7 +402,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
             if (!IngestErrorMessages)
             {
-                logger.LogInformation("Error ingestion disabled.");
+                logger.LogInformation("Error ingestion disabled");
             }
 
             ErrorLogQueue = SettingsReader.Read<string>(serviceBusRootNamespace, "ErrorLogQueue", null);

@@ -36,7 +36,7 @@ namespace ServiceControl.Recoverability
             if (machineName == localMachineName && machineName != originatingMachine)
             {
                 var fixedReplyToAddress = $"{queueName}@{originatingMachine}";
-                logger.LogInformation("Detected corrupted ReplyToAddress `{replyToAddress}`. Correcting to `{fixedReplyToAddress}`", replyToAddress, fixedReplyToAddress);
+                logger.LogInformation("Detected corrupted ReplyToAddress `{ReplyToAddress}`. Correcting to `{FixedReplyToAddress}`", replyToAddress, fixedReplyToAddress);
                 headers["ServiceControl.OldReplyToAddress"] = replyToAddress;
                 headers[Headers.ReplyToAddress] = fixedReplyToAddress;
             }

@@ -61,7 +61,7 @@ class ReturnToSenderDequeuer : IHostedService
     async Task Handle(MessageContext message, CancellationToken cancellationToken)
     {
         var stagingId = message.Headers["ServiceControl.Retry.StagingId"];
-        logger.LogDebug("Handling message with id {nativeMessageId} and staging id {stagingId} in input queue {inputAddress}", message.NativeMessageId, stagingId, InputAddress);
+        logger.LogDebug("Handling message with id {NativeMessageId} and staging id {StagingId} in input queue {InputAddress}", message.NativeMessageId, stagingId, InputAddress);
 
         if (shouldProcess(message))
         {
@@ -70,7 +70,7 @@ class ReturnToSenderDequeuer : IHostedService
         }
         else
         {
-            logger.LogWarning("Rejecting message from staging queue as it's not part of a fully staged batch: {nativeMessageId}", message.NativeMessageId);
+            logger.LogWarning("Rejecting message from staging queue as it's not part of a fully staged batch: {NativeMessageId}", message.NativeMessageId);
         }
     }
 
@@ -92,7 +92,7 @@ class ReturnToSenderDequeuer : IHostedService
     {
         var currentMessageCount = Interlocked.Increment(ref actualMessageCount);
 
-        logger.LogDebug("Forwarding message {currentMessageCount} of {targetMessageCount}", currentMessageCount, targetMessageCount);
+        logger.LogDebug("Forwarding message {CurrentMessageCount} of {TargetMessageCount}", currentMessageCount, targetMessageCount);
 
         if (currentMessageCount >= targetMessageCount.GetValueOrDefault())
         {
@@ -120,7 +120,7 @@ class ReturnToSenderDequeuer : IHostedService
 
             await messageReceiver.StartReceive(cancellationToken);
 
-            logger.LogInformation("Forwarder for batch {forwardingBatchId} started receiving messages from {receiveAddress}", forwardingBatchId, messageReceiver.ReceiveAddress);
+            logger.LogInformation("Forwarder for batch {ForwardingBatchId} started receiving messages from {ReceiveAddress}", forwardingBatchId, messageReceiver.ReceiveAddress);
 
             if (!expectedMessageCount.HasValue)
             {
@@ -131,13 +131,13 @@ class ReturnToSenderDequeuer : IHostedService
         }
         finally
         {
-            logger.LogDebug("Waiting for forwarder for batch {forwardingBatchId} to finish", forwardingBatchId);
+            logger.LogDebug("Waiting for forwarder for batch {ForwardingBatchId} to finish", forwardingBatchId);
 
             await syncEvent.Task;
             registration?.Dispose();
             await messageReceiver.StopReceive(cancellationToken);
 
-            logger.LogInformation("Forwarder for batch {forwardingBatchId} finished forwarding all messages", forwardingBatchId);
+            logger.LogInformation("Forwarder for batch {ForwardingBatchId} finished forwarding all messages", forwardingBatchId);
 
             stopCompletionSource.TrySetResult(true);
         }
@@ -200,7 +200,7 @@ class ReturnToSenderDequeuer : IHostedService
                 var message = errorContext.Message;
                 var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
                 var messageUniqueId = message.Headers["ServiceControl.Retry.UniqueMessageId"];
-                logger.LogWarning(errorContext.Exception, "Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again", messageUniqueId, destination);
+                logger.LogWarning(errorContext.Exception, "Failed to send '{UniqueMessageId}' message to '{Destination}' for retry. Attempting to revert message status to unresolved so it can be tried again", messageUniqueId, destination);
 
                 await dataStore.RevertRetry(messageUniqueId);
 

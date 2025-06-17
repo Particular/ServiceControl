@@ -20,7 +20,7 @@
             }
             catch (Exception e)
             {
-                logger.LogWarning(e, "Failure sending email.");
+                logger.LogWarning(e, "Failure sending email");
                 throw;
             }
         }

@@ -21,7 +21,7 @@ namespace ServiceControl.Recoverability
             byte[] body = null;
             var messageId = message.NativeMessageId;
 
-            logger.LogDebug("{messageId}: Retrieving message body", messageId);
+            logger.LogDebug("{MessageId}: Retrieving message body", messageId);
 
             if (outgoingHeaders.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out var attemptMessageId))
             {
@@ -30,14 +30,14 @@ namespace ServiceControl.Recoverability
             }
             else
             {
-                logger.LogWarning("{messageId}: Can't find message body. Missing header ServiceControl.Retry.Attempt.MessageId", messageId);
+                logger.LogWarning("{MessageId}: Can't find message body. Missing header ServiceControl.Retry.Attempt.MessageId", messageId);
             }
 
             var outgoingMessage = new OutgoingMessage(messageId, outgoingHeaders, body ?? EmptyBody);
 
             var destination = outgoingHeaders["ServiceControl.TargetEndpointAddress"];
 
-            logger.LogDebug("{messageId}: Forwarding message to {destination}", messageId, destination);
+            logger.LogDebug("{MessageId}: Forwarding message to {Destination}", messageId, destination);
 
             if (!outgoingHeaders.TryGetValue("ServiceControl.RetryTo", out var retryTo))
             {
@@ -46,14 +46,14 @@ namespace ServiceControl.Recoverability
             }
             else
             {
-                logger.LogDebug("{messageId}: Found ServiceControl.RetryTo header. Rerouting to {retryTo}", messageId, retryTo);
+                logger.LogDebug("{MessageId}: Found ServiceControl.RetryTo header. Rerouting to {RetryTo}", messageId, retryTo);
             }
 
             var transportOp = new TransportOperation(outgoingMessage, new UnicastAddressTag(retryTo));
 
             await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction, cancellationToken);
 
-            logger.LogDebug("{messageId}: Forwarded message to {retryTo}", messageId, retryTo);
+            logger.LogDebug("{MessageId}: Forwarded message to {RetryTo}", messageId, retryTo);
         }
 
         async Task<byte[]> FetchFromFailedMessage(Dictionary<string, string> outgoingHeaders, string messageId, string attemptMessageId)
@@ -63,11 +63,11 @@ namespace ServiceControl.Recoverability
 
             if (body == null)
             {
-                logger.LogWarning("{messageId}: Message Body not found in failed message with unique id {uniqueMessageId} for attempt Id {attemptMessageId}", messageId, uniqueMessageId, attemptMessageId);
+                logger.LogWarning("{MessageId}: Message Body not found in failed message with unique id {UniqueMessageId} for attempt Id {AttemptMessageId}", messageId, uniqueMessageId, attemptMessageId);
             }
             else
             {
-                logger.LogDebug("{messageId}: Body size: {messageLength} bytes retrieved from failed message attachment", messageId, body.LongLength);
+                logger.LogDebug("{MessageId}: Body size: {MessageLength} bytes retrieved from failed message attachment", messageId, body.LongLength);
             }
 
             return body;

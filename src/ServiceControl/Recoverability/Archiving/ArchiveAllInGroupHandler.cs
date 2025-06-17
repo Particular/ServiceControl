@@ -18,7 +18,7 @@ namespace ServiceControl.Recoverability
         {
             if (retryingManager.IsRetryInProgressFor(message.GroupId))
             {
-                logger.LogWarning("Attempt to archive a group ({messageGroupId}) which is currently in the process of being retried", message.GroupId);
+                logger.LogWarning("Attempt to archive a group ({MessageGroupId}) which is currently in the process of being retried", message.GroupId);
                 return;
             }
 

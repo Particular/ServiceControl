@@ -13,13 +13,13 @@ namespace ServiceControl.Recoverability
         {
             if (retries == null)
             {
-                logger.LogWarning("Attempt to retry a group ({messageGroupId}) when retries are disabled", message.GroupId);
+                logger.LogWarning("Attempt to retry a group ({MessageGroupId}) when retries are disabled", message.GroupId);
                 return;
             }
 
             if (archiver.IsArchiveInProgressFor(message.GroupId))
             {
-                logger.LogWarning("Attempt to retry a group ({messageGroupId}) which is currently in the process of being archived", message.GroupId);
+                logger.LogWarning("Attempt to retry a group ({MessageGroupId}) which is currently in the process of being archived", message.GroupId);
                 return;
             }
 

@@ -29,7 +29,7 @@
 
             var endpointName = context.MessageHeaders.TryGetValue(Headers.ReplyToAddress, out var val) ? val : "(Unknown Endpoint)";
             logger.LogError("Received a saga audit message in the ServiceControl queue that should have been sent to the audit queue. " +
-                "This indicates that the endpoint '{endpointName}' using the SagaAudit plugin is misconfigured and should be changed to use the system's audit queue instead. " +
+                "This indicates that the endpoint '{EndpointName}' using the SagaAudit plugin is misconfigured and should be changed to use the system's audit queue instead. " +
                 "The message has been forwarded to the audit queue, but this may not be possible in a future version of ServiceControl.", endpointName);
             await context.ForwardCurrentMessageTo(auditQueueName);
         }
@@ -57,12 +57,12 @@
                     // Pick any audit queue, assume all instance are based on competing consumer
                     auditQueueName = sagaAudit.GetProperty("SagaAuditQueue").GetString();
                     nextAuditQueueNameRefresh = DateTime.UtcNow.AddMinutes(5);
-                    logger.LogInformation("Refreshed audit queue name '{auditQueueName}' from ServiceControl Audit instance. Will continue to use this value for forwarding saga update messages for the next 5 minutes.", auditQueueName);
+                    logger.LogInformation("Refreshed audit queue name '{AuditQueueName}' from ServiceControl Audit instance. Will continue to use this value for forwarding saga update messages for the next 5 minutes.", auditQueueName);
                 }
             }
             catch (Exception x)
             {
-                logger.LogWarning("Unable to refresh audit queue name from ServiceControl Audit instance. Will continue to check at most every 15 seconds. Exception message: {exceptionMessage}", x.Message);
+                logger.LogWarning("Unable to refresh audit queue name from ServiceControl Audit instance. Will continue to check at most every 15 seconds. Exception message: {ExceptionMessage}", x.Message);
                 nextAuditQueueNameRefresh = DateTime.UtcNow.AddSeconds(15);
             }
             finally

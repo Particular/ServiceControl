@@ -31,7 +31,7 @@
         {
             var inactivityThreshold = DateTime.UtcNow - gracePeriod;
 
-            logger.LogDebug("Monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}", inactivityThreshold);
+            logger.LogDebug("Monitoring Endpoint Instances. Inactivity Threshold = {InactivityThreshold}", inactivityThreshold);
 
             await monitor.CheckEndpoints(inactivityThreshold);
             return TimerJobExecutionResult.ScheduleNextExecution;

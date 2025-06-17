@@ -63,7 +63,7 @@
 
             foreach (var endpoint in knownEndpoints.Values)
             {
-                logger.LogDebug("Adding known endpoint '{endpointName}' for bulk storage", endpoint.EndpointDetails.Name);
+                logger.LogDebug("Adding known endpoint '{EndpointName}' for bulk storage", endpoint.EndpointDetails.Name);
 
                 await unitOfWork.Monitoring.RecordKnownEndpoint(endpoint);
             }
@@ -106,7 +106,7 @@
                 isOriginalMessageId = false;
             }
 
-            logger.LogDebug("Ingesting error message {nativeMessageId} (original message id: {messageId})", context.NativeMessageId, isOriginalMessageId ? messageId : string.Empty);
+            logger.LogDebug("Ingesting error message {NativeMessageId} (original message id: {MessageId})", context.NativeMessageId, isOriginalMessageId ? messageId : string.Empty);
 
             try
             {
@@ -128,7 +128,7 @@
             }
             catch (Exception e)
             {
-                logger.LogWarning(e, "Processing of message '{nativeMessageId}' failed.", context.NativeMessageId);
+                logger.LogWarning(e, "Processing of message '{NativeMessageId}' failed", context.NativeMessageId);
 
                 // releasing the failed message context early so that they can be retried outside the current batch
                 context.GetTaskCompletionSource().TrySetException(e);

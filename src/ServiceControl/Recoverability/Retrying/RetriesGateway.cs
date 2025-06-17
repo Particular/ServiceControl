@@ -21,7 +21,7 @@ namespace ServiceControl.Recoverability
 
         public async Task StartRetryForSingleMessage(string uniqueMessageId)
         {
-            logger.LogInformation("Retrying a single message {uniqueMessageId}", uniqueMessageId);
+            logger.LogInformation("Retrying a single message {UniqueMessageId}", uniqueMessageId);
 
             var requestId = uniqueMessageId;
             var retryType = RetryType.SingleMessage;
@@ -34,7 +34,7 @@ namespace ServiceControl.Recoverability
 
         public async Task StartRetryForMessageSelection(string[] uniqueMessageIds)
         {
-            logger.LogInformation("Retrying a selection of {messageCount} messages", uniqueMessageIds.Length);
+            logger.LogInformation("Retrying a selection of {MessageCount} messages", uniqueMessageIds.Length);
 
             var requestId = DeterministicGuid.MakeId(string.Join(string.Empty, uniqueMessageIds)).ToString();
             var retryType = RetryType.MultipleMessages;
@@ -49,7 +49,7 @@ namespace ServiceControl.Recoverability
         {
             if (messageIds == null || !messageIds.Any())
             {
-                logger.LogInformation("Batch '{batchName}' contains no messages", batchName);
+                logger.LogInformation("Batch '{BatchName}' contains no messages", batchName);
                 return;
             }
 
@@ -57,13 +57,13 @@ namespace ServiceControl.Recoverability
 
             var batchDocumentId = await store.CreateBatchDocument(RetryDocumentManager.RetrySessionId, requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier);
 
-            logger.LogInformation("Created Batch '{batchDocumentId}' with {batchMessageCount} messages for '{batchName}'.", batchDocumentId, messageIds.Length, batchName);
+            logger.LogInformation("Created Batch '{BatchDocumentId}' with {BatchMessageCount} messages for '{BatchName}'", batchDocumentId, messageIds.Length, batchName);
 
             await store.StageRetryByUniqueMessageIds(batchDocumentId, messageIds);
 
             await MoveBatchToStaging(batchDocumentId);
 
-            logger.LogInformation("Moved Batch '{batchDocumentId}' to Staging", batchDocumentId);
+            logger.LogInformation("Moved Batch '{BatchDocumentId}' to Staging", batchDocumentId);
         }
 
         // Needs to be overridable by a test
@@ -115,27 +115,27 @@ namespace ServiceControl.Recoverability
         public void StartRetryForAllMessages()
         {
             var item = new RetryForAllMessages();
-            logger.LogInformation("Enqueuing index based bulk retry '{item}'", item);
+            logger.LogInformation("Enqueuing index based bulk retry '{Item}'", item);
             bulkRequests.Enqueue(item);
         }
 
         public void StartRetryForEndpoint(string endpoint)
         {
             var item = new RetryForEndpoint(endpoint);
-            logger.LogInformation("Enqueuing index based bulk retry '{item}'", item);
+            logger.LogInformation("Enqueuing index based bulk retry '{Item}'", item);
             bulkRequests.Enqueue(item);
         }
 
         public void StartRetryForFailedQueueAddress(string failedQueueAddress, FailedMessageStatus status)
         {
             var item = new RetryForFailedQueueAddress(failedQueueAddress, status);
-            logger.LogInformation("Enqueuing index based bulk retry '{item}'", item);
+            logger.LogInformation("Enqueuing index based bulk retry '{Item}'", item);
             bulkRequests.Enqueue(item);
         }
 
         public void EnqueueRetryForFailureGroup(RetryForFailureGroup item)
         {
-            logger.LogInformation("Enqueuing index based bulk retry '{item}'", item);
+            logger.LogInformation("Enqueuing index based bulk retry '{Item}'", item);
             bulkRequests.Enqueue(item);
         }
 
