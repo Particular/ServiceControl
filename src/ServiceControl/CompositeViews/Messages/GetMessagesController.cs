@@ -162,7 +162,5 @@ namespace ServiceControl.CompositeViews.Messages
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
-
-        readonly ILogger<GetMessagesController> logger = logger;
     }
 }

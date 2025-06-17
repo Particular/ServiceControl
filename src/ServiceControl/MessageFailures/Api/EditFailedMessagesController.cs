@@ -122,8 +122,6 @@
                     "Header"
                 }
             };
-
-        readonly ILogger<EditFailedMessagesController> logger = logger;
     }
 
     public class EditConfigurationModel

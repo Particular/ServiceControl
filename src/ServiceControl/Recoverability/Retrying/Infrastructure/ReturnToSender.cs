@@ -74,6 +74,5 @@ namespace ServiceControl.Recoverability
         }
 
         static readonly byte[] EmptyBody = Array.Empty<byte>();
-        readonly ILogger<ReturnToSender> logger = logger;
     }
 }

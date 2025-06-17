@@ -58,7 +58,5 @@
             return licenseDetails;
         }
         static readonly int MaxTrialPeriodInDays = 14;
-
-        readonly ILogger<ActiveLicense> logger = logger;
     }
 }

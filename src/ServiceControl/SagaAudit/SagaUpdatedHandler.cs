@@ -74,6 +74,5 @@
         static string auditQueueName;
         static DateTime nextAuditQueueNameRefresh;
         static readonly SemaphoreSlim semaphore = new(1);
-        readonly ILogger<SagaUpdatedHandler> logger = logger;
     }
 }
