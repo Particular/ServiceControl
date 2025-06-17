@@ -3,14 +3,33 @@ namespace ServiceControl.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Configuration;
 
-public class LoggingSettings(SettingsRootNamespace rootNamespace, LogLevel defaultLevel = LogLevel.Information, string logPath = null)
+public class LoggingSettings
 {
-    public LogLevel LogLevel { get; } = InitializeLogLevel(rootNamespace, defaultLevel);
+    public LoggingSettings(SettingsRootNamespace rootNamespace, LogLevel defaultLevel = LogLevel.Information, string logPath = null)
+    {
+        LogLevel = InitializeLogLevel(rootNamespace, defaultLevel);
+        LogPath = SettingsReader.Read(rootNamespace, logPathKey, Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogLocation()));
 
-    public string LogPath { get; } = SettingsReader.Read(rootNamespace, logPathKey, Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogLocation()));
+        var loggingProviders = SettingsReader.Read<string>(rootNamespace, loggingProvidersKey).Split(",");
+        var activeLoggers = Loggers.None;
+        if (loggingProviders.Contains("NLog"))
+        {
+            activeLoggers |= Loggers.NLog;
+        }
+        if (loggingProviders.Contains("Seq"))
+        {
+            activeLoggers |= Loggers.Seq;
+        }
+        LoggerUtil.ActiveLoggers = activeLoggers;
+    }
+
+    public LogLevel LogLevel { get; }
+
+    public string LogPath { get; }
 
     static LogLevel InitializeLogLevel(SettingsRootNamespace rootNamespace, LogLevel defaultLevel)
     {
@@ -57,4 +76,5 @@ public class LoggingSettings(SettingsRootNamespace rootNamespace, LogLevel defau
 
     const string logLevelKey = "LogLevel";
     const string logPathKey = "LogPath";
+    const string loggingProvidersKey = "LoggingProviders";
 }
