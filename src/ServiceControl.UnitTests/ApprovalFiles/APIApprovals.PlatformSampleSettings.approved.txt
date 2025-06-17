@@ -1,9 +1,6 @@
 {
   "LoggingSettings": {
-    "LogLevel": {
-      "Name": "Info",
-      "Ordinal": 2
-    },
+    "LogLevel": "Information",
     "LogPath": "C:\\Logs"
   },
   "NotificationsFilter": null,
