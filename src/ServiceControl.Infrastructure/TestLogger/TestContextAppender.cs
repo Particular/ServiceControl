@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Transport.Tests
+﻿namespace ServiceControl.Infrastructure.TestLogger
 {
     using System;
     using Microsoft.Extensions.Logging;

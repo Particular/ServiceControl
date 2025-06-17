@@ -1,8 +1,8 @@
-﻿namespace ServiceControl.Transport.Tests
+﻿namespace ServiceControl.Infrastructure.TestLogger
 {
     using Microsoft.Extensions.Logging;
 
-    class TestContextAppenderFactory : ILoggerFactory
+    public class TestContextAppenderFactory : ILoggerFactory
     {
         public void AddProvider(ILoggerProvider provider)
         {

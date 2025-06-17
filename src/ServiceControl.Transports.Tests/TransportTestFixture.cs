@@ -13,6 +13,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using NUnit.Framework;
+    using ServiceControl.Infrastructure.TestLogger;
     using Transports;
 
     [TestFixture]

@@ -20,7 +20,7 @@
         [SetUp]
         public void SetUp()
         {
-            LoggerUtil.LoggerFactory = new TestContextAppenderFactory();
+            LoggerUtil.ActiveLoggers = Loggers.Test;
         }
 
         [Test]

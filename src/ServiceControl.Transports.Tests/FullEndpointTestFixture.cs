@@ -12,7 +12,7 @@
         [SetUp]
         public virtual async Task Setup()
         {
-            LoggerUtil.LoggerFactory = new TestContextAppenderFactory();
+            LoggerUtil.ActiveLoggers = Loggers.Test;
             configuration = new TransportTestsConfiguration();
             var queueSuffix = $"-{System.IO.Path.GetRandomFileName().Replace(".", string.Empty)}";
 
