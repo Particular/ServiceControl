@@ -41,4 +41,5 @@ finally
 {
     // The following log statement is meant to leave a trail in the logs to determine if the process was killed
     logger.LogInformation("Shutdown complete");
+    NLog.LogManager.Shutdown();
 }
