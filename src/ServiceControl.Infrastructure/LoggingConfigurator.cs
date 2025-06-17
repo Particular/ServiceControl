@@ -2,15 +2,15 @@ namespace ServiceControl.Infrastructure
 {
     using System;
     using System.IO;
+    using Microsoft.Extensions.Logging;
     using NLog;
     using NLog.Config;
-    using NLog.Extensions.Logging;
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus.Extensions.Logging;
     using ServiceControl.Configuration;
-
     using LogManager = NServiceBus.Logging.LogManager;
+    using LogLevel = NLog.LogLevel;
 
     // TODO: Migrate from NLog to .NET logging
     public static class LoggingConfigurator
@@ -76,7 +76,7 @@ namespace ServiceControl.Infrastructure
 
             NLog.LogManager.Configuration = nlogConfig;
 
-            LogManager.UseFactory(new ExtensionsLoggerFactory(new NLogLoggerFactory()));
+            LogManager.UseFactory(new ExtensionsLoggerFactory(LoggerFactory.Create(configure => configure.BuildLogger(loggingSettings.LogLevel))));
 
             var logger = LogManager.GetLogger("LoggingConfiguration");
             var logEventInfo = new LogEventInfo { TimeStamp = DateTime.UtcNow };
