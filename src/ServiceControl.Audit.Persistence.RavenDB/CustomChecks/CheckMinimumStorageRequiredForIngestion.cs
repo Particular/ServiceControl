@@ -38,7 +38,7 @@
 
             if (logger.IsEnabled(LogLevel.Debug))
             {
-                logger.LogDebug("Free space: {AvailableFreeSpace} | Total: {TotalSpace} | Percent remaining {PercentRemaining:P0}", availableFreeSpace, totalSpace, percentRemaining);
+                logger.LogDebug("Free space: {AvailableFreeSpace:N0}B | Total: {TotalSpace:N0}B | Percent remaining {PercentRemaining:P0}", availableFreeSpace, totalSpace, percentRemaining);
             }
 
             if (percentRemaining > percentageThreshold)
