@@ -12,6 +12,7 @@ namespace ServiceControl.Infrastructure
 
     using LogManager = NServiceBus.Logging.LogManager;
 
+    // TODO: Migrate from NLog to .NET logging
     public static class LoggingConfigurator
     {
         public static void ConfigureLogging(LoggingSettings loggingSettings)
@@ -60,14 +61,16 @@ namespace ServiceControl.Infrastructure
             nlogConfig.LoggingRules.Add(aspNetCoreRule);
             nlogConfig.LoggingRules.Add(httpClientRule);
 
-            // HACK: Fix LogLevel to Info for testing purposes only.
-            // nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, consoleTarget));
+            // HACK: Fixed LogLevel to Info for testing purposes only.
+            //       Migrate to .NET logging and change back to loggingSettings.LogLevel.
+            //       nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, consoleTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
 
             if (!AppEnvironment.RunningInContainer)
             {
-                // HACK: Fix LogLevel to Info for testing purposes only.
-                //nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, fileTarget));
+                // HACK: Fixed LogLevel to Info for testing purposes only.
+                //       Migrate to .NET logging and change back to loggingSettings.LogLevel.
+                //       nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, fileTarget));
                 nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
             }
 

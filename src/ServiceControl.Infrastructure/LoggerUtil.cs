@@ -9,7 +9,6 @@
         public static void BuildLogger(this ILoggingBuilder loggingBuilder, LogLevel level)
         {
             loggingBuilder.AddNLog();
-            loggingBuilder.AddSeq();
             loggingBuilder.SetMinimumLevel(level);
         }
 

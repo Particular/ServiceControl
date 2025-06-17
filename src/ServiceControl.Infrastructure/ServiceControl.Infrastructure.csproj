@@ -13,7 +13,6 @@
     <PackageReference Include="NLog.Extensions.Logging" />
     <PackageReference Include="NServiceBus" />
     <PackageReference Include="NServiceBus.Extensions.Logging" />
-    <PackageReference Include="Seq.Extensions.Logging" />
   </ItemGroup>
 
 </Project>
