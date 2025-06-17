@@ -22,7 +22,14 @@ const { testResults } = storeToRefs(store);
   </template>
   <DetectedListView
     ariaLabel="Detected broker queues"
-    :indicator-options="[UserIndicator.NServiceBusEndpoint, UserIndicator.NotNServiceBusEndpoint, UserIndicator.SendOnlyOrTransactionSessionEndpoint, UserIndicator.NServiceBusEndpointNoLongerInUse, UserIndicator.PlannedToDecommission]"
+    :indicator-options="[
+      UserIndicator.NServiceBusEndpoint,
+      UserIndicator.NotNServiceBusEndpoint,
+      UserIndicator.TransactionalSessionProcessorEndpoint,
+      UserIndicator.SendOnlyEndpoint,
+      UserIndicator.NServiceBusEndpointNoLongerInUse,
+      UserIndicator.PlannedToDecommission,
+    ]"
     :source="DataSource.Broker"
     column-title="Queue Name"
     :show-endpoint-type-placeholder="true"

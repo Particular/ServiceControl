@@ -3,18 +3,26 @@ import routeLinks from "@/router/routeLinks";
 import isRouteSelected from "@/composables/isRouteSelected";
 import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator";
 import { userIndicatorMapper } from "@/views/throughputreport/endpoints/userIndicatorMapper";
-import { ref } from "vue";
+import { ref, type Component } from "vue";
 import { useThroughputStore } from "@/stores/ThroughputStore";
 import { storeToRefs } from "pinia";
+import LegendNServiceBusEndpoint from "./LegendNServiceBusEndpoint.vue";
+import LegendNServiceBusEndpointNoLongerInUse from "./LegendNServiceBusEndpointNoLongerInUse.vue";
+import LegendTransactionalSessionProcessorEndpoint from "./LegendTransactionalSessionProcessorEndpoint.vue";
+import LegendSendOnlyEndpoint from "./LegendSendOnlyEndpoint.vue";
+import LegendPlannedToDecommission from "./LegendPlannedToDecommission.vue";
+import LegendNotNServiceBusEndpoint from "./LegendNotNServiceBusEndpoint.vue";
 
 const { isBrokerTransport } = storeToRefs(useThroughputStore());
 const showLegend = ref(true);
-const legendOptions = new Map<UserIndicator, string>([
-  [UserIndicator.NServiceBusEndpoint, "Known NServiceBus Endpoint"],
-  [UserIndicator.NServiceBusEndpointNoLongerInUse, "NServiceBus Endpoint that is no longer in use, usually this would have zero throughput"],
-  [UserIndicator.SendOnlyOrTransactionSessionEndpoint, "If the endpoint has no throughput or the endpoint has Transactional Session feature enabled"],
-  [UserIndicator.PlannedToDecommission, "If the endpoint is planned to no longer be used in the next 30 days"],
-  [UserIndicator.NotNServiceBusEndpoint, "Not an NServiceBus Endpoint"],
+
+const legendOptions = new Map<UserIndicator, Component>([
+  [UserIndicator.NServiceBusEndpoint, LegendNServiceBusEndpoint],
+  [UserIndicator.NServiceBusEndpointNoLongerInUse, LegendNServiceBusEndpointNoLongerInUse],
+  [UserIndicator.TransactionalSessionProcessorEndpoint, LegendTransactionalSessionProcessorEndpoint],
+  [UserIndicator.SendOnlyEndpoint, LegendSendOnlyEndpoint],
+  [UserIndicator.PlannedToDecommission, LegendPlannedToDecommission],
+  [UserIndicator.NotNServiceBusEndpoint, LegendNotNServiceBusEndpoint],
 ]);
 
 function toggleOptionsLegendVisible() {
@@ -32,8 +40,8 @@ function toggleOptionsLegendVisible() {
         <a href="#" :aria-label="`${showLegend ? 'Hide' : 'Show'} Endpoint Types meaning`" @click.prevent="toggleOptionsLegendVisible()">{{ showLegend ? "Hide" : "Show" }} Endpoint Types meaning.</a>
       </p>
       <div v-show="showLegend" class="alert alert-info">
-        <div v-for="[key, value] in legendOptions" :key="key">
-          <strong>{{ userIndicatorMapper.get(key) }}</strong> - {{ value }}.
+        <div v-for="[key, LegendComponent] in legendOptions" :key="key">
+          <strong>{{ userIndicatorMapper.get(key) }}</strong> - <component :is="LegendComponent" />.
         </div>
       </div>
     </div>

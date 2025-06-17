@@ -23,7 +23,7 @@ const { isBrokerTransport, hasErrors } = storeToRefs(useThroughputStore());
   </template>
   <DetectedListView
     ariaLabel="Detected endpoints"
-    :indicator-options="[UserIndicator.NServiceBusEndpoint, UserIndicator.SendOnlyOrTransactionSessionEndpoint, UserIndicator.NServiceBusEndpointNoLongerInUse, UserIndicator.PlannedToDecommission]"
+    :indicator-options="[UserIndicator.NServiceBusEndpoint, UserIndicator.TransactionalSessionProcessorEndpoint, UserIndicator.SendOnlyEndpoint, UserIndicator.NServiceBusEndpointNoLongerInUse, UserIndicator.PlannedToDecommission]"
     :source="DataSource.WellKnownEndpoint"
     column-title="Endpoint Name"
     :show-endpoint-type-placeholder="false"
