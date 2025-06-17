@@ -14,7 +14,7 @@ public class LoggingSettings
         LogLevel = InitializeLogLevel(rootNamespace, defaultLevel);
         LogPath = SettingsReader.Read(rootNamespace, logPathKey, Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogLocation()));
 
-        var loggingProviders = SettingsReader.Read<string>(rootNamespace, loggingProvidersKey).Split(",");
+        var loggingProviders = (SettingsReader.Read<string>(rootNamespace, loggingProvidersKey) ?? "").Split(",");
         var activeLoggers = Loggers.None;
         if (loggingProviders.Contains("NLog"))
         {
