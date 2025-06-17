@@ -9,7 +9,7 @@
     using Settings;
     using Transports;
 
-    class SetupCommand() : AbstractCommand
+    class SetupCommand : AbstractCommand
     {
         public override async Task Execute(HostArguments args, Settings settings)
         {

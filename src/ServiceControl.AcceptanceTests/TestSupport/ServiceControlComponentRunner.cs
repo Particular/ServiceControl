@@ -103,7 +103,7 @@
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupCommand = new SetupCommand(NullLogger<SetupCommand>.Instance);
+                var setupCommand = new SetupCommand();
                 await setupCommand.Execute(new HostArguments([]), settings);
             }
 

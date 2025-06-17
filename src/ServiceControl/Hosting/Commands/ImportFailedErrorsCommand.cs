@@ -12,8 +12,9 @@
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
 
-    class ImportFailedErrorsCommand(ILogger<ImportFailedErrorsCommand> logger) : AbstractCommand
+    class ImportFailedErrorsCommand : AbstractCommand
     {
         public override async Task Execute(HostArguments args, Settings settings)
         {
@@ -41,7 +42,7 @@
             }
             catch (OperationCanceledException e) when (tokenSource.IsCancellationRequested)
             {
-                logger.LogInformation(e, "Cancelled");
+                LoggerUtil.CreateStaticLogger<ImportFailedErrorsCommand>().LogInformation(e, "Cancelled");
             }
             finally
             {

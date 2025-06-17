@@ -8,9 +8,10 @@
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
     using Transports;
 
-    class SetupCommand(ILogger<SetupCommand> logger) : AbstractCommand
+    class SetupCommand : AbstractCommand
     {
         public override async Task Execute(HostArguments args, Settings settings)
         {
@@ -35,7 +36,7 @@
 
             if (args.SkipQueueCreation)
             {
-                logger.LogInformation("Skipping queue creation");
+                LoggerUtil.CreateStaticLogger<SetupCommand>().LogInformation("Skipping queue creation");
             }
             else
             {

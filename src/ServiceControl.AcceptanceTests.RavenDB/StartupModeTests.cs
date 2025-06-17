@@ -58,7 +58,7 @@
         public async Task CanRunImportFailedMessagesMode()
             => await new TestableImportFailedErrorsCommand().Execute(new HostArguments(Array.Empty<string>()), settings);
 
-        class TestableImportFailedErrorsCommand() : ImportFailedErrorsCommand(NullLogger<ImportFailedErrorsCommand>.Instance)
+        class TestableImportFailedErrorsCommand() : ImportFailedErrorsCommand()
         {
             protected override EndpointConfiguration CreateEndpointConfiguration(Settings settings)
             {
