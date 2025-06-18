@@ -108,7 +108,7 @@
 
                 if (settings.PersisterSpecificSettings.TryGetValue(RavenDbLogLevelKey, out var ravenDbLogLevel))
                 {
-                    logsMode = RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel);
+                    logsMode = RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel, Logger);
                 }
 
                 serverConfiguration = new ServerConfiguration(dbPath, serverUrl, logPath, logsMode);

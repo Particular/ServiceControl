@@ -1,12 +1,13 @@
 ﻿namespace ServiceControl
 {
+    using Microsoft.Extensions.Logging;
     using NServiceBus.Logging;
 
     public class RavenDbLogLevelToLogsModeMapper
     {
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenDbLogLevelToLogsModeMapper));
 
-        public static string Map(string ravenDbLogLevel)
+        public static string Map(string ravenDbLogLevel, ILogger logger)
         {
             switch (ravenDbLogLevel.ToLower())
             {
