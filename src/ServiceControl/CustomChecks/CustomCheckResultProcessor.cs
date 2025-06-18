@@ -4,15 +4,16 @@ namespace ServiceControl.CustomChecks
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
     using Infrastructure.DomainEvents;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using ServiceControl.Persistence;
 
     class CustomCheckResultProcessor
     {
-        public CustomCheckResultProcessor(IDomainEvents domainEvents, ICustomChecksDataStore store)
+        public CustomCheckResultProcessor(IDomainEvents domainEvents, ICustomChecksDataStore store, ILogger<CustomCheckResultProcessor> logger)
         {
             this.domainEvents = domainEvents;
             this.store = store;
+            this.logger = logger;
         }
 
         public async Task ProcessResult(CustomCheckDetail checkDetail)
@@ -37,7 +38,7 @@ namespace ServiceControl.CustomChecks
             }
             catch (Exception ex)
             {
-                Logger.Warn("Failed to update periodic check status.", ex);
+                logger.LogWarning(ex, "Failed to update periodic check status");
             }
         }
 
@@ -75,9 +76,8 @@ namespace ServiceControl.CustomChecks
 
         readonly IDomainEvents domainEvents;
         readonly ICustomChecksDataStore store;
-
         int lastCount;
 
-        static ILog Logger = LogManager.GetLogger<CustomCheckResultProcessor>();
+        readonly ILogger<CustomCheckResultProcessor> logger;
     }
 }

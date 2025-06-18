@@ -2,22 +2,24 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class SendEmailNotificationHandler : IHandleMessages<SendEmailNotification>
+    class SendEmailNotificationHandler : IHandleMessages<SendEmailNotification>
     {
         readonly IErrorMessageDataStore store;
         readonly EmailThrottlingState throttlingState;
+        readonly EmailSender emailSender;
 
-        public SendEmailNotificationHandler(IErrorMessageDataStore store, Settings settings, EmailThrottlingState throttlingState)
+        public SendEmailNotificationHandler(IErrorMessageDataStore store, Settings settings, EmailThrottlingState throttlingState, EmailSender emailSender, ILogger<SendEmailNotificationHandler> logger)
         {
             this.store = store;
             this.throttlingState = throttlingState;
-
+            this.emailSender = emailSender;
+            this.logger = logger;
             emailDropFolder = settings.EmailDropFolder;
         }
 
@@ -32,7 +34,7 @@
 
             if (notifications == null || !notifications.Email.Enabled)
             {
-                log.Info("Skipping email sending. Notifications turned-off.");
+                logger.LogInformation("Skipping email sending. Notifications turned-off");
                 return;
             }
 
@@ -46,7 +48,7 @@
                 {
                     if (throttlingState.IsThrottling())
                     {
-                        log.Warn("Email notification throttled");
+                        logger.LogWarning("Email notification throttled");
                         return;
                     }
 
@@ -59,7 +61,7 @@
                         "\n\nWARNING: Your SMTP server was temporarily unavailable. Make sure to check ServicePulse for a full list of health check notifications.";
                 }
 
-                await EmailSender.Send(notifications.Email, message.Subject, message.Body, emailDropFolder);
+                await emailSender.Send(notifications.Email, message.Subject, message.Body, emailDropFolder);
             }
             catch (Exception e) when (e is not OperationCanceledException)
             {
@@ -77,7 +79,7 @@
                 }
                 else
                 {
-                    log.Warn("Success notification skipped due to throttling.");
+                    logger.LogWarning("Success notification skipped due to throttling");
                 }
             }
             finally
@@ -91,7 +93,7 @@
 
         string emailDropFolder;
 
-        static ILog log = LogManager.GetLogger<SendEmailNotificationHandler>();
+        readonly ILogger<SendEmailNotificationHandler> logger;
         static TimeSpan spinDelay = TimeSpan.FromSeconds(1);
         static TimeSpan throttlingDelay = TimeSpan.FromSeconds(30);
         static TimeSpan cacheTimeout = TimeSpan.FromMinutes(5);

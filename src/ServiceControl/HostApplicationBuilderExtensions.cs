@@ -6,6 +6,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
     using global::ServiceControl.Hosting;
+    using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
@@ -23,7 +24,6 @@ namespace Particular.ServiceControl
     using NLog.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
-    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
@@ -127,8 +127,8 @@ ServiceControl Logging Level:       {settings.LoggingSettings.LogLevel}
 Selected Transport Customization:   {settings.TransportType}
 -------------------------------------------------------------";
 
-            var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
-            logger.Info(startupMessage);
+            var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel);
+            logger.LogInformation(startupMessage);
             endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
             {
                 Settings = settings,

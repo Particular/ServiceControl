@@ -3,16 +3,17 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
-    using NServiceBus.Logging;
     using Persistence;
 
     class FailedErrorImportCustomCheck : CustomCheck
     {
-        public FailedErrorImportCustomCheck(IFailedErrorImportDataStore store)
+        public FailedErrorImportCustomCheck(IFailedErrorImportDataStore store, ILogger<FailedErrorImportCustomCheck> logger)
             : base("Error Message Ingestion", "ServiceControl Health", TimeSpan.FromHours(1))
         {
             this.store = store;
+            this.logger = logger;
         }
 
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
@@ -21,7 +22,7 @@
 
             if (hasFailedImports)
             {
-                Logger.Warn(Message);
+                logger.LogWarning(Message);
                 return CheckResult.Failed(Message);
             }
 
@@ -29,10 +30,9 @@
         }
 
         readonly IFailedErrorImportDataStore store;
-
         const string Message = @"One or more error messages have failed to import properly into ServiceControl and have been stored in the ServiceControl database.
 The import of these messages could have failed for a number of reasons and ServiceControl is not able to automatically reimport them. For guidance on how to resolve this see https://docs.particular.net/servicecontrol/import-failed-messages";
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(FailedErrorImportCustomCheck));
+        readonly ILogger<FailedErrorImportCustomCheck> logger;
     }
 }

@@ -9,7 +9,7 @@
     using Contracts.Operations;
     using Infrastructure.DomainEvents;
     using Infrastructure.Metrics;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using Recoverability;
@@ -28,12 +28,13 @@
             IIngestionUnitOfWorkFactory unitOfWorkFactory,
             Lazy<IMessageDispatcher> messageDispatcher,
             ITransportCustomization transportCustomization,
-            Settings settings)
+            Settings settings,
+            ILogger<ErrorIngestor> logger)
         {
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.messageDispatcher = messageDispatcher;
             this.settings = settings;
-
+            this.logger = logger;
             bulkInsertDurationMeter = metrics.GetMeter("Error ingestion - bulk insert duration", FrequencyInMilliseconds);
             var ingestedMeter = metrics.GetCounter("Error ingestion - ingested");
 
@@ -45,7 +46,7 @@
 
             }.Concat(errorEnrichers).ToArray();
 
-            errorProcessor = new ErrorProcessor(enrichers, failedMessageEnrichers.ToArray(), domainEvents, ingestedMeter);
+            errorProcessor = new ErrorProcessor(enrichers, failedMessageEnrichers.ToArray(), domainEvents, ingestedMeter, logger);
             retryConfirmationProcessor = new RetryConfirmationProcessor(domainEvents);
             logQueueAddress = new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(this.settings.ErrorLogQueue));
         }
@@ -86,15 +87,11 @@
 
                 if (settings.ForwardErrorMessages)
                 {
-                    if (Logger.IsDebugEnabled)
-                    {
-                        Logger.Debug($"Forwarding {storedFailed.Count} messages");
-                    }
+                    logger.LogDebug("Forwarding {FailedMessageCount} messages", storedFailed.Count);
+
                     await Forward(storedFailed, cancellationToken);
-                    if (Logger.IsDebugEnabled)
-                    {
-                        Logger.Debug("Forwarded messages");
-                    }
+
+                    logger.LogDebug("Forwarded messages");
                 }
 
                 foreach (var context in contexts)
@@ -104,10 +101,7 @@
             }
             catch (Exception e)
             {
-                if (Logger.IsWarnEnabled)
-                {
-                    Logger.Warn("Forwarding messages failed", e);
-                }
+                logger.LogWarning(e, "Forwarding messages failed");
 
                 // making sure to rethrow so that all messages get marked as failed
                 throw;
@@ -118,10 +112,7 @@
         {
             var stopwatch = Stopwatch.StartNew();
 
-            if (Logger.IsDebugEnabled)
-            {
-                Logger.Debug($"Batch size {failedMessageContexts.Count}");
-            }
+            logger.LogDebug("Batch size {FailedMessageBatchSize}", failedMessageContexts.Count);
 
             try
             {
@@ -137,10 +128,7 @@
             }
             catch (Exception e)
             {
-                if (Logger.IsWarnEnabled)
-                {
-                    Logger.Warn("Bulk insertion failed", e);
-                }
+                logger.LogWarning(e, "Bulk insertion failed");
 
                 // making sure to rethrow so that all messages get marked as failed
                 throw;
@@ -148,10 +136,8 @@
             finally
             {
                 stopwatch.Stop();
-                if (Logger.IsDebugEnabled)
-                {
-                    Logger.Debug($"Batch size {failedMessageContexts.Count} took {stopwatch.ElapsedMilliseconds} ms");
-                }
+
+                logger.LogDebug("Batch size {FailedMessageBatchSize} took {FailedMessageBatchProcessingTime} ms", failedMessageContexts.Count, stopwatch.ElapsedMilliseconds);
             }
         }
 
@@ -210,6 +196,6 @@
         readonly RetryConfirmationProcessor retryConfirmationProcessor;
         readonly UnicastAddressTag logQueueAddress;
 
-        static readonly ILog Logger = LogManager.GetLogger<ErrorIngestor>();
+        readonly ILogger<ErrorIngestor> logger;
     }
 }

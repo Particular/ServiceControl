@@ -10,7 +10,7 @@
 
     [ApiController]
     [Route("api")]
-    public class NotificationsController(IErrorMessageDataStore store, Settings settings) : ControllerBase
+    public class NotificationsController(IErrorMessageDataStore store, Settings settings, EmailSender emailSender) : ControllerBase
     {
         [Route("notifications/email")]
         [HttpGet]
@@ -69,7 +69,7 @@
 
             try
             {
-                await EmailSender.Send(
+                await emailSender.Send(
                         notificationsSettings.Email,
                         $"[{settings.InstanceName}] health check notification check successful",
                         $"[{settings.InstanceName}] health check notification check successful.");

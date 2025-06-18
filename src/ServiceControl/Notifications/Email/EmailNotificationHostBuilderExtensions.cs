@@ -10,6 +10,7 @@
         {
             var services = hostBuilder.Services;
             services.AddSingleton<EmailThrottlingState>();
+            services.AddSingleton<EmailSender>();
             services.AddDomainEventHandler<CustomChecksMailNotification>();
             services.AddHostedService<EmailNotificationHostedService>();
             return hostBuilder;

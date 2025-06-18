@@ -8,9 +8,10 @@
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
+    using ServiceControl.Infrastructure;
     using Settings;
 
-    class ImportFailedAuditsCommand(ILogger<ImportFailedAuditsCommand> logger) : AbstractCommand
+    class ImportFailedAuditsCommand : AbstractCommand
     {
         public override async Task Execute(HostArguments args, Settings settings)
         {
@@ -40,7 +41,7 @@
             }
             catch (OperationCanceledException e) when (tokenSource.IsCancellationRequested)
             {
-                logger.LogInformation(e, "Cancelled");
+                LoggerUtil.CreateStaticLogger<ImportFailedAuditsCommand>().LogInformation(e, "Cancelled");
             }
             finally
             {

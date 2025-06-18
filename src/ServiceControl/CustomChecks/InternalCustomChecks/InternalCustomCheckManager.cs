@@ -4,8 +4,8 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.BackgroundTasks;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
-    using NServiceBus.Logging;
     using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.Operations;
 
@@ -15,12 +15,14 @@
             ICustomCheck check,
             EndpointDetails localEndpointDetails,
             IAsyncTimer scheduler,
-            CustomCheckResultProcessor checkResultProcessor)
+            CustomCheckResultProcessor checkResultProcessor,
+            ILogger logger)
         {
             this.check = check;
             this.localEndpointDetails = localEndpointDetails;
             this.scheduler = scheduler;
             this.checkResultProcessor = checkResultProcessor;
+            this.logger = logger;
         }
 
         public void Start()
@@ -42,13 +44,14 @@
             }
             catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
             {
-                Logger.Info("Cancelled", e);
+                logger.LogInformation(e, "Cancelled");
             }
             catch (Exception ex)
             {
-                var reason = $"`{check.GetType()}` implementation failed to run.";
+                var customCheckType = check.GetType();
+                var reason = $"`{customCheckType}` implementation failed to run.";
                 result = CheckResult.Failed(reason);
-                Logger.Error(reason, ex);
+                logger.LogError(ex, "`{CustomCheckType}` implementation failed to run", customCheckType);
             }
 
             var detail = new CustomCheckDetail
@@ -74,7 +77,6 @@
         readonly EndpointDetails localEndpointDetails;
         readonly IAsyncTimer scheduler;
         readonly CustomCheckResultProcessor checkResultProcessor;
-
-        static ILog Logger = LogManager.GetLogger<InternalCustomCheckManager>();
+        readonly ILogger logger;
     }
 }

@@ -9,7 +9,7 @@
     using System.Threading.Tasks;
     using Configuration;
     using Infrastructure;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.Transport;
     using Persistence;
     using ServiceBus.Management.Infrastructure.Installers;
@@ -21,9 +21,10 @@
 
         ImportFailureCircuitBreaker failureCircuitBreaker;
 
-        public ErrorIngestionFaultPolicy(IErrorMessageDataStore store, LoggingSettings loggingSettings, Func<string, Exception, Task> onCriticalError)
+        public ErrorIngestionFaultPolicy(IErrorMessageDataStore store, LoggingSettings loggingSettings, Func<string, Exception, Task> onCriticalError, ILogger logger)
         {
             this.store = store;
+            this.logger = logger;
             failureCircuitBreaker = new ImportFailureCircuitBreaker(onCriticalError);
 
             if (!AppEnvironment.RunningInContainer)
@@ -71,7 +72,7 @@
 
         async Task DoLogging(Exception exception, FailedErrorImport failure, CancellationToken cancellationToken)
         {
-            log.Error("Failed importing error message", exception);
+            logger.LogError(exception, "Failed importing error message");
 
             // Write to data store
             await store.StoreFailedErrorImport(failure);
@@ -98,6 +99,6 @@
             EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
         }
 
-        static readonly ILog log = LogManager.GetLogger<ErrorIngestionFaultPolicy>();
+        readonly ILogger logger;
     }
 }

@@ -23,7 +23,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Starting {nameof(HeartbeatEndpointSettingsSyncHostedService)}");
+        logger.LogInformation("Starting {ServiceName}", nameof(HeartbeatEndpointSettingsSyncHostedService));
 
         try
         {
@@ -35,7 +35,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
             {
                 try
                 {
-                    logger.LogInformation($"Performing sync for {nameof(HeartbeatEndpointSettingsSyncHostedService)}");
+                    logger.LogInformation("Performing sync for {ServiceName}", nameof(HeartbeatEndpointSettingsSyncHostedService));
                     await PerformSync(cancellationToken);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
@@ -47,7 +47,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            logger.LogInformation($"Stopping {nameof(HeartbeatEndpointSettingsSyncHostedService)}");
+            logger.LogInformation("Stopping {ServiceName}", nameof(HeartbeatEndpointSettingsSyncHostedService));
         }
     }
 
@@ -80,7 +80,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
                     {
                         endpointInstanceMonitoring.RemoveEndpoint(endpointId);
                         await monitoringDataStore.Delete(endpointId);
-                        logger.LogInformation($"Removed endpoint '{endpointSetting.Name}' from monitoring data.");
+                        logger.LogInformation("Removed endpoint '{EndpointName}' from monitoring data", endpointSetting.Name);
                     }
                 }
             }
@@ -108,7 +108,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
             {
                 await endpointSettingsStore.Delete(endpointSetting.Name, cancellationToken);
                 logger.LogInformation(
-                    $"Removed EndpointTracking setting for '{endpointSetting.Name}' endpoint, since this endpoint is no longer monitored.");
+                    "Removed EndpointTracking setting for '{Setting}' endpoint, since this endpoint is no longer monitored", endpointSetting.Name);
             }
 
             settingsNames.Add(endpointSetting.Name);
@@ -121,7 +121,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
                 new EndpointSettings { Name = string.Empty, TrackInstances = userSetTrackInstances },
                 cancellationToken);
             logger.LogInformation(
-                $"Initialized default value of EndpointTracking to {(userSetTrackInstances ? "tracking" : "not tracking")}.");
+                "Initialized default value of EndpointTracking to {TrackInstances}", userSetTrackInstances ? "tracking" : "not tracking");
         }
 
         // Initialise settings for any missing endpoint
@@ -131,7 +131,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
                 new EndpointSettings { Name = name, TrackInstances = userSetTrackInstances },
                 cancellationToken);
             logger.LogInformation(
-                $"Initialized '{name}' value of EndpointTracking to {(userSetTrackInstances ? "tracking" : "not tracking")}.");
+                "Initialized '{Setting}' value of EndpointTracking to {TrackInstances}", name, userSetTrackInstances ? "tracking" : "not tracking");
         }
     }
 }

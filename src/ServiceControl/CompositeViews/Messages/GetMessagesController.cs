@@ -10,7 +10,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using Operations.BodyStorage;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -29,7 +29,8 @@ namespace ServiceControl.CompositeViews.Messages
         GetAllMessagesForEndpointApi allMessagesForEndpointApi,
         GetAuditCountsForEndpointApi auditCountsForEndpointApi,
         SearchApi api,
-        SearchEndpointApi endpointApi)
+        SearchEndpointApi endpointApi,
+        ILogger<GetMessagesController> logger)
         : ControllerBase
     {
         [Route("messages")]
@@ -106,7 +107,8 @@ namespace ServiceControl.CompositeViews.Messages
             var forwarderError = await forwarder.SendAsync(HttpContext, remote.BaseAddress, httpMessageInvoker);
             if (forwarderError != ForwarderError.None && HttpContext.GetForwarderErrorFeature()?.Exception is { } exception)
             {
-                logger.Warn($"Failed to forward the request to remote instance at {remote.BaseAddress}{HttpContext.Request.GetEncodedPathAndQuery()}.", exception);
+                logger.LogWarning(exception, "Failed to forward the request to remote instance at {RemoteInstanceUrl}",
+                    remote.BaseAddress + HttpContext.Request.GetEncodedPathAndQuery());
             }
 
             return Empty;
@@ -160,7 +162,5 @@ namespace ServiceControl.CompositeViews.Messages
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
-
-        static ILog logger = LogManager.GetLogger(typeof(GetMessagesController));
     }
 }

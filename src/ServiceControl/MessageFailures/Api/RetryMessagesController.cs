@@ -8,15 +8,20 @@
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
     using Yarp.ReverseProxy.Forwarder;
 
     [ApiController]
     [Route("api")]
-    public class RetryMessagesController(Settings settings, HttpMessageInvoker httpMessageInvoker, IHttpForwarder forwarder, IMessageSession messageSession) : ControllerBase
+    public class RetryMessagesController(
+        Settings settings,
+        HttpMessageInvoker httpMessageInvoker,
+        IHttpForwarder forwarder,
+        IMessageSession messageSession,
+        ILogger<RetryMessagesController> logger) : ControllerBase
     {
         [Route("errors/{failedMessageId:required:minlength(1)}/retry")]
         [HttpPost]
@@ -38,7 +43,7 @@
             var forwarderError = await forwarder.SendAsync(HttpContext, remote.BaseAddress, httpMessageInvoker);
             if (forwarderError != ForwarderError.None && HttpContext.GetForwarderErrorFeature()?.Exception is { } exception)
             {
-                logger.Warn($"Failed to forward the request ot remote instance at {remote.BaseAddress + HttpContext.Request.GetEncodedPathAndQuery()}.", exception);
+                logger.LogWarning(exception, "Failed to forward the request to remote instance at {RemoteInstanceUrl}", remote.BaseAddress + HttpContext.Request.GetEncodedPathAndQuery());
             }
 
             return Empty;
@@ -88,7 +93,5 @@
 
             return Accepted();
         }
-
-        static ILog logger = LogManager.GetLogger(typeof(RetryMessagesController));
     }
 }

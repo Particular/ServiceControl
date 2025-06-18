@@ -6,8 +6,8 @@
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
     using Infrastructure.DomainEvents;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class CustomChecksMailNotification : IDomainHandler<CustomCheckFailed>, IDomainHandler<CustomCheckSucceeded>
@@ -29,11 +29,11 @@
             "Error Message Ingestion"
         };
 
-        public CustomChecksMailNotification(IMessageSession messageSession, Settings settings, EmailThrottlingState throttlingState)
+        public CustomChecksMailNotification(IMessageSession messageSession, Settings settings, EmailThrottlingState throttlingState, ILogger<CustomChecksMailNotification> logger)
         {
             this.messageSession = messageSession;
             this.throttlingState = throttlingState;
-
+            this.logger = logger;
             instanceName = settings.InstanceName;
             instanceAddress = settings.ApiUrl;
 
@@ -49,7 +49,7 @@
             {
                 if (throttlingState.IsThrottling())
                 {
-                    log.Warn("Email notification throttled");
+                    logger.LogWarning("Email notification throttled");
                     return Task.CompletedTask;
                 }
 
@@ -74,7 +74,7 @@
             {
                 if (throttlingState.IsThrottling())
                 {
-                    log.Warn("Email notification throttled");
+                    logger.LogWarning("Email notification throttled");
                     return Task.CompletedTask;
                 }
 
@@ -93,6 +93,6 @@
 
         bool IsHealthCheck(string checkId) => serviceControlHealthCustomCheckIds.Any(id => string.Equals(id, checkId, StringComparison.InvariantCultureIgnoreCase));
 
-        static ILog log = LogManager.GetLogger<CustomChecksMailNotification>();
+        readonly ILogger<CustomChecksMailNotification> logger;
     }
 }
