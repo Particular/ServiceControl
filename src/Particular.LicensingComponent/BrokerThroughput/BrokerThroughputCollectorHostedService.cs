@@ -29,11 +29,11 @@ public class BrokerThroughputCollectorHostedService(
 
         if (brokerThroughputQuery.HasInitialisationErrors(out var errorMessage))
         {
-            logger.LogError($"Could not start {nameof(BrokerThroughputCollectorHostedService)}, due to initialisation errors:\n{errorMessage}");
+            logger.LogError("Could not start {ServiceName}, due to initialisation errors:\n{InitializationErrors}", nameof(BrokerThroughputCollectorHostedService), errorMessage);
             return;
         }
 
-        logger.LogInformation($"Starting {nameof(BrokerThroughputCollectorHostedService)}");
+        logger.LogInformation("Starting {ServiceName}", nameof(BrokerThroughputCollectorHostedService));
 
         try
         {
@@ -55,7 +55,7 @@ public class BrokerThroughputCollectorHostedService(
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
-            logger.LogInformation($"Stopping {nameof(BrokerThroughputCollectorHostedService)}");
+            logger.LogInformation("Stopping {ServiceName}", nameof(BrokerThroughputCollectorHostedService));
         }
     }
 

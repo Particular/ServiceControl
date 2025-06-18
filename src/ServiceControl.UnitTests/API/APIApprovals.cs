@@ -12,6 +12,7 @@
     using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.AspNetCore.Mvc.Routing;
     using Microsoft.AspNetCore.Routing;
+    using Microsoft.Extensions.Logging.Abstractions;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Particular.Approvals;
@@ -30,14 +31,13 @@
             var httpContext = new DefaultHttpContext { Request = { Scheme = "http", Host = new HostString("localhost") } };
             var actionContext = new ActionContext { HttpContext = httpContext, RouteData = new RouteData(), ActionDescriptor = new ControllerActionDescriptor() };
             var controllerContext = new ControllerContext(actionContext);
+            var configurationApi = new ConfigurationApi(
+                new ActiveLicense(null, NullLogger<ActiveLicense>.Instance) { IsValid = true },
+                new Settings(),
+                null,
+                new MassTransitConnectorHeartbeatStatus());
 
-            var controller = new RootController(new ConfigurationApi(
-                    new ActiveLicense(null) { IsValid = true },
-                    new Settings(),
-                    null,
-                    new MassTransitConnectorHeartbeatStatus()
-                )
-            )
+            var controller = new RootController(configurationApi)
             {
                 ControllerContext = controllerContext,
                 Url = new UrlHelper(actionContext)

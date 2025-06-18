@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging.Abstractions;
     using NUnit.Framework;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Monitoring;
@@ -13,7 +14,7 @@
         [Test]
         public async Task When_endpoint_removed_should_stay_removed()
         {
-            var monitor = new EndpointInstanceMonitoring(new FakeDomainEvents());
+            var monitor = new EndpointInstanceMonitoring(new FakeDomainEvents(), NullLogger<EndpointInstanceMonitor>.Instance);
 
             var monitoredEndpoint = new EndpointInstanceId("MonitoredEndpoint", "HostName", Guid.NewGuid());
             var lastHeartbeat = DateTime.UtcNow;
