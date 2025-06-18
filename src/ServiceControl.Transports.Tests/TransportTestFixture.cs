@@ -13,6 +13,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using NUnit.Framework;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.TestLogger;
     using Transports;
 
@@ -24,6 +25,7 @@
         {
             //TODO remove LogManager usage
             LogManager.UseFactory(new ExtensionsLoggerFactory(new TestContextAppenderFactory()));
+            LoggerUtil.ActiveLoggers = Loggers.Test;
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
             registrations = [];
