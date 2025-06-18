@@ -7,20 +7,21 @@ namespace ServiceControl.Recoverability
     using System.Threading.Tasks;
     using Infrastructure;
     using MessageFailures;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using ServiceControl.Persistence;
 
     class RetriesGateway
     {
-        public RetriesGateway(IRetryDocumentDataStore store, RetryingManager operationManager)
+        public RetriesGateway(IRetryDocumentDataStore store, RetryingManager operationManager, ILogger<RetriesGateway> logger)
         {
             this.store = store;
             this.operationManager = operationManager;
+            this.logger = logger;
         }
 
         public async Task StartRetryForSingleMessage(string uniqueMessageId)
         {
-            Log.Info($"Retrying a single message {uniqueMessageId}");
+            logger.LogInformation("Retrying a single message {UniqueMessageId}", uniqueMessageId);
 
             var requestId = uniqueMessageId;
             var retryType = RetryType.SingleMessage;
@@ -33,7 +34,7 @@ namespace ServiceControl.Recoverability
 
         public async Task StartRetryForMessageSelection(string[] uniqueMessageIds)
         {
-            Log.Info($"Retrying a selection of {uniqueMessageIds.Length} messages");
+            logger.LogInformation("Retrying a selection of {MessageCount} messages", uniqueMessageIds.Length);
 
             var requestId = DeterministicGuid.MakeId(string.Join(string.Empty, uniqueMessageIds)).ToString();
             var retryType = RetryType.MultipleMessages;
@@ -48,7 +49,7 @@ namespace ServiceControl.Recoverability
         {
             if (messageIds == null || !messageIds.Any())
             {
-                Log.Info($"Batch '{batchName}' contains no messages");
+                logger.LogInformation("Batch '{BatchName}' contains no messages", batchName);
                 return;
             }
 
@@ -56,13 +57,13 @@ namespace ServiceControl.Recoverability
 
             var batchDocumentId = await store.CreateBatchDocument(RetryDocumentManager.RetrySessionId, requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier);
 
-            Log.Info($"Created Batch '{batchDocumentId}' with {messageIds.Length} messages for '{batchName}'.");
+            logger.LogInformation("Created Batch '{BatchDocumentId}' with {BatchMessageCount} messages for '{BatchName}'", batchDocumentId, messageIds.Length, batchName);
 
             await store.StageRetryByUniqueMessageIds(batchDocumentId, messageIds);
 
             await MoveBatchToStaging(batchDocumentId);
 
-            Log.Info($"Moved Batch '{batchDocumentId}' to Staging");
+            logger.LogInformation("Moved Batch '{BatchDocumentId}' to Staging", batchDocumentId);
         }
 
         // Needs to be overridable by a test
@@ -114,27 +115,27 @@ namespace ServiceControl.Recoverability
         public void StartRetryForAllMessages()
         {
             var item = new RetryForAllMessages();
-            Log.Info($"Enqueuing index based bulk retry '{item}'");
+            logger.LogInformation("Enqueuing index based bulk retry '{Item}'", item);
             bulkRequests.Enqueue(item);
         }
 
         public void StartRetryForEndpoint(string endpoint)
         {
             var item = new RetryForEndpoint(endpoint);
-            Log.Info($"Enqueuing index based bulk retry '{item}'");
+            logger.LogInformation("Enqueuing index based bulk retry '{Item}'", item);
             bulkRequests.Enqueue(item);
         }
 
         public void StartRetryForFailedQueueAddress(string failedQueueAddress, FailedMessageStatus status)
         {
             var item = new RetryForFailedQueueAddress(failedQueueAddress, status);
-            Log.Info($"Enqueuing index based bulk retry '{item}'");
+            logger.LogInformation("Enqueuing index based bulk retry '{Item}'", item);
             bulkRequests.Enqueue(item);
         }
 
         public void EnqueueRetryForFailureGroup(RetryForFailureGroup item)
         {
-            Log.Info($"Enqueuing index based bulk retry '{item}'");
+            logger.LogInformation("Enqueuing index based bulk retry '{Item}'", item);
             bulkRequests.Enqueue(item);
         }
 
@@ -143,7 +144,7 @@ namespace ServiceControl.Recoverability
         readonly ConcurrentQueue<BulkRetryRequest> bulkRequests = new ConcurrentQueue<BulkRetryRequest>();
         const int BatchSize = 1000;
 
-        static readonly ILog Log = LogManager.GetLogger(typeof(RetriesGateway));
+        readonly ILogger<RetriesGateway> logger;
 
         public abstract class BulkRetryRequest
         {

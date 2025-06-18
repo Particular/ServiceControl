@@ -4,11 +4,11 @@
     using System.Net;
     using System.Net.Mail;
     using System.Threading.Tasks;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
 
-    class EmailSender
+    public class EmailSender(ILogger<EmailSender> logger)
     {
-        public static async Task Send(EmailNotifications settings, string subject, string body, string emailDropFolder = null)
+        public async Task Send(EmailNotifications settings, string subject, string body, string emailDropFolder = null)
         {
             try
             {
@@ -20,7 +20,7 @@
             }
             catch (Exception e)
             {
-                log.Warn("Failure sending email.", e);
+                logger.LogWarning(e, "Failure sending email");
                 throw;
             }
         }
@@ -50,7 +50,6 @@
             return smtpClient;
         }
 
-        static ILog log = LogManager.GetLogger<EmailSender>();
         static int defaultTimeout = (int)TimeSpan.FromSeconds(10).TotalMilliseconds;
     }
 }

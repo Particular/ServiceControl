@@ -9,8 +9,8 @@
     using Infrastructure;
     using Infrastructure.Metrics;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence;
     using Persistence.UnitOfWork;
@@ -30,7 +30,8 @@
             ErrorIngestionCustomCheck.State ingestionState,
             ErrorIngestor ingestor,
             IIngestionUnitOfWorkFactory unitOfWorkFactory,
-            IHostApplicationLifetime applicationLifetime)
+            IHostApplicationLifetime applicationLifetime,
+            ILogger<ErrorIngestion> logger)
         {
             this.settings = settings;
             this.transportCustomization = transportCustomization;
@@ -39,7 +40,7 @@
             this.ingestor = ingestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.applicationLifetime = applicationLifetime;
-
+            this.logger = logger;
             receivedMeter = metrics.GetCounter("Error ingestion - received");
             batchSizeMeter = metrics.GetMeter("Error ingestion - batch size");
             batchDurationMeter = metrics.GetMeter("Error ingestion - batch processing duration", FrequencyInMilliseconds);
@@ -57,7 +58,7 @@
                 FullMode = BoundedChannelFullMode.Wait
             });
 
-            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, settings.LoggingSettings, OnCriticalError);
+            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, settings.LoggingSettings, OnCriticalError, logger);
 
             watchdog = new Watchdog(
                 "failed message ingestion",
@@ -66,8 +67,7 @@
                 ingestionState.ReportError,
                 ingestionState.Clear,
                 settings.TimeToRestartErrorIngestionAfterFailure,
-                //TODO replace when converting this class to ILogger Logger
-                LoggerUtil.CreateStaticLogger<ErrorIngestion>()
+                logger
             );
         }
 
@@ -110,11 +110,11 @@
 
                         if (e is OperationCanceledException && stoppingToken.IsCancellationRequested)
                         {
-                            Logger.Info("Batch cancelled", e);
+                            logger.LogInformation(e, "Batch cancelled");
                             break;
                         }
 
-                        Logger.Info("Ingesting messages failed", e);
+                        logger.LogInformation(e, "Ingesting messages failed");
                     }
                     finally
                     {
@@ -147,7 +147,7 @@
                     }
                     catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
                     {
-                        Logger.Info("Shutdown cancelled", e);
+                        logger.LogInformation(e, "Shutdown cancelled");
                     }
                 }
             }
@@ -161,7 +161,7 @@
 
                 var canIngest = unitOfWorkFactory.CanIngestMore();
 
-                Logger.DebugFormat("Ensure started {0}", canIngest);
+                logger.LogDebug("Ensure started {CanIngest}", canIngest);
 
                 if (canIngest)
                 {
@@ -195,13 +195,13 @@
         {
             if (messageReceiver != null)
             {
-                Logger.Debug("Infrastructure already Started");
+                logger.LogDebug("Infrastructure already Started");
                 return;
             }
 
             try
             {
-                Logger.Info("Starting infrastructure");
+                logger.LogInformation("Starting infrastructure");
                 transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
                     errorQueue,
                     transportSettings,
@@ -220,11 +220,11 @@
 
                 await messageReceiver.StartReceive(cancellationToken);
 
-                Logger.Info(LogMessages.StartedInfrastructure);
+                logger.LogInformation(LogMessages.StartedInfrastructure);
             }
             catch (Exception e)
             {
-                Logger.Error("Failed to start infrastructure", e);
+                logger.LogError(e, "Failed to start infrastructure");
                 throw;
             }
         }
@@ -232,12 +232,12 @@
         {
             if (transportInfrastructure == null)
             {
-                Logger.Debug("Infrastructure already Stopped");
+                logger.LogDebug("Infrastructure already Stopped");
                 return;
             }
             try
             {
-                Logger.Info("Stopping infrastructure");
+                logger.LogInformation("Stopping infrastructure");
                 try
                 {
                     if (messageReceiver != null)
@@ -253,11 +253,11 @@
                 messageReceiver = null;
                 transportInfrastructure = null;
 
-                Logger.Info(LogMessages.StoppedInfrastructure);
+                logger.LogInformation(LogMessages.StoppedInfrastructure);
             }
             catch (Exception e)
             {
-                Logger.Error("Failed to stop infrastructure", e);
+                logger.LogError(e, "Failed to stop infrastructure");
                 throw;
             }
         }
@@ -285,7 +285,7 @@
 
         Task OnCriticalError(string failure, Exception exception)
         {
-            Logger.Fatal($"OnCriticalError. '{failure}'", exception);
+            logger.LogCritical(exception, "OnCriticalError. '{FailureMessage}'", failure);
             return watchdog.OnFailure(failure);
         }
 
@@ -323,7 +323,7 @@
         readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly IHostApplicationLifetime applicationLifetime;
 
-        static readonly ILog Logger = LogManager.GetLogger<ErrorIngestion>();
+        readonly ILogger<ErrorIngestion> logger;
 
         internal static class LogMessages
         {

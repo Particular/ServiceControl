@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using Hosting.Commands;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging.Abstractions;
     using NServiceBus;
     using NUnit.Framework;
     using Particular.ServiceControl.Hosting;
@@ -57,7 +58,7 @@
         public async Task CanRunImportFailedMessagesMode()
             => await new TestableImportFailedErrorsCommand().Execute(new HostArguments(Array.Empty<string>()), settings);
 
-        class TestableImportFailedErrorsCommand : ImportFailedErrorsCommand
+        class TestableImportFailedErrorsCommand() : ImportFailedErrorsCommand()
         {
             protected override EndpointConfiguration CreateEndpointConfiguration(Settings settings)
             {
