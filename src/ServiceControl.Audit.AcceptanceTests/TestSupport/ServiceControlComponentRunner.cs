@@ -44,7 +44,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(logPath);
 
-            var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace, defaultLevel: NLog.LogLevel.Debug, logPath: logPath);
+            var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace, defaultLevel: LogLevel.Debug, logPath: logPath);
 
             settings = new Settings(transportToUse.TypeName, persistenceToUse.PersistenceType, loggingSettings)
             {

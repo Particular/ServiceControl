@@ -6,17 +6,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Npgsql;
-using NServiceBus.Logging;
 
 class QueueLengthProvider : AbstractQueueLengthProvider
 {
-    public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store) : base(settings, store)
+    public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store, ILogger<QueueLengthProvider> logger) : base(settings, store)
     {
         connectionString = ConnectionString
             .RemoveCustomConnectionStringParts(out var customSchema, out _);
 
         defaultSchema = customSchema ?? "public";
+        this.logger = logger;
     }
     public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
     {
@@ -55,7 +56,7 @@ class QueueLengthProvider : AbstractQueueLengthProvider
             }
             catch (Exception e)
             {
-                Logger.Error("Error querying sql queue sizes.", e);
+                logger.LogError(e, "Error querying SQL queue sizes.");
             }
         }
     }
@@ -113,7 +114,7 @@ class QueueLengthProvider : AbstractQueueLengthProvider
 
             if (queueLength == -1)
             {
-                Logger.Warn($"Table {chunkPair.Key} does not exist.");
+                logger.LogWarning("Table {TableName} does not exist.", chunkPair.Key);
             }
             else
             {
@@ -130,7 +131,7 @@ class QueueLengthProvider : AbstractQueueLengthProvider
     readonly string connectionString;
     readonly string defaultSchema;
 
-    static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
+    readonly ILogger<QueueLengthProvider> logger;
 
     static readonly TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
 

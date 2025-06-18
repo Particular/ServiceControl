@@ -5,7 +5,8 @@
     using System.IO;
     using System.Linq;
     using System.Text.Json;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
+    using ServiceControl.Infrastructure;
 
     public class TransportManifest
     {
@@ -60,7 +61,7 @@
             }
             catch (Exception ex)
             {
-                logger.Warn($"Failed to load transport manifests from {assemblyDirectory}", ex);
+                logger.LogWarning(ex, "Failed to load transport manifests from {AssemblyDirectory}", assemblyDirectory);
             }
 
             try
@@ -79,10 +80,10 @@
             }
             catch (Exception ex)
             {
-                logger.Warn($"Failed to load transport manifests from development locations", ex);
+                logger.LogWarning(ex, "Failed to load transport manifests from development locations");
             }
 
-            TransportManifests.SelectMany(t => t.Definitions).ToList().ForEach(m => logger.Info($"Found transport manifest for {m.DisplayName}"));
+            TransportManifests.SelectMany(t => t.Definitions).ToList().ForEach(m => logger.LogInformation("Found transport manifest for {TransportManifestDisplayName}", m.DisplayName));
         }
 
         static string GetAssemblyDirectory()
@@ -105,7 +106,7 @@
             return transportManifestDefinition;
         }
 
-        static readonly ILog logger = LogManager.GetLogger(typeof(TransportManifestLibrary));
+        static readonly ILogger logger = LoggerUtil.CreateStaticLogger(typeof(TransportManifestLibrary));
     }
 }
 

@@ -1,21 +1,38 @@
 namespace ServiceControl.Infrastructure;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
-using NLog;
-using NLog.Common;
+using System.Linq;
+using Microsoft.Extensions.Logging;
 using ServiceControl.Configuration;
 
-public class LoggingSettings(SettingsRootNamespace rootNamespace, LogLevel defaultLevel = null, string logPath = null)
+public class LoggingSettings
 {
-    public LogLevel LogLevel { get; } = InitializeLogLevel(rootNamespace, defaultLevel);
+    public LoggingSettings(SettingsRootNamespace rootNamespace, LogLevel defaultLevel = LogLevel.Information, string logPath = null)
+    {
+        LogLevel = InitializeLogLevel(rootNamespace, defaultLevel);
+        LogPath = SettingsReader.Read(rootNamespace, logPathKey, Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogLocation()));
 
-    public string LogPath { get; } = SettingsReader.Read(rootNamespace, "LogPath", Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogLocation()));
+        var loggingProviders = (SettingsReader.Read<string>(rootNamespace, loggingProvidersKey) ?? "").Split(",");
+        var activeLoggers = Loggers.None;
+        if (loggingProviders.Contains("NLog"))
+        {
+            activeLoggers |= Loggers.NLog;
+        }
+        if (loggingProviders.Contains("Seq"))
+        {
+            activeLoggers |= Loggers.Seq;
+        }
+        LoggerUtil.ActiveLoggers = activeLoggers;
+    }
+
+    public LogLevel LogLevel { get; }
+
+    public string LogPath { get; }
 
     static LogLevel InitializeLogLevel(SettingsRootNamespace rootNamespace, LogLevel defaultLevel)
     {
-        defaultLevel ??= LogLevel.Info;
-
         var levelText = SettingsReader.Read<string>(rootNamespace, logLevelKey);
 
         if (string.IsNullOrWhiteSpace(levelText))
@@ -23,31 +40,41 @@ public class LoggingSettings(SettingsRootNamespace rootNamespace, LogLevel defau
             return defaultLevel;
         }
 
-        try
-        {
-            return LogLevel.FromString(levelText);
-        }
-        catch
-        {
-            InternalLogger.Warn($"Failed to parse {logLevelKey} setting. Defaulting to {defaultLevel.Name}.");
-            return defaultLevel;
-        }
+        return ParseLogLevel(levelText, defaultLevel);
     }
 
     // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
     // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe
     static string DefaultLogLocation() => Path.Combine(AppContext.BaseDirectory, ".logs");
 
-    public Microsoft.Extensions.Logging.LogLevel ToHostLogLevel() => LogLevel switch
+    // This is not a complete mapping of NLog levels, just the ones that are different.
+    static readonly Dictionary<string, LogLevel> NLogAliases =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["info"] = LogLevel.Information,
+            ["warn"] = LogLevel.Warning,
+            ["fatal"] = LogLevel.Critical,
+            ["off"] = LogLevel.None
+        };
+
+    static LogLevel ParseLogLevel(string value, LogLevel defaultLevel)
     {
-        _ when LogLevel == LogLevel.Trace => Microsoft.Extensions.Logging.LogLevel.Trace,
-        _ when LogLevel == LogLevel.Debug => Microsoft.Extensions.Logging.LogLevel.Debug,
-        _ when LogLevel == LogLevel.Info => Microsoft.Extensions.Logging.LogLevel.Information,
-        _ when LogLevel == LogLevel.Warn => Microsoft.Extensions.Logging.LogLevel.Warning,
-        _ when LogLevel == LogLevel.Error => Microsoft.Extensions.Logging.LogLevel.Error,
-        _ when LogLevel == LogLevel.Fatal => Microsoft.Extensions.Logging.LogLevel.Critical,
-        _ => Microsoft.Extensions.Logging.LogLevel.None
-    };
+        if (Enum.TryParse(value, ignoreCase: true, out LogLevel parsedLevel))
+        {
+            return parsedLevel;
+        }
+
+        if (NLogAliases.TryGetValue(value.Trim(), out parsedLevel))
+        {
+            return parsedLevel;
+        }
+
+        LoggerUtil.CreateStaticLogger<LoggingSettings>().LogWarning("Failed to parse {LogLevelKey} setting. Defaulting to {DefaultLevel}.", logLevelKey, defaultLevel);
+
+        return defaultLevel;
+    }
 
     const string logLevelKey = "LogLevel";
+    const string logPathKey = "LogPath";
+    const string loggingProvidersKey = "LoggingProviders";
 }

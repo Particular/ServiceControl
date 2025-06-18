@@ -39,7 +39,7 @@ static class HostApplicationBuilderExtensions
         RecordStartup(settings, configuration, persistenceConfiguration);
 
         builder.Logging.ClearProviders();
-        builder.Logging.BuildLogger(settings.LoggingSettings.ToHostLogLevel());
+        builder.Logging.BuildLogger(settings.LoggingSettings.LogLevel);
 
         var services = builder.Services;
         var transportSettings = settings.ToTransportSettings();
@@ -118,7 +118,7 @@ static class HostApplicationBuilderExtensions
                     }
                 });
 
-            var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.ToHostLogLevel());
+            var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel);
             logger.LogInformation("OpenTelemetry metrics exporter enabled: {OtlpEndpointUrl}", settings.OtlpEndpointUrl);
         }
     }
@@ -136,7 +136,7 @@ Persistence Customization:          {settings.PersistenceType},
 Persistence:                        {persistenceConfiguration.Name}
 -------------------------------------------------------------";
 
-        var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.ToHostLogLevel());
+        var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel);
         logger.LogInformation(startupMessage);
         endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new { Settings = settings });
     }

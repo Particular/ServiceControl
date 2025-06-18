@@ -6,17 +6,18 @@ namespace ServiceControl.Transports.ASBS
     using System.Threading;
     using System.Threading.Tasks;
     using Azure.Messaging.ServiceBus.Administration;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
 
     class QueueLengthProvider : AbstractQueueLengthProvider
     {
-        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store) : base(settings, store)
+        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store, ILogger<QueueLengthProvider> logger) : base(settings, store)
         {
             var connectionSettings = ConnectionStringParser.Parse(ConnectionString);
 
             queryDelayInterval = connectionSettings.QueryDelayInterval ?? TimeSpan.FromMilliseconds(500);
 
             managementClient = connectionSettings.AuthenticationMethod.BuildManagementClient();
+            this.logger = logger;
         }
 
         public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack) =>
@@ -32,14 +33,14 @@ namespace ServiceControl.Transports.ASBS
             {
                 try
                 {
-                    Logger.Debug("Waiting for next interval");
+                    logger.LogDebug("Waiting for next interval");
                     await Task.Delay(queryDelayInterval, stoppingToken);
 
-                    Logger.DebugFormat("Querying management client.");
+                    logger.LogDebug("Querying management client.");
 
                     var queueRuntimeInfos = await GetQueueList(stoppingToken);
 
-                    Logger.DebugFormat("Retrieved details of {0} queues", queueRuntimeInfos.Count);
+                    logger.LogDebug("Retrieved details of {QueueCount} queues", queueRuntimeInfos.Count);
 
                     UpdateAllQueueLengths(queueRuntimeInfos);
                 }
@@ -49,7 +50,7 @@ namespace ServiceControl.Transports.ASBS
                 }
                 catch (Exception e)
                 {
-                    Logger.Error("Error querying Azure Service Bus queue sizes.", e);
+                    logger.LogError(e, "Error querying Azure Service Bus queue sizes.");
                 }
             }
         }
@@ -109,7 +110,6 @@ namespace ServiceControl.Transports.ASBS
         readonly ConcurrentDictionary<string, string> endpointQueueMappings = new ConcurrentDictionary<string, string>();
         readonly ServiceBusAdministrationClient managementClient;
         readonly TimeSpan queryDelayInterval;
-
-        static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
+        readonly ILogger<QueueLengthProvider> logger;
     }
 }

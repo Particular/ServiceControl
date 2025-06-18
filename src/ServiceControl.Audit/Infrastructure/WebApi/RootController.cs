@@ -51,7 +51,7 @@
                     Logging = new
                     {
                         settings.LoggingSettings.LogPath,
-                        LoggingLevel = settings.LoggingSettings.LogLevel.Name
+                        LoggingLevel = settings.LoggingSettings.LogLevel
                     }
                 },
                 DataRetention = new

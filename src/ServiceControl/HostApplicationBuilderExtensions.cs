@@ -46,7 +46,7 @@ namespace Particular.ServiceControl
             logging.ClearProviders();
             //HINT: configuration used by NLog comes from LoggingConfigurator.cs
             logging.AddNLog();
-            logging.SetMinimumLevel(settings.LoggingSettings.ToHostLogLevel());
+            logging.SetMinimumLevel(settings.LoggingSettings.LogLevel);
 
             var services = hostBuilder.Services;
             var transportSettings = settings.ToTransportSettings();
@@ -127,7 +127,7 @@ ServiceControl Logging Level:       {settings.LoggingSettings.LogLevel}
 Selected Transport Customization:   {settings.TransportType}
 -------------------------------------------------------------";
 
-            var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.ToHostLogLevel());
+            var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel);
             logger.LogInformation(startupMessage);
             endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
             {

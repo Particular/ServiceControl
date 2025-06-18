@@ -1,19 +1,22 @@
 ﻿namespace ServiceControl.Transports.ASQ
 {
     using System;
-    using System.Linq;
-    using System.Threading.Tasks;
     using System.Collections.Concurrent;
+    using System.Linq;
     using System.Threading;
-    using NServiceBus.Logging;
+    using System.Threading.Tasks;
     using Azure.Storage.Queues;
     using Azure.Storage.Queues.Models;
+    using Microsoft.Extensions.Logging;
 
     class QueueLengthProvider : AbstractQueueLengthProvider
     {
-        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
+        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store, ILogger<QueueLengthProvider> logger)
             : base(settings, store)
-            => connectionString = ConnectionString.RemoveCustomConnectionStringParts(out _);
+        {
+            connectionString = ConnectionString.RemoveCustomConnectionStringParts(out _);
+            this.logger = logger;
+        }
 
         public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
@@ -48,7 +51,7 @@
                 }
                 catch (Exception e)
                 {
-                    Logger.Error("Error querying sql queue sizes.", e);
+                    logger.LogError(e, "Error querying sql queue sizes.");
                 }
             }
         }
@@ -76,7 +79,7 @@
                 // simple "log once" approach to do not flood logs
                 if (problematicQueuesNames.TryAdd(queueLength.QueueName, queueLength.QueueName))
                 {
-                    Logger.Error($"Obtaining Azure Storage Queue count failed for '{queueLength.QueueName}'", ex);
+                    logger.LogError(ex, "Obtaining Azure Storage Queue count failed for '{QueueName}'", queueLength.QueueName);
                 }
             }
         }
@@ -102,7 +105,7 @@
         readonly ConcurrentDictionary<EndpointToQueueMapping, QueueLengthValue> queueLengths = new ConcurrentDictionary<EndpointToQueueMapping, QueueLengthValue>();
         readonly ConcurrentDictionary<string, string> problematicQueuesNames = new ConcurrentDictionary<string, string>();
 
-        static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
+        readonly ILogger<QueueLengthProvider> logger;
         static readonly TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
 
         class QueueLengthValue
