@@ -6,7 +6,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Editing;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands;
@@ -28,7 +28,8 @@
         IRavenSessionProvider sessionProvider,
         IRavenDocumentStoreProvider documentStoreProvider,
         IBodyStorage bodyStorage,
-        ExpirationManager expirationManager)
+        ExpirationManager expirationManager,
+        ILogger<ErrorMessagesDataStore> logger)
         : IErrorMessageDataStore
     {
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(
@@ -338,7 +339,7 @@
             return result;
         }
 
-        static FailedMessageView Map(FailedMessage message, IAsyncDocumentSession session)
+        FailedMessageView Map(FailedMessage message, IAsyncDocumentSession session)
         {
             var processingAttempt = message.ProcessingAttempts.Last();
 
@@ -369,7 +370,7 @@
             }
             catch (Exception ex)
             {
-                Logger.Warn($"Unable to parse SendingEndpoint from metadata for messageId {message.UniqueMessageId}", ex);
+                logger.LogWarning(ex, "Unable to parse SendingEndpoint from metadata for messageId {UniqueMessageId}", message.UniqueMessageId);
                 failedMsgView.SendingEndpoint = EndpointDetailsParser.SendingEndpoint(processingAttempt.Headers);
             }
 
@@ -379,7 +380,7 @@
             }
             catch (Exception ex)
             {
-                Logger.Warn($"Unable to parse ReceivingEndpoint from metadata for messageId {message.UniqueMessageId}", ex);
+                logger.LogWarning(ex, "Unable to parse ReceivingEndpoint from metadata for messageId {UniqueMessageId}", message.UniqueMessageId);
                 failedMsgView.ReceivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(processingAttempt.Headers);
             }
 
@@ -676,7 +677,5 @@
 
             await session.SaveChangesAsync();
         }
-
-        static readonly ILog Logger = LogManager.GetLogger<ErrorMessagesDataStore>();
     }
 }

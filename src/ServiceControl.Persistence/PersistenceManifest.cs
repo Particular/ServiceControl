@@ -5,7 +5,9 @@
     using System.IO;
     using System.Linq;
     using System.Text.Json;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.Logging;
+    using ServiceControl.Infrastructure;
 
     public class PersistenceManifest
     {
@@ -68,7 +70,7 @@
             }
             catch (Exception ex)
             {
-                logger.Warn($"Failed to load persistence manifests from {assemblyDirectory}", ex);
+                logger.LogWarning(ex, "Failed to load persistence manifests from {AssemblyDirectory}", assemblyDirectory);
             }
 
             try
@@ -83,10 +85,10 @@
             }
             catch (Exception ex)
             {
-                logger.Warn($"Failed to load persistence manifests from development locations", ex);
+                logger.LogWarning(ex, "Failed to load persistence manifests from development locations");
             }
 
-            PersistenceManifests.ForEach(m => logger.Info($"Found persistence manifest for {m.DisplayName}"));
+            PersistenceManifests.ForEach(m => logger.LogInformation("Found persistence manifest for {ManifestDisplayName}", m.DisplayName));
         }
 
         static string GetAssemblyDirectory()
@@ -107,7 +109,7 @@
             return persistenceManifest;
         }
 
-        static readonly ILog logger = LogManager.GetLogger(typeof(PersistenceManifestLibrary));
+        static readonly ILogger logger = LoggerUtil.CreateStaticLogger(typeof(PersistenceManifestLibrary));
     }
 }
 
