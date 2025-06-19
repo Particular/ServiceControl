@@ -17,3 +17,7 @@ export function dotNetTimespanToMilliseconds(timespan: string) {
   const [hh, mm, ss] = timespan.split(":");
   return ((parseInt(hh) * 60 + parseInt(mm)) * 60 + parseFloat(ss)) * 1000;
 }
+
+export function toLocalDateTimeString(date: Date) {
+  return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+}

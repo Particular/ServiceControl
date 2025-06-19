@@ -5,6 +5,7 @@ import makeRouter from "@/router";
 import { createTestingPinia } from "@pinia/testing";
 import { MessageStore } from "@/stores/MessageStore";
 import { MessageStatus } from "@/resources/Message";
+import { toLocalDateTimeString } from "@/composables/formatUtils";
 
 //Defines a domain-specific language (DSL) for interacting with the system under test (sut)
 interface componentDSL {
@@ -158,19 +159,18 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
       });
 
       //assert
-
       componentDriver.assert.thereAreTheFollowingSagaChangesInThisOrder([
         {
-          expectedRenderedLocalTime: "3/28/2025 3:04:05 AM",
+          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[3].start_time), // D
         },
         {
-          expectedRenderedLocalTime: "3/28/2025 3:04:06 AM",
+          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[2].start_time), // C
         },
         {
-          expectedRenderedLocalTime: "3/28/2025 3:04:07 AM",
+          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[1].start_time), // B
         },
         {
-          expectedRenderedLocalTime: "3/28/2025 3:04:08 AM",
+          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[0].start_time), // A
         },
       ]);
     });
@@ -224,16 +224,16 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
 
       componentDriver.assert.thereAreTheFollowingSagaChangesInThisOrder([
         {
-          expectedRenderedLocalTime: "3/27/2025 8:04:05 PM",
+          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[3].start_time), // D
         },
         {
-          expectedRenderedLocalTime: "3/27/2025 8:04:06 PM",
+          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[2].start_time), // C
         },
         {
-          expectedRenderedLocalTime: "3/27/2025 8:04:07 PM",
+          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[1].start_time), // B
         },
         {
-          expectedRenderedLocalTime: "3/27/2025 8:04:08 PM",
+          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[0].start_time), // A
         },
       ]);
     });
@@ -322,7 +322,7 @@ function rendercomponent({ initialState = {} }: { initialState?: { MessageStore?
         const sagaChangesContainer = screen.getByRole("table", { name: /saga-sequence-list/i });
 
         const sagaUpdatesElements = within(sagaChangesContainer).queryAllByRole("row");
-        //from within each sagaUpdatesElemtns get the values of an element with aria-label="time stamp"
+        //from within each sagaUpdatesElements get the values of an element with aria-label="time stamp"
         //and check if the values are in the same order as the sagaUpdates array passed to this function
         const sagaUpdatesTimestamps = sagaUpdatesElements.map((item: HTMLElement) => within(item).getByLabelText("time stamp"));
 
@@ -330,6 +330,7 @@ function rendercomponent({ initialState = {} }: { initialState?: { MessageStore?
         expect(sagaUpdatesTimestamps).toHaveLength(sagaUpdates.length);
 
         const sagaUpdatesTimestampsValues = sagaUpdatesTimestamps.map((item) => item.innerHTML);
+
         // //check if the values are in the same order as the sagaUpdates array passed to this function
         expect(sagaUpdatesTimestampsValues).toEqual(sagaUpdates.map((item) => item.expectedRenderedLocalTime));
       },

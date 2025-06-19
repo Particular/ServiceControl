@@ -13,6 +13,7 @@ import SagaPluginNeeded from "./SagaDiagram/SagaPluginNeeded.vue";
 import SagaHeader from "./SagaDiagram/SagaHeader.vue";
 import SagaUpdateNode from "./SagaDiagram/SagaUpdateNode.vue";
 import SagaCompletedNode from "./SagaDiagram/SagaCompletedNode.vue";
+import { toLocalDateTimeString } from "@/composables/formatUtils";
 
 const sagaDiagramStore = useSagaDiagramStore();
 const { showMessageData, loading } = storeToRefs(sagaDiagramStore);
@@ -56,7 +57,7 @@ const vm = computed<SagaViewModel>(() => {
     SagaCompleted: !!completedUpdate,
 
     // Display data
-    FormattedCompletionTime: completionTime ? `${completionTime.toLocaleDateString()} ${completionTime.toLocaleTimeString()}` : "",
+    FormattedCompletionTime: completionTime ? toLocalDateTimeString(completionTime) : "",
     SagaUpdates: parseSagaUpdates(sagaHistory, sagaDiagramStore.messagesData),
     ShowMessageData: showMessageData.value,
   };
