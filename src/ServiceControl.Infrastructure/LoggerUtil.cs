@@ -19,17 +19,22 @@
     {
         public static Loggers ActiveLoggers { private get; set; } = Loggers.None;
 
+        public static bool IsLoggingTo(Loggers logger)
+        {
+            return (logger & ActiveLoggers) == logger;
+        }
+
         public static void BuildLogger(this ILoggingBuilder loggingBuilder, LogLevel level)
         {
-            if ((Loggers.Test & ActiveLoggers) == Loggers.Test)
+            if (IsLoggingTo(Loggers.Test))
             {
                 loggingBuilder.Services.AddSingleton<ILoggerProvider>(new TestContextProvider(level));
             }
-            if ((Loggers.NLog & ActiveLoggers) == Loggers.NLog)
+            if (IsLoggingTo(Loggers.NLog))
             {
                 loggingBuilder.AddNLog();
             }
-            if ((Loggers.Seq & ActiveLoggers) == Loggers.Seq)
+            if (IsLoggingTo(Loggers.Seq))
             {
                 loggingBuilder.AddSeq();
             }
