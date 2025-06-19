@@ -24,7 +24,7 @@
         public virtual async Task Setup()
         {
             //TODO remove LogManager usage
-            LogManager.UseFactory(new ExtensionsLoggerFactory(new TestContextAppenderFactory()));
+            LogManager.UseFactory(new ExtensionsLoggerFactory(new TestContextAppenderFactory(Microsoft.Extensions.Logging.LogLevel.Warning)));
             LoggerUtil.ActiveLoggers = Loggers.Test;
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);

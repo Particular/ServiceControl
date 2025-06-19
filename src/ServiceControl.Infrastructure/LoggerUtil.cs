@@ -23,7 +23,7 @@
         {
             if ((Loggers.Test & ActiveLoggers) == Loggers.Test)
             {
-                loggingBuilder.Services.AddSingleton<ILoggerProvider>(new TestContextProvider());
+                loggingBuilder.Services.AddSingleton<ILoggerProvider>(new TestContextProvider(level));
             }
             if ((Loggers.NLog & ActiveLoggers) == Loggers.NLog)
             {
