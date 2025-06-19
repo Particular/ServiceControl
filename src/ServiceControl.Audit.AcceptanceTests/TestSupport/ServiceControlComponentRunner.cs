@@ -45,6 +45,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             Directory.CreateDirectory(logPath);
 
             var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace, defaultLevel: LogLevel.Debug, logPath: logPath);
+            LoggerUtil.ActiveLoggers = Loggers.Test;
 
             settings = new Settings(transportToUse.TypeName, persistenceToUse.PersistenceType, loggingSettings)
             {
@@ -56,9 +57,9 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 {
                     var id = messageContext.NativeMessageId;
                     var headers = messageContext.Headers;
-                    var log = LoggerUtil.CreateStaticLogger<ServiceControlComponentRunner>();
+                    var logger = LoggerUtil.CreateStaticLogger<ServiceControlComponentRunner>(loggingSettings.LogLevel);
                     headers.TryGetValue(Headers.MessageId, out var originalMessageId);
-                    log.LogDebug("OnMessage for message '{MessageId}'({OriginalMessageId}).", id, originalMessageId ?? string.Empty);
+                    logger.LogDebug("OnMessage for message '{MessageId}'({OriginalMessageId}).", id, originalMessageId ?? string.Empty);
 
                     //Do not filter out CC, SA and HB messages as they can't be stamped
                     if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
@@ -77,7 +78,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     var currentSession = context.TestRunId.ToString();
                     if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
                     {
-                        log.LogDebug("Discarding message '{MessageId}'({OriginalMessageId}) because it's session id is '{SessionId}' instead of '{CurrentSessionId}'.", id, originalMessageId ?? string.Empty, session, currentSession);
+                        logger.LogDebug("Discarding message '{MessageId}'({OriginalMessageId}) because it's session id is '{SessionId}' instead of '{CurrentSessionId}'.", id, originalMessageId ?? string.Empty, session, currentSession);
                         return true;
                     }
 

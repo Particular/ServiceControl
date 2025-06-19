@@ -1,12 +1,9 @@
 ﻿namespace ServiceControl
 {
     using Microsoft.Extensions.Logging;
-    using NServiceBus.Logging;
 
     public class RavenDbLogLevelToLogsModeMapper
     {
-        static readonly ILog Logger = LogManager.GetLogger(typeof(RavenDbLogLevelToLogsModeMapper));
-
         public static string Map(string ravenDbLogLevel, ILogger logger)
         {
             switch (ravenDbLogLevel.ToLower())
@@ -25,7 +22,7 @@
                 case "operations":
                     return "Operations";
                 default:
-                    Logger.WarnFormat("Unknown log level '{0}', mapped to 'Operations'", ravenDbLogLevel);
+                    logger.LogWarning("Unknown log level '{RavenDbLogLevel}', mapped to 'Operations'", ravenDbLogLevel);
                     return "Operations";
             }
         }
