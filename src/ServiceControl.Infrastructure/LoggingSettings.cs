@@ -24,7 +24,8 @@ public class LoggingSettings
         {
             activeLoggers |= Loggers.Seq;
         }
-        LoggerUtil.ActiveLoggers = activeLoggers;
+        //this defaults to NLog because historically that was the default, and we don't want to break existing installs that don't have the config key to define loggingProviders
+        LoggerUtil.ActiveLoggers = activeLoggers == Loggers.None ? Loggers.NLog : activeLoggers;
     }
 
     public LogLevel LogLevel { get; }
