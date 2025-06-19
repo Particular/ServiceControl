@@ -137,14 +137,24 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
       // but set them again explicitly here
       //so that the reader of this test can see the preconditions at play
       //and understand the test better without having to jump around
-      sampleSagaHistory.changes[0].start_time = new Date("2025-03-28T03:04:08.3819211Z"); // A
-      sampleSagaHistory.changes[0].finish_time = new Date("2025-03-28T03:04:08.3836Z"); // A1
-      sampleSagaHistory.changes[1].start_time = new Date("2025-03-28T03:04:07.5416262Z"); // B
-      sampleSagaHistory.changes[1].finish_time = new Date("2025-03-28T03:04:07.5509712Z"); //B1
-      sampleSagaHistory.changes[2].start_time = new Date("2025-03-28T03:04:06.3088353Z"); //C
-      sampleSagaHistory.changes[2].finish_time = new Date("2025-03-28T03:04:06.3218175Z"); //C1
-      sampleSagaHistory.changes[3].start_time = new Date("2025-03-28T03:04:05.3332078Z"); //D
-      sampleSagaHistory.changes[3].finish_time = new Date("2025-03-28T03:04:05.3799483Z"); //D1
+
+      const startTimeA = new Date("2025-03-28T03:04:08.3819211Z");
+      const finishTimeA1 = new Date("2025-03-28T03:04:08.3836Z");
+      const startTimeB = new Date("2025-03-28T03:04:07.5416262Z");
+      const finishTimeB1 = new Date("2025-03-28T03:04:07.5509712Z");
+      const startTimeC = new Date("2025-03-28T03:04:06.3088353Z");
+      const finishTimeC1 = new Date("2025-03-28T03:04:06.3218175Z");
+      const startTimeD = new Date("2025-03-28T03:04:05.3332078Z");
+      const finishTimeD1 = new Date("2025-03-28T03:04:05.3799483Z");
+
+      sampleSagaHistory.changes[0].start_time = startTimeA;
+      sampleSagaHistory.changes[0].finish_time = finishTimeA1;
+      sampleSagaHistory.changes[1].start_time = startTimeB;
+      sampleSagaHistory.changes[1].finish_time = finishTimeB1;
+      sampleSagaHistory.changes[2].start_time = startTimeC;
+      sampleSagaHistory.changes[2].finish_time = finishTimeC1;
+      sampleSagaHistory.changes[3].start_time = startTimeD;
+      sampleSagaHistory.changes[3].finish_time = finishTimeD1;
       sampleSagaHistory.changes[3].status = "new";
 
       //B(1), C(2),  A(0), D(3)
@@ -161,16 +171,16 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
       //assert
       componentDriver.assert.thereAreTheFollowingSagaChangesInThisOrder([
         {
-          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[3].start_time), // D
+          expectedRenderedLocalTime: toLocalDateTimeString(startTimeD),
         },
         {
-          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[2].start_time), // C
+          expectedRenderedLocalTime: toLocalDateTimeString(startTimeC),
         },
         {
-          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[1].start_time), // B
+          expectedRenderedLocalTime: toLocalDateTimeString(startTimeB),
         },
         {
-          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[0].start_time), // A
+          expectedRenderedLocalTime: toLocalDateTimeString(startTimeA),
         },
       ]);
     });
@@ -202,14 +212,23 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
       // but set them again explicitly here
       //so that the reader of this test can see the preconditions at play
       //and understand the test better without having to jump around
-      sampleSagaHistory.changes[0].start_time = new Date("2025-03-28T03:04:08.3819211Z"); // A
-      sampleSagaHistory.changes[0].finish_time = new Date("2025-03-28T03:04:08.3836Z"); // A1
-      sampleSagaHistory.changes[1].start_time = new Date("2025-03-28T03:04:07.5416262Z"); // B
-      sampleSagaHistory.changes[1].finish_time = new Date("2025-03-28T03:04:07.5509712Z"); //B1
-      sampleSagaHistory.changes[2].start_time = new Date("2025-03-28T03:04:06.3088353Z"); //C
-      sampleSagaHistory.changes[2].finish_time = new Date("2025-03-28T03:04:06.3218175Z"); //C1
-      sampleSagaHistory.changes[3].start_time = new Date("2025-03-28T03:04:05.3332078Z"); //D
-      sampleSagaHistory.changes[3].finish_time = new Date("2025-03-28T03:04:05.3799483Z"); //D1
+      const startTimeA = new Date("2025-03-28T03:04:08.3819211Z");
+      const finishTimeA1 = new Date("2025-03-28T03:04:08.3836Z");
+      const startTimeB = new Date("2025-03-28T03:04:07.5416262Z");
+      const finishTimeB1 = new Date("2025-03-28T03:04:07.5509712Z");
+      const startTimeC = new Date("2025-03-28T03:04:06.3088353Z");
+      const finishTimeC1 = new Date("2025-03-28T03:04:06.3218175Z");
+      const startTimeD = new Date("2025-03-28T03:04:05.3332078Z");
+      const finishTimeD1 = new Date("2025-03-28T03:04:05.3799483Z");
+
+      sampleSagaHistory.changes[0].start_time = startTimeA;
+      sampleSagaHistory.changes[0].finish_time = finishTimeA1;
+      sampleSagaHistory.changes[1].start_time = startTimeB;
+      sampleSagaHistory.changes[1].finish_time = finishTimeB1;
+      sampleSagaHistory.changes[2].start_time = startTimeC;
+      sampleSagaHistory.changes[2].finish_time = finishTimeC1;
+      sampleSagaHistory.changes[3].start_time = startTimeD;
+      sampleSagaHistory.changes[3].finish_time = finishTimeD1;
       sampleSagaHistory.changes[3].status = "new";
 
       // Set up the store with sample saga history
@@ -224,16 +243,16 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
 
       componentDriver.assert.thereAreTheFollowingSagaChangesInThisOrder([
         {
-          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[3].start_time), // D
+          expectedRenderedLocalTime: toLocalDateTimeString(startTimeD),
         },
         {
-          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[2].start_time), // C
+          expectedRenderedLocalTime: toLocalDateTimeString(startTimeC),
         },
         {
-          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[1].start_time), // B
+          expectedRenderedLocalTime: toLocalDateTimeString(startTimeB),
         },
         {
-          expectedRenderedLocalTime: toLocalDateTimeString(sampleSagaHistory.changes[0].start_time), // A
+          expectedRenderedLocalTime: toLocalDateTimeString(startTimeA),
         },
       ]);
     });
