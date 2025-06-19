@@ -1,6 +1,6 @@
 <template>
   <span>
     Known NServiceBus
-    <a href="https://docs.particular.net/nservicebus/endpoints/" target="_blank">Endpoint</a>
+    <a href="https://particular.net/endpoints" target="_blank">Endpoint</a>
   </span>
 </template>
