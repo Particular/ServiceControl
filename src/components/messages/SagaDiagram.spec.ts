@@ -14,7 +14,7 @@ interface componentDSL {
 
 //Defines a domain-specific language (DSL) for checking assertions against the system under test (sut)
 interface componentDSLAssertions {
-  thereAreTheFollowingSagaChangesInThisOrder(sagaUpdates: { expectedTime: Date }[]): void;
+  thereAreTheFollowingSagaChangesInThisOrder(expectedDatesInOrder: Date[]): void;
   displayedSagaGuidIs(sagaId: string): void;
   displayedSagaNameIs(humanizedSagaName: string): void;
   linkIsShown(arg0: { withText: string; withHref: string }): void;
@@ -109,8 +109,15 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
     });
   });
 
-  describe("Rule: 3.2 Display a chronological timeline of saga events in UTC.", () => {
-    test("EXAMPLE: Rendering a Saga with 4 changes", () => {
+  describe("Rule: 3.3 Display a chronological timeline of saga events localized to user environment.", () => {
+    test.each([
+      {
+        timezone: "UTC",
+      },
+      {
+        timezone: "America/Los_Angeles",
+      },
+    ])("EXAMPLE: Rendering a Saga with 4 changes - User Timezone $timezone", ({ timezone }) => {
       //     Each saga event ("Saga Initiated," "Saga Updated," "Timeout Invoked," "Saga Completed") is timestamped to represent progression over time. Events are ordered by the time they ocurred.
       //TODO:  "Incoming messages are displayed on the left, and outgoing messages are displayed on the right."  in another test?
 
@@ -127,10 +134,10 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
 
       // Set the environment to a fixed timezone
       // JSDOM, used by Vitest, defaults to UTC timezone
-      // To ensure consistency, explicitly set the timezone to UTC
+      // To ensure consistency, explicitly set the timezone
       // This ensures that the rendered local time of the saga changes
-      // will always be interpreted and displayed in UTC, avoiding flakiness
-      process.env.TZ = "UTC";
+      // will always be interpreted and displayed in the specified timezone, avoiding flakiness
+      process.env.TZ = timezone;
 
       //access each of the saga changes and update its start time and finish time to the same values being read from the variable declaration,
       // but set them again explicitly here
@@ -168,92 +175,7 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
       });
 
       //assert
-      componentDriver.assert.thereAreTheFollowingSagaChangesInThisOrder([
-        {
-          expectedTime: startTimeD,
-        },
-        {
-          expectedTime: startTimeC,
-        },
-        {
-          expectedTime: startTimeB,
-        },
-        {
-          expectedTime: startTimeA,
-        },
-      ]);
-    });
-  });
-  describe("Rule: 3.3 Display a chronological timeline of saga events in PST.", () => {
-    test("EXAMPLE: Rendering a Saga with 4 changes", () => {
-      //     Each saga event ("Saga Initiated," "Saga Updated," "Timeout Invoked," "Saga Completed") is timestamped to represent progression over time. Events are ordered by the time they ocurred.
-      //TODO:  "Incoming messages are displayed on the left, and outgoing messages are displayed on the right."  in another test?
-
-      //arragement
-      //sampleSagaHistory already not sorted TODO: Make this more clear so the reader of this test doesn't have to go arround and figure out the preconditions
-      const messageStore = {} as MessageStore;
-      messageStore.state = {} as MessageStore["state"];
-      messageStore.state.data = {} as MessageStore["state"]["data"];
-      messageStore.state.data.invoked_saga = {
-        has_saga: true,
-        saga_id: "123",
-        saga_type: "ServiceControl.SmokeTest.AuditingSaga",
-      };
-
-      // Set the environment to a fixed timezone
-      // JSDOM, used by Vitest, defaults to PST timezone
-      // To ensure consistency, explicitly set the timezone to PST
-      // This ensures that the rendered local time of the saga changes
-      // will always be interpreted and displayed in "America/Los_Angeles"
-      process.env.TZ = "America/Los_Angeles";
-
-      //access each of the saga changes and update its start time and finish time to the same values being read from the variable declaration,
-      // but set them again explicitly here
-      //so that the reader of this test can see the preconditions at play
-      //and understand the test better without having to jump around
-      const startTimeA = new Date("2025-03-28T03:04:08.000Z");
-      const finishTimeA1 = new Date("2025-03-28T03:04:08.000Z");
-      const startTimeB = new Date("2025-03-28T03:04:07.000Z");
-      const finishTimeB1 = new Date("2025-03-28T03:04:07.000Z");
-      const startTimeC = new Date("2025-03-28T03:04:06.000Z");
-      const finishTimeC1 = new Date("2025-03-28T03:04:06.000Z");
-      const startTimeD = new Date("2025-03-28T03:04:05.000Z");
-      const finishTimeD1 = new Date("2025-03-28T03:04:05.000Z");
-
-      sampleSagaHistory.changes[0].start_time = startTimeA;
-      sampleSagaHistory.changes[0].finish_time = finishTimeA1;
-      sampleSagaHistory.changes[1].start_time = startTimeB;
-      sampleSagaHistory.changes[1].finish_time = finishTimeB1;
-      sampleSagaHistory.changes[2].start_time = startTimeC;
-      sampleSagaHistory.changes[2].finish_time = finishTimeC1;
-      sampleSagaHistory.changes[3].start_time = startTimeD;
-      sampleSagaHistory.changes[3].finish_time = finishTimeD1;
-      sampleSagaHistory.changes[3].status = "new";
-
-      // Set up the store with sample saga history
-      const componentDriver = rendercomponent({
-        initialState: {
-          MessageStore: messageStore,
-          SagaDiagramStore: { sagaHistory: sampleSagaHistory },
-        },
-      });
-
-      //assert
-
-      componentDriver.assert.thereAreTheFollowingSagaChangesInThisOrder([
-        {
-          expectedTime: startTimeD,
-        },
-        {
-          expectedTime: startTimeC,
-        },
-        {
-          expectedTime: startTimeB,
-        },
-        {
-          expectedTime: startTimeA,
-        },
-      ]);
+      componentDriver.assert.thereAreTheFollowingSagaChangesInThisOrder([startTimeD, startTimeC, startTimeB, startTimeA]);
     });
   });
 });
@@ -335,30 +257,29 @@ function rendercomponent({ initialState = {} }: { initialState?: { MessageStore?
         expect(sagaGuid).toBeInTheDocument();
         expect(sagaGuid).toHaveTextContent(guid);
       },
-      thereAreTheFollowingSagaChangesInThisOrder: function (sagaUpdates: { expectedTime: Date }[]): void {
+      thereAreTheFollowingSagaChangesInThisOrder: function (expectedDatesInOrder: Date[]): void {
         //Retrive the main parent component that contains the saga changes
         const sagaChangesContainer = screen.getByRole("table", { name: /saga-sequence-list/i });
 
         const sagaUpdatesElements = within(sagaChangesContainer).queryAllByRole("row");
         //from within each sagaUpdatesElements get the values of an element with aria-label="time stamp"
-        //and check if the values are in the same order as the sagaUpdates array passed to this function
+        //and check if the values are in the same order as the expectedDatesInOrder array passed to this function
         const sagaUpdatesTimestamps = sagaUpdatesElements.map((item: HTMLElement) => within(item).getByLabelText("time stamp"));
 
-        //expect the number of found sagaUpdatesTimestamps to be the same as the number of sagaUpdates passed to this function
-        expect(sagaUpdatesTimestamps).toHaveLength(sagaUpdates.length);
+        //expect the number of found sagaUpdatesTimestamps to be the same as the number of expected dates passed to this function
+        expect(sagaUpdatesTimestamps).toHaveLength(expectedDatesInOrder.length);
 
         const sagaUpdatesTimestampsValues = sagaUpdatesTimestamps.map((item) => item.innerHTML);
 
-        // Parse the rendered timestamp strings back to Date objects for comparison
-        const parsedDatesFromUI = sagaUpdatesTimestampsValues.map((timestampString) => {
-          // Parse the retrieved timestamp string  back to a Date
-          return new Date(timestampString);
+        // Verify we have the same number of rendered timestamps as expected dates
+        expect(sagaUpdatesTimestampsValues).toHaveLength(expectedDatesInOrder.length);
+
+        // For each rendered timestamp, verify it matches the expected date at that position
+        // by formatting the expected date the same way and comparing strings
+        expectedDatesInOrder.forEach((expectedDate, index) => {
+          const expectedFormattedString = expectedDate.toLocaleString();
+          expect(sagaUpdatesTimestampsValues[index]).toBe(expectedFormattedString);
         });
-
-        const expectedDates = sagaUpdates.map((item) => item.expectedTime);
-
-        // Compare the dates directly
-        expect(parsedDatesFromUI).toEqual(expectedDates);
       },
     },
   };
