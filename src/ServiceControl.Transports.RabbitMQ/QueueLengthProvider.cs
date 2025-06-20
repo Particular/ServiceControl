@@ -4,12 +4,12 @@
     using System.Collections.Concurrent;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.Transport.RabbitMQ.ManagementApi;
 
     class QueueLengthProvider : AbstractQueueLengthProvider
     {
-        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store, ITransportCustomization transportCustomization) : base(settings, store)
+        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store, ITransportCustomization transportCustomization, ILogger<QueueLengthProvider> logger) : base(settings, store)
         {
             if (transportCustomization is IManagementClientProvider provider)
             {
@@ -19,6 +19,8 @@
             {
                 throw new ArgumentException($"Transport customization does not implement {nameof(IManagementClientProvider)}. Type: {transportCustomization.GetType().Name}", nameof(transportCustomization));
             }
+
+            this.logger = logger;
         }
 
         public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack) =>
@@ -50,7 +52,7 @@
                 }
                 catch (Exception e)
                 {
-                    Logger.Error("Queue length query loop failure.", e);
+                    logger.LogError(e, "Queue length query loop failure.");
                 }
             }
         }
@@ -91,7 +93,7 @@
                 }
                 catch (Exception e)
                 {
-                    Logger.Warn($"Error querying queue length for {queueName}", e);
+                    logger.LogWarning(e, "Error querying queue length for {QueueName}", queueName);
                 }
             }
         }
@@ -101,7 +103,7 @@
         readonly ConcurrentDictionary<string, string> endpointQueues = new();
         readonly ConcurrentDictionary<string, long> sizes = new();
 
-        static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
+        readonly ILogger<QueueLengthProvider> logger;
 
         readonly Lazy<ManagementClient> managementClient;
     }

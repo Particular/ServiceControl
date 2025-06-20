@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.UnitTests.Recoverability
 {
     using System.Collections.Generic;
+    using Microsoft.Extensions.Logging.Abstractions;
     using NServiceBus;
     using NUnit.Framework;
     using ServiceControl.Recoverability;
@@ -12,7 +13,7 @@
         public void Handle_corrupted_header()
         {
             // Arrange
-            var strategy = new CorruptedReplyToHeaderStrategy(ServiceControlMachineName);
+            var strategy = new CorruptedReplyToHeaderStrategy(ServiceControlMachineName, NullLogger.Instance);
 
             var corruptedReplyToAddress = $"SomeEndpoint@{ServiceControlMachineName}";
 
@@ -34,7 +35,7 @@
         public void Handle_non_corupted_header()
         {
             // Arrange
-            var strategy = new CorruptedReplyToHeaderStrategy(ServiceControlMachineName);
+            var strategy = new CorruptedReplyToHeaderStrategy(ServiceControlMachineName, NullLogger.Instance);
 
             var nonCorruptedReplyToAddress = $"SomeEndpoint@{SendingMachineName}";
 
@@ -56,7 +57,7 @@
         public void Handle_no_OriginatingMachine()
         {
             // Arrange
-            var strategy = new CorruptedReplyToHeaderStrategy(ServiceControlMachineName);
+            var strategy = new CorruptedReplyToHeaderStrategy(ServiceControlMachineName, NullLogger.Instance);
 
             var maybeCorruptedReplyToAddress = $"SomeEndpoint@{ServiceControlMachineName}";
 
@@ -77,7 +78,7 @@
         public void Handle_no_machine_name_in_header()
         {
             // Arrange
-            var strategy = new CorruptedReplyToHeaderStrategy(ServiceControlMachineName);
+            var strategy = new CorruptedReplyToHeaderStrategy(ServiceControlMachineName, NullLogger.Instance);
 
             var replyToAddressWithNoMachineName = "SomeEndpoint";
 

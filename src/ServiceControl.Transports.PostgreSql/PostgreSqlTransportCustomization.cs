@@ -4,11 +4,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using BrokerThroughput;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NServiceBus;
-using NServiceBus.Logging;
 using NServiceBus.Transport.PostgreSql;
+using ServiceControl.Infrastructure;
 
-public class PostgreSqlTransportCustomization : TransportCustomization<PostgreSqlTransport>
+public class PostgreSqlTransportCustomization() : TransportCustomization<PostgreSqlTransport>
 {
     protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, PostgreSqlTransport transportDefinition, TransportSettings transportSettings)
     {
@@ -66,7 +67,7 @@ public class PostgreSqlTransportCustomization : TransportCustomization<PostgreSq
 
         if (transportSettings.GetOrDefault<bool>("TransportSettings.EnableDtc"))
         {
-            Logger.Error("The EnableDtc setting is no longer supported natively within ServiceControl. If you require distributed transactions, you will have to use a Transport Adapter (https://docs.particular.net/servicecontrol/transport-adapter/)");
+            logger.LogError("The EnableDtc setting is no longer supported natively within ServiceControl. If you require distributed transactions, you will have to use a Transport Adapter (https://docs.particular.net/servicecontrol/transport-adapter/)");
         }
 
         DisableDelayedDelivery(transport) = true;
@@ -94,5 +95,5 @@ public class PostgreSqlTransportCustomization : TransportCustomization<PostgreSq
 
     const string DefaultSubscriptionTableName = "SubscriptionRouting";
 
-    static readonly ILog Logger = LogManager.GetLogger(typeof(PostgreSqlTransportCustomization));
+    static readonly ILogger<PostgreSqlTransportCustomization> logger = LoggerUtil.CreateStaticLogger<PostgreSqlTransportCustomization>();
 }

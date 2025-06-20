@@ -2,8 +2,8 @@ namespace ServiceControl.Recoverability
 {
     using System;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Recoverability;
 
@@ -13,13 +13,13 @@ namespace ServiceControl.Recoverability
         {
             if (retries == null)
             {
-                Log.Warn($"Attempt to retry a group ({message.GroupId}) when retries are disabled");
+                logger.LogWarning("Attempt to retry a group ({MessageGroupId}) when retries are disabled", message.GroupId);
                 return;
             }
 
             if (archiver.IsArchiveInProgressFor(message.GroupId))
             {
-                Log.Warn($"Attempt to retry a group ({message.GroupId}) which is currently in the process of being archived");
+                logger.LogWarning("Attempt to retry a group ({MessageGroupId}) which is currently in the process of being archived", message.GroupId);
                 return;
             }
 
@@ -43,18 +43,19 @@ namespace ServiceControl.Recoverability
             ));
         }
 
-        public RetryAllInGroupHandler(RetriesGateway retries, RetryingManager retryingManager, IArchiveMessages archiver, IRetryDocumentDataStore dataStore)
+        public RetryAllInGroupHandler(RetriesGateway retries, RetryingManager retryingManager, IArchiveMessages archiver, IRetryDocumentDataStore dataStore, ILogger<RetryAllInGroupHandler> logger)
         {
             this.retries = retries;
             this.retryingManager = retryingManager;
             this.archiver = archiver;
             this.dataStore = dataStore;
+            this.logger = logger;
         }
 
         readonly RetriesGateway retries;
         readonly RetryingManager retryingManager;
         readonly IArchiveMessages archiver;
         readonly IRetryDocumentDataStore dataStore;
-        static readonly ILog Log = LogManager.GetLogger(typeof(RetryAllInGroupHandler));
+        readonly ILogger<RetryAllInGroupHandler> logger;
     }
 }

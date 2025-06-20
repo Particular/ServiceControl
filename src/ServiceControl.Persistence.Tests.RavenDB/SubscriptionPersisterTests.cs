@@ -8,6 +8,7 @@
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using NUnit.Framework;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
 
     [TestFixture]
@@ -16,7 +17,7 @@
         [Test]
         public async Task ShouldReturnSubscriptionsForOlderVersionsOfSameMessageType()
         {
-            var subscriptionPersister = new RavenSubscriptionStorage(SessionProvider, "NServiceBus.Routing.EndpointName", "TestEndpoint", []);
+            var subscriptionPersister = new RavenSubscriptionStorage(SessionProvider, "NServiceBus.Routing.EndpointName", "TestEndpoint", [], LoggerUtil.CreateStaticLogger<RavenSubscriptionStorage>());
 
             var v1MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(1, 0, 0));
             var v2MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(2, 0, 0));
@@ -37,7 +38,7 @@
         [Test]
         public async Task ShouldReturnSubscriptionsForNewerVersionsOfSameMessageType()
         {
-            var subscriptionPersister = new RavenSubscriptionStorage(SessionProvider, "NServiceBus.Routing.EndpointName", "TestEndpoint", []);
+            var subscriptionPersister = new RavenSubscriptionStorage(SessionProvider, "NServiceBus.Routing.EndpointName", "TestEndpoint", [], LoggerUtil.CreateStaticLogger<RavenSubscriptionStorage>());
 
             var v1MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(1, 0, 0));
             var v2MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(2, 0, 0));

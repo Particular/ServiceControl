@@ -6,12 +6,16 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NUnit.Framework;
+    using ServiceControl.Infrastructure;
 
     // Ideally the circuit breaker would use a time provider to allow for easier testing but that would require a significant refactor
     // and we want keep the changes to a minimum for now to allow backporting to older versions.
     [TestFixture]
     public class RepeatedFailuresOverTimeCircuitBreakerTests
     {
+        [SetUp]
+        public void Setup() => LoggerUtil.ActiveLoggers = Loggers.Test;
+
         [Test]
         public async Task Should_disarm_on_success()
         {
@@ -22,6 +26,7 @@
                 "TestCircuitBreaker",
                 TimeSpan.FromMilliseconds(100),
                 ex => { },
+                LoggerUtil.CreateStaticLogger<RepeatedFailuresOverTimeCircuitBreaker>(),
                 () => armedActionCalled = true,
                 () => disarmedActionCalled = true,
                 TimeSpan.Zero,
@@ -42,6 +47,7 @@
                 "TestCircuitBreaker",
                 TimeSpan.FromMilliseconds(100),
                 ex => { },
+                LoggerUtil.CreateStaticLogger<RepeatedFailuresOverTimeCircuitBreaker>(),
                 () => { },
                 () => throw new Exception("Exception from disarmed action"),
                 timeToWaitWhenTriggered: TimeSpan.Zero,
@@ -64,6 +70,7 @@
                 "TestCircuitBreaker",
                 TimeSpan.Zero,
                 ex => { triggerActionCalled = true; lastTriggerException = ex; },
+                LoggerUtil.CreateStaticLogger<RepeatedFailuresOverTimeCircuitBreaker>(),
                 timeToWaitWhenTriggered: TimeSpan.Zero,
                 timeToWaitWhenArmed: TimeSpan.FromMilliseconds(100)
             );
@@ -81,6 +88,7 @@
                 "TestCircuitBreaker",
                 TimeSpan.FromMilliseconds(100),
                 ex => { },
+                LoggerUtil.CreateStaticLogger<RepeatedFailuresOverTimeCircuitBreaker>(),
                 () => throw new Exception("Exception from armed action"),
                 () => { },
                 timeToWaitWhenTriggered: TimeSpan.Zero,
@@ -101,6 +109,7 @@
                 "TestCircuitBreaker",
                 TimeSpan.Zero,
                 _ => { },
+                LoggerUtil.CreateStaticLogger<RepeatedFailuresOverTimeCircuitBreaker>(),
                 timeToWaitWhenTriggered: timeToWaitWhenTriggered,
                 timeToWaitWhenArmed: timeToWaitWhenArmed
             );
@@ -124,6 +133,7 @@
                 "TestCircuitBreaker",
                 TimeSpan.FromMilliseconds(100),
                 ex => triggerActionCalled = true,
+                LoggerUtil.CreateStaticLogger<RepeatedFailuresOverTimeCircuitBreaker>(),
                 timeToWaitWhenTriggered: TimeSpan.Zero,
                 timeToWaitWhenArmed: TimeSpan.Zero
             );
@@ -145,6 +155,7 @@
                 "TestCircuitBreaker",
                 TimeSpan.FromMilliseconds(100),
                 ex => triggerActionCalled = true,
+                LoggerUtil.CreateStaticLogger<RepeatedFailuresOverTimeCircuitBreaker>(),
                 () => armedActionCalled = true,
                 () => disarmedActionCalled = true,
                 TimeSpan.Zero,
@@ -176,6 +187,7 @@
                 "TestCircuitBreaker",
                 TimeSpan.FromSeconds(5),
                 ex => Interlocked.Increment(ref triggerActionCalled),
+                LoggerUtil.CreateStaticLogger<RepeatedFailuresOverTimeCircuitBreaker>(),
                 () => Interlocked.Increment(ref armedActionCalled),
                 () => Interlocked.Increment(ref disarmedActionCalled),
                 TimeSpan.Zero,
@@ -209,6 +221,7 @@
                 "TestCircuitBreaker",
                 TimeSpan.FromMilliseconds(50),
                 ex => triggerActionCalled = true,
+                LoggerUtil.CreateStaticLogger<RepeatedFailuresOverTimeCircuitBreaker>(),
                 timeToWaitWhenTriggered: TimeSpan.FromMilliseconds(50),
                 timeToWaitWhenArmed: TimeSpan.FromMilliseconds(50)
             );

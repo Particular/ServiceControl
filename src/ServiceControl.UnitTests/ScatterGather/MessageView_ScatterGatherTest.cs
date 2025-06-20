@@ -6,6 +6,8 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Logging.Abstractions;
     using NUnit.Framework;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -15,7 +17,7 @@
         [SetUp]
         public void SetUp()
         {
-            var api = new TestApi(null, null, null);
+            var api = new TestApi(null, null, null, NullLogger<TestApi>.Instance);
 
             Results = api.AggregateResults(new ScatterGatherApiMessageViewContext(new PagingInfo(), new SortInfo()), GetData());
         }
@@ -66,8 +68,8 @@
 
         class TestApi : ScatterGatherApiMessageView<object, ScatterGatherApiMessageViewContext>
         {
-            public TestApi(object dataStore, Settings settings, IHttpClientFactory httpClientFactory)
-                : base(dataStore, settings, httpClientFactory)
+            public TestApi(object dataStore, Settings settings, IHttpClientFactory httpClientFactory, ILogger<TestApi> logger)
+                : base(dataStore, settings, httpClientFactory, logger)
             {
             }
 

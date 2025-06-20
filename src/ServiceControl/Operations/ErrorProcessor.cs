@@ -8,8 +8,8 @@
     using Infrastructure;
     using Infrastructure.DomainEvents;
     using Infrastructure.Metrics;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Recoverability;
     using ServiceControl.Persistence;
@@ -17,12 +17,17 @@
 
     class ErrorProcessor
     {
-        public ErrorProcessor(IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers, IDomainEvents domainEvents,
-            Counter ingestedCounter)
+        public ErrorProcessor(
+            IEnrichImportedErrorMessages[] enrichers,
+            IFailedMessageEnricher[] failedMessageEnrichers,
+            IDomainEvents domainEvents,
+            Counter ingestedCounter,
+            ILogger logger)
         {
             this.enrichers = enrichers;
             this.domainEvents = domainEvents;
             this.ingestedCounter = ingestedCounter;
+            this.logger = logger;
             failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
         }
 
@@ -58,10 +63,7 @@
 
             foreach (var endpoint in knownEndpoints.Values)
             {
-                if (Logger.IsDebugEnabled)
-                {
-                    Logger.Debug($"Adding known endpoint '{endpoint.EndpointDetails.Name}' for bulk storage");
-                }
+                logger.LogDebug("Adding known endpoint '{EndpointName}' for bulk storage", endpoint.EndpointDetails.Name);
 
                 await unitOfWork.Monitoring.RecordKnownEndpoint(endpoint);
             }
@@ -104,10 +106,7 @@
                 isOriginalMessageId = false;
             }
 
-            if (Logger.IsDebugEnabled)
-            {
-                Logger.DebugFormat("Ingesting error message {0} (original message id: {1})", context.NativeMessageId, isOriginalMessageId ? messageId : string.Empty);
-            }
+            logger.LogDebug("Ingesting error message {NativeMessageId} (original message id: {MessageId})", context.NativeMessageId, isOriginalMessageId ? messageId : string.Empty);
 
             try
             {
@@ -129,10 +128,7 @@
             }
             catch (Exception e)
             {
-                if (Logger.IsWarnEnabled)
-                {
-                    Logger.WarnFormat("Processing of message '{0}' failed.\n{1}", context.NativeMessageId, e);
-                }
+                logger.LogWarning(e, "Processing of message '{NativeMessageId}' failed", context.NativeMessageId);
 
                 // releasing the failed message context early so that they can be retried outside the current batch
                 context.GetTaskCompletionSource().TrySetException(e);
@@ -173,6 +169,6 @@
         readonly IDomainEvents domainEvents;
         readonly Counter ingestedCounter;
         readonly FailedMessageFactory failedMessageFactory;
-        static readonly ILog Logger = LogManager.GetLogger<ErrorProcessor>();
+        readonly ILogger logger;
     }
 }

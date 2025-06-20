@@ -2,25 +2,29 @@ namespace ServiceControl.Infrastructure
 {
     using System;
     using System.IO;
+    using Microsoft.Extensions.Logging;
     using NLog;
     using NLog.Config;
-    using NLog.Extensions.Logging;
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus.Extensions.Logging;
     using ServiceControl.Configuration;
-
     using LogManager = NServiceBus.Logging.LogManager;
+    using LogLevel = NLog.LogLevel;
 
     public static class LoggingConfigurator
     {
         public static void ConfigureLogging(LoggingSettings loggingSettings)
         {
-            if (NLog.LogManager.Configuration != null)
+            //used for loggers outside of ServiceControl (i.e. transports and core) to use the logger factory defined here
+            LogManager.UseFactory(new ExtensionsLoggerFactory(LoggerFactory.Create(configure => configure.BuildLogger(loggingSettings.LogLevel))));
+
+            if (!LoggerUtil.IsLoggingTo(Loggers.NLog) || NLog.LogManager.Configuration != null)
             {
                 return;
             }
 
+            //configure NLog
             var nlogConfig = new LoggingConfiguration();
             var simpleLayout = new SimpleLayout("${longdate}|${processtime}|${threadid}|${level}|${logger}|${message}${onexception:|${exception:format=tostring}}");
 
@@ -60,21 +64,26 @@ namespace ServiceControl.Infrastructure
             nlogConfig.LoggingRules.Add(aspNetCoreRule);
             nlogConfig.LoggingRules.Add(httpClientRule);
 
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, consoleTarget));
+            // HACK: Fixed LogLevel to Info for testing purposes only.
+            //       Migrate to .NET logging and change back to loggingSettings.LogLevel.
+            //       nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, consoleTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
 
             if (!AppEnvironment.RunningInContainer)
             {
-                nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, fileTarget));
+                // HACK: Fixed LogLevel to Info for testing purposes only.
+                //       Migrate to .NET logging and change back to loggingSettings.LogLevel.
+                //       nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, fileTarget));
+                nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
             }
 
             NLog.LogManager.Configuration = nlogConfig;
 
-            LogManager.UseFactory(new ExtensionsLoggerFactory(new NLogLoggerFactory()));
-
+            //using LogManager here rather than LoggerUtil.CreateStaticLogger since this is exclusive to NLog
             var logger = LogManager.GetLogger("LoggingConfiguration");
             var logEventInfo = new LogEventInfo { TimeStamp = DateTime.UtcNow };
             var loggingTo = AppEnvironment.RunningInContainer ? "console" : fileTarget.FileName.Render(logEventInfo);
-            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", loggingTo, loggingSettings.LogLevel.Name);
+            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", loggingTo, LogLevel.Info.Name);
         }
 
         const long megaByte = 1024 * 1024;

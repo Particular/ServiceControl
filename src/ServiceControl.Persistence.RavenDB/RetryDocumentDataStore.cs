@@ -5,7 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using MessageFailures;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using Persistence.Infrastructure;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
@@ -15,7 +15,7 @@
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Recoverability;
 
-    class RetryDocumentDataStore(IRavenSessionProvider sessionProvider, IRavenDocumentStoreProvider documentStoreProvider) : IRetryDocumentDataStore
+    class RetryDocumentDataStore(IRavenSessionProvider sessionProvider, IRavenDocumentStoreProvider documentStoreProvider, ILogger<RetryDocumentDataStore> logger) : IRetryDocumentDataStore
     {
         public async Task StageRetryByUniqueMessageIds(string batchDocumentId, string[] messageIds)
         {
@@ -48,7 +48,7 @@
             }
             catch (ConcurrencyException)
             {
-                Logger.DebugFormat("Ignoring concurrency exception while moving batch to staging {0}", batchDocumentId);
+                logger.LogDebug("Ignoring concurrency exception while moving batch to staging {BatchDocumentId}", batchDocumentId);
             }
         }
 
@@ -202,7 +202,5 @@
                 .FirstOrDefaultAsync(x => x.Id == groupId);
             return group;
         }
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(RetryDocumentDataStore));
     }
 }

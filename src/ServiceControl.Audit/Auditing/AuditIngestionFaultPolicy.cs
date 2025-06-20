@@ -7,21 +7,27 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
+using Configuration;
 using Infrastructure;
-using NServiceBus.Logging;
+using Metrics;
+using Microsoft.Extensions.Logging;
 using NServiceBus.Transport;
 using Persistence;
-using Configuration;
-using Metrics;
 using ServiceControl.Infrastructure;
 
 class AuditIngestionFaultPolicy
 {
-    public AuditIngestionFaultPolicy(IFailedAuditStorage failedAuditStorage, LoggingSettings settings, Func<string, Exception, Task> onCriticalError, IngestionMetrics metrics)
+    public AuditIngestionFaultPolicy(
+        IFailedAuditStorage failedAuditStorage,
+        LoggingSettings settings,
+        Func<string, Exception, Task> onCriticalError,
+        IngestionMetrics metrics,
+        ILogger logger)
     {
         failureCircuitBreaker = new ImportFailureCircuitBreaker(onCriticalError);
         this.failedAuditStorage = failedAuditStorage;
         this.metrics = metrics;
+        this.logger = logger;
 
         if (!AppEnvironment.RunningInContainer)
         {
@@ -75,7 +81,7 @@ class AuditIngestionFaultPolicy
 
     async Task DoLogging(Exception exception, FailedAuditImport failure, CancellationToken cancellationToken)
     {
-        log.Error("Failed importing error message", exception);
+        logger.LogError(exception, "Failed importing error message");
 
         // Write to storage
         await failedAuditStorage.SaveFailedAuditImport(failure);
@@ -83,12 +89,12 @@ class AuditIngestionFaultPolicy
         if (!AppEnvironment.RunningInContainer)
         {
             // Write to Log Path
-            var filePath = Path.Combine(logPath, failure.Id + ".txt");
+            var filePath = Path.Combine(logPath, $"{failure.Id}.txt");
             await File.WriteAllTextAsync(filePath, failure.ExceptionInfo, cancellationToken);
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                WriteToEventLog("A message import has failed. A log file has been written to " + filePath);
+                WriteToEventLog($"A message import has failed. A log file has been written to {filePath}");
             }
         }
     }
@@ -107,5 +113,5 @@ class AuditIngestionFaultPolicy
     readonly string logPath;
     readonly ImportFailureCircuitBreaker failureCircuitBreaker;
 
-    static readonly ILog log = LogManager.GetLogger<AuditIngestionFaultPolicy>();
+    readonly ILogger logger;
 }

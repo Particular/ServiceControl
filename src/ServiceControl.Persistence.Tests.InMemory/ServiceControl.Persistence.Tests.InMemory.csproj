@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Particular.LicensingComponent.Persistence.InMemory\Particular.LicensingComponent.Persistence.InMemory.csproj" />
+    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
   </ItemGroup>

@@ -13,7 +13,7 @@
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using Operations;
     using Particular.ServiceControl;
     using Persistence;
@@ -159,17 +159,18 @@
 
         class BulkRetryBatchCreationHostedService : IHostedService
         {
-            public BulkRetryBatchCreationHostedService(RetriesGateway retries, IAsyncTimer scheduler)
+            public BulkRetryBatchCreationHostedService(RetriesGateway retries, IAsyncTimer scheduler, ILogger<BulkRetryBatchCreationHostedService> logger)
             {
                 this.retries = retries;
                 this.scheduler = scheduler;
+                this.logger = logger;
             }
 
             public Task StartAsync(CancellationToken cancellationToken)
             {
                 if (retries != null)
                 {
-                    timer = scheduler.Schedule(_ => ProcessRequestedBulkRetryOperations(), interval, interval, e => { log.Error("Unhandled exception while processing bulk retry operations", e); });
+                    timer = scheduler.Schedule(_ => ProcessRequestedBulkRetryOperations(), interval, interval, e => logger.LogError(e, "Unhandled exception while processing bulk retry operations"));
                 }
 
                 return Task.CompletedTask;
@@ -187,7 +188,7 @@
             IAsyncTimer scheduler;
             TimerJob timer;
             static TimeSpan interval = TimeSpan.FromSeconds(5);
-            static ILog log = LogManager.GetLogger<BulkRetryBatchCreationHostedService>();
+            readonly ILogger<BulkRetryBatchCreationHostedService> logger;
         }
 
         class RebuildRetryGroupStatusesHostedService : IHostedService
@@ -212,10 +213,11 @@
 
         internal class AdoptOrphanBatchesFromPreviousSessionHostedService : IHostedService
         {
-            public AdoptOrphanBatchesFromPreviousSessionHostedService(RetryDocumentManager retryDocumentManager, IAsyncTimer scheduler)
+            public AdoptOrphanBatchesFromPreviousSessionHostedService(RetryDocumentManager retryDocumentManager, IAsyncTimer scheduler, ILogger<AdoptOrphanBatchesFromPreviousSessionHostedService> logger)
             {
                 this.retryDocumentManager = retryDocumentManager;
                 this.scheduler = scheduler;
+                this.logger = logger;
             }
 
             internal async Task<bool> AdoptOrphanedBatchesAsync()
@@ -231,7 +233,7 @@
                 {
                     var hasMoreWork = await AdoptOrphanedBatchesAsync();
                     return hasMoreWork ? TimerJobExecutionResult.ScheduleNextExecution : TimerJobExecutionResult.DoNotContinueExecuting;
-                }, TimeSpan.Zero, TimeSpan.FromMinutes(2), e => { log.Error("Unhandled exception while trying to adopt orphaned batches", e); });
+                }, TimeSpan.Zero, TimeSpan.FromMinutes(2), e => logger.LogError(e, "Unhandled exception while trying to adopt orphaned batches"));
                 return Task.CompletedTask;
             }
 
@@ -240,7 +242,7 @@
             TimerJob timer;
             readonly IAsyncTimer scheduler;
             readonly RetryDocumentManager retryDocumentManager;
-            static readonly ILog log = LogManager.GetLogger<AdoptOrphanBatchesFromPreviousSessionHostedService>();
+            readonly ILogger<AdoptOrphanBatchesFromPreviousSessionHostedService> logger;
         }
 
         class ProcessRetryBatchesHostedService : IHostedService
@@ -248,16 +250,18 @@
             public ProcessRetryBatchesHostedService(
                 RetryProcessor processor,
                 Settings settings,
-                IAsyncTimer scheduler)
+                IAsyncTimer scheduler,
+                ILogger<ProcessRetryBatchesHostedService> logger)
             {
                 this.processor = processor;
                 this.settings = settings;
                 this.scheduler = scheduler;
+                this.logger = logger;
             }
 
             public Task StartAsync(CancellationToken cancellationToken)
             {
-                timer = scheduler.Schedule(Process, TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e => { log.Error("Unhandled exception while processing retry batches", e); });
+                timer = scheduler.Schedule(Process, TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e => logger.LogError(e, "Unhandled exception while processing retry batches"));
                 return Task.CompletedTask;
             }
 
@@ -274,7 +278,7 @@
             TimerJob timer;
 
             RetryProcessor processor;
-            static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatchesHostedService));
+            readonly ILogger<ProcessRetryBatchesHostedService> logger;
         }
     }
 }

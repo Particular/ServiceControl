@@ -24,7 +24,7 @@ class MonitoringThroughputHostedService(ITransportCustomization transportCustomi
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Starting {nameof(MonitoringThroughputHostedService)}");
+        logger.LogInformation("Starting {ServiceName}", nameof(MonitoringThroughputHostedService));
 
         transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(ServiceControlSettings.ServiceControlThroughputDataQueue, transportSettings, Handle, (_, __) => Task.FromResult(ErrorHandleResult.Handled), (_, __) => Task.CompletedTask);
         await transportInfrastructure.Receivers[ServiceControlSettings.ServiceControlThroughputDataQueue].StartReceive(cancellationToken);
@@ -32,7 +32,7 @@ class MonitoringThroughputHostedService(ITransportCustomization transportCustomi
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Stopping {nameof(MonitoringThroughputHostedService)}");
+        logger.LogInformation("Stopping {ServiceName}", nameof(MonitoringThroughputHostedService));
 
         if (transportInfrastructure != null)
         {

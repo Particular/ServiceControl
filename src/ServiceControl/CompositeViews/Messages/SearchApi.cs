@@ -3,6 +3,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using Persistence;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -16,8 +17,8 @@ namespace ServiceControl.CompositeViews.Messages
 
     public class SearchApi : ScatterGatherApiMessageView<IErrorMessageDataStore, SearchApiContext>
     {
-        public SearchApi(IErrorMessageDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory) :
-            base(dataStore, settings, httpClientFactory)
+        public SearchApi(IErrorMessageDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, ILogger<SearchApi> logger)
+            : base(dataStore, settings, httpClientFactory, logger)
         {
         }
 

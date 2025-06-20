@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using Api.Contracts;
     using Messages;
+    using Microsoft.Extensions.Logging;
     using Persistence;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -19,10 +20,9 @@
     public class GetAuditCountsForEndpointApi(
         IErrorMessageDataStore dataStore,
         Settings settings,
-        IHttpClientFactory httpClientFactory
-    )
-        : ScatterGatherApi<IErrorMessageDataStore, AuditCountsForEndpointContext, IList<AuditCount>>(dataStore, settings,
-            httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        ILogger<GetAuditCountsForEndpointApi> logger)
+        : ScatterGatherApi<IErrorMessageDataStore, AuditCountsForEndpointContext, IList<AuditCount>>(dataStore, settings, httpClientFactory, logger)
     {
         static readonly IList<AuditCount> Empty = new List<AuditCount>(0).AsReadOnly();
 

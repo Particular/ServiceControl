@@ -9,9 +9,12 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
+    using NServiceBus.Extensions.Logging;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using NUnit.Framework;
+    using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.TestLogger;
     using Transports;
 
     [TestFixture]
@@ -20,7 +23,9 @@
         [SetUp]
         public virtual async Task Setup()
         {
-            LogManager.UseFactory(new TestContextAppenderFactory());
+            //used for loggers outside of ServiceControl (i.e. transports and core) to use the logger factory defined here
+            LogManager.UseFactory(new ExtensionsLoggerFactory(new TestContextAppenderFactory(Microsoft.Extensions.Logging.LogLevel.Warning)));
+            LoggerUtil.ActiveLoggers = Loggers.Test;
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
             registrations = [];
@@ -102,6 +107,7 @@
             configuration.TransportCustomization.CustomizeMonitoringEndpoint(new EndpointConfiguration("queueName"), transportSettings);
 
             serviceCollection.AddSingleton<Action<QueueLengthEntry[], EndpointToQueueMapping>>((qlt, _) => onQueueLengthReported(qlt.First()));
+            serviceCollection.AddLogging();
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
             queueLengthProvider = serviceProvider.GetRequiredService<IProvideQueueLength>();

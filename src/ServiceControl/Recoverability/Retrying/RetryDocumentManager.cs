@@ -4,28 +4,29 @@ namespace ServiceControl.Recoverability
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using ServiceControl.Persistence;
 
     class RetryDocumentManager
     {
-        public RetryDocumentManager(IHostApplicationLifetime applicationLifetime, IRetryDocumentDataStore store, RetryingManager operationManager)
+        public RetryDocumentManager(IHostApplicationLifetime applicationLifetime, IRetryDocumentDataStore store, RetryingManager operationManager, ILogger<RetryDocumentManager> logger)
         {
             this.store = store;
             applicationLifetime?.ApplicationStopping.Register(() => { abort = true; });
             this.operationManager = operationManager;
+            this.logger = logger;
         }
 
         public async Task<bool> AdoptOrphanedBatches()
         {
             var orphanedBatches = await store.QueryOrphanedBatches(RetrySessionId);
 
-            log.Info($"Found {orphanedBatches.Results.Count} orphaned retry batches from previous sessions.");
+            logger.LogInformation("Found {OrphanedBatchCount} orphaned retry batches from previous sessions", orphanedBatches.Results.Count);
 
             // let's leave Task.Run for now due to sync sends
             await Task.WhenAll(orphanedBatches.Results.Select(b => Task.Run(async () =>
             {
-                log.Info($"Adopting retry batch {b.Id} with {b.FailureRetries.Count} messages.");
+                logger.LogInformation("Adopting retry batch {BatchId} with {BatchMessageCount} messages", b.Id, b.FailureRetries.Count);
                 await MoveBatchToStaging(b.Id);
             })));
 
@@ -55,10 +56,7 @@ namespace ServiceControl.Recoverability
             {
                 if (!string.IsNullOrWhiteSpace(group.RequestId))
                 {
-                    if (log.IsDebugEnabled)
-                    {
-                        log.DebugFormat("Rebuilt retry operation status for {0}/{1}. Aggregated batchsize: {2}", group.RetryType, group.RequestId, group.InitialBatchSize);
-                    }
+                    logger.LogDebug("Rebuilt retry operation status for {RetryType}/{RetryRequestId}. Aggregated batchsize: {RetryBatchSize}", group.RetryType, group.RequestId, group.InitialBatchSize);
 
                     await operationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last);
                 }
@@ -70,6 +68,6 @@ namespace ServiceControl.Recoverability
         bool abort;
         public static string RetrySessionId = Guid.NewGuid().ToString();
 
-        static readonly ILog log = LogManager.GetLogger(typeof(RetryDocumentManager));
+        readonly ILogger<RetryDocumentManager> logger;
     }
 }

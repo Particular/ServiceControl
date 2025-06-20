@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence.RavenDB\ServiceControl.Persistence.RavenDB.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />

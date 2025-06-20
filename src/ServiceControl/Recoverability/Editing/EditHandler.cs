@@ -4,8 +4,8 @@
     using System.Linq;
     using System.Threading.Tasks;
     using MessageFailures;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Support;
     using NServiceBus.Transport;
@@ -14,13 +14,14 @@
 
     class EditHandler : IHandleMessages<EditAndSend>
     {
-        public EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher, ErrorQueueNameCache errorQueueNameCache)
+        public EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher, ErrorQueueNameCache errorQueueNameCache, ILogger<EditHandler> logger)
         {
             this.store = store;
             this.redirectsStore = redirectsStore;
             this.dispatcher = dispatcher;
             this.errorQueueNameCache = errorQueueNameCache;
-            corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
+            this.logger = logger;
+            corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName, logger);
 
         }
 
@@ -33,7 +34,7 @@
 
                 if (failedMessage == null)
                 {
-                    log.WarnFormat("Discarding edit {0} because no message failure for id {1} has been found.", context.MessageId, message.FailedMessageId);
+                    logger.LogWarning("Discarding edit {MessageId} because no message failure for id {FailedMessageId} has been found", context.MessageId, message.FailedMessageId);
                     return;
                 }
 
@@ -42,7 +43,7 @@
                 {
                     if (failedMessage.Status != FailedMessageStatus.Unresolved)
                     {
-                        log.WarnFormat("Discarding edit {0} because message failure {1} doesn't have state 'Unresolved'.", context.MessageId, message.FailedMessageId);
+                        logger.LogWarning("Discarding edit {MessageId} because message failure {FailedMessageId} doesn't have state 'Unresolved'", context.MessageId, message.FailedMessageId);
                         return;
                     }
 
@@ -51,7 +52,7 @@
                 }
                 else if (editId != context.MessageId)
                 {
-                    log.WarnFormat($"Discarding edit & retry request because the failed message id {message.FailedMessageId} has already been edited by Message ID {editId}");
+                    logger.LogWarning("Discarding edit & retry request because the failed message id {FailedMessageId} has already been edited by Message ID {EditedMessageId}", message.FailedMessageId, editId);
                     return;
                 }
 
@@ -120,6 +121,6 @@
         readonly IMessageRedirectsDataStore redirectsStore;
         readonly IMessageDispatcher dispatcher;
         readonly ErrorQueueNameCache errorQueueNameCache;
-        static readonly ILog log = LogManager.GetLogger<EditHandler>();
+        readonly ILogger<EditHandler> logger;
     }
 }

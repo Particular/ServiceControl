@@ -5,7 +5,7 @@ namespace NServiceBus;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Logging;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// A circuit breaker that is armed on a failure and disarmed on success. After <see cref="timeToWaitBeforeTriggering"/> in the
@@ -44,6 +44,7 @@ public sealed class RepeatedFailuresOverTimeCircuitBreaker
         string name,
         TimeSpan timeToWaitBeforeTriggering,
         Action<Exception> triggerAction,
+        ILogger logger,
         Action? armedAction = null,
         Action? disarmedAction = null,
         TimeSpan? timeToWaitWhenTriggered = default,
@@ -51,6 +52,7 @@ public sealed class RepeatedFailuresOverTimeCircuitBreaker
     {
         this.name = name;
         this.triggerAction = triggerAction;
+        this.logger = logger;
         this.armedAction = armedAction ?? (static () => { });
         this.disarmedAction = disarmedAction ?? (static () => { });
         this.timeToWaitBeforeTriggering = timeToWaitBeforeTriggering;
@@ -82,14 +84,14 @@ public sealed class RepeatedFailuresOverTimeCircuitBreaker
             circuitBreakerState = Disarmed;
 
             _ = timer.Change(Timeout.Infinite, Timeout.Infinite);
-            Logger.InfoFormat("The circuit breaker for '{0}' is now disarmed.", name);
+            logger.LogInformation("The circuit breaker for '{BreakerName}' is now disarmed.", name);
             try
             {
                 disarmedAction();
             }
             catch (Exception ex)
             {
-                Logger.Error($"The circuit breaker for '{name}' was unable to execute the disarm action.", ex);
+                logger.LogError(ex, "The circuit breaker for '{BreakerName}' was unable to execute the disarm action.", name);
                 throw;
             }
         }
@@ -130,12 +132,12 @@ public sealed class RepeatedFailuresOverTimeCircuitBreaker
             }
             catch (Exception ex)
             {
-                Logger.Error($"The circuit breaker for '{name}' was unable to execute the arm action.", new AggregateException(ex, exception));
+                logger.LogError(new AggregateException(ex, exception), "The circuit breaker for '{BreakerName}' was unable to execute the arm action.", name);
                 throw;
             }
 
             _ = timer.Change(timeToWaitBeforeTriggering, NoPeriodicTriggering);
-            Logger.WarnFormat("The circuit breaker for '{0}' is now in the armed state due to '{1}' and might trigger in '{2}' when not disarmed.", name, exception, timeToWaitBeforeTriggering);
+            logger.LogWarning("The circuit breaker for '{BreakerName}' is now in the armed state due to '{BreakerCause}' and might trigger in '{BreakerTriggerTime}' when not disarmed.", name, exception, timeToWaitBeforeTriggering);
         }
 
         return Delay();
@@ -143,10 +145,7 @@ public sealed class RepeatedFailuresOverTimeCircuitBreaker
         Task Delay()
         {
             var timeToWait = previousState == Triggered ? timeToWaitWhenTriggered : timeToWaitWhenArmed;
-            if (Logger.IsDebugEnabled)
-            {
-                Logger.DebugFormat("The circuit breaker for '{0}' is delaying the operation by '{1}'.", name, timeToWait);
-            }
+            logger.LogDebug("The circuit breaker for '{BreakerName}' is delaying the operation by '{BreakerTriggerTime}'.", name, timeToWait);
             return Task.Delay(timeToWait, cancellationToken);
         }
     }
@@ -173,7 +172,7 @@ public sealed class RepeatedFailuresOverTimeCircuitBreaker
             }
 
             circuitBreakerState = Triggered;
-            Logger.WarnFormat("The circuit breaker for '{0}' will now be triggered with exception '{1}'.", name, lastException);
+            logger.LogWarning("The circuit breaker for '{BreakerName}' will now be triggered with exception '{BreakerCause}'.", name, lastException);
 
             try
             {
@@ -181,7 +180,7 @@ public sealed class RepeatedFailuresOverTimeCircuitBreaker
             }
             catch (Exception ex)
             {
-                Logger.Fatal($"The circuit breaker for '{name}' was unable to execute the trigger action.", new AggregateException(ex, lastException!));
+                logger.LogCritical(new AggregateException(ex, lastException!), "The circuit breaker for '{BreakerName}' was unable to execute the trigger action.", name);
             }
         }
     }
@@ -204,5 +203,5 @@ public sealed class RepeatedFailuresOverTimeCircuitBreaker
     const int Triggered = 2;
 
     static readonly TimeSpan NoPeriodicTriggering = TimeSpan.FromMilliseconds(-1);
-    static readonly ILog Logger = LogManager.GetLogger<RepeatedFailuresOverTimeCircuitBreaker>();
+    readonly ILogger logger;
 }

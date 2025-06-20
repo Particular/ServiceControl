@@ -5,32 +5,23 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using NServiceBus.Metrics;
 
-    class LegacyQueueLengthReportHandler : IHandleMessages<MetricReport>
+    class LegacyQueueLengthReportHandler(LegacyQueueLengthReportHandler.LegacyQueueLengthEndpoints legacyEndpoints, ILogger<LegacyQueueLengthReportHandler> logger) : IHandleMessages<MetricReport>
     {
-        public LegacyQueueLengthReportHandler(LegacyQueueLengthEndpoints legacyEndpoints)
-        {
-            this.legacyEndpoints = legacyEndpoints;
-        }
-
         public Task Handle(MetricReport message, IMessageHandlerContext context)
         {
             var endpointInstanceId = EndpointInstanceId.From(context.MessageHeaders);
 
             if (legacyEndpoints.TryAdd(endpointInstanceId.InstanceId))
             {
-                Logger.Warn($"Legacy queue length report received from {endpointInstanceId.InstanceName} instance of {endpointInstanceId.EndpointName}");
+                logger.LogWarning("Legacy queue length report received from {EndpointInstanceIdInstanceName} instance of {EndpointInstanceIdEndpointName}", endpointInstanceId.InstanceName, endpointInstanceId.EndpointName);
             }
 
             return Task.CompletedTask;
         }
-
-        LegacyQueueLengthEndpoints legacyEndpoints;
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(LegacyQueueLengthReportHandler));
 
         public class LegacyQueueLengthEndpoints
         {

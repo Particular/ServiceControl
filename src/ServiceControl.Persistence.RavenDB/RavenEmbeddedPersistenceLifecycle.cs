@@ -6,12 +6,12 @@ namespace ServiceControl.Persistence.RavenDB
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Exceptions.Database;
     using ServiceControl.RavenDB;
 
-    sealed class RavenEmbeddedPersistenceLifecycle(RavenPersisterSettings databaseConfiguration, IHostApplicationLifetime lifetime)
+    sealed class RavenEmbeddedPersistenceLifecycle(RavenPersisterSettings databaseConfiguration, IHostApplicationLifetime lifetime, ILogger<RavenEmbeddedPersistenceLifecycle> logger)
         : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
     {
         public async ValueTask<IDocumentStore> GetDocumentStore(CancellationToken cancellationToken = default)
@@ -58,7 +58,7 @@ namespace ServiceControl.Persistence.RavenDB
                     }
                     catch (DatabaseLoadTimeoutException e)
                     {
-                        Log.Warn("Could not connect to database. Retrying in 500ms...", e);
+                        logger.LogWarning(e, "Could not connect to database. Retrying in 500ms...");
                         await Task.Delay(500, cancellationToken);
                     }
                 }
@@ -86,7 +86,5 @@ namespace ServiceControl.Persistence.RavenDB
         IDocumentStore? documentStore;
         EmbeddedDatabase? database;
         readonly SemaphoreSlim initializeSemaphore = new(1, 1);
-
-        static readonly ILog Log = LogManager.GetLogger(typeof(RavenEmbeddedPersistenceLifecycle));
     }
 }
