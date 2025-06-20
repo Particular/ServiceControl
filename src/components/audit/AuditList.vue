@@ -5,8 +5,9 @@ import { storeToRefs } from "pinia";
 import Message, { MessageStatus } from "@/resources/Message";
 import { useRoute, useRouter } from "vue-router";
 import ResultsCount from "@/components/ResultsCount.vue";
-import { dotNetTimespanToMilliseconds, formatDotNetTimespan } from "@/composables/formatUtils";
+import { formatDotNetTimespan } from "@/composables/formatUtils";
 import FiltersPanel from "@/components/audit/FiltersPanel.vue";
+import MessageStatusIcon from "@/components/audit/MessageStatusIcon.vue";
 import { onBeforeMount, onUnmounted, ref, watch } from "vue";
 import RefreshConfig from "../RefreshConfig.vue";
 import useAutoRefresh from "@/composables/autoRefresh";
@@ -35,49 +36,6 @@ const dataRetriever = useAutoRefresh(
 onUnmounted(() => {
   dataRetriever.updateTimeout(null);
 });
-
-function statusToName(messageStatus: MessageStatus) {
-  switch (messageStatus) {
-    case MessageStatus.Successful:
-      return "Successful";
-    case MessageStatus.ResolvedSuccessfully:
-      return "Successful after retries";
-    case MessageStatus.Failed:
-      return "Failed";
-    case MessageStatus.ArchivedFailure:
-      return "Failed message deleted";
-    case MessageStatus.RepeatedFailure:
-      return "Repeated Failures";
-    case MessageStatus.RetryIssued:
-      return "Retry requested";
-  }
-}
-
-function statusToIcon(messageStatus: MessageStatus) {
-  switch (messageStatus) {
-    case MessageStatus.Successful:
-      return "fa successful";
-    case MessageStatus.ResolvedSuccessfully:
-      return "fa resolved-successfully";
-    case MessageStatus.Failed:
-      return "fa failed";
-    case MessageStatus.ArchivedFailure:
-      return "fa archived";
-    case MessageStatus.RepeatedFailure:
-      return "fa repeated-failure";
-    case MessageStatus.RetryIssued:
-      return "fa retry-issued";
-  }
-}
-
-function hasWarning(message: Message) {
-  return (
-    message.status === MessageStatus.ResolvedSuccessfully || //
-    dotNetTimespanToMilliseconds(message.critical_time) < 0 ||
-    dotNetTimespanToMilliseconds(message.processing_time) < 0 ||
-    dotNetTimespanToMilliseconds(message.delivery_time) < 0
-  );
-}
 
 function navigateToMessage(message: Message) {
   const query = router.currentRoute.value.query;
@@ -169,10 +127,7 @@ watch(autoRefreshValue, (newValue) => dataRetriever.updateTimeout(newValue));
       <template v-for="message in messages" :key="message.id">
         <div class="item" @click="navigateToMessage(message)">
           <div class="status">
-            <div class="status-container" v-tippy="{ content: statusToName(message.status) }">
-              <div class="status-icon" :class="statusToIcon(message.status)"></div>
-              <div v-if="hasWarning(message)" class="warning"></div>
-            </div>
+            <MessageStatusIcon :message="message" />
           </div>
           <div class="message-id">{{ message.message_id }}</div>
           <div class="message-type">{{ message.message_type }}</div>
@@ -250,53 +205,5 @@ watch(autoRefreshValue, (newValue) => dataRetriever.updateTimeout(newValue));
 }
 .delivery-time {
   grid-area: delivery-time;
-}
-.status-container {
-  color: white;
-  width: 1.4em;
-  height: 1.4em;
-  position: relative;
-}
-
-.status-icon {
-  background-position: center;
-  background-repeat: no-repeat;
-  height: 1.4em;
-  width: 1.4em;
-}
-
-.warning {
-  background-image: url("@/assets/warning.svg");
-  background-position: bottom;
-  background-repeat: no-repeat;
-  height: 0.93em;
-  width: 0.93em;
-  position: absolute;
-  right: 0;
-  bottom: 0;
-}
-
-.successful {
-  background-image: url("@/assets/status_successful.svg");
-}
-
-.resolved-successfully {
-  background-image: url("@/assets/status_resolved.svg");
-}
-
-.failed {
-  background-image: url("@/assets/status_failed.svg");
-}
-
-.archived {
-  background-image: url("@/assets/status_archived.svg");
-}
-
-.repeated-failure {
-  background-image: url("@/assets/status_repeated_failed.svg");
-}
-
-.retry-issued {
-  background-image: url("@/assets/status_retry_issued.svg");
 }
 </style>
