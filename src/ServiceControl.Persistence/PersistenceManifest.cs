@@ -6,7 +6,6 @@
     using System.Linq;
     using System.Text.Json;
     using Microsoft.Extensions.Logging;
-    using NServiceBus.Logging;
     using ServiceControl.Infrastructure;
 
     public class PersistenceManifest

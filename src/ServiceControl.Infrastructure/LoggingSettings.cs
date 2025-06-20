@@ -11,9 +11,6 @@ public class LoggingSettings
 {
     public LoggingSettings(SettingsRootNamespace rootNamespace, LogLevel defaultLevel = LogLevel.Information, string logPath = null)
     {
-        LogLevel = InitializeLogLevel(rootNamespace, defaultLevel);
-        LogPath = SettingsReader.Read(rootNamespace, logPathKey, Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogLocation()));
-
         var loggingProviders = (SettingsReader.Read<string>(rootNamespace, loggingProvidersKey) ?? "").Split(",");
         var activeLoggers = Loggers.None;
         if (loggingProviders.Contains("NLog"))
@@ -26,6 +23,9 @@ public class LoggingSettings
         }
         //this defaults to NLog because historically that was the default, and we don't want to break existing installs that don't have the config key to define loggingProviders
         LoggerUtil.ActiveLoggers = activeLoggers == Loggers.None ? Loggers.NLog : activeLoggers;
+
+        LogLevel = InitializeLogLevel(rootNamespace, defaultLevel);
+        LogPath = SettingsReader.Read(rootNamespace, logPathKey, Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogLocation()));
     }
 
     public LogLevel LogLevel { get; }
