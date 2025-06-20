@@ -12,16 +12,19 @@ namespace ServiceControl.Infrastructure
     using LogManager = NServiceBus.Logging.LogManager;
     using LogLevel = NLog.LogLevel;
 
-    // TODO: Migrate from NLog to .NET logging
     public static class LoggingConfigurator
     {
         public static void ConfigureLogging(LoggingSettings loggingSettings)
         {
-            if (NLog.LogManager.Configuration != null)
+            //used for loggers outside of ServiceControl (i.e. transports and core) to use the logger factory defined here
+            LogManager.UseFactory(new ExtensionsLoggerFactory(LoggerFactory.Create(configure => configure.BuildLogger(loggingSettings.LogLevel))));
+
+            if (!LoggerUtil.IsLoggingTo(Loggers.NLog) || NLog.LogManager.Configuration != null)
             {
                 return;
             }
 
+            //configure NLog
             var nlogConfig = new LoggingConfiguration();
             var simpleLayout = new SimpleLayout("${longdate}|${processtime}|${threadid}|${level}|${logger}|${message}${onexception:|${exception:format=tostring}}");
 
@@ -76,8 +79,7 @@ namespace ServiceControl.Infrastructure
 
             NLog.LogManager.Configuration = nlogConfig;
 
-            LogManager.UseFactory(new ExtensionsLoggerFactory(LoggerFactory.Create(configure => configure.BuildLogger(loggingSettings.LogLevel))));
-
+            //using LogManager here rather than LoggerUtil.CreateStaticLogger since this is exclusive to NLog
             var logger = LogManager.GetLogger("LoggingConfiguration");
             var logEventInfo = new LogEventInfo { TimeStamp = DateTime.UtcNow };
             var loggingTo = AppEnvironment.RunningInContainer ? "console" : fileTarget.FileName.Render(logEventInfo);

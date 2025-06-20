@@ -5,13 +5,13 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
-    using NServiceBus.Logging;
     using Raven.Client.Documents.Operations;
     using ServiceControl.Persistence.RavenDB;
     using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
-    class CheckRavenDBIndexLag(IRavenDocumentStoreProvider documentStoreProvider) : CustomCheck("Error Database Index Lag", "ServiceControl Health", TimeSpan.FromMinutes(5))
+    class CheckRavenDBIndexLag(IRavenDocumentStoreProvider documentStoreProvider, ILogger<CheckRavenDBIndexLag> logger) : CustomCheck("Error Database Index Lag", "ServiceControl Health", TimeSpan.FromMinutes(5))
     {
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
@@ -31,7 +31,7 @@
             return CheckResult.Pass;
         }
 
-        static int CheckAndReportIndexesWithTooMuchIndexLag(IndexInformation[] indexes)
+        int CheckAndReportIndexesWithTooMuchIndexLag(IndexInformation[] indexes)
         {
             int indexCountWithTooMuchLag = 0;
 
@@ -44,12 +44,12 @@
                     if (indexLag > IndexLagThresholdError)
                     {
                         indexCountWithTooMuchLag++;
-                        Log.Error($"Index [{indexStats.Name}] IndexingLag {indexLag} is above error threshold ({IndexLagThresholdError}). Launch in maintenance mode to let indexes catch up.");
+                        logger.LogError("Index [{IndexName}] IndexingLag {IndexLag} is above error threshold ({IndexLagThresholdError}). Launch in maintenance mode to let indexes catch up.", indexStats.Name, indexLag, IndexLagThresholdError);
                     }
                     else if (indexLag > IndexLagThresholdWarning)
                     {
                         indexCountWithTooMuchLag++;
-                        Log.Warn($"Index [{indexStats.Name}] IndexingLag {indexLag} is above warning threshold ({IndexLagThresholdWarning}). Launch in maintenance mode to let indexes catch up.");
+                        logger.LogWarning("Index [{IndexName}] IndexingLag {IndexLag} is above warning threshold ({IndexLagThresholdWarning}). Launch in maintenance mode to let indexes catch up.", indexStats.Name, indexLag, IndexLagThresholdWarning);
                     }
                 }
             }
@@ -57,9 +57,9 @@
             return indexCountWithTooMuchLag;
         }
 
-        static void CreateDiagnosticsLogEntry(DatabaseStatistics statistics, IndexInformation[] indexes)
+        void CreateDiagnosticsLogEntry(DatabaseStatistics statistics, IndexInformation[] indexes)
         {
-            if (!Log.IsDebugEnabled)
+            if (!logger.IsEnabled(LogLevel.Debug))
             {
                 return;
             }
@@ -73,11 +73,10 @@
             {
                 report.AppendLine($"- Index [{indexStats.Name,-44}] State: {indexStats.State}, Stale: {indexStats.IsStale,-5}, Priority: {indexStats.Priority,-6}, LastIndexingTime: {indexStats.LastIndexingTime:u}");
             }
-            Log.Debug(report.ToString());
+            logger.LogDebug(report.ToString());
         }
 
         static readonly TimeSpan IndexLagThresholdWarning = TimeSpan.FromMinutes(1);
         static readonly TimeSpan IndexLagThresholdError = TimeSpan.FromMinutes(10);
-        static readonly ILog Log = LogManager.GetLogger<CheckRavenDBIndexLag>();
     }
 }

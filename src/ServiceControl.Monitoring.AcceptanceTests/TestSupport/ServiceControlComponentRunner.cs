@@ -13,11 +13,12 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using Monitoring;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Logging;
+    using ServiceControl.Infrastructure;
 
     class ServiceControlComponentRunner(
         ITransportIntegration transportToUse,
@@ -33,15 +34,16 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
         async Task InitializeServiceControl(ScenarioContext context)
         {
+            LoggerUtil.ActiveLoggers = Loggers.Test;
             settings = new Settings(transportType: transportToUse.TypeName)
             {
                 ConnectionString = transportToUse.ConnectionString,
                 HttpHostName = "localhost",
                 OnMessage = (id, headers, body, @continue) =>
                 {
-                    var log = LogManager.GetLogger<ServiceControlComponentRunner>();
+                    var logger = LoggerUtil.CreateStaticLogger<ServiceControlComponentRunner>();
                     headers.TryGetValue(Headers.MessageId, out var originalMessageId);
-                    log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
+                    logger.LogDebug("OnMessage for message '{MessageId}'({OriginalMessageId})", id, originalMessageId ?? string.Empty);
 
                     //Do not filter out CC, SA and HB messages as they can't be stamped
                     if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
@@ -60,7 +62,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                     var currentSession = context.TestRunId.ToString();
                     if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
                     {
-                        log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
+                        logger.LogDebug("Discarding message '{MessageId}'({OriginalMessageId}) because it's session id is '{SessionId}' instead of '{CurrentSessionId}'", id, originalMessageId ?? string.Empty, session, currentSession);
                         return Task.CompletedTask;
                     }
 
@@ -91,12 +93,15 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                     // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
                     EnvironmentName = Environments.Development
                 });
+                hostBuilder.Logging.ClearProviders();
+                hostBuilder.Logging.BuildLogger(LogLevel.Information);
+
                 hostBuilder.AddServiceControlMonitoring((criticalErrorContext, cancellationToken) =>
                 {
                     var logitem = new ScenarioContext.LogItem
                     {
                         Endpoint = settings.InstanceName,
-                        Level = LogLevel.Fatal,
+                        Level = NServiceBus.Logging.LogLevel.Fatal,
                         LoggerName = $"{settings.InstanceName}.CriticalError",
                         Message = $"{criticalErrorContext.Error}{Environment.NewLine}{criticalErrorContext.Exception}"
                     };

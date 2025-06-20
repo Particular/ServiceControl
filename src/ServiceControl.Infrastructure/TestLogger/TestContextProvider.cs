@@ -4,7 +4,14 @@
 
     public class TestContextProvider : ILoggerProvider
     {
-        public ILogger CreateLogger(string categoryName) => new TestContextAppender(categoryName);
+        readonly LogLevel level;
+
+        public TestContextProvider(LogLevel level)
+        {
+            this.level = level;
+        }
+
+        public ILogger CreateLogger(string categoryName) => new TestContextAppender(categoryName, level);
 
         public void Dispose()
         {

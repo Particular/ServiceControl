@@ -5,12 +5,12 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
-    using NServiceBus.Logging;
     using Raven.Client.Documents.Operations.Indexes;
     using ServiceControl.Persistence.RavenDB;
 
-    class CheckRavenDBIndexErrors(IRavenDocumentStoreProvider documentStoreProvider) : CustomCheck("Error Database Index Errors", "ServiceControl Health", TimeSpan.FromMinutes(5))
+    class CheckRavenDBIndexErrors(IRavenDocumentStoreProvider documentStoreProvider, ILogger<CheckRavenDBIndexErrors> logger) : CustomCheck("Error Database Index Errors", "ServiceControl Health", TimeSpan.FromMinutes(5))
     {
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
@@ -41,10 +41,8 @@
             text.AppendLine().AppendLine("See: https://docs.particular.net/search?q=servicecontrol+troubleshooting");
 
             var message = text.ToString();
-            Logger.Error(message);
+            logger.LogError(message);
             return CheckResult.Failed(message);
         }
-
-        static readonly ILog Logger = LogManager.GetLogger<CheckRavenDBIndexLag>();
     }
 }

@@ -4,18 +4,16 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using MessageFailures;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
     using Raven.Client.Exceptions;
     using ServiceControl.Recoverability;
 
-    class RetryBatchesDataStore(IRavenSessionProvider sessionProvider, IRavenDocumentStoreProvider documentStoreProvider, ExpirationManager expirationManager)
+    class RetryBatchesDataStore(IRavenSessionProvider sessionProvider, IRavenDocumentStoreProvider documentStoreProvider, ExpirationManager expirationManager, ILogger<RetryBatchesDataStore> logger)
         : IRetryBatchesDataStore
     {
-        static readonly ILog Log = LogManager.GetLogger(typeof(RetryBatchesDataStore));
-
         public async Task<IRetryBatchesManager> CreateRetryBatchesManager()
         {
             var session = await sessionProvider.OpenSession();
@@ -32,7 +30,7 @@
             {
                 var failedMessageRetry = failedMessageRetriesById[failedMessage.Id];
 
-                Log.Warn($"Attempt {1} of {maxStagingAttempts} to stage a retry message {failedMessage.UniqueMessageId} failed", e);
+                logger.LogWarning(e, "Attempt 1 of {MaxStagingAttempts} to stage a retry message {UniqueMessageId} failed", maxStagingAttempts, failedMessage.UniqueMessageId);
 
                 commands[commandIndex] = new PatchCommandData(failedMessageRetry.Id, null, new PatchRequest
                 {
@@ -57,8 +55,8 @@
             }
             catch (ConcurrencyException)
             {
-                Log.DebugFormat(
-                    "Ignoring concurrency exception while incrementing staging attempt count for {0}",
+                logger.LogDebug(
+                    "Ignoring concurrency exception while incrementing staging attempt count for {StagingId}",
                     stagingId);
             }
         }
@@ -75,7 +73,7 @@
             }
             catch (ConcurrencyException)
             {
-                Log.DebugFormat("Ignoring concurrency exception while incrementing staging attempt count for {0}", message.FailedMessageId);
+                logger.LogDebug("Ignoring concurrency exception while incrementing staging attempt count for {MessageId}", message.FailedMessageId);
             }
         }
 

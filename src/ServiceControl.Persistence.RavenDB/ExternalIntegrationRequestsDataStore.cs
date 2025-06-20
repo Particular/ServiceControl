@@ -8,8 +8,8 @@
     using System.Threading.Tasks;
     using ExternalIntegrations;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Changes;
     using ServiceControl.Infrastructure;
@@ -20,12 +20,17 @@
         , IAsyncDisposable
     {
 
-        public ExternalIntegrationRequestsDataStore(RavenPersisterSettings settings, IRavenSessionProvider sessionProvider, IRavenDocumentStoreProvider documentStoreProvider, CriticalError criticalError)
+        public ExternalIntegrationRequestsDataStore(
+            RavenPersisterSettings settings,
+            IRavenSessionProvider sessionProvider,
+            IRavenDocumentStoreProvider documentStoreProvider,
+            CriticalError criticalError,
+            ILogger<ExternalIntegrationRequestsDataStore> logger)
         {
             this.settings = settings;
             this.sessionProvider = sessionProvider;
             this.documentStoreProvider = documentStoreProvider;
-
+            this.logger = logger;
             var timeToWait = TimeSpan.FromMinutes(5);
             var delayAfterFailure = TimeSpan.FromSeconds(20);
 
@@ -33,6 +38,7 @@
                 "EventDispatcher",
                 timeToWait,
                 ex => criticalError.Raise("Repeated failures when dispatching external integration events.", ex),
+                logger,
                 timeToWaitWhenArmed: delayAfterFailure
             );
         }
@@ -97,7 +103,7 @@
             }
             catch (Exception ex)
             {
-                Logger.Error("An exception occurred when dispatching external integration events", ex);
+                logger.LogError(ex, "An exception occurred when dispatching external integration events");
                 await circuitBreaker.Failure(ex, cancellationToken);
 
                 if (!tokenSource.IsCancellationRequested)
@@ -143,10 +149,7 @@
             }
 
             var allContexts = awaitingDispatching.Select(r => r.DispatchContext).ToArray();
-            if (Logger.IsDebugEnabled)
-            {
-                Logger.Debug($"Dispatching {allContexts.Length} events.");
-            }
+            logger.LogDebug("Dispatching {EventCount} events.", allContexts.Length);
 
             await callback(allContexts);
 
@@ -206,6 +209,6 @@
         Func<object[], Task> callback;
         bool isDisposed;
 
-        static ILog Logger = LogManager.GetLogger(typeof(ExternalIntegrationRequestsDataStore));
+        readonly ILogger<ExternalIntegrationRequestsDataStore> logger;
     }
 }

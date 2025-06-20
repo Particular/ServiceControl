@@ -21,7 +21,6 @@ namespace Particular.ServiceControl
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Hosting.WindowsServices;
     using Microsoft.Extensions.Logging;
-    using NLog.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Transport;
@@ -42,11 +41,8 @@ namespace Particular.ServiceControl
                 EventSourceCreator.Create();
             }
 
-            var logging = hostBuilder.Logging;
-            logging.ClearProviders();
-            //HINT: configuration used by NLog comes from LoggingConfigurator.cs
-            logging.AddNLog();
-            logging.SetMinimumLevel(settings.LoggingSettings.LogLevel);
+            hostBuilder.Logging.ClearProviders();
+            hostBuilder.Logging.BuildLogger(settings.LoggingSettings.LogLevel);
 
             var services = hostBuilder.Services;
             var transportSettings = settings.ToTransportSettings();

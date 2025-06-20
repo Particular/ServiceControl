@@ -10,11 +10,12 @@ namespace ServiceControl.RavenDB
     using System.Threading.Tasks;
     using ByteSizeLib;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
     using Raven.Client.ServerWide.Operations;
     using Raven.Embedded;
+    using ServiceControl.Infrastructure;
     using Sparrow.Logging;
 
     public sealed class EmbeddedDatabase : IDisposable
@@ -67,7 +68,7 @@ namespace ServiceControl.RavenDB
                 );
             }
 
-            Logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
+            logger.LogInformation("Loading RavenDB license from {LicenseFileName}", licenseFileNameAndServerDirectory.LicenseFileName);
             var serverOptions = new ServerOptions
             {
                 CommandLineArgs =
@@ -119,12 +120,12 @@ namespace ServiceControl.RavenDB
 
                         shutdownCancellationToken.ThrowIfCancellationRequested();
 
-                        Logger.Info("Restarting RavenDB server process");
+                        logger.LogInformation("Restarting RavenDB server process");
 
                         await EmbeddedServer.Instance.RestartServerAsync();
                         restartRequired = false;
 
-                        Logger.Info("RavenDB server process restarted successfully.");
+                        logger.LogInformation("RavenDB server process restarted successfully.");
                     }
                     catch (OperationCanceledException) when (shutdownCancellationToken.IsCancellationRequested)
                     {
@@ -132,7 +133,7 @@ namespace ServiceControl.RavenDB
                     }
                     catch (Exception e)
                     {
-                        Logger.Fatal($"RavenDB server restart failed. Restart will be retried in {delayBetweenRestarts}.", e);
+                        logger.LogCritical(e, "RavenDB server restart failed. Restart will be retried in {RavenDelayBetweenRestarts}.", delayBetweenRestarts);
                     }
                 }
             }, CancellationToken.None);
@@ -148,11 +149,11 @@ namespace ServiceControl.RavenDB
             restartRequired = true;
             if (sender is Process process)
             {
-                Logger.Warn($"RavenDB server process exited unexpectedly with exitCode: {process.ExitCode}. Process will be restarted.");
+                logger.LogWarning("RavenDB server process exited unexpectedly with exitCode: {RavenExitCode}. Process will be restarted.", process.ExitCode);
             }
             else
             {
-                Logger.Warn($"RavenDB server process exited unexpectedly. Process will be restarted.");
+                logger.LogWarning("RavenDB server process exited unexpectedly. Process will be restarted.");
             }
         }
 
@@ -187,7 +188,7 @@ namespace ServiceControl.RavenDB
 
         public async Task Stop(CancellationToken cancellationToken)
         {
-            Logger.Debug("Stopping RavenDB server");
+            logger.LogDebug("Stopping RavenDB server");
             EmbeddedServer.Instance.ServerProcessExited -= OnServerProcessExited;
 
             await shutdownTokenSource.CancelAsync();
@@ -224,23 +225,23 @@ namespace ServiceControl.RavenDB
                 {
                     // We always want to try and kill the process, even when already cancelled
                     processId = await EmbeddedServer.Instance.GetServerProcessIdAsync(CancellationToken.None);
-                    Logger.WarnFormat("Killing RavenDB server PID {0} because host cancelled", processId);
+                    logger.LogWarning("Killing RavenDB server PID {PID} because host cancelled", processId);
                     using var ravenChildProcess = Process.GetProcessById(processId);
                     ravenChildProcess.Kill(entireProcessTree: true);
                     // Kill only signals
-                    Logger.WarnFormat("Waiting for RavenDB server PID {0} to exit... ", processId);
+                    logger.LogWarning("Waiting for RavenDB server PID {PID} to exit... ", processId);
                     // When WaitForExitAsync returns, the process could still exist but in a frozen state to flush
                     // memory mapped pages to storage.
                     await ravenChildProcess.WaitForExitAsync(CancellationToken.None);
                 }
                 catch (Exception e)
                 {
-                    Logger.ErrorFormat("Failed to kill RavenDB server PID {0} shutdown\n{1}", processId, e);
+                    logger.LogError(e, "Failed to kill RavenDB server PID {PID} shutdown", processId);
                 }
             }
 
             serverOptions = null!;
-            Logger.Debug("Stopped RavenDB server");
+            logger.LogDebug("Stopped RavenDB server");
         }
 
         public void Dispose()
@@ -262,9 +263,9 @@ namespace ServiceControl.RavenDB
                 // Set GracefulShutdownTimeout to Zero and exit ASAP, under normal operation instance would already
                 // have been allowed to gracefully stop during "Stop" method.
                 serverOptions!.GracefulShutdownTimeout = TimeSpan.Zero;
-                Logger.Debug("Disposing RavenDB server");
+                logger.LogDebug("Disposing RavenDB server");
                 EmbeddedServer.Instance.Dispose();
-                Logger.Debug("Disposed RavenDB server");
+                logger.LogDebug("Disposed RavenDB server");
             }
 
             shutdownTokenSource.Dispose();
@@ -287,7 +288,7 @@ Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.
 RavenDB Logging Level:              {configuration.LogsMode}
 -------------------------------------------------------------";
 
-            Logger.Info(startupMessage);
+            logger.LogInformation(startupMessage);
         }
 
         static long DataSize(EmbeddedDatabaseConfiguration configuration)
@@ -354,6 +355,6 @@ RavenDB Logging Level:              {configuration.LogsMode}
         ServerOptions? serverOptions;
 
         static TimeSpan delayBetweenRestarts = TimeSpan.FromSeconds(60);
-        static readonly ILog Logger = LogManager.GetLogger<EmbeddedDatabase>();
+        static readonly ILogger<EmbeddedDatabase> logger = LoggerUtil.CreateStaticLogger<EmbeddedDatabase>();
     }
 }

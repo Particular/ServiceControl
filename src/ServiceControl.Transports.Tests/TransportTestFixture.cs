@@ -23,8 +23,8 @@
         [SetUp]
         public virtual async Task Setup()
         {
-            //TODO remove LogManager usage
-            LogManager.UseFactory(new ExtensionsLoggerFactory(new TestContextAppenderFactory()));
+            //used for loggers outside of ServiceControl (i.e. transports and core) to use the logger factory defined here
+            LogManager.UseFactory(new ExtensionsLoggerFactory(new TestContextAppenderFactory(Microsoft.Extensions.Logging.LogLevel.Warning)));
             LoggerUtil.ActiveLoggers = Loggers.Test;
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
