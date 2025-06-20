@@ -14,7 +14,7 @@ interface componentDSL {
 
 //Defines a domain-specific language (DSL) for checking assertions against the system under test (sut)
 interface componentDSLAssertions {
-  thereAreTheFollowingSagaChangesInThisOrder(sagaUpdates: { expectedRenderedLocalTime: string }[]): void;
+  thereAreTheFollowingSagaChangesInThisOrder(sagaUpdates: { expectedTime: Date }[]): void;
   displayedSagaGuidIs(sagaId: string): void;
   displayedSagaNameIs(humanizedSagaName: string): void;
   linkIsShown(arg0: { withText: string; withHref: string }): void;
@@ -136,14 +136,24 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
       // but set them again explicitly here
       //so that the reader of this test can see the preconditions at play
       //and understand the test better without having to jump around
-      sampleSagaHistory.changes[0].start_time = new Date("2025-03-28T03:04:08.3819211Z"); // A
-      sampleSagaHistory.changes[0].finish_time = new Date("2025-03-28T03:04:08.3836Z"); // A1
-      sampleSagaHistory.changes[1].start_time = new Date("2025-03-28T03:04:07.5416262Z"); // B
-      sampleSagaHistory.changes[1].finish_time = new Date("2025-03-28T03:04:07.5509712Z"); //B1
-      sampleSagaHistory.changes[2].start_time = new Date("2025-03-28T03:04:06.3088353Z"); //C
-      sampleSagaHistory.changes[2].finish_time = new Date("2025-03-28T03:04:06.3218175Z"); //C1
-      sampleSagaHistory.changes[3].start_time = new Date("2025-03-28T03:04:05.3332078Z"); //D
-      sampleSagaHistory.changes[3].finish_time = new Date("2025-03-28T03:04:05.3799483Z"); //D1
+
+      const startTimeA = new Date("2025-03-28T03:04:08.000Z");
+      const finishTimeA1 = new Date("2025-03-28T03:04:08.000Z");
+      const startTimeB = new Date("2025-03-28T03:04:07.000Z");
+      const finishTimeB1 = new Date("2025-03-28T03:04:07.000Z");
+      const startTimeC = new Date("2025-03-28T03:04:06.000Z");
+      const finishTimeC1 = new Date("2025-03-28T03:04:06.000Z");
+      const startTimeD = new Date("2025-03-28T03:04:05.000Z");
+      const finishTimeD1 = new Date("2025-03-28T03:04:05.000Z");
+
+      sampleSagaHistory.changes[0].start_time = startTimeA;
+      sampleSagaHistory.changes[0].finish_time = finishTimeA1;
+      sampleSagaHistory.changes[1].start_time = startTimeB;
+      sampleSagaHistory.changes[1].finish_time = finishTimeB1;
+      sampleSagaHistory.changes[2].start_time = startTimeC;
+      sampleSagaHistory.changes[2].finish_time = finishTimeC1;
+      sampleSagaHistory.changes[3].start_time = startTimeD;
+      sampleSagaHistory.changes[3].finish_time = finishTimeD1;
       sampleSagaHistory.changes[3].status = "new";
 
       //B(1), C(2),  A(0), D(3)
@@ -158,19 +168,18 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
       });
 
       //assert
-
       componentDriver.assert.thereAreTheFollowingSagaChangesInThisOrder([
         {
-          expectedRenderedLocalTime: "3/28/2025 3:04:05 AM",
+          expectedTime: startTimeD,
         },
         {
-          expectedRenderedLocalTime: "3/28/2025 3:04:06 AM",
+          expectedTime: startTimeC,
         },
         {
-          expectedRenderedLocalTime: "3/28/2025 3:04:07 AM",
+          expectedTime: startTimeB,
         },
         {
-          expectedRenderedLocalTime: "3/28/2025 3:04:08 AM",
+          expectedTime: startTimeA,
         },
       ]);
     });
@@ -202,14 +211,23 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
       // but set them again explicitly here
       //so that the reader of this test can see the preconditions at play
       //and understand the test better without having to jump around
-      sampleSagaHistory.changes[0].start_time = new Date("2025-03-28T03:04:08.3819211Z"); // A
-      sampleSagaHistory.changes[0].finish_time = new Date("2025-03-28T03:04:08.3836Z"); // A1
-      sampleSagaHistory.changes[1].start_time = new Date("2025-03-28T03:04:07.5416262Z"); // B
-      sampleSagaHistory.changes[1].finish_time = new Date("2025-03-28T03:04:07.5509712Z"); //B1
-      sampleSagaHistory.changes[2].start_time = new Date("2025-03-28T03:04:06.3088353Z"); //C
-      sampleSagaHistory.changes[2].finish_time = new Date("2025-03-28T03:04:06.3218175Z"); //C1
-      sampleSagaHistory.changes[3].start_time = new Date("2025-03-28T03:04:05.3332078Z"); //D
-      sampleSagaHistory.changes[3].finish_time = new Date("2025-03-28T03:04:05.3799483Z"); //D1
+      const startTimeA = new Date("2025-03-28T03:04:08.000Z");
+      const finishTimeA1 = new Date("2025-03-28T03:04:08.000Z");
+      const startTimeB = new Date("2025-03-28T03:04:07.000Z");
+      const finishTimeB1 = new Date("2025-03-28T03:04:07.000Z");
+      const startTimeC = new Date("2025-03-28T03:04:06.000Z");
+      const finishTimeC1 = new Date("2025-03-28T03:04:06.000Z");
+      const startTimeD = new Date("2025-03-28T03:04:05.000Z");
+      const finishTimeD1 = new Date("2025-03-28T03:04:05.000Z");
+
+      sampleSagaHistory.changes[0].start_time = startTimeA;
+      sampleSagaHistory.changes[0].finish_time = finishTimeA1;
+      sampleSagaHistory.changes[1].start_time = startTimeB;
+      sampleSagaHistory.changes[1].finish_time = finishTimeB1;
+      sampleSagaHistory.changes[2].start_time = startTimeC;
+      sampleSagaHistory.changes[2].finish_time = finishTimeC1;
+      sampleSagaHistory.changes[3].start_time = startTimeD;
+      sampleSagaHistory.changes[3].finish_time = finishTimeD1;
       sampleSagaHistory.changes[3].status = "new";
 
       // Set up the store with sample saga history
@@ -224,16 +242,16 @@ describe("Feature: 3 Visual Representation of Saga Timeline", () => {
 
       componentDriver.assert.thereAreTheFollowingSagaChangesInThisOrder([
         {
-          expectedRenderedLocalTime: "3/27/2025 8:04:05 PM",
+          expectedTime: startTimeD,
         },
         {
-          expectedRenderedLocalTime: "3/27/2025 8:04:06 PM",
+          expectedTime: startTimeC,
         },
         {
-          expectedRenderedLocalTime: "3/27/2025 8:04:07 PM",
+          expectedTime: startTimeB,
         },
         {
-          expectedRenderedLocalTime: "3/27/2025 8:04:08 PM",
+          expectedTime: startTimeA,
         },
       ]);
     });
@@ -317,12 +335,12 @@ function rendercomponent({ initialState = {} }: { initialState?: { MessageStore?
         expect(sagaGuid).toBeInTheDocument();
         expect(sagaGuid).toHaveTextContent(guid);
       },
-      thereAreTheFollowingSagaChangesInThisOrder: function (sagaUpdates: { expectedRenderedLocalTime: string }[]): void {
+      thereAreTheFollowingSagaChangesInThisOrder: function (sagaUpdates: { expectedTime: Date }[]): void {
         //Retrive the main parent component that contains the saga changes
         const sagaChangesContainer = screen.getByRole("table", { name: /saga-sequence-list/i });
 
         const sagaUpdatesElements = within(sagaChangesContainer).queryAllByRole("row");
-        //from within each sagaUpdatesElemtns get the values of an element with aria-label="time stamp"
+        //from within each sagaUpdatesElements get the values of an element with aria-label="time stamp"
         //and check if the values are in the same order as the sagaUpdates array passed to this function
         const sagaUpdatesTimestamps = sagaUpdatesElements.map((item: HTMLElement) => within(item).getByLabelText("time stamp"));
 
@@ -330,8 +348,17 @@ function rendercomponent({ initialState = {} }: { initialState?: { MessageStore?
         expect(sagaUpdatesTimestamps).toHaveLength(sagaUpdates.length);
 
         const sagaUpdatesTimestampsValues = sagaUpdatesTimestamps.map((item) => item.innerHTML);
-        // //check if the values are in the same order as the sagaUpdates array passed to this function
-        expect(sagaUpdatesTimestampsValues).toEqual(sagaUpdates.map((item) => item.expectedRenderedLocalTime));
+
+        // Parse the rendered timestamp strings back to Date objects for comparison
+        const parsedDatesFromUI = sagaUpdatesTimestampsValues.map((timestampString) => {
+          // Parse the retrieved timestamp string  back to a Date
+          return new Date(timestampString);
+        });
+
+        const expectedDates = sagaUpdates.map((item) => item.expectedTime);
+
+        // Compare the dates directly
+        expect(parsedDatesFromUI).toEqual(expectedDates);
       },
     },
   };
