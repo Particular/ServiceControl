@@ -23,7 +23,7 @@
     "@dagrejs/dagre": "^1.1.5",
     "@tinyhttp/content-disposition": "^2.2.2",
     "@vue-flow/controls": "^1.1.2",
-    "@vue-flow/core": "^1.44.0",
+    "@vue-flow/core": "^1.45.0",
     "@vuepic/vue-datepicker": "^11.0.2",
     "bootstrap": "^5.3.7",
     "codemirror": "^6.0.2",
