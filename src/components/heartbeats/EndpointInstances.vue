@@ -178,18 +178,12 @@ async function toggleAlerts(instance: EndpointsView) {
           <div>
             Actions
             <tippy max-width="400px">
-              <i :style="{ fontSize: '1.1em' }" class="fa fa-info-circle text-primary" />
+              <i :style="{ fontSize: '1.1em', marginLeft: '0.25em' }" class="fa fa-info-circle text-primary" />
               <template #content>
-                <table>
-                  <tbody>
-                    <tr>
-                      <td style="padding: 3px; width: 6em; text-align: end; align-content: center">
-                        <button type="button" class="btn btn-danger btn-sm"><i class="fa fa-trash text-white" /> Delete</button>
-                      </td>
-                      <td style="padding: 3px">Delete an instance when that instance has been decommissioned.</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div class="d-flex align-items-center p-1">
+                  <button type="button" class="btn btn-danger btn-ms text-nowrap me-3" @click="deleteAllInstances()"><i class="fa fa-trash text-white" /> Delete</button>
+                  <span>Delete an instance when that instance has been decommissioned.</span>
+                </div>
               </template>
             </tippy>
           </div>
