@@ -10,7 +10,6 @@ import OnOffSwitch from "../OnOffSwitch.vue";
 import routeLinks from "@/router/routeLinks";
 import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
-import { Tippy } from "vue-tippy";
 import { useHeartbeatInstancesStore, ColumnNames } from "@/stores/HeartbeatInstancesStore";
 import { EndpointsView } from "@/resources/EndpointView";
 import endpointSettingsClient from "@/components/heartbeats/endpointSettingsClient";
@@ -19,6 +18,7 @@ import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import LastHeartbeat from "@/components/heartbeats/LastHeartbeat.vue";
 import FilterInput from "../FilterInput.vue";
 import ResultsCount from "../ResultsCount.vue";
+import ColumnHelp from "./ColumnHelp.vue";
 
 enum Operation {
   Mute = "mute",
@@ -167,25 +167,19 @@ async function toggleAlerts(instance: EndpointsView) {
         </div>
         <div role="columnheader" :aria-label="ColumnNames.MuteToggle" class="col-2 centre">
           <SortableColumn :sort-by="ColumnNames.MuteToggle" v-model="sortByInstances">Mute Alerts</SortableColumn>
-          <tippy max-width="400px">
-            <i :style="{ fontSize: '1.1em', marginLeft: '0.25em' }" class="fa fa-info-circle text-primary" />
-            <template #content>
-              <span>Mute an instance when you are planning to take the instance offline to do maintenance or some other reason. This will prevent alerts on the dashboard.</span>
-            </template>
-          </tippy>
+          <ColumnHelp>
+            <span>Mute an instance when you are planning to take the instance offline to do maintenance or some other reason. This will prevent alerts on the dashboard.</span>
+          </ColumnHelp>
         </div>
         <div role="columnheader" aria-label="actions" class="col-1">
           <div>
-            Actions
-            <tippy max-width="400px">
-              <i :style="{ fontSize: '1.1em', marginLeft: '0.25em' }" class="fa fa-info-circle text-primary" />
-              <template #content>
-                <div class="d-flex align-items-center p-1">
-                  <button type="button" class="btn btn-danger btn-ms text-nowrap me-3" @click="deleteAllInstances()"><i class="fa fa-trash text-white" /> Delete</button>
-                  <span>Delete an instance when that instance has been decommissioned.</span>
-                </div>
-              </template>
-            </tippy>
+            <span>Actions</span>
+            <ColumnHelp>
+              <div class="d-flex align-items-center p-1">
+                <button type="button" class="btn btn-danger btn-ms text-nowrap me-3" @click="deleteAllInstances()"><i class="fa fa-trash text-white" /> Delete</button>
+                <span>Delete an instance when that instance has been decommissioned.</span>
+              </div>
+            </ColumnHelp>
           </div>
         </div>
       </div>
