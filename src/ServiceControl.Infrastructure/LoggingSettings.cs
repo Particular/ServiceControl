@@ -20,6 +20,11 @@ public class LoggingSettings
         if (loggingProviders.Contains("Seq"))
         {
             activeLoggers |= Loggers.Seq;
+            var seqAddress = SettingsReader.Read<string>(rootNamespace, seqAddressKey);
+            if (!string.IsNullOrWhiteSpace(seqAddress))
+            {
+                LoggerUtil.SeqAddress = seqAddress;
+            }
         }
         //this defaults to NLog because historically that was the default, and we don't want to break existing installs that don't have the config key to define loggingProviders
         LoggerUtil.ActiveLoggers = activeLoggers == Loggers.None ? Loggers.NLog : activeLoggers;
@@ -78,4 +83,5 @@ public class LoggingSettings
     const string logLevelKey = "LogLevel";
     const string logPathKey = "LogPath";
     const string loggingProvidersKey = "LoggingProviders";
+    const string seqAddressKey = "SeqAddress";
 }
