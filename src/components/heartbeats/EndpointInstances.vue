@@ -4,7 +4,7 @@ import { storeToRefs } from "pinia";
 import { useRoute, useRouter } from "vue-router";
 import { computed, onMounted, ref } from "vue";
 import { EndpointStatus } from "@/resources/Heartbeat";
-import SortableColumn from "@/components/SortableColumn.vue";
+import ColumnHeader from "@/components/ColumnHeader.vue";
 import DataView from "@/components/DataView.vue";
 import OnOffSwitch from "../OnOffSwitch.vue";
 import routeLinks from "@/router/routeLinks";
@@ -18,7 +18,6 @@ import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import LastHeartbeat from "@/components/heartbeats/LastHeartbeat.vue";
 import FilterInput from "../FilterInput.vue";
 import ResultsCount from "../ResultsCount.vue";
-import ColumnHelp from "./ColumnHelp.vue";
 
 enum Operation {
   Mute = "mute",
@@ -159,26 +158,19 @@ async function toggleAlerts(instance: EndpointsView) {
     <section role="table" aria-label="endpoint-instances">
       <!--Table headings-->
       <div role="row" aria-label="column-headers" class="row table-head-row" :style="{ borderTop: 0 }">
-        <div role="columnheader" :aria-label="ColumnNames.InstanceName" class="col-6">
-          <SortableColumn :sort-by="ColumnNames.InstanceName" v-model="sortByInstances" :default-ascending="true">Host Name</SortableColumn>
-        </div>
-        <div role="columnheader" :aria-label="ColumnNames.LastHeartbeat" class="col-2">
-          <SortableColumn :sort-by="ColumnNames.LastHeartbeat" v-model="sortByInstances">Last Heartbeat</SortableColumn>
-        </div>
-        <div role="columnheader" :aria-label="ColumnNames.MuteToggle" class="col-2 centre">
-          <SortableColumn :sort-by="ColumnNames.MuteToggle" v-model="sortByInstances">Mute Alerts</SortableColumn>
-          <ColumnHelp>
-            <span>Mute an instance when you are planning to take the instance offline to do maintenance or some other reason. This will prevent alerts on the dashboard.</span>
-          </ColumnHelp>
-        </div>
-        <StandardColumn columnLabel="Actions">
-          <ColumnHelp :interactive="true">
-              <div class="d-flex align-items-center p-1">
-                <button type="button" class="btn btn-danger btn-ms text-nowrap me-3" @click="deleteAllInstances()"><i class="fa fa-trash text-white" /> Delete</button>
+        <ColumnHeader :name="ColumnNames.InstanceName" label="Host Name" columnClass="col-6" v-model="sortByInstances" sortable default-ascending />
+        <ColumnHeader :name="ColumnNames.LastHeartbeat" label="Last Heartbeat" columnClass="col-2" :sortable="true" v-model="sortByInstances" />
+        <ColumnHeader :name="ColumnNames.MuteToggle" label="Mute Alerts" columnClass="col-2 centre" v-model="sortByInstances">
+          <template #help>Mute an instance when you are planning to take the instance offline to do maintenance or some other reason. This will prevent alerts on the dashboard.</template>
+        </ColumnHeader>
+        <ColumnHeader name="actions" label="Actions" columnClass="col-1" :sortable="false" :interactive-help="true" v-model="sortByInstances">
+          <template #help>
+            <div class="d-flex align-items-center p-1">
+              <button type="button" class="btn btn-danger btn-ms text-nowrap me-3" @click="deleteAllInstances()"><i class="fa fa-trash text-white" /> Delete</button>
               <span style="text-transform: none">Delete an instance when that instance has been decommissioned.</span>
-              </div>
-            </ColumnHelp>
-        </StandardColumn>
+            </div>
+          </template>
+        </ColumnHeader>
       </div>
       <no-data v-if="filteredValidInstances.length === 0" message="No endpoint instances found. For untracked endpoints, disconnected instances are automatically pruned.">
         <div v-if="totalValidInstances.length === 0" class="delete-all">

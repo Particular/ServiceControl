@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useHeartbeatsStore, ColumnNames } from "@/stores/HeartbeatsStore";
 import { storeToRefs } from "pinia";
-import SortableColumn from "@/components/SortableColumn.vue";
 import DataView from "@/components/DataView.vue";
 import OnOffSwitch from "../OnOffSwitch.vue";
 import routeLinks from "@/router/routeLinks";
@@ -11,6 +10,7 @@ import { LogicalEndpoint } from "@/resources/Heartbeat";
 import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import LastHeartbeat from "@/components/heartbeats/LastHeartbeat.vue";
+import ColumnHeader from "../ColumnHeader.vue";
 
 defineProps<{
   data: LogicalEndpoint[];
@@ -42,27 +42,13 @@ function endpointHealth(endpoint: LogicalEndpoint) {
   <section role="table" aria-label="endpoint-instances">
     <!--Table headings-->
     <div role="row" aria-label="column-headers" class="row table-head-row" :style="{ borderTop: 0 }">
-      <div v-if="columns.includes(ColumnNames.Name)" role="columnheader" :aria-label="ColumnNames.Name" class="col-6">
-        <SortableColumn :sort-by="ColumnNames.Name" v-model="sortByInstances" :default-ascending="true">Name</SortableColumn>
-      </div>
-      <div v-if="columns.includes(ColumnNames.InstancesDown)" role="columnheader" :aria-label="ColumnNames.InstancesDown" class="col-2">
-        <SortableColumn :sort-by="ColumnNames.InstancesDown" v-model="sortByInstances" :default-ascending="true">Instances</SortableColumn>
-      </div>
-      <div v-if="columns.includes(ColumnNames.InstancesTotal)" role="columnheader" :aria-label="ColumnNames.InstancesTotal" class="col-2">
-        <SortableColumn :sort-by="ColumnNames.InstancesTotal" v-model="sortByInstances" :default-ascending="true">Instances</SortableColumn>
-      </div>
-      <div v-if="columns.includes(ColumnNames.LastHeartbeat)" role="columnheader" :aria-label="ColumnNames.LastHeartbeat" class="col-2">
-        <SortableColumn :sort-by="ColumnNames.LastHeartbeat" v-model="sortByInstances">Last Heartbeat</SortableColumn>
-      </div>
-      <div v-if="columns.includes(ColumnNames.Tracked)" role="columnheader" :aria-label="ColumnNames.Tracked" class="col-1 centre">
-        <SortableColumn :sort-by="ColumnNames.Tracked" v-model="sortByInstances">Track Instances</SortableColumn>
-      </div>
-      <div v-if="columns.includes(ColumnNames.TrackToggle)" role="columnheader" :aria-label="ColumnNames.Tracked" class="col-2 centre">
-        <SortableColumn :sort-by="ColumnNames.TrackToggle" v-model="sortByInstances">Track Instances</SortableColumn>
-      </div>
-      <div v-if="columns.includes(ColumnNames.Muted)" role="columnheader" :aria-label="ColumnNames.Muted" class="col-1 centre">
-        <SortableColumn :sort-by="ColumnNames.Muted" v-model="sortByInstances">Instances Muted</SortableColumn>
-      </div>
+      <ColumnHeader v-if="columns.includes(ColumnNames.Name)" :name="ColumnNames.Name" label="Name" columnClass="col-6" sortable v-model="sortByInstances" default-ascending />
+      <ColumnHeader v-if="columns.includes(ColumnNames.InstancesDown)" :name="ColumnNames.InstancesDown" label="Instances Down" columnClass="col-2" sortable v-model="sortByInstances" default-ascending />
+      <ColumnHeader v-if="columns.includes(ColumnNames.InstancesTotal)" :name="ColumnNames.InstancesTotal" label="Instances Total" columnClass="col-2" sortable v-model="sortByInstances" default-ascending />
+      <ColumnHeader v-if="columns.includes(ColumnNames.LastHeartbeat)" :name="ColumnNames.LastHeartbeat" label="Last Heartbeat" columnClass="col-2" sortable v-model="sortByInstances" />
+      <ColumnHeader v-if="columns.includes(ColumnNames.Tracked)" :name="ColumnNames.Tracked" label="Track Instances" columnClass="col-1 centre" sortable v-model="sortByInstances" />
+      <ColumnHeader v-if="columns.includes(ColumnNames.TrackToggle)" :name="ColumnNames.TrackToggle" label="Track Instances" columnClass="col-2 centre" sortable v-model="sortByInstances" />
+      <ColumnHeader v-if="columns.includes(ColumnNames.Muted)" :name="ColumnNames.Muted" label="Instances Muted" columnClass="col-1 centre" sortable v-model="sortByInstances" />
     </div>
     <!--Table rows-->
     <DataView :data="data" :show-items-per-page="true" :items-per-page="itemsPerPage" @items-per-page-changed="store.setItemsPerPage">
