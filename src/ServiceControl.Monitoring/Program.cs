@@ -5,6 +5,8 @@ using ServiceControl.Configuration;
 using ServiceControl.Infrastructure;
 using ServiceControl.Monitoring;
 
+var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
+LoggingConfigurator.ConfigureLogging(loggingSettings);
 var logger = LoggerUtil.CreateStaticLogger<Program>();
 
 try
@@ -22,9 +24,6 @@ try
     ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
     var arguments = new HostArguments(args);
-
-    var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
-    LoggingConfigurator.ConfigureLogging(loggingSettings);
 
     var settings = new Settings(loggingSettings: loggingSettings);
 

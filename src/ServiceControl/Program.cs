@@ -7,6 +7,8 @@ using ServiceControl.Configuration;
 using ServiceControl.Hosting.Commands;
 using ServiceControl.Infrastructure;
 
+var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
+LoggingConfigurator.ConfigureLogging(loggingSettings);
 var logger = LoggerUtil.CreateStaticLogger(typeof(Program));
 
 try
@@ -30,9 +32,6 @@ try
         arguments.PrintUsage();
         return 0;
     }
-
-    var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
-    LoggingConfigurator.ConfigureLogging(loggingSettings);
 
     var settings = new Settings(loggingSettings: loggingSettings);
 

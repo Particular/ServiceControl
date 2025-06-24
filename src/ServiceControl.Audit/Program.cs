@@ -7,7 +7,10 @@ using ServiceControl.Audit.Infrastructure.Settings;
 using ServiceControl.Configuration;
 using ServiceControl.Infrastructure;
 
+var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
+LoggingConfigurator.ConfigureLogging(loggingSettings);
 var logger = LoggerUtil.CreateStaticLogger(typeof(Program));
+
 try
 {
     AppDomain.CurrentDomain.UnhandledException += (s, e) => logger.LogError(e.ExceptionObject as Exception, "Unhandled exception was caught.");
@@ -29,9 +32,6 @@ try
         arguments.PrintUsage();
         return 0;
     }
-
-    var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
-    LoggingConfigurator.ConfigureLogging(loggingSettings);
 
     var settings = new Settings(loggingSettings: loggingSettings);
 
