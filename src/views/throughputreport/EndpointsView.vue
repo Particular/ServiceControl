@@ -43,6 +43,9 @@ function toggleOptionsLegendVisible() {
         <div v-for="[key, LegendComponent] in legendOptions" :key="key">
           <strong>{{ userIndicatorMapper.get(key) }}</strong> - <component :is="LegendComponent" />.
         </div>
+        <p class="mt-2">
+          <small><a href="https://particular.net/usage-user-indicators" target="_blank">See documentation for more details about endpoint type indicators</a>.</small>
+        </p>
       </div>
     </div>
     <div class="row">
