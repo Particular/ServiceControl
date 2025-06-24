@@ -19,6 +19,8 @@
     {
         public static Loggers ActiveLoggers { private get; set; } = Loggers.None;
 
+        public static string SeqAddress { private get; set; }
+
         public static bool IsLoggingTo(Loggers logger)
         {
             return (logger & ActiveLoggers) == logger;
@@ -36,7 +38,14 @@
             }
             if (IsLoggingTo(Loggers.Seq))
             {
-                loggingBuilder.AddSeq();
+                if (!string.IsNullOrWhiteSpace(SeqAddress))
+                {
+                    loggingBuilder.AddSeq(SeqAddress);
+                }
+                else
+                {
+                    loggingBuilder.AddSeq();
+                }
             }
 
             loggingBuilder.SetMinimumLevel(level);
