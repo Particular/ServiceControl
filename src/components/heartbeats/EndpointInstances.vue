@@ -171,17 +171,14 @@ async function toggleAlerts(instance: EndpointsView) {
             <span>Mute an instance when you are planning to take the instance offline to do maintenance or some other reason. This will prevent alerts on the dashboard.</span>
           </ColumnHelp>
         </div>
-        <div role="columnheader" aria-label="actions" class="col-1">
-          <div>
-            <span>Actions</span>
-            <ColumnHelp>
+        <StandardColumn columnLabel="Actions">
+          <ColumnHelp :interactive="true">
               <div class="d-flex align-items-center p-1">
                 <button type="button" class="btn btn-danger btn-ms text-nowrap me-3" @click="deleteAllInstances()"><i class="fa fa-trash text-white" /> Delete</button>
-                <span>Delete an instance when that instance has been decommissioned.</span>
+              <span style="text-transform: none">Delete an instance when that instance has been decommissioned.</span>
               </div>
             </ColumnHelp>
-          </div>
-        </div>
+        </StandardColumn>
       </div>
       <no-data v-if="filteredValidInstances.length === 0" message="No endpoint instances found. For untracked endpoints, disconnected instances are automatically pruned.">
         <div v-if="totalValidInstances.length === 0" class="delete-all">
