@@ -2,7 +2,7 @@
 import SortableColumn from "../SortableColumn.vue";
 import { SortInfo } from "../SortInfo";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     columnName: string;
     columnSort: string;
@@ -15,11 +15,12 @@ withDefaults(
 );
 
 const activeColumn = defineModel<SortInfo>({ required: true });
+const defaultAscending = props.isFirstCol ? true : undefined;
 </script>
 
 <template>
   <div role="columnheader" :aria-label="columnName" :class="isFirstCol ? 'table-first-col' : 'table-col'">
-    <SortableColumn :sort-by="columnSort" v-model="activeColumn" :default-ascending="true" v-tippy="toolTip">
+    <SortableColumn :sort-by="columnSort" v-model="activeColumn" :default-ascending="defaultAscending" v-tippy="toolTip">
       {{ displayName }}<template v-if="displayUnit" #unit>&nbsp;{{ displayUnit }}</template>
     </SortableColumn>
   </div>
