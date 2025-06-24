@@ -64,17 +64,12 @@ namespace ServiceControl.Infrastructure
             nlogConfig.LoggingRules.Add(aspNetCoreRule);
             nlogConfig.LoggingRules.Add(httpClientRule);
 
-            // HACK: Fixed LogLevel to Info for testing purposes only.
-            //       Migrate to .NET logging and change back to loggingSettings.LogLevel.
-            //       nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, consoleTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
+            var logLevel = loggingSettings.LogLevel.ToNLogLevel();
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", logLevel, consoleTarget));
 
             if (!AppEnvironment.RunningInContainer)
             {
-                // HACK: Fixed LogLevel to Info for testing purposes only.
-                //       Migrate to .NET logging and change back to loggingSettings.LogLevel.
-                //       nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, fileTarget));
-                nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
+                nlogConfig.LoggingRules.Add(new LoggingRule("*", logLevel, fileTarget));
             }
 
             NLog.LogManager.Configuration = nlogConfig;
@@ -83,9 +78,25 @@ namespace ServiceControl.Infrastructure
             var logger = LogManager.GetLogger("LoggingConfiguration");
             var logEventInfo = new LogEventInfo { TimeStamp = DateTime.UtcNow };
             var loggingTo = AppEnvironment.RunningInContainer ? "console" : fileTarget.FileName.Render(logEventInfo);
-            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", loggingTo, LogLevel.Info.Name);
+            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", loggingTo, logLevel.Name);
+        }
+
+        static LogLevel ToNLogLevel(this Microsoft.Extensions.Logging.LogLevel level)
+        {
+            return level switch
+            {
+                Microsoft.Extensions.Logging.LogLevel.Trace => LogLevel.Trace,
+                Microsoft.Extensions.Logging.LogLevel.Debug => LogLevel.Debug,
+                Microsoft.Extensions.Logging.LogLevel.Information => LogLevel.Info,
+                Microsoft.Extensions.Logging.LogLevel.Warning => LogLevel.Warn,
+                Microsoft.Extensions.Logging.LogLevel.Error => LogLevel.Error,
+                Microsoft.Extensions.Logging.LogLevel.Critical => LogLevel.Fatal,
+                Microsoft.Extensions.Logging.LogLevel.None => LogLevel.Off,
+                _ => LogLevel.Off,
+            };
         }
 
         const long megaByte = 1024 * 1024;
+
     }
 }
