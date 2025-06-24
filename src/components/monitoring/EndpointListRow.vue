@@ -177,6 +177,7 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
 @import "../list.css";
 @import "./monitoring.css";
 @import "./endpoint.css";
+@import "./endpointTables.css";
 
 .hackToPreventSafariFromShowingTooltip::after {
   content: "";
