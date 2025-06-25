@@ -24,6 +24,16 @@ namespace ServiceControl.Infrastructure
                 return;
             }
 
+            var logLevel = loggingSettings.LogLevel.ToNLogLevel();
+            var loggingTo = ConfigureNLog("logfile.${shortdate}.txt", loggingSettings.LogPath, loggingSettings.LogLevel.ToNLogLevel());
+
+            //using LogManager here rather than LoggerUtil.CreateStaticLogger since this is exclusive to NLog
+            var logger = LogManager.GetLogger("LoggingConfiguration");
+            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", loggingTo, logLevel.Name);
+        }
+
+        public static string ConfigureNLog(string logFileName, string logPath, LogLevel logLevel)
+        {
             //configure NLog
             var nlogConfig = new LoggingConfiguration();
             var simpleLayout = new SimpleLayout("${longdate}|${processtime}|${threadid}|${level}|${logger}|${message}${onexception:|${exception:format=tostring}}");
@@ -32,8 +42,8 @@ namespace ServiceControl.Infrastructure
             {
                 Name = "file",
                 ArchiveEvery = FileArchivePeriod.Day,
-                FileName = Path.Combine(loggingSettings.LogPath, "logfile.${shortdate}.txt"),
-                ArchiveFileName = Path.Combine(loggingSettings.LogPath, "logfile.{#}.txt"),
+                FileName = Path.Combine(logPath, logFileName),
+                ArchiveFileName = Path.Combine(logPath, "logfile.{#}.txt"),
                 ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
@@ -64,7 +74,6 @@ namespace ServiceControl.Infrastructure
             nlogConfig.LoggingRules.Add(aspNetCoreRule);
             nlogConfig.LoggingRules.Add(httpClientRule);
 
-            var logLevel = loggingSettings.LogLevel.ToNLogLevel();
             nlogConfig.LoggingRules.Add(new LoggingRule("*", logLevel, consoleTarget));
 
             if (!AppEnvironment.RunningInContainer)
@@ -74,11 +83,8 @@ namespace ServiceControl.Infrastructure
 
             NLog.LogManager.Configuration = nlogConfig;
 
-            //using LogManager here rather than LoggerUtil.CreateStaticLogger since this is exclusive to NLog
-            var logger = LogManager.GetLogger("LoggingConfiguration");
             var logEventInfo = new LogEventInfo { TimeStamp = DateTime.UtcNow };
-            var loggingTo = AppEnvironment.RunningInContainer ? "console" : fileTarget.FileName.Render(logEventInfo);
-            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", loggingTo, logLevel.Name);
+            return AppEnvironment.RunningInContainer ? "console" : fileTarget.FileName.Render(logEventInfo);
         }
 
         static LogLevel ToNLogLevel(this Microsoft.Extensions.Logging.LogLevel level)

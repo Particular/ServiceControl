@@ -5,12 +5,14 @@ using ServiceControl.Configuration;
 using ServiceControl.Infrastructure;
 using ServiceControl.Monitoring;
 
-var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
-LoggingConfigurator.ConfigureLogging(loggingSettings);
-var logger = LoggerUtil.CreateStaticLogger<Program>();
+ILogger logger = null;
 
 try
 {
+    var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
+    LoggingConfigurator.ConfigureLogging(loggingSettings);
+    logger = LoggerUtil.CreateStaticLogger(typeof(Program));
+
     AppDomain.CurrentDomain.UnhandledException += (s, e) => logger.LogError(e.ExceptionObject as Exception, "Unhandled exception was caught.");
 
     // Hack: See https://github.com/Particular/ServiceControl/issues/4392
@@ -33,7 +35,15 @@ try
 }
 catch (Exception ex)
 {
-    logger.LogCritical(ex, "Unrecoverable error");
+    if (logger != null)
+    {
+        logger.LogCritical(ex, "Unrecoverable error");
+    }
+    else
+    {
+        LoggingConfigurator.ConfigureNLog("bootstrap.${shortdate}.txt", "./", NLog.LogLevel.Fatal);
+        NLog.LogManager.GetCurrentClassLogger().Fatal(ex, "Unrecoverable error");
+    }
     throw;
 }
 finally
