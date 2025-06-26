@@ -84,14 +84,14 @@ public sealed class RepeatedFailuresOverTimeCircuitBreaker
             circuitBreakerState = Disarmed;
 
             _ = timer.Change(Timeout.Infinite, Timeout.Infinite);
-            logger.LogInformation("The circuit breaker for '{BreakerName}' is now disarmed.", name);
+            logger.LogInformation("The circuit breaker for '{BreakerName}' is now disarmed", name);
             try
             {
                 disarmedAction();
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "The circuit breaker for '{BreakerName}' was unable to execute the disarm action.", name);
+                logger.LogError(ex, "The circuit breaker for '{BreakerName}' was unable to execute the disarm action", name);
                 throw;
             }
         }
@@ -132,12 +132,12 @@ public sealed class RepeatedFailuresOverTimeCircuitBreaker
             }
             catch (Exception ex)
             {
-                logger.LogError(new AggregateException(ex, exception), "The circuit breaker for '{BreakerName}' was unable to execute the arm action.", name);
+                logger.LogError(new AggregateException(ex, exception), "The circuit breaker for '{BreakerName}' was unable to execute the arm action", name);
                 throw;
             }
 
             _ = timer.Change(timeToWaitBeforeTriggering, NoPeriodicTriggering);
-            logger.LogWarning("The circuit breaker for '{BreakerName}' is now in the armed state due to '{BreakerCause}' and might trigger in '{BreakerTriggerTime}' when not disarmed.", name, exception, timeToWaitBeforeTriggering);
+            logger.LogWarning("The circuit breaker for '{BreakerName}' is now in the armed state due to '{BreakerCause}' and might trigger in '{BreakerTriggerTime}' when not disarmed", name, exception, timeToWaitBeforeTriggering);
         }
 
         return Delay();
@@ -145,7 +145,7 @@ public sealed class RepeatedFailuresOverTimeCircuitBreaker
         Task Delay()
         {
             var timeToWait = previousState == Triggered ? timeToWaitWhenTriggered : timeToWaitWhenArmed;
-            logger.LogDebug("The circuit breaker for '{BreakerName}' is delaying the operation by '{BreakerTriggerTime}'.", name, timeToWait);
+            logger.LogDebug("The circuit breaker for '{BreakerName}' is delaying the operation by '{BreakerTriggerTime}'", name, timeToWait);
             return Task.Delay(timeToWait, cancellationToken);
         }
     }
@@ -172,7 +172,7 @@ public sealed class RepeatedFailuresOverTimeCircuitBreaker
             }
 
             circuitBreakerState = Triggered;
-            logger.LogWarning("The circuit breaker for '{BreakerName}' will now be triggered with exception '{BreakerCause}'.", name, lastException);
+            logger.LogWarning("The circuit breaker for '{BreakerName}' will now be triggered with exception '{BreakerCause}'", name, lastException);
 
             try
             {
@@ -180,7 +180,7 @@ public sealed class RepeatedFailuresOverTimeCircuitBreaker
             }
             catch (Exception ex)
             {
-                logger.LogCritical(new AggregateException(ex, lastException!), "The circuit breaker for '{BreakerName}' was unable to execute the trigger action.", name);
+                logger.LogCritical(new AggregateException(ex, lastException!), "The circuit breaker for '{BreakerName}' was unable to execute the trigger action", name);
             }
         }
     }

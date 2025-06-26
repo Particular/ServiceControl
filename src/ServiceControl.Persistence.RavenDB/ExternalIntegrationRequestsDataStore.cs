@@ -149,7 +149,7 @@
             }
 
             var allContexts = awaitingDispatching.Select(r => r.DispatchContext).ToArray();
-            logger.LogDebug("Dispatching {EventCount} events.", allContexts.Length);
+            logger.LogDebug("Dispatching {EventCount} events", allContexts.Length);
 
             await callback(allContexts);
 

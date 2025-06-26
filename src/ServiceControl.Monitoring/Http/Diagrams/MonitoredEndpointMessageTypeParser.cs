@@ -41,7 +41,7 @@ namespace ServiceControl.Monitoring.Http.Diagrams
                 }
                 catch (Exception e)
                 {
-                    LoggerUtil.CreateStaticLogger(typeof(MonitoredEndpointMessageTypeParser)).LogWarning(e, "Error parsing message type: {typeName}.", typeName);
+                    LoggerUtil.CreateStaticLogger(typeof(MonitoredEndpointMessageTypeParser)).LogWarning(e, "Error parsing message type: {typeName}", typeName);
                 }
             }
 

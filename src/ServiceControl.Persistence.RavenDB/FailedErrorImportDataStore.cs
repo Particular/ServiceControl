@@ -36,17 +36,17 @@
                     }
                     catch (Exception e)
                     {
-                        logger.LogError(e, "Error while attempting to re-import failed error message {MessageId}.", transportMessage.Id);
+                        logger.LogError(e, "Error while attempting to re-import failed error message {MessageId}", transportMessage.Id);
                         failed++;
                     }
                 }
             }
 
-            logger.LogInformation("Done re-importing failed errors. Successfully re-imported {SucceededCount} messages. Failed re-importing {FailedCount} messages.", succeeded, failed);
+            logger.LogInformation("Done re-importing failed errors. Successfully re-imported {SucceededCount} messages. Failed re-importing {FailedCount} messages", succeeded, failed);
 
             if (failed > 0)
             {
-                logger.LogWarning("{FailedCount} messages could not be re-imported. This could indicate a problem with the data. Contact Particular support if you need help with recovering the messages.", failed);
+                logger.LogWarning("{FailedCount} messages could not be re-imported. This could indicate a problem with the data. Contact Particular support if you need help with recovering the messages", failed);
             }
         }
 

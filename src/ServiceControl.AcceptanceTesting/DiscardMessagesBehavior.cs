@@ -46,7 +46,7 @@ namespace ServiceControl.AcceptanceTesting
                 context.Message.Headers.TryGetValue(Headers.MessageId, out var originalMessageId);
                 context.Message.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var enclosedMessageTypes);
                 var logger = LoggerUtil.CreateStaticLogger<DiscardMessagesBehavior>();
-                logger.LogDebug("Discarding message '{MessageId}'({OriginalMessageId}) because it's session id is '{MessageSessionId}' instead of '{CurrentSessionId}' Message Types: {EnclosedMessageTypes}.",
+                logger.LogDebug("Discarding message '{MessageId}'({OriginalMessageId}) because it's session id is '{MessageSessionId}' instead of '{CurrentSessionId}' Message Types: {EnclosedMessageTypes}",
                     context.Message.MessageId,
                     originalMessageId ?? string.Empty,
                     session,

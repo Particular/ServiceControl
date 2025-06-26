@@ -53,19 +53,19 @@
 
             if (!int.TryParse(thresholdValue, out var threshold))
             {
-                logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} must be an integer.", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
+                logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} must be an integer", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
                 throw new Exception($"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} must be an integer.");
             }
 
             if (threshold < 0)
             {
-                logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} is invalid, minimum value is 0.", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
+                logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} is invalid, minimum value is 0", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
                 throw new Exception($"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, minimum value is 0.");
             }
 
             if (threshold > 100)
             {
-                logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} is invalid, maximum value is 100.", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
+                logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} is invalid, maximum value is 100", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
                 throw new Exception($"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, maximum value is 100.");
             }
 

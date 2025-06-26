@@ -54,7 +54,7 @@
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "Error querying sql queue sizes.");
+                    logger.LogError(e, "Error querying sql queue sizes");
                 }
             }
         }
@@ -112,7 +112,7 @@
 
                 if (queueLength == -1)
                 {
-                    logger.LogWarning("Table {TableName} does not exist.", chunkPair.Key);
+                    logger.LogWarning("Table {TableName} does not exist", chunkPair.Key);
                 }
                 else
                 {

@@ -75,7 +75,7 @@
 
             if (IngestAuditMessages == false)
             {
-                logger.LogInformation("Audit ingestion disabled.");
+                logger.LogInformation("Audit ingestion disabled");
             }
 
             AuditLogQueue = SettingsReader.Read<string>(serviceBusRootNamespace, "AuditLogQueue", null);

@@ -44,12 +44,12 @@
                     if (indexLag > IndexLagThresholdError)
                     {
                         indexCountWithTooMuchLag++;
-                        logger.LogError("Index [{IndexStatsName}] IndexingLag {IndexLag} is above error threshold ({IndexLagThresholdError}). Launch in maintenance mode to let indexes catch up.", indexStats.Name, indexLag, IndexLagThresholdError);
+                        logger.LogError("Index [{IndexStatsName}] IndexingLag {IndexLag} is above error threshold ({IndexLagThresholdError}). Launch in maintenance mode to let indexes catch up", indexStats.Name, indexLag, IndexLagThresholdError);
                     }
                     else if (indexLag > IndexLagThresholdWarning)
                     {
                         indexCountWithTooMuchLag++;
-                        logger.LogWarning("Index [{IndexStatsName}] IndexingLag {IndexLag} is above warning threshold ({IndexLagThresholdWarning}). Launch in maintenance mode to let indexes catch up.", indexStats.Name, indexLag, IndexLagThresholdWarning);
+                        logger.LogWarning("Index [{IndexStatsName}] IndexingLag {IndexLag} is above warning threshold ({IndexLagThresholdWarning}). Launch in maintenance mode to let indexes catch up", indexStats.Name, indexLag, IndexLagThresholdWarning);
                     }
                 }
             }

@@ -15,7 +15,7 @@ try
     LoggingConfigurator.ConfigureLogging(loggingSettings);
     logger = LoggerUtil.CreateStaticLogger(typeof(Program));
 
-    AppDomain.CurrentDomain.UnhandledException += (s, e) => logger.LogError(e.ExceptionObject as Exception, "Unhandled exception was caught.");
+    AppDomain.CurrentDomain.UnhandledException += (s, e) => logger.LogError(e.ExceptionObject as Exception, "Unhandled exception was caught");
 
     // Hack: See https://github.com/Particular/ServiceControl/issues/4392
     var exitCode = await IntegratedSetup.Run();

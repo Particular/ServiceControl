@@ -47,7 +47,7 @@
                 return SuccessResult;
             }
 
-            logger.LogWarning("Audit message ingestion stopped! {PercentRemaining:P0} disk space remaining on data drive '{DataDriveInfoVolumeLabel} ({DataDriveInfoRootDirectory})' on '{EnvironmentMachineName}'. This is less than {PercentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenPersistenceConfigurationMinimumStorageLeftRequiredForIngestionKey} configuration setting.", percentRemaining, dataDriveInfo.VolumeLabel, dataDriveInfo.RootDirectory, Environment.MachineName, percentageThreshold, RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
+            logger.LogWarning("Audit message ingestion stopped! {PercentRemaining:P0} disk space remaining on data drive '{DataDriveInfoVolumeLabel} ({DataDriveInfoRootDirectory})' on '{EnvironmentMachineName}'. This is less than {PercentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenPersistenceConfigurationMinimumStorageLeftRequiredForIngestionKey} configuration setting", percentRemaining, dataDriveInfo.VolumeLabel, dataDriveInfo.RootDirectory, Environment.MachineName, percentageThreshold, RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
             stateHolder.CanIngestMore = false;
             return CheckResult.Failed($"Audit message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} configuration setting.");
         }
@@ -61,19 +61,19 @@
 
             if (!int.TryParse(thresholdValue, out var threshold))
             {
-                Logger.LogCritical("{RavenPersistenceConfigurationMinimumStorageLeftRequiredForIngestionKey} must be an integer.", RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
+                Logger.LogCritical("{RavenPersistenceConfigurationMinimumStorageLeftRequiredForIngestionKey} must be an integer", RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
                 throw new Exception($"{RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} must be an integer.");
             }
 
             if (threshold < 0)
             {
-                Logger.LogCritical("{RavenPersistenceConfigurationMinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.", RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
+                Logger.LogCritical("{RavenPersistenceConfigurationMinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0", RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
                 throw new Exception($"{RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.");
             }
 
             if (threshold > 100)
             {
-                Logger.LogCritical("{RavenPersistenceConfigurationMinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.", RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
+                Logger.LogCritical("{RavenPersistenceConfigurationMinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100", RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
                 throw new Exception($"{RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.");
             }
 

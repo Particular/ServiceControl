@@ -59,7 +59,7 @@ public class AuditThroughputCollectorHostedService(
 
         if (!knownEndpoints.Any())
         {
-            logger.LogWarning("No known endpoints could be found.");
+            logger.LogWarning("No known endpoints could be found");
         }
 
         foreach (var tuple in await dataStore.GetEndpoints([.. knownEndpointsLookup.Keys], cancellationToken))
@@ -119,14 +119,14 @@ public class AuditThroughputCollectorHostedService(
             }
             else
             {
-                logger.LogWarning("Unable to determine the version of one or more ServiceControl Audit instances. For the instance with URI {RemoteApiUri}, the status was '{RemoteStatus}' and the version string returned was '{RemoteVersionString}'.", remote.ApiUri, remote.Status, remote.VersionString);
+                logger.LogWarning("Unable to determine the version of one or more ServiceControl Audit instances. For the instance with URI {RemoteApiUri}, the status was '{RemoteStatus}' and the version string returned was '{RemoteVersionString}'", remote.ApiUri, remote.Status, remote.VersionString);
             }
         }
 
         var allHaveAuditCounts = remotesInfo.All(auditQuery.ValidRemoteInstances);
         if (!allHaveAuditCounts)
         {
-            logger.LogWarning("At least one ServiceControl Audit instance is either not running the required version ({RequiredAuditVersion}) or is not configured for at least 2 days of retention. Audit throughput will not be available.", auditQuery.MinAuditCountsVersion);
+            logger.LogWarning("At least one ServiceControl Audit instance is either not running the required version ({RequiredAuditVersion}) or is not configured for at least 2 days of retention. Audit throughput will not be available", auditQuery.MinAuditCountsVersion);
         }
     }
 

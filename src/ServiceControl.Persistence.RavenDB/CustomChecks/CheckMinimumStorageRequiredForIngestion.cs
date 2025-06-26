@@ -41,7 +41,7 @@
                 return SuccessResult;
             }
 
-            logger.LogWarning("Error message ingestion stopped! {PercentRemaining:P0} disk space remaining on data drive '{DataDriveInfoVolumeLabel} ({DataDriveInfoRootDirectory})' on '{MachineName}'. This is less than {PercentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenBootstrapperMinimumStorageLeftRequiredForIngestionKey} configuration setting.",
+            logger.LogWarning("Error message ingestion stopped! {PercentRemaining:P0} disk space remaining on data drive '{DataDriveInfoVolumeLabel} ({DataDriveInfoRootDirectory})' on '{MachineName}'. This is less than {PercentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenBootstrapperMinimumStorageLeftRequiredForIngestionKey} configuration setting",
                 percentRemaining,
                 dataDriveInfo.VolumeLabel,
                 dataDriveInfo.RootDirectory,
@@ -59,13 +59,13 @@
 
             if (threshold < 0)
             {
-                logger.LogCritical("{RavenBootstrapperMinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.", RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey);
+                logger.LogCritical("{RavenBootstrapperMinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0", RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey);
                 throw new Exception($"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.");
             }
 
             if (threshold > 100)
             {
-                logger.LogCritical("{RavenBootstrapperMinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.", RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey);
+                logger.LogCritical("{RavenBootstrapperMinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100", RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey);
                 throw new Exception($"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.");
             }
         }

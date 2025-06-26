@@ -13,11 +13,11 @@ class CheckDirtyMemory(MemoryInformationRetriever memoryInformationRetriever, IL
     {
         var (isHighDirty, dirtyMemory) = await memoryInformationRetriever.GetMemoryInformation(cancellationToken);
 
-        logger.LogDebug("RavenDB dirty memory value: {DirtyMemory}.", dirtyMemory);
+        logger.LogDebug("RavenDB dirty memory value: {DirtyMemory}", dirtyMemory);
 
         if (isHighDirty)
         {
-            logger.LogWarning("There is a high level of RavenDB dirty memory ({DirtyMemory}). See https://docs.particular.net/servicecontrol/troubleshooting#ravendb-dirty-memory for guidance on how to mitigate the issue.", dirtyMemory);
+            logger.LogWarning("There is a high level of RavenDB dirty memory ({DirtyMemory}). See https://docs.particular.net/servicecontrol/troubleshooting#ravendb-dirty-memory for guidance on how to mitigate the issue", dirtyMemory);
             return CheckResult.Failed($"There is a high level of RavenDB dirty memory ({dirtyMemory}). See https://docs.particular.net/servicecontrol/troubleshooting#ravendb-dirty-memory for guidance on how to mitigate the issue.");
         }
 

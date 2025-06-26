@@ -57,7 +57,7 @@
                     // Pick any audit queue, assume all instance are based on competing consumer
                     auditQueueName = sagaAudit.GetProperty("SagaAuditQueue").GetString();
                     nextAuditQueueNameRefresh = DateTime.UtcNow.AddMinutes(5);
-                    logger.LogInformation("Refreshed audit queue name '{AuditQueueName}' from ServiceControl Audit instance. Will continue to use this value for forwarding saga update messages for the next 5 minutes.", auditQueueName);
+                    logger.LogInformation("Refreshed audit queue name '{AuditQueueName}' from ServiceControl Audit instance. Will continue to use this value for forwarding saga update messages for the next 5 minutes", auditQueueName);
                 }
             }
             catch (Exception x)

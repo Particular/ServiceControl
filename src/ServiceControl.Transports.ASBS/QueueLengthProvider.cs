@@ -36,7 +36,7 @@ namespace ServiceControl.Transports.ASBS
                     logger.LogDebug("Waiting for next interval");
                     await Task.Delay(queryDelayInterval, stoppingToken);
 
-                    logger.LogDebug("Querying management client.");
+                    logger.LogDebug("Querying management client");
 
                     var queueRuntimeInfos = await GetQueueList(stoppingToken);
 
@@ -50,7 +50,7 @@ namespace ServiceControl.Transports.ASBS
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "Error querying Azure Service Bus queue sizes.");
+                    logger.LogError(e, "Error querying Azure Service Bus queue sizes");
                 }
             }
         }

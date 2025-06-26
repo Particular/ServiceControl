@@ -75,7 +75,7 @@ public class LoggingSettings
             return parsedLevel;
         }
 
-        LoggerUtil.CreateStaticLogger<LoggingSettings>().LogWarning("Failed to parse {LogLevelKey} setting. Defaulting to {DefaultLevel}.", logLevelKey, defaultLevel);
+        LoggerUtil.CreateStaticLogger<LoggingSettings>().LogWarning("Failed to parse {LogLevelKey} setting. Defaulting to {DefaultLevel}", logLevelKey, defaultLevel);
 
         return defaultLevel;
     }

@@ -34,7 +34,7 @@
 
             if (deadLetterMessageCount > 0)
             {
-                Logger.LogWarning("{DeadLetterMessageCount} messages in the Dead Letter Queue '{StagingQueue}'. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.", deadLetterMessageCount, stagingQueue);
+                Logger.LogWarning("{DeadLetterMessageCount} messages in the Dead Letter Queue '{StagingQueue}'. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages", deadLetterMessageCount, stagingQueue);
                 return CheckResult.Failed($"{deadLetterMessageCount} messages in the Dead Letter Queue '{stagingQueue}'. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.");
             }
 

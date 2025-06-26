@@ -56,7 +56,7 @@ class QueueLengthProvider : AbstractQueueLengthProvider
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error querying SQL queue sizes.");
+                logger.LogError(e, "Error querying SQL queue sizes");
             }
         }
     }
@@ -114,7 +114,7 @@ class QueueLengthProvider : AbstractQueueLengthProvider
 
             if (queueLength == -1)
             {
-                logger.LogWarning("Table {TableName} does not exist.", chunkPair.Key);
+                logger.LogWarning("Table {TableName} does not exist", chunkPair.Key);
             }
             else
             {

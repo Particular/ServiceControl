@@ -71,7 +71,7 @@
                     if (nextBatch == null)
                     {
                         // We're only here in the case where Raven indexes are stale
-                        logger.LogWarning("Attempting to archive a batch ({ArchiveOperationId}/{ArchiveOperationCurrentBatch}) which appears to already have been archived.", archiveOperation.Id, archiveOperation.CurrentBatch);
+                        logger.LogWarning("Attempting to archive a batch ({ArchiveOperationId}/{ArchiveOperationCurrentBatch}) which appears to already have been archived", archiveOperation.Id, archiveOperation.CurrentBatch);
                     }
                     else
                     {
@@ -104,12 +104,12 @@
                 }
             }
 
-            logger.LogInformation("Archiving of group {GroupId} is complete. Waiting for index updates.", groupId);
+            logger.LogInformation("Archiving of group {GroupId} is complete. Waiting for index updates", groupId);
             await archivingManager.ArchiveOperationFinalizing(archiveOperation.RequestId, archiveOperation.ArchiveType);
             if (!await archiveDocumentManager.WaitForIndexUpdateOfArchiveOperation(sessionProvider, archiveOperation.RequestId, TimeSpan.FromMinutes(5))
                 )
             {
-                logger.LogWarning("Archiving group {GroupId} completed but index not updated.", groupId);
+                logger.LogWarning("Archiving group {GroupId} completed but index not updated", groupId);
             }
 
             await archivingManager.ArchiveOperationCompleted(archiveOperation.RequestId, archiveOperation.ArchiveType);
@@ -163,7 +163,7 @@
                 if (nextBatch == null)
                 {
                     // We're only here in the case where Raven indexes are stale
-                    logger.LogWarning("Attempting to unarchive a batch ({UnarchiveOperationId}/{UnarchiveOperationCurrentBatch}) which appears to already have been archived.", unarchiveOperation.Id, unarchiveOperation.CurrentBatch);
+                    logger.LogWarning("Attempting to unarchive a batch ({UnarchiveOperationId}/{UnarchiveOperationCurrentBatch}) which appears to already have been archived", unarchiveOperation.Id, unarchiveOperation.CurrentBatch);
                 }
                 else
                 {
@@ -195,12 +195,12 @@
                 }
             }
 
-            logger.LogInformation("Unarchiving of group {GroupId} is complete. Waiting for index updates.", groupId);
+            logger.LogInformation("Unarchiving of group {GroupId} is complete. Waiting for index updates", groupId);
             await unarchivingManager.UnarchiveOperationFinalizing(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType);
             if (!await unarchiveDocumentManager.WaitForIndexUpdateOfUnarchiveOperation(sessionProvider, unarchiveOperation.RequestId, TimeSpan.FromMinutes(5))
                 )
             {
-                logger.LogWarning("Unarchiving group {GroupId} completed but index not updated.", groupId);
+                logger.LogWarning("Unarchiving group {GroupId} completed but index not updated", groupId);
             }
 
             logger.LogInformation("Unarchiving of group {GroupId} completed", groupId);

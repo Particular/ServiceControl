@@ -155,7 +155,7 @@
             }
             catch (Exception e)
             {
-                logger.LogWarning(e, "Processing of saga audit message '{NativeMessageId}' failed.", context.NativeMessageId);
+                logger.LogWarning(e, "Processing of saga audit message '{NativeMessageId}' failed", context.NativeMessageId);
 
                 // releasing the failed message context early so that they can be retried outside the current batch
                 context.GetTaskCompletionSource().TrySetException(e);
@@ -188,7 +188,7 @@
 
                 var auditMessage = new ProcessedMessage(context.Headers, new Dictionary<string, object>(metadata));
 
-                logger.LogDebug("Emitting {CommandsToEmitCount} commands and {MessagesToEmitCount} control messages.", commandsToEmit.Count, messagesToEmit.Count);
+                logger.LogDebug("Emitting {CommandsToEmitCount} commands and {MessagesToEmitCount} control messages", commandsToEmit.Count, messagesToEmit.Count);
 
                 foreach (var commandToEmit in commandsToEmit)
                 {
@@ -198,7 +198,7 @@
                 await messageDispatcher.Value.Dispatch(new TransportOperations(messagesToEmit.ToArray()),
                     new TransportTransaction()); //Do not hook into the incoming transaction
 
-                logger.LogDebug("{CommandsToEmitCount} commands and {MessagesToEmitCount} control messages emitted.", commandsToEmit.Count, messagesToEmit.Count);
+                logger.LogDebug("{CommandsToEmitCount} commands and {MessagesToEmitCount} control messages emitted", commandsToEmit.Count, messagesToEmit.Count);
 
                 if (metadata.TryGetValue("SendingEndpoint", out var sendingEndpoint))
                 {
@@ -215,7 +215,7 @@
             }
             catch (Exception e)
             {
-                logger.LogWarning(e, "Processing of message '{MessageId}' failed.", messageId);
+                logger.LogWarning(e, "Processing of message '{MessageId}' failed", messageId);
 
                 // releasing the failed message context early so that they can be retried outside the current batch
                 context.GetTaskCompletionSource().TrySetException(e);

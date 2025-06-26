@@ -44,7 +44,7 @@
 
             foreach (var eventToBePublished in eventsToBePublished)
             {
-                logger.LogDebug("Publishing external event on the bus.");
+                logger.LogDebug("Publishing external event on the bus");
 
                 try
                 {
@@ -52,7 +52,7 @@
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "Failed dispatching external integration event.");
+                    logger.LogError(e, "Failed dispatching external integration event");
 
                     var m = new ExternalIntegrationEventFailedToBePublished
                     {

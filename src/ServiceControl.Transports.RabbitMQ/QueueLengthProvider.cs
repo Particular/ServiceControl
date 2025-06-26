@@ -52,7 +52,7 @@
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "Queue length query loop failure.");
+                    logger.LogError(e, "Queue length query loop failure");
                 }
             }
         }

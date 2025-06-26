@@ -24,7 +24,7 @@
             else
             {
                 //See https://docs.aws.amazon.com/sdk-for-net/v3/developer-guide/net-dg-config-creds.html#creds-assign
-                logger.LogInformation("BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials.");
+                logger.LogInformation("BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials");
             }
 
             if (builder.TryGetValue("QueueNamePrefix", out var prefix))
@@ -73,7 +73,7 @@
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "Error querying SQS queue sizes.");
+                    logger.LogError(e, "Error querying SQS queue sizes");
                 }
             }
         }

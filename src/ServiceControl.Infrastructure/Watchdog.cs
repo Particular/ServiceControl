@@ -76,12 +76,12 @@
 
                         if (startup)
                         {
-                            log.LogError(e, "Error during initial startup attempt for {TaskName}.", taskName);
+                            log.LogError(e, "Error during initial startup attempt for {TaskName}", taskName);
                             onFailedOnStartup();
                             return;
                         }
 
-                        log.LogError(e, "Error while trying to start {TaskName}. Starting will be retried in {TimeToWaitBetweenStartupAttempts}.", taskName, timeToWaitBetweenStartupAttempts);
+                        log.LogError(e, "Error while trying to start {TaskName}. Starting will be retried in {TimeToWaitBetweenStartupAttempts}", taskName, timeToWaitBetweenStartupAttempts);
                     }
                     try
                     {

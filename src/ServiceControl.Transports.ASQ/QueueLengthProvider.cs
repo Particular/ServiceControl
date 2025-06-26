@@ -51,7 +51,7 @@
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "Error querying sql queue sizes.");
+                    logger.LogError(e, "Error querying sql queue sizes");
                 }
             }
         }

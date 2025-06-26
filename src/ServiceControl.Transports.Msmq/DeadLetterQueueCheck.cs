@@ -68,7 +68,7 @@
                 return CheckResult.Pass;
             }
 
-            logger.LogWarning("{DeadLetterMessageCount} messages in the Dead Letter Queue on {MachineName}. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.", currentValue, Environment.MachineName);
+            logger.LogWarning("{DeadLetterMessageCount} messages in the Dead Letter Queue on {MachineName}. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages", currentValue, Environment.MachineName);
             return CheckResult.Failed($"{currentValue} messages in the Dead Letter Queue on {Environment.MachineName}. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.");
         }
 

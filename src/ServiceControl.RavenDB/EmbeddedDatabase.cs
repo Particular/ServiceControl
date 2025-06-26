@@ -125,7 +125,7 @@ namespace ServiceControl.RavenDB
                         await EmbeddedServer.Instance.RestartServerAsync();
                         restartRequired = false;
 
-                        logger.LogInformation("RavenDB server process restarted successfully.");
+                        logger.LogInformation("RavenDB server process restarted successfully");
                     }
                     catch (OperationCanceledException) when (shutdownCancellationToken.IsCancellationRequested)
                     {
@@ -133,7 +133,7 @@ namespace ServiceControl.RavenDB
                     }
                     catch (Exception e)
                     {
-                        logger.LogCritical(e, "RavenDB server restart failed. Restart will be retried in {RavenDelayBetweenRestarts}.", delayBetweenRestarts);
+                        logger.LogCritical(e, "RavenDB server restart failed. Restart will be retried in {RavenDelayBetweenRestarts}", delayBetweenRestarts);
                     }
                 }
             }, CancellationToken.None);
@@ -149,11 +149,11 @@ namespace ServiceControl.RavenDB
             restartRequired = true;
             if (sender is Process process)
             {
-                logger.LogWarning("RavenDB server process exited unexpectedly with exitCode: {RavenExitCode}. Process will be restarted.", process.ExitCode);
+                logger.LogWarning("RavenDB server process exited unexpectedly with exitCode: {RavenExitCode}. Process will be restarted", process.ExitCode);
             }
             else
             {
-                logger.LogWarning("RavenDB server process exited unexpectedly. Process will be restarted.");
+                logger.LogWarning("RavenDB server process exited unexpectedly. Process will be restarted");
             }
         }
 
