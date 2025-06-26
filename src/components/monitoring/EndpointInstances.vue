@@ -9,6 +9,7 @@ import NoData from "@/components/NoData.vue";
 import SmallGraph from "./SmallGraph.vue";
 import type { ExtendedEndpointInstance } from "@/resources/MonitoringEndpoint";
 import routeLinks from "@/router/routeLinks";
+import ColumnHeader from "@/components/ColumnHeader.vue";
 
 const isRemovingEndpointEnabled = ref<boolean>(false);
 const router = useRouter();
@@ -57,39 +58,19 @@ onMounted(async () => {
       <!-- Breakdown by instance-->
       <!--headers-->
       <div role="row" aria-label="instances-column-headers" class="row box box-no-click table-head-row">
-        <div class="col-xs-4 col-xl-8">
-          <div role="columnheader" aria-label="instance-name" class="row box-header">
-            <div class="col-xs-12">Instance Name</div>
-          </div>
-        </div>
-        <div class="col-xs-2 col-xl-1 no-side-padding">
-          <div class="row box-header">
-            <div role="columnheader" aria-label="throughput" class="col-xs-12 no-side-padding" v-tippy="`Throughput: The number of messages per second successfully processed by a receiving endpoint.`">
-              Throughput <span class="table-header-unit">(msgs/s)</span>
-            </div>
-          </div>
-        </div>
-        <div class="col-xs-2 col-xl-1 no-side-padding">
-          <div class="row box-header">
-            <div role="columnheader" aria-label="scheduled-retires" class="col-xs-12 no-side-padding" v-tippy="`Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).`">
-              Scheduled retries <span class="table-header-unit">(msgs/s)</span>
-            </div>
-          </div>
-        </div>
-        <div class="col-xs-2 col-xl-1 no-side-padding">
-          <div class="row box-header">
-            <div role="columnheader" aria-label="processing-time" class="col-xs-12 no-side-padding" v-tippy="`Processing time: The time taken for a receiving endpoint to successfully process a message.`">
-              Processing Time <span class="table-header-unit">(t)</span>
-            </div>
-          </div>
-        </div>
-        <div class="col-xs-2 col-xl-1 no-side-padding">
-          <div class="row box-header">
-            <div role="columnheader" aria-label="critical-time" class="col-xs-12 no-side-padding" v-tippy="`Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.`">
-              Critical Time <span class="table-header-unit">(t)</span>
-            </div>
-          </div>
-        </div>
+        <ColumnHeader name="instance-name" label="Instance Name" column-class="col-xs-4 col-xl-8" />
+        <ColumnHeader name="throughput" label="Throughput" column-class="col-xs-2 col-xl-1 no-side-padding" v-tippy="`Throughput: The number of messages per second successfully processed by a receiving endpoint.`">
+          <template #unit>(msgs/s)</template>
+        </ColumnHeader>
+        <ColumnHeader name="retires" label="Scheduled retries" column-class="col-xs-2 col-xl-1 no-side-padding" v-tippy="`Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).`">
+          <template #unit>(msgs/s)</template>
+        </ColumnHeader>
+        <ColumnHeader name="processing-time" label="Processing time" column-class="col-xs-2 col-xl-1 no-side-padding" v-tippy="`Processing time: The time taken for a receiving endpoint to successfully process a message.`">
+          <template #unit>(t)</template>
+        </ColumnHeader>
+        <ColumnHeader name="critical-time" label="Critical time" column-class="col-xs-2 col-xl-1 no-side-padding" v-tippy="`Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.`">
+          <template #unit>(t)</template>
+        </ColumnHeader>
       </div>
 
       <NoData v-if="!endpoint?.instances?.length" title="No messages" message="No messages processed in this period of time"></NoData>
