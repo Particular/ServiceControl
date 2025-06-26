@@ -6,6 +6,7 @@ const props = withDefaults(
   defineProps<{
     name: string;
     label: string;
+    unit?: string;
     sortable?: boolean;
     sortBy?: string;
     sortState?: SortInfo;
@@ -22,12 +23,12 @@ const props = withDefaults(
 
 const slots = useSlots();
 const sortByColumn = computed(() => props.sortBy || props.name);
-const activeSortColumn = defineModel<SortInfo>({ required: true });
-const isSortActive = computed(() => activeSortColumn.value?.property === sortByColumn.value);
-const sortIcon = computed(() => (activeSortColumn.value.isAscending ? "sort-up" : "sort-down"));
+const activeSortColumn = defineModel<SortInfo>();
+const isSortActive = computed(() => activeSortColumn?.value?.property === sortByColumn.value);
+const sortIcon = computed(() => (activeSortColumn?.value?.isAscending ? "sort-up" : "sort-down"));
 
 function toggleSort() {
-  activeSortColumn.value = { property: sortByColumn.value, isAscending: isSortActive.value ? !activeSortColumn.value.isAscending : props.defaultAscending };
+  activeSortColumn.value = { property: sortByColumn.value, isAscending: isSortActive.value ? !activeSortColumn?.value?.isAscending : props.defaultAscending };
 }
 </script>
 
@@ -37,22 +38,22 @@ function toggleSort() {
       <button v-if="props.sortable" @click="toggleSort" class="column-header-button" :aria-label="props.name">
         <span>
           {{ props.label }}
-          <span class="table-header-unit"><slot name="unit"></slot></span>
+          <span v-if="props.unit" class="table-header-unit">{{ props.unit }}</span>
           <span v-if="isSortActive">
             <i role="img" :class="sortIcon" :aria-label="sortIcon"></i>
           </span>
+          <tippy v-if="slots.help" max-width="400px" :interactive="props.interactiveHelp">
+            <i class="fa fa-sm fa-info-circle text-primary ps-1" />
+            <template #content>
+              <slot name="help" />
+            </template>
+          </tippy>
         </span>
-        <tippy v-if="slots.help" max-width="400px" :interactive="props.interactiveHelp">
-          <i class="fa fa-sm fa-info-circle text-primary ps-1" />
-          <template #content>
-            <slot name="help" />
-          </template>
-        </tippy>
       </button>
       <div v-else class="column-header">
         <span>
           {{ props.label }}
-          <span class="table-header-unit"><slot name="unit"></slot></span>
+          <span v-if="props.unit" class="table-header-unit">{{ props.unit }}</span>
         </span>
         <tippy v-if="slots.help" max-width="400px" :interactive="props.interactiveHelp">
           <i class="fa fa-sm fa-info-circle text-primary ps-1" />

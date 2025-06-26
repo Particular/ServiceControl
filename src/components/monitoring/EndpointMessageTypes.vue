@@ -47,17 +47,17 @@ const paginatedMessageTypes = computed(() => {
       <!--headers-->
       <div role="row" aria-label="message-type-column-headers" class="row box box-no-click table-head-row">
         <ColumnHeader name="message-type-name" label="Message type name" column-class="col-xs-4 col-xl-8" />
-        <ColumnHeader name="throughput" label="Throughput" column-class="col-xs-2 col-xl-1 no-side-padding" v-tippy="`Throughput: The number of messages per second successfully processed by a receiving endpoint.`">
-          <template #unit>(msgs/s)</template>
+        <ColumnHeader name="throughput" label="Throughput" unit="(msgs/s)" column-class="col-xs-2 col-xl-1 no-side-padding">
+          <template #help>Throughput: The number of messages per second successfully processed by a receiving endpoint.</template>
         </ColumnHeader>
-        <ColumnHeader name="retires" label="Scheduled retries" column-class="col-xs-2 col-xl-1 no-side-padding" v-tippy="`Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).`">
-          <template #unit>(msgs/s)</template>
+        <ColumnHeader name="retires" label="Scheduled retries" unit="(msgs/s)" column-class="col-xs-2 col-xl-1 no-side-padding">
+          <template #help>Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).</template>
         </ColumnHeader>
-        <ColumnHeader name="processing-time" label="Processing time" column-class="col-xs-2 col-xl-1 no-side-padding" v-tippy="`Processing time: The time taken for a receiving endpoint to successfully process a message.`">
-          <template #unit>(t)</template>
+        <ColumnHeader name="processing-time" label="Processing time" unit="(t)" column-class="col-xs-2 col-xl-1 no-side-padding">
+          <template #help>Processing time: The time taken for a receiving endpoint to successfully process a message.</template>
         </ColumnHeader>
-        <ColumnHeader name="critical-time" label="Critical time" column-class="col-xs-2 col-xl-1 no-side-padding" v-tippy="`Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.`">
-          <template #unit>(t)</template>
+        <ColumnHeader name="critical-time" label="Critical time" unit="(t)" column-class="col-xs-2 col-xl-1 no-side-padding">
+          <template #help>Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.</template>
         </ColumnHeader>
       </div>
 

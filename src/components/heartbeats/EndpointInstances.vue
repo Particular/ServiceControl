@@ -160,10 +160,10 @@ async function toggleAlerts(instance: EndpointsView) {
       <div role="row" aria-label="column-headers" class="row table-head-row" :style="{ borderTop: 0 }">
         <ColumnHeader :name="ColumnNames.InstanceName" label="Host Name" columnClass="col-6" v-model="sortByInstances" sortable default-ascending />
         <ColumnHeader :name="ColumnNames.LastHeartbeat" label="Last Heartbeat" columnClass="col-2" v-model="sortByInstances" sortable />
-        <ColumnHeader :name="ColumnNames.MuteToggle" label="Mute Alerts" columnClass="col-2 centre" v-model="sortByInstances">
+        <ColumnHeader :name="ColumnNames.MuteToggle" label="Mute Alerts" columnClass="col-2 centre">
           <template #help>Mute an instance when you are planning to take the instance offline to do maintenance or some other reason. This will prevent alerts on the dashboard.</template>
         </ColumnHeader>
-        <ColumnHeader name="actions" label="Actions" columnClass="col-1" interactive-help v-model="sortByInstances">
+        <ColumnHeader name="actions" label="Actions" columnClass="col-1" interactive-help>
           <template #help>
             <div class="d-flex align-items-center p-1">
               <button type="button" class="btn btn-danger btn-ms text-nowrap me-3" @click="deleteAllInstances()"><i class="fa fa-trash text-white" /> Delete</button>
