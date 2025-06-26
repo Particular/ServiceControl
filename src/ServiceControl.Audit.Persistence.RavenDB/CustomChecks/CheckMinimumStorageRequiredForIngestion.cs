@@ -15,11 +15,7 @@
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var percentageThreshold = databaseConfiguration.MinimumStorageLeftRequiredForIngestion / 100m;
-
-            if (logger.IsEnabled(LogLevel.Debug))
-            {
-                logger.LogDebug("Check ServiceControl data drive space starting. Threshold {PercentageThreshold:P0}", percentageThreshold);
-            }
+            logger.LogDebug("Check ServiceControl data drive space starting. Threshold {PercentageThreshold:P0}", percentageThreshold);
 
             // Should be checking UseEmbeddedServer but need to check DbPath instead for the ATT hack to work
             if (string.IsNullOrEmpty(databaseConfiguration.ServerConfiguration.DbPath))
@@ -35,11 +31,7 @@
             var totalSpace = (decimal)dataDriveInfo.TotalSize;
 
             var percentRemaining = (decimal)dataDriveInfo.AvailableFreeSpace / dataDriveInfo.TotalSize;
-
-            if (logger.IsEnabled(LogLevel.Debug))
-            {
-                logger.LogDebug("Free space: {AvailableFreeSpace:N0}B | Total: {TotalSpace:N0}B | Percent remaining {PercentRemaining:P0}", availableFreeSpace, totalSpace, percentRemaining);
-            }
+            logger.LogDebug("Free space: {AvailableFreeSpace:N0}B | Total: {TotalSpace:N0}B | Percent remaining {PercentRemaining:P0}", availableFreeSpace, totalSpace, percentRemaining);
 
             if (percentRemaining > percentageThreshold)
             {
