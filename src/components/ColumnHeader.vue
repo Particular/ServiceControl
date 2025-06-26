@@ -41,25 +41,25 @@ function toggleSort() {
           <span v-if="isSortActive">
             <i role="img" :class="sortIcon" :aria-label="sortIcon"></i>
           </span>
-          <tippy v-if="slots.help" max-width="400px" :interactive="props.interactiveHelp">
-            <i class="fa fa-sm fa-info-circle text-primary ps-1" />
-            <template #content>
-              <slot name="help" />
-            </template>
-          </tippy>
         </span>
+        <tippy v-if="slots.help" max-width="400px" :interactive="props.interactiveHelp">
+          <i class="fa fa-sm fa-info-circle text-primary ps-1" />
+          <template #content>
+            <slot name="help" />
+          </template>
+        </tippy>
       </button>
       <div v-else class="column-header">
         <span>
           {{ props.label }}
           <span class="table-header-unit"><slot name="unit"></slot></span>
-          <tippy v-if="slots.help" max-width="400px" :interactive="props.interactiveHelp">
-            <i class="fa fa-sm fa-info-circle text-primary ps-1" />
-            <template #content>
-              <slot name="help" />
-            </template>
-          </tippy>
         </span>
+        <tippy v-if="slots.help" max-width="400px" :interactive="props.interactiveHelp">
+          <i class="fa fa-sm fa-info-circle text-primary ps-1" />
+          <template #content>
+            <slot name="help" />
+          </template>
+        </tippy>
       </div>
     </div>
   </div>
@@ -75,6 +75,12 @@ function toggleSort() {
   display: flex;
   flex-wrap: wrap;
 }
+.column-header span,
+.column-header-button span {
+  text-transform: uppercase;
+  display: inline-block;
+  text-align: left;
+}
 .column-header-button {
   background: none;
   border: none;
@@ -84,12 +90,6 @@ function toggleSort() {
   display: flex;
   flex-wrap: wrap;
   align-items: end;
-}
-
-.column-header-button span {
-  text-transform: uppercase;
-  display: inline-block;
-  text-align: left;
 }
 
 .column-header-button:hover span {

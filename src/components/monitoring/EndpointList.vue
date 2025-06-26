@@ -1,79 +1,38 @@
 ﻿<script setup lang="ts">
-import EndpointListColumnHeader from "./EndpointListColumnHeader.vue";
+import ColumnHeader from "../ColumnHeader.vue";
 import EndpointListRow, { columnName } from "./EndpointListRow.vue";
 import { useMonitoringStore } from "@/stores/MonitoringStore";
 import { storeToRefs } from "pinia";
 
 const monitoringStore = useMonitoringStore();
 const { sortBy: activeColumn } = storeToRefs(monitoringStore);
-
-type EndpointListColumn = {
-  name: columnName;
-  displayName: string;
-  displayUnit?: string;
-  sort: string;
-  toolTip?: string;
-};
-
-const columns: EndpointListColumn[] = [
-  {
-    name: columnName.ENDPOINTNAME,
-    displayName: "Endpoint name",
-    sort: columnName.ENDPOINTNAME,
-  },
-  {
-    name: columnName.QUEUELENGTH,
-    displayName: "Queue Length",
-    displayUnit: "(MSGS)",
-    sort: monitoringStore.endpointListIsGrouped ? "" : columnName.QUEUELENGTH,
-    toolTip: "Queue length: The number of messages waiting to be processed in the input queue(s) of the endpoint.",
-  },
-  {
-    name: columnName.THROUGHPUT,
-    displayName: "Throughput",
-    displayUnit: "(msgs/s)",
-    sort: monitoringStore.endpointListIsGrouped ? "" : columnName.THROUGHPUT,
-    toolTip: "Throughput: The number of messages per second successfully processed by a receiving endpoint.",
-  },
-  {
-    name: columnName.SCHEDULEDRETRIES,
-    displayName: "Scheduled retries",
-    displayUnit: "(msgs/s)",
-    sort: monitoringStore.endpointListIsGrouped ? "" : columnName.SCHEDULEDRETRIES,
-    toolTip: "Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).",
-  },
-  {
-    name: columnName.PROCESSINGTIME,
-    displayName: "Processing Time",
-    displayUnit: "(t)",
-    sort: monitoringStore.endpointListIsGrouped ? "" : columnName.PROCESSINGTIME,
-    toolTip: "Processing time: The time taken for a receiving endpoint to successfully process a message.",
-  },
-  {
-    name: columnName.CRITICALTIME,
-    displayName: "Critical Time",
-    displayUnit: "(t)",
-    sort: monitoringStore.endpointListIsGrouped ? "" : columnName.CRITICALTIME,
-    toolTip: "Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.",
-  },
-];
 </script>
 
 <template>
   <section role="table" aria-label="endpoint-list">
     <!--Table headings-->
     <div role="row" aria-label="column-headers" class="table-head-row">
-      <EndpointListColumnHeader
-        v-for="(column, i) in columns"
-        :key="column.name"
-        :columnName="column.name"
-        :columnSort="column.sort"
-        :displayName="column.displayName"
-        :displayUnit="column.displayUnit"
-        :toolTip="column.toolTip"
-        :isFirstCol="i === 0"
-        v-model="activeColumn"
-      />
+      <ColumnHeader :name="columnName.ENDPOINTNAME" label="Endpoint name" column-class="table-first-col" v-model="activeColumn" sortable default-ascending />
+      <ColumnHeader :name="columnName.QUEUELENGTH" label="Queue length" column-class="table-col" v-model="activeColumn" sortable :sort-by="monitoringStore.endpointListIsGrouped ? '' : columnName.QUEUELENGTH">
+        <template #unit>(msgs)</template>
+        <template #help>Queue length: The number of messages waiting to be processed in the input queue(s) of the endpoint.</template>
+      </ColumnHeader>
+      <ColumnHeader :name="columnName.THROUGHPUT" label="Throughput" column-class="table-col" v-model="activeColumn" sortable :sort-by="monitoringStore.endpointListIsGrouped ? '' : columnName.THROUGHPUT">
+        <template #unit>(msgs/s)</template>
+        <template #help>Throughput: The number of messages per second successfully processed by a receiving endpoint.</template>
+      </ColumnHeader>
+      <ColumnHeader :name="columnName.SCHEDULEDRETRIES" label="Scheduled retries" column-class="table-col" v-model="activeColumn" sortable :sort-by="monitoringStore.endpointListIsGrouped ? '' : columnName.SCHEDULEDRETRIES">
+        <template #unit>(msgs/s)</template>
+        <template #help>Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).</template>
+      </ColumnHeader>
+      <ColumnHeader :name="columnName.PROCESSINGTIME" label="Processing time" column-class="table-col" v-model="activeColumn" sortable :sort-by="monitoringStore.endpointListIsGrouped ? '' : columnName.PROCESSINGTIME">
+        <template #unit>(t)</template>
+        <template #help>Processing time: The time taken for a receiving endpoint to successfully process a message.</template>
+      </ColumnHeader>
+      <ColumnHeader :name="columnName.CRITICALTIME" label="Critical time" column-class="table-col" v-model="activeColumn" sortable :sort-by="monitoringStore.endpointListIsGrouped ? '' : columnName.CRITICALTIME">
+        <template #unit>(t)</template>
+        <template #help>Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.</template>
+      </ColumnHeader>
     </div>
     <div>
       <div v-if="monitoringStore.endpointListIsGrouped" role="rowgroup" aria-label="grouped-endpoints">

@@ -44,7 +44,7 @@ function endpointHealth(endpoint: LogicalEndpoint) {
     <div role="row" aria-label="column-headers" class="row table-head-row" :style="{ borderTop: 0 }">
       <ColumnHeader v-if="columns.includes(ColumnNames.Name)" :name="ColumnNames.Name" label="Name" columnClass="col-6" sortable v-model="sortByInstances" default-ascending />
       <ColumnHeader v-if="columns.includes(ColumnNames.InstancesDown)" :name="ColumnNames.InstancesDown" label="Instances Down" columnClass="col-2" sortable v-model="sortByInstances" default-ascending />
-      <ColumnHeader v-if="columns.includes(ColumnNames.InstancesTotal)" :name="ColumnNames.InstancesTotal" label="Instances Total" columnClass="col-2" sortable v-model="sortByInstances" default-ascending />
+      <ColumnHeader v-if="columns.includes(ColumnNames.InstancesTotal)" :name="ColumnNames.InstancesTotal" label="Instances" columnClass="col-2" sortable v-model="sortByInstances" default-ascending />
       <ColumnHeader v-if="columns.includes(ColumnNames.LastHeartbeat)" :name="ColumnNames.LastHeartbeat" label="Last Heartbeat" columnClass="col-2" sortable v-model="sortByInstances" />
       <ColumnHeader v-if="columns.includes(ColumnNames.Tracked)" :name="ColumnNames.Tracked" label="Track Instances" columnClass="col-1 centre" sortable v-model="sortByInstances" />
       <ColumnHeader v-if="columns.includes(ColumnNames.TrackToggle)" :name="ColumnNames.TrackToggle" label="Track Instances" columnClass="col-2 centre" sortable v-model="sortByInstances" />
