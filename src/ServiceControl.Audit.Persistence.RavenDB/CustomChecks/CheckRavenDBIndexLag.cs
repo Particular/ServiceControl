@@ -9,7 +9,6 @@
     using NServiceBus.CustomChecks;
     using Raven.Client.Documents.Operations;
     using ServiceControl.Audit.Persistence.RavenDB;
-    using ServiceControl.Infrastructure;
 
     class CheckRavenDBIndexLag(IRavenDocumentStoreProvider documentStoreProvider, ILogger<CheckRavenDBIndexLag> logger) : CustomCheck("Audit Database Index Lag", "ServiceControl.Audit Health", TimeSpan.FromMinutes(5))
     {
@@ -21,7 +20,7 @@
 
             CreateDiagnosticsLogEntry(statistics, indexes);
 
-            var indexCountWithTooMuchLag = CheckAndReportIndexesWithTooMuchIndexLag(indexes, logger);
+            var indexCountWithTooMuchLag = CheckAndReportIndexesWithTooMuchIndexLag(indexes);
 
             if (indexCountWithTooMuchLag > 0)
             {
@@ -31,7 +30,7 @@
             return CheckResult.Pass;
         }
 
-        static int CheckAndReportIndexesWithTooMuchIndexLag(IndexInformation[] indexes, ILogger logger)
+        int CheckAndReportIndexesWithTooMuchIndexLag(IndexInformation[] indexes)
         {
             int indexCountWithTooMuchLag = 0;
 
@@ -57,9 +56,9 @@
             return indexCountWithTooMuchLag;
         }
 
-        static void CreateDiagnosticsLogEntry(DatabaseStatistics statistics, IndexInformation[] indexes)
+        void CreateDiagnosticsLogEntry(DatabaseStatistics statistics, IndexInformation[] indexes)
         {
-            if (!Logger.IsEnabled(LogLevel.Debug))
+            if (!logger.IsEnabled(LogLevel.Debug))
             {
                 return;
             }
@@ -74,11 +73,10 @@
                 report.AppendLine($"- Index [{indexStats.Name,-44}] State: {indexStats.State}, Stale: {indexStats.IsStale,-5}, Priority: {indexStats.Priority,-6}, LastIndexingTime: {indexStats.LastIndexingTime:u}");
             }
 
-            Logger.LogDebug(report.ToString());
+            logger.LogDebug(report.ToString());
         }
 
         static readonly TimeSpan IndexLagThresholdWarning = TimeSpan.FromMinutes(1);
         static readonly TimeSpan IndexLagThresholdError = TimeSpan.FromMinutes(10);
-        static readonly ILogger<CheckRavenDBIndexLag> Logger = LoggerUtil.CreateStaticLogger<CheckRavenDBIndexLag>();
     }
 }
