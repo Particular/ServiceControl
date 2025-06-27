@@ -30,7 +30,7 @@
             var totalSpace = (decimal)dataDriveInfo.TotalSize;
 
             var percentRemaining = (decimal)dataDriveInfo.AvailableFreeSpace / dataDriveInfo.TotalSize;
-            logger.LogDebug("Free space: {AvailableFreeSpace:N0}B | Total: {TotalSpace:N0}B | Percent remaining {PercentRemaining:P1}", availableFreeSpace, totalSpace, percentRemaining);
+            logger.LogDebug("Free space: {FreeSpaceTotalBytesFree:N0}B | Total: {FreeSpaceTotalBytesAvailable:N0}B | Remaining {PercentRemaining:P1}%", availableFreeSpace, totalSpace, percentRemaining);
 
             return percentRemaining > percentageThreshold
                 ? CheckResult.Pass
