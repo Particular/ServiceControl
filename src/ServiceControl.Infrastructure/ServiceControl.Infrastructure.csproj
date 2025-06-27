@@ -16,6 +16,7 @@
     <PackageReference Include="NServiceBus" />
     <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="NUnit" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
     <PackageReference Include="Seq.Extensions.Logging" />
   </ItemGroup>
 
