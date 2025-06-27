@@ -121,7 +121,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
                 new EndpointSettings { Name = string.Empty, TrackInstances = userSetTrackInstances },
                 cancellationToken);
             logger.LogInformation(
-                "Initialized default value of EndpointTracking to {TrackInstances}", userSetTrackInstances ? "tracking" : "not tracking");
+                "Initialized default value of EndpointTracking to {TrackInstancesEnabled}", userSetTrackInstances);
         }
 
         // Initialise settings for any missing endpoint
