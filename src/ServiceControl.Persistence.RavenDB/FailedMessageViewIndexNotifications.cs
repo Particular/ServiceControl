@@ -5,12 +5,12 @@
     using System.Threading.Tasks;
     using Api;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using Persistence;
     using Persistence.RavenDB;
     using Raven.Client.Documents;
 
-    class FailedMessageViewIndexNotifications(IRavenSessionProvider sessionProvider, IRavenDocumentStoreProvider documentStoreProvider) : IFailedMessageViewIndexNotifications
+    class FailedMessageViewIndexNotifications(IRavenSessionProvider sessionProvider, IRavenDocumentStoreProvider documentStoreProvider, ILogger<FailedMessageViewIndexNotifications> logger) : IFailedMessageViewIndexNotifications
         , IDisposable
         , IHostedService
     {
@@ -22,7 +22,7 @@
             }
             catch (Exception ex)
             {
-                Logger.WarnFormat("Failed to emit MessageFailuresUpdated - {0}", ex);
+                logger.LogWarning(ex, "Failed to emit MessageFailuresUpdated");
             }
         }
 
@@ -86,8 +86,6 @@
             Dispose();
             return Task.CompletedTask;
         }
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(FailedMessageViewIndexNotifications));
 
         Func<FailedMessageTotals, Task> subscriber;
         IDisposable subscription;

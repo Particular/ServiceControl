@@ -5,15 +5,19 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using ServiceControl.Persistence;
 
     class IntegrationEventWriter : IDomainHandler<IDomainEvent>
     {
-        public IntegrationEventWriter(IExternalIntegrationRequestsDataStore store, IEnumerable<IEventPublisher> eventPublishers)
+        public IntegrationEventWriter(
+            IExternalIntegrationRequestsDataStore store,
+            IEnumerable<IEventPublisher> eventPublishers,
+            ILogger<IntegrationEventWriter> logger)
         {
             this.store = store;
             this.eventPublishers = eventPublishers;
+            this.logger = logger;
         }
 
         public async Task Handle(IDomainEvent message, CancellationToken cancellationToken)
@@ -28,23 +32,18 @@
                 return;
             }
 
-            if (Logger.IsDebugEnabled)
-            {
-                Logger.Debug("Storing dispatch requests");
-            }
+            logger.LogDebug("Storing dispatch requests");
 
             var dispatchRequests = dispatchContexts.Select(dispatchContext => new ExternalIntegrationDispatchRequest
             {
                 DispatchContext = dispatchContext
             }).ToList();
 
-
             await store.StoreDispatchRequest(dispatchRequests);
         }
 
         readonly IExternalIntegrationRequestsDataStore store;
         readonly IEnumerable<IEventPublisher> eventPublishers;
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(IntegrationEventWriter));
+        readonly ILogger<IntegrationEventWriter> logger;
     }
 }

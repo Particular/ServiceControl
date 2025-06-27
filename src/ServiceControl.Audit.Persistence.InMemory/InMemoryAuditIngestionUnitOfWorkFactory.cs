@@ -5,14 +5,8 @@
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Persistence.UnitOfWork;
 
-    class InMemoryAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory
+    class InMemoryAuditIngestionUnitOfWorkFactory(InMemoryAuditDataStore dataStore, BodyStorageEnricher bodyStorageEnricher) : IAuditIngestionUnitOfWorkFactory
     {
-        public InMemoryAuditIngestionUnitOfWorkFactory(InMemoryAuditDataStore dataStore, IBodyStorage bodyStorage, PersistenceSettings settings)
-        {
-            this.dataStore = dataStore;
-            bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
-        }
-
         public ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken)
         {
             //The batchSize argument is ignored: the in-memory storage implementation doesn't support batching.
@@ -20,8 +14,5 @@
         }
 
         public bool CanIngestMore() => true;
-
-        InMemoryAuditDataStore dataStore;
-        BodyStorageEnricher bodyStorageEnricher;
     }
 }

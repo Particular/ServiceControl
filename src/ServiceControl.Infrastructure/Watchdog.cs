@@ -3,7 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
 
     public class Watchdog
     {
@@ -14,7 +14,7 @@
         Task watchdog;
         CancellationTokenSource shutdownTokenSource = new();
         TimeSpan timeToWaitBetweenStartupAttempts;
-        ILog log;
+        ILogger log;
         string taskName;
 
         public Watchdog(
@@ -23,7 +23,7 @@
             Func<CancellationToken, Task> ensureStopped, Action<string> reportFailure,
             Action clearFailure,
             TimeSpan timeToWaitBetweenStartupAttempts,
-            ILog log
+            ILogger log
         )
         {
             this.taskName = taskName;
@@ -45,7 +45,7 @@
         {
             watchdog = Task.Run(async () =>
             {
-                log.Debug($"Starting watching {taskName}");
+                log.LogDebug("Starting watching {TaskName}", taskName);
 
                 bool startup = true;
 
@@ -60,14 +60,14 @@
                         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(shutdownTokenSource.Token);
                         cancellationTokenSource.CancelAfter(MaxStartDurationMs);
 
-                        log.Debug($"Ensuring {taskName} is running");
+                        log.LogDebug("Ensuring {TaskName} is running", taskName);
                         await ensureStarted(cancellationTokenSource.Token).ConfigureAwait(false);
                         clearFailure();
                         startup = false;
                     }
                     catch (OperationCanceledException e) when (shutdownTokenSource.IsCancellationRequested)
                     {
-                        log.Debug("Cancelled", e);
+                        log.LogDebug(e, "Cancelled");
                         return;
                     }
                     catch (Exception e)
@@ -76,12 +76,12 @@
 
                         if (startup)
                         {
-                            log.Error($"Error during initial startup attempt for {taskName}.", e);
+                            log.LogError(e, "Error during initial startup attempt for {TaskName}", taskName);
                             onFailedOnStartup();
                             return;
                         }
 
-                        log.Error($"Error while trying to start {taskName}. Starting will be retried in {timeToWaitBetweenStartupAttempts}.", e);
+                        log.LogError(e, "Error while trying to start {TaskName}. Starting will be retried in {TimeToWaitBetweenStartupAttempts}", taskName, timeToWaitBetweenStartupAttempts);
                     }
                     try
                     {
@@ -101,13 +101,13 @@
         {
             try
             {
-                log.Debug($"Stopping watching process {taskName}");
+                log.LogDebug("Starting watching {TaskName}", taskName);
                 await shutdownTokenSource.CancelAsync().ConfigureAwait(false);
                 await watchdog.ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                log.Error($"Error while trying to stop {taskName}.", e);
+                log.LogError(e, "Ensuring {TaskName} is running", taskName);
                 throw;
             }
             finally

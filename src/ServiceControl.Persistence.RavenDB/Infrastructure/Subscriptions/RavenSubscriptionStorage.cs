@@ -7,9 +7,9 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Extensibility;
-    using NServiceBus.Logging;
     using NServiceBus.Settings;
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
@@ -21,12 +21,12 @@
 
     class RavenSubscriptionStorage : IServiceControlSubscriptionStorage
     {
-        public RavenSubscriptionStorage(IRavenSessionProvider sessionProvider, IReadOnlySettings settings, ReceiveAddresses receiveAddresses) :
-            this(sessionProvider, settings.EndpointName(), receiveAddresses.MainReceiveAddress, settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())
+        public RavenSubscriptionStorage(IRavenSessionProvider sessionProvider, IReadOnlySettings settings, ReceiveAddresses receiveAddresses, ILogger<RavenSubscriptionStorage> logger) :
+            this(sessionProvider, settings.EndpointName(), receiveAddresses.MainReceiveAddress, settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray(), logger)
         {
         }
 
-        public RavenSubscriptionStorage(IRavenSessionProvider sessionProvider, string endpointName, string localAddress, MessageType[] locallyHandledEventTypes)
+        public RavenSubscriptionStorage(IRavenSessionProvider sessionProvider, string endpointName, string localAddress, MessageType[] locallyHandledEventTypes, ILogger<RavenSubscriptionStorage> logger)
         {
             this.sessionProvider = sessionProvider;
             localClient = new SubscriptionClient
@@ -36,7 +36,7 @@
             };
 
             this.locallyHandledEventTypes = locallyHandledEventTypes;
-
+            this.logger = logger;
             subscriptions = new Subscriptions();
             UpdateLookup();
         }
@@ -198,9 +198,9 @@
         static Task<Subscriptions> LoadSubscriptions(IAsyncDocumentSession session)
             => session.LoadAsync<Subscriptions>(Subscriptions.SingleDocumentId);
 
-        static async Task<Subscriptions> MigrateSubscriptions(IAsyncDocumentSession session, SubscriptionClient localClient)
+        async Task<Subscriptions> MigrateSubscriptions(IAsyncDocumentSession session, SubscriptionClient localClient)
         {
-            Logger.Info("Migrating subscriptions to new format");
+            logger.LogInformation("Migrating subscriptions to new format");
 
             var subscriptions = new Subscriptions();
 
@@ -224,10 +224,8 @@
         Subscriptions subscriptions;
         ILookup<MessageType, Subscriber> subscriptionsLookup;
         MessageType[] locallyHandledEventTypes;
-
+        readonly ILogger<RavenSubscriptionStorage> logger;
         SemaphoreSlim subscriptionsLock = new SemaphoreSlim(1);
-
-        static readonly ILog Logger = LogManager.GetLogger<RavenSubscriptionStorage>();
     }
 
     class Subscriptions

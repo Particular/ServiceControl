@@ -7,24 +7,28 @@
     using System.Text.Json.Nodes;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.SignalR;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Settings;
     using NServiceBus.Transport;
 
     class MessageStreamerHub : Hub
     {
-        public MessageStreamerHub(IMessageDispatcher sender, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
+        public MessageStreamerHub(
+            IMessageDispatcher sender,
+            IReadOnlySettings settings,
+            ReceiveAddresses receiveAddresses,
+            ILogger<MessageStreamerHub> logger)
         {
             var conventions = settings.Get<Conventions>();
             this.sender = sender;
-
             messageTypes = settings.GetAvailableTypes()
                 .Where(conventions.IsMessageType)
                 .GroupBy(x => x.Name)
                 .ToDictionary(x => x.Key, x => x.FirstOrDefault().AssemblyQualifiedName);
             localAddress = receiveAddresses.MainReceiveAddress;
+            this.logger = logger;
         }
 
         public async Task SendMessage(string data)
@@ -47,7 +51,7 @@
             }
             catch (Exception ex)
             {
-                Log.Error($"Failed to process SignalR message. AuditMessage={data}", ex);
+                logger.LogError(ex, "Failed to process SignalR message. AuditMessage={AuditMessage}", data);
                 throw;
             }
         }
@@ -56,6 +60,6 @@
         readonly IMessageDispatcher sender;
         string localAddress;
 
-        static readonly ILog Log = LogManager.GetLogger(typeof(MessageStreamerHub));
+        readonly ILogger<MessageStreamerHub> logger;
     }
 }

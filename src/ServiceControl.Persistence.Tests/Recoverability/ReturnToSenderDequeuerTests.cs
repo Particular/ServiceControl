@@ -10,6 +10,7 @@
     using MessageFailures;
     using MessageFailures.Api;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging.Abstractions;
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using NUnit.Framework;
@@ -47,7 +48,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(null).HandleMessage(message, sender, "error");
+            await new ReturnToSender(null, NullLogger<ReturnToSender>.Instance).HandleMessage(message, sender, "error");
 
             Assert.That(sender.Message.Headers.ContainsKey("ServiceControl.Retry.StagingId"), Is.False);
         }
@@ -66,7 +67,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeErrorMessageDataStore()).HandleMessage(message, sender, "error");
+            await new ReturnToSender(new FakeErrorMessageDataStore(), NullLogger<ReturnToSender>.Instance).HandleMessage(message, sender, "error");
 
             Assert.That(Encoding.UTF8.GetString(sender.Message.Body.ToArray()), Is.EqualTo("MessageBodyId"));
         }
@@ -84,7 +85,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(null).HandleMessage(message, sender, "error");
+            await new ReturnToSender(null, NullLogger<ReturnToSender>.Instance).HandleMessage(message, sender, "error");
 
             Assert.Multiple(() =>
             {
@@ -105,7 +106,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(null).HandleMessage(message, sender, "error");
+            await new ReturnToSender(null, NullLogger<ReturnToSender>.Instance).HandleMessage(message, sender, "error");
 
             Assert.Multiple(() =>
             {
@@ -129,7 +130,7 @@
 
             try
             {
-                await new ReturnToSender(null).HandleMessage(message, sender, "error");
+                await new ReturnToSender(null, NullLogger<ReturnToSender>.Instance).HandleMessage(message, sender, "error");
             }
             catch (Exception)
             {

@@ -1,19 +1,19 @@
 ﻿namespace ServiceControl.Transports.SQS
 {
     using System;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using System.Data.Common;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Data.Common;
+    using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
     using Amazon.Runtime;
     using Amazon.SQS;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
 
     class QueueLengthProvider : AbstractQueueLengthProvider
     {
-        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store) : base(settings, store)
+        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store, ILogger<QueueLengthProvider> logger) : base(settings, store)
         {
             var builder = new DbConnectionStringBuilder { ConnectionString = ConnectionString };
             if (builder.ContainsKey("AccessKeyId") || builder.ContainsKey("SecretAccessKey"))
@@ -24,13 +24,15 @@
             else
             {
                 //See https://docs.aws.amazon.com/sdk-for-net/v3/developer-guide/net-dg-config-creds.html#creds-assign
-                Logger.Info("BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials.");
+                logger.LogInformation("BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials");
             }
 
             if (builder.TryGetValue("QueueNamePrefix", out var prefix))
             {
                 queueNamePrefix = (string)prefix;
             }
+
+            this.logger = logger;
         }
 
         public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
@@ -71,7 +73,7 @@
                 }
                 catch (Exception e)
                 {
-                    Logger.Error("Error querying SQS queue sizes.", e);
+                    logger.LogError(e, "Error querying SQS queue sizes");
                 }
             }
         }
@@ -110,7 +112,7 @@
             }
             catch (Exception ex)
             {
-                Logger.Error($"Obtaining an approximate number of messages failed for '{queue}'", ex);
+                logger.LogError(ex, "Obtaining an approximate number of messages failed for '{QueueName}'", queue);
             }
         }
 
@@ -123,6 +125,6 @@
 
         readonly Func<IAmazonSQS> clientFactory = () => new AmazonSQSClient();
 
-        static readonly ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
+        readonly ILogger<QueueLengthProvider> logger;
     }
 }

@@ -8,19 +8,22 @@ namespace ServiceControl.Monitoring
     using Contracts.EndpointControl;
     using Contracts.HeartbeatMonitoring;
     using Infrastructure.DomainEvents;
+    using Microsoft.Extensions.Logging;
     using Operations;
     using Persistence;
 
     class EndpointInstanceMonitoring : IEndpointInstanceMonitoring
     {
         readonly IDomainEvents domainEvents;
+        readonly ILogger<EndpointInstanceMonitor> monitorLogger;
         readonly ConcurrentDictionary<Guid, EndpointInstanceMonitor> endpoints = new();
         readonly ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor> heartbeats = new();
         EndpointMonitoringStats previousStats;
 
-        public EndpointInstanceMonitoring(IDomainEvents domainEvents)
+        public EndpointInstanceMonitoring(IDomainEvents domainEvents, ILogger<EndpointInstanceMonitor> monitorLogger)
         {
             this.domainEvents = domainEvents;
+            this.monitorLogger = monitorLogger;
         }
 
         public void RecordHeartbeat(EndpointInstanceId endpointInstanceId, DateTime timestamp) => heartbeats.GetOrAdd(endpointInstanceId, id => new HeartbeatMonitor()).MarkAlive(timestamp);
@@ -32,7 +35,7 @@ namespace ServiceControl.Monitoring
                 var recordedHeartbeat = entry.Value.MarkDeadIfOlderThan(threshold);
 
                 var endpointInstanceId = entry.Key;
-                var monitor = endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, domainEvents));
+                var monitor = endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, domainEvents, monitorLogger));
                 await monitor.UpdateStatus(recordedHeartbeat.Status, recordedHeartbeat.Timestamp);
             }
 
@@ -45,13 +48,13 @@ namespace ServiceControl.Monitoring
         {
             var endpointInstanceId = newEndpointDetails.ToInstanceId();
 
-            return endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents));
+            return endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents, monitorLogger));
         }
 
         public async Task EndpointDetected(EndpointDetails newEndpointDetails)
         {
             var endpointInstanceId = newEndpointDetails.ToInstanceId();
-            if (endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents)))
+            if (endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents, monitorLogger)))
             {
                 await domainEvents.Raise(new EndpointDetected
                 {
@@ -64,7 +67,7 @@ namespace ServiceControl.Monitoring
         public async Task DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt)
         {
             var endpointInstanceId = newEndpointDetails.ToInstanceId();
-            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, domainEvents));
+            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, domainEvents, monitorLogger));
 
             await domainEvents.Raise(new EndpointStarted
             {
@@ -76,7 +79,7 @@ namespace ServiceControl.Monitoring
         public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored)
         {
             var endpointInstanceId = new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
-            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitored, domainEvents));
+            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitored, domainEvents, monitorLogger));
         }
 
         async Task Update(EndpointMonitoringStats stats)

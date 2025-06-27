@@ -3,14 +3,12 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using Raven.Client.Documents.Commands;
     using ServiceControl.Operations;
 
-    class FailedErrorImportDataStore(IRavenSessionProvider sessionProvider) : IFailedErrorImportDataStore
+    class FailedErrorImportDataStore(IRavenSessionProvider sessionProvider, ILogger<FailedErrorImportDataStore> logger) : IFailedErrorImportDataStore
     {
-        static readonly ILog Logger = LogManager.GetLogger(typeof(FailedErrorImportDataStore));
-
         public async Task ProcessFailedErrorImports(Func<FailedTransportMessage, Task> processMessage, CancellationToken cancellationToken)
         {
             var succeeded = 0;
@@ -30,28 +28,25 @@
 
                         succeeded++;
 
-                        if (Logger.IsDebugEnabled)
-                        {
-                            Logger.Debug($"Successfully re-imported failed error message {transportMessage.Id}.");
-                        }
+                        logger.LogDebug("Successfully re-imported failed error message {MessageId}", transportMessage.Id);
                     }
                     catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
                     {
-                        Logger.Info("Cancelled", e);
+                        logger.LogInformation(e, "Cancelled");
                     }
                     catch (Exception e)
                     {
-                        Logger.Error($"Error while attempting to re-import failed error message {transportMessage.Id}.", e);
+                        logger.LogError(e, "Error while attempting to re-import failed error message {MessageId}", transportMessage.Id);
                         failed++;
                     }
                 }
             }
 
-            Logger.Info($"Done re-importing failed errors. Successfully re-imported {succeeded} messages. Failed re-importing {failed} messages.");
+            logger.LogInformation("Done re-importing failed errors. Successfully re-imported {SucceededCount} messages. Failed re-importing {FailedCount} messages", succeeded, failed);
 
             if (failed > 0)
             {
-                Logger.Warn($"{failed} messages could not be re-imported. This could indicate a problem with the data. Contact Particular support if you need help with recovering the messages.");
+                logger.LogWarning("{FailedCount} messages could not be re-imported. This could indicate a problem with the data. Contact Particular support if you need help with recovering the messages", failed);
             }
         }
 

@@ -6,17 +6,16 @@
     using Infrastructure.WebApi;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using Operations;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
 
     class ImportFailedErrorsCommand : AbstractCommand
     {
-        readonly ILog Log = LogManager.GetLogger<ImportFailedErrorsCommand>();
-
         public override async Task Execute(HostArguments args, Settings settings)
         {
             settings.IngestErrorMessages = false;
@@ -43,7 +42,7 @@
             }
             catch (OperationCanceledException e) when (tokenSource.IsCancellationRequested)
             {
-                Log.Info("Cancelled", e);
+                LoggerUtil.CreateStaticLogger<ImportFailedErrorsCommand>().LogInformation(e, "Cancelled");
             }
             finally
             {

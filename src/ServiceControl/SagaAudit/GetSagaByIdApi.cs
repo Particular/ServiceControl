@@ -4,13 +4,14 @@ namespace ServiceControl.SagaAudit
     using System.Linq;
     using System.Net.Http;
     using CompositeViews.Messages;
+    using Microsoft.Extensions.Logging;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public record SagaByIdContext(PagingInfo PagingInfo, Guid SagaId) : ScatterGatherContext(PagingInfo);
 
-    public class GetSagaByIdApi(Settings settings, IHttpClientFactory httpClientFactory)
-        : ScatterGatherRemoteOnly<SagaByIdContext, SagaHistory>(settings, httpClientFactory)
+    public class GetSagaByIdApi(Settings settings, IHttpClientFactory httpClientFactory, ILogger<GetSagaByIdApi> logger)
+        : ScatterGatherRemoteOnly<SagaByIdContext, SagaHistory>(settings, httpClientFactory, logger)
     {
         protected override SagaHistory ProcessResults(SagaByIdContext input, QueryResult<SagaHistory>[] results)
         {

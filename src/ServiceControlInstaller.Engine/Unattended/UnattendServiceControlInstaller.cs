@@ -70,6 +70,7 @@
 
                 //Post Installation
                 var instance = InstanceFinder.FindServiceControlInstance(instanceInstaller.Name);
+                logger.Info("Starting Service");
                 if (!instance.TryStartService())
                 {
                     logger.Warn("The service failed to start");

@@ -6,6 +6,7 @@
     using Configuration;
     using CustomChecks;
     using Particular.LicensingComponent.Contracts;
+    using ServiceControl.Infrastructure;
 
     class RavenPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -29,7 +30,7 @@
             }
 
             var ravenDbLogLevel = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.RavenDbLogLevelKey, "Warn");
-            var logsMode = RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel);
+            var logsMode = RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel, LoggerUtil.CreateStaticLogger<RavenPersistenceConfiguration>());
 
             var settings = new RavenPersisterSettings
             {

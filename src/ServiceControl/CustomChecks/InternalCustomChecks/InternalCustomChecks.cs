@@ -4,6 +4,7 @@
     using Infrastructure.BackgroundTasks;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
     using NServiceBus.Hosting;
     using Operations;
@@ -24,7 +25,8 @@
                 provider.GetRequiredService<HostInformation>(),
                 provider.GetRequiredService<IAsyncTimer>(),
                 provider.GetRequiredService<CustomCheckResultProcessor>(),
-                provider.GetRequiredService<Settings>().InstanceName));
+                provider.GetRequiredService<Settings>().InstanceName,
+                provider.GetRequiredService<ILogger<InternalCustomChecksHostedService>>()));
             return hostBuilder;
         }
     }

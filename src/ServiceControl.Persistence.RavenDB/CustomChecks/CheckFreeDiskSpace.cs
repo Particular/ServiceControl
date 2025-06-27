@@ -4,18 +4,16 @@
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
-    using NServiceBus.Logging;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Persistence.RavenDB;
 
-    class CheckFreeDiskSpace(RavenPersisterSettings settings) : CustomCheck("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
+    class CheckFreeDiskSpace(RavenPersisterSettings settings, ILogger<CheckFreeDiskSpace> logger) : CustomCheck("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
     {
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
-            if (Logger.IsDebugEnabled)
-            {
-                Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {percentageThreshold:P0}");
-            }
+            logger.LogDebug("Check ServiceControl data drive space remaining custom check starting. Threshold {PercentageThreshold:P0}", percentageThreshold);
 
             if (!settings.UseEmbeddedServer)
             {
@@ -33,10 +31,7 @@
 
             var percentRemaining = (decimal)dataDriveInfo.AvailableFreeSpace / dataDriveInfo.TotalSize;
 
-            if (Logger.IsDebugEnabled)
-            {
-                Logger.Debug($"Free space: {availableFreeSpace:N0}B | Total: {totalSpace:N0}B | Percent remaining {percentRemaining:P1}");
-            }
+            logger.LogDebug("Free space: {FreeSpaceTotalBytesFree:N0}B | Total: {FreeSpaceTotalBytesAvailable:N0}B | Remaining {PercentRemaining:P1}%", availableFreeSpace, totalSpace, percentRemaining);
 
             return percentRemaining > percentageThreshold
                 ? CheckResult.Pass
@@ -45,22 +40,19 @@
 
         public static void Validate(RavenPersisterSettings settings)
         {
+            var logger = LoggerUtil.CreateStaticLogger<CheckFreeDiskSpace>();
             var threshold = settings.DataSpaceRemainingThreshold;
-
-            string message;
 
             if (threshold < 0)
             {
-                message = $"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, minimum value is 0.";
-                Logger.Fatal(message);
-                throw new Exception(message);
+                logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} is invalid, minimum value is 0", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
+                throw new Exception($"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, minimum value is 0.");
             }
 
             if (threshold > 100)
             {
-                message = $"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, maximum value is 100.";
-                Logger.Fatal(message);
-                throw new Exception(message);
+                logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} is invalid, maximum value is 100", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
+                throw new Exception($"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, maximum value is 100.");
             }
         }
 
@@ -68,6 +60,5 @@
         readonly decimal percentageThreshold = settings.DataSpaceRemainingThreshold / 100m;
 
         public const int DataSpaceRemainingThresholdDefault = 20;
-        static readonly ILog Logger = LogManager.GetLogger(typeof(CheckFreeDiskSpace));
     }
 }

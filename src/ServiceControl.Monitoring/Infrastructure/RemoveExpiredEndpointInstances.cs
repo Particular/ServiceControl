@@ -44,7 +44,7 @@ public class RemoveExpiredEndpointInstances(
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     logger.LogError(ex,
-                        $"Error deleting expired endpoint instances, trying again in {IntervalInMinutes} minutes.");
+                        $"Error deleting expired endpoint instances, trying again in {IntervalInMinutes} minutes");
                 }
             } while (await timer.WaitForNextTickAsync(cancellationToken));
         }
