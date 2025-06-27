@@ -4,6 +4,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using NLog.Extensions.Logging;
+    using OpenTelemetry.Logs;
     using ServiceControl.Infrastructure.TestLogger;
 
     [Flags]
@@ -13,6 +14,7 @@
         Test = 1 << 0,
         NLog = 1 << 1,
         Seq = 1 << 2,
+        Otlp = 1 << 3,
     }
 
     public static class LoggerUtil
@@ -46,6 +48,10 @@
                 {
                     loggingBuilder.AddSeq();
                 }
+            }
+            if (IsLoggingTo(Loggers.Otlp))
+            {
+                loggingBuilder.AddOpenTelemetry(configure => configure.AddOtlpExporter());
             }
 
             loggingBuilder.SetMinimumLevel(level);

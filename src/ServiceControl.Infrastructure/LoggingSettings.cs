@@ -26,6 +26,10 @@ public class LoggingSettings
                 LoggerUtil.SeqAddress = seqAddress;
             }
         }
+        if (loggingProviders.Contains("Otlp"))
+        {
+            activeLoggers |= Loggers.Otlp;
+        }
         //this defaults to NLog because historically that was the default, and we don't want to break existing installs that don't have the config key to define loggingProviders
         LoggerUtil.ActiveLoggers = activeLoggers == Loggers.None ? Loggers.NLog : activeLoggers;
 
