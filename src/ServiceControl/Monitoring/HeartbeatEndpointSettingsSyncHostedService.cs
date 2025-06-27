@@ -131,7 +131,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
                 new EndpointSettings { Name = name, TrackInstances = userSetTrackInstances },
                 cancellationToken);
             logger.LogInformation(
-                "Initialized '{Setting}' value of EndpointTracking to {TrackInstances}", name, userSetTrackInstances ? "tracking" : "not tracking");
+                "Initialized '{SettingKey}' value of EndpointTracking to {TrackInstancesEnabled}", name, userSetTrackInstances);
         }
     }
 }
