@@ -94,7 +94,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                     EnvironmentName = Environments.Development
                 });
                 hostBuilder.Logging.ClearProviders();
-                hostBuilder.Logging.BuildServiceControlLogging(LogLevel.Information);
+                hostBuilder.Logging.ConfigureLogging(LogLevel.Information);
 
                 hostBuilder.AddServiceControlMonitoring((criticalErrorContext, cancellationToken) =>
                 {

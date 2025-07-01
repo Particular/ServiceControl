@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure
 {
     using System;
+    using System.Collections.Concurrent;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using NLog.Extensions.Logging;
@@ -28,8 +29,10 @@
             return (logger & ActiveLoggers) == logger;
         }
 
-        public static void BuildServiceControlLogging(this ILoggingBuilder loggingBuilder, LogLevel level)
+        public static void ConfigureLogging(this ILoggingBuilder loggingBuilder, LogLevel level)
         {
+            loggingBuilder.SetMinimumLevel(level);
+
             if (IsLoggingTo(Loggers.Test))
             {
                 loggingBuilder.Services.AddSingleton<ILoggerProvider>(new TestContextProvider(level));
@@ -53,20 +56,41 @@
             {
                 loggingBuilder.AddOpenTelemetry(configure => configure.AddOtlpExporter());
             }
+        }
 
-            loggingBuilder.SetMinimumLevel(level);
+        static readonly ConcurrentDictionary<LogLevel, ILoggerFactory> _factories = new();
+
+        static ILoggerFactory GetOrCreateLoggerFactory(LogLevel level)
+        {
+            if (!_factories.TryGetValue(level, out var factory))
+            {
+                factory = LoggerFactory.Create(configure => configure.ConfigureLogging(level));
+                _factories[level] = factory;
+            }
+
+            return factory;
         }
 
         public static ILogger<T> CreateStaticLogger<T>(LogLevel level = LogLevel.Information)
         {
-            var factory = LoggerFactory.Create(configure => configure.BuildServiceControlLogging(level));
+            var factory = GetOrCreateLoggerFactory(level);
             return factory.CreateLogger<T>();
         }
 
         public static ILogger CreateStaticLogger(Type type, LogLevel level = LogLevel.Information)
         {
-            var factory = LoggerFactory.Create(configure => configure.BuildServiceControlLogging(level));
+            var factory = GetOrCreateLoggerFactory(level);
             return factory.CreateLogger(type);
+        }
+
+        public static void DisposeLoggerFactories()
+        {
+            foreach (var factory in _factories.Values)
+            {
+                factory.Dispose();
+            }
+
+            _factories.Clear();
         }
     }
 }

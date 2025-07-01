@@ -31,7 +31,7 @@ public static class HostApplicationBuilderExtensions
         EndpointConfiguration endpointConfiguration)
     {
         hostBuilder.Services.AddLogging();
-        hostBuilder.Logging.BuildServiceControlLogging(settings.LoggingSettings.LogLevel);
+        hostBuilder.Logging.ConfigureLogging(settings.LoggingSettings.LogLevel);
 
         var services = hostBuilder.Services;
 
