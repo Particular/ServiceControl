@@ -46,17 +46,17 @@ const paginatedMessageTypes = computed(() => {
       <!-- Breakdown by message type-->
       <!--headers-->
       <div role="row" aria-label="message-type-column-headers" class="row box box-no-click table-head-row">
-        <ColumnHeader name="message-type-name" label="Message type name" column-class="col-xs-4 col-xl-8" />
-        <ColumnHeader name="throughput" label="Throughput" unit="(msgs/s)" column-class="col-xs-2 col-xl-1 no-side-padding">
+        <ColumnHeader name="message-type-name" label="Message type name" class="col-xs-4 col-xl-8" />
+        <ColumnHeader name="throughput" label="Throughput" unit="(msgs/s)" class="col-xs-2 col-xl-1 no-side-padding">
           <template #help>Throughput: The number of messages per second successfully processed by a receiving endpoint.</template>
         </ColumnHeader>
-        <ColumnHeader name="retires" label="Scheduled retries" unit="(msgs/s)" column-class="col-xs-2 col-xl-1 no-side-padding">
+        <ColumnHeader name="retires" label="Scheduled retries" unit="(msgs/s)" class="col-xs-2 col-xl-1 no-side-padding">
           <template #help>Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).</template>
         </ColumnHeader>
-        <ColumnHeader name="processing-time" label="Processing time" unit="(t)" column-class="col-xs-2 col-xl-1 no-side-padding">
+        <ColumnHeader name="processing-time" label="Processing time" unit="(t)" class="col-xs-2 col-xl-1 no-side-padding">
           <template #help>Processing time: The time taken for a receiving endpoint to successfully process a message.</template>
         </ColumnHeader>
-        <ColumnHeader name="critical-time" label="Critical time" unit="(t)" column-class="col-xs-2 col-xl-1 no-side-padding">
+        <ColumnHeader name="critical-time" label="Critical time" unit="(t)" class="col-xs-2 col-xl-1 no-side-padding">
           <template #help>Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.</template>
         </ColumnHeader>
       </div>

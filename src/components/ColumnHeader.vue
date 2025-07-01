@@ -11,7 +11,6 @@ const props = withDefaults(
     sortBy?: string;
     sortState?: SortInfo;
     defaultAscending?: boolean;
-    columnClass: string;
     interactiveHelp?: boolean;
   }>(),
   {
@@ -32,7 +31,7 @@ function toggleSort() {
 </script>
 
 <template>
-  <div role="columnheader" :aria-label="props.name" :class="props.columnClass">
+  <div role="columnheader" :aria-label="props.name">
     <div class="box-header">
       <button v-if="props.sortable" @click="toggleSort" class="column-header-button" :aria-label="props.name">
         <span>

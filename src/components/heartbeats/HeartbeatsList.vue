@@ -42,13 +42,13 @@ function endpointHealth(endpoint: LogicalEndpoint) {
   <section role="table" aria-label="endpoint-instances">
     <!--Table headings-->
     <div role="row" aria-label="column-headers" class="row table-head-row" :style="{ borderTop: 0 }">
-      <ColumnHeader v-if="columns.includes(ColumnNames.Name)" :name="ColumnNames.Name" label="Name" columnClass="col-6" sortable v-model="sortByInstances" default-ascending />
-      <ColumnHeader v-if="columns.includes(ColumnNames.InstancesDown)" :name="ColumnNames.InstancesDown" label="Instances Down" columnClass="col-2" sortable v-model="sortByInstances" default-ascending />
-      <ColumnHeader v-if="columns.includes(ColumnNames.InstancesTotal)" :name="ColumnNames.InstancesTotal" label="Instances" columnClass="col-2" sortable v-model="sortByInstances" default-ascending />
-      <ColumnHeader v-if="columns.includes(ColumnNames.LastHeartbeat)" :name="ColumnNames.LastHeartbeat" label="Last Heartbeat" columnClass="col-2" sortable v-model="sortByInstances" />
-      <ColumnHeader v-if="columns.includes(ColumnNames.Tracked)" :name="ColumnNames.Tracked" label="Track Instances" columnClass="col-1 centre" sortable v-model="sortByInstances" />
-      <ColumnHeader v-if="columns.includes(ColumnNames.TrackToggle)" :name="ColumnNames.TrackToggle" label="Track Instances" columnClass="col-2 centre" sortable v-model="sortByInstances" />
-      <ColumnHeader v-if="columns.includes(ColumnNames.Muted)" :name="ColumnNames.Muted" label="Instances Muted" columnClass="col-1 centre" sortable v-model="sortByInstances" />
+      <ColumnHeader v-if="columns.includes(ColumnNames.Name)" :name="ColumnNames.Name" label="Name" class="col-6" sortable v-model="sortByInstances" default-ascending />
+      <ColumnHeader v-if="columns.includes(ColumnNames.InstancesDown)" :name="ColumnNames.InstancesDown" label="Instances Down" class="col-2" sortable v-model="sortByInstances" default-ascending />
+      <ColumnHeader v-if="columns.includes(ColumnNames.InstancesTotal)" :name="ColumnNames.InstancesTotal" label="Instances" class="col-2" sortable v-model="sortByInstances" default-ascending />
+      <ColumnHeader v-if="columns.includes(ColumnNames.LastHeartbeat)" :name="ColumnNames.LastHeartbeat" label="Last Heartbeat" class="col-2" sortable v-model="sortByInstances" />
+      <ColumnHeader v-if="columns.includes(ColumnNames.Tracked)" :name="ColumnNames.Tracked" label="Track Instances" class="col-1 centre" sortable v-model="sortByInstances" />
+      <ColumnHeader v-if="columns.includes(ColumnNames.TrackToggle)" :name="ColumnNames.TrackToggle" label="Track Instances" class="col-2 centre" sortable v-model="sortByInstances" />
+      <ColumnHeader v-if="columns.includes(ColumnNames.Muted)" :name="ColumnNames.Muted" label="Instances Muted" class="col-1 centre" sortable v-model="sortByInstances" />
     </div>
     <!--Table rows-->
     <DataView :data="data" :show-items-per-page="true" :items-per-page="itemsPerPage" @items-per-page-changed="store.setItemsPerPage">
