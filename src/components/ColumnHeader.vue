@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useSlots } from "vue";
+import { computed } from "vue";
 import type { SortInfo } from "./SortInfo";
 
 const props = withDefaults(
@@ -21,7 +21,6 @@ const props = withDefaults(
   }
 );
 
-const slots = useSlots();
 const sortByColumn = computed(() => props.sortBy || props.name);
 const activeSortColumn = defineModel<SortInfo>();
 const isSortActive = computed(() => activeSortColumn?.value?.property === sortByColumn.value);
@@ -42,7 +41,7 @@ function toggleSort() {
           <span v-if="isSortActive">
             <i role="img" :class="sortIcon" :aria-label="sortIcon"></i>
           </span>
-          <tippy v-if="slots.help" max-width="400px" :interactive="props.interactiveHelp">
+          <tippy v-if="$slots.help" max-width="400px" :interactive="props.interactiveHelp">
             <i class="fa fa-sm fa-info-circle text-primary ps-1" />
             <template #content>
               <slot name="help" />
@@ -55,7 +54,7 @@ function toggleSort() {
           {{ props.label }}
           <span v-if="props.unit" class="table-header-unit">{{ props.unit }}</span>
         </span>
-        <tippy v-if="slots.help" max-width="400px" :interactive="props.interactiveHelp">
+        <tippy v-if="$slots.help" max-width="400px" :interactive="props.interactiveHelp">
           <i class="fa fa-sm fa-info-circle text-primary ps-1" />
           <template #content>
             <slot name="help" />
