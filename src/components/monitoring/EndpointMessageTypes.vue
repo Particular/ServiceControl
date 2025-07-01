@@ -9,6 +9,7 @@ import SmallGraph from "./SmallGraph.vue";
 import PaginationStrip from "@/components/PaginationStrip.vue";
 import { useMonitoringEndpointDetailsStore } from "@/stores/MonitoringEndpointDetailsStore";
 import ColumnHeader from "@/components/ColumnHeader.vue";
+import { CriticalTime, MessageType, ProcessingTime, ScheduledRetries, Throughput } from "@/resources/MonitoringResources";
 import FAIcon from "@/components/FAIcon.vue";
 import { faWarning } from "@fortawesome/free-solid-svg-icons";
 
@@ -48,18 +49,18 @@ const paginatedMessageTypes = computed(() => {
       <!-- Breakdown by message type-->
       <!--headers-->
       <div role="row" aria-label="message-type-column-headers" class="row box box-no-click table-head-row">
-        <ColumnHeader name="message-type-name" label="Message type name" class="col-xs-4 col-xl-8" />
-        <ColumnHeader name="throughput" label="Throughput" unit="(msgs/s)" class="col-xs-2 col-xl-1 no-side-padding">
-          <template #help>Throughput: The number of messages per second successfully processed by a receiving endpoint.</template>
+        <ColumnHeader :name="MessageType.name" :label="MessageType.label" class="col-xs-4 col-xl-8" />
+        <ColumnHeader :name="Throughput.name" :label="Throughput.label" :unit="Throughput.unit" class="col-xs-2 col-xl-1 no-side-padding">
+          <template #help>{{ Throughput.tooltip }}</template>
         </ColumnHeader>
-        <ColumnHeader name="retires" label="Scheduled retries" unit="(msgs/s)" class="col-xs-2 col-xl-1 no-side-padding">
-          <template #help>Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).</template>
+        <ColumnHeader :name="ScheduledRetries.name" :label="ScheduledRetries.label" :unit="ScheduledRetries.unit" class="col-xs-2 col-xl-1 no-side-padding">
+          <template #help>{{ ScheduledRetries.tooltip }}</template>
         </ColumnHeader>
-        <ColumnHeader name="processing-time" label="Processing time" unit="(t)" class="col-xs-2 col-xl-1 no-side-padding">
-          <template #help>Processing time: The time taken for a receiving endpoint to successfully process a message.</template>
+        <ColumnHeader :name="ProcessingTime.name" :label="ProcessingTime.label" :unit="ProcessingTime.unit" class="col-xs-2 col-xl-1 no-side-padding">
+          <template #help>{{ ProcessingTime.tooltip }}</template>
         </ColumnHeader>
-        <ColumnHeader name="critical-time" label="Critical time" unit="(t)" class="col-xs-2 col-xl-1 no-side-padding">
-          <template #help>Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.</template>
+        <ColumnHeader :name="CriticalTime.name" :label="CriticalTime.label" :unit="CriticalTime.unit" class="col-xs-2 col-xl-1 no-side-padding">
+          <template #help>{{ CriticalTime.tooltip }}</template>
         </ColumnHeader>
       </div>
 

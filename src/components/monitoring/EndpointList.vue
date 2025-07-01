@@ -1,7 +1,8 @@
 ﻿<script setup lang="ts">
 import ColumnHeader from "../ColumnHeader.vue";
-import EndpointListRow, { columnName } from "./EndpointListRow.vue";
+import EndpointListRow from "./EndpointListRow.vue";
 import { useMonitoringStore } from "@/stores/MonitoringStore";
+import { EndpointName, Throughput, ScheduledRetries, ProcessingTime, CriticalTime, QueueLength } from "@/resources/MonitoringResources";
 import { storeToRefs } from "pinia";
 
 const monitoringStore = useMonitoringStore();
@@ -12,21 +13,21 @@ const { sortBy: activeColumn } = storeToRefs(monitoringStore);
   <section role="table" aria-label="endpoint-list">
     <!--Table headings-->
     <div role="row" aria-label="column-headers" class="table-head-row">
-      <ColumnHeader :name="columnName.ENDPOINTNAME" label="Endpoint name" class="table-first-col" v-model="activeColumn" sortable default-ascending />
-      <ColumnHeader :name="columnName.QUEUELENGTH" label="Queue length" unit="(msgs)" class="table-col" v-model="activeColumn" sortable :sort-by="monitoringStore.endpointListIsGrouped ? '' : columnName.QUEUELENGTH">
-        <template #help>Queue length: The number of messages waiting to be processed in the input queue(s) of the endpoint.</template>
+      <ColumnHeader :name="EndpointName.name" :label="EndpointName.label" class="table-first-col" v-model="activeColumn" sortable default-ascending />
+      <ColumnHeader :name="QueueLength.name" :label="QueueLength.label" :unit="QueueLength.unit" class="table-col" v-model="activeColumn" sortable :sort-by="monitoringStore.endpointListIsGrouped ? '' : QueueLength.name">
+        <template #help>{{ QueueLength.tooltip }}</template>
       </ColumnHeader>
-      <ColumnHeader :name="columnName.THROUGHPUT" label="Throughput" unit="(msgs/s)" class="table-col" v-model="activeColumn" sortable :sort-by="monitoringStore.endpointListIsGrouped ? '' : columnName.THROUGHPUT">
-        <template #help>Throughput: The number of messages per second successfully processed by a receiving endpoint.</template>
+      <ColumnHeader :name="Throughput.name" :label="Throughput.label" :unit="Throughput.unit" class="table-col" v-model="activeColumn" sortable :sort-by="monitoringStore.endpointListIsGrouped ? '' : Throughput.name">
+        <template #help>{{ Throughput.tooltip }}</template>
       </ColumnHeader>
-      <ColumnHeader :name="columnName.SCHEDULEDRETRIES" label="Scheduled retries" unit="(msgs/s)" class="table-col" v-model="activeColumn" sortable :sort-by="monitoringStore.endpointListIsGrouped ? '' : columnName.SCHEDULEDRETRIES">
-        <template #help>Scheduled retries: The number of messages per second scheduled for retries (immediate or delayed).</template>
+      <ColumnHeader :name="ScheduledRetries.name" :label="ScheduledRetries.label" :unit="ScheduledRetries.unit" class="table-col" v-model="activeColumn" sortable :sort-by="monitoringStore.endpointListIsGrouped ? '' : ScheduledRetries.name">
+        <template #help>{{ ScheduledRetries.tooltip }}</template>
       </ColumnHeader>
-      <ColumnHeader :name="columnName.PROCESSINGTIME" label="Processing time" unit="(t)" class="table-col" v-model="activeColumn" sortable :sort-by="monitoringStore.endpointListIsGrouped ? '' : columnName.PROCESSINGTIME">
-        <template #help>Processing time: The time taken for a receiving endpoint to successfully process a message.</template>
+      <ColumnHeader :name="ProcessingTime.name" :label="ProcessingTime.label" :unit="ProcessingTime.unit" class="table-col" v-model="activeColumn" sortable :sort-by="monitoringStore.endpointListIsGrouped ? '' : ProcessingTime.name">
+        <template #help>{{ ProcessingTime.unit }}</template>
       </ColumnHeader>
-      <ColumnHeader :name="columnName.CRITICALTIME" label="Critical time" unit="(t)" class="table-col" v-model="activeColumn" sortable :sort-by="monitoringStore.endpointListIsGrouped ? '' : columnName.CRITICALTIME">
-        <template #help>Critical time: The elapsed time from when a message was sent, until it was successfully processed by a receiving endpoint.</template>
+      <ColumnHeader :name="CriticalTime.name" :label="CriticalTime.label" :unit="CriticalTime.unit" class="table-col" v-model="activeColumn" sortable :sort-by="monitoringStore.endpointListIsGrouped ? '' : CriticalTime.name">
+        <template #help>{{ CriticalTime.tooltip }}</template>
       </ColumnHeader>
     </div>
     <div>
