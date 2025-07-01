@@ -28,7 +28,7 @@
             return (logger & ActiveLoggers) == logger;
         }
 
-        public static void BuildLogger(this ILoggingBuilder loggingBuilder, LogLevel level)
+        public static void BuildServiceControlLogging(this ILoggingBuilder loggingBuilder, LogLevel level)
         {
             if (IsLoggingTo(Loggers.Test))
             {
