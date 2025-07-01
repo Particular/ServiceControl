@@ -59,13 +59,13 @@
 
         public static ILogger<T> CreateStaticLogger<T>(LogLevel level = LogLevel.Information)
         {
-            var factory = LoggerFactory.Create(configure => configure.BuildLogger(level));
+            var factory = LoggerFactory.Create(configure => configure.BuildServiceControlLogging(level));
             return factory.CreateLogger<T>();
         }
 
         public static ILogger CreateStaticLogger(Type type, LogLevel level = LogLevel.Information)
         {
-            var factory = LoggerFactory.Create(configure => configure.BuildLogger(level));
+            var factory = LoggerFactory.Create(configure => configure.BuildServiceControlLogging(level));
             return factory.CreateLogger(type);
         }
     }

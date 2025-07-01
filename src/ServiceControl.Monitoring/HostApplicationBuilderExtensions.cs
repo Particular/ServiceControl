@@ -15,8 +15,6 @@ using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.WindowsServices;
-using Microsoft.Extensions.Logging;
-using NLog.Extensions.Logging;
 using NServiceBus;
 using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Features;
@@ -33,7 +31,7 @@ public static class HostApplicationBuilderExtensions
         EndpointConfiguration endpointConfiguration)
     {
         hostBuilder.Services.AddLogging();
-        hostBuilder.Logging.BuildLogger(settings.LoggingSettings.LogLevel);
+        hostBuilder.Logging.BuildServiceControlLogging(settings.LoggingSettings.LogLevel);
 
         var services = hostBuilder.Services;
 

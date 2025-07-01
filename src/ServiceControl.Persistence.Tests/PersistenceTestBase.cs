@@ -34,7 +34,7 @@ public abstract class PersistenceTestBase
         var hostBuilder = Host.CreateApplicationBuilder();
 
         LoggerUtil.ActiveLoggers = Loggers.Test;
-        hostBuilder.Logging.BuildLogger(LogLevel.Information);
+        hostBuilder.Logging.BuildServiceControlLogging(LogLevel.Information);
 
         await PersistenceTestsContext.Setup(hostBuilder);
 

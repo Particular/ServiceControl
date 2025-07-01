@@ -39,7 +39,7 @@ static class HostApplicationBuilderExtensions
         RecordStartup(settings, configuration, persistenceConfiguration);
 
         builder.Logging.ClearProviders();
-        builder.Logging.BuildLogger(settings.LoggingSettings.LogLevel);
+        builder.Logging.BuildServiceControlLogging(settings.LoggingSettings.LogLevel);
 
         var services = builder.Services;
         var transportSettings = settings.ToTransportSettings();

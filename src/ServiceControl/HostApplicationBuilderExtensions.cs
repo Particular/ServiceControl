@@ -42,7 +42,7 @@ namespace Particular.ServiceControl
             }
 
             hostBuilder.Logging.ClearProviders();
-            hostBuilder.Logging.BuildLogger(settings.LoggingSettings.LogLevel);
+            hostBuilder.Logging.BuildServiceControlLogging(settings.LoggingSettings.LogLevel);
 
             var services = hostBuilder.Services;
             var transportSettings = settings.ToTransportSettings();
