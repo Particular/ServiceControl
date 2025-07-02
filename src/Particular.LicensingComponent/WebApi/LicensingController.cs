@@ -4,7 +4,9 @@
     using System.Text.Json;
     using System.Threading;
     using Contracts;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Net.Http.Headers;
     using Particular.LicensingComponent.Report;
 
     [ApiController]
@@ -40,12 +42,14 @@
 
         [Route("report/file")]
         [HttpGet]
-        public async Task<IActionResult> GetThroughputReportFile([FromQuery(Name = "spVersion")] string? spVersion, CancellationToken cancellationToken)
+        public async Task GetThroughputReportFile([FromQuery(Name = "spVersion")] string? spVersion, CancellationToken cancellationToken)
         {
             var reportStatus = await CanThroughputReportBeGenerated(cancellationToken);
             if (!reportStatus.ReportCanBeGenerated)
             {
-                return BadRequest($"Report cannot be generated - {reportStatus.Reason}");
+                HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await HttpContext.Response.WriteAsync($"Report cannot be generated – {reportStatus.Reason}", cancellationToken);
+                return;
             }
 
             var report = await throughputCollector.GenerateThroughputReport(
@@ -55,16 +59,16 @@
 
             var fileName = $"{report.ReportData.CustomerName}.throughput-report-{report.ReportData.EndTime:yyyyMMdd-HHmmss}";
 
-            using var memoryStream = new MemoryStream();
-            using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+            HttpContext.Response.ContentType = "application/zip";
+            HttpContext.Response.Headers[HeaderNames.ContentDisposition] = new ContentDispositionHeaderValue("attachment")
             {
-                var entry = archive.CreateEntry($"{fileName}.json");
-                await using var entryStream = entry.Open();
-                await JsonSerializer.SerializeAsync(entryStream, report, SerializationOptions.IndentedWithNoEscaping, cancellationToken);
-            }
+                FileName = fileName
+            }.ToString();
 
-            memoryStream.Position = 0;
-            return File(memoryStream, "application/zip", fileDownloadName: $"{fileName}.zip");
+            using var archive = new ZipArchive(HttpContext.Response.Body, ZipArchiveMode.Create, leaveOpen: true);
+            var entry = archive.CreateEntry($"{Path.GetFileNameWithoutExtension(fileName)}.json");
+            await using var entryStream = entry.Open();
+            await JsonSerializer.SerializeAsync(entryStream, report, SerializationOptions.IndentedWithNoEscaping, cancellationToken);
         }
 
         [Route("settings/info")]
