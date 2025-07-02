@@ -2,11 +2,12 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public abstract class ScatterGatherRemoteOnly<TIn, TOut>(Settings settings, IHttpClientFactory httpClientFactory)
-        : ScatterGatherApi<NoOpStore, TIn, TOut>(NoOpStore.Instance, settings, httpClientFactory)
+    public abstract class ScatterGatherRemoteOnly<TIn, TOut>(Settings settings, IHttpClientFactory httpClientFactory, ILogger logger)
+        : ScatterGatherApi<NoOpStore, TIn, TOut>(NoOpStore.Instance, settings, httpClientFactory, logger)
         where TIn : ScatterGatherContext
         where TOut : class
     {

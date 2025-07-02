@@ -7,14 +7,17 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using ServiceControl.Transports.Learning;
 
     class QueueLengthProvider : AbstractQueueLengthProvider
     {
-        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
-            : base(settings, store) =>
+        public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store, ILogger<QueueLengthProvider> logger)
+            : base(settings, store)
+        {
             rootFolder = LearningTransportCustomization.FindStoragePath(ConnectionString);
+            this.logger = logger;
+        }
 
         public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
             => endpointsHash.AddOrUpdate(queueToTrack, queueToTrack, (_, __) => queueToTrack);
@@ -36,7 +39,7 @@
                 }
                 catch (Exception ex)
                 {
-                    Log.Warn("Problem getting learning transport queue length", ex);
+                    logger.LogWarning(ex, "Problem getting learning transport queue length");
                 }
             }
         }
@@ -60,7 +63,7 @@
                 }
                 else
                 {
-                    Log.Warn($"Queue Length data missing for queue {instance.InputQueue} (Endpoint {instance.EndpointName})");
+                    logger.LogWarning("Queue Length data missing for queue {InputQueue} (Endpoint {EndpointName})", instance.InputQueue, instance.EndpointName);
                 }
             }
         }
@@ -87,7 +90,7 @@
         readonly ConcurrentDictionary<EndpointToQueueMapping, EndpointToQueueMapping> endpointsHash = new ConcurrentDictionary<EndpointToQueueMapping, EndpointToQueueMapping>();
 
         static readonly TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
-        static readonly ILog Log = LogManager.GetLogger<QueueLengthProvider>();
+        readonly ILogger<QueueLengthProvider> logger;
 
     }
 }

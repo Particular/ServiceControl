@@ -6,8 +6,8 @@
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
-    using NServiceBus.Logging;
     using Persistence;
 
     class EventDispatcherHostedService : IHostedService
@@ -16,13 +16,14 @@
             IExternalIntegrationRequestsDataStore store,
             IDomainEvents domainEvents,
             IEnumerable<IEventPublisher> eventPublishers,
-            IMessageSession messageSession
-            )
+            IMessageSession messageSession,
+            ILogger<EventDispatcherHostedService> logger)
         {
             this.store = store;
             this.eventPublishers = eventPublishers;
             this.domainEvents = domainEvents;
             this.messageSession = messageSession;
+            this.logger = logger;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -43,10 +44,7 @@
 
             foreach (var eventToBePublished in eventsToBePublished)
             {
-                if (Logger.IsDebugEnabled)
-                {
-                    Logger.Debug("Publishing external event on the bus.");
-                }
+                logger.LogDebug("Publishing external event on the bus");
 
                 try
                 {
@@ -54,7 +52,7 @@
                 }
                 catch (Exception e)
                 {
-                    Logger.Error("Failed dispatching external integration event.", e);
+                    logger.LogError(e, "Failed dispatching external integration event");
 
                     var m = new ExternalIntegrationEventFailedToBePublished
                     {
@@ -79,11 +77,11 @@
             return store.StopAsync(cancellationToken);
         }
 
-        IMessageSession messageSession;
-        IEnumerable<IEventPublisher> eventPublishers;
-        IExternalIntegrationRequestsDataStore store;
-        IDomainEvents domainEvents;
+        readonly IMessageSession messageSession;
+        readonly IEnumerable<IEventPublisher> eventPublishers;
+        readonly IExternalIntegrationRequestsDataStore store;
+        readonly IDomainEvents domainEvents;
 
-        static ILog Logger = LogManager.GetLogger(typeof(EventDispatcherHostedService));
+        readonly ILogger<EventDispatcherHostedService> logger;
     }
 }

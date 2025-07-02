@@ -15,15 +15,14 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.WindowsServices;
 using Microsoft.Extensions.Logging;
 using Monitoring;
-using NLog.Extensions.Logging;
 using NServiceBus;
 using NServiceBus.Configuration.AdvancedExtensibility;
-using NServiceBus.Logging;
 using NServiceBus.Transport;
 using Persistence;
 using Transports;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
+using ServiceControl.Infrastructure;
 
 static class HostApplicationBuilderExtensions
 {
@@ -40,8 +39,7 @@ static class HostApplicationBuilderExtensions
         RecordStartup(settings, configuration, persistenceConfiguration);
 
         builder.Logging.ClearProviders();
-        builder.Logging.AddNLog();
-        builder.Logging.SetMinimumLevel(settings.LoggingSettings.ToHostLogLevel());
+        builder.Logging.ConfigureLogging(settings.LoggingSettings.LogLevel);
 
         var services = builder.Services;
         var transportSettings = settings.ToTransportSettings();
@@ -120,8 +118,8 @@ static class HostApplicationBuilderExtensions
                     }
                 });
 
-            var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
-            logger.InfoFormat("OpenTelemetry metrics exporter enabled: {0}", settings.OtlpEndpointUrl);
+            var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel);
+            logger.LogInformation("OpenTelemetry metrics exporter enabled: {OtlpEndpointUrl}", settings.OtlpEndpointUrl);
         }
     }
 
@@ -138,8 +136,9 @@ Persistence Customization:          {settings.PersistenceType},
 Persistence:                        {persistenceConfiguration.Name}
 -------------------------------------------------------------";
 
-        var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
-        logger.Info(startupMessage);
+        var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel);
+        logger.LogInformation(startupMessage);
         endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new { Settings = settings });
     }
+
 }

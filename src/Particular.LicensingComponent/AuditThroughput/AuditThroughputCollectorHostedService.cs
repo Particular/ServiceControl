@@ -20,7 +20,7 @@ public class AuditThroughputCollectorHostedService(
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Starting {nameof(AuditThroughputCollectorHostedService)}");
+        logger.LogInformation("Starting {ServiceName}", nameof(AuditThroughputCollectorHostedService));
 
         try
         {
@@ -42,14 +42,14 @@ public class AuditThroughputCollectorHostedService(
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            logger.LogInformation($"Stopping {nameof(AuditThroughputCollectorHostedService)}");
+            logger.LogInformation("Stopping {ServiceName}", nameof(AuditThroughputCollectorHostedService));
         }
     }
 
     async Task GatherThroughput(CancellationToken cancellationToken)
     {
         var utcYesterday = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
-        logger.LogInformation($"Gathering throughput from audit for {utcYesterday.ToShortDateString()}");
+        logger.LogInformation("Gathering throughput from audit for {AuditDate}", utcYesterday.ToShortDateString());
 
         await VerifyAuditInstances(cancellationToken);
 
@@ -59,7 +59,7 @@ public class AuditThroughputCollectorHostedService(
 
         if (!knownEndpoints.Any())
         {
-            logger.LogWarning("No known endpoints could be found.");
+            logger.LogWarning("No known endpoints could be found");
         }
 
         foreach (var tuple in await dataStore.GetEndpoints([.. knownEndpointsLookup.Keys], cancellationToken))
@@ -115,18 +115,18 @@ public class AuditThroughputCollectorHostedService(
         {
             if (remote.Status == "online" || remote.SemanticVersion is not null)
             {
-                logger.LogInformation($"ServiceControl Audit instance at {remote.ApiUri} detected running version {remote.SemanticVersion}");
+                logger.LogInformation("ServiceControl Audit instance at {RemoteApiUri} detected running version {RemoteSemanticVersion}", remote.ApiUri, remote.SemanticVersion);
             }
             else
             {
-                logger.LogWarning($"Unable to determine the version of one or more ServiceControl Audit instances. For the instance with URI {remote.ApiUri}, the status was '{remote.Status}' and the version string returned was '{remote.VersionString}'.");
+                logger.LogWarning("Unable to determine the version of one or more ServiceControl Audit instances. For the instance with URI {RemoteApiUri}, the status was '{RemoteStatus}' and the version string returned was '{RemoteVersionString}'", remote.ApiUri, remote.Status, remote.VersionString);
             }
         }
 
         var allHaveAuditCounts = remotesInfo.All(auditQuery.ValidRemoteInstances);
         if (!allHaveAuditCounts)
         {
-            logger.LogWarning($"At least one ServiceControl Audit instance is either not running the required version ({auditQuery.MinAuditCountsVersion}) or is not configured for at least 2 days of retention. Audit throughput will not be available.");
+            logger.LogWarning("At least one ServiceControl Audit instance is either not running the required version ({RequiredAuditVersion}) or is not configured for at least 2 days of retention. Audit throughput will not be available", auditQuery.MinAuditCountsVersion);
         }
     }
 

@@ -28,7 +28,7 @@
         public EditMessageTests() =>
             RegisterServices = services => services
                 .AddSingleton<IMessageDispatcher>(dispatcher)
-                .AddSingleton<ErrorQueueNameCache>(errorQueueNameCache)
+                .AddSingleton(errorQueueNameCache)
                 .AddTransient<EditHandler>();
 
         [SetUp]

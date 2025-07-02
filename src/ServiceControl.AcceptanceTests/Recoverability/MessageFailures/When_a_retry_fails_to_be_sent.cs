@@ -8,6 +8,7 @@
     using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging.Abstractions;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
@@ -146,7 +147,7 @@
         public class MessageThatWillFail : ICommand;
 
         public class FakeReturnToSender(IErrorMessageDataStore errorMessageStore, MyContext myContext)
-            : ReturnToSender(errorMessageStore)
+            : ReturnToSender(errorMessageStore, NullLogger<ReturnToSender>.Instance)
         {
             public override Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress, CancellationToken cancellationToken = default)
             {

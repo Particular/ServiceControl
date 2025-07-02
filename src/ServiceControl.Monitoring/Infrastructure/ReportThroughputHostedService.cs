@@ -37,7 +37,7 @@
                         }
                         else
                         {
-                            logger.LogError(ex, $"Error obtaining throughput from Monitoring for {ReportSendingIntervalInMinutes} minutes interval.");
+                            logger.LogError(ex, $"Error obtaining throughput from Monitoring for {ReportSendingIntervalInMinutes} minutes interval");
                         }
                     }
                 } while (await timer.WaitForNextTickAsync(cancellationToken));

@@ -4,20 +4,24 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
 
     class MetricsReporterHostedService : IHostedService
     {
         readonly Metrics metrics;
+        readonly ILogger<Metrics> logger;
+
         MetricsReporter reporter;
 
-        public MetricsReporterHostedService(Metrics metrics) => this.metrics = metrics;
+        public MetricsReporterHostedService(Metrics metrics, ILogger<Metrics> logger)
+        {
+            this.metrics = metrics;
+            this.logger = logger;
+        }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            var metricsLog = LogManager.GetLogger("Metrics");
-
-            reporter = new MetricsReporter(metrics, x => metricsLog.Info(x), TimeSpan.FromSeconds(5));
+            reporter = new MetricsReporter(metrics, x => logger.LogInformation(x), TimeSpan.FromSeconds(5));
 
             reporter.Start();
 

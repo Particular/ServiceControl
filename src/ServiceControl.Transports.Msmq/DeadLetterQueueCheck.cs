@@ -5,13 +5,13 @@
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
-    using NServiceBus.Logging;
     using Transports;
 
     public class DeadLetterQueueCheck : CustomCheck
     {
-        public DeadLetterQueueCheck(TransportSettings settings) :
+        public DeadLetterQueueCheck(TransportSettings settings, ILogger<DeadLetterQueueCheck> logger) :
             base("Dead Letter Queue", "Transport", TimeSpan.FromHours(1))
         {
             runCheck = settings.RunCustomChecks;
@@ -20,7 +20,7 @@
                 return;
             }
 
-            Logger.Debug("MSMQ Dead Letter Queue custom check starting");
+            logger.LogDebug("MSMQ Dead Letter Queue custom check starting");
 
             categoryName = Read("Msmq/PerformanceCounterCategoryName", "MSMQ Queue");
             counterName = Read("Msmq/PerformanceCounterName", "Messages in Queue");
@@ -32,8 +32,10 @@
             }
             catch (InvalidOperationException ex)
             {
-                Logger.Error(CounterMightBeLocalized(categoryName, counterName, counterInstanceName), ex);
+                logger.LogError(ex, CounterMightBeLocalized("CategoryName", "CounterName", "CounterInstanceName"), categoryName, counterName, counterInstanceName);
             }
+
+            this.logger = logger;
         }
 
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
@@ -43,9 +45,8 @@
                 return CheckResult.Pass;
             }
 
-            Logger.Debug("Checking Dead Letter Queue length");
+            logger.LogDebug("Checking Dead Letter Queue length");
             float currentValue;
-            string result;
             try
             {
                 if (dlqPerformanceCounter == null)
@@ -57,25 +58,18 @@
             }
             catch (InvalidOperationException ex)
             {
-                result = CounterMightBeLocalized(categoryName, counterName, counterInstanceName);
-                Logger.Warn(result, ex);
-                return CheckResult.Failed(result);
+                logger.LogWarning(ex, CounterMightBeLocalized("CategoryName", "CounterName", "CounterInstanceName"), categoryName, counterName, counterInstanceName);
+                return CheckResult.Failed(CounterMightBeLocalized(categoryName, counterName, counterInstanceName));
             }
 
             if (currentValue <= 0)
             {
-                Logger.Debug("No messages in Dead Letter Queue");
+                logger.LogDebug("No messages in Dead Letter Queue");
                 return CheckResult.Pass;
             }
 
-            result = MessagesInDeadLetterQueue(currentValue);
-            Logger.Warn(result);
-            return CheckResult.Failed(result);
-        }
-
-        static string MessagesInDeadLetterQueue(float currentValue)
-        {
-            return $"{currentValue} messages in the Dead Letter Queue on {Environment.MachineName}. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.";
+            logger.LogWarning("{DeadLetterMessageCount} messages in the Dead Letter Queue on {MachineName}. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages", currentValue, Environment.MachineName);
+            return CheckResult.Failed($"{currentValue} messages in the Dead Letter Queue on {Environment.MachineName}. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.");
         }
 
         static string CounterMightBeLocalized(string categoryName, string counterName, string counterInstanceName)
@@ -123,6 +117,6 @@
         string counterInstanceName;
         bool runCheck;
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(DeadLetterQueueCheck));
+        readonly ILogger logger;
     }
 }

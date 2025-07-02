@@ -4,15 +4,10 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
 
-    public class DomainEvents : IDomainEvents
+    public class DomainEvents(IServiceProvider serviceProvider, ILogger<DomainEvents> logger) : IDomainEvents
     {
-        static readonly ILog Log = LogManager.GetLogger<DomainEvents>();
-
-        readonly IServiceProvider serviceProvider;
-        public DomainEvents(IServiceProvider serviceProvider) => this.serviceProvider = serviceProvider;
-
         public async Task Raise<T>(T domainEvent, CancellationToken cancellationToken) where T : IDomainEvent
         {
             var handlers = serviceProvider.GetServices<IDomainHandler<T>>();
@@ -25,7 +20,7 @@
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"Unexpected error publishing domain event {typeof(T)}", e);
+                    logger.LogError(e, "Unexpected error publishing domain event {EventType}", typeof(T));
                     throw;
                 }
             }
@@ -40,7 +35,7 @@
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"Unexpected error publishing domain event {typeof(T)}", e);
+                    logger.LogError(e, "Unexpected error publishing domain event {EventType}", typeof(T));
                     throw;
                 }
             }

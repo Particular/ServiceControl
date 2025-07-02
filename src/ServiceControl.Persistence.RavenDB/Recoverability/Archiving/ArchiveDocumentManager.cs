@@ -5,14 +5,14 @@
     using System.Linq;
     using System.Threading.Tasks;
     using MessageFailures;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
     using Persistence.RavenDB;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
 
-    class ArchiveDocumentManager(ExpirationManager expirationManager)
+    class ArchiveDocumentManager(ExpirationManager expirationManager, ILogger logger)
     {
         public Task<ArchiveOperation> LoadArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType) => session.LoadAsync<ArchiveOperation>(ArchiveOperation.MakeId(groupId, archiveType));
 
@@ -138,7 +138,7 @@
             session.Advanced.Defer(new DeleteCommandData(archiveOperation.Id, null));
             await session.SaveChangesAsync();
 
-            Logger.Info($"Removing ArchiveOperation {archiveOperation.Id} completed");
+            logger.LogInformation("Removing ArchiveOperation {ArchiveOperationId} completed", archiveOperation.Id);
         }
 
         public class GroupDetails
@@ -147,6 +147,5 @@
             public int NumberOfMessagesInGroup { get; set; }
         }
 
-        static readonly ILog Logger = LogManager.GetLogger<ArchiveDocumentManager>();
     }
 }

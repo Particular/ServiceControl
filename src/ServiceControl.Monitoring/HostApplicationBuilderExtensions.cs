@@ -15,13 +15,12 @@ using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.WindowsServices;
-using Microsoft.Extensions.Logging;
-using NLog.Extensions.Logging;
 using NServiceBus;
 using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Features;
 using NServiceBus.Transport;
 using QueueLength;
+using ServiceControl.Infrastructure;
 using Timings;
 using Transports;
 
@@ -31,9 +30,8 @@ public static class HostApplicationBuilderExtensions
         Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, Settings settings,
         EndpointConfiguration endpointConfiguration)
     {
-        hostBuilder.Logging.ClearProviders();
-        hostBuilder.Logging.AddNLog();
-        hostBuilder.Logging.SetMinimumLevel(settings.LoggingSettings.ToHostLogLevel());
+        hostBuilder.Services.AddLogging();
+        hostBuilder.Logging.ConfigureLogging(settings.LoggingSettings.LogLevel);
 
         var services = hostBuilder.Services;
 

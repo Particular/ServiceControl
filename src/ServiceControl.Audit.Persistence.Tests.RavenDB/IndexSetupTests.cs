@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.Persistence.Tests;
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Persistence.RavenDB;

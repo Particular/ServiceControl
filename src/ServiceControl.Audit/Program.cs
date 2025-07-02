@@ -1,15 +1,21 @@
 ﻿using System;
 using System.Reflection;
-using NServiceBus.Logging;
+using Microsoft.Extensions.Logging;
 using ServiceControl.Audit.Infrastructure.Hosting;
 using ServiceControl.Audit.Infrastructure.Hosting.Commands;
 using ServiceControl.Audit.Infrastructure.Settings;
 using ServiceControl.Configuration;
 using ServiceControl.Infrastructure;
 
+ILogger logger = null;
+
 try
 {
-    AppDomain.CurrentDomain.UnhandledException += (s, e) => LogManager.GetLogger(typeof(Program)).Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
+    var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
+    LoggingConfigurator.ConfigureLogging(loggingSettings);
+    logger = LoggerUtil.CreateStaticLogger(typeof(Program));
+
+    AppDomain.CurrentDomain.UnhandledException += (s, e) => logger.LogError(e.ExceptionObject as Exception, "Unhandled exception was caught");
 
     // Hack: See https://github.com/Particular/ServiceControl/issues/4392
     var exitCode = await IntegratedSetup.Run();
@@ -29,9 +35,6 @@ try
         return 0;
     }
 
-    var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
-    LoggingConfigurator.ConfigureLogging(loggingSettings);
-
     var settings = new Settings(loggingSettings: loggingSettings);
 
     await new CommandRunner(arguments.Command).Execute(arguments, settings);
@@ -40,12 +43,20 @@ try
 }
 catch (Exception ex)
 {
-    NLog.LogManager.GetCurrentClassLogger().Fatal(ex, "Unrecoverable error");
+    if (logger != null)
+    {
+        logger.LogCritical(ex, "Unrecoverable error");
+    }
+    else
+    {
+        LoggingConfigurator.ConfigureNLog("bootstrap.${shortdate}.txt", "./", NLog.LogLevel.Fatal);
+        NLog.LogManager.GetCurrentClassLogger().Fatal(ex, "Unrecoverable error");
+    }
     throw;
 }
 finally
 {
     // The following log statement is meant to leave a trail in the logs to determine if the process was killed
-    NLog.LogManager.GetCurrentClassLogger().Info("Shutdown complete");
-    NLog.LogManager.Shutdown();
+    logger?.LogInformation("Shutdown complete");
+    LoggerUtil.DisposeLoggerFactories();
 }

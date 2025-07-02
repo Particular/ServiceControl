@@ -6,6 +6,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
     using global::ServiceControl.Hosting;
+    using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
@@ -20,10 +21,8 @@ namespace Particular.ServiceControl
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Hosting.WindowsServices;
     using Microsoft.Extensions.Logging;
-    using NLog.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
-    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
@@ -42,11 +41,8 @@ namespace Particular.ServiceControl
                 EventSourceCreator.Create();
             }
 
-            var logging = hostBuilder.Logging;
-            logging.ClearProviders();
-            //HINT: configuration used by NLog comes from LoggingConfigurator.cs
-            logging.AddNLog();
-            logging.SetMinimumLevel(settings.LoggingSettings.ToHostLogLevel());
+            hostBuilder.Logging.ClearProviders();
+            hostBuilder.Logging.ConfigureLogging(settings.LoggingSettings.LogLevel);
 
             var services = hostBuilder.Services;
             var transportSettings = settings.ToTransportSettings();
@@ -127,8 +123,8 @@ ServiceControl Logging Level:       {settings.LoggingSettings.LogLevel}
 Selected Transport Customization:   {settings.TransportType}
 -------------------------------------------------------------";
 
-            var logger = LogManager.GetLogger(typeof(HostApplicationBuilderExtensions));
-            logger.Info(startupMessage);
+            var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel);
+            logger.LogInformation(startupMessage);
             endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
             {
                 Settings = settings,

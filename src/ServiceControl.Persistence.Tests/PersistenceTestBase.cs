@@ -4,10 +4,12 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using NServiceBus;
 using NServiceBus.Settings;
 using NUnit.Framework;
 using Particular.LicensingComponent.Persistence;
+using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.DomainEvents;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence;
@@ -30,6 +32,10 @@ public abstract class PersistenceTestBase
         }
 
         var hostBuilder = Host.CreateApplicationBuilder();
+
+        LoggerUtil.ActiveLoggers = Loggers.Test;
+        hostBuilder.Logging.ConfigureLogging(LogLevel.Information);
+
         await PersistenceTestsContext.Setup(hostBuilder);
 
         // This is not cool. We have things that are registered as part of "the persistence" that then require parts

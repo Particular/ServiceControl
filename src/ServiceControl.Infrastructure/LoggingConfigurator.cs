@@ -2,25 +2,39 @@ namespace ServiceControl.Infrastructure
 {
     using System;
     using System.IO;
+    using Microsoft.Extensions.Logging;
     using NLog;
     using NLog.Config;
-    using NLog.Extensions.Logging;
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus.Extensions.Logging;
     using ServiceControl.Configuration;
-
     using LogManager = NServiceBus.Logging.LogManager;
+    using LogLevel = NLog.LogLevel;
 
     public static class LoggingConfigurator
     {
         public static void ConfigureLogging(LoggingSettings loggingSettings)
         {
-            if (NLog.LogManager.Configuration != null)
+            //used for loggers outside of ServiceControl (i.e. transports and core) to use the logger factory defined here
+            LogManager.UseFactory(new ExtensionsLoggerFactory(LoggerFactory.Create(configure => configure.ConfigureLogging(loggingSettings.LogLevel))));
+
+            if (!LoggerUtil.IsLoggingTo(Loggers.NLog) || NLog.LogManager.Configuration != null)
             {
                 return;
             }
 
+            var logLevel = loggingSettings.LogLevel.ToNLogLevel();
+            var loggingTo = ConfigureNLog("logfile.${shortdate}.txt", loggingSettings.LogPath, loggingSettings.LogLevel.ToNLogLevel());
+
+            //using LogManager here rather than LoggerUtil.CreateStaticLogger since this is exclusive to NLog
+            var logger = LogManager.GetLogger("LoggingConfiguration");
+            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", loggingTo, logLevel.Name);
+        }
+
+        public static string ConfigureNLog(string logFileName, string logPath, LogLevel logLevel)
+        {
+            //configure NLog
             var nlogConfig = new LoggingConfiguration();
             var simpleLayout = new SimpleLayout("${longdate}|${processtime}|${threadid}|${level}|${logger}|${message}${onexception:|${exception:format=tostring}}");
 
@@ -28,8 +42,8 @@ namespace ServiceControl.Infrastructure
             {
                 Name = "file",
                 ArchiveEvery = FileArchivePeriod.Day,
-                FileName = Path.Combine(loggingSettings.LogPath, "logfile.${shortdate}.txt"),
-                ArchiveFileName = Path.Combine(loggingSettings.LogPath, "logfile.{#}.txt"),
+                FileName = Path.Combine(logPath, logFileName),
+                ArchiveFileName = Path.Combine(logPath, "logfile.{#}.txt"),
                 ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
@@ -60,23 +74,35 @@ namespace ServiceControl.Infrastructure
             nlogConfig.LoggingRules.Add(aspNetCoreRule);
             nlogConfig.LoggingRules.Add(httpClientRule);
 
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, consoleTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", logLevel, consoleTarget));
 
             if (!AppEnvironment.RunningInContainer)
             {
-                nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LogLevel, fileTarget));
+                nlogConfig.LoggingRules.Add(new LoggingRule("*", logLevel, fileTarget));
             }
 
             NLog.LogManager.Configuration = nlogConfig;
 
-            LogManager.UseFactory(new ExtensionsLoggerFactory(new NLogLoggerFactory()));
-
-            var logger = LogManager.GetLogger("LoggingConfiguration");
             var logEventInfo = new LogEventInfo { TimeStamp = DateTime.UtcNow };
-            var loggingTo = AppEnvironment.RunningInContainer ? "console" : fileTarget.FileName.Render(logEventInfo);
-            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", loggingTo, loggingSettings.LogLevel.Name);
+            return AppEnvironment.RunningInContainer ? "console" : fileTarget.FileName.Render(logEventInfo);
+        }
+
+        static LogLevel ToNLogLevel(this Microsoft.Extensions.Logging.LogLevel level)
+        {
+            return level switch
+            {
+                Microsoft.Extensions.Logging.LogLevel.Trace => LogLevel.Trace,
+                Microsoft.Extensions.Logging.LogLevel.Debug => LogLevel.Debug,
+                Microsoft.Extensions.Logging.LogLevel.Information => LogLevel.Info,
+                Microsoft.Extensions.Logging.LogLevel.Warning => LogLevel.Warn,
+                Microsoft.Extensions.Logging.LogLevel.Error => LogLevel.Error,
+                Microsoft.Extensions.Logging.LogLevel.Critical => LogLevel.Fatal,
+                Microsoft.Extensions.Logging.LogLevel.None => LogLevel.Off,
+                _ => LogLevel.Off,
+            };
         }
 
         const long megaByte = 1024 * 1024;
+
     }
 }

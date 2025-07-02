@@ -3,10 +3,11 @@ namespace ServiceControl.AcceptanceTesting
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Logging;
     using NServiceBus.Pipeline;
+    using ServiceControl.Infrastructure;
 
     public class DiscardMessagesBehavior : IBehavior<ITransportReceiveContext, ITransportReceiveContext>
     {
@@ -44,7 +45,13 @@ namespace ServiceControl.AcceptanceTesting
             {
                 context.Message.Headers.TryGetValue(Headers.MessageId, out var originalMessageId);
                 context.Message.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var enclosedMessageTypes);
-                log.Debug($"Discarding message '{context.Message.MessageId}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}' Message Types: {enclosedMessageTypes}.");
+                var logger = LoggerUtil.CreateStaticLogger<DiscardMessagesBehavior>();
+                logger.LogDebug("Discarding message '{MessageId}'({OriginalMessageId}) because it's session id is '{MessageSessionId}' instead of '{CurrentSessionId}' Message Types: {EnclosedMessageTypes}",
+                    context.Message.MessageId,
+                    originalMessageId ?? string.Empty,
+                    session,
+                    currentSession,
+                    enclosedMessageTypes);
                 return Task.CompletedTask;
             }
 
@@ -52,7 +59,6 @@ namespace ServiceControl.AcceptanceTesting
         }
 
         ScenarioContext scenarioContext;
-        static ILog log = LogManager.GetLogger<DiscardMessagesBehavior>();
 
         static string[] pluginMessages =
         {

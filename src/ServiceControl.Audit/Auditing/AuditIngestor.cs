@@ -6,9 +6,9 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Settings;
+    using Microsoft.Extensions.Logging;
     using Monitoring;
     using NServiceBus;
-    using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using Persistence.UnitOfWork;
@@ -25,12 +25,13 @@
             IEnumerable<IEnrichImportedAuditMessages> auditEnrichers, // allows extending message enrichers with custom enrichers registered in the DI container
             IMessageSession messageSession,
             Lazy<IMessageDispatcher> messageDispatcher,
-            ITransportCustomization transportCustomization
+            ITransportCustomization transportCustomization,
+            ILogger<AuditIngestor> logger
         )
         {
             this.settings = settings;
             this.messageDispatcher = messageDispatcher;
-
+            this.logger = logger;
             var enrichers = new IEnrichImportedAuditMessages[] { new MessageTypeEnricher(), new EnrichWithTrackingIds(), new ProcessingStatisticsEnricher(), new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring), new DetectSuccessfulRetriesEnricher(), new SagaRelationshipsEnricher() }.Concat(auditEnrichers).ToArray();
 
             logQueueAddress = transportCustomization.ToTransportQualifiedQueueName(settings.AuditLogQueue);
@@ -39,7 +40,8 @@
                 unitOfWorkFactory,
                 enrichers,
                 messageSession,
-                messageDispatcher
+                messageDispatcher,
+                logger
             );
         }
 
@@ -61,7 +63,7 @@
             }
             catch (Exception e)
             {
-                Log.Warn("Forwarding messages failed", e);
+                logger.LogWarning(e, "Forwarding messages failed");
 
                 // making sure to rethrow so that all messages get marked as failed
                 throw;
@@ -129,6 +131,6 @@
         readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly string logQueueAddress;
 
-        static readonly ILog Log = LogManager.GetLogger<AuditIngestor>();
+        readonly ILogger logger;
     }
 }

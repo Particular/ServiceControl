@@ -24,6 +24,9 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Configuration" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="8.10.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
@@ -63,6 +66,7 @@
     <PackageVersion Include="PublicApiGenerator" Version="11.4.6" />
     <PackageVersion Include="RavenDB.Embedded" Version="6.2.6" />
     <PackageVersion Include="ReactiveUI.WPF" Version="20.1.63" />
+    <PackageVersion Include="Seq.Extensions.Logging" Version="8.0.0" />
     <PackageVersion Include="ServiceControl.Contracts" Version="5.0.0" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="8.0.1" />
     <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="8.0.1" />

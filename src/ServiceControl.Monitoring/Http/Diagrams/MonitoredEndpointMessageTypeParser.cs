@@ -3,7 +3,8 @@ namespace ServiceControl.Monitoring.Http.Diagrams
     using System;
     using System.Linq;
     using System.Reflection;
-    using NServiceBus.Logging;
+    using Microsoft.Extensions.Logging;
+    using ServiceControl.Infrastructure;
 
     public static class MonitoredEndpointMessageTypeParser
     {
@@ -40,7 +41,7 @@ namespace ServiceControl.Monitoring.Http.Diagrams
                 }
                 catch (Exception e)
                 {
-                    Logger.Warn($"Error parsing message type: {typeName}.", e);
+                    LoggerUtil.CreateStaticLogger(typeof(MonitoredEndpointMessageTypeParser)).LogWarning(e, "Error parsing message type: {typeName}", typeName);
                 }
             }
 
@@ -50,7 +51,5 @@ namespace ServiceControl.Monitoring.Http.Diagrams
                 TypeName = typeName
             };
         }
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(MonitoredEndpointMessageTypeParser));
     }
 }
