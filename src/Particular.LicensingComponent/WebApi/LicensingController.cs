@@ -62,7 +62,7 @@
             HttpContext.Response.ContentType = "application/zip";
             HttpContext.Response.Headers[HeaderNames.ContentDisposition] = new ContentDispositionHeaderValue("attachment")
             {
-                FileName = fileName
+                FileName = $"{fileName}.zip"
             }.ToString();
 
             using var archive = new ZipArchive(Response.BodyWriter.AsStream(), ZipArchiveMode.Create, leaveOpen: true);
