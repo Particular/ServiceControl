@@ -66,7 +66,7 @@
             }.ToString();
 
             using var archive = new ZipArchive(Response.BodyWriter.AsStream(), ZipArchiveMode.Create, leaveOpen: true);
-            var entry = archive.CreateEntry($"{Path.GetFileNameWithoutExtension(fileName)}.json");
+            var entry = archive.CreateEntry($"{fileName}.json");
             await using var entryStream = entry.Open();
             await JsonSerializer.SerializeAsync(entryStream, report, SerializationOptions.IndentedWithNoEscaping, cancellationToken);
         }
