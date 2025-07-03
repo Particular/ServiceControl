@@ -110,7 +110,7 @@ const paginatedMessageTypes = computed(() => {
                     </div>
                   </div>
                 </div>
-                <div role="cell" aria-label="retires" class="col-xs-2 col-xl-1 no-side-padding">
+                <div role="cell" aria-label="retries" class="col-xs-2 col-xl-1 no-side-padding">
                   <div class="row box-header">
                     <div class="no-side-padding">
                       <SmallGraph :type="'retries'" :isdurationgraph="false" :plotdata="messageType.metrics.retries" :minimumyaxis="smallGraphsMinimumYAxis.retries" :metricsuffix="'MSGS/S'" />
