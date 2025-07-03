@@ -1,6 +1,7 @@
 ﻿namespace Particular.LicensingComponent.WebApi
 {
     using System.IO.Compression;
+    using System.Text;
     using System.Text.Json;
     using System.Threading;
     using Contracts;
@@ -48,7 +49,9 @@
             if (!reportStatus.ReportCanBeGenerated)
             {
                 HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-                await HttpContext.Response.WriteAsync($"Report cannot be generated – {reportStatus.Reason}", cancellationToken);
+                HttpContext.Response.ContentType = "text/plain; charset=utf-8";
+
+                await HttpContext.Response.WriteAsync($"Report cannot be generated – {reportStatus.Reason}", Encoding.UTF8, cancellationToken);
                 return;
             }
 
