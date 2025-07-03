@@ -1,13 +1,3 @@
-<script lang="ts">
-export enum columnName {
-  ENDPOINTNAME = "name",
-  QUEUELENGTH = "queueLength",
-  THROUGHPUT = "throughput",
-  SCHEDULEDRETRIES = "retries",
-  PROCESSINGTIME = "processingTime",
-  CRITICALTIME = "criticalTime",
-}
-</script>
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { RouterLink } from "vue-router";
@@ -19,6 +9,7 @@ import { storeToRefs } from "pinia";
 import type { GroupedEndpoint, Endpoint } from "@/resources/MonitoringEndpoint";
 import routeLinks from "@/router/routeLinks";
 import { Tippy } from "vue-tippy";
+import { CriticalTime, EndpointName, ProcessingTime, QueueLength, ScheduledRetries, Throughput } from "@/resources/MonitoringResources";
 import FAIcon from "@/components/FAIcon.vue";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 
@@ -43,7 +34,7 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
 </script>
 
 <template>
-  <div role="gridcell" :aria-label="columnName.ENDPOINTNAME" class="table-first-col endpoint-name name-overview">
+  <div role="gridcell" :aria-label="EndpointName.name" class="table-first-col endpoint-name name-overview">
     <div class="box-header with-status">
       <div :aria-label="shortName" class="no-side-padding lead righ-side-ellipsis endpoint-details-link">
         <tippy :aria-label="endpoint.name" :delay="[700, 0]">
@@ -80,12 +71,12 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
     </div>
   </div>
   <!--Queue Length-->
-  <div role="gridcell" :aria-label="columnName.QUEUELENGTH" class="table-col">
+  <div role="gridcell" :aria-label="QueueLength.name" class="table-col">
     <div class="box-header">
       <div class="no-side-padding">
         <SmallGraph
           role="img"
-          :aria-label="columnName.QUEUELENGTH"
+          :aria-label="QueueLength.name"
           :type="'queue-length'"
           :isdurationgraph="false"
           :plotdata="endpoint.metrics.queueLength"
@@ -102,12 +93,12 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
     </div>
   </div>
   <!--Throughput-->
-  <div role="gridcell" :aria-label="columnName.THROUGHPUT" class="table-col">
+  <div role="gridcell" :aria-label="Throughput.name" class="table-col">
     <div class="box-header">
       <div class="no-side-padding">
         <SmallGraph
           role="img"
-          :aria-label="columnName.THROUGHPUT"
+          :aria-label="Throughput.name"
           :type="'throughput'"
           :isdurationgraph="false"
           :plotdata="endpoint.metrics.throughput"
@@ -124,19 +115,10 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
     </div>
   </div>
   <!--Scheduled Retries-->
-  <div role="gridcell" :aria-label="columnName.SCHEDULEDRETRIES" class="table-col">
+  <div role="gridcell" :aria-label="ScheduledRetries.name" class="table-col">
     <div class="box-header">
       <div class="no-side-padding">
-        <SmallGraph
-          role="img"
-          :aria-label="columnName.SCHEDULEDRETRIES"
-          :type="'retries'"
-          :isdurationgraph="false"
-          :plotdata="endpoint.metrics.retries"
-          :minimumyaxis="smallGraphsMinimumYAxis.retries"
-          :avglabelcolor="'#CC1252'"
-          :metricsuffix="'MSGS/S'"
-        />
+        <SmallGraph role="img" :aria-label="ScheduledRetries.name" :type="'retries'" :isdurationgraph="false" :plotdata="endpoint.metrics.retries" :minimumyaxis="smallGraphsMinimumYAxis.retries" :avglabelcolor="'#CC1252'" :metricsuffix="'MSGS/S'" />
       </div>
       <div role="text" aria-label="sparkline" class="no-side-padding sparkline-value">
         {{ endpoint.isStale == true || endpoint.isScMonitoringDisconnected == true ? "" : formatGraphDecimal(endpoint.metrics.retries, 2) }}
@@ -146,10 +128,10 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
     </div>
   </div>
   <!--Processing Time-->
-  <div role="gridcell" :aria-label="columnName.PROCESSINGTIME" class="table-col">
+  <div role="gridcell" :aria-label="ProcessingTime.name" class="table-col">
     <div class="box-header">
       <div class="no-side-padding">
-        <SmallGraph role="img" :aria-label="columnName.PROCESSINGTIME" :type="'processing-time'" :isdurationgraph="true" :plotdata="endpoint.metrics.processingTime" :minimumyaxis="smallGraphsMinimumYAxis.processingTime" :avglabelcolor="'#258135'" />
+        <SmallGraph role="img" :aria-label="ProcessingTime.name" :type="'processing-time'" :isdurationgraph="true" :plotdata="endpoint.metrics.processingTime" :minimumyaxis="smallGraphsMinimumYAxis.processingTime" :avglabelcolor="'#258135'" />
       </div>
       <div role="text" aria-label="sparkline" class="no-side-padding sparkline-value">
         {{ endpoint.isStale == true || endpoint.isScMonitoringDisconnected == true ? "" : processingTimeGraphDuration.value }}
@@ -160,10 +142,10 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
     </div>
   </div>
   <!--Critical Time-->
-  <div role="gridcell" :aria-label="columnName.CRITICALTIME" class="table-col">
+  <div role="gridcell" :aria-label="CriticalTime.name" class="table-col">
     <div class="box-header">
       <div class="no-side-padding">
-        <SmallGraph role="img" :aria-label="columnName.CRITICALTIME" :type="'critical-time'" :isdurationgraph="true" :plotdata="endpoint.metrics.criticalTime" :minimumyaxis="smallGraphsMinimumYAxis.criticalTime" :avglabelcolor="'#2700CB'" />
+        <SmallGraph role="img" :aria-label="CriticalTime.name" :type="'critical-time'" :isdurationgraph="true" :plotdata="endpoint.metrics.criticalTime" :minimumyaxis="smallGraphsMinimumYAxis.criticalTime" :avglabelcolor="'#2700CB'" />
       </div>
       <div role="text" aria-label="sparkline" class="no-side-padding sparkline-value" :class="{ negative: parseFloat(criticalTimeGraphDuration.value) < 0 }">
         {{ endpoint.isStale == true || endpoint.isScMonitoringDisconnected == true ? "" : criticalTimeGraphDuration.value }}
