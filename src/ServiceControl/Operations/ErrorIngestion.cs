@@ -10,11 +10,13 @@
     using Infrastructure.Metrics;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using NServiceBus;
     using NServiceBus.Transport;
     using Persistence;
     using Persistence.UnitOfWork;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.Settings;
     using Transports;
 
     class ErrorIngestion : BackgroundService
@@ -23,6 +25,7 @@
 
         public ErrorIngestion(
             Settings settings,
+            IOptions<ServiceControlOptions> scOptions,
             ITransportCustomization transportCustomization,
             TransportSettings transportSettings,
             Metrics metrics,
@@ -34,9 +37,10 @@
             ILogger<ErrorIngestion> logger)
         {
             this.settings = settings;
+            this.scOptions = scOptions.Value;
             this.transportCustomization = transportCustomization;
             this.transportSettings = transportSettings;
-            errorQueue = settings.ErrorQueue;
+            errorQueue = this.scOptions.ErrorQueue;
             this.ingestor = ingestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.applicationLifetime = applicationLifetime;
@@ -58,7 +62,7 @@
                 FullMode = BoundedChannelFullMode.Wait
             });
 
-            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, settings.LoggingSettings, OnCriticalError, logger);
+            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, this.scOptions, OnCriticalError, logger);
 
             watchdog = new Watchdog(
                 "failed message ingestion",
@@ -213,7 +217,7 @@
 
                 messageReceiver = transportInfrastructure.Receivers[errorQueue];
 
-                if (settings.ForwardErrorMessages)
+                if (scOptions.ForwardErrorMessages)
                 {
                     await ingestor.VerifyCanReachForwardingAddress(cancellationToken);
                 }
@@ -312,6 +316,7 @@
         IMessageReceiver messageReceiver;
 
         readonly Settings settings;
+        readonly ServiceControlOptions scOptions;
         readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
         readonly Watchdog watchdog;

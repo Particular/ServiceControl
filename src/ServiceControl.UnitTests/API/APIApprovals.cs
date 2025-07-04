@@ -13,12 +13,14 @@
     using Microsoft.AspNetCore.Mvc.Routing;
     using Microsoft.AspNetCore.Routing;
     using Microsoft.Extensions.Logging.Abstractions;
+    using Microsoft.Extensions.Options;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Particular.Approvals;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.Api;
+    using ServiceControl.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Monitoring.HeartbeatMonitoring;
 
@@ -31,9 +33,11 @@
             var httpContext = new DefaultHttpContext { Request = { Scheme = "http", Host = new HostString("localhost") } };
             var actionContext = new ActionContext { HttpContext = httpContext, RouteData = new RouteData(), ActionDescriptor = new ControllerActionDescriptor() };
             var controllerContext = new ControllerContext(actionContext);
+
             var configurationApi = new ConfigurationApi(
                 new ActiveLicense(null, NullLogger<ActiveLicense>.Instance) { IsValid = true },
                 new Settings(),
+                Options.Create(new ServiceControlOptions()),
                 null,
                 new MassTransitConnectorHeartbeatStatus());
 

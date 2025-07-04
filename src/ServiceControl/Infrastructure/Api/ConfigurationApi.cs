@@ -8,16 +8,23 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Configuration;
+using Microsoft.Extensions.Options;
 using Monitoring.HeartbeatMonitoring;
 using Particular.ServiceControl.Licensing;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Api;
 using ServiceControl.Api.Contracts;
+using ServiceControl.Infrastructure.Settings;
 
-class ConfigurationApi(ActiveLicense license,
+class ConfigurationApi(
+    ActiveLicense license,
     Settings settings,
-    IHttpClientFactory httpClientFactory, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus) : IConfigurationApi
+    IOptions<ServiceControlOptions> scOptions,
+    IHttpClientFactory httpClientFactory,
+    MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus) : IConfigurationApi
 {
+    readonly ServiceControlOptions scOptions = scOptions.Value;
+
     public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken)
     {
         var model = new RootUrls
@@ -56,33 +63,33 @@ class ConfigurationApi(ActiveLicense license,
         {
             Host = new
             {
-                settings.InstanceName,
+                scOptions.InstanceName,
                 Logging = new
                 {
-                    settings.LoggingSettings.LogPath,
-                    LoggingLevel = settings.LoggingSettings.LogLevel
+                    scOptions.LogPath,
+                    LoggingLevel = scOptions.LogLevel
                 }
             },
             DataRetention = new
             {
-                settings.AuditRetentionPeriod,
-                settings.ErrorRetentionPeriod
+                scOptions.AuditRetentionPeriod,
+                scOptions.ErrorRetentionPeriod
             },
             PerformanceTunning = new
             {
-                settings.ExternalIntegrationsDispatchingBatchSize
+                scOptions.ExternalIntegrationsDispatchingBatchSize
             },
             PersistenceSettings = settings.PersisterSpecificSettings,
             Transport = new
             {
-                settings.TransportType,
-                settings.ErrorLogQueue,
-                settings.ErrorQueue,
-                settings.ForwardErrorMessages
+                scOptions.TransportType,
+                scOptions.ErrorLogQueue,
+                scOptions.ErrorQueue,
+                scOptions.ForwardErrorMessages
             },
             Plugins = new
             {
-                settings.HeartbeatGracePeriod
+                scOptions.HeartbeatGracePeriod
             },
             MassTransitConnector = connectorHeartbeatStatus.LastHeartbeat
         };

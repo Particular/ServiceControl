@@ -9,6 +9,7 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceControl.Configuration;
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.Settings;
     using ServiceControl.Infrastructure.Subscriptions;
     using ServiceControl.Monitoring.HeartbeatMonitoring;
     using ServiceControl.Notifications.Email;
@@ -18,8 +19,11 @@ namespace ServiceBus.Management.Infrastructure
 
     static class NServiceBusFactory
     {
-        public static void Configure(Settings.Settings settings, ITransportCustomization transportCustomization,
-            TransportSettings transportSettings, EndpointConfiguration configuration)
+        public static void Configure(
+            ServiceControlOptions scOptions,
+            ITransportCustomization transportCustomization,
+            TransportSettings transportSettings,
+            EndpointConfiguration configuration)
         {
             if (configuration == null)
             {
@@ -28,14 +32,12 @@ namespace ServiceBus.Management.Infrastructure
                 assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
             }
 
-            configuration.GetSettings().Set("ServiceControl.Settings", settings);
-
             transportCustomization.CustomizePrimaryEndpoint(configuration, transportSettings);
 
-            configuration.GetSettings().Set(settings.LoggingSettings);
-            configuration.SetDiagnosticsPath(settings.LoggingSettings.LogPath);
+            configuration.GetSettings().Set(scOptions);
+            configuration.SetDiagnosticsPath(scOptions.LogPath);
 
-            if (settings.DisableExternalIntegrationsPublishing)
+            if (scOptions.DisableExternalIntegrationsPublishing)
             {
                 configuration.DisableFeature<ExternalIntegrationsFeature>();
             }

@@ -10,6 +10,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
+    using global::ServiceControl.Infrastructure.Settings;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
@@ -17,6 +18,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Transports;
     using Licensing;
     using Microsoft.AspNetCore.HttpLogging;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Hosting.WindowsServices;
@@ -76,7 +78,8 @@ namespace Particular.ServiceControl
             services.AddPersistence(settings);
             services.AddMetrics(settings.PrintMetrics);
 
-            NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, configuration);
+            var scOptions = hostBuilder.Configuration.GetSection("ServiceControl").Get<ServiceControlOptions>();
+            NServiceBusFactory.Configure(scOptions, transportCustomization, transportSettings, configuration);
             hostBuilder.UseNServiceBus(configuration);
 
             if (!settings.DisableExternalIntegrationsPublishing)

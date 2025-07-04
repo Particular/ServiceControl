@@ -8,11 +8,11 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Configuration;
-    using Infrastructure;
     using Microsoft.Extensions.Logging;
     using NServiceBus.Transport;
     using Persistence;
     using ServiceBus.Management.Infrastructure.Installers;
+    using ServiceControl.Infrastructure.Settings;
 
     class ErrorIngestionFaultPolicy
     {
@@ -21,7 +21,7 @@
 
         ImportFailureCircuitBreaker failureCircuitBreaker;
 
-        public ErrorIngestionFaultPolicy(IErrorMessageDataStore store, LoggingSettings loggingSettings, Func<string, Exception, Task> onCriticalError, ILogger logger)
+        public ErrorIngestionFaultPolicy(IErrorMessageDataStore store, ServiceControlOptions scOptions, Func<string, Exception, Task> onCriticalError, ILogger logger)
         {
             this.store = store;
             this.logger = logger;
@@ -29,7 +29,7 @@
 
             if (!AppEnvironment.RunningInContainer)
             {
-                logPath = Path.Combine(loggingSettings.LogPath, "FailedImports", "Error");
+                logPath = Path.Combine(scOptions.LogPath, "FailedImports", "Error");
                 Directory.CreateDirectory(logPath);
             }
         }
