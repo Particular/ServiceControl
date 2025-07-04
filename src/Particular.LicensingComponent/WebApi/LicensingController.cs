@@ -1,10 +1,13 @@
 ﻿namespace Particular.LicensingComponent.WebApi
 {
     using System.IO.Compression;
+    using System.Text;
     using System.Text.Json;
     using System.Threading;
     using Contracts;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Net.Http.Headers;
     using Particular.LicensingComponent.Report;
 
     [ApiController]
@@ -40,12 +43,16 @@
 
         [Route("report/file")]
         [HttpGet]
-        public async Task<IActionResult> GetThroughputReportFile([FromQuery(Name = "spVersion")] string? spVersion, CancellationToken cancellationToken)
+        public async Task GetThroughputReportFile([FromQuery(Name = "spVersion")] string? spVersion, CancellationToken cancellationToken)
         {
             var reportStatus = await CanThroughputReportBeGenerated(cancellationToken);
             if (!reportStatus.ReportCanBeGenerated)
             {
-                return BadRequest($"Report cannot be generated - {reportStatus.Reason}");
+                HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+                HttpContext.Response.ContentType = "text/plain; charset=utf-8";
+
+                await HttpContext.Response.WriteAsync($"Report cannot be generated – {reportStatus.Reason}", Encoding.UTF8, cancellationToken);
+                return;
             }
 
             var report = await throughputCollector.GenerateThroughputReport(
@@ -55,16 +62,19 @@
 
             var fileName = $"{report.ReportData.CustomerName}.throughput-report-{report.ReportData.EndTime:yyyyMMdd-HHmmss}";
 
-            using var memoryStream = new MemoryStream();
-            using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+            HttpContext.Response.ContentType = "application/zip";
+            HttpContext.Response.Headers[HeaderNames.ContentDisposition] = new ContentDispositionHeaderValue("attachment")
             {
-                var entry = archive.CreateEntry($"{fileName}.json");
-                await using var entryStream = entry.Open();
-                await JsonSerializer.SerializeAsync(entryStream, report, SerializationOptions.IndentedWithNoEscaping, cancellationToken);
-            }
+                FileName = $"{fileName}.zip"
+            }.ToString();
 
-            memoryStream.Position = 0;
-            return File(memoryStream, "application/zip", fileDownloadName: $"{fileName}.zip");
+            // The zip archive is written directly to the response body stream and has to remain open until the response is fully sent.
+            // This is done for performance reasons to avoid buffering the entire report in memory before sending it.
+            // The BodyWriter is used as a stream to avoid into synchronous IO operations that would be prevented by the ASP.NET Core pipeline.
+            using var archive = new ZipArchive(Response.BodyWriter.AsStream(), ZipArchiveMode.Create, leaveOpen: true);
+            var entry = archive.CreateEntry($"{fileName}.json");
+            await using var entryStream = entry.Open();
+            await JsonSerializer.SerializeAsync(entryStream, report, SerializationOptions.IndentedWithNoEscaping, cancellationToken);
         }
 
         [Route("settings/info")]
