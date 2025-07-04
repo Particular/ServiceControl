@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ConnectionSettingsTestResult } from "@/resources/ConnectionTestResults";
+import FAIcon from "@/components/FAIcon.vue";
+import { faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
 
 const props = defineProps<{
   result: ConnectionSettingsTestResult;
@@ -9,8 +11,8 @@ const props = defineProps<{
 
 <template>
   <div class="title">
-    <i v-if="result.connection_successful" style="color: green" class="fa fa-check"></i>
-    <i v-else style="color: red" class="fa fa-times"></i>
+    <FAIcon v-if="result.connection_successful" :icon="faCheck" class="text-success" />
+    <FAIcon v-else :icon="faTimes" class="text-danger" />
     <strong> {{ props.title }} </strong>
   </div>
   <div class="instructions"><slot name="instructions"></slot></div>

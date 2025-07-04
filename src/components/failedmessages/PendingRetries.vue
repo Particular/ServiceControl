@@ -17,6 +17,9 @@ import QueueAddress from "@/resources/QueueAddress";
 import { TYPE } from "vue-toastification";
 import GroupOperation from "@/resources/GroupOperation";
 import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnected";
+import { faArrowDownAZ, faArrowDownZA, faArrowDownShortWide, faArrowDownWideShort, faInfoCircle, faExternalLink, faFilter, faTimes, faArrowRightRotate } from "@fortawesome/free-solid-svg-icons";
+import FAIcon from "@/components/FAIcon.vue";
+import { faCheckSquare } from "@fortawesome/free-regular-svg-icons";
 
 let refreshInterval: number | undefined;
 let sortMethod: SortOptions<GroupOperation> | undefined;
@@ -38,15 +41,18 @@ const isInitialLoad = ref(true);
 const sortOptions: SortOptions<GroupOperation>[] = [
   {
     description: "Time of failure",
-    icon: "fa-sort-amount-",
+    iconAsc: faArrowDownShortWide,
+    iconDesc: faArrowDownWideShort,
   },
   {
     description: "Message Type",
-    icon: "fa-sort-alpha-",
+    iconAsc: faArrowDownAZ,
+    iconDesc: faArrowDownZA,
   },
   {
     description: "Time of retry request",
-    icon: "fa-sort-amount-",
+    iconAsc: faArrowDownShortWide,
+    iconDesc: faArrowDownWideShort,
   },
 ];
 const periodOptions = ["All Pending Retries", "Retried in the last 2 Hours", "Retried in the last 1 Day", "Retried in the last 7 Days"];
@@ -243,9 +249,8 @@ onMounted(() => {
         <div class="row">
           <div class="col-12">
             <div class="alert alert-info">
-              <i class="fa fa-info-circle"></i> To check if a retried message was also processed successfully, enable
-              <a href="https://docs.particular.net/nservicebus/operations/auditing" target="_blank">message auditing</a>
-              <i class="fa fa-external-link fake-link"></i>
+              <FAIcon :icon="faInfoCircle" class="icon info" /> To check if a retried message was also processed successfully, enable
+              <a href="https://docs.particular.net/nservicebus/operations/auditing" target="_blank">message auditing <FAIcon :icon="faExternalLink" /></a>
             </div>
           </div>
           <div class="col-12" v-if="isMassTransitConnected">
@@ -256,7 +261,7 @@ onMounted(() => {
           <div class="col-6">
             <div class="filter-input">
               <div class="input-group mb-3">
-                <label class="input-group-text"><i class="fa fa-filter" aria-hidden="true"></i> <span class="hidden-xs">Filter</span></label>
+                <label class="input-group-text"><FAIcon :icon="faFilter" size="sm" class="icon" /> <span class="hidden-xs">Filter</span></label>
                 <select class="form-select" id="inputGroupSelect01" onchange="this.dataset.chosen = true;" @change="loadPendingRetryMessages()" v-model="selectedQueue">
                   <option selected disabled hidden class="placeholder" value="empty">Select a queue...</option>
                   <option v-for="(endpoint, index) in endpoints" :key="index" :value="endpoint">
@@ -264,9 +269,7 @@ onMounted(() => {
                   </option>
                 </select>
                 <span class="input-group-btn">
-                  <button type="button" @click="clearSelectedQueue()" class="btn btn-default">
-                    <i class="fa fa-times" aria-hidden="true"></i>
-                  </button>
+                  <button type="button" @click="clearSelectedQueue()" class="btn btn-default"><FAIcon :icon="faTimes" class="icon" /></button>
                 </span>
               </div>
             </div>
@@ -290,14 +293,14 @@ onMounted(() => {
         <div class="row">
           <div class="col-6 col-xs-12 toolbar-menus">
             <div class="action-btns">
-              <button type="button" class="btn btn-default" :disabled="!isAnythingSelected()" @click="showConfirmRetry = true"><i class="fa fa-repeat"></i> <span>Retry</span> ({{ numberSelected() }})</button>
+              <button type="button" class="btn btn-default" :disabled="!isAnythingSelected()" @click="showConfirmRetry = true"><FAIcon :icon="faArrowRightRotate" class="icon" /><span>Retry</span> ({{ numberSelected() }})</button>
               <button type="button" class="btn btn-default" :disabled="!isAnythingSelected()" @click="showConfirmResolve = true">
-                <i class="fa fa-check-square-o"></i>
+                <FAIcon :icon="faCheckSquare" class="icon" />
                 <span>Mark as resolved</span> ({{ numberSelected() }})
               </button>
-              <button type="button" class="btn btn-default" :disabled="!isAnythingDisplayed()" @click="retryAllClicked()"><i class="fa fa-repeat"></i> <span>Retry all</span></button>
+              <button type="button" class="btn btn-default" :disabled="!isAnythingDisplayed()" @click="retryAllClicked()"><FAIcon :icon="faArrowRightRotate" class="icon" /><span>Retry all</span></button>
               <button type="button" class="btn btn-default" @click="showConfirmResolveAll = true">
-                <i class="fa fa-check-square-o"></i>
+                <FAIcon :icon="faCheckSquare" class="icon" />
                 <span>Mark all as resolved</span>
               </button>
             </div>
@@ -380,7 +383,6 @@ onMounted(() => {
 
 .input-group-text > span {
   font-size: 14px;
-  padding-left: 5px;
   color: #555;
 }
 
@@ -410,6 +412,15 @@ onMounted(() => {
 .dropdown-toggle.btn-default:hover {
   background: none;
   border: none;
-  color: #00a3c4;
+  color: var(--sp-blue);
+}
+
+.icon {
+  color: var(--reduced-emphasis);
+  padding-right: 6px;
+}
+
+.icon.info {
+  color: #31708f;
 }
 </style>

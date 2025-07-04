@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import { useCookies } from "vue3-cookies";
 import SortOptions, { SortDirection } from "@/resources/SortOptions";
 import getSortFunction from "@/components/getSortFunction";
+import FAIcon from "@/components/FAIcon.vue";
 
 const emit = defineEmits<{
   sortUpdated: [option: SortOptions<T>];
@@ -85,10 +86,10 @@ onMounted(() => {
     <ul class="dropdown-menu">
       <span v-for="(sort, index) in getSortOptions()" :key="index">
         <li>
-          <button @click="sortUpdated(sort, SortDirection.Ascending)"><i class="fa" :class="`${sort.icon}asc`"></i>{{ sort.description }}</button>
+          <button @click="sortUpdated(sort, SortDirection.Ascending)"><FAIcon :icon="sort.iconAsc" class="icon" /> {{ sort.description }}</button>
         </li>
         <li>
-          <button @click="sortUpdated(sort, SortDirection.Descending)"><i class="fa" :class="`${sort.icon}desc`"></i>{{ sort.description }}<span> (Descending)</span></button>
+          <button @click="sortUpdated(sort, SortDirection.Descending)"><FAIcon :icon="sort.iconDesc" class="icon" /> {{ sort.description }}<span> (Descending)</span></button>
         </li>
       </span>
     </ul>
@@ -105,7 +106,7 @@ onMounted(() => {
 .btn.sp-btn-menu {
   background: none;
   border: none;
-  color: #00a3c4;
+  color: var(--sp-blue);
   padding-right: 16px;
   padding-left: 16px;
 }
@@ -113,7 +114,7 @@ onMounted(() => {
 .sp-btn-menu:hover {
   background: none;
   border: none;
-  color: #00a3c4;
+  color: var(--sp-blue);
   text-decoration: underline;
 }
 
@@ -126,18 +127,22 @@ onMounted(() => {
 .btn.sp-btn-menu:active {
   background: none;
   border: none;
-  color: #00a3c4;
+  color: var(--sp-blue);
   text-decoration: underline;
   -webkit-box-shadow: none;
   box-shadow: none;
 }
 
 .sp-btn-menu > i {
-  color: #00a3c4;
+  color: var(--sp-blue);
 }
 
 .dropdown-menu li button {
   width: 100%;
   text-align: left;
+}
+
+.icon {
+  color: var(--reduced-emphasis);
 }
 </style>

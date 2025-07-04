@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
 import routeLinks from "@/router/routeLinks";
+import FAIcon from "@/components/FAIcon.vue";
+import { faFileLines } from "@fortawesome/free-solid-svg-icons";
 </script>
 
 <template>
   <RouterLink :to="routeLinks.throughput.root">
-    <i class="fa fa-file-text-o icon-white" title="Usage"></i>
+    <FAIcon :icon="faFileLines" title="Usage" />
     <span class="navbar-label">Usage</span>
   </RouterLink>
 </template>

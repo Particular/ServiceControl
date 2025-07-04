@@ -81,12 +81,12 @@ async function getOrUpdateLicenseStatus() {
   licenseStatus.isSubscriptionLicense = isSubscriptionLicense(license);
   licenseStatus.isUpgradeProtectionLicense = isUpgradeProtectionLicense(license);
   licenseStatus.isTrialLicense = license.trial_license;
-  licenseStatus.isPlatformExpired = license.license_status === "InvalidDueToExpiredSubscription";
-  licenseStatus.isPlatformTrialExpiring = license.license_status === "ValidWithExpiringTrial";
-  licenseStatus.isPlatformTrialExpired = license.license_status === "InvalidDueToExpiredTrial";
-  licenseStatus.isInvalidDueToUpgradeProtectionExpired = license.license_status === "InvalidDueToExpiredUpgradeProtection";
-  licenseStatus.isValidWithExpiredUpgradeProtection = license.license_status === "ValidWithExpiredUpgradeProtection";
-  licenseStatus.isValidWithExpiringUpgradeProtection = license.license_status === "ValidWithExpiringUpgradeProtection";
+  licenseStatus.isPlatformExpired = license.license_status === LicenseStatus.InvalidDueToExpiredSubscription;
+  licenseStatus.isPlatformTrialExpiring = license.license_status === LicenseStatus.ValidWithExpiringTrial;
+  licenseStatus.isPlatformTrialExpired = license.license_status === LicenseStatus.InvalidDueToExpiredTrial;
+  licenseStatus.isInvalidDueToUpgradeProtectionExpired = license.license_status === LicenseStatus.InvalidDueToExpiredUpgradeProtection;
+  licenseStatus.isValidWithExpiredUpgradeProtection = license.license_status === LicenseStatus.ValidWithExpiredUpgradeProtection;
+  licenseStatus.isValidWithExpiringUpgradeProtection = license.license_status === LicenseStatus.ValidWithExpiringUpgradeProtection;
   licenseStatus.upgradeDaysLeft = getUpgradeDaysLeft(license);
   licenseStatus.subscriptionDaysLeft = getSubscriptionDaysLeft(license);
   licenseStatus.trialDaysLeft = getTrialDaysLeft(license);

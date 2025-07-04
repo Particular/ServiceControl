@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import FilterInput from "@/components/FilterInput.vue";
 import { onMounted, ref, useTemplateRef, watch } from "vue";
+import FAIcon from "@/components/FAIcon.vue";
+import { faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
 
 const selected = defineModel<string>({ required: true });
 const props = withDefaults(
@@ -50,11 +52,11 @@ onMounted(() => {
       </div>
       <div class="items-container">
         <div class="item-container" v-if="showClear && selected" @click.prevent="() => setFilter('', true)">
-          <i class="fa fa-times" />
+          <FAIcon class="side-icon" :icon="faTimes" />
           <span class="clear"> Clear selected {{ itemName }}</span>
         </div>
         <div class="item-container" v-for="item in filteredItems" :key="item" @click.prevent="() => setFilter(item, item === selected)">
-          <i v-if="item === selected" class="fa fa-check" />
+          <FAIcon v-if="item === selected" class="side-icon" :icon="faCheck" />
           <span class="item" :class="{ selected: item === selected }">{{ item }}</span>
         </div>
       </div>
@@ -119,5 +121,9 @@ onMounted(() => {
 
 .dropdown .btn {
   padding-left: 0.5rem;
+}
+
+.side-icon {
+  color: var(--reduced-emphasis);
 }
 </style>

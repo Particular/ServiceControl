@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import FAIcon from "@/components/FAIcon.vue";
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 
 export interface RetryRedirect {
   redirectId: string;
@@ -93,9 +95,7 @@ function close() {
             <div class="row">
               <div class="form-group">
                 <label for="sourceQueue">From physical address</label>
-                <span :title="sourceQueueTooltip">
-                  <i class="fa fa-info-circle"></i>
-                </span>
+                <FAIcon :icon="faInfoCircle" v-tippy="sourceQueueTooltip" class="info" size="sm" />
                 <div :class="{ 'has-error': !sourceQueueIsValid, 'has-success': sourceQueueIsValid }">
                   <select id="sourceQueue" name="sourceQueue" v-model="sourceQueue" class="form-select" required :disabled="!!model.message_redirect_id">
                     <option v-for="option in model.queues" :value="option" :key="option">
@@ -107,9 +107,7 @@ function close() {
               <div class="row"></div>
               <div class="form-group">
                 <label for="targetQueue">To physical address</label>
-                <span :title="targetQueueTooltip">
-                  <i class="fa fa-info-circle"></i>
-                </span>
+                <FAIcon :icon="faInfoCircle" v-tippy="targetQueueTooltip" class="info" size="sm" />
                 <div :class="{ 'has-error': !targetQueueIsValid, 'has-success': targetQueueIsValid }">
                   <vue3-simple-typeahead
                     id="targetQueue"
@@ -166,5 +164,10 @@ function close() {
 
 p.control-label {
   margin-bottom: 2px;
+}
+
+.info {
+  margin-left: 4px;
+  color: var(--info-icon);
 }
 </style>

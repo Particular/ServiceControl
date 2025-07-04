@@ -18,6 +18,8 @@ import { ExtendedFailedMessage, FailedMessageStatus } from "@/resources/FailedMe
 import SortOptions, { SortDirection } from "@/resources/SortOptions";
 import { TYPE } from "vue-toastification";
 import GroupOperation from "@/resources/GroupOperation";
+import { faArrowDownAZ, faArrowDownZA, faArrowDownShortWide, faArrowDownWideShort, faArrowRotateRight, faTrash, faDownload } from "@fortawesome/free-solid-svg-icons";
+import FAIcon from "@/components/FAIcon.vue";
 
 let pollingFaster = false;
 let refreshInterval: number | undefined;
@@ -36,11 +38,13 @@ const messages = ref<ExtendedFailedMessage[]>([]);
 const sortOptions: SortOptions<GroupOperation>[] = [
   {
     description: "Time of failure",
-    icon: "fa-sort-amount-",
+    iconAsc: faArrowDownShortWide,
+    iconDesc: faArrowDownWideShort,
   },
   {
     description: "Message Type",
-    icon: "fa-sort-alpha-",
+    iconAsc: faArrowDownAZ,
+    iconDesc: faArrowDownZA,
   },
 ];
 
@@ -291,11 +295,11 @@ onMounted(() => {
             <div class="btn-toolbar">
               <button type="button" class="btn btn-default select-all" @click="selectAll" v-if="!isAnythingSelected()">Select all</button>
               <button type="button" class="btn btn-default select-all" @click="deselectAll" v-if="isAnythingSelected()">Clear selection</button>
-              <button type="button" class="btn btn-default" @click="retrySelected()" :disabled="!isAnythingSelected()"><i class="fa fa-repeat"></i> Retry {{ numberSelected() }} selected</button>
-              <button type="button" class="btn btn-default" @click="showDelete = true" :disabled="!isAnythingSelected()"><i class="fa fa-trash"></i> Delete {{ numberSelected() }} selected</button>
-              <button type="button" class="btn btn-default" @click="exportSelected()" :disabled="!isAnythingSelected()"><i class="fa fa-download"></i> Export {{ numberSelected() }} selected</button>
-              <button type="button" class="btn btn-default" v-if="groupId" @click="showConfirmRetryAll = true"><i class="fa fa-repeat"></i> Retry all</button>
-              <button type="button" class="btn btn-default" v-if="groupId" @click="showConfirmDeleteAll = true"><i class="fa fa-trash"></i> Delete all</button>
+              <button type="button" class="btn btn-default" @click="retrySelected()" :disabled="!isAnythingSelected()"><FAIcon :icon="faArrowRotateRight" class="icon" /> Retry {{ numberSelected() }} selected</button>
+              <button type="button" class="btn btn-default" @click="showDelete = true" :disabled="!isAnythingSelected()"><FAIcon :icon="faTrash" class="icon" /> Delete {{ numberSelected() }} selected</button>
+              <button type="button" class="btn btn-default" @click="exportSelected()" :disabled="!isAnythingSelected()"><FAIcon :icon="faDownload" class="icon" /> Export {{ numberSelected() }} selected</button>
+              <button type="button" class="btn btn-default" v-if="groupId" @click="showConfirmRetryAll = true"><FAIcon :icon="faArrowRotateRight" class="icon" /> Retry all</button>
+              <button type="button" class="btn btn-default" v-if="groupId" @click="showConfirmDeleteAll = true"><FAIcon :icon="faTrash" class="icon" /> Delete all</button>
             </div>
           </div>
           <div class="col-3">
@@ -348,3 +352,9 @@ onMounted(() => {
     </template>
   </template>
 </template>
+
+<style scoped>
+.icon {
+  color: var(--reduced-emphasis);
+}
+</style>

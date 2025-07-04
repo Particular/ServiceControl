@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
+import FAIcon from "@/components/FAIcon.vue";
+import { faExclamationTriangle, faLock, faPencil, faTrash, faUndo } from "@fortawesome/free-solid-svg-icons";
 
 interface MessageHeader {
   key: string;
@@ -41,29 +43,28 @@ onMounted(() => {
 <template>
   <td nowrap="nowrap">
     <span :class="{ 'header-removed': header.isMarkedAsRemoved }">{{ settings.header.key }}</span>
-    <span v-if="header.isLocked">
-      &nbsp;
-      <i class="fa fa-lock" v-tippy="`Protected system header`"></i>
-    </span>
-    <span v-if="(header.isChanged || header.isMarkedAsRemoved) && header.isSensitive">
-      &nbsp;
-      <i class="fa fa-exclamation-triangle" v-tippy="`This is a sensitive message header that if changed can the system behavior. Proceed with caution.`"></i>
-    </span>
-    <span v-if="header.isChanged">
-      &nbsp;
-      <i class="fa fa-pencil" v-tippy="`Edited`"></i>
-    </span>
+    <FAIcon v-if="header.isLocked" :icon="faLock" class="icon" v-tippy="`Protected system header`" />
+    <FAIcon
+      v-if="(header.isChanged || header.isMarkedAsRemoved) && header.isSensitive"
+      :icon="faExclamationTriangle"
+      class="icon warning"
+      size="lg"
+      v-tippy="`This is a sensitive message header that if changed can the system behavior. Proceed with caution.`"
+    />
+    <FAIcon v-if="header.isChanged" :icon="faPencil" class="icon edit" v-tippy="`Edited`" />
   </td>
   <td>
     <input :class="{ 'header-removed': header.isMarkedAsRemoved }" class="form-control" :disabled="header.isLocked" v-model="header.value" />
   </td>
   <td>
-    <a v-if="!header.isLocked && !header.isMarkedAsRemoved" @click="markHeaderAsRemoved()">
-      <i class="fa fa-trash" v-tippy="`Remove header`"></i>
-    </a>
-    <a v-if="header.isChanged" @click="resetHeaderChanges()">
-      <i class="fa fa-undo" v-tippy="`Reset changes`"></i>
-    </a>
+    <div class="actions">
+      <a v-if="!header.isLocked && !header.isMarkedAsRemoved" @click="markHeaderAsRemoved()">
+        <FAIcon :icon="faTrash" class="remove" v-tippy="`Remove header`" />
+      </a>
+      <a v-if="header.isChanged" @click="resetHeaderChanges()">
+        <FAIcon :icon="faUndo" class="undo" v-tippy="`Reset changes`" />
+      </a>
+    </div>
   </td>
 </template>
 
@@ -87,19 +88,13 @@ td:first-child {
   width: 30%;
 }
 
-td:first-child i.fa {
-  font-size: 18px;
-  padding-left: 6px;
-  position: relative;
-  top: 1px;
-}
-
-td:first-child i.fa.fa-exclamation-triangle {
+td:first-child .warning {
   color: #ff9000;
 }
 
-td:first-child i.fa.fa-pencil {
-  color: #8543e9 !important;
+td:first-child .edit {
+  color: #8543e9;
+  font-size: 1.1em;
 }
 
 td:nth-child(3) {
@@ -115,16 +110,25 @@ td:nth-child(3) a:hover {
   cursor: pointer;
 }
 
-td:nth-child(3) i.fa.fa-trash {
+td:nth-child(3) .remove {
   color: #555;
-  margin-right: 10px;
 }
 
-td:nth-child(3) i.fa.fa-undo {
-  color: #00a3c4;
+td:nth-child(3) .undo {
+  color: var(--sp-blue);
 }
 
 td:nth-child(3) i.fa:hover {
   opacity: 0.8;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.icon {
+  color: var(--reduced-emphasis);
+  margin-left: 6px;
 }
 </style>

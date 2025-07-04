@@ -10,6 +10,8 @@ import { useMessageStore } from "@/stores/MessageStore";
 import { storeToRefs } from "pinia";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import debounce from "lodash/debounce";
+import FAIcon from "@/components/FAIcon.vue";
+import { faExclamationCircle, faExclamationTriangle, faUndo } from "@fortawesome/free-solid-svg-icons";
 
 interface HeaderWithEditing extends Header {
   isLocked: boolean;
@@ -195,18 +197,18 @@ onMounted(() => {
                     <div class="col-sm-12 no-side-padding">
                       <div class="alert alert-warning" v-if="localMessage.isEvent">
                         <div class="col-sm-12">
-                          <i class="fa fa-exclamation-circle"></i> This message is an event. If it was already successfully handled by other subscribers, editing it now has the risk of changing the semantic meaning of the event and may result in
+                          <FAIcon :icon="faExclamationCircle" /> This message is an event. If it was already successfully handled by other subscribers, editing it now has the risk of changing the semantic meaning of the event and may result in
                           altering the system behavior.
                         </div>
                       </div>
                       <div class="alert alert-warning" v-if="!localMessage.isContentTypeSupported || localMessage.bodyUnavailable">
                         <div role="status" aria-label="cannot edit message body" class="col-sm-12">
-                          <i class="fa fa-exclamation-circle"></i> Message body cannot be edited because content type "{{ localMessage.bodyContentType }}" is not supported. Only messages with content types "application/json" and "text/xml" can be
+                          <FAIcon :icon="faExclamationCircle" /> Message body cannot be edited because content type "{{ localMessage.bodyContentType }}" is not supported. Only messages with content types "application/json" and "text/xml" can be
                           edited.
                         </div>
                       </div>
                       <div class="row alert alert-danger" v-if="showEditRetryGenericError">
-                        <div class="col-sm-12"><i class="fa fa-exclamation-triangle"></i> An error occurred while retrying the message, please check the ServiceControl logs for more details on the failure.</div>
+                        <div class="col-sm-12"><FAIcon :icon="faExclamationTriangle" class="error" /> An error occurred while retrying the message, please check the ServiceControl logs for more details on the failure.</div>
                       </div>
                       <table role="tabpanel" class="table" v-if="panel === 1">
                         <tbody>
@@ -221,10 +223,10 @@ onMounted(() => {
                             <LoadingSpinner v-if="body.loading" />
                             <CodeEditor v-else aria-label="message body" :read-only="!localMessage.isContentTypeSupported" v-model="localMessage.messageBody" :language="localMessage.language" :show-gutter="true">
                               <template #toolbarLeft>
-                                <span class="empty-error" v-if="localMessage.isBodyEmpty"><i class="fa fa-exclamation-triangle"></i> Message body cannot be empty</span>
+                                <span class="empty-error" v-if="localMessage.isBodyEmpty"><FAIcon :icon="faExclamationTriangle" class="error" /> Message body cannot be empty</span>
                               </template>
                               <template #toolbarRight>
-                                <button v-if="localMessage.isBodyChanged" type="button" class="btn btn-secondary btn-sm" @click="resetBodyChanges"><i class="fa fa-undo"></i> Reset changes</button>
+                                <button v-if="localMessage.isBodyChanged" type="button" class="btn btn-secondary btn-sm" @click="resetBodyChanges"><FAIcon :icon="faUndo" /> Reset changes</button>
                               </template>
                             </CodeEditor>
                           </div>
@@ -282,25 +284,17 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.modal-msg-editor .reset-body i.fa.fa-undo {
-  color: #00a3c4;
-}
-
 .modal-msg-editor .empty-error {
   color: #ce4844;
   font-weight: bold;
 }
 
-.modal-msg-editor .empty-error i.fa.fa-exclamation-triangle {
+.modal-msg-editor .empty-error .error {
   color: #ce4844;
 }
 
-.modal-msg-editor .row.alert.alert-danger i.fa.fa-exclamation-triangle {
+.modal-msg-editor .row.alert.alert-danger .error {
   color: #ce4844;
-}
-
-.modal-msg-editor .row.alert.alert-warning i.fa.fa-exclamation-circle {
-  color: #8a6d3b;
 }
 
 .modal-msg-editor .modal-dialog {

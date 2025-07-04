@@ -9,7 +9,7 @@
 }
 
 .nav-item a {
-  color: #00a3c4;
+  color: var(--sp-blue);
   cursor: pointer;
   font-size: 16px;
 }
@@ -78,7 +78,7 @@ h5.nav-item {
 }
 
 .tabs a {
-  color: #00a3c4;
+  color: var(--sp-blue);
   cursor: pointer;
   font-size: 16px;
 }

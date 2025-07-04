@@ -13,7 +13,8 @@ import { useShowToast } from "@/composables/toast";
 import ResultsCount from "@/components/ResultsCount.vue";
 import { useHiddenFeature } from "./useHiddenFeature";
 import { license } from "@/composables/serviceLicense";
-// import FilterInput from "@/components/FilterInput.vue";
+import FAIcon from "@/components/FAIcon.vue";
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 
 enum NameFilterType {
   beginsWith = "Begins with",
@@ -228,9 +229,9 @@ async function save() {
     <thead>
       <tr>
         <th scope="col">{{ props.columnTitle }}</th>
-        <th v-if="showMonthly" scope="col" class="text-end formatThroughputColumn">Highest monthly throughput <i class="fa fa-info-circle text-primary" v-tippy="'In the last 12 months'" /></th>
-        <th v-else scope="col" class="text-end formatThroughputColumn">Maximum daily throughput <i class="fa fa-info-circle text-primary" v-tippy="'In the last 12 months'" /></th>
-        <th scope="col">Endpoint Type <i class="fa fa-info-circle text-primary" v-tippy="'Pick the most correct option'" /></th>
+        <th v-if="showMonthly" scope="col" class="text-end formatThroughputColumn">Highest monthly throughput <FAIcon :icon="faInfoCircle" class="text-primary" v-tippy="'In the last 12 months'" /></th>
+        <th v-else scope="col" class="text-end formatThroughputColumn">Maximum daily throughput <FAIcon :icon="faInfoCircle" class="text-primary" v-tippy="'In the last 12 months'" /></th>
+        <th scope="col">Endpoint Type <FAIcon :icon="faInfoCircle" class="text-primary" v-tippy="'Pick the most correct option'" /></th>
       </tr>
     </thead>
     <tbody>

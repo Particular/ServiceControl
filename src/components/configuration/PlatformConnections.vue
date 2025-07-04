@@ -4,6 +4,8 @@ import LicenseExpired from "../LicenseExpired.vue";
 import { licenseStatus } from "@/composables/serviceLicense";
 import { monitoringUrl as configuredMonitoringUrl, serviceControlUrl as configuredServiceControlUrl, updateServiceControlUrls, useIsMonitoringDisabled } from "../../composables/serviceServiceControlUrls";
 import { connectionState, monitoringConnectionState } from "@/composables/serviceServiceControl";
+import { faCheck, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import FAIcon from "@/components/FAIcon.vue";
 
 const isExpired = licenseStatus.isExpired;
 
@@ -72,10 +74,10 @@ function saveConnections() {
               <div class="row connection">
                 <h3>ServiceControl</h3>
                 <div class="col-7 form-group">
-                  <label for="serviceControlUrl"
-                    >CONNECTION URL
+                  <label for="serviceControlUrl">
+                    CONNECTION URL
                     <template v-if="connectionState.unableToConnect">
-                      <span class="failed-validation"> <i class="fa fa-exclamation-triangle"></i> Unable to connect </span>
+                      <span class="failed-validation"><FAIcon :icon="faExclamationTriangle" /> Unable to connect </span>
                     </template>
                   </label>
                   <input type="text" id="serviceControlUrl" name="serviceControlUrl" v-model="serviceControlUrl" class="form-control" style="color: #000" required />
@@ -84,19 +86,19 @@ function saveConnections() {
                 <div class="col-5 no-side-padding">
                   <button class="btn btn-default btn-secondary btn-connection-test" :class="{ disabled: !configuredServiceControlUrl }" type="button" @click="testServiceControlUrl">Test</button>
                   <span class="connection-test connection-testing" v-if="testingServiceControl"> <i class="glyphicon glyphicon-refresh rotate"></i>Testing </span>
-                  <span class="connection-test connection-successful" v-if="serviceControlValid === true && !testingServiceControl"> <i class="fa fa-check"></i> Connection successful </span>
-                  <span class="connection-test connection-failed" v-if="serviceControlValid === false && !testingServiceControl"> <i class="fa fa-exclamation-triangle"></i> Connection failed </span>
+                  <span class="connection-test connection-successful" v-if="serviceControlValid === true && !testingServiceControl"><FAIcon :icon="faCheck" /> Connection successful </span>
+                  <span class="connection-test connection-failed" v-if="serviceControlValid === false && !testingServiceControl"><FAIcon :icon="faExclamationTriangle" /> Connection failed </span>
                 </div>
               </div>
 
               <div class="row connection">
                 <h3>ServiceControl Monitoring</h3>
                 <div class="col-7 form-group">
-                  <label for="monitoringUrl"
-                    >CONNECTION URL
+                  <label for="monitoringUrl">
+                    CONNECTION URL
                     <span class="auxilliary-label">(OPTIONAL) (Enter ! to disable monitoring)</span>
                     <template v-if="monitoringConnectionState.unableToConnect && !useIsMonitoringDisabled()">
-                      <span class="failed-validation"> <i class="fa fa-exclamation-triangle"></i> Unable to connect </span>
+                      <span class="failed-validation"><FAIcon :icon="faExclamationTriangle" /> Unable to connect </span>
                     </template>
                   </label>
                   <input type="text" id="monitoringUrl" name="monitoringUrl" v-model="monitoringUrl" class="form-control" required />
@@ -105,14 +107,14 @@ function saveConnections() {
                 <div class="col-5 no-side-padding">
                   <button class="btn btn-default btn-secondary btn-connection-test" :class="{ disabled: !isMonitoringUrlSpecified() }" type="button" @click="testMonitoringUrl" :disabled="!isMonitoringUrlSpecified()">Test</button>
                   <span class="connection-test connection-testing" v-if="testingMonitoring"> <i class="glyphicon glyphicon-refresh rotate"></i>Testing </span>
-                  <span class="connection-test connection-successful" v-if="monitoringValid === true && !testingMonitoring"> <i class="fa fa-check"></i> Connection successful </span>
-                  <span class="connection-test connection-failed" v-if="monitoringValid === false && !testingMonitoring"> <i class="fa fa-exclamation-triangle"></i> Connection failed </span>
+                  <span class="connection-test connection-successful" v-if="monitoringValid === true && !testingMonitoring"><FAIcon :icon="faCheck" /> Connection successful </span>
+                  <span class="connection-test connection-failed" v-if="monitoringValid === false && !testingMonitoring"><FAIcon :icon="faExclamationTriangle" /> Connection failed </span>
                 </div>
               </div>
 
               <button class="btn btn-primary" type="button" @click="saveConnections">Save</button>
-              <span class="connection-test connection-successful hide save-connection" v-show="connectionSaved"> <i class="fa fa-check"></i>Connection saved </span>
-              <span class="connection-test connection-failed hide save-connection" v-show="connectionSaved != null && !connectionSaved"> <i class="fa fa-exclamation-triangle"></i> Unable to save </span>
+              <span class="connection-test connection-successful hide save-connection" v-show="connectionSaved"><FAIcon :icon="faCheck" /> Connection saved </span>
+              <span class="connection-test connection-failed hide save-connection" v-show="connectionSaved != null && !connectionSaved"><FAIcon :icon="faExclamationTriangle" /> Unable to save </span>
             </form>
           </div>
         </div>

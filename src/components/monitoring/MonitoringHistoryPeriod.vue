@@ -40,7 +40,7 @@ watch(
 
 <style scoped>
 .period-selector {
-  color: #00a3c4;
+  color: var(--sp-blue);
 }
 
 .nav li {
@@ -54,10 +54,10 @@ watch(
 }
 
 .nav-pills.period-selector > li > a:hover {
-  color: #00a3c4;
+  color: var(--sp-blue);
   font-weight: normal;
   background-color: initial;
-  border-bottom-color: #00a3c4;
+  border-bottom-color: var(--sp-blue);
 }
 
 .nav.period-selector > li > a {

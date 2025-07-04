@@ -31,7 +31,7 @@ const statusInfo = computed(() => {
     case MessageStatus.RetryIssued:
       return { name: "Retry requested", icon: "fa retry-issued" };
     default:
-      return { name: "Unknown status", icon: "fa fa-question-circle" };
+      return { name: "Unknown status", icon: "fa unknown-status" };
   }
 });
 </script>
@@ -91,5 +91,18 @@ const statusInfo = computed(() => {
 
 .retry-issued {
   background-image: url("@/assets/status_retry_issued.svg");
+}
+
+.unknown-status::after {
+  content: "?";
+  color: #fff;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 1.4em;
+  line-height: 1.4em;
+  background-color: var(--reduced-emphasis);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

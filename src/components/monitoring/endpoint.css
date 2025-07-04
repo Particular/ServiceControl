@@ -11,20 +11,20 @@
   position: relative;
 }
 
-.endpoint-status i.fa-envelope {
+.endpoint-status .endpoint-status-icon {
   font-size: 20px;
   color: #ce4844;
 }
 
-h1 .endpoint-status i.fa-envelope {
+h1 .endpoint-status .endpoint-status-icon {
   font-size: 24px;
 }
 
-.endpoint-status i.fa-envelope {
+.endpoint-status .endpoint-status-icon {
   color: #777f7f;
 }
 
-.endpoint-status i.fa-envelope:hover {
+.endpoint-status .endpoint-status-icon:hover {
   color: #23527c;
 }
 
@@ -36,7 +36,7 @@ h1 .endpoint-status i.fa-envelope {
   left: -10px;
 }
 
-.endpoint-status i.fa-envelope {
+.endpoint-status .endpoint-status-icon {
   font-size: 20px;
   margin-left: 6px;
 }
@@ -223,12 +223,6 @@ h1 .endpoint-status i.fa-envelope {
   .tabs h5 {
     padding-bottom: 4px;
     margin-bottom: 10px;
-  }
-
-  a.btn-feedback {
-    width: 130px !important;
-    margin: 10px 15px 22px !important;
-    padding-left: 20px !important;
   }
 
   .navbar-collapse.collapse.in {
@@ -456,4 +450,8 @@ i.fa.pa-endpoint-lost.endpoints-overview {
 div[content="Unable to connect to instance"],
 div[content="Unable to connect to monitoring server"] {
   z-index: 99999;
+}
+
+.pull-left {
+  float: left;
 }

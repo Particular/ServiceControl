@@ -37,7 +37,7 @@ ul.dropdown-menu li a span {
 .open > .dropdown-toggle.btn-default.sp-btn-menu {
   background: none;
   border: none;
-  color: #00a3c4;
+  color: var(--sp-blue);
   text-decoration: underline;
   box-shadow: none;
 }

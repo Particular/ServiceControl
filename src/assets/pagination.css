@@ -4,7 +4,7 @@
 .pagination .active > span:hover,
 .pagination button.active:focus,
 .pagination .active > span:focus {
-  background-color: #00a3c4;
+  background-color: var(--sp-blue);
   border-color: #ddd;
   color: var(--bs-pagination-active-color);
   outline: none;
@@ -35,6 +35,6 @@
 .pagination .dropdown button:hover {
   background: none;
   border: none;
-  color: #00a3c4;
+  color: var(--sp-blue);
   text-decoration: underline;
 }

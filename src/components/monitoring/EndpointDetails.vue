@@ -20,6 +20,8 @@ import EndpointInstances from "./EndpointInstances.vue";
 import EndpointMessageTypes from "./EndpointMessageTypes.vue";
 import { useMonitoringHistoryPeriodStore } from "@/stores/MonitoringHistoryPeriodStore";
 import routeLinks from "@/router/routeLinks";
+import FAIcon from "@/components/FAIcon.vue";
+import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 
 const route = useRoute();
 const router = useRouter();
@@ -104,7 +106,7 @@ onMounted(() => {
               </span>
               <span role="status" aria-label="error-count-warning" class="warning" v-if="endpoint.errorCount" v-tippy="endpoint.errorCount + ` failed messages associated with this endpoint. Click to see list.`">
                 <RouterLink :to="routeLinks.failedMessage.group.link(endpoint.serviceControlId)" v-if="endpoint.errorCount" class="warning cursorpointer">
-                  <i class="fa fa-envelope"></i>
+                  <FAIcon :icon="faEnvelope" class="endpoint-status-icon" />
                   <span aria-label="error-count" class="badge badge-important ng-binding cursorpointer"> {{ endpoint.errorCount }}</span>
                 </RouterLink>
               </span>
@@ -187,7 +189,7 @@ onMounted(() => {
   top: 4px;
 }
 
-.monitoring-head i.fa.fa-envelope {
+.monitoring-head .endpoint-status-icon {
   font-size: 26px;
   position: relative;
   left: 1px;

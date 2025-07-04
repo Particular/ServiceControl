@@ -46,7 +46,7 @@ defineProps<{
 .main-title {
   margin: 0.3rem 0;
   padding-bottom: 0.5rem;
-  border-bottom: solid 2px #00a3c4;
+  border-bottom: solid 2px var(--sp-blue);
   font-size: 1.5rem;
 }
 </style>

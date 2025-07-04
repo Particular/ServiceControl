@@ -11,6 +11,8 @@ import { TYPE } from "vue-toastification";
 import type UpdateEmailNotificationsSettingsRequest from "@/resources/UpdateEmailNotificationsSettingsRequest";
 import type EmailSettings from "@/components/configuration/EmailSettings";
 import OnOffSwitch from "../OnOffSwitch.vue";
+import FAIcon from "@/components/FAIcon.vue";
+import { faCheck, faEdit, faEnvelope, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 
 const isExpired = licenseStatus.isExpired;
 const emailTestSuccessful = ref<boolean | null>(null);
@@ -118,7 +120,7 @@ onMounted(async () => {
                       <OnOffSwitch id="emailNotifications" @toggle="toggleEmailNotifications" :value="emailNotifications.enabled" />
                       <div>
                         <span class="connection-test connection-failed">
-                          <template v-if="emailToggleSuccessful === false"> <i class="fa fa-exclamation-triangle"></i> Update failed </template>
+                          <template v-if="emailToggleSuccessful === false"> <FAIcon :icon="faExclamationTriangle" /> Update failed </template>
                         </span>
                       </div>
                     </div>
@@ -127,10 +129,10 @@ onMounted(async () => {
                         <div class="col-12">
                           <p class="lead">Email notifications</p>
                           <p class="endpoint-metadata">
-                            <button class="btn btn-link btn-sm" type="button" @click="editEmailNotifications"><i class="fa fa-edit"></i>Configure</button>
+                            <button class="btn btn-link btn-sm" type="button" @click="editEmailNotifications"><FAIcon :icon="faEdit" /> Configure</button>
                           </p>
                           <p class="endpoint-metadata">
-                            <button class="btn btn-link btn-sm" type="button" @click="testEmailNotifications" :disabled="!!emailTestInProgress"><i class="fa fa-envelope"></i>Send test notification</button>
+                            <button class="btn btn-link btn-sm" type="button" @click="testEmailNotifications" :disabled="!!emailTestInProgress"><FAIcon :icon="faEnvelope" /> Send test notification</button>
                             <span class="connection-test connection-testing">
                               <template v-if="emailTestInProgress">
                                 <i class="glyphicon glyphicon-refresh rotate"></i>
@@ -138,17 +140,17 @@ onMounted(async () => {
                               </template>
                             </span>
                             <span class="connection-test connection-successful">
-                              <template v-if="emailTestSuccessful === true"> <i class="fa fa-check"></i> Test email sent successfully </template>
+                              <template v-if="emailTestSuccessful === true"><FAIcon :icon="faCheck" /> Test email sent successfully </template>
                             </span>
                             <span class="connection-test connection-failed">
-                              <template v-if="emailTestSuccessful === false"> <i class="fa fa-exclamation-triangle"></i> Test failed </template>
+                              <template v-if="emailTestSuccessful === false"><FAIcon :icon="faExclamationTriangle" /> Test failed </template>
                             </span>
                             <span class="connection-test connection-successful">
-                              <template v-if="emailUpdateSuccessful === true"> <i class="fa fa-check"></i> Update successful </template>
+                              <template v-if="emailUpdateSuccessful === true"><FAIcon :icon="faCheck" /> Update successful </template>
                             </span>
                             <span class="connection-test connection-failed">
                               <template v-if="emailUpdateSuccessful === false">
-                                <i class="fa fa-exclamation-triangle"></i>
+                                <FAIcon :icon="faExclamationTriangle" />
                                 Update failed
                               </template>
                             </span>
@@ -197,12 +199,12 @@ p.endpoint-metadata {
 }
 
 .endpoint-metadata button i {
-  color: #00a3c4;
+  color: var(--sp-blue);
   margin-right: 4px;
 }
 
 .btn-sm {
-  color: #00a3c4;
+  color: var(--sp-blue);
   font-size: 14px;
   font-weight: bold;
   padding: 0 36px 10px 0;

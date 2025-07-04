@@ -13,20 +13,9 @@
   color: #b0b5b5 !important;
 }
 
-li.active div.bulk-retry-progress-status:before {
-  font: normal normal normal 14px/1 FontAwesome;
-  content: "\f061 \00a0";
-}
-
 div.retry-completed.bulk-retry-progress-status {
   color: #fff;
   font-weight: bold;
-}
-
-li.completed div.bulk-retry-progress-status:before,
-div.retry-completed.bulk-retry-progress-status:before {
-  font: normal normal normal 14px/1 FontAwesome;
-  content: "\f00c \00a0";
 }
 
 .progress.bulk-retry-progress {
@@ -40,16 +29,7 @@ ul.retry-request-progress button {
 }
 
 ul.retry-request-progress button {
-  background-color: #00a3c4;
-}
-
-li.left-to-do,
-li.completed {
-  color: #b0b5b5;
-}
-
-li.left-to-do {
-  padding-left: 15px;
+  background-color: var(--sp-blue);
 }
 
 ul.retry-request-progress li > div {
@@ -57,7 +37,7 @@ ul.retry-request-progress li > div {
 }
 
 .btn.btn-sm {
-  color: #00a3c4;
+  color: var(--sp-blue);
   font-size: 14px;
   font-weight: bold;
   padding: 0 36px 10px 0;
@@ -89,10 +69,6 @@ ul.retry-request-progress li > div {
   padding-top: 15px;
 }
 
-.retry-request-progress .row {
-  padding-left: 13px;
-}
-
 .note {
   margin-bottom: 10px;
   background-color: #fcf8e3;
@@ -103,4 +79,12 @@ ul.retry-request-progress li > div {
 .metadata.danger,
 .metadata.danger > .danger {
   font-weight: normal !important;
+}
+
+.icon {
+  color: var(--reduced-emphasis);
+}
+
+button .icon {
+  margin-right: 2px;
 }

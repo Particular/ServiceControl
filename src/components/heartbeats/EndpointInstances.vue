@@ -18,6 +18,8 @@ import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import LastHeartbeat from "@/components/heartbeats/LastHeartbeat.vue";
 import FilterInput from "../FilterInput.vue";
 import ResultsCount from "../ResultsCount.vue";
+import { faBell, faBellSlash, faChevronLeft, faHeartbeat, faTrash } from "@fortawesome/free-solid-svg-icons";
+import FAIcon from "@/components/FAIcon.vue";
 
 enum Operation {
   Mute = "mute",
@@ -119,7 +121,7 @@ async function toggleAlerts(instance: EndpointsView) {
   <div class="container">
     <div class="row">
       <div class="col-8 instances-heading">
-        <RouterLink :to="backLink"><i class="fa fa-chevron-left"></i> Back</RouterLink>
+        <RouterLink :to="backLink"><FAIcon :icon="faChevronLeft" size="sm" /> Back</RouterLink>
         <h1 :style="{ overflowWrap: 'break-word' }">{{ endpointName }} Instances</h1>
       </div>
       <div class="col-4 align-content-center">
@@ -132,21 +134,11 @@ async function toggleAlerts(instance: EndpointsView) {
       <div class="col-sm-12">
         <span class="buttonsContainer">
           <button type="button" class="btn btn-warning btn-sm" :disabled="filteredValidInstances.length === 0" @click="showBulkOperationWarningDialog(Operation.Mute)">
-            <i
-              :class="{
-                'text-black': filteredValidInstances.length > 0,
-              }"
-              class="fa fa-bell-slash"
-            />
+            <FAIcon :icon="faBellSlash" class="icon" :class="{ 'text-black': filteredValidInstances.length > 0 }" />
             Mute Alerts on All
           </button>
           <button type="button" class="btn btn-default btn-sm" :disabled="filteredValidInstances.length === 0" @click="showBulkOperationWarningDialog(Operation.Unmute)">
-            <i
-              :class="{
-                'text-black': filteredValidInstances.length > 0,
-              }"
-              class="fa fa-bell"
-            />
+            <FAIcon :icon="faBell" class="icon" :class="{ 'text-black': filteredValidInstances.length > 0 }" />
             Unmute Alerts on All
           </button>
         </span>
@@ -163,19 +155,19 @@ async function toggleAlerts(instance: EndpointsView) {
         <ColumnHeader :name="ColumnNames.MuteToggle" label="Mute Alerts" class="col-2 centre">
           <template #help>Mute an instance when you are planning to take the instance offline to do maintenance or some other reason. This will prevent alerts on the dashboard.</template>
         </ColumnHeader>
-        <ColumnHeader name="actions" label="Actions" class="col-1" interactive-help>
+        <ColumnHeader name="actions" label="Actions" class="col-1">
           <template #help>
             <div class="d-flex align-items-center p-1">
-              <button type="button" class="btn btn-danger btn-ms text-nowrap me-3" @click="deleteAllInstances()"><i class="fa fa-trash text-white" /> Delete</button>
+              <button type="button" class="btn btn-danger btn-ms text-nowrap me-3"><FAIcon :icon="faTrash" class="icon text-white" /> Delete</button>
               <span>Delete an instance when that instance has been decommissioned.</span>
             </div>
           </template>
         </ColumnHeader>
       </div>
       <no-data v-if="filteredValidInstances.length === 0" message="No endpoint instances found. For untracked endpoints, disconnected instances are automatically pruned.">
-        <div v-if="totalValidInstances.length === 0" class="delete-all">
+        <div class="delete-all">
           <span>You may</span>
-          <button type="button" @click="deleteAllInstances()" class="btn btn-danger btn-sm"><i class="fa fa-trash text-white" /> Delete</button>
+          <button type="button" @click="deleteAllInstances()" class="btn btn-danger btn-sm"><FAIcon :icon="faTrash" class="icon text-white" /> Delete</button>
           <span>this endpoint</span>
         </div>
       </no-data>
@@ -186,8 +178,8 @@ async function toggleAlerts(instance: EndpointsView) {
             <div role="row" :aria-label="instance.name" class="row grid-row" v-for="instance in pageData" :key="instance.id">
               <div role="cell" class="col-6 host-name">
                 <span role="status" class="status-icon">
-                  <i v-if="instance.heartbeat_information?.reported_status !== EndpointStatus.Alive" aria-label="instance dead" class="fa fa-heartbeat text-danger" />
-                  <i v-else aria-label="instance alive" class="fa fa-heartbeat text-success" />
+                  <FAIcon v-if="instance.heartbeat_information?.reported_status !== EndpointStatus.Alive" aria-label="instance dead" :icon="faHeartbeat" class="text-danger" />
+                  <FAIcon v-else aria-label="instance alive" :icon="faHeartbeat" class="text-success" />
                 </span>
                 <span class="lead" aria-label="instance-name">{{ instance.host_display_name }}</span>
               </div>
@@ -200,7 +192,7 @@ async function toggleAlerts(instance: EndpointsView) {
                 </div>
               </div>
               <div role="cell" aria-label="actions" class="col-1 actions">
-                <button v-if="instance.heartbeat_information?.reported_status !== EndpointStatus.Alive" type="button" @click="deleteInstance(instance)" class="btn btn-danger btn-sm"><i class="fa fa-trash text-white" /> Delete</button>&nbsp;
+                <button v-if="instance.heartbeat_information?.reported_status !== EndpointStatus.Alive" type="button" @click="deleteInstance(instance)" class="btn btn-danger btn-sm"><FAIcon :icon="faTrash" class="icon text-white" /> Delete</button>
               </div>
             </div>
           </div>
@@ -250,5 +242,9 @@ async function toggleAlerts(instance: EndpointsView) {
   display: flex;
   align-items: center;
   gap: 0.4em;
+}
+
+.icon {
+  color: var(--reduced-emphasis);
 }
 </style>

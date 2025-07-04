@@ -5,6 +5,9 @@ import NoData from "../NoData.vue";
 import routeLinks from "@/router/routeLinks";
 import { FailedMessageStatus, ExtendedFailedMessage } from "@/resources/FailedMessage";
 import { hexToCSSFilter } from "hex-to-css-filter";
+import FAIcon from "@/components/FAIcon.vue";
+import { faRecycle, faRotateRight, faTrash, faLaptop } from "@fortawesome/free-solid-svg-icons";
+import { faClock } from "@fortawesome/free-regular-svg-icons";
 
 export interface IMessageList {
   getSelectedMessages(): ExtendedFailedMessage[];
@@ -111,31 +114,31 @@ const endpointColor = hexToCSSFilter("#929E9E").filter;
               <p class="lead break">{{ message.message_type || "Message Type Unknown - missing metadata EnclosedMessageTypes" }}</p>
               <p class="metadata">
                 <span v-if="message.submittedForRetrial" :title="'Message was submitted for retrying'" class="label sidebar-label label-info metadata-label">To retry</span>
-                <span v-if="message.retryInProgress" :title="'Message is being retried'" class="label sidebar-label label-info metadata-label metadata in-progress"><i class="fa fa-repeat"></i> Retry in progress</span>
-                <span v-if="message.retried" :title="'Message is being retried'" class="label sidebar-label label-info metadata-label metadata in-progress"><i class="fa fa-repeat"></i> Retried</span>
+                <span v-if="message.retryInProgress" :title="'Message is being retried'" class="label sidebar-label label-info metadata-label metadata in-progress"><FAIcon :icon="faRotateRight" /> Retry in progress</span>
+                <span v-if="message.retried" :title="'Message is being retried'" class="label sidebar-label label-info metadata-label metadata in-progress"><FAIcon :icon="faRotateRight" /> Retried</span>
                 <span v-if="message.resolved" class="label sidebar-label label-info metadata-label">Resolved</span>
 
-                <span v-if="message.deleteInProgress" :title="'Message is being deleted'" class="label sidebar-label label-info metadata-label metadata in-progress"><i class="fa fa-trash"></i> Scheduled for deletion</span>
-                <span v-if="message.archived" :title="'Message is being deleted'" class="label sidebar-label label-info metadata-label metadata in-progress"><i class="fa fa-trash"></i> Deleted</span>
+                <span v-if="message.deleteInProgress" :title="'Message is being deleted'" class="label sidebar-label label-info metadata-label metadata in-progress"><FAIcon :icon="faTrash" class="icon" /> Scheduled for deletion</span>
+                <span v-if="message.archived" :title="'Message is being deleted'" class="label sidebar-label label-info metadata-label metadata in-progress"><FAIcon :icon="faTrash" class="icon" /> Deleted</span>
                 <span v-if="message.number_of_processing_attempts > 1" :title="`This message has already failed ${message.number_of_processing_attempts} times`" class="label sidebar-label label-important metadata-label"
                   >{{ message.number_of_processing_attempts === 10 ? "9+" : message.number_of_processing_attempts - 1 }} Retry Failures</span
                 >
-                <span v-if="message.restoreInProgress" v-tippy="`Message is being restored`" class="label sidebar-label label-warning metadata-label metadata in-progress"><i class="fa fa-recycle"></i> Restore in progress</span>
+                <span v-if="message.restoreInProgress" v-tippy="`Message is being restored`" class="label sidebar-label label-warning metadata-label metadata in-progress"><FAIcon :icon="faRecycle" class="icon" /> Restore in progress</span>
                 <span v-if="message.edited" :title="'Message was edited'" class="label sidebar-label label-info metadata-label">Edited</span>
 
-                <span class="metadata"><i class="fa fa-clock-o"></i> Failed: <time-since :dateUtc="message.time_of_failure"></time-since></span>
+                <span class="metadata"><FAIcon :icon="faClock" class="icon" /> Failed: <time-since :dateUtc="message.time_of_failure"></time-since></span>
                 <span class="metadata"><i class="fa pa-endpoint" :style="{ filter: endpointColor }"></i> Endpoint: {{ message.receiving_endpoint.name }}</span>
-                <span class="metadata"><i class="fa fa-laptop"></i> Machine: {{ message.receiving_endpoint.host }}</span>
+                <span class="metadata"><FAIcon :icon="faLaptop" class="icon" /> Machine: {{ message.receiving_endpoint.host }}</span>
                 <span class="metadata" v-if="message.redirect"><i class="fa pa-redirect-source pa-redirect-small"></i> Redirect: {{ message.redirect }}</span>
                 <!-- for deleted messages-->
-                <span class="metadata" v-if="message.status === FailedMessageStatus.Archived"><i class="fa fa-clock-o"></i> Deleted: <time-since :date-utc="message.last_modified"></time-since></span>
-                <span class="metadata danger" v-if="message.status === FailedMessageStatus.Archived && message.delete_soon"><i class="fa fa-trash-o danger"></i> Scheduled for deletion: immediately</span>
+                <span class="metadata" v-if="message.status === FailedMessageStatus.Archived"><FAIcon :icon="faClock" class="icon" /> Deleted: <time-since :date-utc="message.last_modified"></time-since></span>
+                <span class="metadata danger" v-if="message.status === FailedMessageStatus.Archived && message.delete_soon"><FAIcon :icon="faTrash" class="danger" /> Scheduled for deletion: immediately</span>
                 <span class="metadata danger" v-if="message.status === FailedMessageStatus.Archived && !message.delete_soon">
-                  <i class="fa fa-trash-o danger"></i> Scheduled for deletion: <time-since class="danger" :date-utc="message.deleted_in"></time-since>
+                  <FAIcon :icon="faTrash" class="danger" /> Scheduled for deletion: <time-since class="danger" :date-utc="message.deleted_in"></time-since>
                 </span>
 
                 <button type="button" name="retryMessage" v-if="!message.retryInProgress && props.showRequestRetry" class="btn btn-link btn-sm" @click.stop="emit('retryRequested', message.id)">
-                  <i aria-hidden="true" class="fa fa-repeat no-link-underline">&nbsp;</i>Request retry
+                  <FAIcon :icon="faRotateRight" class="no-link-underline" /> Request retry
                 </button>
               </p>
 
@@ -173,7 +176,7 @@ pre {
 }
 
 .failed-message:hover {
-  border: 1px solid #00a3c4;
+  border: 1px solid var(--sp-blue);
   background-color: #edf6f7;
 }
 
@@ -203,7 +206,7 @@ div.failed-message-data {
   margin-left: 1px;
   width: 16px;
   height: 16px;
-  border: 1px solid #929e9e;
+  border: 1px solid var(--reduced-emphasis);
   background-color: #fff;
 }
 
@@ -213,7 +216,7 @@ div.failed-message-data {
   margin-left: 0;
   width: 18px;
   height: 18px;
-  border: 2px solid #00a3c4;
+  border: 2px solid var(--sp-blue);
 }
 
 label:after .checkbox {
@@ -249,7 +252,7 @@ p.metadata button {
 .failed-message .btn-link,
 .failed-message-group .btn-link,
 .deleted-message-group .btn-link {
-  color: #00a3c4;
+  color: var(--sp-blue);
   font-size: 14px;
   font-weight: bold;
   padding: 0 36px 10px 0;
@@ -331,9 +334,13 @@ p.metadata button {
 }
 
 .btn.btn-sm {
-  color: #00a3c4;
+  color: var(--sp-blue);
   font-size: 14px;
   font-weight: bold;
   padding: 0 36px 10px 0;
+}
+
+.icon {
+  color: var(--reduced-emphasis);
 }
 </style>

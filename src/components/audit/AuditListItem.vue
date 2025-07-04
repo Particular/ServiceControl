@@ -54,7 +54,7 @@ function navigateToMessage(message: Message) {
   border-top-color: #eee;
 }
 .item:hover {
-  border-color: #00a3c4;
+  border-color: var(--sp-blue);
   background-color: #edf6f7;
   cursor: pointer;
 }

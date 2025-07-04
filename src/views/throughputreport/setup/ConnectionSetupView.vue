@@ -6,6 +6,8 @@ import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls"
 import ConfigurationCode from "@/views/throughputreport/setup/ConfigurationCode.vue";
 import { useThroughputStore } from "@/stores/ThroughputStore";
 import { storeToRefs } from "pinia";
+import FAIcon from "@/components/FAIcon.vue";
+import { faCheck } from "@fortawesome/free-solid-svg-icons";
 
 const store = useThroughputStore();
 const { isBrokerTransport } = storeToRefs(useThroughputStore());
@@ -32,7 +34,7 @@ onMounted(async () => {
         <p class="nogap">
           Settings to ensure that usage data is being collected from <a :href="store.transportDocsLinkForInstructions()">{{ store.transportNameForInstructions() }}</a
           >.<br />
-          Some settings can be automatically configured based on the current transport configuration, so if you have a <i style="color: green" class="fa fa-check"></i> above it means that ServiceControl has successfully connected to
+          Some settings can be automatically configured based on the current transport configuration, so if you have a <FAIcon :icon="faCheck" class="text-success" /> above it means that ServiceControl has successfully connected to
           {{ store.transportNameForInstructions() }}.
         </p>
         <ConfigurationCode :settings="settingsInfo?.broker_settings ?? []">

@@ -1,14 +1,17 @@
 ﻿<script setup lang="ts">
-const props = defineProps<{
+import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import FAIcon from "@/components/FAIcon.vue";
+
+defineProps<{
   counter: number;
   url: string;
-  iconClass: string;
+  icon: IconDefinition;
 }>();
 </script>
 
 <template>
   <RouterLink aria-label="Dashboard Item" class="summary-item" :class="{ 'summary-danger': counter > 0, 'summary-info': counter === 0 || !counter }" :to="url">
-    <i class="fa fa-3x" :class="props.iconClass"> </i>
+    <FAIcon :icon="icon" size="3x" />
     <span v-if="counter > 0" aria-label="Alert Count" class="badge badge-important">{{ counter }}</span>
     <h4>
       <slot></slot>
@@ -51,7 +54,7 @@ a.summary-danger:hover {
 
 .summary-item:hover {
   background-color: #edf6f7;
-  border-color: #00a3c4 !important;
+  border-color: var(--sp-blue) !important;
   cursor: pointer;
 }
 </style>

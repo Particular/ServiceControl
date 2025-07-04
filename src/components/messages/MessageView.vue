@@ -21,6 +21,8 @@ import { storeToRefs } from "pinia";
 import MetadataLabel from "@/components/messages/MetadataLabel.vue";
 import { hexToCSSFilter } from "hex-to-css-filter";
 import SagaDiagram from "./SagaDiagram.vue";
+import FAIcon from "@/components/FAIcon.vue";
+import { faChevronLeft, faTrash, faLaptop, faClockRotateLeft, faClock } from "@fortawesome/free-solid-svg-icons";
 
 const route = useRoute();
 const id = computed(() => route.params.id as string);
@@ -106,7 +108,7 @@ onMounted(() => {
       <template v-else>
         <div class="row">
           <div class="col-sm-12 no-side-padding">
-            <RouterLink :to="backLink"><i class="fa fa-chevron-left"></i> Back</RouterLink>
+            <RouterLink :to="backLink"><FAIcon :icon="faChevronLeft" size="sm" /> Back</RouterLink>
             <div class="active break group-title">
               <h1 class="message-type-title">{{ state.data.message_type }}</h1>
             </div>
@@ -130,20 +132,20 @@ onMounted(() => {
               <template v-if="state.data.failure_metadata.edited">
                 <MetadataLabel tooltip="Message was edited" type="info" text="Edited" />
                 <span v-if="state.data.failure_metadata.edit_of" class="metadata metadata-link">
-                  <i class="fa fa-history"></i> <RouterLink :to="{ path: routeLinks.messages.failedMessage.link(state.data.failure_metadata.edit_of), query: route.query }">View previous version</RouterLink>
+                  <FAIcon :icon="faClockRotateLeft" /> <RouterLink :to="{ path: routeLinks.messages.failedMessage.link(state.data.failure_metadata.edit_of), query: route.query }">View previous version</RouterLink>
                 </span>
               </template>
-              <span v-if="state.data.failure_metadata.time_of_failure" class="metadata"><i class="fa fa-clock-o"></i> Failed: <time-since :date-utc="state.data.failure_metadata.time_of_failure"></time-since></span>
-              <span v-else class="metadata"><i class="fa fa-clock-o"></i> Processed at: <time-since :date-utc="state.data.processed_at"></time-since></span>
+              <span v-if="state.data.failure_metadata.time_of_failure" class="metadata"><FAIcon :icon="faClock" /> Failed: <time-since :date-utc="state.data.failure_metadata.time_of_failure"></time-since></span>
+              <span v-else class="metadata"><FAIcon :icon="faClock" /> Processed at: <time-since :date-utc="state.data.processed_at"></time-since></span>
               <template v-if="state.data.receiving_endpoint">
                 <span class="metadata"><i class="fa pa-endpoint" :style="{ filter: endpointColor }"></i> Endpoint: {{ state.data.receiving_endpoint.name }}</span>
-                <span class="metadata"><i class="fa fa-laptop"></i> Machine: {{ state.data.receiving_endpoint.host }}</span>
+                <span class="metadata"><FAIcon :icon="faLaptop" /> Machine: {{ state.data.receiving_endpoint.host }}</span>
               </template>
               <span v-if="state.data.failure_metadata.redirect" class="metadata"><i class="fa pa-redirect-source pa-redirect-small"></i> Redirect: {{ state.data.failure_metadata.redirect }}</span>
               <template v-if="state.data.failure_status.archived">
-                <span class="metadata"><i class="fa fa-clock-o"></i> Deleted: <time-since :date-utc="state.data.failure_metadata.last_modified"></time-since></span>
-                <span class="metadata danger" v-if="state.data.failure_status.delete_soon"><i class="fa fa-trash-o danger"></i> Scheduled for permanent deletion: immediately</span>
-                <span class="metadata danger" v-else><i class="fa fa-trash-o danger"></i> Scheduled for permanent deletion: <time-since :date-utc="state.data.failure_metadata.deleted_in"></time-since></span>
+                <span class="metadata"><FAIcon :icon="faClock" /> Deleted: <time-since :date-utc="state.data.failure_metadata.last_modified"></time-since></span>
+                <span class="metadata danger" v-if="state.data.failure_status.delete_soon"><FAIcon :icon="faTrash" class="danger" /> Scheduled for permanent deletion: immediately</span>
+                <span class="metadata danger" v-else><FAIcon :icon="faTrash" class="danger" /> Scheduled for permanent deletion: <time-since :date-utc="state.data.failure_metadata.deleted_in"></time-since></span>
               </template>
             </div>
           </div>

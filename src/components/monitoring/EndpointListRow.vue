@@ -19,6 +19,8 @@ import { storeToRefs } from "pinia";
 import type { GroupedEndpoint, Endpoint } from "@/resources/MonitoringEndpoint";
 import routeLinks from "@/router/routeLinks";
 import { Tippy } from "vue-tippy";
+import FAIcon from "@/components/FAIcon.vue";
+import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 
 const settings = defineProps<{
   endpoint: GroupedEndpoint | Endpoint;
@@ -70,7 +72,7 @@ const criticalTimeGraphDuration = computed(() => formatGraphDuration(endpoint.va
         </span>
         <span role="status" class="warning" v-if="endpoint.errorCount" v-tippy="endpoint.errorCount + ` failed messages associated with this endpoint. Click to see list.`">
           <RouterLink :to="routeLinks.failedMessage.group.link(endpoint.serviceControlId)" v-if="endpoint.errorCount" class="warning cursorpointer">
-            <i class="fa fa-envelope"></i>
+            <FAIcon :icon="faEnvelope" class="endpoint-status-icon" />
             <span class="badge badge-important ng-binding cursorpointer">{{ endpoint.errorCount }}</span>
           </RouterLink>
         </span>

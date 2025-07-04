@@ -9,6 +9,8 @@ import routeLinks from "@/router/routeLinks";
 import { displayConnectionsWarning } from "@/components/configuration/displayConnectionsWarning";
 import { useThroughputStore } from "@/stores/ThroughputStore";
 import { storeToRefs } from "pinia";
+import FAIcon from "@/components/FAIcon.vue";
+import { faGear } from "@fortawesome/free-solid-svg-icons";
 
 const { hasErrors } = storeToRefs(useThroughputStore());
 
@@ -22,7 +24,7 @@ const displayDanger = computed(() => {
 
 <template>
   <RouterLink :to="routeLinks.configuration.root" exact>
-    <i class="fa fa-cog icon-white" title="Configuration"></i>
+    <FAIcon :icon="faGear" title="Configuration" />
     <span class="navbar-label">Configuration</span>
     <exclamation-mark :type="WarningLevel.Danger" v-if="displayDanger" />
     <exclamation-mark :type="WarningLevel.Warning" v-else-if="displayWarn" />

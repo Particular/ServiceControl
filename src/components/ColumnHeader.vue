@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { SortInfo } from "./SortInfo";
+import FAIcon from "@/components/FAIcon.vue";
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 
 const props = withDefaults(
   defineProps<{
@@ -41,7 +43,7 @@ function toggleSort() {
             <i role="img" :class="sortIcon" :aria-label="sortIcon"></i>
           </span>
           <tippy v-if="$slots.help" max-width="400px" :interactive="props.interactiveHelp">
-            <i class="fa fa-sm fa-info-circle text-primary ps-1" />
+            <FAIcon :icon="faInfoCircle" class="info" />
             <template #content>
               <slot name="help" />
             </template>
@@ -54,7 +56,7 @@ function toggleSort() {
           <span v-if="props.unit" class="table-header-unit">{{ props.unit }}</span>
         </span>
         <tippy v-if="$slots.help" max-width="400px" :interactive="props.interactiveHelp">
-          <i class="fa fa-sm fa-info-circle text-primary ps-1" />
+          <FAIcon :icon="faInfoCircle" class="info" />
           <template #content>
             <slot name="help" />
           </template>
@@ -76,6 +78,7 @@ function toggleSort() {
 }
 .column-header span,
 .column-header-button span {
+  font-size: 0.75rem;
   text-transform: uppercase;
   display: inline-block;
   text-align: left;
@@ -122,5 +125,10 @@ function toggleSort() {
   background-repeat: no-repeat;
   display: inline-block;
   vertical-align: middle;
+}
+
+.info {
+  padding-left: 0.25rem;
+  color: var(--info-icon);
 }
 </style>

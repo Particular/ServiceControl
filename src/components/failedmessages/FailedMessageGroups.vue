@@ -12,6 +12,7 @@ import OrderBy from "@/components/OrderBy.vue";
 import SortOptions, { SortDirection } from "@/resources/SortOptions";
 import GroupOperation from "@/resources/GroupOperation";
 import getSortFunction from "@/components/getSortFunction";
+import { faArrowDownAZ, faArrowDownZA, faArrowDownShortWide, faArrowDownWideShort, faArrowDown19, faArrowDown91 } from "@fortawesome/free-solid-svg-icons";
 
 const selectedClassifier = ref<string>("");
 const classifiers = ref<string[]>([]);
@@ -29,27 +30,32 @@ const sortOptions: SortOptions<GroupOperation>[] = [
   {
     description: "Name",
     selector: (group) => group.title,
-    icon: "fa-sort-alpha-",
+    iconAsc: faArrowDownAZ,
+    iconDesc: faArrowDownZA,
   },
   {
     description: "Number of messages",
     selector: (group) => group.count,
-    icon: "fa-sort-numeric-",
+    iconAsc: faArrowDown19,
+    iconDesc: faArrowDown91,
   },
   {
     description: "First Failed Time",
     selector: (group) => group.first!,
-    icon: "fa-sort-amount-",
+    iconAsc: faArrowDownShortWide,
+    iconDesc: faArrowDownWideShort,
   },
   {
     description: "Last Failed Time",
     selector: (group) => group.last!,
-    icon: "fa-sort-amount-",
+    iconAsc: faArrowDownShortWide,
+    iconDesc: faArrowDownWideShort,
   },
   {
     description: "Last Retried Time",
     selector: (group) => group.last_operation_completion_time!,
-    icon: "fa-sort-amount-",
+    iconAsc: faArrowDownShortWide,
+    iconDesc: faArrowDownWideShort,
   },
 ];
 
@@ -140,7 +146,7 @@ onMounted(async () => {
 .dropdown > button:hover {
   background: none;
   border: none;
-  color: #00a3c4;
+  color: var(--sp-blue);
   text-decoration: underline;
 }
 </style>

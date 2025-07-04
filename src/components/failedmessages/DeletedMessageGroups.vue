@@ -15,6 +15,9 @@ import ConfirmDialog from "../ConfirmDialog.vue";
 import routeLinks from "@/router/routeLinks";
 import FailureGroupView from "@/resources/FailureGroupView";
 import { TYPE } from "vue-toastification";
+import FAIcon from "@/components/FAIcon.vue";
+import { faArrowRotateRight, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { faClock } from "@fortawesome/free-regular-svg-icons";
 
 const statusesForRestoreOperation = ["restorestarted", "restoreprogressing", "restorefinalizing", "restorecompleted"] as const;
 type RestoreOperationStatus = (typeof statusesForRestoreOperation)[number];
@@ -330,24 +333,26 @@ onMounted(async () => {
                                 <p class="lead break" v-bind:class="{ 'msg-type-hover': group.hover2, 'msg-type-hover-off': group.hover3 }">{{ group.title }}</p>
                                 <p class="metadata" v-if="!isBeingRestored(group.workflow_state.status)">
                                   <span class="metadata">
-                                    <i aria-hidden="true" class="fa fa-envelope"></i>
+                                    <FAIcon :icon="faEnvelope" class="icon" />
                                     {{ group.count }} message<span v-if="group.count > 1">s</span>
                                     <span v-if="group.operation_remaining_count"> (currently restoring {{ group.operation_remaining_count }} </span>
                                   </span>
 
                                   <span class="metadata">
-                                    <i aria-hidden="true" class="fa fa-clock-o"></i>
+                                    <FAIcon :icon="faClock" class="icon" />
                                     First failed:
                                     <time-since :date-utc="group.first"></time-since>
                                   </span>
 
                                   <span class="metadata">
-                                    <i aria-hidden="true" class="fa fa-clock-o"></i> Last failed:
+                                    <FAIcon :icon="faClock" class="icon" />
+                                    Last failed:
                                     <time-since :date-utc="group.last"></time-since>
                                   </span>
 
                                   <span class="metadata">
-                                    <i aria-hidden="true" class="fa fa-repeat"></i> Last retried:
+                                    <FAIcon :icon="faArrowRotateRight" class="icon" />
+                                    Last retried:
                                     <time-since :date-utc="group.last_operation_completion_time"></time-since>
                                   </span>
                                 </p>
@@ -365,7 +370,8 @@ onMounted(async () => {
                                   v-if="archiveGroups.length > 0"
                                   @click.stop="showRestoreGroupDialog(group)"
                                 >
-                                  <i aria-hidden="true" class="fa fa-repeat no-link-underline">&nbsp;</i>Restore group
+                                  <FAIcon :icon="faArrowRotateRight" class="icon" />
+                                  <span>Restore group</span>
                                 </button>
                               </div>
                             </div>
@@ -385,9 +391,9 @@ onMounted(async () => {
                                       </li>
                                     </ul>
                                     <div class="op-metadata">
-                                      <span class="metadata"><i aria-hidden="true" class="fa fa-clock-o"></i> Restore request started:<time-since :date-utc="group.operation_start_time"></time-since></span>
-                                      <span class="metadata" v-if="group.workflow_state.status === 'restorecompleted'"><i aria-hidden="true" class="fa fa-envelope"></i> Messages restored: {{ group.count }}</span>
-                                      <span class="metadata" v-if="group.workflow_state.status !== 'restorecompleted'"><i aria-hidden="true" class="fa fa-envelope"></i> Messages being restored: {{ group.count }}</span>
+                                      <span class="metadata"><FAIcon :icon="faClock" class="icon" /> Restore request started:<time-since :date-utc="group.operation_start_time"></time-since></span>
+                                      <span class="metadata" v-if="group.workflow_state.status === 'restorecompleted'"><FAIcon :icon="faEnvelope" class="icon" /> Messages restored: {{ group.count }}</span>
+                                      <span class="metadata" v-if="group.workflow_state.status !== 'restorecompleted'"><FAIcon :icon="faEnvelope" class="icon" /> Messages being restored: {{ group.count }}</span>
                                     </div>
                                   </div>
                                 </div>
@@ -436,7 +442,7 @@ onMounted(async () => {
 .dropdown > button:hover {
   background: none;
   border: none;
-  color: #00a3c4;
+  color: var(--sp-blue);
   text-decoration: underline;
 }
 </style>

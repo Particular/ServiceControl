@@ -5,6 +5,8 @@ import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator"
 import routeLinks from "@/router/routeLinks";
 import { useThroughputStore } from "@/stores/ThroughputStore";
 import { storeToRefs } from "pinia";
+import FAIcon from "@/components/FAIcon.vue";
+import { faTimes } from "@fortawesome/free-solid-svg-icons";
 
 const { isBrokerTransport, hasErrors } = storeToRefs(useThroughputStore());
 </script>
@@ -13,7 +15,7 @@ const { isBrokerTransport, hasErrors } = storeToRefs(useThroughputStore());
   <template v-if="!isBrokerTransport">
     <template v-if="hasErrors">
       <div class="errorContainer text-center">
-        <h6><i style="color: red" class="fa fa-times"></i> There were some errors collecting usage data.</h6>
+        <h6><FAIcon :icon="faTimes" class="text-danger" /> There were some errors collecting usage data.</h6>
         <p>
           You may have not setup all the connection settings, have a look at <RouterLink :to="routeLinks.throughput.setup.connectionSetup.link">Connection Setup in Configuration</RouterLink>.<br />
           If you have set all the connection settings but are still having issues, look at the <RouterLink :to="routeLinks.throughput.setup.diagnostics.link">Diagnostics in Configuration</RouterLink> for more information on how to fix them.

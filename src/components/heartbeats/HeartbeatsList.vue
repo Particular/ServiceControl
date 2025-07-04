@@ -11,6 +11,8 @@ import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import LastHeartbeat from "@/components/heartbeats/LastHeartbeat.vue";
 import ColumnHeader from "../ColumnHeader.vue";
+import FAIcon from "@/components/FAIcon.vue";
+import { faBellSlash, faCheck, faCloud, faServer } from "@fortawesome/free-solid-svg-icons";
 
 defineProps<{
   data: LogicalEndpoint[];
@@ -80,8 +82,7 @@ function endpointHealth(endpoint: LogicalEndpoint) {
                     <p>{{ endpoint.alive_count }} alive</p>
                   </template>
                 </template>
-                <i v-if="endpoint.track_instances" class="fa fa-server" :class="endpointHealth(endpoint)"></i>
-                <i v-else class="fa fa-sellsy" :class="endpointHealth(endpoint)"></i>&nbsp;
+                <FAIcon :icon="endpoint.track_instances ? faServer : faCloud" class="icon" :class="endpointHealth(endpoint)" />
                 <span class="endpoint-count" aria-label="instance-count">{{ store.instanceDisplayText(endpoint) }}</span>
               </tippy>
             </div>
@@ -90,7 +91,7 @@ function endpointHealth(endpoint: LogicalEndpoint) {
             </div>
             <div v-if="columns.includes(ColumnNames.Tracked)" role="cell" aria-label="tracked-instances" class="col-1 centre">
               <tippy v-if="endpoint.track_instances" id="tracked-instance-desc" content="Instances are being tracked" :delay="[1000, 0]">
-                <i class="fa fa-check text-success" aria-title="Instances are being tracked"></i>
+                <FAIcon :icon="faCheck" class="text-success" aria-title="Instances are being tracked" />
               </tippy>
             </div>
             <div v-if="columns.includes(ColumnNames.TrackToggle)" role="cell" aria-label="tracked-instances" class="col-2 centre">
@@ -101,13 +102,13 @@ function endpointHealth(endpoint: LogicalEndpoint) {
             <div v-if="columns.includes(ColumnNames.Muted)" role="cell" aria-label="muted" class="col-1 centre">
               <template v-if="endpoint.muted_count === endpoint.alive_count + endpoint.down_count">
                 <tippy content="All instances have alerts muted" :delay="[300, 0]">
-                  <i class="fa fa-bell-slash text-danger" />
+                  <FAIcon :icon="faBellSlash" class="text-danger" />
                 </tippy>
                 <span class="instances-muted" aria-label="Muted instance count">{{ endpoint.muted_count }}</span>
               </template>
               <template v-else-if="endpoint.muted_count > 0">
                 <tippy :content="`${endpoint.muted_count} instance(s) have alerts muted`" :delay="[300, 0]">
-                  <i class="fa fa-bell-slash text-warning" />
+                  <FAIcon :icon="faBellSlash" class="text-warning" />
                 </tippy>
                 <span class="instances-muted">{{ endpoint.muted_count }}</span>
               </template>
@@ -130,5 +131,9 @@ function endpointHealth(endpoint: LogicalEndpoint) {
 
 .instances-muted {
   font-weight: bold;
+}
+
+.icon {
+  padding-right: 6px;
 }
 </style>

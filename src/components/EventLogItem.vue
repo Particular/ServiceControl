@@ -5,12 +5,15 @@ import type EventLogItem from "@/resources/EventLogItem";
 // eslint-disable-next-line no-duplicate-imports
 import { Severity } from "@/resources/EventLogItem";
 import routeLinks from "@/router/routeLinks";
+import FAIcon from "@/components/FAIcon.vue";
+import { faCheck, faEnvelope, faExclamation, faHeartbeat, faPencil, faPlus, faTimes, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { computed } from "vue";
 
-defineProps<{ eventLogItem: EventLogItem }>();
+const props = defineProps<{ eventLogItem: EventLogItem }>();
 const router = useRouter();
 
-function navigateToEvent(eventLogItem: EventLogItem) {
-  switch (eventLogItem.category) {
+function navigateToEvent() {
+  switch (props.eventLogItem.category) {
     case "Endpoints":
       router.push(routeLinks.configuration.endpointConnection.link);
       break;
@@ -24,8 +27,8 @@ function navigateToEvent(eventLogItem: EventLogItem) {
       router.push(routeLinks.heartbeats.root);
       break;
     case "MessageFailures":
-      if (eventLogItem.related_to?.length && eventLogItem.related_to[0].search("message") > 0) {
-        const messageId = eventLogItem.related_to[0].substring(9);
+      if (props.eventLogItem.related_to?.length && props.eventLogItem.related_to[0].search("message") > 0) {
+        const messageId = props.eventLogItem.related_to[0].substring(9);
         router.push({ path: routeLinks.messages.failedMessage.link(messageId) });
       } else {
         router.push(routeLinks.failedMessage.root);
@@ -41,37 +44,49 @@ function navigateToEvent(eventLogItem: EventLogItem) {
   }
 }
 
-function iconClasses(eventItem: EventLogItem) {
-  return {
-    normal: eventItem.severity === Severity.Info,
-    danger: eventItem.severity === Severity.Error,
-    "fa-heartbeat": eventItem.category === "Endpoints" || eventItem.category === "EndpointControl" || eventItem.category === "HeartbeatMonitoring",
-    "fa-check": eventItem.category === "CustomChecks",
-    "fa-envelope": eventItem.category === "MessageFailures" || eventItem.category === "Recoverability",
-    "pa-redirect-source pa-redirect-large": eventItem.category === "MessageRedirects",
-    "fa-exclamation": eventItem.category === "ExternalIntegrations",
-  };
-}
+const icon = computed(() => {
+  switch (props.eventLogItem.category) {
+    case "Endpoints":
+    case "EndpointControl":
+    case "HeartbeatMonitoring":
+      return faHeartbeat;
+    case "CustomChecks":
+      return faCheck;
+    case "MessageFailures":
+    case "Recoverability":
+      return faEnvelope;
+    case "ExternalIntegrations":
+      return faExclamation;
+    default:
+      return null;
+  }
+});
 
-function iconSubClasses(eventItem: EventLogItem) {
-  return {
-    "fa-times fa-error": (eventItem.severity === Severity.Error || eventItem.category === "MessageRedirects") && eventItem.severity === Severity.Error,
-    "fa-pencil": (eventItem.severity === Severity.Error || eventItem.category === "MessageRedirects") && eventItem.category === "MessageRedirects" && eventItem.event_type === "MessageRedirectChanged",
-    "fa-plus": (eventItem.severity === Severity.Error || eventItem.category === "MessageRedirects") && eventItem.category === "MessageRedirects" && eventItem.event_type === "MessageRedirectCreated",
-    "fa-trash": (eventItem.severity === Severity.Error || eventItem.category === "MessageRedirects") && eventItem.category === "MessageRedirects" && eventItem.event_type === "MessageRedirectRemoved",
-  };
-}
+const subIcon = computed(() => {
+  if (props.eventLogItem.severity === Severity.Error) {
+    return faTimes;
+  } else if (props.eventLogItem.category === "MessageRedirects") {
+    switch (props.eventLogItem.event_type) {
+      case "MessageRedirectChanged":
+        return faPencil;
+      case "MessageRedirectCreated":
+        return faPlus;
+      case "MessageRedirectRemoved":
+        return faTrash;
+    }
+  }
+  return null;
+});
 </script>
 
 <template>
   <div class="row box box-event-item">
-    <div class="col-12" @click="navigateToEvent(eventLogItem)">
+    <div class="col-12" @click="navigateToEvent">
       <div class="row">
-        <div class="col-auto">
-          <span class="fa-stack fa-lg">
-            <i class="fa fa-stack-2x" :class="iconClasses(eventLogItem)" />
-            <i v-if="eventLogItem.severity === Severity.Error || eventLogItem.category === 'MessageRedirects'" class="fa fa-o fa-stack-1x fa-inverse" :class="iconSubClasses(eventLogItem)" />
-          </span>
+        <div class="col-auto col-icon">
+          <FAIcon v-if="icon" class="icon" :class="{ danger: props.eventLogItem.severity === Severity.Error }" :icon="icon" size="2x" />
+          <i v-else class="icon pa-redirect-source pa-redirect-large" />
+          <FAIcon v-if="subIcon" class="icon sub-item" :class="{ danger: eventLogItem.severity === Severity.Error }" :icon="subIcon" />
         </div>
         <div class="col-9">
           <div class="row box-header">
@@ -93,10 +108,6 @@ function iconSubClasses(eventItem: EventLogItem) {
 <style scoped>
 @import "./list.css";
 
-.fa-stack-2x {
-  font-size: 1.5em;
-}
-
 .box {
   padding-bottom: 0;
 }
@@ -104,7 +115,7 @@ function iconSubClasses(eventItem: EventLogItem) {
 .box:hover {
   cursor: pointer;
   background-color: #edf6f7;
-  border: 1px solid #00a3c4;
+  border: 1px solid var(--sp-blue);
 }
 
 .row.box-event-item,
@@ -116,19 +127,13 @@ function iconSubClasses(eventItem: EventLogItem) {
 }
 
 .col-icon {
-  display: table-cell;
-  width: 5em;
-  vertical-align: middle;
+  width: 4.5rem;
 }
 
 .col-message {
   display: table-cell;
   width: auto;
   vertical-align: middle;
-}
-
-.col-icon .fa-stack {
-  top: -0.5em;
 }
 
 .col-message p.lead {
@@ -149,10 +154,6 @@ function iconSubClasses(eventItem: EventLogItem) {
   padding-bottom: 0.625em;
 }
 
-.box-event-item .fa-stack {
-  height: 1em;
-}
-
 .pa-redirect-source {
   background-image: url("@/assets/redirect-source.svg");
   background-position: center;
@@ -161,5 +162,15 @@ function iconSubClasses(eventItem: EventLogItem) {
 
 .pa-redirect-large {
   height: 24px;
+  width: 24px;
+}
+
+.icon {
+  color: var(--reduced-emphasis);
+}
+
+.sub-item {
+  position: relative;
+  bottom: -0.5rem;
 }
 </style>

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useConfiguration } from "@/composables/configuration";
 import moment from "moment";
+import FAIcon from "@/components/FAIcon.vue";
+import { faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
 
 const configuration = useConfiguration();
 
@@ -20,8 +22,8 @@ function formatDate(date: string) {
       <h4>List of error queues configured in the connector.</h4>
       <div class="queues-container">
         <div class="margin-gap hover-highlight" v-for="queue in configuration.mass_transit_connector.error_queues" :key="queue.name">
-          <i v-if="queue.ingesting" class="fa fa-check info-color"></i>
-          <i v-else class="fa fa-times error-color" v-tippy="`Not ingesting from this queue. Check the logs below for more information.`"></i>
+          <FAIcon v-if="queue.ingesting" :icon="faCheck" class="info-color" />
+          <FAIcon v-else :icon="faTimes" class="error-color" v-tippy="`Not ingesting from this queue. Check the logs below for more information.`" />
           <span>{{ queue.name }}</span>
         </div>
       </div>

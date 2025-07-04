@@ -8,6 +8,8 @@ import ExclamationMark from "./../../components/ExclamationMark.vue";
 import convertToWarningLevel from "@/components/configuration/convertToWarningLevel";
 import { useConfiguration } from "@/composables/configuration";
 import { typeText } from "@/resources/LicenseInfo";
+import { faExternalLink } from "@fortawesome/free-solid-svg-icons";
+import FAIcon from "@/components/FAIcon.vue";
 
 // This is needed because the ConfigurationView.vue routerView expects this event.
 // The event is only actually emitted on the RetryRedirects.vue component
@@ -74,7 +76,7 @@ const configuration = useConfiguration();
                       Your license expired. To continue using the Particular Service Platform you'll need to extend your license.
                     </div>
                     <div class="license-page-extend-trial" v-if="licenseStatus.isPlatformTrialExpiring && licenseStatus.isPlatformTrialExpired">
-                      <a class="btn btn-default btn-primary" :href="license.license_extension_url" target="_blank">Extend your license&nbsp;&nbsp;<i class="fa fa-external-link"></i></a>
+                      <a class="btn btn-default btn-primary" :href="license.license_extension_url" target="_blank">Extend your license <FAIcon :icon="faExternalLink" /></a>
                     </div>
                   </div>
                 </template>
@@ -112,8 +114,7 @@ const configuration = useConfiguration();
 
                 <div class="need-help">
                   Need help?
-                  <a href="https://particular.net/contactus">Contact us</a>
-                  <i class="fa fa-external-link fake-link"></i>
+                  <a href="https://particular.net/contactus">Contact us <FAIcon :icon="faExternalLink" /></a>
                 </div>
               </div>
             </div>

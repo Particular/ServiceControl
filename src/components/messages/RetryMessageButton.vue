@@ -7,6 +7,8 @@ import { TYPE } from "vue-toastification";
 import { MessageStatus } from "@/resources/Message";
 import { storeToRefs } from "pinia";
 import { FailedMessageStatus } from "@/resources/FailedMessage";
+import FAIcon from "@/components/FAIcon.vue";
+import { faRefresh } from "@fortawesome/free-solid-svg-icons";
 
 const store = useMessageStore();
 const { state } = storeToRefs(store);
@@ -28,9 +30,15 @@ const handleConfirm = async () => {
 
 <template>
   <template v-if="isVisible">
-    <button type="button" class="btn btn-default" :disabled="isDisabled" @click="isConfirmDialogVisible = true"><i class="fa fa-refresh"></i> Retry message</button>
+    <button type="button" class="btn btn-default" :disabled="isDisabled" @click="isConfirmDialogVisible = true"><FAIcon :icon="faRefresh" class="icon" /> Retry message</button>
     <Teleport to="#modalDisplay">
       <ConfirmDialog v-if="isConfirmDialogVisible" @cancel="isConfirmDialogVisible = false" @confirm="handleConfirm" heading="Retry Message" body="Are you sure you want to retry this message?" />
     </Teleport>
   </template>
 </template>
+
+<style scoped>
+.icon {
+  color: var(--reduced-emphasis);
+}
+</style>

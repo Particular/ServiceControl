@@ -32,7 +32,7 @@ const emit = defineEmits<{ toggle: [] }>();
 }
 
 .onoffswitch-label {
-  border: 2px solid #929e9e;
+  border: 2px solid var(--reduced-emphasis);
   border-radius: 20px;
   cursor: pointer;
   display: block;
@@ -63,7 +63,7 @@ const emit = defineEmits<{ toggle: [] }>();
 }
 
 .onoffswitch-inner:before {
-  background-color: #00a3c4;
+  background-color: var(--sp-blue);
   color: #ffffff;
   content: "ON";
   padding-left: 10px;
@@ -71,7 +71,7 @@ const emit = defineEmits<{ toggle: [] }>();
 
 .onoffswitch-inner:after {
   background-color: #f2f6f7;
-  color: #929e9e;
+  color: var(--reduced-emphasis);
   content: "OFF";
   padding-right: 10px;
   text-align: right;
@@ -79,7 +79,7 @@ const emit = defineEmits<{ toggle: [] }>();
 
 .onoffswitch-switch {
   background: #ffffff;
-  border: 2px solid #929e9e;
+  border: 2px solid var(--reduced-emphasis);
   border-radius: 20px;
   bottom: 0;
   display: block;

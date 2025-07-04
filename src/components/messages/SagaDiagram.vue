@@ -6,6 +6,8 @@ import { storeToRefs } from "pinia";
 import { SagaViewModel, parseSagaUpdates } from "./SagaDiagram/SagaDiagramParser";
 import { typeToName } from "@/composables/typeHumanizer";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import FAIcon from "@/components/FAIcon.vue";
+import { faListUl } from "@fortawesome/free-solid-svg-icons";
 
 //Subcomponents
 import NoSagaData from "./SagaDiagram/NoSagaData.vue";
@@ -67,7 +69,7 @@ const vm = computed<SagaViewModel>(() => {
   <div class="saga-container">
     <!-- Toolbar header -->
     <div v-if="vm.HasSagaData" class="toolbar">
-      <button type="button" class="btn btn-secondary btn-sm" aria-label="show-message-data-button" @click="sagaDiagramStore.toggleMessageData"><i class="fa fa-list-ul"></i> {{ vm.ShowMessageData ? "Hide Message Data" : "Show Message Data" }}</button>
+      <button type="button" class="btn btn-secondary btn-sm" aria-label="show-message-data-button" @click="sagaDiagramStore.toggleMessageData"><FAIcon :icon="faListUl" /> {{ vm.ShowMessageData ? "Hide Message Data" : "Show Message Data" }}</button>
     </div>
 
     <!-- Loading Spinner -->

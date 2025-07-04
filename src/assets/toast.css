@@ -165,11 +165,11 @@
 }
 
 .toast-default a {
-  color: #00a3c4;
+  color: var(--sp-blue);
 }
 
 .toast-default a:hover {
-  color: #00a3c4;
+  color: var(--sp-blue);
   text-decoration: underline;
 }
 

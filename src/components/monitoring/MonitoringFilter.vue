@@ -48,14 +48,4 @@ div.filter-input {
   position: relative;
   width: 280px;
 }
-
-.filter-input:before {
-  font-family: "FontAwesome";
-  width: 1.43em;
-  content: "\f0b0";
-  color: #919e9e;
-  position: absolute;
-  top: calc(50% - 0.7em);
-  left: 0.75em;
-}
 </style>

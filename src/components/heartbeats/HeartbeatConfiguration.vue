@@ -10,6 +10,8 @@ import HeartbeatsList from "./HeartbeatsList.vue";
 import { ref } from "vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import ResultsCount from "../ResultsCount.vue";
+import FAIcon from "@/components/FAIcon.vue";
+import { faCloud, faServer } from "@fortawesome/free-solid-svg-icons";
 
 enum Operation {
   Track = "track",
@@ -68,21 +70,11 @@ async function toggleDefaultSetting() {
       <div class="col-sm-12">
         <span class="buttonsContainer">
           <button type="button" class="btn btn-default btn-sm" :disabled="filteredEndpoints.length === 0" @click="showBulkOperationWarningDialog(Operation.Track)">
-            <i
-              :class="{
-                'text-black': filteredEndpoints.length > 0,
-              }"
-              class="fa fa-server"
-            />
+            <FAIcon :icon="faServer" class="icon" :class="{ 'text-black': filteredEndpoints.length > 0 }" />
             Track Instances on All Endpoints
           </button>
           <button type="button" class="btn btn-default btn-sm" :disabled="filteredEndpoints.length === 0" @click="showBulkOperationWarningDialog(Operation.DoNotTrack)">
-            <i
-              :class="{
-                'text-black': filteredEndpoints.length > 0,
-              }"
-              class="fa fa-sellsy"
-            />
+            <FAIcon :icon="faCloud" class="icon" :class="{ 'text-black': filteredEndpoints.length > 0 }" />
             Do Not Track Instances on All Endpoints
           </button>
         </span>
@@ -154,5 +146,9 @@ async function toggleDefaultSetting() {
   border: #8c8c8c 1px solid;
   border-radius: 3px;
   padding: 0.4em;
+}
+
+.icon {
+  color: var(--reduced-emphasis);
 }
 </style>

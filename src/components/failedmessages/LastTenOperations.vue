@@ -5,6 +5,9 @@ import { useTypedFetchFromServiceControl } from "../../composables/serviceServic
 import TimeSince from "../TimeSince.vue";
 import type HistoricRetryOperation from "@/resources/HistoricRetryOperation";
 import RecoverabilityHistoryResponse from "@/resources/RecoverabilityHistoryResponse";
+import FAIcon from "@/components/FAIcon.vue";
+import { faAngleDown, faAngleRight, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { faClock } from "@fortawesome/free-regular-svg-icons";
 
 const historicOperations = ref<HistoricRetryOperation[]>([]);
 const showHistoricRetries = ref(false);
@@ -24,8 +27,8 @@ onMounted(() => {
     <div class="row">
       <div class="col-sm-12 list-section">
         <h6>
-          <span class="no-link-underline" aria-hidden="true" v-show="showHistoricRetries"><i class="fa fa-angle-down" aria-hidden="true"></i> </span>
-          <span class="fake-link" aria-hidden="true" v-show="!showHistoricRetries"><i class="fa fa-angle-right" aria-hidden="true"></i> </span>
+          <span class="no-link-underline" aria-hidden="true" v-show="showHistoricRetries"><FAIcon :icon="faAngleDown" size="xs" class="icon" /> </span>
+          <span class="fake-link" aria-hidden="true" v-show="!showHistoricRetries"><FAIcon :icon="faAngleRight" size="xs" class="icon" /> </span>
           <a class="lastTenHeading" v-on:click="showHistoricRetries = !showHistoricRetries"> Last 10 completed retry requests</a>
         </h6>
       </div>
@@ -47,13 +50,13 @@ onMounted(() => {
                 <div class="row">
                   <div class="col-sm-12 no-side-padding">
                     <p class="metadata">
-                      <span class="metadata"><i aria-hidden="true" class="fa fa-envelope"></i> Messages sent: {{ group.number_of_messages_processed }} </span>
-                      <span class="metadata"
-                        ><i aria-hidden="true" class="fa fa-clock-o"></i> Retry request started:
+                      <span class="metadata"><FAIcon :icon="faEnvelope" class="icon" /> Messages sent: {{ group.number_of_messages_processed }} </span>
+                      <span class="metadata">
+                        <FAIcon :icon="faClock" class="icon" /> Retry request started:
                         <time-since :date-utc="group.start_time"></time-since>
                       </span>
-                      <span class="metadata"
-                        ><i aria-hidden="true" class="fa fa-clock-o"></i> Retry request completed:
+                      <span class="metadata">
+                        <FAIcon :icon="faClock" class="icon" /> Retry request completed:
                         <time-since :date-utc="group.completion_time"></time-since>
                       </span>
                     </p>
@@ -85,6 +88,10 @@ onMounted(() => {
 }
 
 .lastTenHeading {
-  color: #00a3c4;
+  color: var(--sp-blue);
+}
+
+.icon {
+  color: var(--reduced-emphasis);
 }
 </style>

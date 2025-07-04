@@ -4,6 +4,8 @@ import { useDownloadFileFromString } from "@/composables/fileDownloadCreator";
 import { showToastAfterOperation } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import { ref } from "vue";
+import FAIcon from "@/components/FAIcon.vue";
+import { faDownload } from "@fortawesome/free-solid-svg-icons";
 
 const store = useMessageStore();
 const executing = ref(false);
@@ -24,11 +26,15 @@ async function exportMessage() {
 </script>
 
 <template>
-  <button v-if="!executing" type="button" class="btn btn-default" @click="exportMessage"><i class="fa fa-download"></i> Export message</button>
+  <button v-if="!executing" type="button" class="btn btn-default" @click="exportMessage"><FAIcon :icon="faDownload" class="icon" /> Export message</button>
   <button v-else type="button" class="btn btn-default" disabled>
     <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
     <span role="status"> Exporting message</span>
   </button>
 </template>
 
-<style scoped></style>
+<style scoped>
+.icon {
+  color: var(--reduced-emphasis);
+}
+</style>

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { licenseStatus, license } from "../composables/serviceLicense";
 import routeLinks from "@/router/routeLinks";
+import FAIcon from "@/components/FAIcon.vue";
+import { faExternalLink } from "@fortawesome/free-solid-svg-icons";
 </script>
 
 <template>
@@ -18,7 +20,7 @@ import routeLinks from "@/router/routeLinks";
       <h1>License expired</h1>
       <p>To continue using the Particular Service Platform, please extend your license</p>
       <div class="action-toolbar">
-        <a class="btn btn-default btn-primary" :href="license.license_extension_url" target="_blank">Extend your license <i class="fa fa-external-link"></i></a>
+        <a class="btn btn-default btn-primary" :href="license.license_extension_url" target="_blank">Extend your license <FAIcon :icon="faExternalLink" /></a>
         <RouterLink class="btn btn-default btn-secondary" :to="routeLinks.configuration.license.link">View license details</RouterLink>
       </div>
     </div>

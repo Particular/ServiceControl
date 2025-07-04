@@ -60,14 +60,14 @@ ul.dropdown-menu > span > li > a > span {
   padding-left: 16px;
   background: none;
   border: none;
-  color: #00a3c4;
+  color: var(--sp-blue);
   padding-right: 0;
 }
 
 .sp-btn-menu:hover {
   background: none;
   border: none;
-  color: #00a3c4;
+  color: var(--sp-blue);
   text-decoration: underline;
 }
 

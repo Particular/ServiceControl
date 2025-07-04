@@ -9,6 +9,8 @@ import SmallGraph from "./SmallGraph.vue";
 import PaginationStrip from "@/components/PaginationStrip.vue";
 import { useMonitoringEndpointDetailsStore } from "@/stores/MonitoringEndpointDetailsStore";
 import ColumnHeader from "@/components/ColumnHeader.vue";
+import FAIcon from "@/components/FAIcon.vue";
+import { faWarning } from "@fortawesome/free-solid-svg-icons";
 
 const monitoringStore = useMonitoringEndpointDetailsStore();
 const { endpointDetails: endpoint, messageTypes, messageTypesAvailable } = storeToRefs(monitoringStore);
@@ -39,7 +41,7 @@ const paginatedMessageTypes = computed(() => {
   <div class="row">
     <div role="table" aria-label="message-types" class="col-xs-12 no-side-padding">
       <div v-if="messageTypesAvailable" class="alert alert-warning endpoint-data-changed">
-        <i class="fa fa-warning"></i> <strong>Warning:</strong> The number of available message types has changed.
+        <FAIcon :icon="faWarning" /> <strong>Warning:</strong> The number of available message types has changed.
         <a @click="monitoringStore.updateMessageTypes()" class="alink">Click here to reload the view</a>
       </div>
 

@@ -10,6 +10,8 @@ import SmallGraph from "./SmallGraph.vue";
 import type { ExtendedEndpointInstance } from "@/resources/MonitoringEndpoint";
 import routeLinks from "@/router/routeLinks";
 import ColumnHeader from "@/components/ColumnHeader.vue";
+import FAIcon from "@/components/FAIcon.vue";
+import { faEnvelope, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 const isRemovingEndpointEnabled = ref<boolean>(false);
 const router = useRouter();
@@ -97,7 +99,7 @@ onMounted(async () => {
                       </span>
                       <span role="status" aria-label="error-count-warning" class="warning" v-if="instance.errorCount" v-tippy="`${instance.errorCount} failed messages associated with this endpoint. Click to see list.`">
                         <RouterLink :to="routeLinks.failedMessage.group.link(instance.serviceControlId)" v-if="instance.errorCount" class="warning cursorpointer">
-                          <i class="fa fa-envelope"></i>
+                          <FAIcon :icon="faEnvelope" class="endpoint-status-icon" />
                           <span aria-label="error-count" class="badge badge-important cursorpointer"> {{ instance.errorCount }}</span>
                         </RouterLink>
                       </span>
@@ -162,7 +164,7 @@ onMounted(async () => {
                 <!--remove endpoint-->
                 <div class="col-xs-2 col-xl-1 no-side-padding">
                   <a v-if="isRemovingEndpointEnabled && instance.isStale" class="remove-endpoint" @click="removeEndpoint(endpointName, instance)">
-                    <i class="fa fa-trash" v-tippy="`Remove endpoint`"></i>
+                    <FAIcon :icon="faTrash" v-tippy="`Remove endpoint`" />
                   </a>
                 </div>
               </div>
@@ -202,7 +204,7 @@ a.remove-endpoint:hover {
 }
 
 a.remove-endpoint i {
-  color: #00a3c4;
+  color: var(--sp-blue);
 }
 
 a.remove-endpoint:hover i {

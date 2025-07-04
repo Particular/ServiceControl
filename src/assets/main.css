@@ -1,5 +1,4 @@
 @import "bootstrap/dist/css/bootstrap.css";
-@import "font-awesome/css/font-awesome.css";
 @import "footer.css";
 @import "tabs.css";
 @import "dropdown.css";
@@ -20,6 +19,9 @@
   --monitoring-processing-time-light: #bee6c5;
   --monitoring-critical-time: #2700cb;
   --monitoring-critical-time-light: #c4bce5;
+  --sp-blue: #00a3c4;
+  --info-icon: #0d6efd;
+  --reduced-emphasis: #929e9e;
 }
 
 body {
@@ -117,13 +119,13 @@ h6 a:hover {
 
 a {
   text-decoration: none;
-  color: #00a3c4;
+  color: var(--sp-blue);
   outline: none;
   border: none;
 }
 
 a:hover {
-  color: #00a3c4;
+  color: var(--sp-blue);
   text-decoration: underline;
 }
 
@@ -258,19 +260,19 @@ pre {
 }
 
 .btn.btn-default.disabled:hover {
-  border-color: #00a3c4;
+  border-color: var(--sp-blue);
 }
 
 .btn.btn-primary {
   padding: 8px 16px;
-  background-color: #00a3c4;
+  background-color: var(--sp-blue);
   border-color: #0686aa;
   color: #fff;
 }
 
 .btn-primary:hover {
   background-color: #0db3c8;
-  border-color: #00a3c4;
+  border-color: var(--sp-blue);
   color: #fff;
 }
 
@@ -281,19 +283,19 @@ pre {
 
 .btn-secondary {
   background-color: #fff;
-  color: #00a3c4;
-  border-color: #00a3c4;
+  color: var(--sp-blue);
+  border-color: var(--sp-blue);
 }
 
 .btn-secondary:hover {
-  color: #00a3c4;
-  border-color: #00a3c4;
+  color: var(--sp-blue);
+  border-color: var(--sp-blue);
   background-color: #fff;
   opacity: 0.7;
 }
 
 .btn-secondary.disabled {
-  border-color: #00a3c4;
+  border-color: var(--sp-blue);
 }
 
 .row {
@@ -304,16 +306,6 @@ pre {
 .danger {
   color: #ce4844 !important;
   font-weight: bold !important;
-}
-
-.fa-error {
-  color: #ce4844;
-}
-
-.fa-o {
-  bottom: -0.5em;
-  left: 1.2em;
-  position: relative;
 }
 
 .btn-link:hover,
@@ -373,7 +365,7 @@ input.check-label {
 }
 
 .metadata > .btn-sm > i {
-  color: #00a3c4;
+  color: var(--sp-blue);
 }
 
 .metadata:first-child {
@@ -387,7 +379,7 @@ span.metadata {
 }
 
 span.metadata.metadata-link i.fa {
-  color: #00a3c4;
+  color: var(--sp-blue);
 }
 
 .metadata > .in-progress {
@@ -444,7 +436,7 @@ fieldset[disabled]:hover {
 }
 .box-group:hover {
   background-color: #edf6f7;
-  border: 1px solid #00a3c4;
+  border: 1px solid var(--sp-blue);
   cursor: pointer;
 }
 
@@ -493,14 +485,6 @@ h3.group-title {
   line-height: 28px;
 }
 
-div.alert.alert-warning i.fa.fa-warning {
-  color: #8a6d3b;
-}
-
-div.alert.alert-info i.fa.fa-info-circle {
-  color: #31708f;
-}
-
 div.alert.alert-warning strong {
   text-transform: uppercase;
 }
@@ -515,12 +499,8 @@ div.alert.alert-warning strong {
 
 /* TODO: why do these have to be !important? */
 .fake-link {
-  color: #00a3c4 !important;
+  color: var(--sp-blue) !important;
   text-decoration: none !important;
-}
-
-.sp-blue {
-  color: #00a3c4;
 }
 
 .tooltip {

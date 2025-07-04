@@ -2,11 +2,13 @@
 import { RouterLink } from "vue-router";
 import routeLinks from "@/router/routeLinks";
 import { stats } from "@/composables/serviceServiceControl";
+import FAIcon from "@/components/FAIcon.vue";
+import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 </script>
 
 <template>
   <RouterLink :to="routeLinks.failedMessage.root">
-    <i class="fa fa-envelope icon-white" title="Failed Messages"></i>
+    <FAIcon :icon="faEnvelope" title="Failed Messages" />
     <span class="navbar-label">Failed Messages</span>
     <span v-if="stats.number_of_failed_messages > 0" class="badge badge-important">{{ stats.number_of_failed_messages }}</span>
   </RouterLink>
