@@ -43,7 +43,15 @@ function formatDate([fromDate, toDate]: DateRange) {
 </script>
 
 <template>
-  <VueDatePicker ref="datePicker" class="dropdown" v-model="internalModel" :format="formatDate" :range="{ partialRange: false }" :enable-seconds="true" :action-row="{ showNow: false, showCancel: false, showSelect: true }">
+  <VueDatePicker
+    ref="datePicker"
+    class="dropdown"
+    v-model="internalModel"
+    :format="(dates: Date[]) => formatDate(dates as DateRange)"
+    :range="{ partialRange: false }"
+    :enable-seconds="true"
+    :action-row="{ showNow: false, showCancel: false, showSelect: true }"
+  >
     <template #trigger>
       <button type="button" class="btn btn-dropdown dropdown-toggle sp-btn-menu">
         {{ displayDataRange }}
