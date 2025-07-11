@@ -1,30 +1,33 @@
 <script setup lang="ts">
 import routeLinks from "@/router/routeLinks";
 import Message, { MessageStatus } from "@/resources/Message";
-import { defineProps } from "vue";
+import { computed, defineProps } from "vue";
 import { formatDotNetTimespan } from "@/composables/formatUtils";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter, RouterLink } from "vue-router";
 import MessageStatusIcon from "@/components/audit/MessageStatusIcon.vue";
 
-const route = useRoute();
 const router = useRouter();
 
 const props = defineProps<{
   message: Message;
 }>();
-
-function navigateToMessage(message: Message) {
+const link = computed(() => {
   const query = router.currentRoute.value.query;
 
-  router.push({
-    path: message.status === MessageStatus.Successful || message.status === MessageStatus.ResolvedSuccessfully ? routeLinks.messages.successMessage.link(message.message_id, message.id) : routeLinks.messages.failedMessage.link(message.id),
-    query: { ...query, ...{ back: route.path } },
+  const route = router.resolve({
+    path:
+      props.message.status === MessageStatus.Successful || props.message.status === MessageStatus.ResolvedSuccessfully
+        ? routeLinks.messages.successMessage.link(props.message.message_id, props.message.id)
+        : routeLinks.messages.failedMessage.link(props.message.id),
+    query: { ...query, ...{ back: router.currentRoute.value.path } },
   });
-}
+
+  return route;
+});
 </script>
 
 <template>
-  <div class="item" @click="navigateToMessage(props.message)">
+  <RouterLink class="item" :to="link">
     <div class="status">
       <MessageStatusIcon :message="props.message" />
     </div>
@@ -34,11 +37,13 @@ function navigateToMessage(message: Message) {
     <div class="critical-time"><span class="label-name">Critical Time:</span>{{ formatDotNetTimespan(props.message.critical_time) }}</div>
     <div class="processing-time"><span class="label-name">Processing Time:</span>{{ formatDotNetTimespan(props.message.processing_time) }}</div>
     <div class="delivery-time"><span class="label-name">Delivery Time:</span>{{ formatDotNetTimespan(props.message.delivery_time) }}</div>
-  </div>
+  </RouterLink>
 </template>
 
 <style scoped>
 .item {
+  color: inherit;
+  text-decoration: none;
   padding: 0.3rem 0.2rem;
   border: 1px solid #ffffff;
   border-bottom: 1px solid #eee;
@@ -56,7 +61,6 @@ function navigateToMessage(message: Message) {
 .item:hover {
   border-color: var(--sp-blue);
   background-color: #edf6f7;
-  cursor: pointer;
 }
 .label-name {
   margin-right: 0.25rem;
