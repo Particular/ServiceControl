@@ -2,7 +2,7 @@ on:
   workflow_call:
 jobs:
   containers:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     name: ${{ matrix.name }}
     defaults:
       run:
