@@ -1,4 +1,5 @@
-﻿namespace ServiceControl.Config.Xaml.Native
+﻿#pragma warning disable IDE1006 // Disable naming convention for lowercase variables in methods due to native code interop
+namespace ServiceControl.Config.Xaml.Native
 {
     using System;
     using System.Runtime.InteropServices;
