@@ -4,7 +4,7 @@ permissions:
   packages: write
 jobs:
   db-container:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     name: db-container
     defaults:
       run:
