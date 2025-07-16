@@ -69,7 +69,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
-        uses: Particular/install-sql-server-action@v1.2.0
+        uses: Particular/install-sql-server-action@v1.3.0
         if: matrix.test-category == 'SqlServer'
         with:
           connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
