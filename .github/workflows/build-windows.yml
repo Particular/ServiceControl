@@ -5,7 +5,6 @@ defaults:
     shell: pwsh
 jobs:
   build:
-    if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: windows-latest
     steps:
       - name: Check for secrets
