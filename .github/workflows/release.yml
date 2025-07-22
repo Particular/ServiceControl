@@ -8,14 +8,11 @@ env:
   DOTNET_NOLOGO: true
 jobs:
   windows-installers:
-    if: ${{ github.actor != 'dependabot[bot]' }}
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
   containers:
-    if: ${{ github.actor != 'dependabot[bot]' }}
     uses: ./.github/workflows/build-containers.yml
     secrets: inherit
   db-container:
-    if: ${{ github.actor != 'dependabot[bot]' }}
     uses: ./.github/workflows/build-db-container.yml
     secrets: inherit

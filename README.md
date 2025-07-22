@@ -35,7 +35,7 @@ the `launchSettings.json` file of each instance. When started in setup mode, the
 
 ## Secrets
 
-Testing using the [CI workflow](/.github/workflows/ci.yml) depends on the following secrets, which must be defined for both Actions and Dependabot secrets. The Particular values for these secrets are stored in the secure note named **ServiceControl Repo Secrets**.
+Testing using the [CI workflow](/.github/workflows/ci.yml) depends on the following secrets. The Particular values for these secrets are stored in the secure note named **ServiceControl Repo Secrets**.
 
 * `LICENSETEXT`: Particular Software license text
 * `AWS_ACCESS_KEY_ID`: For testing SQS
