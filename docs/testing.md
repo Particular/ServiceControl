@@ -43,6 +43,13 @@ Container images generated for all builds are pushed to the [GitHub container re
 Containers built by a PR and stored on GitHub Container Registry can be tested locally:
 
 1. [Authenticate to the GitHub Container Registry using a personal access token](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic).
+    - Create a [classic token](https://github.com/settings/tokens). Select the scope for `read:packages`
+    - Copy the newly created token text.
+    - **On Windows**
+      - create an Environment Variable to store the token (e.g. GITHUB_TOKEN)
+      - open powershell
+      - run the command `echo $env:GITHUB_TOKEN | docker login ghcr.io -u <your particular email> --password-stdin`
+    - ensure that you get a successful login message. use `docker logout ghcr.io` once the following steps are complete and consider removing the token from github if its no longer needed
 2. In the terminal, navigate to `[/docs/test-ghcr-tag`](/docs/test/ghcr-tag).
 3. Edit the [`.env` file](/docs/test-ghcr-tag/.env) to specify the PR-based tag (in the form `pr-####`) to test.
 4. Run `docker compose up -d`.
