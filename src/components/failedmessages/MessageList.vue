@@ -81,7 +81,10 @@ function labelClicked($event: MouseEvent, index: number) {
 }
 
 function navigateToMessage(messageId: string) {
-  router.push({ path: routeLinks.messages.failedMessage.link(messageId) });
+  router.push({
+    path: routeLinks.messages.failedMessage.link(messageId),
+    query: { back: router.currentRoute.value.fullPath },
+  });
 }
 
 defineExpose<IMessageList>({
