@@ -6,5 +6,5 @@ export enum UserIndicator {
   NServiceBusEndpointNoLongerInUse = "NServiceBusEndpointNoLongerInUse",
   PlannedToDecommission = "PlannedToDecommission",
   GatewayOrBridgingEndpoint = "GatewayOrBridgingEndpoint",
-  ServiceControlEndpoint = "ServiceControlEndpoint",
+  ParticularPlatformEndpoint = "ParticularPlatformEndpoint",
 }

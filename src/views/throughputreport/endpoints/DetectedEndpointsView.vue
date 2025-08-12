@@ -32,7 +32,7 @@ const { isBrokerTransport, hasErrors } = storeToRefs(useThroughputStore());
       UserIndicator.NServiceBusEndpointNoLongerInUse,
       UserIndicator.PlannedToDecommission,
       UserIndicator.GatewayOrBridgingEndpoint,
-      UserIndicator.ServiceControlEndpoint,
+      UserIndicator.ParticularPlatformEndpoint,
     ]"
     :source="DataSource.WellKnownEndpoint"
     column-title="Endpoint Name"

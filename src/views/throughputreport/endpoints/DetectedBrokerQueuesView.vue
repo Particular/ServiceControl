@@ -32,7 +32,7 @@ const { testResults } = storeToRefs(store);
       UserIndicator.NServiceBusEndpointNoLongerInUse,
       UserIndicator.PlannedToDecommission,
       UserIndicator.GatewayOrBridgingEndpoint,
-      UserIndicator.ServiceControlEndpoint,
+      UserIndicator.ParticularPlatformEndpoint,
     ]"
     :source="DataSource.Broker"
     column-title="Queue Name"
