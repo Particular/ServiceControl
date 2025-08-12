@@ -22,6 +22,8 @@
   --sp-blue: #00a3c4;
   --info-icon: #0d6efd;
   --reduced-emphasis: #929e9e;
+  /* FA7 introduced fixed width icons, whereas our design was based on auto width. Forcing it back to fix alignment issues*/
+  --fa-width: auto;
 }
 
 body {
