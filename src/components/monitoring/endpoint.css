@@ -66,6 +66,7 @@ h1 .endpoint-status .endpoint-status-icon {
 .endpoint-status .pa-monitoring-lost.endpoint-details,
 .endpoint-status .pa-endpoint-lost.endpoints-overview,
 .endpoint-status .pa-monitoring-lost.endpoints-overview {
+  display: inline-block;
   width: 26px;
   height: 26px;
   left: 6px;
@@ -105,6 +106,7 @@ h1 .endpoint-status .endpoint-status-icon {
   background-image: url("@/assets/warning.svg");
   background-position: center;
   background-repeat: no-repeat;
+  display: inline-block;
   width: 20px;
   height: 20px;
   margin-left: 4px;
