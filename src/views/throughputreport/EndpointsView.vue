@@ -12,9 +12,11 @@ import LegendTransactionalSessionProcessorEndpoint from "./LegendTransactionalSe
 import LegendSendOnlyEndpoint from "./LegendSendOnlyEndpoint.vue";
 import LegendPlannedToDecommission from "./LegendPlannedToDecommission.vue";
 import LegendNotNServiceBusEndpoint from "./LegendNotNServiceBusEndpoint.vue";
+import LegendGatewayOrBridgeEndpoint from "./LegendGatewayOrBridgeEndpoint.vue";
+import LegendServiceControlEndpoint from "./LegendServiceControlEndpoint.vue";
 
 const { isBrokerTransport } = storeToRefs(useThroughputStore());
-const showLegend = ref(true);
+const showLegend = ref(false);
 
 const legendOptions = new Map<UserIndicator, Component>([
   [UserIndicator.NServiceBusEndpoint, LegendNServiceBusEndpoint],
@@ -23,6 +25,8 @@ const legendOptions = new Map<UserIndicator, Component>([
   [UserIndicator.SendOnlyEndpoint, LegendSendOnlyEndpoint],
   [UserIndicator.PlannedToDecommission, LegendPlannedToDecommission],
   [UserIndicator.NotNServiceBusEndpoint, LegendNotNServiceBusEndpoint],
+  [UserIndicator.GatewayOrBridgingEndpoint, LegendGatewayOrBridgeEndpoint],
+  [UserIndicator.ServiceControlEndpoint, LegendServiceControlEndpoint],
 ]);
 
 function toggleOptionsLegendVisible() {

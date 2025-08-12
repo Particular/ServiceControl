@@ -44,20 +44,20 @@ describe("EndpointsView tests", () => {
     return { debug, driver };
   }
 
-  test("instructions by default are showing", async () => {
+  test("instructions by default are not showing", async () => {
     await renderComponent();
 
-    expect(screen.queryByText(/Hide Endpoint Types meaning/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Show Endpoint Types meaning/i)).toBeInTheDocument();
   });
 
-  test("hide instructions", async () => {
+  test("show instructions", async () => {
     await renderComponent();
 
     const use = userEvent.setup();
 
-    await use.click(screen.getByRole("link", { name: /Hide Endpoint Types meaning/i }));
+    await use.click(screen.getByRole("link", { name: /Show Endpoint Types meaning/i }));
 
-    expect(screen.queryByText(/Show Endpoint Types meaning/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Hide Endpoint Types meaning/i)).toBeInTheDocument();
   });
 
   test("broker displays the two tabs", async () => {

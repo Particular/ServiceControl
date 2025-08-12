@@ -5,4 +5,6 @@ export enum UserIndicator {
   SendOnlyEndpoint = "SendOnlyEndpoint",
   NServiceBusEndpointNoLongerInUse = "NServiceBusEndpointNoLongerInUse",
   PlannedToDecommission = "PlannedToDecommission",
+  GatewayOrBridgingEndpoint = "GatewayOrBridgingEndpoint",
+  ServiceControlEndpoint = "ServiceControlEndpoint",
 }
