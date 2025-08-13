@@ -31,6 +31,8 @@ const { testResults } = storeToRefs(store);
       UserIndicator.SendOnlyEndpoint,
       UserIndicator.NServiceBusEndpointNoLongerInUse,
       UserIndicator.PlannedToDecommission,
+      UserIndicator.GatewayOrBridgingEndpoint,
+      UserIndicator.ParticularPlatformEndpoint,
     ]"
     :source="DataSource.Broker"
     column-title="Queue Name"
