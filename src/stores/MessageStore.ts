@@ -61,7 +61,7 @@ interface Model {
 
 export const useMessageStore = defineStore("MessageStore", () => {
   const headers = ref<DataContainer<Header[]>>({ data: [] });
-  const body = ref<DataContainer<{ value?: string; content_type?: string }>>({ data: {} });
+  const body = ref<DataContainer<{ value?: string; content_type?: string; no_content?: boolean }>>({ data: {} });
   const state = reactive<DataContainer<Model>>({ data: { failure_metadata: {}, failure_status: {}, dialog_status: {}, invoked_saga: {} } });
   let bodyLoadedId = "";
   let conversationLoadedId = "";
@@ -204,6 +204,12 @@ export const useMessageStore = defineStore("MessageStore", () => {
         return;
       }
 
+      if (response.status === 204) {
+        body.value.data.no_content = true;
+
+        return;
+      }
+
       const contentType = response.headers.get("content-type");
       body.value.data.content_type = contentType ?? "text/plain";
       body.value.data.value = await response.text();
@@ -288,7 +294,7 @@ export const useMessageStore = defineStore("MessageStore", () => {
 
     await downloadBody();
 
-    if (!(body.value.not_found || body.value.failed_to_load)) {
+    if (!(body.value.not_found || body.value.failed_to_load || body.value.data.no_content)) {
       exportString += "\n\nMESSAGE BODY\n";
       exportString += body.value.data.value;
     }

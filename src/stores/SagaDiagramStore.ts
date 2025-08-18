@@ -10,7 +10,7 @@ import { useMessageStore } from "./MessageStore";
 
 export interface SagaMessageData {
   message_id: string;
-  body: DataContainer<{ value?: string; content_type?: string }>;
+  body: DataContainer<{ value?: string; content_type?: string; no_content?: boolean }>;
 }
 export const useSagaDiagramStore = defineStore("SagaDiagramStore", () => {
   const sagaHistory = ref<SagaHistory | null>(null);
@@ -98,6 +98,11 @@ export const useSagaDiagramStore = defineStore("SagaDiagramStore", () => {
       const response = await useFetchFromServiceControl(bodyUrl);
       if (response.status === 404) {
         result.body.not_found = true;
+        return result;
+      }
+
+      if (response.status === 204) {
+        result.body.data.no_content = true;
         return result;
       }
 
