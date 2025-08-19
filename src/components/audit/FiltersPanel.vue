@@ -5,8 +5,6 @@ import { FieldNames, useAuditStore } from "@/stores/AuditStore";
 import ListFilterSelector from "@/components/audit/ListFilterSelector.vue";
 import { computed } from "vue";
 import DatePickerRange from "@/components/audit/DatePickerRange.vue";
-import FAIcon from "@/components/FAIcon.vue";
-import { faAsterisk } from "@fortawesome/free-solid-svg-icons";
 
 const store = useAuditStore();
 const { sortBy, messageFilterString, selectedEndpointName, endpoints, itemsPerPage, dateRange } = storeToRefs(store);
@@ -62,7 +60,7 @@ function findKeyByValue(searchValue: string) {
       <div class="filter-label"></div>
       <div class="filter-component text-search-container">
         <FilterInput v-model="messageFilterString" placeholder="Search messages..." aria-label="Search messages" />
-        <div class="note">Use <FAIcon :icon="faAsterisk" size="xs" /> as a wildcard. E.g.: <FAIcon :icon="faAsterisk" size="xs" />World! or Hello<FAIcon :icon="faAsterisk" size="xs" /> finds Hello World!</div>
+        <div class="note">Check the <a href="https://docs.particular.net/servicepulse/all-messages#filtering-options">documentation</a> to see the available filtering options</div>
       </div>
     </div>
     <div class="filter">
