@@ -1,5 +1,6 @@
 {
   "extends": "@tsconfig/node18/tsconfig.json",
+  "exclude": ["node_modules", "dist"],
   "include": [
     "vite.config.*",
     "vitest.config.*",
