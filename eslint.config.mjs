@@ -4,7 +4,8 @@ import tseslint from "typescript-eslint";
 import pluginVue from "eslint-plugin-vue";
 import pluginPromise from "eslint-plugin-promise";
 
-export default tseslint.config({
+export default tseslint.config(
+  {
     ignores: ["node_modules/**", "dist/**", "public/js/app.constants.js"],
   },
   {
@@ -23,4 +24,5 @@ export default tseslint.config({
       eqeqeq: ["error", "smart"],
       "no-throw-literal": "warn",
     },
-});
+  }
+);
