@@ -3,6 +3,7 @@ import pluginJs from "@eslint/js";
 import tseslint from "typescript-eslint";
 import pluginVue from "eslint-plugin-vue";
 import pluginPromise from "eslint-plugin-promise";
+import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 
 export default tseslint.config(
   {
@@ -11,7 +12,7 @@ export default tseslint.config(
   {
     files: ["**/*.{js,mjs,ts,vue}"],
     languageOptions: { globals: globals.browser, ecmaVersion: "latest", parserOptions: { parser: tseslint.parser } },
-    extends: [pluginJs.configs.recommended, ...tseslint.configs.recommended, ...pluginVue.configs["flat/essential"], pluginPromise.configs["flat/recommended"]],
+    extends: [pluginJs.configs.recommended, ...tseslint.configs.recommended, ...pluginVue.configs["flat/essential"], pluginPromise.configs["flat/recommended"], eslintPluginPrettierRecommended],
     rules: {
       "no-duplicate-imports": "error",
       "promise/prefer-await-to-then": "error",
