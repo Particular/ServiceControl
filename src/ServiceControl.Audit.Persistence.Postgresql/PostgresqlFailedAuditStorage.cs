@@ -1,4 +1,4 @@
-namespace ServiceControl.Audit.Persistence.Postgresql
+namespace ServiceControl.Audit.Persistence.PostgreSQL
 {
     using System;
     using System.Threading;
@@ -6,7 +6,7 @@ namespace ServiceControl.Audit.Persistence.Postgresql
     using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Persistence;
 
-    public class PostgresqlFailedAuditStorage : IFailedAuditStorage
+    public class PostgreSQLFailedAuditStorage : IFailedAuditStorage
     {
         public Task<int> GetFailedAuditsCount() => throw new NotImplementedException();
         public Task ProcessFailedMessages(Func<FailedTransportMessage, Func<CancellationToken, Task>, CancellationToken, Task> onMessage, CancellationToken cancellationToken) => throw new NotImplementedException();

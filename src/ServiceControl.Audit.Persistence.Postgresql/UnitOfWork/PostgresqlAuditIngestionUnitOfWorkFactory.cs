@@ -1,15 +1,25 @@
-namespace ServiceControl.Audit.Persistence.Postgresql.UnitOfWork
+namespace ServiceControl.Audit.Persistence.PostgreSQL.UnitOfWork
 {
     using System.Threading;
     using System.Threading.Tasks;
+    using Npgsql;
     using ServiceControl.Audit.Persistence.UnitOfWork;
+    using ServiceControl.Audit.Persistence.PostgreSQL;
 
-    public class PostgresqlAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory
+    public class PostgreSQLAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory
     {
-        public ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken)
+        readonly PostgreSQLConnectionFactory connectionFactory;
+
+        public PostgreSQLAuditIngestionUnitOfWorkFactory(PostgreSQLConnectionFactory connectionFactory)
         {
-            // TODO: Implement logic to start a new unit of work for PostgreSQL
-            throw new System.NotImplementedException();
+            this.connectionFactory = connectionFactory;
+        }
+
+        public async ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken)
+        {
+            var connection = await connectionFactory.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+            var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+            return new PostgreSQLAuditIngestionUnitOfWork(connection, transaction);
         }
 
         public bool CanIngestMore() => true; // TODO: Implement logic based on storage state
