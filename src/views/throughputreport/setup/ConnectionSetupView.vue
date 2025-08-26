@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import ThroughputConnectionSettings from "@/resources/ThroughputConnectionSettings";
 import throughputClient from "@/views/throughputreport/throughputClient";
 import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
@@ -16,11 +16,18 @@ const settingsInfo = ref<ThroughputConnectionSettings | null>(null);
 onMounted(async () => {
   settingsInfo.value = await throughputClient.setting();
 });
+
+const needsConfiguration = computed(() => {
+  const broker = settingsInfo.value?.broker_settings?.length ?? 0;
+  const monitoring = settingsInfo.value?.monitoring_settings?.length ?? 0;
+  const serviceControl = settingsInfo.value?.service_control_settings?.length ?? 0;
+  return broker > 0 || (monitoring > 0 && useIsMonitoringEnabled()) || serviceControl > 0;
+});
 </script>
 
 <template>
   <div class="row">
-    <p v-if="(settingsInfo?.broker_settings.length ?? 0 > 0) || ((settingsInfo?.monitoring_settings.length ?? 0 > 0) && useIsMonitoringEnabled()) || (settingsInfo?.service_control_settings.length ?? 0 > 0)">
+    <p v-if="needsConfiguration">
       In order for ServicePulse to collect usage data from {{ store.transportNameForInstructions() }} you need to configure the below settings.<br />
       There are two configuration options, as environment variables or directly in the
       <a href="https://docs.particular.net/servicecontrol/creating-config-file"><code>ServiceControl.exe.config</code></a> file.
