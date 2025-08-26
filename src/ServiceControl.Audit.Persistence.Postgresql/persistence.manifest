@@ -1,0 +1,7 @@
+﻿{
+  "Name": "Postgresql",
+  "DisplayName": "Postgresql",
+  "Description": "Postgresql ServiceControl Audit persister",
+  "AssemblyName": "ServiceControl.Audit.Persistence.Postgresql",
+  "TypeName": "ServiceControl.Audit.Persistence.Postgresql.PostgresqlPersistenceConfiguration, ServiceControl.Audit.Persistence.Postgresql"
+}
