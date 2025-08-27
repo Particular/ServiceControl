@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Npgsql;
 using ServiceControl.Audit.Auditing;
+using ServiceControl.Audit.Monitoring;
 using ServiceControl.Audit.Persistence.Monitoring;
 using ServiceControl.Audit.Persistence.UnitOfWork;
 using ServiceControl.SagaAudit;
@@ -23,18 +24,14 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
 
     public async ValueTask DisposeAsync()
     {
+        await transaction.CommitAsync();
         await transaction.DisposeAsync();
         await connection.DisposeAsync();
     }
 
-    public async Task CompleteAsync(CancellationToken cancellationToken)
+    public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
     {
-        await transaction.CommitAsync(cancellationToken);
-    }
-
-    public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
-    {
-        object GetMetadata(string key) => processedMessage.MessageMetadata.TryGetValue(key, out var value) ? value ?? DBNull.Value : DBNull.Value;
+        T GetMetadata<T>(string key) => processedMessage.MessageMetadata.TryGetValue(key, out var value) ? (T)value ?? default : default;
 
         // Insert ProcessedMessage into processed_messages table
         var cmd = new NpgsqlCommand(@"
@@ -59,18 +56,19 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
             cmd.Parameters.AddWithValue("body", DBNull.Value);
         }
         cmd.Parameters.AddWithValue("unique_message_id", processedMessage.UniqueMessageId ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("message_metadata", JsonSerializer.Serialize(processedMessage.MessageMetadata));
-        cmd.Parameters.AddWithValue("headers", JsonSerializer.Serialize(processedMessage.Headers));
+        cmd.Parameters.AddWithValue("message_metadata", JsonSerializer.SerializeToDocument(processedMessage.MessageMetadata));
+        cmd.Parameters.AddWithValue("headers", JsonSerializer.SerializeToDocument(processedMessage.Headers));
         cmd.Parameters.AddWithValue("processed_at", processedMessage.ProcessedAt);
-        cmd.Parameters.AddWithValue("message_id", GetMetadata("MessageId"));
-        cmd.Parameters.AddWithValue("message_type", GetMetadata("MessageType"));
-        cmd.Parameters.AddWithValue("is_system_message", GetMetadata("IsSystemMessage"));
-        cmd.Parameters.AddWithValue("time_sent", GetMetadata("TimeSent"));
-        cmd.Parameters.AddWithValue("receiving_endpoint_name", GetMetadata("ReceivingEndpoint"));
-        cmd.Parameters.AddWithValue("critical_time", GetMetadata("CriticalTime"));
-        cmd.Parameters.AddWithValue("processing_time", GetMetadata("ProcessingTime"));
-        cmd.Parameters.AddWithValue("delivery_time", GetMetadata("DeliveryTime"));
-        cmd.Parameters.AddWithValue("conversation_id", GetMetadata("ConversationId"));
+        cmd.Parameters.AddWithValue("message_id", GetMetadata<string>("MessageId"));
+        cmd.Parameters.AddWithValue("message_type", GetMetadata<string>("MessageType"));
+        cmd.Parameters.AddWithValue("is_system_message", GetMetadata<bool>("IsSystemMessage"));
+        cmd.Parameters.AddWithValue("time_sent", GetMetadata<DateTime>("TimeSent"));
+        cmd.Parameters.AddWithValue("receiving_endpoint_name", GetMetadata<EndpointDetails>("ReceivingEndpoint").Name);
+        cmd.Parameters.AddWithValue("critical_time", GetMetadata<TimeSpan>("CriticalTime"));
+        cmd.Parameters.AddWithValue("processing_time", GetMetadata<TimeSpan>("ProcessingTime"));
+        cmd.Parameters.AddWithValue("delivery_time", GetMetadata<TimeSpan>("DeliveryTime"));
+        cmd.Parameters.AddWithValue("conversation_id", GetMetadata<string>("ConversationId"));
+        cmd.Parameters.AddWithValue("status", (int)(GetMetadata<bool>("IsRetried") ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful));
 
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }

@@ -6,23 +6,24 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
 
-class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration, PostgreSQLConnectionFactory connectionFactory) : BackgroundService
+class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration, PostgreSQLConnectionFactory connectionFactory) : IHostedService
 {
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        using var connection = await connectionFactory.OpenConnection(stoppingToken);
+        using var adminConnection = await connectionFactory.OpenAdminConnection(cancellationToken);
 
-        using (var cmd = new NpgsqlCommand($"SELECT 1 FROM pg_database WHERE datname = @dbname", connection))
+        using (var cmd = new NpgsqlCommand($"SELECT 1 FROM pg_database WHERE datname = @dbname", adminConnection))
         {
             cmd.Parameters.AddWithValue("@dbname", databaseConfiguration.Name);
-            var exists = await cmd.ExecuteScalarAsync(stoppingToken);
+            var exists = await cmd.ExecuteScalarAsync(cancellationToken);
             if (exists == null)
             {
-                using var createCmd = new NpgsqlCommand($"CREATE DATABASE \"{databaseConfiguration.Name}\"", connection);
-                await createCmd.ExecuteNonQueryAsync(stoppingToken);
+                using var createCmd = new NpgsqlCommand($"CREATE DATABASE \"{databaseConfiguration.Name}\"", adminConnection);
+                await createCmd.ExecuteNonQueryAsync(cancellationToken);
             }
         }
 
+        using var connection = await connectionFactory.OpenConnection(cancellationToken);
         // Create processed_messages table
         using (var cmd = new NpgsqlCommand(@"
                     CREATE TABLE IF NOT EXISTS processed_messages (
@@ -35,7 +36,7 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
                     message_id TEXT,
                     message_type TEXT,
                     is_system_message BOOLEAN,
-                    status TEXT,
+                    status NUMERIC,
                     time_sent TIMESTAMPTZ,
                     receiving_endpoint_name TEXT,
                     critical_time INTERVAL,
@@ -48,7 +49,7 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
                     ) STORED
                 );", connection))
         {
-            await cmd.ExecuteNonQueryAsync(stoppingToken);
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
         // Create saga_snapshots table
@@ -67,7 +68,7 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
                 processed_at TIMESTAMPTZ
             );", connection))
         {
-            await cmd.ExecuteNonQueryAsync(stoppingToken);
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
         // Create known_endpoints table
@@ -80,8 +81,13 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
                 last_seen TIMESTAMPTZ
             );", connection))
         {
-            await cmd.ExecuteNonQueryAsync(stoppingToken);
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
     }
 }
 
