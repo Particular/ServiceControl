@@ -1,75 +1,88 @@
-namespace ServiceControl.Audit.Persistence.PostgreSQL
+
+namespace ServiceControl.Audit.Persistence.PostgreSQL;
+
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+using Npgsql;
+
+class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration, PostgreSQLConnectionFactory connectionFactory) : BackgroundService
 {
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Microsoft.Extensions.Hosting;
-    using Npgsql;
-
-    class PostgreSQLPersistenceInstaller(PostgreSQLConnectionFactory connectionFactory) : BackgroundService
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        using var connection = await connectionFactory.OpenConnection(stoppingToken);
+
+        using (var cmd = new NpgsqlCommand($"SELECT 1 FROM pg_database WHERE datname = @dbname", connection))
         {
-            using var connection = await connectionFactory.OpenConnection(stoppingToken);
-
-            // Create processed_messages table
-            using (var cmd = new NpgsqlCommand(@"
-                        CREATE TABLE IF NOT EXISTS processed_messages (
-                        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-                        unique_message_id TEXT,
-                        message_metadata JSONB,
-                        headers JSONB,
-                        processed_at TIMESTAMPTZ,
-                        body BYTEA,
-                        message_id TEXT,
-                        message_type TEXT,
-                        is_system_message BOOLEAN,
-                        status TEXT,
-                        time_sent TIMESTAMPTZ,
-                        receiving_endpoint_name TEXT,
-                        critical_time INTERVAL,
-                        processing_time INTERVAL,
-                        delivery_time INTERVAL,
-                        conversation_id TEXT,
-                        query tsvector GENERATED ALWAYS AS (
-                            setweight(to_tsvector('english', coalesce(headers::text, '')), 'A') ||
-                            setweight(to_tsvector('english', coalesce(body::text, '')), 'B')
-                        ) STORED
-                    );", connection))
+            cmd.Parameters.AddWithValue("@dbname", databaseConfiguration.Name);
+            var exists = await cmd.ExecuteScalarAsync(stoppingToken);
+            if (exists == null)
             {
-                await cmd.ExecuteNonQueryAsync(stoppingToken);
+                using var createCmd = new NpgsqlCommand($"CREATE DATABASE \"{databaseConfiguration.Name}\"", connection);
+                await createCmd.ExecuteNonQueryAsync(stoppingToken);
             }
+        }
 
-            // Create saga_snapshots table
-            using (var cmd = new NpgsqlCommand(@"
-                CREATE TABLE IF NOT EXISTS saga_snapshots (
-                    id TEXT PRIMARY KEY,
-                    saga_id UUID,
-                    saga_type TEXT,
-                    start_time TIMESTAMPTZ,
-                    finish_time TIMESTAMPTZ,
+        // Create processed_messages table
+        using (var cmd = new NpgsqlCommand(@"
+                    CREATE TABLE IF NOT EXISTS processed_messages (
+                    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                    unique_message_id TEXT,
+                    message_metadata JSONB,
+                    headers JSONB,
+                    processed_at TIMESTAMPTZ,
+                    body BYTEA,
+                    message_id TEXT,
+                    message_type TEXT,
+                    is_system_message BOOLEAN,
                     status TEXT,
-                    state_after_change TEXT,
-                    initiating_message JSONB,
-                    outgoing_messages JSONB,
-                    endpoint TEXT,
-                    processed_at TIMESTAMPTZ
+                    time_sent TIMESTAMPTZ,
+                    receiving_endpoint_name TEXT,
+                    critical_time INTERVAL,
+                    processing_time INTERVAL,
+                    delivery_time INTERVAL,
+                    conversation_id TEXT,
+                    query tsvector GENERATED ALWAYS AS (
+                        setweight(to_tsvector('english', coalesce(headers::text, '')), 'A') ||
+                        setweight(to_tsvector('english', coalesce(body::text, '')), 'B')
+                    ) STORED
                 );", connection))
-            {
-                await cmd.ExecuteNonQueryAsync(stoppingToken);
-            }
+        {
+            await cmd.ExecuteNonQueryAsync(stoppingToken);
+        }
 
-            // Create known_endpoints table
-            using (var cmd = new NpgsqlCommand(@"
-                CREATE TABLE IF NOT EXISTS known_endpoints (
-                    id TEXT PRIMARY KEY,
-                    name TEXT,
-                    host_id UUID,
-                    host TEXT,
-                    last_seen TIMESTAMPTZ
-                );", connection))
-            {
-                await cmd.ExecuteNonQueryAsync(stoppingToken);
-            }
+        // Create saga_snapshots table
+        using (var cmd = new NpgsqlCommand(@"
+            CREATE TABLE IF NOT EXISTS saga_snapshots (
+                id TEXT PRIMARY KEY,
+                saga_id UUID,
+                saga_type TEXT,
+                start_time TIMESTAMPTZ,
+                finish_time TIMESTAMPTZ,
+                status TEXT,
+                state_after_change TEXT,
+                initiating_message JSONB,
+                outgoing_messages JSONB,
+                endpoint TEXT,
+                processed_at TIMESTAMPTZ
+            );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(stoppingToken);
+        }
+
+        // Create known_endpoints table
+        using (var cmd = new NpgsqlCommand(@"
+            CREATE TABLE IF NOT EXISTS known_endpoints (
+                id TEXT PRIMARY KEY,
+                name TEXT,
+                host_id UUID,
+                host TEXT,
+                last_seen TIMESTAMPTZ
+            );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(stoppingToken);
         }
     }
 }
+
+
