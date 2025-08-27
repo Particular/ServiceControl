@@ -4,24 +4,16 @@ namespace ServiceControl.Audit.Persistence.PostgreSQL
     using System.Threading.Tasks;
     using System.Threading;
 
-    public class PostgreSQLConnectionFactory
+    class PostgreSQLConnectionFactory
     {
         readonly string connectionString;
 
-        public PostgreSQLConnectionFactory(string connectionString)
-        {
-            this.connectionString = connectionString;
-        }
+        public PostgreSQLConnectionFactory(DatabaseConfiguration databaseConfiguration) => connectionString = databaseConfiguration.ConnectionString;
 
-        public NpgsqlConnection CreateConnection()
-        {
-            return new NpgsqlConnection(connectionString);
-        }
-
-        public async Task<NpgsqlConnection> OpenConnectionAsync(CancellationToken cancellationToken = default)
+        public async Task<NpgsqlConnection> OpenConnection(CancellationToken cancellationToken)
         {
             var conn = new NpgsqlConnection(connectionString);
-            await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await conn.OpenAsync(cancellationToken);
             return conn;
         }
     }

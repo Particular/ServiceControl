@@ -7,15 +7,18 @@ namespace ServiceControl.Audit.Persistence.PostgreSQL
     using ServiceControl.Audit.Persistence.PostgreSQL.UnitOfWork;
     using ServiceControl.Audit.Persistence.UnitOfWork;
 
-    public class PostgreSQLPersistence : IPersistence
+    class PostgreSQLPersistence(DatabaseConfiguration databaseConfiguration) : IPersistence
     {
         public void AddInstaller(IServiceCollection services)
         {
-            AddPersistence(services);
+            services.AddSingleton(databaseConfiguration);
+            services.AddSingleton<PostgreSQLConnectionFactory>();
+            services.AddHostedService<PostgreSQLPersistenceInstaller>();
         }
 
         public void AddPersistence(IServiceCollection services)
         {
+            services.AddSingleton(databaseConfiguration);
             services.AddSingleton<IAuditDataStore, PostgreSQLAuditDataStore>();
             services.AddSingleton<IAuditIngestionUnitOfWorkFactory, PostgreSQLAuditIngestionUnitOfWorkFactory>();
             services.AddSingleton<IFailedAuditStorage, PostgreSQLFailedAuditStorage>();

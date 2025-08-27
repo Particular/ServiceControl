@@ -10,7 +10,7 @@ namespace ServiceControl.Audit.Persistence.PostgreSQL.UnitOfWork
     using ServiceControl.Audit.Persistence.UnitOfWork;
     using ServiceControl.SagaAudit;
 
-    public class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
+    class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
     {
         readonly NpgsqlConnection connection;
         readonly NpgsqlTransaction transaction;
@@ -23,13 +23,13 @@ namespace ServiceControl.Audit.Persistence.PostgreSQL.UnitOfWork
 
         public async ValueTask DisposeAsync()
         {
-            await transaction.DisposeAsync().ConfigureAwait(false);
-            await connection.DisposeAsync().ConfigureAwait(false);
+            await transaction.DisposeAsync();
+            await connection.DisposeAsync();
         }
 
-        public async Task CompleteAsync(CancellationToken cancellationToken = default)
+        public async Task CompleteAsync(CancellationToken cancellationToken)
         {
-            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken);
         }
 
         public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
@@ -72,10 +72,10 @@ namespace ServiceControl.Audit.Persistence.PostgreSQL.UnitOfWork
             cmd.Parameters.AddWithValue("delivery_time", GetMetadata("DeliveryTime"));
             cmd.Parameters.AddWithValue("conversation_id", GetMetadata("ConversationId"));
 
-            await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        public async Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken = default)
+        public async Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken)
         {
             // Insert SagaSnapshot into saga_snapshots table
             var cmd = new NpgsqlCommand(@"
@@ -98,10 +98,10 @@ namespace ServiceControl.Audit.Persistence.PostgreSQL.UnitOfWork
             cmd.Parameters.AddWithValue("endpoint", sagaSnapshot.Endpoint ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("processed_at", sagaSnapshot.ProcessedAt);
 
-            await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        public async Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken = default)
+        public async Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken)
         {
             // Insert KnownEndpoint into known_endpoints table
             var cmd = new NpgsqlCommand(@"
@@ -118,7 +118,7 @@ namespace ServiceControl.Audit.Persistence.PostgreSQL.UnitOfWork
             cmd.Parameters.AddWithValue("host", knownEndpoint.Host ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("last_seen", knownEndpoint.LastSeen);
 
-            await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
     }
 }

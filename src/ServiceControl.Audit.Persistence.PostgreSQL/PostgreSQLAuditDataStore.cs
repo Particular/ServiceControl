@@ -11,7 +11,7 @@ namespace ServiceControl.Audit.Persistence.PostgreSQL
     using ServiceControl.Audit.Persistence;
     using ServiceControl.SagaAudit;
 
-    public class PostgreSQLAuditDataStore : IAuditDataStore
+    class PostgreSQLAuditDataStore : IAuditDataStore
     {
         public Task<MessageBodyView> GetMessageBody(string messageId, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();

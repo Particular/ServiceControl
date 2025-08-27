@@ -5,7 +5,7 @@ namespace ServiceControl.Audit.Persistence.PostgreSQL.BodyStorage
     using System.Threading.Tasks;
     using ServiceControl.Audit.Auditing.BodyStorage;
 
-    public class PostgreSQLAttachmentsBodyStorage : IBodyStorage
+    class PostgreSQLAttachmentsBodyStorage : IBodyStorage
     {
         public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken) => throw new System.NotImplementedException();
         public Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken) => throw new System.NotImplementedException();

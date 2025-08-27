@@ -2,11 +2,10 @@ namespace ServiceControl.Audit.Persistence.PostgreSQL.UnitOfWork
 {
     using System.Threading;
     using System.Threading.Tasks;
-    using Npgsql;
     using ServiceControl.Audit.Persistence.UnitOfWork;
     using ServiceControl.Audit.Persistence.PostgreSQL;
 
-    public class PostgreSQLAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory
+    class PostgreSQLAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory
     {
         readonly PostgreSQLConnectionFactory connectionFactory;
 
@@ -17,8 +16,8 @@ namespace ServiceControl.Audit.Persistence.PostgreSQL.UnitOfWork
 
         public async ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken)
         {
-            var connection = await connectionFactory.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
-            var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+            var connection = await connectionFactory.OpenConnection(cancellationToken);
+            var transaction = await connection.BeginTransactionAsync(cancellationToken);
             return new PostgreSQLAuditIngestionUnitOfWork(connection, transaction);
         }
 
