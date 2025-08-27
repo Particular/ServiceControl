@@ -43,11 +43,41 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
                     processing_time INTERVAL,
                     delivery_time INTERVAL,
                     conversation_id TEXT,
-                    query tsvector GENERATED ALWAYS AS (
-                        setweight(to_tsvector('english', coalesce(headers::text, '')), 'A') ||
-                        setweight(to_tsvector('english', coalesce(body::text, '')), 'B')
-                    ) STORED
+                    query tsvector
                 );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        // Create trigger for full text search
+        using (var cmd = new NpgsqlCommand(@"
+            CREATE OR REPLACE FUNCTION processed_messages_tsvector_update() RETURNS trigger AS $$
+            BEGIN
+            NEW.query :=
+                setweight(to_tsvector('english', coalesce(NEW.headers::text, '')), 'A') ||
+                setweight(to_tsvector('english', coalesce(convert_from(NEW.body, 'UTF8'), '')), 'B');
+            RETURN NEW;
+            END
+            $$ LANGUAGE plpgsql;
+
+            CREATE TRIGGER processed_messages_tsvector_trigger
+            BEFORE INSERT OR UPDATE ON processed_messages
+            FOR EACH ROW EXECUTE FUNCTION processed_messages_tsvector_update();", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+        // Create index on processed_messages for specified columns
+        using (var cmd = new NpgsqlCommand(@"
+            CREATE INDEX IF NOT EXISTS idx_processed_messages_multi ON processed_messages (
+                message_id,
+                time_sent,
+                receiving_endpoint_name,
+                critical_time,
+                processing_time,
+                delivery_time,
+                conversation_id,
+                is_system_message
+            );", connection))
         {
             await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
