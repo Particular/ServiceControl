@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.Persistence.PostgreSQL.UnitOfWork;
 
 using System;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Npgsql;

@@ -30,7 +30,8 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
         using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
         if (await reader.ReadAsync(cancellationToken))
         {
-            var stream = await reader.GetStreamAsync(reader.GetOrdinal("body"), cancellationToken);
+            //var stream = await reader.GetStreamAsync(reader.GetOrdinal("body"), cancellationToken);
+            var stream = reader.GetStream(reader.GetOrdinal("body"));
             var contentType = reader.GetFieldValue<Dictionary<string, string>>(reader.GetOrdinal("headers")).GetValueOrDefault(Headers.ContentType, "text/xml");
             return MessageBodyView.FromStream(stream, contentType, (int)stream.Length, string.Empty);
         }
@@ -215,7 +216,7 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
                 Headers = [.. headers],
                 Status = (MessageStatus)GetValue<int>(reader, "status"),
                 MessageIntent = (MessageIntent)DeserializeOrDefault(messageMetadata, "MessageIntent", 1),
-                BodyUrl = "",
+                BodyUrl = string.Format(BodyUrlFormatString, GetValue<string>(reader, "message_id")),
                 BodySize = DeserializeOrDefault(messageMetadata, "ContentLength", 0),
                 InvokedSagas = DeserializeOrDefault<List<SagaInfo>>(messageMetadata, "InvokedSagas", []),
                 OriginatesFromSaga = DeserializeOrDefault<SagaInfo>(messageMetadata, "OriginatesFromSaga")
@@ -223,4 +224,5 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
         }
         return new QueryResult<IList<MessagesView>>(results, new QueryStatsInfo(string.Empty, results.Count));
     }
+    public const string BodyUrlFormatString = "/messages/{0}/body";
 }
