@@ -7,7 +7,10 @@ class PostgreSQLConnectionFactory(DatabaseConfiguration databaseConfiguration)
 {
     public async Task<NpgsqlConnection> OpenConnection(CancellationToken cancellationToken)
     {
-        var conn = new NpgsqlConnection(databaseConfiguration.ConnectionString);
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(databaseConfiguration.ConnectionString);
+        dataSourceBuilder.EnableDynamicJson();
+        var dataSource = dataSourceBuilder.Build();
+        var conn = dataSource.CreateConnection();
         await conn.OpenAsync(cancellationToken);
         return conn;
     }
@@ -18,7 +21,10 @@ class PostgreSQLConnectionFactory(DatabaseConfiguration databaseConfiguration)
         {
             Database = databaseConfiguration.AdminDatabaseName
         };
-        var conn = new NpgsqlConnection(builder.ConnectionString);
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.ConnectionString);
+        dataSourceBuilder.EnableDynamicJson();
+        var dataSource = dataSourceBuilder.Build();
+        var conn = dataSource.CreateConnection();
         await conn.OpenAsync(cancellationToken);
         return conn;
     }

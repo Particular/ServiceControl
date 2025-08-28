@@ -60,6 +60,7 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
             END
             $$ LANGUAGE plpgsql;
 
+            DROP TRIGGER IF EXISTS processed_messages_tsvector_trigger ON processed_messages;
             CREATE TRIGGER processed_messages_tsvector_trigger
             BEFORE INSERT OR UPDATE ON processed_messages
             FOR EACH ROW EXECUTE FUNCTION processed_messages_tsvector_update();", connection))
