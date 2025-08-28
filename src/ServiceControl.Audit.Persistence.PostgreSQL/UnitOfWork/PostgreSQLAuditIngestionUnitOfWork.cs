@@ -13,28 +13,27 @@ using ServiceControl.SagaAudit;
 
 class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
 {
-    readonly NpgsqlConnection connection;
-    readonly NpgsqlTransaction transaction;
+    readonly NpgsqlBatch batch;
 
-    public PostgreSQLAuditIngestionUnitOfWork(NpgsqlConnection connection, NpgsqlTransaction transaction)
+    public PostgreSQLAuditIngestionUnitOfWork(NpgsqlConnection connection)
     {
-        this.connection = connection;
-        this.transaction = transaction;
+        batch = new NpgsqlBatch(connection);
     }
 
     public async ValueTask DisposeAsync()
     {
-        await transaction.CommitAsync();
-        await transaction.DisposeAsync();
-        await connection.DisposeAsync();
+        await batch.PrepareAsync();
+        await batch.ExecuteNonQueryAsync();
+        await batch.DisposeAsync();
     }
 
-    public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
+    public Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
     {
         T GetMetadata<T>(string key) => processedMessage.MessageMetadata.TryGetValue(key, out var value) ? (T)value ?? default : default;
 
         // Insert ProcessedMessage into processed_messages table
-        var cmd = new NpgsqlCommand(@"
+        var cmd = batch.CreateBatchCommand();
+        cmd.CommandText = @"
                 INSERT INTO processed_messages (
                     unique_message_id, message_metadata, headers, processed_at, body,
                     message_id, message_type, is_system_message, status, time_sent, receiving_endpoint_name,
@@ -43,8 +42,7 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
                     @unique_message_id, @message_metadata, @headers, @processed_at, @body,
                     @message_id, @message_type, @is_system_message, @status, @time_sent, @receiving_endpoint_name,
                     @critical_time, @processing_time, @delivery_time, @conversation_id
-                )
-                ;", connection, transaction);
+                );";
 
         processedMessage.MessageMetadata["ContentLength"] = body.Length;
         if (!body.IsEmpty)
@@ -70,20 +68,20 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
         cmd.Parameters.AddWithValue("conversation_id", GetMetadata<string>("ConversationId"));
         cmd.Parameters.AddWithValue("status", (int)(GetMetadata<bool>("IsRetried") ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful));
 
-        await cmd.PrepareAsync(cancellationToken);
-        await cmd.ExecuteNonQueryAsync(cancellationToken);
+        return Task.CompletedTask;
     }
 
-    public async Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken)
+    public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken)
     {
         // Insert SagaSnapshot into saga_snapshots table
-        var cmd = new NpgsqlCommand(@"
+        var cmd = batch.CreateBatchCommand();
+        cmd.CommandText = @"
                 INSERT INTO saga_snapshots (
                     id, saga_id, saga_type, start_time, finish_time, status, state_after_change, initiating_message, outgoing_messages, endpoint, processed_at
                 ) VALUES (
                     @id, @saga_id, @saga_type, @start_time, @finish_time, @status, @state_after_change, @initiating_message, @outgoing_messages, @endpoint, @processed_at
                 )
-                ON CONFLICT (id) DO NOTHING;", connection, transaction);
+                ON CONFLICT (id) DO NOTHING;";
 
         cmd.Parameters.AddWithValue("id", sagaSnapshot.Id ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("saga_id", sagaSnapshot.SagaId);
@@ -97,20 +95,20 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
         cmd.Parameters.AddWithValue("endpoint", sagaSnapshot.Endpoint ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("processed_at", sagaSnapshot.ProcessedAt);
 
-        await cmd.PrepareAsync(cancellationToken);
-        await cmd.ExecuteNonQueryAsync(cancellationToken);
+        return Task.CompletedTask;
     }
 
-    public async Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken)
+    public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken)
     {
         // Insert KnownEndpoint into known_endpoints table
-        var cmd = new NpgsqlCommand(@"
+        var cmd = batch.CreateBatchCommand();
+        cmd.CommandText = @"
                 INSERT INTO known_endpoints (
                     id, name, host_id, host, last_seen
                 ) VALUES (
                     @id, @name, @host_id, @host, @last_seen
                 )
-                ON CONFLICT (id) DO NOTHING;", connection, transaction);
+                ON CONFLICT (id) DO NOTHING;";
 
         cmd.Parameters.AddWithValue("id", knownEndpoint.Id ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("name", knownEndpoint.Name ?? (object)DBNull.Value);
@@ -118,7 +116,6 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
         cmd.Parameters.AddWithValue("host", knownEndpoint.Host ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("last_seen", knownEndpoint.LastSeen);
 
-        await cmd.PrepareAsync(cancellationToken);
-        await cmd.ExecuteNonQueryAsync(cancellationToken);
+        return Task.CompletedTask;
     }
 }

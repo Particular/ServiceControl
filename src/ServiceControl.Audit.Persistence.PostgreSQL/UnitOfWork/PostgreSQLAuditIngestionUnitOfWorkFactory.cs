@@ -16,8 +16,7 @@ class PostgreSQLAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFacto
     public async ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken)
     {
         var connection = await connectionFactory.OpenConnection(cancellationToken);
-        var transaction = await connection.BeginTransactionAsync(cancellationToken);
-        return new PostgreSQLAuditIngestionUnitOfWork(connection, transaction);
+        return new PostgreSQLAuditIngestionUnitOfWork(connection);
     }
 
     public bool CanIngestMore() => true;
