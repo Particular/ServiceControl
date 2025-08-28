@@ -53,9 +53,9 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
         {
             cmd.Parameters.AddWithValue("body", DBNull.Value);
         }
-        cmd.Parameters.AddWithValue("unique_message_id", processedMessage.UniqueMessageId ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("message_metadata", JsonSerializer.SerializeToDocument(processedMessage.MessageMetadata));
-        cmd.Parameters.AddWithValue("headers", JsonSerializer.SerializeToDocument(processedMessage.Headers));
+        cmd.Parameters.AddWithValue("unique_message_id", processedMessage.UniqueMessageId);
+        cmd.Parameters.AddWithValue("message_metadata", NpgsqlTypes.NpgsqlDbType.Jsonb, processedMessage.MessageMetadata);
+        cmd.Parameters.AddWithValue("headers", NpgsqlTypes.NpgsqlDbType.Jsonb, processedMessage.Headers);
         cmd.Parameters.AddWithValue("processed_at", processedMessage.ProcessedAt);
         cmd.Parameters.AddWithValue("message_id", GetMetadata<string>("MessageId"));
         cmd.Parameters.AddWithValue("message_type", GetMetadata<string>("MessageType"));
@@ -83,16 +83,16 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
                 )
                 ON CONFLICT (id) DO NOTHING;";
 
-        cmd.Parameters.AddWithValue("id", sagaSnapshot.Id ?? (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("id", sagaSnapshot.Id);
         cmd.Parameters.AddWithValue("saga_id", sagaSnapshot.SagaId);
-        cmd.Parameters.AddWithValue("saga_type", sagaSnapshot.SagaType ?? (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("saga_type", sagaSnapshot.SagaType);
         cmd.Parameters.AddWithValue("start_time", sagaSnapshot.StartTime);
         cmd.Parameters.AddWithValue("finish_time", sagaSnapshot.FinishTime);
         cmd.Parameters.AddWithValue("status", sagaSnapshot.Status.ToString());
-        cmd.Parameters.AddWithValue("state_after_change", sagaSnapshot.StateAfterChange ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("initiating_message", JsonSerializer.Serialize(sagaSnapshot.InitiatingMessage));
-        cmd.Parameters.AddWithValue("outgoing_messages", JsonSerializer.Serialize(sagaSnapshot.OutgoingMessages));
-        cmd.Parameters.AddWithValue("endpoint", sagaSnapshot.Endpoint ?? (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("state_after_change", sagaSnapshot.StateAfterChange);
+        cmd.Parameters.AddWithValue("initiating_message", NpgsqlTypes.NpgsqlDbType.Jsonb, sagaSnapshot.InitiatingMessage);
+        cmd.Parameters.AddWithValue("outgoing_messages", NpgsqlTypes.NpgsqlDbType.Jsonb, sagaSnapshot.OutgoingMessages);
+        cmd.Parameters.AddWithValue("endpoint", sagaSnapshot.Endpoint);
         cmd.Parameters.AddWithValue("processed_at", sagaSnapshot.ProcessedAt);
 
         return Task.CompletedTask;
@@ -110,10 +110,10 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
                 )
                 ON CONFLICT (id) DO NOTHING;";
 
-        cmd.Parameters.AddWithValue("id", knownEndpoint.Id ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("name", knownEndpoint.Name ?? (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("id", knownEndpoint.Id);
+        cmd.Parameters.AddWithValue("name", knownEndpoint.Name);
         cmd.Parameters.AddWithValue("host_id", knownEndpoint.HostId);
-        cmd.Parameters.AddWithValue("host", knownEndpoint.Host ?? (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("host", knownEndpoint.Host);
         cmd.Parameters.AddWithValue("last_seen", knownEndpoint.LastSeen);
 
         return Task.CompletedTask;
