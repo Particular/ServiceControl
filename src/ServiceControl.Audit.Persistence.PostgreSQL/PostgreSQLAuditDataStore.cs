@@ -15,8 +15,32 @@ using ServiceControl.Audit.Monitoring;
 using ServiceControl.Audit.Persistence;
 using ServiceControl.SagaAudit;
 
-class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : IAuditDataStore
+class PostgreSQLAuditDataStore : IAuditDataStore
 {
+    readonly PostgreSQLConnectionFactory connectionFactory;
+    public PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory)
+    {
+        this.connectionFactory = connectionFactory;
+    }
+
+    // Helper to safely deserialize a value from a dictionary with a default
+    static T? DeserializeOrDefault<T>(Dictionary<string, object> dict, string key, T? defaultValue = default)
+    {
+        if (dict.TryGetValue(key, out var value) && value is JsonElement element && element.ValueKind != JsonValueKind.Null)
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<T>(element);
+            }
+            catch { }
+        }
+        return defaultValue;
+    }
+
+    // Helper to get a value from the reader by column name
+    static T GetValue<T>(NpgsqlDataReader reader, string column)
+        => reader.GetFieldValue<T>(reader.GetOrdinal(column));
+
     public async Task<MessageBodyView> GetMessageBody(string messageId, CancellationToken cancellationToken)
     {
         using var conn = await connectionFactory.OpenConnection(cancellationToken);
@@ -41,7 +65,7 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
     }
 
     async Task<QueryResult<IList<MessagesView>>> GetAllMessages(
-            string? conversationId, bool? includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange,
+            string? conversationId, bool? includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange,
             string? endpointName,
             string? q,
             CancellationToken cancellationToken)
@@ -174,7 +198,7 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
 
     public Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName, CancellationToken cancellationToken) => throw new NotImplementedException();
     public Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints(CancellationToken cancellationToken) => throw new NotImplementedException();
-    public Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange = null, CancellationToken cancellationToken = default)
+    public Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default)
     {
         return GetAllMessages(null, null, pagingInfo, sortInfo, timeSentRange, searchParam, null, cancellationToken);
     }
@@ -183,12 +207,12 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
         return await GetAllMessages(conversationId, null, pagingInfo, sortInfo, null, null, null, cancellationToken);
     }
 
-    public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange = null, CancellationToken cancellationToken = default)
+    public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default)
     {
         return await GetAllMessages(null, includeSystemMessages, pagingInfo, sortInfo, timeSentRange, null, endpointName, cancellationToken);
     }
 
-    public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange = null, CancellationToken cancellationToken = default)
+    public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default)
     {
         return GetAllMessages(null, null, pagingInfo, sortInfo, timeSentRange, keyword, endpoint, cancellationToken);
     }
@@ -197,37 +221,35 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
     async Task<QueryResult<IList<MessagesView>>> ReturnResults(NpgsqlCommand cmd, CancellationToken cancellationToken = default)
     {
         var results = new List<MessagesView>();
-
         using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
         {
-            var headers = reader.GetFieldValue<Dictionary<string, string>>(reader.GetOrdinal("headers"));
-            var messageMetadata = reader.GetFieldValue<Dictionary<string, object>>(reader.GetOrdinal("message_metadata"));
+            var headers = GetValue<Dictionary<string, string>>(reader, "headers");
+            var messageMetadata = GetValue<Dictionary<string, object>>(reader, "message_metadata");
 
             results.Add(new MessagesView
             {
-                Id = reader.GetFieldValue<string>(reader.GetOrdinal("unique_message_id")),
-                MessageId = reader.GetFieldValue<string>(reader.GetOrdinal("message_id")),
-                MessageType = reader.GetFieldValue<string>(reader.GetOrdinal("message_type")),
-                SendingEndpoint = JsonSerializer.Deserialize<EndpointDetails>((JsonElement)messageMetadata["SendingEndpoint"]),
-                ReceivingEndpoint = JsonSerializer.Deserialize<EndpointDetails>((JsonElement)messageMetadata["ReceivingEndpoint"]),
-                TimeSent = reader.GetFieldValue<DateTime>(reader.GetOrdinal("time_sent")),
-                ProcessedAt = reader.GetFieldValue<DateTime>(reader.GetOrdinal("processed_at")),
-                CriticalTime = reader.GetFieldValue<TimeSpan>(reader.GetOrdinal("critical_time")),
-                ProcessingTime = reader.GetFieldValue<TimeSpan>(reader.GetOrdinal("processing_time")),
-                DeliveryTime = reader.GetFieldValue<TimeSpan>(reader.GetOrdinal("delivery_time")),
-                IsSystemMessage = reader.GetFieldValue<bool>(reader.GetOrdinal("is_system_message")),
-                ConversationId = reader.GetFieldValue<string>(reader.GetOrdinal("conversation_id")),
+                Id = GetValue<string>(reader, "unique_message_id"),
+                MessageId = GetValue<string>(reader, "message_id"),
+                MessageType = GetValue<string>(reader, "message_type"),
+                SendingEndpoint = DeserializeOrDefault<EndpointDetails>(messageMetadata, "SendingEndpoint"),
+                ReceivingEndpoint = DeserializeOrDefault<EndpointDetails>(messageMetadata, "ReceivingEndpoint"),
+                TimeSent = GetValue<DateTime>(reader, "time_sent"),
+                ProcessedAt = GetValue<DateTime>(reader, "processed_at"),
+                CriticalTime = GetValue<TimeSpan>(reader, "critical_time"),
+                ProcessingTime = GetValue<TimeSpan>(reader, "processing_time"),
+                DeliveryTime = GetValue<TimeSpan>(reader, "delivery_time"),
+                IsSystemMessage = GetValue<bool>(reader, "is_system_message"),
+                ConversationId = GetValue<string>(reader, "conversation_id"),
                 Headers = [.. headers],
-                Status = (MessageStatus)reader.GetFieldValue<int>(reader.GetOrdinal("status")),
-                MessageIntent = (MessageIntent)(messageMetadata.ContainsKey("MessageIntent") ? JsonSerializer.Deserialize<int>((JsonElement)messageMetadata["MessageIntent"]) : 1),
+                Status = (MessageStatus)GetValue<int>(reader, "status"),
+                MessageIntent = (MessageIntent)DeserializeOrDefault(messageMetadata, "MessageIntent", 1),
                 BodyUrl = "",
-                BodySize = messageMetadata.ContainsKey("ContentLength") ? JsonSerializer.Deserialize<int>((JsonElement)messageMetadata["ContentLength"]) : 0,
-                InvokedSagas = messageMetadata.ContainsKey("InvokedSagas") ? JsonSerializer.Deserialize<List<SagaInfo>>((JsonElement)messageMetadata["InvokedSagas"]) : [],
-                OriginatesFromSaga = messageMetadata.ContainsKey("OriginatesFromSaga") ? JsonSerializer.Deserialize<SagaInfo>((JsonElement)messageMetadata["OriginatesFromSaga"]) : null
+                BodySize = DeserializeOrDefault(messageMetadata, "ContentLength", 0),
+                InvokedSagas = DeserializeOrDefault<List<SagaInfo>>(messageMetadata, "InvokedSagas", []),
+                OriginatesFromSaga = DeserializeOrDefault<SagaInfo>(messageMetadata, "OriginatesFromSaga")
             });
         }
-
         return new QueryResult<IList<MessagesView>>(results, new QueryStatsInfo(string.Empty, results.Count));
     }
 }
