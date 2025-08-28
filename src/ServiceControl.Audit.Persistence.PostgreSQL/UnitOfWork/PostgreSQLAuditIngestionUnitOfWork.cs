@@ -70,6 +70,7 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
         cmd.Parameters.AddWithValue("conversation_id", GetMetadata<string>("ConversationId"));
         cmd.Parameters.AddWithValue("status", (int)(GetMetadata<bool>("IsRetried") ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful));
 
+        await cmd.PrepareAsync(cancellationToken);
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
@@ -96,6 +97,7 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
         cmd.Parameters.AddWithValue("endpoint", sagaSnapshot.Endpoint ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("processed_at", sagaSnapshot.ProcessedAt);
 
+        await cmd.PrepareAsync(cancellationToken);
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
@@ -116,6 +118,7 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
         cmd.Parameters.AddWithValue("host", knownEndpoint.Host ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("last_seen", knownEndpoint.LastSeen);
 
+        await cmd.PrepareAsync(cancellationToken);
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 }
