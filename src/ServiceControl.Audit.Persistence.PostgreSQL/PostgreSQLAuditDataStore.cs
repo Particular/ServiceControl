@@ -13,6 +13,7 @@ using ServiceControl.Audit.Auditing.MessagesView;
 using ServiceControl.Audit.Infrastructure;
 using ServiceControl.Audit.Monitoring;
 using ServiceControl.Audit.Persistence;
+using ServiceControl.Audit.Persistence.Infrastructure;
 using ServiceControl.SagaAudit;
 
 
@@ -46,8 +47,75 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
         return ExecuteMessagesQuery(builder, cancellationToken);
     }
 
-    public Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName, CancellationToken cancellationToken) => throw new NotImplementedException();
-    public Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints(CancellationToken cancellationToken) => throw new NotImplementedException();
+    public async Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName, CancellationToken cancellationToken)
+    {
+        var startDate = DateTime.UtcNow.AddDays(-30);
+        var endDate = DateTime.UtcNow;
+        using var connection = await connectionFactory.OpenConnection(cancellationToken);
+        using var cmd = new NpgsqlCommand(@"
+                SELECT
+                    DATE_TRUNC('day', processed_at) AS day,
+                    COUNT(*) AS count
+                FROM processed_messages
+                WHERE receiving_endpoint_name = @endpoint_name
+                    AND processed_at BETWEEN @start_date AND @end_date
+                GROUP BY day
+                ORDER BY day;", connection);
+        cmd.Parameters.AddWithValue("endpoint_name", endpointName);
+        cmd.Parameters.AddWithValue("start_date", startDate);
+        cmd.Parameters.AddWithValue("end_date", endDate);
+
+        using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        var results = new List<AuditCount>();
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            results.Add(new AuditCount
+            {
+                UtcDate = reader.GetDateTime(reader.GetOrdinal("day")),
+                Count = reader.GetInt32(reader.GetOrdinal("count"))
+            });
+        }
+
+        return new QueryResult<IList<AuditCount>>(results, new QueryStatsInfo(string.Empty, results.Count));
+    }
+
+    public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints(CancellationToken cancellationToken)
+    {
+        // We need to return all the data from known_endpoints table in postgress
+        using var connection = await connectionFactory.OpenConnection(cancellationToken);
+        using var cmd = new NpgsqlCommand(@"
+                SELECT
+                    id,
+                    name,
+                    host_id,
+                    host,
+                    last_seen
+                FROM known_endpoints;", connection);
+
+        using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        var results = new List<KnownEndpointsView>();
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var name = reader.GetString(reader.GetOrdinal("name"));
+            var hostId = reader.GetGuid(reader.GetOrdinal("host_id"));
+            var host = reader.GetString(reader.GetOrdinal("host"));
+            var lastSeen = reader.GetDateTime(reader.GetOrdinal("last_seen"));
+            results.Add(new KnownEndpointsView
+            {
+                Id = DeterministicGuid.MakeId(name, hostId.ToString()),
+                EndpointDetails = new EndpointDetails
+                {
+                    Host = host,
+                    HostId = hostId,
+                    Name = name
+                },
+                HostDisplayName = host
+            });
+        }
+
+        return new QueryResult<IList<KnownEndpointsView>>(results, new QueryStatsInfo(string.Empty, results.Count));
+    }
+
     public Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default)
     {
         var builder = new PostgresqlMessagesQueryBuilder()
