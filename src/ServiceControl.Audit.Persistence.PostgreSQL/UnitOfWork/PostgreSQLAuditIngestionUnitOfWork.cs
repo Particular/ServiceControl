@@ -61,13 +61,14 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
         cmd.Parameters.AddWithValue("message_type", GetMetadata<string>("MessageType"));
         cmd.Parameters.AddWithValue("is_system_message", GetMetadata<bool>("IsSystemMessage"));
         cmd.Parameters.AddWithValue("time_sent", GetMetadata<DateTime>("TimeSent"));
-        cmd.Parameters.AddWithValue("receiving_endpoint_name", GetMetadata<EndpointDetails>("ReceivingEndpoint").Name);
+        cmd.Parameters.AddWithValue("receiving_endpoint_name", GetMetadata<EndpointDetails>("ReceivingEndpoint")?.Name ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("critical_time", GetMetadata<TimeSpan>("CriticalTime"));
         cmd.Parameters.AddWithValue("processing_time", GetMetadata<TimeSpan>("ProcessingTime"));
         cmd.Parameters.AddWithValue("delivery_time", GetMetadata<TimeSpan>("DeliveryTime"));
         cmd.Parameters.AddWithValue("conversation_id", GetMetadata<string>("ConversationId"));
         cmd.Parameters.AddWithValue("status", (int)(GetMetadata<bool>("IsRetried") ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful));
 
+        batch.BatchCommands.Add(cmd);
         return Task.CompletedTask;
     }
 
@@ -94,6 +95,7 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
         cmd.Parameters.AddWithValue("outgoing_messages", NpgsqlTypes.NpgsqlDbType.Jsonb, sagaSnapshot.OutgoingMessages);
         cmd.Parameters.AddWithValue("endpoint", sagaSnapshot.Endpoint);
         cmd.Parameters.AddWithValue("processed_at", sagaSnapshot.ProcessedAt);
+        batch.BatchCommands.Add(cmd);
 
         return Task.CompletedTask;
     }
@@ -115,6 +117,7 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
         cmd.Parameters.AddWithValue("host_id", knownEndpoint.HostId);
         cmd.Parameters.AddWithValue("host", knownEndpoint.Host);
         cmd.Parameters.AddWithValue("last_seen", knownEndpoint.LastSeen);
+        batch.BatchCommands.Add(cmd);
 
         return Task.CompletedTask;
     }
