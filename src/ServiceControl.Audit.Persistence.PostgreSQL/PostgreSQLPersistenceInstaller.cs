@@ -10,9 +10,9 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
 {
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        using var adminConnection = await connectionFactory.OpenAdminConnection(cancellationToken);
+        await using var adminConnection = await connectionFactory.OpenAdminConnection(cancellationToken);
 
-        using (var cmd = new NpgsqlCommand($"SELECT 1 FROM pg_database WHERE datname = @dbname", adminConnection))
+        await using (var cmd = new NpgsqlCommand($"SELECT 1 FROM pg_database WHERE datname = @dbname", adminConnection))
         {
             cmd.Parameters.AddWithValue("@dbname", databaseConfiguration.Name);
             var exists = await cmd.ExecuteScalarAsync(cancellationToken);
@@ -23,9 +23,9 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
             }
         }
 
-        using var connection = await connectionFactory.OpenConnection(cancellationToken);
+        await using var connection = await connectionFactory.OpenConnection(cancellationToken);
         // Create processed_messages table
-        using (var cmd = new NpgsqlCommand(@"
+        await using (var cmd = new NpgsqlCommand(@"
                     CREATE TABLE IF NOT EXISTS processed_messages (
                     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                     unique_message_id TEXT,
@@ -50,7 +50,7 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
         }
 
         // Create trigger for full text search
-        using (var cmd = new NpgsqlCommand(@"
+        await using (var cmd = new NpgsqlCommand(@"
             CREATE OR REPLACE FUNCTION processed_messages_tsvector_update() RETURNS trigger AS $$
             BEGIN
             NEW.query :=
@@ -68,7 +68,7 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
             await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
         // Create index on processed_messages for specified columns
-        using (var cmd = new NpgsqlCommand(@"
+        await using (var cmd = new NpgsqlCommand(@"
             CREATE INDEX IF NOT EXISTS idx_processed_messages_multi ON processed_messages (
                 message_id,
                 time_sent,
@@ -84,7 +84,7 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
         }
 
         // Create saga_snapshots table
-        using (var cmd = new NpgsqlCommand(@"
+        await using (var cmd = new NpgsqlCommand(@"
             CREATE TABLE IF NOT EXISTS saga_snapshots (
                 id TEXT PRIMARY KEY,
                 saga_id UUID,
@@ -103,7 +103,7 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
         }
 
         // Create known_endpoints table
-        using (var cmd = new NpgsqlCommand(@"
+        await using (var cmd = new NpgsqlCommand(@"
             CREATE TABLE IF NOT EXISTS known_endpoints (
                 id TEXT PRIMARY KEY,
                 name TEXT,

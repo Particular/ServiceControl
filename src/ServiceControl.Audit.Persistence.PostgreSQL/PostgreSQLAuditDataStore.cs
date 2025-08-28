@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.IO;
 using Npgsql;
 using NServiceBus;
 using ServiceControl.Audit.Auditing;
@@ -19,21 +20,25 @@ using ServiceControl.SagaAudit;
 
 class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : IAuditDataStore
 {
+    static readonly RecyclableMemoryStreamManager manager = new RecyclableMemoryStreamManager();
+
     public async Task<MessageBodyView> GetMessageBody(string messageId, CancellationToken cancellationToken)
     {
-        using var conn = await connectionFactory.OpenConnection(cancellationToken);
-        using var cmd = new NpgsqlCommand(@"
-                select body, headers from processed_messages
+        await using var conn = await connectionFactory.OpenConnection(cancellationToken);
+        await using var cmd = new NpgsqlCommand(@"
+                select headers, body from processed_messages
                 where message_id = @message_id
                 LIMIT 1;", conn);
         cmd.Parameters.AddWithValue("message_id", messageId);
-        using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        await using var reader = await cmd.ExecuteReaderAsync(System.Data.CommandBehavior.SequentialAccess, cancellationToken);
         if (await reader.ReadAsync(cancellationToken))
         {
-            //var stream = await reader.GetStreamAsync(reader.GetOrdinal("body"), cancellationToken);
-            var stream = reader.GetStream(reader.GetOrdinal("body"));
             var contentType = reader.GetFieldValue<Dictionary<string, string>>(reader.GetOrdinal("headers")).GetValueOrDefault(Headers.ContentType, "text/xml");
-            return MessageBodyView.FromStream(stream, contentType, (int)stream.Length, string.Empty);
+            using var stream = await reader.GetStreamAsync(reader.GetOrdinal("body"), cancellationToken);
+            var responseStream = manager.GetStream();
+            await stream.CopyToAsync(responseStream, cancellationToken);
+            responseStream.Position = 0;
+            return MessageBodyView.FromStream(responseStream, contentType, (int)stream.Length, string.Empty);
         }
         return MessageBodyView.NotFound();
     }
@@ -52,8 +57,8 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
     {
         var startDate = DateTime.UtcNow.AddDays(-30);
         var endDate = DateTime.UtcNow;
-        using var connection = await connectionFactory.OpenConnection(cancellationToken);
-        using var cmd = new NpgsqlCommand(@"
+        await using var connection = await connectionFactory.OpenConnection(cancellationToken);
+        await using var cmd = new NpgsqlCommand(@"
                 SELECT
                     DATE_TRUNC('day', processed_at) AS day,
                     COUNT(*) AS count
@@ -66,7 +71,7 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
         cmd.Parameters.AddWithValue("start_date", startDate);
         cmd.Parameters.AddWithValue("end_date", endDate);
 
-        using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
         var results = new List<AuditCount>();
         while (await reader.ReadAsync(cancellationToken))
         {
@@ -83,8 +88,8 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
     public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints(CancellationToken cancellationToken)
     {
         // We need to return all the data from known_endpoints table in postgress
-        using var connection = await connectionFactory.OpenConnection(cancellationToken);
-        using var cmd = new NpgsqlCommand(@"
+        await using var connection = await connectionFactory.OpenConnection(cancellationToken);
+        await using var cmd = new NpgsqlCommand(@"
                 SELECT
                     id,
                     name,
@@ -93,7 +98,7 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
                     last_seen
                 FROM known_endpoints;", connection);
 
-        using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
         var results = new List<KnownEndpointsView>();
         while (await reader.ReadAsync(cancellationToken))
         {
@@ -164,9 +169,9 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
         PostgresqlMessagesQueryBuilder builder,
         CancellationToken cancellationToken)
     {
-        using var conn = await connectionFactory.OpenConnection(cancellationToken);
+        await using var conn = await connectionFactory.OpenConnection(cancellationToken);
         var (query, parameters) = builder.Build();
-        using var cmd = new NpgsqlCommand(query, conn);
+        await using var cmd = new NpgsqlCommand(query, conn);
         foreach (var param in parameters)
         {
             cmd.Parameters.Add(param);
@@ -193,7 +198,7 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
     async Task<QueryResult<IList<MessagesView>>> ReturnResults(NpgsqlCommand cmd, CancellationToken cancellationToken = default)
     {
         var results = new List<MessagesView>();
-        using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
         {
             var headers = GetValue<Dictionary<string, string>>(reader, "headers");
