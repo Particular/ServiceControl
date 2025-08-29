@@ -14,11 +14,13 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
 {
     readonly NpgsqlBatch batch;
     readonly NpgsqlConnection connection;
+    readonly DatabaseConfiguration databaseConfiguration;
 
-    public PostgreSQLAuditIngestionUnitOfWork(NpgsqlConnection connection)
+    public PostgreSQLAuditIngestionUnitOfWork(NpgsqlConnection connection, DatabaseConfiguration databaseConfiguration)
     {
         batch = new NpgsqlBatch(connection);
         this.connection = connection;
+        this.databaseConfiguration = databaseConfiguration;
     }
 
     public async ValueTask DisposeAsync()
@@ -47,7 +49,7 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
                 );";
 
         processedMessage.MessageMetadata["ContentLength"] = body.Length;
-        if (!body.IsEmpty)
+        if (!body.IsEmpty && body.Length <= databaseConfiguration.MaxBodySizeToStore)
         {
             cmd.Parameters.AddWithValue("body", body);
         }
