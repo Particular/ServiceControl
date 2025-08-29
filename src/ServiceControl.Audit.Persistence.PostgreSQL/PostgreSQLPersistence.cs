@@ -23,5 +23,6 @@ class PostgreSQLPersistence(DatabaseConfiguration databaseConfiguration) : IPers
         services.AddSingleton<IFailedAuditStorage, PostgreSQLFailedAuditStorage>();
         services.AddSingleton<IBodyStorage, PostgreSQLAttachmentsBodyStorage>();
         services.AddSingleton<PostgreSQLConnectionFactory>();
+        services.AddHostedService<RetentionCleanupService>();
     }
 }
