@@ -27,24 +27,29 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
         // Create processed_messages table
         await using (var cmd = new NpgsqlCommand(@"
                     CREATE TABLE IF NOT EXISTS processed_messages (
-                    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-                    unique_message_id TEXT,
-                    message_metadata JSONB,
-                    headers JSONB,
-                    processed_at TIMESTAMPTZ,
-                    body BYTEA,
-                    message_id TEXT,
-                    message_type TEXT,
-                    is_system_message BOOLEAN,
-                    status NUMERIC,
-                    time_sent TIMESTAMPTZ,
-                    receiving_endpoint_name TEXT,
-                    critical_time INTERVAL,
-                    processing_time INTERVAL,
-                    delivery_time INTERVAL,
-                    conversation_id TEXT,
-                    query tsvector
-                );", connection))
+                        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                        unique_message_id TEXT,
+                        message_metadata JSONB,
+                        headers JSONB,
+                        processed_at TIMESTAMPTZ,
+                        body BYTEA,
+                        message_id TEXT,
+                        message_type TEXT,
+                        is_system_message BOOLEAN,
+                        status NUMERIC,
+                        time_sent TIMESTAMPTZ,
+                        receiving_endpoint_name TEXT,
+                        critical_time INTERVAL,
+                        processing_time INTERVAL,
+                        delivery_time INTERVAL,
+                        conversation_id TEXT,
+                        query tsvector,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+                    )
+                    WITH (
+                        autovacuum_vacuum_scale_factor = 0.05,
+                        autovacuum_analyze_scale_factor = 0.02
+                    );", connection))
         {
             await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
@@ -67,17 +72,83 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
         {
             await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
+
         // Create index on processed_messages for specified columns
         await using (var cmd = new NpgsqlCommand(@"
-            CREATE INDEX IF NOT EXISTS idx_processed_messages_multi ON processed_messages (
-                message_id,
-                time_sent,
-                receiving_endpoint_name,
-                critical_time,
-                processing_time,
-                delivery_time,
-                conversation_id,
+            CREATE INDEX IF NOT EXISTS idx_processed_messages_receiving_endpoint_name ON processed_messages (
+                receiving_endpoint_name
+            );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await using (var cmd = new NpgsqlCommand(@"
+            CREATE INDEX IF NOT EXISTS idx_processed_messages_is_system_message ON processed_messages (
                 is_system_message
+            );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await using (var cmd = new NpgsqlCommand(@"
+            CREATE INDEX IF NOT EXISTS idx_processed_messages_by_time_sent ON processed_messages (
+                time_sent
+            );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await using (var cmd = new NpgsqlCommand(@"
+            CREATE INDEX IF NOT EXISTS idx_processed_messages_by_critical_time ON processed_messages (
+                critical_time
+            );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await using (var cmd = new NpgsqlCommand(@"
+            CREATE INDEX IF NOT EXISTS idx_processed_messages_by_processing_time ON processed_messages (
+                processing_time
+            );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await using (var cmd = new NpgsqlCommand(@"
+            CREATE INDEX IF NOT EXISTS idx_processed_messages_by_delivery_time ON processed_messages (
+                delivery_time
+            );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await using (var cmd = new NpgsqlCommand(@"
+            CREATE INDEX IF NOT EXISTS idx_processed_messages_by_message_id ON processed_messages (
+                message_id
+            );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await using (var cmd = new NpgsqlCommand(@"
+            CREATE INDEX IF NOT EXISTS idx_processed_messages_by_conversation_id ON processed_messages (
+                conversation_id
+            );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await using (var cmd = new NpgsqlCommand(@"
+            CREATE INDEX IF NOT EXISTS idx_processed_messages_by_created_at ON processed_messages (
+                created_at
+            );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await using (var cmd = new NpgsqlCommand(@"
+            CREATE INDEX IF NOT EXISTS idx_processed_messages_by_query ON processed_messages (
+                query
             );", connection))
         {
             await cmd.ExecuteNonQueryAsync(cancellationToken);
