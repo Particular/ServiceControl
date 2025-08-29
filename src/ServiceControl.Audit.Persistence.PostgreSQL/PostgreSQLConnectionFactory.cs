@@ -3,28 +3,45 @@ namespace ServiceControl.Audit.Persistence.PostgreSQL;
 using Npgsql;
 using System.Threading.Tasks;
 using System.Threading;
-class PostgreSQLConnectionFactory(DatabaseConfiguration databaseConfiguration)
+using Microsoft.Extensions.Logging;
+
+class PostgreSQLConnectionFactory
 {
+    readonly NpgsqlDataSource dataSource;
+    readonly NpgsqlDataSource dataSourceAdmin;
+
+    public PostgreSQLConnectionFactory(DatabaseConfiguration databaseConfiguration, ILoggerFactory loggerFactory)
+    {
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(databaseConfiguration.ConnectionString)
+        {
+            Name = "ServiceControl.Audit"
+        };
+        dataSourceBuilder.UseLoggerFactory(loggerFactory);
+        dataSourceBuilder.EnableDynamicJson();
+        dataSource = dataSourceBuilder.Build();
+
+        var builder = new NpgsqlConnectionStringBuilder(databaseConfiguration.ConnectionString)
+        {
+            Database = databaseConfiguration.AdminDatabaseName
+        };
+        var dataSourceBuilderAdmin = new NpgsqlDataSourceBuilder(builder.ConnectionString)
+        {
+            Name = "ServiceControl.Audit-admin",
+        };
+        dataSourceBuilderAdmin.UseLoggerFactory(loggerFactory);
+        dataSourceBuilderAdmin.EnableDynamicJson();
+        dataSourceAdmin = dataSourceBuilderAdmin.Build();
+    }
+
     public async Task<NpgsqlConnection> OpenConnection(CancellationToken cancellationToken)
     {
-        var dataSourceBuilder = new NpgsqlDataSourceBuilder(databaseConfiguration.ConnectionString);
-        dataSourceBuilder.EnableDynamicJson();
-        var dataSource = dataSourceBuilder.Build();
-        var conn = dataSource.CreateConnection();
-        await conn.OpenAsync(cancellationToken);
+        var conn = await dataSource.OpenConnectionAsync(cancellationToken);
         return conn;
     }
 
     public async Task<NpgsqlConnection> OpenAdminConnection(CancellationToken cancellationToken)
     {
-        var builder = new NpgsqlConnectionStringBuilder(databaseConfiguration.ConnectionString)
-        {
-            Database = databaseConfiguration.AdminDatabaseName
-        };
-        var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.ConnectionString);
-        dataSourceBuilder.EnableDynamicJson();
-        var dataSource = dataSourceBuilder.Build();
-        var conn = dataSource.CreateConnection();
+        var conn = dataSourceAdmin.CreateConnection();
         await conn.OpenAsync(cancellationToken);
         return conn;
     }

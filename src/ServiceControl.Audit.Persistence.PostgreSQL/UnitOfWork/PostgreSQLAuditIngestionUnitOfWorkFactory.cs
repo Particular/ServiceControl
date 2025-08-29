@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ServiceControl.Audit.Persistence.UnitOfWork;
 using ServiceControl.Audit.Persistence.PostgreSQL;
+
 class PostgreSQLAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory
 {
     readonly PostgreSQLConnectionFactory connectionFactory;
