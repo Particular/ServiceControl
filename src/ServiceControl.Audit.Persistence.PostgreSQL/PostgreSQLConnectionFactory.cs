@@ -16,7 +16,7 @@ class PostgreSQLConnectionFactory
         {
             Name = "ServiceControl.Audit"
         };
-        dataSourceBuilder.UseLoggerFactory(loggerFactory);
+        //dataSourceBuilder.UseLoggerFactory(loggerFactory);
         dataSourceBuilder.EnableDynamicJson();
         dataSource = dataSourceBuilder.Build();
 
@@ -28,7 +28,7 @@ class PostgreSQLConnectionFactory
         {
             Name = "ServiceControl.Audit-admin",
         };
-        dataSourceBuilderAdmin.UseLoggerFactory(loggerFactory);
+        //dataSourceBuilderAdmin.UseLoggerFactory(loggerFactory);
         dataSourceBuilderAdmin.EnableDynamicJson();
         dataSourceAdmin = dataSourceBuilderAdmin.Build();
     }
