@@ -1,4 +1,5 @@
 ﻿{
+  "IsSupported": false,
   "Name": "PostgreSQL",
   "DisplayName": "PostgreSQL",
   "Description": "PostgreSQL ServiceControl Audit persister",
