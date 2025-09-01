@@ -156,6 +156,14 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
             await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
+        await using (var cmd = new NpgsqlCommand(@"
+            CREATE INDEX IF NOT EXISTS idx_processed_messages_audit_counts ON processed_messages (
+                receiving_endpoint_name, processed_at
+            );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
         // Create saga_snapshots table
         await using (var cmd = new NpgsqlCommand(@"
             CREATE TABLE IF NOT EXISTS saga_snapshots (
