@@ -43,14 +43,27 @@ class RetentionCleanupService(
         await using var conn = await connectionFactory.OpenConnection(cancellationToken);
 
         var cutoffDate = DateTime.UtcNow - config.AuditRetentionPeriod;
+
+        // Cleanup processed messages
+        await CleanupTable("processed_messages", "created_at", cutoffDate, conn, cancellationToken);
+
+        // Cleanup saga snapshots
+        await CleanupTable("saga_snapshots", "updated_at", cutoffDate, conn, cancellationToken);
+
+        // Cleanup known endpoints
+        await CleanupTable("known_endpoints", "updated_at", cutoffDate, conn, cancellationToken);
+    }
+
+    async Task CleanupTable(string tableName, string dateColumn, DateTime cutoffDate, NpgsqlConnection conn, CancellationToken cancellationToken)
+    {
         var totalDeleted = 0;
 
         while (!cancellationToken.IsCancellationRequested)
         {
             // Delete in batches
-            var sql = @"
-                DELETE FROM processed_messages
-                WHERE created_at < @cutoff
+            var sql = $@"
+                DELETE FROM {tableName}
+                WHERE {dateColumn} < @cutoff
                 LIMIT 1000;";
 
             await using var cmd = new NpgsqlCommand(sql, conn);
@@ -69,7 +82,7 @@ class RetentionCleanupService(
 
         if (totalDeleted > 0)
         {
-            logger.LogInformation("Deleted {Count} old messages older than {Cutoff}", totalDeleted, cutoffDate);
+            logger.LogInformation("Deleted {Count} old records from {Table} older than {Cutoff}", totalDeleted, tableName, cutoffDate);
         }
     }
 }

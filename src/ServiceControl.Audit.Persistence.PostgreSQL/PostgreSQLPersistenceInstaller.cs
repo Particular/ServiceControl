@@ -162,7 +162,8 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
                 id UUID PRIMARY KEY,
                 saga_id UUID,
                 saga_type TEXT,
-                changes JSONB
+                changes JSONB,
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
             );", connection))
         {
             await cmd.ExecuteNonQueryAsync(cancellationToken);
@@ -184,8 +185,31 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
                 name TEXT,
                 host_id UUID,
                 host TEXT,
-                last_seen TIMESTAMPTZ
+                last_seen TIMESTAMPTZ,
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
             );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        // Create trigger to auto-update updated_at for saga_snapshots
+        await using (var cmd = new NpgsqlCommand(@"
+            CREATE OR REPLACE FUNCTION update_updated_at_column() RETURNS trigger AS $$
+            BEGIN
+            NEW.updated_at = now();
+            RETURN NEW;
+            END
+            $$ LANGUAGE plpgsql;
+
+            DROP TRIGGER IF EXISTS saga_snapshots_updated_at_trigger ON saga_snapshots;
+            CREATE TRIGGER saga_snapshots_updated_at_trigger
+            BEFORE UPDATE ON saga_snapshots
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+            DROP TRIGGER IF EXISTS known_endpoints_updated_at_trigger ON known_endpoints;
+            CREATE TRIGGER known_endpoints_updated_at_trigger
+            BEFORE UPDATE ON known_endpoints
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();", connection))
         {
             await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
@@ -196,5 +220,3 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
         return Task.CompletedTask;
     }
 }
-
-
