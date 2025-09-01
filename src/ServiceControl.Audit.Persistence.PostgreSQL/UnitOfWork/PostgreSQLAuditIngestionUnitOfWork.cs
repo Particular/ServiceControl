@@ -33,7 +33,19 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
 
     public Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
     {
-        T GetMetadata<T>(string key) => processedMessage.MessageMetadata.TryGetValue(key, out var value) ? (T)value ?? default : default;
+        T? GetMetadata<T>(string key)
+        {
+            if (processedMessage.MessageMetadata.TryGetValue(key, out var value))
+            {
+                return (T?)value;
+            }
+            else
+            {
+                return default;
+            }
+        }
+
+        object GetMetadataOrDbNull<T>(string key) => GetMetadata<T>(key) ?? (object)DBNull.Value;
 
         // Insert ProcessedMessage into processed_messages table
         var cmd = batch.CreateBatchCommand();
@@ -61,15 +73,15 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
         cmd.Parameters.AddWithValue("message_metadata", NpgsqlTypes.NpgsqlDbType.Jsonb, processedMessage.MessageMetadata);
         cmd.Parameters.AddWithValue("headers", NpgsqlTypes.NpgsqlDbType.Jsonb, processedMessage.Headers);
         cmd.Parameters.AddWithValue("processed_at", processedMessage.ProcessedAt);
-        cmd.Parameters.AddWithValue("message_id", GetMetadata<string>("MessageId"));
-        cmd.Parameters.AddWithValue("message_type", GetMetadata<string>("MessageType"));
-        cmd.Parameters.AddWithValue("is_system_message", GetMetadata<bool>("IsSystemMessage"));
-        cmd.Parameters.AddWithValue("time_sent", GetMetadata<DateTime>("TimeSent"));
+        cmd.Parameters.AddWithValue("message_id", GetMetadataOrDbNull<string>("MessageId"));
+        cmd.Parameters.AddWithValue("message_type", GetMetadataOrDbNull<string>("MessageType"));
+        cmd.Parameters.AddWithValue("is_system_message", GetMetadataOrDbNull<bool>("IsSystemMessage"));
+        cmd.Parameters.AddWithValue("time_sent", GetMetadataOrDbNull<DateTime>("TimeSent"));
         cmd.Parameters.AddWithValue("receiving_endpoint_name", GetMetadata<EndpointDetails>("ReceivingEndpoint")?.Name ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("critical_time", GetMetadata<TimeSpan>("CriticalTime"));
-        cmd.Parameters.AddWithValue("processing_time", GetMetadata<TimeSpan>("ProcessingTime"));
-        cmd.Parameters.AddWithValue("delivery_time", GetMetadata<TimeSpan>("DeliveryTime"));
-        cmd.Parameters.AddWithValue("conversation_id", GetMetadata<string>("ConversationId"));
+        cmd.Parameters.AddWithValue("critical_time", GetMetadataOrDbNull<TimeSpan>("CriticalTime"));
+        cmd.Parameters.AddWithValue("processing_time", GetMetadataOrDbNull<TimeSpan>("ProcessingTime"));
+        cmd.Parameters.AddWithValue("delivery_time", GetMetadataOrDbNull<TimeSpan>("DeliveryTime"));
+        cmd.Parameters.AddWithValue("conversation_id", GetMetadataOrDbNull<string>("ConversationId"));
         cmd.Parameters.AddWithValue("status", (int)(GetMetadata<bool>("IsRetried") ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful));
 
         batch.BatchCommands.Add(cmd);

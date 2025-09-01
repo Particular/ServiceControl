@@ -3,14 +3,13 @@ namespace ServiceControl.Audit.Persistence.PostgreSQL;
 using Npgsql;
 using System.Threading.Tasks;
 using System.Threading;
-using Microsoft.Extensions.Logging;
 
 class PostgreSQLConnectionFactory
 {
     readonly NpgsqlDataSource dataSource;
     readonly NpgsqlDataSource dataSourceAdmin;
 
-    public PostgreSQLConnectionFactory(DatabaseConfiguration databaseConfiguration, ILoggerFactory loggerFactory)
+    public PostgreSQLConnectionFactory(DatabaseConfiguration databaseConfiguration)
     {
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(databaseConfiguration.ConnectionString)
         {
