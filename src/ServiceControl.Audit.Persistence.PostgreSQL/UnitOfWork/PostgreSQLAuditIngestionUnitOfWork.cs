@@ -116,7 +116,8 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
                 ) VALUES (
                     @id, @name, @host_id, @host, @last_seen
                 )
-                ON CONFLICT (id) DO NOTHING;";
+                ON CONFLICT (id) DO UPDATE SET
+                    last_seen = GREATEST(known_endpoints.last_seen, EXCLUDED.last_seen);";
 
         cmd.Parameters.AddWithValue("id", knownEndpoint.Id);
         cmd.Parameters.AddWithValue("name", knownEndpoint.Name);
