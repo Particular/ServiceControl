@@ -1,19 +1,16 @@
-
-
-
 namespace ServiceControl.Audit.Persistence.PostgreSQL;
 
-using System;
 using System.Collections.Generic;
 using System.Text;
 using Npgsql;
 using ServiceControl.Audit.Infrastructure;
-public class PostgresqlMessagesQueryBuilder
+
+public class PostgreSQLMessagesQueryBuilder
 {
     readonly StringBuilder sql = new();
     readonly List<NpgsqlParameter> parameters = [];
 
-    public PostgresqlMessagesQueryBuilder()
+    public PostgreSQLMessagesQueryBuilder()
     {
         sql.Append(@"select unique_message_id,
                 message_metadata,
@@ -32,7 +29,7 @@ public class PostgresqlMessagesQueryBuilder
             where 1 = 1");
     }
 
-    public PostgresqlMessagesQueryBuilder WithSystemMessages(bool? includeSystemMessages)
+    public PostgreSQLMessagesQueryBuilder WithSystemMessages(bool? includeSystemMessages)
     {
         if (includeSystemMessages.HasValue)
         {
@@ -42,7 +39,7 @@ public class PostgresqlMessagesQueryBuilder
         return this;
     }
 
-    public PostgresqlMessagesQueryBuilder WithSearch(string? q)
+    public PostgreSQLMessagesQueryBuilder WithSearch(string? q)
     {
         if (!string.IsNullOrWhiteSpace(q))
         {
@@ -52,7 +49,7 @@ public class PostgresqlMessagesQueryBuilder
         return this;
     }
 
-    public PostgresqlMessagesQueryBuilder WithConversationId(string? conversationId)
+    public PostgreSQLMessagesQueryBuilder WithConversationId(string? conversationId)
     {
         if (!string.IsNullOrWhiteSpace(conversationId))
         {
@@ -62,7 +59,7 @@ public class PostgresqlMessagesQueryBuilder
         return this;
     }
 
-    public PostgresqlMessagesQueryBuilder WithMessageId(string? messageId)
+    public PostgreSQLMessagesQueryBuilder WithMessageId(string? messageId)
     {
         if (!string.IsNullOrWhiteSpace(messageId))
         {
@@ -72,7 +69,7 @@ public class PostgresqlMessagesQueryBuilder
         return this;
     }
 
-    public PostgresqlMessagesQueryBuilder WithEndpointName(string? endpointName)
+    public PostgreSQLMessagesQueryBuilder WithEndpointName(string? endpointName)
     {
         if (!string.IsNullOrWhiteSpace(endpointName))
         {
@@ -82,7 +79,7 @@ public class PostgresqlMessagesQueryBuilder
         return this;
     }
 
-    public PostgresqlMessagesQueryBuilder WithTimeSentRange(DateTimeRange? timeSentRange)
+    public PostgreSQLMessagesQueryBuilder WithTimeSentRange(DateTimeRange? timeSentRange)
     {
         if (timeSentRange?.From != null)
         {
@@ -97,7 +94,7 @@ public class PostgresqlMessagesQueryBuilder
         return this;
     }
 
-    public PostgresqlMessagesQueryBuilder WithSorting(SortInfo sortInfo)
+    public PostgreSQLMessagesQueryBuilder WithSorting(SortInfo sortInfo)
     {
         sql.Append(" ORDER BY");
         switch (sortInfo.Sort)
@@ -132,7 +129,7 @@ public class PostgresqlMessagesQueryBuilder
         return this;
     }
 
-    public PostgresqlMessagesQueryBuilder WithPaging(PagingInfo pagingInfo)
+    public PostgreSQLMessagesQueryBuilder WithPaging(PagingInfo pagingInfo)
     {
         sql.Append($" LIMIT {pagingInfo.PageSize} OFFSET {pagingInfo.Offset};");
         return this;

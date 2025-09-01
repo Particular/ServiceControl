@@ -45,7 +45,7 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
 
     public Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken)
     {
-        var builder = new PostgresqlMessagesQueryBuilder()
+        var builder = new PostgreSQLMessagesQueryBuilder()
             .WithSystemMessages(includeSystemMessages)
             .WithTimeSentRange(timeSentRange)
             .WithSorting(sortInfo)
@@ -124,7 +124,7 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
 
     public Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default)
     {
-        var builder = new PostgresqlMessagesQueryBuilder()
+        var builder = new PostgreSQLMessagesQueryBuilder()
             .WithSearch(searchParam)
             .WithTimeSentRange(timeSentRange)
             .WithSorting(sortInfo)
@@ -134,7 +134,7 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
 
     public Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
     {
-        var builder = new PostgresqlMessagesQueryBuilder()
+        var builder = new PostgreSQLMessagesQueryBuilder()
             .WithConversationId(conversationId)
             .WithSorting(sortInfo)
             .WithPaging(pagingInfo);
@@ -143,7 +143,7 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
 
     public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default)
     {
-        var builder = new PostgresqlMessagesQueryBuilder()
+        var builder = new PostgreSQLMessagesQueryBuilder()
             .WithSystemMessages(includeSystemMessages)
             .WithEndpointName(endpointName)
             .WithTimeSentRange(timeSentRange)
@@ -154,7 +154,7 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
 
     public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default)
     {
-        var builder = new PostgresqlMessagesQueryBuilder()
+        var builder = new PostgreSQLMessagesQueryBuilder()
             .WithSearch(keyword)
             .WithEndpointName(endpoint)
             .WithTimeSentRange(timeSentRange)
@@ -198,7 +198,7 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
     }
 
     async Task<QueryResult<IList<MessagesView>>> ExecuteMessagesQuery(
-        PostgresqlMessagesQueryBuilder builder,
+        PostgreSQLMessagesQueryBuilder builder,
         CancellationToken cancellationToken)
     {
         await using var conn = await connectionFactory.OpenConnection(cancellationToken);

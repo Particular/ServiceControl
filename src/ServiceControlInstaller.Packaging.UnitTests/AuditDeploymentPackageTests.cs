@@ -16,6 +16,7 @@ namespace Tests
         public void Should_package_storages_individually()
         {
             var expectedPersisters = new[] {
+                "PostgreSQL",
                 "RavenDB35", // Still must exist, as Raven35 persistence.manifest file must be available for SCMU to understand old versions
                 "RavenDB"
             };
