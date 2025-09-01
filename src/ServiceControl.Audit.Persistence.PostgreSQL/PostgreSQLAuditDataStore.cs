@@ -163,7 +163,39 @@ class PostgreSQLAuditDataStore(PostgreSQLConnectionFactory connectionFactory) : 
         return ExecuteMessagesQuery(builder, cancellationToken);
     }
 
-    public Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input, CancellationToken cancellationToken) => throw new NotImplementedException();
+    public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input, CancellationToken cancellationToken)
+    {
+        await using var conn = await connectionFactory.OpenConnection(cancellationToken);
+        await using var cmd = new NpgsqlCommand(@"
+            SELECT 
+                id,
+                saga_id,
+                saga_type,
+                changes
+            FROM saga_snapshots
+            WHERE saga_id = @saga_id
+            LIMIT 1", conn);
+
+        cmd.Parameters.AddWithValue("saga_id", input);
+
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+        if (await reader.ReadAsync(cancellationToken))
+        {
+            var changes = GetValue<List<SagaStateChange>>(reader, "changes") ?? [];
+            var sagaHistory = new SagaHistory
+            {
+                Id = GetValue<Guid>(reader, "id"),
+                SagaId = GetValue<Guid>(reader, "saga_id"),
+                SagaType = GetValue<string>(reader, "saga_type"),
+                Changes = changes
+            };
+
+            return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(string.Empty, changes.Count));
+        }
+
+        return QueryResult<SagaHistory>.Empty();
+    }
 
     async Task<QueryResult<IList<MessagesView>>> ExecuteMessagesQuery(
         PostgresqlMessagesQueryBuilder builder,

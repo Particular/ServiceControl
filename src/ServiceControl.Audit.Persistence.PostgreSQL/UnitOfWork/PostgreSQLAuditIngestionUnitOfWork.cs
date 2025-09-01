@@ -78,27 +78,29 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
 
     public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken)
     {
-        // Insert SagaSnapshot into saga_snapshots table
+        var newChange = new
+        {
+            sagaSnapshot.StartTime,
+            sagaSnapshot.FinishTime,
+            sagaSnapshot.Status,
+            sagaSnapshot.StateAfterChange,
+            sagaSnapshot.InitiatingMessage,
+            sagaSnapshot.OutgoingMessages,
+            sagaSnapshot.Endpoint
+        };
+
+        // Insert or update saga_snapshots table - add new change to the changes array
         var cmd = batch.CreateBatchCommand();
         cmd.CommandText = @"
-                INSERT INTO saga_snapshots (
-                    id, saga_id, saga_type, start_time, finish_time, status, state_after_change, initiating_message, outgoing_messages, endpoint, processed_at
-                ) VALUES (
-                    @id, @saga_id, @saga_type, @start_time, @finish_time, @status, @state_after_change, @initiating_message, @outgoing_messages, @endpoint, @processed_at
-                )
-                ON CONFLICT (id) DO NOTHING;";
+                INSERT INTO saga_snapshots (id, saga_id, saga_type, changes)
+                VALUES (@saga_id, @saga_id, @saga_type, @new_change)
+                ON CONFLICT (id) DO UPDATE SET
+                    changes = COALESCE(saga_snapshots.changes, '[]'::jsonb) || @new_change::jsonb;";
 
-        cmd.Parameters.AddWithValue("id", sagaSnapshot.Id);
         cmd.Parameters.AddWithValue("saga_id", sagaSnapshot.SagaId);
         cmd.Parameters.AddWithValue("saga_type", sagaSnapshot.SagaType);
-        cmd.Parameters.AddWithValue("start_time", sagaSnapshot.StartTime);
-        cmd.Parameters.AddWithValue("finish_time", sagaSnapshot.FinishTime);
-        cmd.Parameters.AddWithValue("status", sagaSnapshot.Status.ToString());
-        cmd.Parameters.AddWithValue("state_after_change", sagaSnapshot.StateAfterChange);
-        cmd.Parameters.AddWithValue("initiating_message", NpgsqlTypes.NpgsqlDbType.Jsonb, sagaSnapshot.InitiatingMessage);
-        cmd.Parameters.AddWithValue("outgoing_messages", NpgsqlTypes.NpgsqlDbType.Jsonb, sagaSnapshot.OutgoingMessages);
-        cmd.Parameters.AddWithValue("endpoint", sagaSnapshot.Endpoint);
-        cmd.Parameters.AddWithValue("processed_at", sagaSnapshot.ProcessedAt);
+        cmd.Parameters.AddWithValue("new_change", NpgsqlTypes.NpgsqlDbType.Jsonb, new[] { newChange });
+
         batch.BatchCommands.Add(cmd);
 
         return Task.CompletedTask;

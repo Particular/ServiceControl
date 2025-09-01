@@ -130,17 +130,19 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
             await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
+
         await using (var cmd = new NpgsqlCommand(@"
-            CREATE INDEX IF NOT EXISTS idx_processed_messages_by_conversation_id ON processed_messages (
-                conversation_id
+            CREATE INDEX IF NOT EXISTS idx_processed_messages_by_created_at ON processed_messages (
+                created_at
             );", connection))
         {
             await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
         await using (var cmd = new NpgsqlCommand(@"
-            CREATE INDEX IF NOT EXISTS idx_processed_messages_by_created_at ON processed_messages (
-                created_at
+            CREATE INDEX IF NOT EXISTS idx_processed_messages_by_conversation ON processed_messages (
+                conversation_id,
+                time_sent
             );", connection))
         {
             await cmd.ExecuteNonQueryAsync(cancellationToken);
@@ -157,17 +159,19 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
         // Create saga_snapshots table
         await using (var cmd = new NpgsqlCommand(@"
             CREATE TABLE IF NOT EXISTS saga_snapshots (
-                id TEXT PRIMARY KEY,
+                id UUID PRIMARY KEY,
                 saga_id UUID,
                 saga_type TEXT,
-                start_time TIMESTAMPTZ,
-                finish_time TIMESTAMPTZ,
-                status TEXT,
-                state_after_change TEXT,
-                initiating_message JSONB,
-                outgoing_messages JSONB,
-                endpoint TEXT,
-                processed_at TIMESTAMPTZ
+                changes JSONB
+            );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        // Create index on saga_snapshots for faster saga_id lookups
+        await using (var cmd = new NpgsqlCommand(@"
+            CREATE INDEX IF NOT EXISTS idx_saga_snapshots_saga_id ON saga_snapshots (
+                saga_id
             );", connection))
         {
             await cmd.ExecuteNonQueryAsync(cancellationToken);
