@@ -43,7 +43,7 @@ public class PostgreSQLMessagesQueryBuilder
     {
         if (!string.IsNullOrWhiteSpace(q))
         {
-            sql.Append(" and query @@ plainto_tsquery('english', @search)");
+            sql.Append(" and query @@ websearch_to_tsquery('english', @search)");
             parameters.Add(new NpgsqlParameter("search", q));
         }
         return this;
