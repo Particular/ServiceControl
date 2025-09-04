@@ -22,11 +22,11 @@ class RetentionCleanupService(
             {
                 await Task.Delay(TimeSpan.FromSeconds(config.ExpirationProcessTimerInSeconds), stoppingToken);
 
-                await CleanupOldMessagesAsync(stoppingToken);
+                await CleanupOldMessages(stoppingToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
-                // Expected when shutting down
+                logger.LogInformation($"{nameof(RetentionCleanupService)} stopped.");
                 break;
             }
             catch (Exception ex)
@@ -34,11 +34,9 @@ class RetentionCleanupService(
                 logger.LogError(ex, "Error during cleanup task.");
             }
         }
-
-        logger.LogInformation($"{nameof(RetentionCleanupService)} stopped.");
     }
 
-    async Task CleanupOldMessagesAsync(CancellationToken cancellationToken)
+    async Task CleanupOldMessages(CancellationToken cancellationToken)
     {
         await using var conn = await connectionFactory.OpenConnection(cancellationToken);
 

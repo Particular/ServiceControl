@@ -1,11 +1,14 @@
 namespace ServiceControl.Audit.Persistence.PostgreSQL;
 
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Metrics;
 using ServiceControl.Audit.Auditing.BodyStorage;
 using ServiceControl.Audit.Persistence;
 using ServiceControl.Audit.Persistence.PostgreSQL.BodyStorage;
 using ServiceControl.Audit.Persistence.PostgreSQL.UnitOfWork;
 using ServiceControl.Audit.Persistence.UnitOfWork;
+using Npgsql;
+
 class PostgreSQLPersistence(DatabaseConfiguration databaseConfiguration) : IPersistence
 {
     public void AddInstaller(IServiceCollection services)
@@ -24,5 +27,6 @@ class PostgreSQLPersistence(DatabaseConfiguration databaseConfiguration) : IPers
         services.AddSingleton<IBodyStorage, PostgreSQLAttachmentsBodyStorage>();
         services.AddSingleton<PostgreSQLConnectionFactory>();
         services.AddHostedService<RetentionCleanupService>();
+        services.ConfigureOpenTelemetryMeterProvider(b => b.AddNpgsqlInstrumentation());
     }
 }
