@@ -63,8 +63,11 @@ class RetentionCleanupService(
             // Delete in batches
             var sql = $@"
                 DELETE FROM {tableName}
-                WHERE {dateColumn} < @cutoff
-                LIMIT 1000;";
+                WHERE ctid IN (
+                    SELECT ctid FROM {tableName}
+                    WHERE {dateColumn} < @cutoff
+                    LIMIT 1000
+                );";
 
             await using var cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("cutoff", cutoffDate);
