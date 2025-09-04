@@ -24,7 +24,7 @@ const displayDanger = computed(() => {
 
 <template>
   <RouterLink :to="routeLinks.configuration.root" exact>
-    <FAIcon :icon="faGear" title="Configuration" />
+    <FAIcon :icon="faGear" v-tippy="'Configuration'" />
     <span class="navbar-label">Configuration</span>
     <exclamation-mark :type="WarningLevel.Danger" v-if="displayDanger" />
     <exclamation-mark :type="WarningLevel.Warning" v-else-if="displayWarn" />

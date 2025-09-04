@@ -8,7 +8,7 @@ import { faChartLine } from "@fortawesome/free-solid-svg-icons";
 
 <template>
   <RouterLink :to="routeLinks.monitoring.root">
-    <FAIcon :icon="faChartLine" title="Monitoring" />
+    <FAIcon :icon="faChartLine" v-tippy="'Monitoring'" />
     <span class="navbar-label">Monitoring</span>
     <span v-if="stats.number_of_disconnected_endpoints > 0" class="badge badge-important">{{ stats.number_of_disconnected_endpoints }}</span>
   </RouterLink>
