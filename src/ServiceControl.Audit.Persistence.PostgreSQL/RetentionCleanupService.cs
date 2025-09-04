@@ -56,6 +56,7 @@ class RetentionCleanupService(
 
     async Task CleanupTable(string tableName, string dateColumn, DateTime cutoffDate, NpgsqlConnection conn, CancellationToken cancellationToken)
     {
+        const int batchSize = 1000;
         var totalDeleted = 0;
 
         while (!cancellationToken.IsCancellationRequested)
@@ -66,7 +67,7 @@ class RetentionCleanupService(
                 WHERE ctid IN (
                     SELECT ctid FROM {tableName}
                     WHERE {dateColumn} < @cutoff
-                    LIMIT 1000
+                    LIMIT {batchSize}
                 );";
 
             await using var cmd = new NpgsqlCommand(sql, conn);
@@ -75,7 +76,7 @@ class RetentionCleanupService(
             var rows = await cmd.ExecuteNonQueryAsync(cancellationToken);
             totalDeleted += rows;
 
-            if (rows < 1000)
+            if (rows < batchSize)
             {
                 break; // no more rows to delete in this run
             }
