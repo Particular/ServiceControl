@@ -102,13 +102,17 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
         };
 
         // Insert or update saga_snapshots table - add new change to the changes array
+        var lockCmd = batch.CreateBatchCommand();
+        lockCmd.CommandText = "SELECT pg_advisory_xact_lock(hashtext(@saga_id))";
+        lockCmd.Parameters.AddWithValue("saga_id", sagaSnapshot.SagaId);
+        batch.BatchCommands.Add(lockCmd);
+
         var cmd = batch.CreateBatchCommand();
         cmd.CommandText = @"
-                SELECT pg_advisory_xact_lock(hashtext(@saga_id));
                 INSERT INTO saga_snapshots (id, saga_id, saga_type, changes)
                 VALUES (@saga_id, @saga_id, @saga_type, @new_change)
                 ON CONFLICT (id) DO UPDATE SET
-                    changes = COALESCE(saga_snapshots.changes, '[]'::jsonb) || @new_change::jsonb;";
+                    changes = COALESCE(saga_snapshots.changes, '[]'::jsonb) || @new_change::jsonb";
 
         cmd.Parameters.AddWithValue("saga_id", sagaSnapshot.SagaId);
         cmd.Parameters.AddWithValue("saga_type", sagaSnapshot.SagaType);
@@ -122,16 +126,20 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
     public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken)
     {
         // Insert KnownEndpoint into known_endpoints table
+        var lockCmd = batch.CreateBatchCommand();
+        lockCmd.CommandText = "SELECT pg_advisory_xact_lock(hashtext(@id))";
+        lockCmd.Parameters.AddWithValue("id", knownEndpoint.Id);
+        batch.BatchCommands.Add(lockCmd);
+
         var cmd = batch.CreateBatchCommand();
         cmd.CommandText = @"
-                SELECT pg_advisory_xact_lock(hashtext(@id));
                 INSERT INTO known_endpoints (
                     id, name, host_id, host, last_seen
                 ) VALUES (
                     @id, @name, @host_id, @host, @last_seen
                 )
                 ON CONFLICT (id) DO UPDATE SET
-                    last_seen = GREATEST(known_endpoints.last_seen, EXCLUDED.last_seen);";
+                    last_seen = GREATEST(known_endpoints.last_seen, EXCLUDED.last_seen)";
 
         cmd.Parameters.AddWithValue("id", knownEndpoint.Id);
         cmd.Parameters.AddWithValue("name", knownEndpoint.Name);
