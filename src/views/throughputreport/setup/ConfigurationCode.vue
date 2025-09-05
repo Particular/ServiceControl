@@ -40,6 +40,15 @@ const windows = computed(() => {
   return list.join("\n");
 });
 
+const powershell = computed(() => {
+  const list: string[] = [];
+  for (const item of props.settings) {
+    list.push(`# ${item.description}`);
+    list.push(`$env:${item.name.replaceAll("/", "_").toUpperCase()} = "enter value here"`);
+  }
+  return list.join("\n");
+});
+
 const languageSelected = ref("config");
 const codeSelected = computed(() => {
   switch (languageSelected.value) {
@@ -47,6 +56,8 @@ const codeSelected = computed(() => {
       return { code: bash.value, lang: <CodeLanguage>"shell" };
     case "windows":
       return { code: windows.value, lang: <CodeLanguage>"shell" };
+    case "powershell":
+      return { code: powershell.value, lang: <CodeLanguage>"shell" };
     default:
       return { code: config.value, lang: <CodeLanguage>"xml" };
   }
@@ -64,6 +75,10 @@ const languages: Item[] = [
   {
     text: "Windows environment variables",
     value: "windows",
+  },
+  {
+    text: "PowerShell environment variables",
+    value: "powershell",
   },
 ];
 
