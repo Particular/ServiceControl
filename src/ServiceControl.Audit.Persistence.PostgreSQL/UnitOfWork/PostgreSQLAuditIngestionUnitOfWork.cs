@@ -25,10 +25,16 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
 
     public async ValueTask DisposeAsync()
     {
-        await batch.PrepareAsync();
-        await batch.ExecuteNonQueryAsync();
-        await batch.DisposeAsync();
-        await connection.DisposeAsync();
+        try
+        {
+            await batch.PrepareAsync();
+            await batch.ExecuteNonQueryAsync();
+        }
+        finally
+        {
+            await batch.DisposeAsync();
+            await connection.DisposeAsync();
+        }
     }
 
     public Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
