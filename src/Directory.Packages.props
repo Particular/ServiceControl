@@ -34,7 +34,6 @@
     <PackageVersion Include="Mindscape.Raygun4Net.NetCore" Version="11.2.1" />
     <PackageVersion Include="NLog.Extensions.Logging" Version="5.4.0" />
     <PackageVersion Include="Npgsql" Version="9.0.3" />
-    <PackageVersion Include="Npgsql.OpenTelemetry" Version="9.0.3" />
     <PackageVersion Include="NServiceBus" Version="9.2.7" />
     <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="9.2.7" />
     <PackageVersion Include="NServiceBus.AmazonSQS" Version="8.0.0" />

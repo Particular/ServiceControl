@@ -25,7 +25,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
     <PackageReference Include="Npgsql" />
-    <PackageReference Include="Npgsql.OpenTelemetry" />
   </ItemGroup>
 
 </Project>
