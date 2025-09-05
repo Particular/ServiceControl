@@ -104,6 +104,7 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
         // Insert or update saga_snapshots table - add new change to the changes array
         var cmd = batch.CreateBatchCommand();
         cmd.CommandText = @"
+                SELECT pg_advisory_xact_lock(hashtext(@saga_id));
                 INSERT INTO saga_snapshots (id, saga_id, saga_type, changes)
                 VALUES (@saga_id, @saga_id, @saga_type, @new_change)
                 ON CONFLICT (id) DO UPDATE SET
@@ -123,6 +124,7 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
         // Insert KnownEndpoint into known_endpoints table
         var cmd = batch.CreateBatchCommand();
         cmd.CommandText = @"
+                SELECT pg_advisory_xact_lock(hashtext(@id));
                 INSERT INTO known_endpoints (
                     id, name, host_id, host, last_seen
                 ) VALUES (
