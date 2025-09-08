@@ -129,15 +129,14 @@ class PostgreSQLAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
         // Insert KnownEndpoint into known_endpoints table
         var cmd = batch.CreateBatchCommand();
         cmd.CommandText = @"
-                INSERT INTO known_endpoints (
-                    id, name, host_id, host, last_seen
+                
+                INSERT INTO known_endpoints_insert (
+                    endpoint_id, name, host_id, host, last_seen
                 ) VALUES (
-                    @id, @name, @host_id, @host, @last_seen
-                )
-                ON CONFLICT (id) DO UPDATE SET
-                    last_seen = GREATEST(known_endpoints.last_seen, EXCLUDED.last_seen);";
+                    @endpoint_id, @name, @host_id, @host, @last_seen
+                );";
 
-        cmd.Parameters.AddWithValue("id", knownEndpoint.Id);
+        cmd.Parameters.AddWithValue("endpoint_id", knownEndpoint.Id);
         cmd.Parameters.AddWithValue("name", knownEndpoint.Name);
         cmd.Parameters.AddWithValue("host_id", knownEndpoint.HostId);
         cmd.Parameters.AddWithValue("host", knownEndpoint.Host);

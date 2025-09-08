@@ -188,13 +188,26 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
 
         // Create known_endpoints table
         await using (var cmd = new NpgsqlCommand(@"
+            CREATE TABLE IF NOT EXISTS known_endpoints_insert (
+                id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                endpoint_id TEXT,
+                name TEXT,
+                host_id UUID,
+                host TEXT,
+                last_seen TIMESTAMPTZ
+            );", connection))
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        // Create known_endpoints table
+        await using (var cmd = new NpgsqlCommand(@"
             CREATE TABLE IF NOT EXISTS known_endpoints (
                 id TEXT PRIMARY KEY,
                 name TEXT,
                 host_id UUID,
                 host TEXT,
-                last_seen TIMESTAMPTZ,
-                updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+                last_seen TIMESTAMPTZ
             );", connection))
         {
             await cmd.ExecuteNonQueryAsync(cancellationToken);
@@ -212,11 +225,6 @@ class PostgreSQLPersistenceInstaller(DatabaseConfiguration databaseConfiguration
             DROP TRIGGER IF EXISTS saga_snapshots_updated_at_trigger ON saga_snapshots;
             CREATE TRIGGER saga_snapshots_updated_at_trigger
             BEFORE UPDATE ON saga_snapshots
-            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-            DROP TRIGGER IF EXISTS known_endpoints_updated_at_trigger ON known_endpoints;
-            CREATE TRIGGER known_endpoints_updated_at_trigger
-            BEFORE UPDATE ON known_endpoints
             FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();", connection))
         {
             await cmd.ExecuteNonQueryAsync(cancellationToken);

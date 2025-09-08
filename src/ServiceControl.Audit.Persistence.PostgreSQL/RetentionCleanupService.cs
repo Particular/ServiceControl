@@ -49,7 +49,7 @@ class RetentionCleanupService(
         await CleanupTable("saga_snapshots", "updated_at", cutoffDate, conn, cancellationToken);
 
         // Cleanup known endpoints
-        await CleanupTable("known_endpoints", "updated_at", cutoffDate, conn, cancellationToken);
+        await CleanupTable("known_endpoints", "last_seen", cutoffDate, conn, cancellationToken);
     }
 
     async Task CleanupTable(string tableName, string dateColumn, DateTime cutoffDate, NpgsqlConnection conn, CancellationToken cancellationToken)
@@ -59,10 +59,11 @@ class RetentionCleanupService(
 
         while (!cancellationToken.IsCancellationRequested)
         {
-            // Delete in batches
+            // Delete in batches - skip if another process is already cleaning this table
             var sql = $@"
                 DELETE FROM {tableName}
-                WHERE ctid IN (
+                WHERE pg_try_advisory_xact_lock(hashtext('{tableName}'))
+                AND ctid IN (
                     SELECT ctid FROM {tableName}
                     WHERE {dateColumn} < @cutoff
                     LIMIT {batchSize}
