@@ -142,7 +142,7 @@
                 expirationProcessTimerInSeconds = int.Parse(expirationProcessTimerInSecondsString);
             }
 
-            var maxExpirationProcessTimerInSeconds = TimeSpan.FromHours(3).TotalSeconds;
+            var maxExpirationProcessTimerInSeconds = TimeSpan.FromHours(36).TotalSeconds; // Compatibility with RavenDB cloud free license
 
             if (expirationProcessTimerInSeconds < 0)
             {
@@ -154,6 +154,13 @@
             {
                 Logger.LogError("ExpirationProcessTimerInSeconds cannot be larger than {MaxExpirationProcessTimerInSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}", maxExpirationProcessTimerInSeconds, ExpirationProcessTimerInSecondsDefault);
                 return ExpirationProcessTimerInSecondsDefault;
+            }
+
+            var warningThresholdExpirationProcessTimerInSeconds = TimeSpan.FromHours(3).TotalSeconds;
+
+            if (expirationProcessTimerInSeconds > warningThresholdExpirationProcessTimerInSeconds)
+            {
+                Logger.LogError("It is not recommended to set `ExpirationProcessTimerInSeconds` above {WarningThresholdExpirationProcessTimerInSeconds} set ", warningThresholdExpirationProcessTimerInSeconds);
             }
 
             return expirationProcessTimerInSeconds;
