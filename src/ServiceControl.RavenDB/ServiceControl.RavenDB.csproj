@@ -9,7 +9,6 @@
     <PackageReference Include="ByteSize" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="NServiceBus" />
-    <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="RavenDB.Embedded" />
   </ItemGroup>
 

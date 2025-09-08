@@ -2,7 +2,6 @@
 {
     using System.Reflection;
     using System.Threading;
-    using NuGet.Versioning;
     using Raven.Client.Documents;
     using Raven.Client.ServerWide.Operations;
 
@@ -11,16 +10,15 @@
         public static async Task EnsureServerVersion(IDocumentStore store, CancellationToken cancellationToken = default)
         {
             var build = await store.Maintenance.Server.SendAsync(new GetBuildNumberOperation(), cancellationToken);
+            var serverProductVersion = new Version(build.ProductVersion);
 
-            var clientVersion = SemanticVersion.Parse(typeof(Raven.Client.Constants).Assembly.GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion);
-            var serverVersion = NuGetVersion.Parse(build.ProductVersion);
+            var clientVersion = typeof(Raven.Client.Constants).Assembly.GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
+            var parts = clientVersion.Split('.');
+            var clientProductVersion = new Version($"{parts[0]}.{parts[1]}");
 
-            var serverHasLowerMajorMinor = serverVersion.Major < clientVersion.Major
-                                || (serverVersion.Major == clientVersion.Major && serverVersion.Minor < clientVersion.Minor);
-
-            if (serverHasLowerMajorMinor)
+            if (clientProductVersion > serverProductVersion)
             {
-                throw new Exception($"ServiceControl expects at minimum RavenDB Server version {clientVersion.Major}.{clientVersion.Minor} but the server is using {build.ProductVersion}.");
+                throw new Exception($"ServiceControl expects RavenDB Server version {clientProductVersion} or higher, but the server is using {serverProductVersion}.");
             }
         }
     }
