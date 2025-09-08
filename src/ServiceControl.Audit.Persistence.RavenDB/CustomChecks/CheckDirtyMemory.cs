@@ -8,7 +8,6 @@ using NServiceBus.CustomChecks;
 
 class CheckDirtyMemory(MemoryInformationRetriever memoryInformationRetriever, ILogger<CheckDirtyMemory> logger) : CustomCheck("RavenDB dirty memory", "ServiceControl.Audit Health", TimeSpan.FromMinutes(5))
 {
-
     public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
     {
         var (isHighDirty, dirtyMemory) = await memoryInformationRetriever.GetMemoryInformation(cancellationToken);

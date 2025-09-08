@@ -31,6 +31,8 @@ class MemoryInformationRetriever(RavenPersisterSettings persisterSettings)
         var httpResponse = await client.GetAsync("/admin/debug/memory/stats?includeThreads=false&includeMappings=false", cancellationToken);
         var responseDto = JsonSerializer.Deserialize<ResponseDto>(await httpResponse.Content.ReadAsStringAsync(cancellationToken));
 
-        return (responseDto.MemoryInformation.IsHighDirty, responseDto.MemoryInformation.DirtyMemory);
+        return null == responseDto.MemoryInformation
+            ? default
+            : (responseDto.MemoryInformation.IsHighDirty, responseDto.MemoryInformation.DirtyMemory);
     }
 }
