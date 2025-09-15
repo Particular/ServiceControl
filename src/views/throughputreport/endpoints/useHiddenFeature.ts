@@ -8,7 +8,7 @@ const keyHandler = (event: KeyboardEvent) => {
 
 watchEffect((onCleanup) => {
   if (keys.value.length > 0) {
-    const timeout = window.setTimeout(() => keys.value.splice(0), 5000);
+    const timeout = setTimeout(() => keys.value.splice(0), 5000);
     onCleanup(() => clearTimeout(timeout));
   }
 });

@@ -4,12 +4,12 @@
  * @param defaultTimeout The time between refreshes in ms or null if no auto-refresh is desired
  */
 export default function useAutoRefresh(refreshAction: () => Promise<void>, defaultTimeout: number | null, startImmediately = true) {
-  let refreshInterval: number | null = null;
+  let refreshInterval: ReturnType<typeof setTimeout> | null = null;
   const timeout = { value: defaultTimeout };
 
   function stopTimer() {
     if (refreshInterval !== null) {
-      window.clearTimeout(refreshInterval);
+      clearTimeout(refreshInterval);
       refreshInterval = null;
     }
   }
@@ -18,7 +18,7 @@ export default function useAutoRefresh(refreshAction: () => Promise<void>, defau
     if (timeout.value === null) return;
 
     stopTimer();
-    refreshInterval = window.setTimeout(() => {
+    refreshInterval = setTimeout(() => {
       executeAndResetTimer();
     }, timeout.value as number);
   }

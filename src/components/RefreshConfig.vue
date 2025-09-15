@@ -49,7 +49,7 @@ watch(
   (newValue) => {
     if (newValue) {
       showSpinning.value = true;
-      window.setTimeout(() => {
+      setTimeout(() => {
         showSpinning.value = false;
       }, 1000);
     }

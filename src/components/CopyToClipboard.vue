@@ -13,16 +13,16 @@ const props = withDefaults(
 );
 
 const tippyRef = useTemplateRef<TippyComponent | null>("tippyRef");
-const timeoutId = ref(0);
+const timeoutId = ref<ReturnType<typeof setTimeout>>();
 
 async function copyToClipboard() {
   await navigator.clipboard.writeText(props.value);
 
   tippyRef.value?.show();
-  timeoutId.value = window.setTimeout(() => tippyRef.value?.hide(), 3000);
+  timeoutId.value = setTimeout(() => tippyRef.value?.hide(), 3000);
 }
 
-watch(timeoutId, (_, previousTimeoutId) => window.clearTimeout(previousTimeoutId));
+watch(timeoutId, (_, previousTimeoutId) => clearTimeout(previousTimeoutId));
 </script>
 
 <template>
