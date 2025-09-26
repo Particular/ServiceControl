@@ -13,5 +13,5 @@ withDefaults(
 </script>
 
 <template>
-  <FontAwesomeIcon :icon="icon" :size="size" :title="title" />
+  <FontAwesomeIcon :icon="icon" :size="size" v-tippy="title" />
 </template>

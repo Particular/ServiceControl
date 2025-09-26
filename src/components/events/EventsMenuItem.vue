@@ -7,7 +7,7 @@ import { faListUl } from "@fortawesome/free-solid-svg-icons";
 
 <template>
   <RouterLink :to="routeLinks.events">
-    <FAIcon :icon="faListUl" v-tippy="'Events'" />
+    <FAIcon :icon="faListUl" title="Events" />
     <span class="navbar-label">Events</span>
   </RouterLink>
 </template>

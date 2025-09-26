@@ -7,7 +7,7 @@ import FAIcon from "@/components/FAIcon.vue";
 
 <template>
   <RouterLink :to="routeLinks.dashboard">
-    <FAIcon :icon="faGauge" v-tippy="'Dashboard'" />
+    <FAIcon :icon="faGauge" title="Dashboard" />
     <span class="navbar-label">Dashboard</span>
   </RouterLink>
 </template>
