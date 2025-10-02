@@ -19,7 +19,6 @@
     public class EditFailedMessagesController(
         Settings settings,
         IErrorMessageDataStore store,
-        IMessageSession session,
         IServiceProvider serviceContainer,
         ILogger<EditFailedMessagesController> logger)
         : ControllerBase

@@ -9,10 +9,8 @@
     using Contracts.Operations;
     using MessageFailures;
     using Microsoft.Extensions.DependencyInjection;
-    using NServiceBus.Testing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceControl.Persistence.MessageRedirects;
     using ServiceControl.Recoverability;
     using ServiceControl.Recoverability.Editing;
 
@@ -139,7 +137,7 @@
             }
         }
 
-        [Test]        
+        [Test]
         public async Task Should_dispatch_edited_message_when_retrying()
         {
             var failedMessageId = Guid.NewGuid().ToString();
