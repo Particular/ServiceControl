@@ -83,7 +83,7 @@
                 FailedMessageId = failedMessageId,
                 NewBody = base64String,
                 NewHeaders = edit.MessageHeaders
-            }, failedMessageId);
+            }, Guid.NewGuid().ToString());
 
             return Accepted();
         }
