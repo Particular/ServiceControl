@@ -26,7 +26,7 @@
 
         }
 
-        public async Task Handle(EditAndSend message, string messageId)
+        public async Task Handle(EditAndSend message, string retryAttemptId)
         {
             FailedMessage failedMessage;
             using (var session = await store.CreateEditFailedMessageManager())
@@ -35,7 +35,7 @@
 
                 if (failedMessage == null)
                 {
-                    logger.LogWarning("Discarding edit {MessageId} because no message failure for id {FailedMessageId} has been found", messageId, message.FailedMessageId);
+                    logger.LogWarning("Discarding edit {MessageId} because no message failure for id {FailedMessageId} has been found", retryAttemptId, message.FailedMessageId);
                     return;
                 }
 
@@ -44,14 +44,14 @@
                 {
                     if (failedMessage.Status != FailedMessageStatus.Unresolved)
                     {
-                        logger.LogWarning("Discarding edit {MessageId} because message failure {FailedMessageId} doesn't have state 'Unresolved'", messageId, message.FailedMessageId);
+                        logger.LogWarning("Discarding edit {MessageId} because message failure {FailedMessageId} doesn't have state 'Unresolved'", retryAttemptId, message.FailedMessageId);
                         return;
                     }
 
                     // create a retries document to prevent concurrent edits
-                    await session.SetCurrentEditingMessageId(messageId);
+                    await session.SetCurrentEditingMessageId(retryAttemptId);
                 }
-                else if (editId != messageId)
+                else if (editId != retryAttemptId)
                 {
                     logger.LogWarning("Discarding edit & retry request because the failed message id {FailedMessageId} has already been edited by Message ID {EditedMessageId}", message.FailedMessageId, editId);
                     return;

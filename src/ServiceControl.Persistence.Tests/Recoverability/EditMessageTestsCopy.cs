@@ -103,56 +103,68 @@
             Assert.That(dispatcher.DispatchedMessages, Is.Empty);
         }
 
-        //[Test]
-        //public async Task Should_dispatch_edited_message_when_first_edit()
-        //{
-        //    var failedMessage = await CreateAndStoreFailedMessage();
+        [Test]
+        public async Task Should_dispatch_edited_message_when_first_edit()
+        {
+            var failedMessage = await CreateAndStoreFailedMessage();
 
-        //    var newBodyContent = Encoding.UTF8.GetBytes("new body content");
-        //    var newHeaders = new Dictionary<string, string> { { "someKey", "someValue" } };
-        //    var message = CreateEditMessage(failedMessage.UniqueMessageId, newBodyContent, newHeaders);
+            var newBodyContent = Encoding.UTF8.GetBytes("new body content");
+            var newHeaders = new Dictionary<string, string> { { "someKey", "someValue" } };
+            var message = CreateEditMessage(failedMessage.UniqueMessageId, newBodyContent, newHeaders);
 
-        //    var handlerContent = message.FailedMessageId;
-        //    await handler.Handle(message, handlerContent);
+            await handler.Handle(message, message.FailedMessageId);
 
-        //    var dispatchedMessage = dispatcher.DispatchedMessages.Single();
-        //    Assert.Multiple(() =>
-        //    {
-        //        Assert.That(
-        //                    dispatchedMessage.Item1.Destination,
-        //                    Is.EqualTo(failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint));
-        //        Assert.That(dispatchedMessage.Item1.Message.Body.ToArray(), Is.EqualTo(newBodyContent));
-        //        Assert.That(dispatchedMessage.Item1.Message.Headers["someKey"], Is.EqualTo("someValue"));
-        //    });
+            var dispatchedMessage = dispatcher.DispatchedMessages.Single();
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                            dispatchedMessage.Item1.Destination,
+                            Is.EqualTo(failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint));
+                Assert.That(dispatchedMessage.Item1.Message.Body.ToArray(), Is.EqualTo(newBodyContent));
+                Assert.That(dispatchedMessage.Item1.Message.Headers["someKey"], Is.EqualTo("someValue"));
+            });
 
-        //    using (var x = await ErrorMessageDataStore.CreateEditFailedMessageManager())
-        //    {
-        //        var failedMessage2 = await x.GetFailedMessage(failedMessage.UniqueMessageId);
-        //        Assert.That(failedMessage2, Is.Not.Null, "Edited failed message");
+            using (var x = await ErrorMessageDataStore.CreateEditFailedMessageManager())
+            {
+                var failedMessage2 = await x.GetFailedMessage(failedMessage.UniqueMessageId);
+                Assert.That(failedMessage2, Is.Not.Null, "Edited failed message");
 
-        //        var editId = await x.GetCurrentEditingMessageId(failedMessage2.UniqueMessageId);
+                var editId = await x.GetCurrentEditingMessageId(failedMessage2.UniqueMessageId);
 
-        //        Assert.Multiple(() =>
-        //        {
-        //            Assert.That(failedMessage2.Status, Is.EqualTo(FailedMessageStatus.Resolved), "Failed message status");
-        //            Assert.That(editId, Is.EqualTo(handlerContent.MessageId), "MessageId");
-        //        });
-        //    }
-        //}
+                Assert.Multiple(() =>
+                {
+                    Assert.That(failedMessage2.Status, Is.EqualTo(FailedMessageStatus.Resolved), "Failed message status");
+                    Assert.That(editId, Is.EqualTo(message.FailedMessageId), "MessageId");
+                });
+            }
+        }
 
-        //[Test]
-        //public async Task Should_dispatch_edited_message_when_retrying()
-        //{
-        //    var failedMessageId = Guid.NewGuid().ToString();
-        //    await CreateAndStoreFailedMessage(failedMessageId);
+        [Test]        
+        public async Task Should_dispatch_edited_message_when_retrying()
+        {
+            var failedMessageId = Guid.NewGuid().ToString();
+            var controlMessageId = Guid.NewGuid().ToString();
+            await CreateAndStoreFailedMessage(failedMessageId);
 
-        //    var handlerContext = new TestableMessageHandlerContext();
-        //    var message = CreateEditMessage(failedMessageId);
-        //    await handler.Handle(message, handlerContext);
-        //    await handler.Handle(message, handlerContext);
+            var message = CreateEditMessage(failedMessageId);
+            await handler.Handle(message, controlMessageId);
+            await handler.Handle(message, controlMessageId);
 
-        //    Assert.That(dispatcher.DispatchedMessages, Has.Count.EqualTo(2), "Dispatched message count");
-        //}
+            Assert.That(dispatcher.DispatchedMessages, Has.Count.EqualTo(2), "Dispatched message count");
+        }
+
+        [Test]
+        public async Task Simulate_Two_Tabs_dispatching_two_control_messages_for_the_same_failed_message()
+        {
+            var failedMessageId = Guid.NewGuid().ToString();
+            await CreateAndStoreFailedMessage(failedMessageId);
+
+            var message = CreateEditMessage(failedMessageId);
+            await handler.Handle(message, Guid.NewGuid().ToString());
+            await handler.Handle(message, Guid.NewGuid().ToString());
+
+            Assert.That(dispatcher.DispatchedMessages, Has.Count.EqualTo(1), "Dispatched message count");
+        }
 
         //[Test]
         //public async Task Should_dispatch_message_using_incoming_transaction()
