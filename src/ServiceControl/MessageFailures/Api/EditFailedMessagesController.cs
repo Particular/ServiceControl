@@ -6,11 +6,13 @@
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using Persistence;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Recoverability.Editing;
 
     [ApiController]
     [Route("api")]
@@ -18,6 +20,7 @@
         Settings settings,
         IErrorMessageDataStore store,
         IMessageSession session,
+        IServiceProvider serviceContainer,
         ILogger<EditFailedMessagesController> logger)
         : ControllerBase
     {
@@ -67,12 +70,20 @@
 
             // Encode the body in base64 so that the new body doesn't have to be escaped
             var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(edit.MessageBody));
-            await session.SendLocal(new EditAndSend
+            //await session.SendLocal(new EditAndSend
+            //{
+            //    FailedMessageId = failedMessageId,
+            //    NewBody = base64String,
+            //    NewHeaders = edit.MessageHeaders
+            //});
+
+            var editHandler = serviceContainer.GetService<EditHandlerCopy>();
+            await editHandler.Handle(new EditAndSend
             {
                 FailedMessageId = failedMessageId,
                 NewBody = base64String,
                 NewHeaders = edit.MessageHeaders
-            });
+            }, failedMessageId);
 
             return Accepted();
         }

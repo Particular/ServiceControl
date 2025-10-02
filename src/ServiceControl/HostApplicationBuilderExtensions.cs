@@ -14,6 +14,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
     using global::ServiceControl.Persistence;
+    using global::ServiceControl.Recoverability.Editing;
     using global::ServiceControl.Transports;
     using Licensing;
     using Microsoft.AspNetCore.HttpLogging;
@@ -53,6 +54,7 @@ namespace Particular.ServiceControl
             services.AddSingleton<IDomainEvents, DomainEvents>();
 
             services.AddSingleton<MessageStreamerHub>();
+            services.AddTransient<EditHandlerCopy>();
             services.AddSingleton(settings);
 
             services.AddHttpLogging(options =>
