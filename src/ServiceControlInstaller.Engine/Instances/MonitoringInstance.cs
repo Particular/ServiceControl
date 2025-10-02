@@ -3,7 +3,6 @@
     using System;
     using System.Configuration;
     using System.IO;
-    using System.Linq;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading.Tasks;
@@ -14,7 +13,6 @@
     using ReportCard;
     using Services;
     using Setup;
-    using UrlAcl;
     using Validation;
 
     public class MonitoringInstance : BaseService, IMonitoringInstance
@@ -161,7 +159,6 @@
             var fileSystemChanged = !string.Equals(oldSettings.LogPath, LogPath, StringComparison.OrdinalIgnoreCase);
 
             var queueNamesChanged = !string.Equals(oldSettings.ErrorQueue, ErrorQueue, StringComparison.OrdinalIgnoreCase);
-            RecreateUrlAcl(oldSettings);
 
             if (fileSystemChanged)
             {
@@ -199,28 +196,6 @@
             if (passwordSet || accountChanged)
             {
                 Service.ChangeAccountDetails(accountName, ServiceAccountPwd);
-            }
-        }
-
-        void RecreateUrlAcl(MonitoringInstance oldSettings)
-        {
-            oldSettings.RemoveUrlAcl();
-            var reservation = new UrlReservation(Url, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
-            reservation.Create();
-        }
-
-        public void RemoveUrlAcl()
-        {
-            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.StartsWith(Url, StringComparison.OrdinalIgnoreCase)))
-            {
-                try
-                {
-                    urlReservation.Delete();
-                }
-                catch
-                {
-                    ReportCard.Warnings.Add($"Failed to remove the URLACL for {Url} - Please remove manually via Netsh.exe");
-                }
             }
         }
 

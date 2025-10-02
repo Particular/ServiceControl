@@ -46,7 +46,6 @@
 
                     try
                     {
-                        instanceInstaller.RegisterUrlAcl();
                         instanceInstaller.SetupInstance();
                         instanceInstaller.RegisterService();
                     }
@@ -57,8 +56,6 @@
 
                     if (instanceInstaller.ReportCard.HasErrors)
                     {
-                        instanceInstaller.RemoveUrlAcl();
-
                         return false;
                     }
                 }
@@ -202,7 +199,6 @@
                 instance.BackupAppConfig();
                 instance.Service.SetStartupMode("Disabled");
                 instance.Service.Delete();
-                instance.RemoveUrlAcl();
                 instance.RemoveBinFolder();
                 if (removeLogs)
                 {

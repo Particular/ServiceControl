@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading.Tasks;
@@ -13,7 +12,6 @@
     using NuGet.Versioning;
     using ReportCard;
     using Services;
-    using UrlAcl;
     using Validation;
 
     public abstract class ServiceControlInstallableBase : IHttpInstance, IServiceControlPaths, ITransportConfig
@@ -198,24 +196,6 @@
 
         protected abstract void RunSetup();
 
-        public void RegisterUrlAcl()
-        {
-            var reservation = new UrlReservation(AclUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
-            reservation.Create();
-
-            var maintenanceReservation = new UrlReservation(AclMaintenanceUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
-            maintenanceReservation.Create();
-        }
-
-        public void RemoveUrlAcl()
-        {
-            var reservation = new UrlReservation(AclUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
-            reservation.Delete();
-
-            var maintenanceReservation = new UrlReservation(AclMaintenanceUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
-            maintenanceReservation.Delete();
-        }
-
         public void SetupInstance()
         {
             try
@@ -253,7 +233,6 @@
             }
 
             RunValidation(ValidateQueueNames);
-            RunValidation(CheckForConflictingUrlAclReservations);
             RunValidation(ValidateServiceAccount);
             RunValidation(ValidateConnectionString);
         }
@@ -305,19 +284,6 @@
             if (TransportPackage.ZipName.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
             {
                 MsmqConfigValidator.Validate();
-            }
-        }
-
-        void CheckForConflictingUrlAclReservations()
-        {
-            foreach (var reservation in UrlReservation.GetAll().Where(p => p.Port == Port || p.Port == DatabaseMaintenancePort))
-            {
-                // exclusive or of reservation and instance - if only one of them has "localhost" then the UrlAcl will clash
-                if ((reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && !HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase)) ||
-                    (!reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase)))
-                {
-                    throw new EngineValidationException($"Conflicting UrlAcls found - {Url} vs {reservation.Url}");
-                }
             }
         }
 

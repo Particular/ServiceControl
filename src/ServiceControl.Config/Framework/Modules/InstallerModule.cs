@@ -66,7 +66,6 @@ namespace ServiceControl.Config.Framework.Modules
             try
             {
                 progress.Report(5, 9, "Registering URL ACLs...");
-                instanceInstaller.RegisterUrlAcl();
                 progress.Report(6, 9, "Instance setup in progress, this could take several minutes...");
                 instanceInstaller.SetupInstance();
             }
@@ -86,10 +85,6 @@ namespace ServiceControl.Config.Framework.Modules
                 {
                     instanceInstaller.ReportCard.Warnings.Add($"New instance did not startup - please check configuration for {instance.Name}");
                 }
-            }
-            else
-            {
-                instanceInstaller.RemoveUrlAcl();
             }
 
             instanceInstaller.ReportCard.SetStatus();
@@ -193,7 +188,7 @@ namespace ServiceControl.Config.Framework.Modules
         internal ReportCard Delete(string instanceName, bool removeDB, bool removeLogs, IProgress<ProgressDetails> progress = null)
         {
             progress ??= new Progress<ProgressDetails>();
-            progress.Report(0, 7, "Stopping instance...");
+            progress.Report(0, 6, "Stopping instance...");
             var instance = InstanceFinder.FindServiceControlInstance(instanceName);
             instance.ReportCard = new ReportCard();
 
@@ -208,27 +203,24 @@ namespace ServiceControl.Config.Framework.Modules
 
             instance.BackupAppConfig();
 
-            progress.Report(1, 7, "Disabling startup...");
+            progress.Report(1, 6, "Disabling startup...");
             instance.Service.SetStartupMode("Disabled");
 
-            progress.Report(2, 7, "Deleting service...");
+            progress.Report(2, 6, "Deleting service...");
             instance.Service.Delete();
 
-            progress.Report(3, 7, "Removing URL ACL...");
-            instance.RemoveUrlAcl();
-
-            progress.Report(4, 7, "Deleting install...");
+            progress.Report(3, 6, "Deleting install...");
             instance.RemoveBinFolder();
 
             if (removeLogs)
             {
-                progress.Report(5, 7, "Deleting logs...");
+                progress.Report(4, 6, "Deleting logs...");
                 instance.RemoveLogsFolder();
             }
 
             if (removeDB)
             {
-                progress.Report(6, 7, "Deleting database...");
+                progress.Report(5, 6, "Deleting database...");
                 instance.RemoveDataBaseFolder();
             }
 
@@ -268,8 +260,6 @@ namespace ServiceControl.Config.Framework.Modules
 
             try
             {
-                progress.Report(5, 9, "Registering URL ACLs...");
-                instanceInstaller.RegisterUrlAcl();
                 progress.Report(6, 9, "Creating queues...");
                 instanceInstaller.SetupInstance();
             }
@@ -289,10 +279,6 @@ namespace ServiceControl.Config.Framework.Modules
                 {
                     instanceInstaller.ReportCard.Warnings.Add($"New instance did not startup - please check configuration for {instance.Name}");
                 }
-            }
-            else
-            {
-                instanceInstaller.RemoveUrlAcl();
             }
 
             instanceInstaller.ReportCard.SetStatus();
@@ -386,7 +372,7 @@ namespace ServiceControl.Config.Framework.Modules
         internal ReportCard Delete(string instanceName, bool removeLogs, IProgress<ProgressDetails> progress = null)
         {
             progress ??= new Progress<ProgressDetails>();
-            progress.Report(0, 7, "Stopping instance...");
+            progress.Report(0, 5, "Stopping instance...");
             var instance = InstanceFinder.FindMonitoringInstance(instanceName);
             instance.ReportCard = new ReportCard();
 
@@ -401,21 +387,18 @@ namespace ServiceControl.Config.Framework.Modules
 
             instance.BackupAppConfig();
 
-            progress.Report(1, 7, "Disabling startup...");
+            progress.Report(1, 5, "Disabling startup...");
             instance.Service.SetStartupMode("Disabled");
 
-            progress.Report(2, 7, "Deleting service...");
+            progress.Report(2, 5, "Deleting service...");
             instance.Service.Delete();
 
-            progress.Report(3, 7, "Removing URL ACL...");
-            instance.RemoveUrlAcl();
-
-            progress.Report(4, 7, "Deleting install...");
+            progress.Report(3, 5, "Deleting install...");
             instance.RemoveBinFolder();
 
             if (removeLogs)
             {
-                progress.Report(5, 7, "Deleting logs...");
+                progress.Report(4, 5, "Deleting logs...");
                 instance.RemoveLogsFolder();
             }
 

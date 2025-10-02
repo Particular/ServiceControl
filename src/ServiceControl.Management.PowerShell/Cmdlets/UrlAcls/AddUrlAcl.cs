@@ -1,44 +1,17 @@
 namespace ServiceControl.Management.PowerShell
 {
-    using System;
-    using System.Collections.Generic;
     using System.Management.Automation;
-    using System.Security.Principal;
-    using ServiceControlInstaller.Engine.UrlAcl;
 
     [Cmdlet(VerbsCommon.Add, "UrlAcl")]
     public class AddUrlAcl : PSCmdlet
     {
         [ValidateNotNullOrEmpty]
         [Parameter(Mandatory = true, Position = 0, HelpMessage = "The URL to add to the URLACL list. This should always in a trailing /")]
-
         public string Url { get; set; }
-
-        protected override void BeginProcessing()
-        {
-            Account.TestIfAdmin();
-        }
 
         protected override void ProcessRecord()
         {
-            var sidList = new List<SecurityIdentifier>();
-
-            foreach (var user in Users)
-            {
-                try
-                {
-                    var account = new NTAccount(user);
-                    var sid = (SecurityIdentifier)account.Translate(typeof(SecurityIdentifier));
-                    sidList.Add(sid);
-                }
-                catch (Exception ex)
-                {
-                    WriteError(new ErrorRecord(ex, "Failed to parse account name", ErrorCategory.InvalidData, user));
-                    return;
-                }
-            }
-
-            UrlReservation.Create(new UrlReservation(Url, sidList.ToArray()));
+            WriteWarning("ServiceControl no longer requires URL reservations, so this command no longer functions. Use the 'netsh http add urlacl' command instead.");
         }
 
         [ValidateNotNullOrEmpty]

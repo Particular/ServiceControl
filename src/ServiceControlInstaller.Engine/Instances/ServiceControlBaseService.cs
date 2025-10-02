@@ -14,7 +14,6 @@ namespace ServiceControlInstaller.Engine.Instances
     using NuGet.Versioning;
     using ReportCard;
     using Services;
-    using UrlAcl;
     using Validation;
 
     using AppConfig = Configuration.ServiceControl.AppConfig;
@@ -142,21 +141,6 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected abstract TransportInfo DetermineTransportPackage();
 
-        protected void RecreateUrlAcl(ServiceControlBaseService oldSettings)
-        {
-            oldSettings.RemoveUrlAcl();
-            var reservation = new UrlReservation(AclUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
-            reservation.Create();
-
-            if (oldSettings.Version.Major < 2) //Maintenance port was introduced in Version 2
-            {
-                return;
-            }
-
-            var maintanceReservation = new UrlReservation(AclMaintenanceUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
-            maintanceReservation.Create();
-        }
-
         protected string DefaultDBPath()
         {
             var host = HostName == "*" ? "%" : HostName;
@@ -181,37 +165,6 @@ namespace ServiceControlInstaller.Engine.Instances
             }
 
             return Path.Combine(profilePath, $@"AppData\Local\Particular\{BaseServiceName}\logs");
-        }
-
-        public void RemoveUrlAcl()
-        {
-            //This is an old aclurl registration for embedded RavenDB instance that includes the hostname.
-            //We need that to make sure we can clean-up old registration when removing instances created
-            //by previous versions of ServiceControl
-
-            //pre 4.17 versions of ServiceControl were using hostnames in all cases
-            var pre417LegacyAclMaintenanceUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
-
-            //pre 4.21 version of ServiceControl were using + in all cases
-            var pre421LegacyAclMaintenanceUlr = $"http://+:{DatabaseMaintenancePort}";
-
-            bool IsServiceControlAclUrl(UrlReservation r) =>
-                r.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase) ||
-                r.Url.StartsWith(AclMaintenanceUrl, StringComparison.OrdinalIgnoreCase) ||
-                r.Url.StartsWith(pre417LegacyAclMaintenanceUrl, StringComparison.OrdinalIgnoreCase) ||
-                r.Url.StartsWith(pre421LegacyAclMaintenanceUlr, StringComparison.OrdinalIgnoreCase);
-
-            foreach (var urlReservation in UrlReservation.GetAll().Where(IsServiceControlAclUrl))
-            {
-                try
-                {
-                    urlReservation.Delete();
-                }
-                catch
-                {
-                    ReportCard.Warnings.Add($"Failed to remove the URLACL for {Url} - Please remove manually via Netsh.exe");
-                }
-            }
         }
 
         /// <summary>
@@ -273,8 +226,6 @@ namespace ServiceControlInstaller.Engine.Instances
                                       && string.Equals(oldSettings.ErrorLogQueue, ErrorLogQueue, StringComparison.OrdinalIgnoreCase)
                                       && oldSettings.ForwardErrorMessages == ForwardErrorMessages
                                       && oldSettings.ForwardAuditMessages == ForwardAuditMessages);
-
-            RecreateUrlAcl(oldSettings);
 
             if (fileSystemChanged)
             {
