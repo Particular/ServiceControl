@@ -35,6 +35,17 @@
                 return NotFound();
             }
 
+            //HINT: This validation is the first one because we want to minimize the chance of two users concurrently execute an edit-retry.
+            var editManager = await store.CreateEditFailedMessageManager();
+            var editId = await editManager.GetCurrentEditingMessageId(failedMessageId);
+            if (editId != null)
+            {
+                logger.LogWarning("Cannot edit message {FailedMessageId} because it has already been edited", failedMessageId);
+                // We return HTTP 200 even though the edit is being ignored. This is to keep the compatibility with older versions of ServicePulse.
+                // Newer ServicePulse versions (starting with x.x) will handle the response's payload accordingly.
+                return Ok(new { EditIgnored = true });
+            }
+
             var failedMessage = await store.ErrorBy(failedMessageId);
 
             if (failedMessage == null)
@@ -45,8 +56,8 @@
 
             //WARN
             /*
-             * failedMessage.ProcessingAttempts.Last() return the lat retry attempt.
-             * In theory between teh time someone edits a failed message and retry it someone else
+             * failedMessage.ProcessingAttempts.Last() return the last retry attempt.
+             * In theory between the time someone edits a failed message and retry it someone else
              * could have retried the same message without editing. If this is the case "Last()" is
              * not anymore the same message.
              * Instead of using Last() it's probably better to select the processing attempt by looking for
@@ -74,7 +85,7 @@
                 NewHeaders = edit.MessageHeaders
             });
 
-            return Accepted();
+            return Accepted(new { EditIgnored = false });
         }
 
 
