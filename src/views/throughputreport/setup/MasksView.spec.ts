@@ -10,8 +10,6 @@ import Toast from "vue-toastification";
 import { disableMonitoring } from "../../../../test/drivers/vitest/setup";
 
 describe("MaskView tests", () => {
-  const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
-
   async function setup() {
     const driver = makeDriverForTests();
 
@@ -27,7 +25,7 @@ describe("MaskView tests", () => {
 
   async function renderComponent(body: string[] = []) {
     const driver = await setup();
-    driver.mockEndpoint(`${serviceControlInstanceUrl}licensing/settings/masks`, { body });
+    driver.mockEndpoint(`${window.defaultConfig.service_control_url}licensing/settings/masks`, { body });
     useServiceControlUrls();
     await useServiceControl();
     const { debug } = render(MasksView, { global: { plugins: [Toast] } });
@@ -66,7 +64,7 @@ describe("MaskView tests", () => {
     const use = userEvent.setup();
     await use.type(getTextAreaElement(), "\nthree\nfour\nfive");
 
-    driver.mockEndpoint(`${serviceControlInstanceUrl}licensing/settings/masks/update`, { body: undefined, method: "post" });
+    driver.mockEndpoint(`${window.defaultConfig.service_control_url}licensing/settings/masks/update`, { body: undefined, method: "post" });
     await use.click(screen.getByRole("button", { name: /Save/i }));
 
     expect(screen.queryAllByText(/Masks Saved/i).length).toBeGreaterThanOrEqual(1);

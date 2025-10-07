@@ -15,8 +15,6 @@ import Toast from "vue-toastification";
 import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
 
 describe("EndpointsView tests", () => {
-  const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
-
   async function setup() {
     const driver = makeDriverForTests();
 
@@ -98,7 +96,7 @@ describe("EndpointsView tests", () => {
       await renderComponent(Transport.AmazonSQS, async (driver) => {
         await driver.setUp(precondition.hasLicensingReportAvailable());
         await driver.setUp(precondition.hasLicensingEndpoints([{ name: "foo", is_known_endpoint: false, user_indicator: "something", max_daily_throughput: 0 }]));
-        driver.mockEndpoint(`${serviceControlInstanceUrl}licensing/report/file`, {
+        driver.mockEndpoint(`${window.defaultConfig.service_control_url}licensing/report/file`, {
           body: {},
           headers: {
             "Content-Disposition": `attachment; filename="${fileName}"`,
