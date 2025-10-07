@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, vi } from "vitest";
 import { mockServer } from "../../mock-server";
 import "@testing-library/jest-dom/vitest";
 
@@ -14,13 +14,13 @@ export function disableMonitoring() {
   vi.stubGlobal("defaultConfig", { ...defaultConfig, ...{ monitoring_urls: ["!"] } });
 }
 
-vi.stubGlobal("defaultConfig", defaultConfig);
-
 beforeEach(() => {
   vi.stubGlobal("defaultConfig", defaultConfig);
 });
 
 beforeAll(() => {
+  console.log("Starting mock server");
+
   mockServer.listen({
     onUnhandledRequest: (request, { error }) => {
       console.log("Unhandled %s %s", request.method, request.url);
@@ -29,28 +29,7 @@ beforeAll(() => {
   });
 });
 
-afterAll(async () => {
-  //Intentionally not calling mockServer.close here to prevent ServicePulse in flight messages after app unmount to fail
-});
-
-function deleteAllCookies() {
-  const cookies = document.cookie.split(";");
-
-  for (let i = 0; i < cookies.length; i++) {
-    const cookie = cookies[i];
-    const eqPos = cookie.indexOf("=");
-    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-  }
-}
-
-afterEach(() => {
-  //Intentionally not calling mockServer.resetHandlers here to prevent ServicePulse in flight messages after app unmount to fail.
-  //mockServer.resetHandlers is being called instead in driver.ts
-
-  //Make JSDOM create a fresh document per each test run
-  jsdom.reconfigure({ url: "http://localhost:3000/" });
-  localStorage.clear();
-  sessionStorage.clear();
-  deleteAllCookies();
+afterAll(() => {
+  console.log("Shutting down mock server");
+  mockServer.close();
 });

@@ -1,10 +1,11 @@
-import { it as itVitest, describe } from "vitest";
+import { test as testVitest, describe } from "vitest";
 import { Driver } from "../../driver";
 import { mount } from "@/mount";
 import makeRouter from "../../../src/router";
 import { mockEndpoint, mockEndpointDynamic } from "../../utils";
-import { mockServer } from "../../mock-server";
 import { App } from "vue";
+import { mockServer } from "../../mock-server";
+import flushPromises from "flush-promises";
 
 function makeDriver() {
   let app: App<Element>;
@@ -37,18 +38,38 @@ function makeDriver() {
   return driver;
 }
 
-const test = itVitest.extend<{ driver: Driver }>({
+function deleteAllCookies() {
+  const cookies = document.cookie.split(";");
+
+  for (let i = 0; i < cookies.length; i++) {
+    const cookie = cookies[i];
+    const eqPos = cookie.indexOf("=");
+    const name = eqPos > -1 ? cookie.slice(0, eqPos) : cookie;
+    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  }
+}
+
+const test = testVitest.extend<{ driver: Driver }>({
   // eslint-disable-next-line no-empty-pattern, @typescript-eslint/no-explicit-any
   driver: async ({}, use: any) => {
-    //Reset the mocked handlers before executing the test
-    mockServer.resetHandlers();
-
     const driver = makeDriver();
+    console.log("Starting test");
+
     //run the test
     await use(driver);
 
+    console.log("Test ended");
     //unmount the app after the test runs
+    await flushPromises();
     driver.disposeApp();
+
+    console.log("Cleanup after test");
+    mockServer.resetHandlers();
+    //Make JSDOM create a fresh document per each test run
+    jsdom.reconfigure({ url: "http://localhost:3000/" });
+    localStorage.clear();
+    sessionStorage.clear();
+    deleteAllCookies();
   },
 });
 
