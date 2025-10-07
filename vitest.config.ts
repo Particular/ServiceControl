@@ -16,7 +16,7 @@ export default defineConfig({
     ],
   },
   test: {
-    pool: "forks", //https://github.com/vitest-dev/vitest/issues/2008#issuecomment-187106690
+    pool: "forks",
     globals: true,
     clearMocks: true,
     css: true,
