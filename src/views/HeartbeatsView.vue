@@ -2,14 +2,14 @@
 import { RouterLink, RouterView } from "vue-router";
 import routeLinks from "@/router/routeLinks";
 import isRouteSelected from "@/composables/isRouteSelected";
-import { useHeartbeatsStore } from "@/stores/HeartbeatsStore";
 import { storeToRefs } from "pinia";
 import ServiceControlAvailable from "@/components/ServiceControlAvailable.vue";
 import LicenseNotExpired from "@/components/LicenseNotExpired.vue";
 import FilterInput from "@/components/FilterInput.vue";
 import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnected";
+import useHeartbeatsStoreAutoRefresh from "@/composables/useHeartbeatsStoreAutoRefresh";
 
-const store = useHeartbeatsStore();
+const { store } = useHeartbeatsStoreAutoRefresh();
 const { unhealthyEndpoints, healthyEndpoints, endpointFilterString } = storeToRefs(store);
 
 const isMassTransitConnected = useIsMassTransitConnected();

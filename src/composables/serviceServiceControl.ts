@@ -6,6 +6,7 @@ import type RootUrls from "@/resources/RootUrls";
 import type FailedMessage from "@/resources/FailedMessage";
 // eslint-disable-next-line no-duplicate-imports
 import { FailedMessageStatus } from "@/resources/FailedMessage";
+import createAutoRefresh from "./autoRefresh";
 
 export const stats = reactive({
   active_endpoints: 0,
@@ -108,9 +109,11 @@ export async function useServiceControl() {
   await Promise.all([useServiceControlStats(), useServiceControlMonitoringStats(), getServiceControlVersion()]);
 }
 
-setInterval(() => getServiceControlVersion(), 60000);
-setInterval(() => useServiceControlStats(), 5000); //NOTE is 5 seconds too often?
-setInterval(() => useServiceControlMonitoringStats(), 5000); //NOTE is 5 seconds too often?
+export const useServiceControlAutoRefresh = () => {
+  createAutoRefresh(() => getServiceControlVersion(), { intervalMs: 60000 });
+  createAutoRefresh(() => useServiceControlStats(), { intervalMs: 5000 }); //NOTE is 5 seconds too often?
+  createAutoRefresh(() => useServiceControlMonitoringStats(), { intervalMs: 5000 }); //NOTE is 5 seconds too often?
+};
 
 async function useServiceControlStats() {
   const failedMessagesResult = getFailedMessagesCount();

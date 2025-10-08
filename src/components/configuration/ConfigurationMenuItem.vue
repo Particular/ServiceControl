@@ -7,12 +7,13 @@ import { LicenseWarningLevel } from "@/composables/LicenseStatus";
 import { WarningLevel } from "@/components/WarningLevel";
 import routeLinks from "@/router/routeLinks";
 import { displayConnectionsWarning } from "@/components/configuration/displayConnectionsWarning";
-import { useThroughputStore } from "@/stores/ThroughputStore";
 import { storeToRefs } from "pinia";
 import FAIcon from "@/components/FAIcon.vue";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
+import useThroughputStoreAutoRefresh from "@/composables/useThroughputStoreAutoRefresh";
 
-const { hasErrors } = storeToRefs(useThroughputStore());
+const { store } = useThroughputStoreAutoRefresh();
+const { hasErrors } = storeToRefs(store);
 
 const displayWarn = computed(() => {
   return licenseStatus.warningLevel === LicenseWarningLevel.Warning;

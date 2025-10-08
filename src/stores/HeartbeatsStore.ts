@@ -1,7 +1,6 @@
 import { usePatchToServiceControl, useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, ref, watch } from "vue";
-import useAutoRefresh from "@/composables/autoRefresh";
 import { EndpointStatus, LogicalEndpoint } from "@/resources/Heartbeat";
 import moment from "moment";
 import { SortDirection, type GroupPropertyType } from "@/resources/SortOptions";
@@ -99,7 +98,7 @@ export const useHeartbeatsStore = defineStore("HeartbeatsStore", () => {
     setEndpointFilterString(newValue);
   });
 
-  const dataRetriever = useAutoRefresh(async () => {
+  const refresh = async () => {
     try {
       const [[, data], data2] = await Promise.all([useTypedFetchFromServiceControl<EndpointsView[]>("endpoints"), endpointSettingsClient.endpointSettings()]);
       endpointInstances.value = data;
@@ -109,7 +108,7 @@ export const useHeartbeatsStore = defineStore("HeartbeatsStore", () => {
       endpointInstances.value = settings.value = [];
       throw e;
     }
-  }, 5000);
+  };
 
   async function updateEndpointSettings(endpoints: Pick<LogicalEndpoint, "name" | "track_instances">[]) {
     await Promise.all(endpoints.map((endpoint) => usePatchToServiceControl(`endpointssettings/${endpoint.name}`, { track_instances: !endpoint.track_instances })));
@@ -167,8 +166,6 @@ export const useHeartbeatsStore = defineStore("HeartbeatsStore", () => {
       } as LogicalEndpoint;
     });
   }
-
-  const refresh = dataRetriever.executeAndResetTimer;
 
   return {
     refresh,

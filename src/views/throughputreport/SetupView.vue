@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import isRouteSelected from "@/composables/isRouteSelected";
 import routeLinks from "@/router/routeLinks";
-import { useThroughputStore } from "@/stores/ThroughputStore";
 import { storeToRefs } from "pinia";
 import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
 import ThroughputSupported from "@/views/throughputreport/ThroughputSupported.vue";
 import FAIcon from "@/components/FAIcon.vue";
 import { faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
+import useThroughputStoreAutoRefresh from "@/composables/useThroughputStoreAutoRefresh";
 
-const store = useThroughputStore();
+const { store } = useThroughputStoreAutoRefresh();
 const { testResults, isBrokerTransport } = storeToRefs(store);
 </script>
 

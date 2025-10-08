@@ -1,6 +1,5 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, ref, watch } from "vue";
-import useAutoRefresh from "@/composables/autoRefresh";
 import ConnectionTestResults from "@/resources/ConnectionTestResults";
 import throughputClient from "@/views/throughputreport/throughputClient";
 import { Transport } from "@/views/throughputreport/transport";
@@ -9,15 +8,12 @@ import isThroughputSupported from "@/views/throughputreport/isThroughputSupporte
 
 export const useThroughputStore = defineStore("ThroughputStore", () => {
   const testResults = ref<ConnectionTestResults | null>(null);
-  const dataRetriever = useAutoRefresh(
-    async () => {
-      if (isThroughputSupported.value) {
-        testResults.value = await throughputClient.test();
-      }
-    },
-    60 * 60 * 1000 /* 1 hour */
-  );
-  const refresh = dataRetriever.executeAndResetTimer;
+  const refresh = async () => {
+    if (isThroughputSupported.value) {
+      testResults.value = await throughputClient.test();
+    }
+  };
+
   const hasErrors = computed(() => {
     // if it is a broker transport, we return true if connection test is unsuccessful
     if (isBrokerTransport.value && !testResults.value?.broker_connection_result.connection_successful) {

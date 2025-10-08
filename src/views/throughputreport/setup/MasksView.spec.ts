@@ -5,7 +5,6 @@ import * as precondition from "../../../../test/preconditions";
 import { useServiceControl } from "@/composables/serviceServiceControl";
 import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { minimumSCVersionForThroughput } from "@/views/throughputreport/isThroughputSupported";
-import flushPromises from "flush-promises";
 import Toast from "vue-toastification";
 import { disableMonitoring } from "../../../../test/drivers/vitest/setup";
 
@@ -29,7 +28,7 @@ describe("MaskView tests", () => {
     useServiceControlUrls();
     await useServiceControl();
     const { debug } = render(MasksView, { global: { plugins: [Toast] } });
-    await flushPromises();
+
     return { debug, driver };
   }
 

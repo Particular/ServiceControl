@@ -2,13 +2,13 @@ import { defineStore, acceptHMRUpdate } from "pinia";
 import { ref } from "vue";
 import MessageTypes from "@/components/monitoring/messageTypes";
 import * as MonitoringEndpoints from "@/composables/serviceMonitoringEndpoints";
-import memoiseOne from "memoize-one";
 import { formatGraphDuration } from "../components/monitoring/formatGraph";
 import { type ExtendedEndpointDetails, type ExtendedEndpointInstance, type MessageType, type EndpointDetails, type EndpointDetailsError, isError } from "@/resources/MonitoringEndpoint";
 import { useMonitoringHistoryPeriodStore } from "./MonitoringHistoryPeriodStore";
 import { useGetExceptionGroupsForEndpoint } from "../composables/serviceMessageGroup";
 import type GroupOperation from "@/resources/GroupOperation";
 import { emptyEndpointDetails } from "@/components/monitoring/endpoints";
+import { useMemoize } from "@vueuse/core";
 
 async function getFailureDetails(classifier: string, classifierFilter: string) {
   const failedMessages: GroupOperation[] = await useGetExceptionGroupsForEndpoint(classifier, classifierFilter);
@@ -22,7 +22,7 @@ async function getFailureDetails(classifier: string, classifierFilter: string) {
 export const useMonitoringEndpointDetailsStore = defineStore("MonitoringEndpointDetailsStore", () => {
   const historyPeriodStore = useMonitoringHistoryPeriodStore();
 
-  const getMemoisedEndpointDetails = memoiseOne(MonitoringEndpoints.useGetEndpointDetails);
+  const getMemoisedEndpointDetails = useMemoize(MonitoringEndpoints.useGetEndpointDetails);
 
   const endpointName = ref<string>("");
   const endpointDetails = ref<ExtendedEndpointDetails>(emptyEndpointDetails());

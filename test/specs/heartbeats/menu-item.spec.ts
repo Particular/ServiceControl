@@ -3,7 +3,6 @@ import { test, describe } from "../../drivers/vitest/driver";
 import * as precondition from "../../preconditions";
 import { queryHeartbeatMenuItem } from "./questions/queryHeartbeatMenuItem";
 import { waitFor } from "@testing-library/vue";
-import flushPromises from "flush-promises";
 
 describe("FEATURE: Menu item", () => {
   describe("RULE: The count of inactive endpoints should be displayed in the navigation menu", () => {
@@ -19,8 +18,6 @@ describe("FEATURE: Menu item", () => {
         expect(heartbeatMenuItem && heartbeatMenuItem.isCounterVisible).toBeTruthy();
         expect(heartbeatMenuItem && heartbeatMenuItem.counterValue).toBe(1);
       });
-
-      await flushPromises();
     });
 
     /* SCENARIO
@@ -55,7 +52,6 @@ describe("FEATURE: Menu item", () => {
       });
 
       vi.restoreAllMocks();
-      await flushPromises();
     });
 
     /* SCENARIO
@@ -75,8 +71,6 @@ describe("FEATURE: Menu item", () => {
         expect(heartbeatMenuItem && !heartbeatMenuItem.isCounterVisible).toBeTruthy();
         expect(heartbeatMenuItem && heartbeatMenuItem.counterValue).toBe(0);
       });
-
-      await flushPromises();
     });
   });
 });

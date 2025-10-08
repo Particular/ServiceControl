@@ -10,7 +10,6 @@ import { useServiceControl } from "@/composables/serviceServiceControl";
 import * as precondition from "../../test/preconditions";
 import { EndpointSettings } from "@/resources/EndpointSettings";
 import { serviceControlWithHeartbeats } from "@/components/heartbeats/serviceControlWithHeartbeats";
-import flushPromises from "flush-promises";
 import { EndpointStatus } from "@/resources/Heartbeat";
 
 describe("HeartbeatInstancesStore tests", () => {
@@ -25,11 +24,12 @@ describe("HeartbeatInstancesStore tests", () => {
     useServiceControlUrls();
     await useServiceControl();
 
-    const store = storeToRefs(useHeartbeatInstancesStore(createTestingPinia({ stubActions: false })));
+    const store = useHeartbeatInstancesStore(createTestingPinia({ stubActions: false }));
+    const refs = storeToRefs(store);
 
-    await flushPromises();
+    await store.refresh();
 
-    return { driver, ...store };
+    return { driver, ...refs };
   }
 
   test("no endpoints", async () => {

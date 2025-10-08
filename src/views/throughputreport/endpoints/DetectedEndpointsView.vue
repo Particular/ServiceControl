@@ -3,12 +3,13 @@ import DetectedListView from "@/views/throughputreport/endpoints/DetectedListVie
 import { DataSource } from "@/views/throughputreport/endpoints/dataSource";
 import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator";
 import routeLinks from "@/router/routeLinks";
-import { useThroughputStore } from "@/stores/ThroughputStore";
 import { storeToRefs } from "pinia";
 import FAIcon from "@/components/FAIcon.vue";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
+import useThroughputStoreAutoRefresh from "@/composables/useThroughputStoreAutoRefresh";
 
-const { isBrokerTransport, hasErrors } = storeToRefs(useThroughputStore());
+const { store } = useThroughputStoreAutoRefresh();
+const { isBrokerTransport, hasErrors } = storeToRefs(store);
 </script>
 
 <template>

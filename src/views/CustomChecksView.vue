@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import NoData from "@/components/NoData.vue";
 import CustomCheckView from "@/components/customchecks/CustomCheckView.vue";
-import { useCustomChecksStore } from "@/stores/CustomChecksStore";
 import { storeToRefs } from "pinia";
 import PaginationStrip from "@/components/PaginationStrip.vue";
+import useCustomChecksStoreAutoRefresh from "@/composables/useCustomChecksStoreAutoRefresh";
 
-const store = useCustomChecksStore();
+const { store } = useCustomChecksStoreAutoRefresh();
 
 const { pageNumber, failingCount, failedChecks } = storeToRefs(store);
 </script>

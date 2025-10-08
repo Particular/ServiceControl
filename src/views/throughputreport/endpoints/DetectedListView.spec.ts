@@ -2,7 +2,6 @@ import { describe, expect, test } from "vitest";
 import * as precondition from "../../../../test/preconditions";
 import { useServiceControl } from "@/composables/serviceServiceControl";
 import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
-import flushPromises from "flush-promises";
 import { Transport } from "@/views/throughputreport/transport";
 import { makeDriverForTests, render, screen, userEvent } from "@component-test-utils";
 import { Driver, SetupFactoryOptions } from "../../../../test/driver";
@@ -53,7 +52,6 @@ describe("DetectedListView tests", () => {
         ...props,
       },
     });
-    await flushPromises();
 
     return { debug, driver };
   }

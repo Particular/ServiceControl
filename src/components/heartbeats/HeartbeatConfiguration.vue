@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ColumnNames, useHeartbeatsStore } from "@/stores/HeartbeatsStore";
+import { ColumnNames } from "@/stores/HeartbeatsStore";
 import { storeToRefs } from "pinia";
 import NoData from "../NoData.vue";
 import { useShowToast } from "@/composables/toast";
@@ -12,13 +12,14 @@ import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import ResultsCount from "../ResultsCount.vue";
 import FAIcon from "@/components/FAIcon.vue";
 import { faCloud, faServer } from "@fortawesome/free-solid-svg-icons";
+import useHeartbeatsStoreAutoRefresh from "@/composables/useHeartbeatsStoreAutoRefresh";
 
 enum Operation {
   Track = "track",
   DoNotTrack = "do not track",
 }
 
-const store = useHeartbeatsStore();
+const { store } = useHeartbeatsStoreAutoRefresh();
 const { sortedEndpoints, filteredEndpoints, defaultTrackingInstancesValue } = storeToRefs(store);
 const showBulkWarningDialog = ref(false);
 const dialogWarningOperation = ref(Operation.Track);

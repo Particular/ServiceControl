@@ -2,7 +2,6 @@ import { describe, expect, test } from "vitest";
 import * as precondition from "../../test/preconditions";
 import { useServiceControl } from "@/composables/serviceServiceControl";
 import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
-import flushPromises from "flush-promises";
 import { createTestingPinia } from "@pinia/testing";
 import { Transport } from "@/views/throughputreport/transport";
 import { makeDriverForTests, render, screen, userEvent } from "@component-test-utils";
@@ -45,7 +44,6 @@ describe("EndpointsView tests", () => {
         plugins: [makeRouter(), Toast, createTestingPinia({ stubActions: false })],
       },
     });
-    await flushPromises();
 
     return { debug, driver };
   }

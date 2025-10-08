@@ -11,11 +11,12 @@ import isRouteSelected from "@/composables/isRouteSelected";
 import { WarningLevel } from "@/components/WarningLevel";
 import { displayConnectionsWarning } from "@/components/configuration/displayConnectionsWarning";
 import { useLink, useRouter } from "vue-router";
-import { useThroughputStore } from "@/stores/ThroughputStore";
 import { storeToRefs } from "pinia";
+import useThroughputStoreAutoRefresh from "@/composables/useThroughputStoreAutoRefresh";
 
 const redirectCount = ref(0);
-const { hasErrors } = storeToRefs(useThroughputStore());
+const { store } = useThroughputStoreAutoRefresh();
+const { hasErrors } = storeToRefs(store);
 watch(redirectCountUpdated, () => (redirectCount.value = redirectCountUpdated.count));
 
 onMounted(async () => {

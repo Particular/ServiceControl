@@ -8,7 +8,6 @@ import { serviceControlWithThroughput } from "@/views/throughputreport/serviceCo
 import { useThroughputStore } from "@/stores/ThroughputStore";
 import { createTestingPinia } from "@pinia/testing";
 import { storeToRefs } from "pinia";
-import flushPromises from "flush-promises";
 import { Driver } from "../../test/driver";
 import { disableMonitoring } from "../../test/drivers/vitest/setup";
 
@@ -24,11 +23,11 @@ describe("ThroughputStore tests", () => {
     useServiceControlUrls();
     await useServiceControl();
 
-    const store = storeToRefs(useThroughputStore(createTestingPinia({ stubActions: false })));
+    const store = useThroughputStore(createTestingPinia({ stubActions: false }));
+    const refs = storeToRefs(store);
+    await store.refresh();
 
-    await flushPromises();
-
-    return { driver, ...store };
+    return { driver, ...refs };
   }
 
   test("when no connection test errors for any source", async () => {

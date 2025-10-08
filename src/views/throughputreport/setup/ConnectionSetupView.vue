@@ -4,13 +4,13 @@ import ThroughputConnectionSettings from "@/resources/ThroughputConnectionSettin
 import throughputClient from "@/views/throughputreport/throughputClient";
 import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
 import ConfigurationCode from "@/views/throughputreport/setup/ConfigurationCode.vue";
-import { useThroughputStore } from "@/stores/ThroughputStore";
 import { storeToRefs } from "pinia";
 import FAIcon from "@/components/FAIcon.vue";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
+import useThroughputStoreAutoRefresh from "@/composables/useThroughputStoreAutoRefresh";
 
-const store = useThroughputStore();
-const { isBrokerTransport } = storeToRefs(useThroughputStore());
+const { store } = useThroughputStoreAutoRefresh();
+const { isBrokerTransport } = storeToRefs(store);
 const settingsInfo = ref<ThroughputConnectionSettings | null>(null);
 
 onMounted(async () => {

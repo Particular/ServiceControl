@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import ConnectionResultView from "@/views/throughputreport/setup/ConnectionResultView.vue";
 import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
-import { useThroughputStore } from "@/stores/ThroughputStore";
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
+import useThroughputStoreAutoRefresh from "@/composables/useThroughputStoreAutoRefresh";
 
-const store = useThroughputStore();
+const { store } = useThroughputStoreAutoRefresh();
 const { testResults, isBrokerTransport } = storeToRefs(store);
 const loading = ref(false);
 

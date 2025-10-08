@@ -9,9 +9,9 @@ import CodeEditor from "@/components/CodeEditor.vue";
 import { useMessageStore } from "@/stores/MessageStore";
 import { storeToRefs } from "pinia";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import debounce from "lodash/debounce";
 import FAIcon from "@/components/FAIcon.vue";
 import { faExclamationCircle, faExclamationTriangle, faUndo } from "@fortawesome/free-solid-svg-icons";
+import { useDebounceFn } from "@vueuse/core";
 
 interface HeaderWithEditing extends Header {
   isLocked: boolean;
@@ -58,7 +58,7 @@ const { state, headers, body, edit_and_retry_config } = storeToRefs(store);
 const id = computed(() => state.value.data.id ?? "");
 const uneditedMessageBody = computed(() => body.value.data.value ?? "");
 const regExToPruneLineEndings = new RegExp(/[\n\r]*/, "g");
-const debounceBodyUpdate = debounce((value: string) => {
+const debounceBodyUpdate = useDebounceFn((value: string) => {
   const newValue = value.replaceAll(regExToPruneLineEndings, "");
   localMessage.value.isBodyChanged = newValue !== uneditedMessageBody.value.replaceAll(regExToPruneLineEndings, "");
   localMessage.value.isBodyEmpty = newValue === "";

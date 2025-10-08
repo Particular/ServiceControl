@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
 import routeLinks from "@/router/routeLinks";
-import { useHeartbeatsStore } from "@/stores/HeartbeatsStore";
 import { storeToRefs } from "pinia";
 import { faHeartPulse } from "@fortawesome/free-solid-svg-icons";
 import FAIcon from "@/components/FAIcon.vue";
+import useHeartbeatsStoreAutoRefresh from "@/composables/useHeartbeatsStoreAutoRefresh";
 
-const { failedHeartbeatsCount } = storeToRefs(useHeartbeatsStore());
+const { store } = useHeartbeatsStoreAutoRefresh();
+const { failedHeartbeatsCount } = storeToRefs(store);
 </script>
 
 <template>

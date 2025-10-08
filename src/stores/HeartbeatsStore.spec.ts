@@ -9,7 +9,6 @@ import { useServiceControl } from "@/composables/serviceServiceControl";
 import * as precondition from "../../test/preconditions";
 import { EndpointSettings } from "@/resources/EndpointSettings";
 import { serviceControlWithHeartbeats } from "@/components/heartbeats/serviceControlWithHeartbeats";
-import flushPromises from "flush-promises";
 import { EndpointStatus } from "@/resources/Heartbeat";
 import { ColumnNames, useHeartbeatsStore } from "@/stores/HeartbeatsStore";
 
@@ -26,8 +25,7 @@ describe("HeartbeatsStore tests", () => {
 
     const store = useHeartbeatsStore(createTestingPinia({ stubActions: false }));
     const storeRefs = storeToRefs(store);
-
-    await flushPromises();
+    await store.refresh();
 
     return { driver, ...store, ...storeRefs };
   }

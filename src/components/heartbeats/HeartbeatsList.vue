@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useHeartbeatsStore, ColumnNames } from "@/stores/HeartbeatsStore";
+import { ColumnNames } from "@/stores/HeartbeatsStore";
 import { storeToRefs } from "pinia";
 import DataView from "@/components/DataView.vue";
 import OnOffSwitch from "../OnOffSwitch.vue";
@@ -13,13 +13,14 @@ import LastHeartbeat from "@/components/heartbeats/LastHeartbeat.vue";
 import ColumnHeader from "../ColumnHeader.vue";
 import FAIcon from "@/components/FAIcon.vue";
 import { faBellSlash, faCheck, faCloud, faServer } from "@fortawesome/free-solid-svg-icons";
+import useHeartbeatsStoreAutoRefresh from "@/composables/useHeartbeatsStoreAutoRefresh";
 
 defineProps<{
   data: LogicalEndpoint[];
   columns: ColumnNames[];
 }>();
 
-const store = useHeartbeatsStore();
+const { store } = useHeartbeatsStoreAutoRefresh();
 const { sortByInstances, itemsPerPage } = storeToRefs(store);
 const route = useRoute();
 

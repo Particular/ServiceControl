@@ -5,34 +5,24 @@ import { useRoute, useRouter } from "vue-router";
 import ResultsCount from "@/components/ResultsCount.vue";
 import FiltersPanel from "@/components/audit/FiltersPanel.vue";
 import AuditListItem from "@/components/audit/AuditListItem.vue";
-import { onBeforeMount, onUnmounted, ref, watch } from "vue";
+import { onBeforeMount, ref, watch } from "vue";
 import RefreshConfig from "../RefreshConfig.vue";
-import useAutoRefresh from "@/composables/autoRefresh";
-import throttle from "lodash/throttle";
+import createAutoRefresh from "@/composables/autoRefresh";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { useThrottleFn } from "@vueuse/core";
 
 const store = useAuditStore();
 const { messages, totalCount, sortBy, messageFilterString, selectedEndpointName, itemsPerPage, dateRange } = storeToRefs(store);
 const route = useRoute();
 const router = useRouter();
 const autoRefreshValue = ref<number | null>(null);
-const isLoading = ref(false);
 
-const dataRetriever = useAutoRefresh(
-  throttle(async () => {
-    isLoading.value = true;
-    try {
-      await store.refresh();
-    } finally {
-      isLoading.value = false;
-    }
+const { refreshNow, isRefreshing, updateInterval } = createAutoRefresh(
+  useThrottleFn(async () => {
+    await store.refresh();
   }, 2000),
-  null
-);
-
-onUnmounted(() => {
-  dataRetriever.updateTimeout(null);
-});
+  { intervalMs: 0, immediate: false }
+)();
 
 const firstLoad = ref(true);
 
@@ -41,7 +31,7 @@ onBeforeMount(() => {
 
   //without setTimeout, this happens before the store is properly initialised, and therefore the query route values aren't applied to the refresh
   setTimeout(async () => {
-    await Promise.all([dataRetriever.executeAndResetTimer(), store.loadEndpoints()]);
+    await Promise.all([refreshNow(), store.loadEndpoints()]);
     firstLoad.value = false;
   }, 0);
 });
@@ -50,7 +40,7 @@ watch(
   () => router.currentRoute.value.query,
   async () => {
     setQuery();
-    await dataRetriever.executeAndResetTimer();
+    await refreshNow();
   },
   { deep: true }
 );
@@ -76,7 +66,7 @@ const watchHandle = watch([() => route.query, itemsPerPage, sortBy, messageFilte
     },
   });
 
-  await dataRetriever.executeAndResetTimer();
+  await refreshNow();
 });
 
 function setQuery() {
@@ -96,13 +86,13 @@ function setQuery() {
   watchHandle.resume();
 }
 
-watch(autoRefreshValue, (newValue) => dataRetriever.updateTimeout(newValue));
+watch(autoRefreshValue, (newValue) => updateInterval(newValue || 0));
 </script>
 
 <template>
   <div>
     <div class="header">
-      <RefreshConfig v-model="autoRefreshValue" :isLoading="isLoading" @manual-refresh="dataRetriever.executeAndResetTimer()" />
+      <RefreshConfig v-model="autoRefreshValue" :isLoading="isRefreshing" @manual-refresh="refreshNow()" />
       <div class="row">
         <FiltersPanel />
       </div>

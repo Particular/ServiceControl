@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import NoData from "../NoData.vue";
-import { ColumnNames, useHeartbeatsStore } from "@/stores/HeartbeatsStore";
+import { ColumnNames } from "@/stores/HeartbeatsStore";
 import { storeToRefs } from "pinia";
 import HeartbeatsList from "./HeartbeatsList.vue";
 import ResultsCount from "../ResultsCount.vue";
+import useHeartbeatsStoreAutoRefresh from "@/composables/useHeartbeatsStoreAutoRefresh";
 
-const store = useHeartbeatsStore();
+const { store } = useHeartbeatsStoreAutoRefresh();
 const { healthyEndpoints, filteredHealthyEndpoints } = storeToRefs(store);
 </script>
 

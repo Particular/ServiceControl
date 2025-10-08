@@ -5,7 +5,7 @@ import PageFooter from "./components/PageFooter.vue";
 import PageHeader from "./components/PageHeader.vue";
 import "bootstrap";
 import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
-import { useServiceControl } from "@/composables/serviceServiceControl";
+import { useServiceControl, useServiceControlAutoRefresh } from "@/composables/serviceServiceControl";
 import LicenseNotifications from "@/components/LicenseNotifications.vue";
 import BackendChecksNotifications from "@/components/BackendChecksNotifications.vue";
 
@@ -13,6 +13,7 @@ useServiceControlUrls();
 
 onMounted(async () => {
   await useServiceControl();
+  useServiceControlAutoRefresh();
 });
 </script>
 

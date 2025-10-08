@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import CustomCheck from "@/resources/CustomCheck";
 import TimeSince from "@/components/TimeSince.vue";
-import { useCustomChecksStore } from "@/stores/CustomChecksStore";
 import FAIcon from "@/components/FAIcon.vue";
 import { faCheck, faList, faServer } from "@fortawesome/free-solid-svg-icons";
 import { faClock } from "@fortawesome/free-regular-svg-icons";
 import { hexToCSSFilter } from "hex-to-css-filter";
+import useCustomChecksStoreAutoRefresh from "@/composables/useCustomChecksStoreAutoRefresh";
 
 defineProps<{ customCheck: CustomCheck }>();
 
-const store = useCustomChecksStore();
+const { store } = useCustomChecksStoreAutoRefresh();
 const endpointColor = hexToCSSFilter("#929E9E").filter;
 </script>
 

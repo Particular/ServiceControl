@@ -6,7 +6,6 @@ import { viewYourLicenseButton } from "./questions/viewYourLicenseButton";
 import { extendYourLicenseButton } from "./questions/extendYourLicenseButton";
 import { getAlertNotifications } from "./questions/alertNotifications";
 import { LicenseType } from "@/resources/LicenseInfo";
-import flushPromises from "flush-promises";
 
 describe("FEATURE: EXPIRING license detection", () => {
   describe("RULE: The user should be alerted while using the monitoring endpoint list functionality about an EXPIRING license", () => {
@@ -23,7 +22,6 @@ describe("FEATURE: EXPIRING license detection", () => {
         expect(notification).not.toBeUndefined();
         expect(notification?.hasLink({ caption: "Extend your license", address: licenseExtensionUrl })).toBeTruthy();
         expect(notification?.hasLink({ caption: "View license details", address: "#/configuration" })).toBeTruthy();
-        await flushPromises();
       });
     });
 
@@ -42,7 +40,6 @@ describe("FEATURE: EXPIRING license detection", () => {
 
         expect(notification).not.toBeUndefined();
         expect(notification?.hasLink({ caption: "View license details", address: "#/configuration" })).toBeTruthy();
-        await flushPromises();
       });
     });
   });
@@ -68,7 +65,6 @@ describe("FEATURE: EXPIRED license detection", () => {
 
       expect(notification).not.toBeUndefined();
       expect(notification?.hasLink({ caption: "http://particular.net/support", address: "http://particular.net/support" })).toBeTruthy();
-      await flushPromises();
     });
 
     test("EXAMPLE: Expired platform subscription", async ({ driver }) => {
@@ -88,7 +84,6 @@ describe("FEATURE: EXPIRED license detection", () => {
 
       expect(notification).not.toBeUndefined();
       expect(notification?.hasLink({ caption: "http://particular.net/support", address: "http://particular.net/support" })).toBeTruthy();
-      await flushPromises();
     });
 
     test("EXAMPLE: Expired upgrade protection", async ({ driver }) => {
@@ -107,7 +102,6 @@ describe("FEATURE: EXPIRED license detection", () => {
 
       expect(notification).not.toBeUndefined();
       expect(notification?.hasLink({ caption: "http://particular.net/support", address: "http://particular.net/support" })).toBeTruthy();
-      await flushPromises();
     });
   });
 });

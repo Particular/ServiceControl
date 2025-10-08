@@ -4,7 +4,6 @@ import isRouteSelected from "@/composables/isRouteSelected";
 import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator";
 import { userIndicatorMapper } from "@/views/throughputreport/endpoints/userIndicatorMapper";
 import { ref, type Component } from "vue";
-import { useThroughputStore } from "@/stores/ThroughputStore";
 import { storeToRefs } from "pinia";
 import LegendNServiceBusEndpoint from "./LegendNServiceBusEndpoint.vue";
 import LegendNServiceBusEndpointNoLongerInUse from "./LegendNServiceBusEndpointNoLongerInUse.vue";
@@ -14,8 +13,10 @@ import LegendPlannedToDecommission from "./LegendPlannedToDecommission.vue";
 import LegendNotNServiceBusEndpoint from "./LegendNotNServiceBusEndpoint.vue";
 import LegendGatewayOrBridgeEndpoint from "./LegendGatewayOrBridgeEndpoint.vue";
 import LegendParticularPlatformEndpoint from "./LegendParticularPlatformEndpoint.vue";
+import useThroughputStoreAutoRefresh from "@/composables/useThroughputStoreAutoRefresh";
 
-const { isBrokerTransport } = storeToRefs(useThroughputStore());
+const { store } = useThroughputStoreAutoRefresh();
+const { isBrokerTransport } = storeToRefs(store);
 const showLegend = ref(false);
 
 const legendOptions = new Map<UserIndicator, Component>([

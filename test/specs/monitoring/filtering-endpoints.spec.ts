@@ -8,10 +8,14 @@ import { currentFilterValueToBe } from "./questions/currentFilterValueToBe";
 import { endpointsNames } from "./questions/endpointsNames";
 import * as precondition from "../../preconditions";
 
-vi.mock("lodash/debounce", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  default: (fn: Function) => fn,
-}));
+vi.mock("@vueuse/core", async (importOriginal) => {
+  const originalModule = await importOriginal<typeof import("@vueuse/core")>();
+  return {
+    ...originalModule,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    useDebounceFn: (fn: Function) => fn,
+  };
+});
 
 describe("FEATURE: Endpoint filtering", () => {
   describe("RULE: List of monitoring endpoints should be filterable by the name", () => {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from "vue";
-import debounce from "lodash/debounce";
+import { useDebounceFn } from "@vueuse/core";
 import FAIcon from "./FAIcon.vue";
 import { faFilter } from "@fortawesome/free-solid-svg-icons";
 
@@ -16,7 +16,7 @@ const localInput = computed({
   },
 });
 const textField = useTemplateRef<HTMLInputElement>("textField");
-const debounceUpdateModel = debounce((value: string) => {
+const debounceUpdateModel = useDebounceFn((value: string) => {
   model.value = value;
 }, 600);
 

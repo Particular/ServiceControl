@@ -5,7 +5,6 @@ import makeRouter from "../../../src/router";
 import { mockEndpoint, mockEndpointDynamic } from "../../utils";
 import { App } from "vue";
 import { mockServer } from "../../mock-server";
-import flushPromises from "flush-promises";
 
 function makeDriver() {
   let app: App<Element>;
@@ -60,7 +59,6 @@ const test = testVitest.extend<{ driver: Driver }>({
 
     console.log("Test ended");
     //unmount the app after the test runs
-    await flushPromises();
     driver.disposeApp();
 
     console.log("Cleanup after test");

@@ -32,6 +32,8 @@ export const useHeartbeatInstancesStore = defineStore("HeartbeatInstancesStore",
   const sortedInstances = computed<EndpointsView[]>(() => endpointInstances.value.sort(getSortFunction(columnSortings.get(sortByInstances.value.property), sortByInstances.value.isAscending ? SortDirection.Ascending : SortDirection.Descending)));
   const filteredInstances = computed<EndpointsView[]>(() => sortedInstances.value.filter((instance) => !instanceFilterString.value || instance.host_display_name.toLowerCase().includes(instanceFilterString.value.toLowerCase())));
 
+  const refresh = () => store.refresh();
+
   watch(instanceFilterString, (newValue) => {
     setInstanceFilterString(newValue);
   });
@@ -51,6 +53,7 @@ export const useHeartbeatInstancesStore = defineStore("HeartbeatInstancesStore",
   }
 
   return {
+    refresh,
     sortedInstances,
     filteredInstances,
     instanceFilterString,
