@@ -11,6 +11,7 @@ import makeRouter from "@/router";
 import { RouterLinkStub } from "@vue/test-utils";
 import EndpointsView from "./EndpointsView.vue";
 import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
+import flushPromises from "flush-promises";
 
 describe("EndpointsView tests", () => {
   async function setup(transport: Transport) {
@@ -38,6 +39,7 @@ describe("EndpointsView tests", () => {
         plugins: [makeRouter(), createTestingPinia({ stubActions: false })],
       },
     });
+    await flushPromises();
 
     return { debug, driver };
   }

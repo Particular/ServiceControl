@@ -13,6 +13,7 @@ import { ConnectionSettingsTestResult } from "@/resources/ConnectionTestResults"
 import makeRouter from "@/router";
 import { RouterLinkStub } from "@vue/test-utils";
 import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
+import flushPromises from "flush-promises";
 
 describe("SetupView tests", () => {
   async function setup() {
@@ -59,6 +60,7 @@ describe("SetupView tests", () => {
         plugins: [makeRouter(), createTestingPinia({ stubActions: false })],
       },
     });
+    await flushPromises();
 
     return { debug, driver };
   }

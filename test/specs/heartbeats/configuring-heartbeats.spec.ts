@@ -10,6 +10,7 @@ import { getAllHeartbeatEndpointRecords, getHeartbeatEndpointRecord } from "./qu
 import { healthyEndpointTemplate } from "../../mocks/heartbeat-endpoint-template";
 import { setHeartbeatFilter } from "./actions/setHeartbeatFilter";
 import { getHeartbeatFilterValue } from "./questions/getHeartbeatFilterValue";
+import flushPromises from "flush-promises";
 
 vi.mock("@vueuse/core", async (importOriginal) => {
   const originalModule = await importOriginal<typeof import("@vueuse/core")>();
@@ -73,6 +74,8 @@ describe("FEATURE: Heartbeats configuration", () => {
       await toggleHeartbeatMonitoring("TestEndpoint_1");
 
       await driver.goTo("heartbeats/unhealthy");
+      // Force all the initial pending remote calls on the page to resolve.
+      await flushPromises();
 
       const unhealthyEndpoint = await getHeartbeatEndpointRecord("TestEndpoint_1");
 
@@ -95,6 +98,8 @@ describe("FEATURE: Heartbeats configuration", () => {
       await toggleHeartbeatMonitoring("Healthy_UnmonitoredEndpoint");
 
       await driver.goTo("heartbeats/healthy");
+      // Force all the initial pending remote calls on the page to resolve.
+      await flushPromises();
 
       const healthyEndpoint = await getHeartbeatEndpointRecord("Healthy_UnmonitoredEndpoint");
 
@@ -117,6 +122,8 @@ describe("FEATURE: Heartbeats configuration", () => {
       await toggleHeartbeatMonitoring("Unhealthy_UnmonitoredEndpoint");
 
       await driver.goTo("heartbeats/unhealthy");
+      // Force all the initial pending remote calls on the page to resolve.
+      await flushPromises();
 
       const healthyEndpoint = await getHeartbeatEndpointRecord("Unhealthy_UnmonitoredEndpoint");
 

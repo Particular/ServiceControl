@@ -12,6 +12,7 @@ import { RouterLinkStub } from "@vue/test-utils";
 import ThroughputReportView from "@/views/ThroughputReportView.vue";
 import Toast from "vue-toastification";
 import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
+import flushPromises from "flush-promises";
 
 describe("EndpointsView tests", () => {
   async function setup() {
@@ -44,6 +45,7 @@ describe("EndpointsView tests", () => {
         plugins: [makeRouter(), Toast, createTestingPinia({ stubActions: false })],
       },
     });
+    await flushPromises();
 
     return { debug, driver };
   }
