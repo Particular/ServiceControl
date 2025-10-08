@@ -3,14 +3,15 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import path from "path";
 import checker from "vite-plugin-checker";
+import vueDevTools from "vite-plugin-vue-devtools";
 
 function createCSPOverrides(hostPort: number, configuredDestinations: string[]) {
   const destinations = configuredDestinations.join(" ");
 
   return (
-    "default-src 'none';" +
+    "default-src 'self';" +
     `connect-src ws://localhost:${hostPort} https://platformupdate.particular.net ${destinations} 'self';` +
-    "font-src 'self' data:;" +
+    "font-src 'self' https://fonts.gstatic.com/ data:;" +
     `img-src data: 'self';` +
     `script-src eval: inline: https://platformupdate.particular.net ${destinations} 'self' 'unsafe-eval' 'unsafe-inline';` +
     `style-src inline: 'self' 'unsafe-inline';` +
@@ -32,6 +33,7 @@ export default defineConfig({
     devSourcemap: true,
   },
   plugins: [
+    vueDevTools(),
     vue(),
     checker({ overlay: { initialIsOpen: "error" }, vueTsc: { tsconfigPath: "tsconfig.app.json" }, eslint: { lintCommand: "eslint .", useFlatConfig: true } }),
     {
