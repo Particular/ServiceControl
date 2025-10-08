@@ -1,3 +1,4 @@
+import { flushPromises } from "@vue/test-utils";
 import { test as testVitest, describe } from "vitest";
 import { Driver } from "../../driver";
 import { mount } from "@/mount";
@@ -60,6 +61,9 @@ const test = testVitest.extend<{ driver: Driver }>({
     console.log("Test ended");
     //unmount the app after the test runs
     driver.disposeApp();
+
+    // We need to wait for any pending promises to resolve before resetting handlers and clearing storage
+    await flushPromises();
 
     console.log("Cleanup after test");
     mockServer.resetHandlers();
