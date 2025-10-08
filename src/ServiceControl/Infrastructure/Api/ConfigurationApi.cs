@@ -14,12 +14,15 @@ using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Api;
 using ServiceControl.Api.Contracts;
 
-class ConfigurationApi(ActiveLicense license,
-    Settings settings,
-    IHttpClientFactory httpClientFactory, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus) : IConfigurationApi
+class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFactory httpClientFactory, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus) : IConfigurationApi
 {
     public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken)
     {
+        if (!baseUrl.EndsWith('/'))
+        {
+            baseUrl += "/";
+        }
+
         var model = new RootUrls
         {
             EndpointsUrl = baseUrl + "endpoints",
@@ -27,13 +30,9 @@ class ConfigurationApi(ActiveLicense license,
             SagasUrl = baseUrl + "sagas",
             ErrorsUrl = baseUrl + "errors/{?page,per_page,direction,sort}",
             EndpointsErrorUrl = baseUrl + "endpoints/{name}/errors/{?page,per_page,direction,sort}",
-            MessageSearchUrl =
-                baseUrl + "messages/search/{keyword}/{?page,per_page,direction,sort}",
-            EndpointsMessageSearchUrl =
-                baseUrl +
-                "endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
-            EndpointsMessagesUrl =
-                baseUrl + "endpoints/{name}/messages/{?page,per_page,direction,sort}",
+            MessageSearchUrl = baseUrl + "messages/search/{keyword}/{?page,per_page,direction,sort}",
+            EndpointsMessageSearchUrl = baseUrl + "endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
+            EndpointsMessagesUrl = baseUrl + "endpoints/{name}/messages/{?page,per_page,direction,sort}",
             AuditCountUrl = baseUrl + "endpoints/{name}/audit-count",
             Name = SettingsReader.Read(Settings.SettingsRootNamespace, "Name", "ServiceControl"),
             Description = SettingsReader.Read(Settings.SettingsRootNamespace, "Description", "The management backend for the Particular Service Platform"),
