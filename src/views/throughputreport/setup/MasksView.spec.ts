@@ -7,7 +7,7 @@ import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { minimumSCVersionForThroughput } from "@/views/throughputreport/isThroughputSupported";
 import Toast from "vue-toastification";
 import { disableMonitoring } from "../../../../test/drivers/vitest/setup";
-import flushPromises from "flush-promises";
+import { flushPromises } from "@vue/test-utils";
 
 describe("MaskView tests", () => {
   async function setup() {

@@ -11,9 +11,8 @@ import { disableMonitoring } from "../../../test/drivers/vitest/setup";
 import SetupView from "./SetupView.vue";
 import { ConnectionSettingsTestResult } from "@/resources/ConnectionTestResults";
 import makeRouter from "@/router";
-import { RouterLinkStub } from "@vue/test-utils";
+import { flushPromises, RouterLinkStub } from "@vue/test-utils";
 import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
-import flushPromises from "flush-promises";
 
 describe("SetupView tests", () => {
   async function setup() {

@@ -12,7 +12,7 @@ import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator"
 import { within } from "@testing-library/vue";
 import UpdateUserIndicator from "@/resources/UpdateUserIndicator";
 import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
-import flushPromises from "flush-promises";
+import { flushPromises } from "@vue/test-utils";
 
 describe("DetectedListView tests", () => {
   async function setup() {

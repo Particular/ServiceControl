@@ -8,11 +8,10 @@ import { makeDriverForTests, render, screen, userEvent } from "@component-test-u
 import { Driver } from "../../test/driver";
 import { disableMonitoring } from "../../test/drivers/vitest/setup";
 import makeRouter from "@/router";
-import { RouterLinkStub } from "@vue/test-utils";
+import { flushPromises, RouterLinkStub } from "@vue/test-utils";
 import ThroughputReportView from "@/views/ThroughputReportView.vue";
 import Toast from "vue-toastification";
 import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
-import flushPromises from "flush-promises";
 
 describe("EndpointsView tests", () => {
   async function setup() {

@@ -10,7 +10,7 @@ import { getAllHeartbeatEndpointRecords, getHeartbeatEndpointRecord } from "./qu
 import { healthyEndpointTemplate } from "../../mocks/heartbeat-endpoint-template";
 import { setHeartbeatFilter } from "./actions/setHeartbeatFilter";
 import { getHeartbeatFilterValue } from "./questions/getHeartbeatFilterValue";
-import flushPromises from "flush-promises";
+import { flushPromises } from "@vue/test-utils";
 
 vi.mock("@vueuse/core", async (importOriginal) => {
   const originalModule = await importOriginal<typeof import("@vueuse/core")>();
