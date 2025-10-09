@@ -1,4 +1,4 @@
-import { onMounted, onUnmounted, watch, ref } from "vue";
+import { onMounted, onUnmounted, watch, ref, type WatchStopHandle } from "vue";
 import { useIntervalFn, useWindowFocus } from "@vueuse/core";
 
 export interface AutoRefreshOptions {
@@ -8,10 +8,11 @@ export interface AutoRefreshOptions {
 
 export default function createAutoRefresh(fetch: () => Promise<void>, { intervalMs, immediate = true }: AutoRefreshOptions) {
   let refCount = 0;
+  let watchStop: WatchStopHandle | null = null;
   const interval = ref(intervalMs);
 
   const { pause, resume, isActive } = useIntervalFn(
-    async () => await fetch(),
+    fetch,
     interval,
     { immediate: false } // we control first fetch manually
   );
@@ -25,7 +26,7 @@ export default function createAutoRefresh(fetch: () => Promise<void>, { interval
         await fetch();
       }
       resume();
-      watch(focused, (isFocused) => (isFocused ? resume() : pause()));
+      watchStop = watch(focused, (isFocused) => (isFocused ? resume() : pause()));
     }
   };
 
@@ -33,6 +34,8 @@ export default function createAutoRefresh(fetch: () => Promise<void>, { interval
     refCount--;
     if (refCount <= 0) {
       pause();
+      watchStop?.();
+      watchStop = null;
       refCount = 0;
     }
   };
