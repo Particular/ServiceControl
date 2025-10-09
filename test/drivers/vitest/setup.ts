@@ -22,9 +22,8 @@ beforeAll(() => {
   console.log("Starting mock server");
 
   mockServer.listen({
-    onUnhandledRequest: (request, { error }) => {
-      console.log("Unhandled %s %s", request.method, request.url);
-      error();
+    onUnhandledRequest: (request) => {
+      console.warn("Unhandled %s %s", request.method, request.url);
     },
   });
 });
