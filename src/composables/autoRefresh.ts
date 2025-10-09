@@ -47,6 +47,6 @@ export default function createAutoRefresh(fetch: () => Promise<void>, { interval
   return function useAutoRefresh() {
     onMounted(start);
     onUnmounted(stop);
-    return { refreshNow: fetch, isRefreshing: isActive, updateInterval };
+    return { refreshNow: fetch, isRefreshing: isActive, updateInterval, pause, resume };
   };
 }

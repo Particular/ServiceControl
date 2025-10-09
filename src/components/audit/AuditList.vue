@@ -17,7 +17,7 @@ const route = useRoute();
 const router = useRouter();
 const autoRefreshValue = ref<number | null>(null);
 
-const { refreshNow, isRefreshing, updateInterval } = createAutoRefresh(
+const { refreshNow, isRefreshing, updateInterval, pause, resume } = createAutoRefresh(
   useThrottleFn(async () => {
     await store.refresh();
   }, 2000),
@@ -86,7 +86,14 @@ function setQuery() {
   watchHandle.resume();
 }
 
-watch(autoRefreshValue, (newValue) => updateInterval(newValue || 0));
+watch(autoRefreshValue, (newValue) => {
+  updateInterval(newValue || 0);
+  if (newValue === null || newValue === 0) {
+    pause();
+  } else {
+    resume();
+  }
+});
 </script>
 
 <template>
