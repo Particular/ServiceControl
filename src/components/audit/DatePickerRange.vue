@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { DateRange } from "@/stores/AuditStore";
+import type { DateRange } from "@/types/date";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { ref, useTemplateRef, watch } from "vue";
+import { useDateFormatter } from "@/composables/dateFormatter";
+
+const { formatDateRange, isValidDateRange } = useDateFormatter();
 
 const model = defineModel<DateRange>({ required: true });
 const internalModel = ref<DateRange>([]);
@@ -11,9 +14,9 @@ const datePicker = useTemplateRef<typeof VueDatePicker>("datePicker");
 
 watch(internalModel, () => {
   const updatedRange = internalModel.value as DateRange;
-  if (isValidRange(updatedRange)) {
+  if (isValidDateRange(updatedRange)) {
     model.value = updatedRange;
-    displayDataRange.value = formatDate(updatedRange);
+    displayDataRange.value = formatDateRange(updatedRange);
   } else internalModel.value = model.value;
 });
 
@@ -25,20 +28,9 @@ watch(
   { immediate: true }
 );
 
-function isValidRange([fromDate, toDate]: DateRange) {
-  return (!fromDate && !toDate) || (toDate && toDate <= new Date());
-}
-
 function clearCurrentDate() {
   internalModel.value = [];
   datePicker.value?.closeMenu();
-}
-
-function formatDate([fromDate, toDate]: DateRange) {
-  if (toDate && toDate > new Date()) return "Date cannot be in the future";
-  if (fromDate && toDate) return `${fromDate.toLocaleString()} - ${toDate.toLocaleString()}`;
-  if (fromDate) return fromDate.toLocaleString();
-  return "No dates";
 }
 </script>
 
@@ -47,7 +39,7 @@ function formatDate([fromDate, toDate]: DateRange) {
     ref="datePicker"
     class="dropdown"
     v-model="internalModel"
-    :format="(dates: Date[]) => formatDate(dates as DateRange)"
+    :format="(dates: Date[]) => formatDateRange(dates as DateRange)"
     :range="{ partialRange: false }"
     :enable-seconds="true"
     :action-row="{ showNow: false, showCancel: false, showSelect: true }"
