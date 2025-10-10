@@ -19,6 +19,7 @@ import GroupOperation from "@/resources/GroupOperation";
 import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnected";
 import { faArrowDownAZ, faArrowDownZA, faArrowDownShortWide, faArrowDownWideShort, faInfoCircle, faExternalLink, faFilter, faTimes, faArrowRightRotate } from "@fortawesome/free-solid-svg-icons";
 import FAIcon from "@/components/FAIcon.vue";
+import ActionButton from "@/components/ActionButton.vue";
 import { faCheckSquare } from "@fortawesome/free-regular-svg-icons";
 
 let refreshInterval: number | undefined;
@@ -269,7 +270,7 @@ onMounted(() => {
                   </option>
                 </select>
                 <span class="input-group-btn">
-                  <button type="button" @click="clearSelectedQueue()" class="btn btn-default"><FAIcon :icon="faTimes" class="icon" /></button>
+                  <ActionButton @click="clearSelectedQueue()" :icon="faTimes" />
                 </span>
               </div>
             </div>
@@ -293,16 +294,10 @@ onMounted(() => {
         <div class="row">
           <div class="col-6 col-xs-12 toolbar-menus">
             <div class="action-btns">
-              <button type="button" class="btn btn-default" :disabled="!isAnythingSelected()" @click="showConfirmRetry = true"><FAIcon :icon="faArrowRightRotate" class="icon" /><span>Retry</span> ({{ numberSelected() }})</button>
-              <button type="button" class="btn btn-default" :disabled="!isAnythingSelected()" @click="showConfirmResolve = true">
-                <FAIcon :icon="faCheckSquare" class="icon" />
-                <span>Mark as resolved</span> ({{ numberSelected() }})
-              </button>
-              <button type="button" class="btn btn-default" :disabled="!isAnythingDisplayed()" @click="retryAllClicked()"><FAIcon :icon="faArrowRightRotate" class="icon" /><span>Retry all</span></button>
-              <button type="button" class="btn btn-default" @click="showConfirmResolveAll = true">
-                <FAIcon :icon="faCheckSquare" class="icon" />
-                <span>Mark all as resolved</span>
-              </button>
+              <ActionButton :icon="faArrowRightRotate" :disabled="!isAnythingSelected()" @click="showConfirmRetry = true"><span>Retry</span> ({{ numberSelected() }})</ActionButton>
+              <ActionButton :icon="faCheckSquare" :disabled="!isAnythingSelected()" @click="showConfirmResolve = true"><span>Mark as resolved</span> ({{ numberSelected() }})</ActionButton>
+              <ActionButton :icon="faArrowRightRotate" :disabled="!isAnythingDisplayed()" @click="retryAllClicked()"><span>Retry all</span></ActionButton>
+              <ActionButton :icon="faCheckSquare" @click="showConfirmResolveAll = true"><span>Mark all as resolved</span></ActionButton>
             </div>
           </div>
         </div>

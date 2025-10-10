@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import ListFilterSelector from "@/components/audit/ListFilterSelector.vue";
-import FAIcon from "@/components/FAIcon.vue";
+import ActionButton from "@/components/ActionButton.vue";
 import { faRefresh } from "@fortawesome/free-solid-svg-icons";
 
 const props = defineProps<{ isLoading: boolean }>();
@@ -62,7 +62,7 @@ async function refresh() {
 
 <template>
   <div class="refresh-config">
-    <button class="btn btn-sm" title="refresh" @click="refresh"><FAIcon class="refresh-icon" :class="{ spinning: showSpinning }" :icon="faRefresh" /> Refresh List</button>
+    <ActionButton size="sm" :icon="faRefresh" :loading="showSpinning" tooltip="refresh" @click="refresh">Refresh List</ActionButton>
     <div class="filter">
       <div class="filter-label">Auto-Refresh:</div>
       <div class="filter-component">
@@ -87,24 +87,5 @@ async function refresh() {
 
 .filter-label {
   font-weight: bold;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.refresh-icon {
-  display: inline-block;
-  color: var(--reduced-emphasis);
-}
-
-/* You can add this class dynamically when needed */
-.refresh-icon.spinning {
-  animation: spin 1s linear infinite;
 }
 </style>

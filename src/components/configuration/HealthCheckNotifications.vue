@@ -12,6 +12,7 @@ import type UpdateEmailNotificationsSettingsRequest from "@/resources/UpdateEmai
 import type EmailSettings from "@/components/configuration/EmailSettings";
 import OnOffSwitch from "../OnOffSwitch.vue";
 import FAIcon from "@/components/FAIcon.vue";
+import ActionButton from "@/components/ActionButton.vue";
 import { faCheck, faEdit, faEnvelope, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 
 const isExpired = licenseStatus.isExpired;
@@ -129,10 +130,10 @@ onMounted(async () => {
                         <div class="col-12">
                           <p class="lead">Email notifications</p>
                           <p class="endpoint-metadata">
-                            <button class="btn btn-link btn-sm" type="button" @click="editEmailNotifications"><FAIcon :icon="faEdit" /> Configure</button>
+                            <ActionButton variant="link" size="sm" :icon="faEdit" @click="editEmailNotifications">Configure</ActionButton>
                           </p>
                           <p class="endpoint-metadata">
-                            <button class="btn btn-link btn-sm" type="button" @click="testEmailNotifications" :disabled="!!emailTestInProgress"><FAIcon :icon="faEnvelope" /> Send test notification</button>
+                            <ActionButton variant="link" size="sm" :icon="faEnvelope" @click="testEmailNotifications" :disabled="!!emailTestInProgress">Send test notification</ActionButton>
                             <span class="connection-test connection-testing">
                               <template v-if="emailTestInProgress">
                                 <i class="glyphicon glyphicon-refresh rotate"></i>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ActionButton from "@/components/ActionButton.vue";
 import { useMessageStore } from "@/stores/MessageStore";
 import { computed, ref } from "vue";
 import { useShowToast } from "@/composables/toast";
@@ -7,7 +8,6 @@ import EditRetryDialog from "@/components/failedmessages/EditRetryDialog.vue";
 import { MessageStatus } from "@/resources/Message";
 import { storeToRefs } from "pinia";
 import { FailedMessageStatus } from "@/resources/FailedMessage";
-import FAIcon from "@/components/FAIcon.vue";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
 
 const store = useMessageStore();
@@ -33,15 +33,9 @@ async function openDialog() {
 
 <template>
   <template v-if="isVisible">
-    <button type="button" class="btn btn-default" aria-label="Edit & retry" :disabled="isDisabled" @click="openDialog"><FAIcon :icon="faPencil" class="icon" /> Edit & retry</button>
+    <ActionButton :icon="faPencil" aria-label="Edit & retry" :disabled="isDisabled" @click="openDialog">Edit & retry</ActionButton>
     <Teleport to="#modalDisplay">
       <EditRetryDialog v-if="isConfirmDialogVisible" @cancel="isConfirmDialogVisible = false" @confirm="handleConfirm"></EditRetryDialog>
     </Teleport>
   </template>
 </template>
-
-<style scoped>
-.icon {
-  color: var(--reduced-emphasis);
-}
-</style>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ActionButton from "@/components/ActionButton.vue";
 import { onMounted, onUnmounted } from "vue";
 
 const emit = defineEmits<{ confirm: []; cancel: [] }>();
@@ -46,8 +47,8 @@ onMounted(() => {
           <p v-if="secondParagraph && secondParagraph.length">{{ secondParagraph }}</p>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-primary" :aria-label="hideCancel ? 'Ok' : 'Yes'" @click="confirm">{{ hideCancel ? "Ok" : "Yes" }}</button>
-          <button v-if="!hideCancel" aria-label="No" class="btn btn-default" @click="close">No</button>
+          <ActionButton variant="primary" :aria-label="hideCancel ? 'Ok' : 'Yes'" @click="confirm">{{ hideCancel ? "Ok" : "Yes" }}</ActionButton>
+          <ActionButton v-if="!hideCancel" aria-label="No" @click="close">No</ActionButton>
         </div>
       </div>
     </div>

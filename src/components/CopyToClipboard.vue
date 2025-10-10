@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Tippy, TippyComponent } from "vue-tippy";
 import { ref, useTemplateRef, watch } from "vue";
-import FAIcon from "@/components/FAIcon.vue";
+import ActionButton from "@/components/ActionButton.vue";
 import { faCopy } from "@fortawesome/free-regular-svg-icons";
 
 const props = withDefaults(
@@ -27,7 +27,7 @@ watch(timeoutId, (_, previousTimeoutId) => clearTimeout(previousTimeoutId));
 
 <template>
   <Tippy content="Copied" ref="tippyRef" trigger="manual">
-    <button v-if="!props.isIconOnly" type="button" class="btn btn-secondary btn-sm" @click="copyToClipboard"><FAIcon :icon="faCopy" /> Copy to clipboard</button>
-    <button v-else type="button" class="btn btn-secondary btn-sm" @click="copyToClipboard" v-tippy="'Copy to clipboard'"><FAIcon :icon="faCopy" /></button>
+    <ActionButton v-if="!props.isIconOnly" variant="secondary" size="sm" :icon="faCopy" @click="copyToClipboard">Copy to clipboard</ActionButton>
+    <ActionButton v-else variant="secondary" size="sm" :icon="faCopy" tooltip="Copy to clipboard" @click="copyToClipboard" />
   </Tippy>
 </template>

@@ -70,6 +70,11 @@ const buttonClasses = ["btn", variantClasses[props.variant], sizeClasses[props.s
   opacity: 0.65;
 }
 
+.icon-left,
+.icon-right {
+  color: var(--reduced-emphasis);
+}
+
 .icon-left {
   margin-right: 0.25rem;
 }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import ActionButton from "@/components/ActionButton.vue";
 import FAIcon from "@/components/FAIcon.vue";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 
@@ -142,9 +143,9 @@ function close() {
             </div>
           </div>
           <div class="modal-footer">
-            <button v-if="model.message_redirect_id" class="btn btn-primary" :disabled="!formIsValid" @click="edit">Modify</button>
-            <button v-if="!model.message_redirect_id" class="btn btn-primary" :disabled="!formIsValid" @click="create">Create</button>
-            <button class="btn btn-default" @click="close">Cancel</button>
+            <ActionButton v-if="model.message_redirect_id" variant="primary" :disabled="!formIsValid" @click="edit">Modify</ActionButton>
+            <ActionButton v-if="!model.message_redirect_id" variant="primary" :disabled="!formIsValid" @click="create">Create</ActionButton>
+            <ActionButton @click="close">Cancel</ActionButton>
           </div>
         </form>
       </div>

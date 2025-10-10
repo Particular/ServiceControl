@@ -15,6 +15,7 @@ import FAIcon from "@/components/FAIcon.vue";
 import { faArrowRotateRight, faEnvelope, faEraser, faExclamationTriangle, faPencil, faStickyNote, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { faClock } from "@fortawesome/free-regular-svg-icons";
 import ProgressMessage from "./ProgressMessage.vue";
+import ActionButton from "@/components/ActionButton.vue";
 
 interface WorkflowState {
   status: string;
@@ -403,34 +404,34 @@ defineExpose<IMessageGroupList>({
                   </div>
                   <div class="row" v-if="!isBeingRetried(group) && !isBeingArchived(group.workflow_state.status)">
                     <div class="col-sm-12 no-side-padding">
-                      <button
-                        type="button"
-                        class="btn btn-link btn-sm"
+                      <ActionButton
+                        variant="link"
+                        size="sm"
+                        :icon="faArrowRotateRight"
                         :disabled="group.count == 0 || isBeingRetried(group)"
                         @mouseenter="group.hover3 = true"
                         @mouseleave="group.hover3 = false"
                         v-if="exceptionGroups.length > 0"
                         @click.stop="retryGroup(group)"
                       >
-                        <FAIcon :icon="faArrowRotateRight" class="icon" />
                         <span>Request retry</span>
-                      </button>
+                      </ActionButton>
 
-                      <button
-                        type="button"
-                        class="btn btn-link btn-sm"
+                      <ActionButton
+                        variant="link"
+                        size="sm"
+                        :icon="faTrash"
                         :disabled="group.count == 0 || isBeingRetried(group)"
                         @mouseenter="group.hover3 = true"
                         @mouseleave="group.hover3 = false"
                         v-if="exceptionGroups.length > 0"
                         @click.stop="deleteGroup(group)"
                       >
-                        <FAIcon :icon="faTrash" class="icon" />
                         <span>Delete group</span>
-                      </button>
-                      <button type="button" class="btn btn-link btn-sm" v-if="!group.comment" @click.stop="editNote(group)"><FAIcon :icon="faStickyNote" class="icon" />Add note</button>
-                      <button type="button" class="btn btn-link btn-sm" v-if="group.comment" @click.stop="editNote(group)"><FAIcon :icon="faPencil" class="icon" />Edit note</button>
-                      <button type="button" class="btn btn-link btn-sm" v-if="group.comment" @click.stop="deleteNote(group)"><FAIcon :icon="faEraser" class="icon" />Remove note</button>
+                      </ActionButton>
+                      <ActionButton variant="link" size="sm" :icon="faStickyNote" v-if="!group.comment" @click.stop="editNote(group)">Add note</ActionButton>
+                      <ActionButton variant="link" size="sm" :icon="faPencil" v-if="group.comment" @click.stop="editNote(group)">Edit note</ActionButton>
+                      <ActionButton variant="link" size="sm" :icon="faEraser" v-if="group.comment" @click.stop="deleteNote(group)">Remove note</ActionButton>
                     </div>
                   </div>
 
