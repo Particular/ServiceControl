@@ -4,8 +4,7 @@ import { ref } from "vue";
 import type { SortInfo } from "@/components/SortInfo";
 import Message from "@/resources/Message";
 import { EndpointsView } from "@/resources/EndpointView";
-
-export type DateRange = [fromDate: Date, toDate: Date] | [];
+import type { DateRange } from "@/types/date";
 
 export enum FieldNames {
   TimeSent = "time_sent",
