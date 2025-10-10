@@ -1,21 +1,31 @@
 ﻿<script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
-import moment from "moment";
+import { useDateFormatter } from "@/composables/dateFormatter";
 
-const emptyDate = "0001-01-01T00:00:00";
+const props = withDefaults(
+  defineProps<{
+    dateUtc?: string;
+    defaultTextOnFailure?: string;
+    titleValue?: string;
+  }>(),
+  {
+    dateUtc: "0001-01-01T00:00:00",
+    defaultTextOnFailure: "n/a",
+    titleValue: undefined,
+  }
+);
 
-const props = withDefaults(defineProps<{ dateUtc?: string; defaultTextOnFailure?: string; titleValue?: string }>(), { dateUtc: emptyDate, defaultTextOnFailure: "n/a", titleValue: undefined });
+const { formatRelativeTime, formatDateTooltip, emptyDate } = useDateFormatter();
 
 let interval: number | undefined = undefined;
 
-const title = ref(),
-  text = ref();
+const title = ref<string>("");
+const text = ref<string>("");
 
 function updateText() {
   if (props.dateUtc != null && props.dateUtc !== emptyDate) {
-    const m = moment.utc(props.dateUtc);
-    text.value = m.fromNow();
-    title.value = props.titleValue ?? m.local().format("LLLL") + " (local)\n" + m.utc().format("LLLL") + " (UTC)";
+    text.value = formatRelativeTime(props.dateUtc, { emptyText: props.defaultTextOnFailure });
+    title.value = formatDateTooltip(props.dateUtc, props.titleValue);
   } else {
     text.value = props.defaultTextOnFailure;
     title.value = props.titleValue ?? props.defaultTextOnFailure;
@@ -23,10 +33,7 @@ function updateText() {
 }
 
 onMounted(() => {
-  interval = window.setInterval(function () {
-    updateText();
-  }, 5000);
-
+  interval = window.setInterval(updateText, 5000);
   updateText();
 });
 
