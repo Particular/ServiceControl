@@ -12,7 +12,7 @@ import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
 import EndpointDetails from "@/resources/EndpointDetails";
 import { hexToCSSFilter } from "hex-to-css-filter";
-import TextEllipses from "@/components/TextEllipses.vue";
+import SagaName from "@/components/SagaName.vue";
 import { useLayout } from "@/components/messages/FlowDiagram/useLayout";
 import { formatTypeName } from "@/composables/formatUtils";
 
@@ -249,7 +249,7 @@ const selectedErrorColor = hexToCSSFilter("#e8e6e8").filter;
                     v-tippy="saga.isSagaInitiated ? 'Saga Initiated / Updated' : !saga.isSagaInitiated && saga.isSagaCompleted ? 'Saga Completed' : 'Message originated from Saga'"
                     :class="{ 'pa-flow-saga-initiated': saga.isSagaInitiated, 'pa-flow-saga-completed': !saga.isSagaInitiated && saga.isSagaCompleted, 'pa-flow-saga-trigger': !saga.isSagaInitiated && !saga.isSagaCompleted }"
                   />
-                  <div class="sagaName"><TextEllipses style="width: 182px" :text="saga.sagaType" ellipses-style="LeftSide" /></div>
+                  <SagaName :saga-type="saga.sagaType" />
                 </div>
               </div>
             </div>
@@ -296,9 +296,6 @@ const selectedErrorColor = hexToCSSFilter("#e8e6e8").filter;
   display: flex;
 }
 
-.sagaName {
-  color: #e6e6e6;
-}
 .node {
   --vf-handle: var(--vf-node-color, #1a192b);
   --vf-box-shadow: var(--vf-node-color, #1a192b);
