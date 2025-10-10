@@ -7,7 +7,7 @@ import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended"
 
 export default tseslint.config(
   {
-    ignores: ["node_modules/**", "dist/**", "public/js/app.constants.js"],
+    ignores: ["node_modules/**", "dist/**", "public/js/app.constants.js", "public/mockServiceWorker.js"],
   },
   {
     files: ["**/*.{js,mjs,ts,vue}"],
