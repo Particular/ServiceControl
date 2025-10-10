@@ -109,11 +109,11 @@ export async function useServiceControl() {
   await Promise.all([useServiceControlStats(), useServiceControlMonitoringStats(), getServiceControlVersion()]);
 }
 
-export const useServiceControlAutoRefresh = () => {
-  createAutoRefresh(() => getServiceControlVersion(), { intervalMs: 60000 });
-  createAutoRefresh(() => useServiceControlStats(), { intervalMs: 5000 }); //NOTE is 5 seconds too often?
-  createAutoRefresh(() => useServiceControlMonitoringStats(), { intervalMs: 5000 }); //NOTE is 5 seconds too often?
-};
+export function useServiceControlAutoRefresh() {
+  createAutoRefresh(getServiceControlVersion, { intervalMs: 60000 })();
+  createAutoRefresh(useServiceControlStats, { intervalMs: 5000 })(); //NOTE is 5 seconds too often?
+  createAutoRefresh(useServiceControlMonitoringStats, { intervalMs: 5000 })(); //NOTE is 5 seconds too often?
+}
 
 async function useServiceControlStats() {
   const failedMessagesResult = getFailedMessagesCount();
