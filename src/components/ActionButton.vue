@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FAIcon from "@/components/FAIcon.vue";
-import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import { IconDefinition, faRefresh } from "@fortawesome/free-solid-svg-icons";
 
 export type ButtonVariant = "primary" | "secondary" | "danger" | "link" | "default";
 export type ButtonSize = "sm" | "lg" | "default";
@@ -39,21 +39,23 @@ const sizeClasses = {
   lg: "btn-lg",
   default: "",
 };
-
-const buttonClasses = ["btn", variantClasses[props.variant], sizeClasses[props.size]].filter(Boolean).join(" ");
 </script>
 
 <template>
-  <button :class="[buttonClasses, { disabled: disabled || loading }]" :disabled="disabled || loading" :type="type" :aria-label="ariaLabel" v-tippy="tooltip">
-    <FAIcon v-if="icon && iconPosition === 'left' && !loading" :icon="icon" class="icon-left" />
-
-    <i v-if="loading" class="glyphicon glyphicon-refresh rotate"></i>
-
+  <button
+    class="btn"
+    :class="[variantClasses[props.variant], sizeClasses[props.size], { disabled: props.disabled || props.loading }]"
+    :disabled="props.disabled || props.loading"
+    :type="props.type"
+    :aria-label="props.ariaLabel"
+    v-tippy="props.tooltip"
+  >
+    <FAIcon v-if="props.icon && props.iconPosition === 'left' && !props.loading" :icon="props.icon" class="icon-left" />
+    <FAIcon v-if="props.loading" class="rotate" :icon="faRefresh" />
     <span v-if="$slots.default" class="button-text">
       <slot />
     </span>
-
-    <FAIcon v-if="icon && iconPosition === 'right' && !loading" :icon="icon" class="icon-right" />
+    <FAIcon v-if="props.icon && props.iconPosition === 'right' && !props.loading" :icon="props.icon" class="icon-right" />
   </button>
 </template>
 
