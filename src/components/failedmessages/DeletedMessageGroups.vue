@@ -15,7 +15,8 @@ import ConfirmDialog from "../ConfirmDialog.vue";
 import routeLinks from "@/router/routeLinks";
 import FailureGroupView from "@/resources/FailureGroupView";
 import { TYPE } from "vue-toastification";
-import FAIcon from "@/components/FAIcon.vue";
+import MetadataItem from "@/components/MetadataItem.vue";
+import ActionButton from "@/components/ActionButton.vue";
 import { faArrowRotateRight, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { faClock } from "@fortawesome/free-regular-svg-icons";
 
@@ -350,29 +351,25 @@ onMounted(async () => {
                                     <time-since :date-utc="group.last"></time-since>
                                   </span>
 
-                                  <span class="metadata">
-                                    <FAIcon :icon="faArrowRotateRight" class="icon" />
-                                    Last retried:
-                                    <time-since :date-utc="group.last_operation_completion_time"></time-since>
-                                  </span>
+                                  <MetadataItem :icon="faArrowRotateRight"> Last retried: <time-since :date-utc="group.last_operation_completion_time"></time-since> </MetadataItem>
                                 </p>
                               </div>
                             </div>
 
                             <div class="row" v-if="!isBeingRestored(group.workflow_state.status)">
                               <div class="col-sm-12 no-side-padding">
-                                <button
-                                  type="button"
-                                  class="btn btn-link btn-sm"
+                                <ActionButton
+                                  variant="link"
+                                  size="sm"
+                                  :icon="faArrowRotateRight"
                                   :disabled="group.count === 0 || isBeingRestored(group.workflow_state.status)"
                                   @mouseenter="group.hover3 = true"
                                   @mouseleave="group.hover3 = false"
                                   v-if="archiveGroups.length > 0"
                                   @click.stop="showRestoreGroupDialog(group)"
                                 >
-                                  <FAIcon :icon="faArrowRotateRight" class="icon" />
-                                  <span>Restore group</span>
-                                </button>
+                                  Restore group
+                                </ActionButton>
                               </div>
                             </div>
 
@@ -391,9 +388,9 @@ onMounted(async () => {
                                       </li>
                                     </ul>
                                     <div class="op-metadata">
-                                      <span class="metadata"><FAIcon :icon="faClock" class="icon" /> Restore request started:<time-since :date-utc="group.operation_start_time"></time-since></span>
-                                      <span class="metadata" v-if="group.workflow_state.status === 'restorecompleted'"><FAIcon :icon="faEnvelope" class="icon" /> Messages restored: {{ group.count }}</span>
-                                      <span class="metadata" v-if="group.workflow_state.status !== 'restorecompleted'"><FAIcon :icon="faEnvelope" class="icon" /> Messages being restored: {{ group.count }}</span>
+                                      <MetadataItem :icon="faClock"> Restore request started: <time-since :date-utc="group.operation_start_time"></time-since> </MetadataItem>
+                                      <MetadataItem v-if="group.workflow_state.status === 'restorecompleted'" :icon="faEnvelope"> Messages restored: {{ group.count }} </MetadataItem>
+                                      <MetadataItem v-if="group.workflow_state.status !== 'restorecompleted'" :icon="faEnvelope"> Messages being restored: {{ group.count }} </MetadataItem>
                                     </div>
                                   </div>
                                 </div>
