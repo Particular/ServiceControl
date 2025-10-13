@@ -1,42 +1,55 @@
-import { onMounted, onUnmounted, watch, ref, type WatchStopHandle } from "vue";
-import { useIntervalFn, useWindowFocus } from "@vueuse/core";
+import { watch, ref, shallowReadonly, type WatchStopHandle } from "vue";
+import { useDocumentVisibility, useIntervalFn } from "@vueuse/core";
 
-export interface AutoRefreshOptions {
-  intervalMs: number;
-  immediate?: boolean;
-}
-
-export default function createAutoRefresh(fetch: () => Promise<void>, { intervalMs, immediate = true }: AutoRefreshOptions) {
+export default function createAutoRefresh(name: string, fetch: () => Promise<void>, intervalMs: number) {
   let refCount = 0;
   let watchStop: WatchStopHandle | null = null;
   const interval = ref(intervalMs);
-
-  const { pause, resume, isActive } = useIntervalFn(
-    fetch,
+  const isRefreshing = ref(false);
+  const fetchWrapper = async () => {
+    isRefreshing.value = true;
+    await fetch();
+    isRefreshing.value = false;
+  };
+  const { pause, resume } = useIntervalFn(
+    fetchWrapper,
     interval,
-    { immediate: false } // we control first fetch manually
+    { immediate: false, immediateCallback: true } // we control first fetch manually
   );
 
-  const focused = useWindowFocus();
+  const visibility = useDocumentVisibility();
 
-  const start = async () => {
+  const start = () => {
     refCount++;
     if (refCount === 1) {
-      if (immediate) {
-        await fetch();
-      }
+      console.debug(`[AutoRefresh] Starting auto-refresh for ${name} every ${interval.value}ms`);
       resume();
-      watchStop = watch(focused, (isFocused) => (isFocused ? resume() : pause()));
+      watchStop = watch(visibility, (current, previous) => {
+        if (current === "visible" && previous === "hidden") {
+          console.debug(`[AutoRefresh] Resuming auto-refresh for ${name} as document became visible`);
+          resume();
+        }
+
+        if (current === "hidden" && previous === "visible") {
+          console.debug(`[AutoRefresh] Pausing auto-refresh for ${name} as document became hidden`);
+          pause();
+        }
+      });
+    } else {
+      console.debug(`[AutoRefresh] Incremented refCount for ${name} to ${refCount}`);
     }
   };
 
   const stop = () => {
     refCount--;
     if (refCount <= 0) {
+      console.debug(`[AutoRefresh] Stopping auto-refresh for ${name}`);
       pause();
       watchStop?.();
       watchStop = null;
       refCount = 0;
+    } else {
+      console.debug(`[AutoRefresh] Decremented refCount for ${name} to ${refCount}`);
     }
   };
 
@@ -44,9 +57,5 @@ export default function createAutoRefresh(fetch: () => Promise<void>, { interval
     interval.value = newIntervalMs;
   };
 
-  return function useAutoRefresh() {
-    onMounted(start);
-    onUnmounted(stop);
-    return { refreshNow: fetch, isRefreshing: isActive, updateInterval, pause, resume };
-  };
+  return { refreshNow: fetchWrapper, isRefreshing: shallowReadonly(isRefreshing), updateInterval, start, stop };
 }

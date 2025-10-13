@@ -7,23 +7,15 @@ import FiltersPanel from "@/components/audit/FiltersPanel.vue";
 import AuditListItem from "@/components/audit/AuditListItem.vue";
 import { onBeforeMount, ref, watch } from "vue";
 import RefreshConfig from "../RefreshConfig.vue";
-import createAutoRefresh from "@/composables/autoRefresh";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { useThrottleFn } from "@vueuse/core";
+import createAutoRefresh from "@/composables/autoRefresh";
 
 const store = useAuditStore();
 const { messages, totalCount, sortBy, messageFilterString, selectedEndpointName, itemsPerPage, dateRange } = storeToRefs(store);
 const route = useRoute();
 const router = useRouter();
 const autoRefreshValue = ref<number | null>(null);
-
-const { refreshNow, isRefreshing, updateInterval, pause, resume } = createAutoRefresh(
-  useThrottleFn(async () => {
-    await store.refresh();
-  }, 2000),
-  { intervalMs: 0, immediate: false }
-)();
-
+const { refreshNow, isRefreshing, updateInterval, start, stop } = createAutoRefresh("audit-list", store.refresh, 3000);
 const firstLoad = ref(true);
 
 onBeforeMount(() => {
@@ -89,9 +81,9 @@ function setQuery() {
 watch(autoRefreshValue, (newValue) => {
   updateInterval(newValue || 0);
   if (newValue === null || newValue === 0) {
-    pause();
+    stop();
   } else {
-    resume();
+    start();
   }
 });
 </script>
@@ -99,7 +91,7 @@ watch(autoRefreshValue, (newValue) => {
 <template>
   <div>
     <div class="header">
-      <RefreshConfig v-model="autoRefreshValue" :isLoading="isRefreshing" @manual-refresh="refreshNow()" />
+      <RefreshConfig v-model="autoRefreshValue" :isLoading="isRefreshing" @manual-refresh="refreshNow" />
       <div class="row">
         <FiltersPanel />
       </div>

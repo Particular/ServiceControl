@@ -1,14 +1,4 @@
 import { useThroughputStore } from "@/stores/ThroughputStore";
-import createAutoRefresh from "./autoRefresh";
+import { createStoreAutoRefresh } from "./useAutoRefresh";
 
-const useThroughputStoreAutoRefresh = () => {
-  const store = useThroughputStore();
-  return {
-    autoRefresh: createAutoRefresh(store.refresh, {
-      intervalMs: 60 * 60 * 1000 /* 1 hour */,
-    })(),
-    store,
-  };
-};
-
-export default useThroughputStoreAutoRefresh;
+export default createStoreAutoRefresh("throughput", useThroughputStore, 60 * 60 * 1000 /* 1 hour */);

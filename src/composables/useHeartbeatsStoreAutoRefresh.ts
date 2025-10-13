@@ -1,14 +1,4 @@
-import createAutoRefresh from "./autoRefresh";
 import { useHeartbeatsStore } from "@/stores/HeartbeatsStore";
+import { createStoreAutoRefresh } from "./useAutoRefresh";
 
-const useHeartbeatsStoreAutoRefresh = () => {
-  const store = useHeartbeatsStore();
-  return {
-    autoRefresh: createAutoRefresh(store.refresh, {
-      intervalMs: 5000,
-    })(),
-    store,
-  };
-};
-
-export default useHeartbeatsStoreAutoRefresh;
+export default createStoreAutoRefresh("heartbeats", useHeartbeatsStore, 5000);

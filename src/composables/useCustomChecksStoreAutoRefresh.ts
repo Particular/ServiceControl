@@ -1,14 +1,4 @@
 import { useCustomChecksStore } from "@/stores/CustomChecksStore";
-import createAutoRefresh from "./autoRefresh";
+import { createStoreAutoRefresh } from "./useAutoRefresh";
 
-const useCustomChecksStoreAutoRefresh = () => {
-  const store = useCustomChecksStore();
-  return {
-    autoRefresh: createAutoRefresh(store.refresh, {
-      intervalMs: 5000,
-    })(),
-    store,
-  };
-};
-
-export default useCustomChecksStoreAutoRefresh;
+export default createStoreAutoRefresh("customChecks", useCustomChecksStore, 5000);
