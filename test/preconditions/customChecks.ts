@@ -99,10 +99,7 @@ export const getCustomChecks =
         headers: { "Total-Count": customChecks.length.toString() },
       });
     });
-    driver.mockEndpointDynamic(`${serviceControlInstanceUrl}customchecks/:id`, "delete", (url, params) => {
-      const status = url.searchParams.get("status");
-      console.log(status + ", " + params.id);
-
+    driver.mockEndpointDynamic(`${serviceControlInstanceUrl}customchecks/:id`, "delete", () => {
       return Promise.resolve({
         body: { message: "Successfully deleted" },
         status: 200,

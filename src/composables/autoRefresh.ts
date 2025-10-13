@@ -19,7 +19,7 @@ export default function createAutoRefresh(name: string, fetch: () => Promise<voi
 
   const visibility = useDocumentVisibility();
 
-  const start = () => {
+  const start = async () => {
     refCount++;
     if (refCount === 1) {
       console.debug(`[AutoRefresh] Starting auto-refresh for ${name} every ${interval.value}ms`);
@@ -36,6 +36,8 @@ export default function createAutoRefresh(name: string, fetch: () => Promise<voi
         }
       });
     } else {
+      // Because another component has started using the auto-refresh, do an immediate refresh to ensure it has up-to-date data
+      await fetchWrapper();
       console.debug(`[AutoRefresh] Incremented refCount for ${name} to ${refCount}`);
     }
   };
