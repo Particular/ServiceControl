@@ -42,6 +42,10 @@ describe("EndpointsView tests", () => {
           RouterLink: RouterLinkStub,
         },
         plugins: [makeRouter(), Toast, createTestingPinia({ stubActions: false })],
+        directives: {
+          // Add stub for tippy directive
+          tippy: () => {},
+        },
       },
     });
     await flushPromises();

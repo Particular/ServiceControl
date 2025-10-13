@@ -51,7 +51,15 @@ describe("DiagnosticsView tests", () => {
     useServiceControlUrls();
     await useServiceControl();
 
-    const { debug } = render(DiagnosticsView, { global: { plugins: [createTestingPinia({ stubActions: false })] } });
+    const { debug } = render(DiagnosticsView, {
+      global: {
+        plugins: [createTestingPinia({ stubActions: false })],
+        directives: {
+          // Add stub for tippy directive
+          tippy: () => {},
+        },
+      },
+    });
 
     return { debug, driver };
   }

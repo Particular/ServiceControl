@@ -28,7 +28,7 @@ describe("MaskView tests", () => {
     driver.mockEndpoint(`${window.defaultConfig.service_control_url}licensing/settings/masks`, { body });
     useServiceControlUrls();
     await useServiceControl();
-    const { debug } = render(MasksView, { global: { plugins: [Toast] } });
+    const { debug } = render(MasksView, { global: { plugins: [Toast], directives: { tippy: () => {} } } });
     await flushPromises();
 
     return { debug, driver };
