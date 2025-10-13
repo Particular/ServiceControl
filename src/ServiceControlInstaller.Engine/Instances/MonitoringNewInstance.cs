@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading.Tasks;
@@ -11,10 +10,9 @@
     using Configuration.Monitoring;
     using FileSystem;
     using NuGet.Versioning;
-    using Setup;
     using ReportCard;
     using Services;
-    using UrlAcl;
+    using Setup;
     using Validation;
 
     public class MonitoringNewInstance : IMonitoringInstance
@@ -132,18 +130,6 @@
             RemoveFlagFiles();
         }
 
-        public void RegisterUrlAcl()
-        {
-            var reservation = new UrlReservation(Url, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
-            reservation.Create();
-        }
-
-        public void RemoveUrlAcl()
-        {
-            var reservation = new UrlReservation(Url, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
-            reservation.Delete();
-        }
-
         public void SetupInstance()
         {
             try
@@ -190,15 +176,6 @@
 
             try
             {
-                CheckForConflictingUrlAclReservations();
-            }
-            catch (EngineValidationException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
-
-            try
-            {
                 ServiceAccountValidation.Validate(this);
                 ConnectionStringValidator.Validate(this);
             }
@@ -209,19 +186,6 @@
             catch (EngineValidationException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
-            }
-        }
-
-        void CheckForConflictingUrlAclReservations()
-        {
-            foreach (var reservation in UrlReservation.GetAll().Where(p => p.Port == Port))
-            {
-                // exclusive or of reservation and instance - if only one of them has "localhost" then the UrlAcl will clash
-                if ((reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && !HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase)) ||
-                    (!reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase)))
-                {
-                    throw new EngineValidationException($"Conflicting UrlAcls found - {Url} vs {reservation.Url}");
-                }
             }
         }
 

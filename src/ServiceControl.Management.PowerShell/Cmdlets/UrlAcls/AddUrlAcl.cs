@@ -1,45 +1,17 @@
 namespace ServiceControl.Management.PowerShell
 {
     using System;
-    using System.Collections.Generic;
     using System.Management.Automation;
-    using System.Security.Principal;
-    using ServiceControlInstaller.Engine.UrlAcl;
+    using Particular.Obsoletes;
 
+    [ObsoleteMetadata(Message = "ServiceControl no longer requires URL reservations, so this command no longer functions", ReplacementTypeOrMember = "netsh http add urlacl", TreatAsErrorFromVersion = "7", RemoveInVersion = "8")]
+    [Obsolete("ServiceControl no longer requires URL reservations, so this command no longer functions. Use 'netsh http add urlacl' instead. Will be treated as an error from version 7.0.0. Will be removed in version 8.0.0.", false)]
     [Cmdlet(VerbsCommon.Add, "UrlAcl")]
     public class AddUrlAcl : PSCmdlet
     {
         [ValidateNotNullOrEmpty]
         [Parameter(Mandatory = true, Position = 0, HelpMessage = "The URL to add to the URLACL list. This should always in a trailing /")]
-
         public string Url { get; set; }
-
-        protected override void BeginProcessing()
-        {
-            Account.TestIfAdmin();
-        }
-
-        protected override void ProcessRecord()
-        {
-            var sidList = new List<SecurityIdentifier>();
-
-            foreach (var user in Users)
-            {
-                try
-                {
-                    var account = new NTAccount(user);
-                    var sid = (SecurityIdentifier)account.Translate(typeof(SecurityIdentifier));
-                    sidList.Add(sid);
-                }
-                catch (Exception ex)
-                {
-                    WriteError(new ErrorRecord(ex, "Failed to parse account name", ErrorCategory.InvalidData, user));
-                    return;
-                }
-            }
-
-            UrlReservation.Create(new UrlReservation(Url, sidList.ToArray()));
-        }
 
         [ValidateNotNullOrEmpty]
         [Parameter(Mandatory = true, Position = 1, HelpMessage = "The user or group to assign to this URLACL")]
