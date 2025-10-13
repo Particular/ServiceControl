@@ -2,50 +2,53 @@ namespace ServiceControl.Monitoring
 {
     using System;
     using System.Collections.Generic;
-    using System.Configuration;
     using System.Runtime.Loader;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using Configuration;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
     using ServiceControl.Infrastructure;
     using Transports;
+    using ConfigurationManager = System.Configuration.ConfigurationManager;
 
     public class Settings
     {
-        public Settings(LoggingSettings loggingSettings = null, string transportType = null)
+        public Settings() { }
+
+        public Settings(ILogger<Settings> logger, IConfigurationSection section, LoggingSettings loggingSettings, string transportType = null)
         {
-            LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
+            LoggingSettings = loggingSettings; // TODO: Previously had a COALESCE
 
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file
-            InstanceName = SettingsReader.Read(SettingsRootNamespace, "InstanceName", InstanceName);
+            InstanceName = section.GetValue("InstanceName", DEFAULT_INSTANCE_NAME);
 
-            TransportType = SettingsReader.Read(SettingsRootNamespace, "TransportType", transportType);
+            TransportType = section.GetValue("TransportType", transportType);
 
-            ConnectionString = GetConnectionString();
-            ErrorQueue = SettingsReader.Read(SettingsRootNamespace, "ErrorQueue", "error");
+            ConnectionString = GetConnectionString(logger, section);
+            ErrorQueue = section.GetValue("ErrorQueue", "error");
 
             if (AppEnvironment.RunningInContainer)
             {
                 HttpHostName = "*";
                 HttpPort = "33633";
-
             }
             else
             {
-                HttpHostName = SettingsReader.Read<string>(SettingsRootNamespace, "HttpHostname");
-                HttpPort = SettingsReader.Read<string>(SettingsRootNamespace, "HttpPort");
+                HttpHostName = section.GetValue<string>("HttpHostname");
+                HttpPort = section.GetValue<string>("HttpPort");
             }
 
-            EndpointUptimeGracePeriod = TimeSpan.Parse(SettingsReader.Read(SettingsRootNamespace, "EndpointUptimeGracePeriod", "00:00:40"));
-            MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
-            ServiceControlThroughputDataQueue = SettingsReader.Read(SettingsRootNamespace, "ServiceControlThroughputDataQueue", "ServiceControl.ThroughputData");
-            ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
+            EndpointUptimeGracePeriod = section.GetValue("EndpointUptimeGracePeriod", TimeSpan.FromSeconds(40));
+            MaximumConcurrencyLevel = section.GetValue<int?>("MaximumConcurrencyLevel");
+            ServiceControlThroughputDataQueue = section.GetValue("ServiceControlThroughputDataQueue", "ServiceControl.ThroughputData");
+            ShutdownTimeout = section.GetValue("ShutdownTimeout", TimeSpan.FromSeconds(5));
 
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
 
-        [JsonIgnore]
-        public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
+
+        [JsonIgnore] public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
 
         public LoggingSettings LoggingSettings { get; }
 
@@ -73,7 +76,7 @@ namespace ServiceControl.Monitoring
         // restrictive hosting platform, which is Linux containers. Linux
         // containers allow for a maximum of 10 seconds. We set it to 5 to
         // allow for cancellation and logging to take place
-        public TimeSpan ShutdownTimeout { get; set; } = TimeSpan.FromSeconds(5);
+        public TimeSpan ShutdownTimeout { get; set; }
 
         public TransportSettings ToTransportSettings()
         {
@@ -89,21 +92,26 @@ namespace ServiceControl.Monitoring
             return transportSettings;
         }
 
-        static string GetConnectionString()
+        static string GetConnectionString(ILogger logger, IConfigurationSection section)
         {
-            var settingsValue = SettingsReader.Read<string>(SettingsRootNamespace, "ConnectionString");
+            var settingsValue = section.GetValue<string>("ConnectionString"); // Intentionally NOT using .GetConnectionString() for legacy reasons
             if (settingsValue != null)
             {
                 return settingsValue;
             }
 
             var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
+            if (connectionStringSettings != null)
+            {
+                logger.LogWarning($"Connection string resolved from legacy `NServiceBus/Transport` connection string. Migrate to `{SectionName}/{nameof(ConnectionString)}`");
+            }
             return connectionStringSettings?.ConnectionString;
         }
 
         internal Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
 
         public const string DEFAULT_INSTANCE_NAME = "Particular.Monitoring";
-        public static readonly SettingsRootNamespace SettingsRootNamespace = new("Monitoring");
+        public const string SectionName = "Monitoring";
+
     }
 }

@@ -10,6 +10,7 @@
     using Infrastructure;
     using Infrastructure.Api;
     using Messaging;
+    using Microsoft.Extensions.Logging.Abstractions;
     using NUnit.Framework;
     using QueueLength;
     using Timings;
@@ -26,17 +27,18 @@
             retriesStore = new RetriesStore();
             queueLengthStore = new QueueLengthStore();
 
-            var settings = new Settings(transportType: "Unknown") { EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5) };
+            var settings = new Settings
+            {
+                TransportType = "Unknown",
+                EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5)
+            };
             activityTracker = new EndpointInstanceActivityTracker(settings, TimeProvider.System);
 
             messageTypeRegistry = new MessageTypeRegistry();
 
             var breakdownProviders = new IProvideBreakdown[]
             {
-                criticalTimeStore,
-                processingTimeStore,
-                retriesStore,
-                queueLengthStore
+                criticalTimeStore, processingTimeStore, retriesStore, queueLengthStore
             };
 
             var endpointMetricsApi = new EndpointMetricsApi(breakdownProviders, endpointRegistry, activityTracker,
@@ -64,9 +66,7 @@
             var reporters =
                 new[]
                 {
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName)))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))), BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))), BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName)))
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();
@@ -123,9 +123,7 @@
             var reporters =
                 new[]
                 {
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, getter())),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, getter())),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, getter()))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, getter())), BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, getter())), BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, getter()))
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();

@@ -35,8 +35,9 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         async Task InitializeServiceControl(ScenarioContext context)
         {
             LoggerUtil.ActiveLoggers = Loggers.Test;
-            settings = new Settings(transportType: transportToUse.TypeName)
+            settings = new Settings
             {
+                TransportType = transportToUse.TypeName,
                 ConnectionString = transportToUse.ConnectionString,
                 HttpHostName = "localhost",
                 OnMessage = (id, headers, body, @continue) =>

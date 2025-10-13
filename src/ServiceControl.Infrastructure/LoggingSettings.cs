@@ -3,48 +3,46 @@ namespace ServiceControl.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Microsoft.Extensions.Logging;
-using ServiceControl.Configuration;
 
 public class LoggingSettings
 {
-    public LoggingSettings(SettingsRootNamespace rootNamespace, LogLevel defaultLevel = LogLevel.Information, string logPath = null)
+    public LoggingSettings(
+        LoggingOptions options,
+        LogLevel defaultLevel = LogLevel.Information,
+        string logPath = null
+    )
     {
-        var loggingProviders = (SettingsReader.Read<string>(rootNamespace, loggingProvidersKey) ?? "").Split(",");
         var activeLoggers = Loggers.None;
-        if (loggingProviders.Contains("NLog"))
+        if (options.LoggingProviders.Contains("NLog"))
         {
             activeLoggers |= Loggers.NLog;
         }
-        if (loggingProviders.Contains("Seq"))
+        if (options.LoggingProviders.Contains("Seq"))
         {
             activeLoggers |= Loggers.Seq;
-            var seqAddress = SettingsReader.Read<string>(rootNamespace, seqAddressKey);
-            if (!string.IsNullOrWhiteSpace(seqAddress))
+            if (!string.IsNullOrWhiteSpace(options.SeqAddress))
             {
-                LoggerUtil.SeqAddress = seqAddress;
+                LoggerUtil.SeqAddress = options.SeqAddress;
             }
         }
-        if (loggingProviders.Contains("Otlp"))
+        if (options.LoggingProviders.Contains("Otlp"))
         {
             activeLoggers |= Loggers.Otlp;
         }
         //this defaults to NLog because historically that was the default, and we don't want to break existing installs that don't have the config key to define loggingProviders
         LoggerUtil.ActiveLoggers = activeLoggers == Loggers.None ? Loggers.NLog : activeLoggers;
 
-        LogLevel = InitializeLogLevel(rootNamespace, defaultLevel);
-        LogPath = SettingsReader.Read(rootNamespace, logPathKey, Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogLocation()));
+        LogLevel = InitializeLogLevel(options.LogLevel, defaultLevel);
+        LogPath = Environment.ExpandEnvironmentVariables(options.LogPath ?? DefaultLogLocation());
     }
 
     public LogLevel LogLevel { get; }
 
     public string LogPath { get; }
 
-    static LogLevel InitializeLogLevel(SettingsRootNamespace rootNamespace, LogLevel defaultLevel)
+    static LogLevel InitializeLogLevel(string levelText, LogLevel defaultLevel)
     {
-        var levelText = SettingsReader.Read<string>(rootNamespace, logLevelKey);
-
         if (string.IsNullOrWhiteSpace(levelText))
         {
             return defaultLevel;
@@ -79,13 +77,16 @@ public class LoggingSettings
             return parsedLevel;
         }
 
-        LoggerUtil.CreateStaticLogger<LoggingSettings>().LogWarning("Failed to parse {LogLevelKey} setting. Defaulting to {DefaultLevel}", logLevelKey, defaultLevel);
+        LoggerUtil.CreateStaticLogger<LoggingSettings>().LogWarning("Failed to parse {LogLevelKey} setting. Defaulting to {DefaultLevel}", nameof(LoggingOptions.LogLevel), defaultLevel);
 
         return defaultLevel;
     }
+}
 
-    const string logLevelKey = "LogLevel";
-    const string logPathKey = "LogPath";
-    const string loggingProvidersKey = "LoggingProviders";
-    const string seqAddressKey = "SeqAddress";
+public record LoggingOptions
+{
+    public string LogLevel { get; set; }
+    public string LogPath { get; set; }
+    public string LoggingProviders { get; set; }
+    public string SeqAddress {get; set;}
 }

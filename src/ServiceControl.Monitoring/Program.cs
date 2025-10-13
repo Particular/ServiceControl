@@ -4,14 +4,23 @@ using Microsoft.Extensions.Logging;
 using ServiceControl.Configuration;
 using ServiceControl.Infrastructure;
 using ServiceControl.Monitoring;
+using Microsoft.Extensions.Configuration;
 
 ILogger logger = null;
 
 try
 {
-    var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
+    var bootstrapConfig = new ConfigurationBuilder()
+        .SetBasePath(AppContext.BaseDirectory)
+        .AddLegacyAppSettings()
+        .AddEnvironmentVariables()
+        .Build();
+
+    var section = bootstrapConfig.GetSection(Settings.SectionName);
+
+    var loggingSettings = new LoggingSettings(section.Get<LoggingOptions>());
     LoggingConfigurator.ConfigureLogging(loggingSettings);
-    logger = LoggerUtil.CreateStaticLogger(typeof(Program));
+    logger = LoggerUtil.CreateStaticLogger<Program>();
 
     AppDomain.CurrentDomain.UnhandledException += (s, e) => logger.LogError(e.ExceptionObject as Exception, "Unhandled exception was caught");
 
@@ -27,7 +36,11 @@ try
 
     var arguments = new HostArguments(args);
 
-    var settings = new Settings(loggingSettings: loggingSettings);
+    var settings = new Settings(
+        LoggerUtil.CreateStaticLogger<Settings>(),
+        section,
+        loggingSettings
+    );
 
     await new CommandRunner(arguments.Command).Execute(arguments, settings);
 

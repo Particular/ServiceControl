@@ -1,9 +1,12 @@
 namespace ServiceControl.Monitoring
 {
     using System.Threading.Tasks;
+    using Configuration;
     using Infrastructure;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
 
     class RunCommand : AbstractCommand
@@ -13,6 +16,8 @@ namespace ServiceControl.Monitoring
             var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
 
             var hostBuilder = WebApplication.CreateBuilder();
+            hostBuilder.Configuration.AddLegacyAppSettings();
+
             hostBuilder.AddServiceControlMonitoring((_, __) => Task.CompletedTask, settings, endpointConfiguration);
             hostBuilder.AddServiceControlMonitoringApi();
 

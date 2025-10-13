@@ -26,10 +26,16 @@ using Transports;
 
 public static class HostApplicationBuilderExtensions
 {
-    public static void AddServiceControlMonitoring(this IHostApplicationBuilder hostBuilder,
-        Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, Settings settings,
-        EndpointConfiguration endpointConfiguration)
+    public static void AddServiceControlMonitoring(
+        this IHostApplicationBuilder hostBuilder,
+        Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError,
+        Settings settings,
+        EndpointConfiguration endpointConfiguration
+    )
     {
+        var section = hostBuilder.Configuration.GetSection(Settings.SectionName);
+        //hostBuilder.Services.ConfigureOptions<MonitoringOptionsSetup>();
+
         hostBuilder.Services.AddLogging();
         hostBuilder.Logging.ConfigureLogging(settings.LoggingSettings.LogLevel);
 
