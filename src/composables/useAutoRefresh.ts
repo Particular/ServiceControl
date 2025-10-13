@@ -23,12 +23,17 @@ export function useAutoRefresh(name: string, refresh: () => Promise<void>, inter
  * @returns A composable function that sets up auto-refresh and returns the store
  */
 export function createStoreAutoRefresh<TStore extends { refresh: () => Promise<void> }>(name: string, useStore: () => TStore, intervalMs: number) {
-  let refresh: () => Promise<void> = () => Promise.resolve();
+  const refresh = () => {
+    if (!store) {
+      return Promise.resolve();
+    }
+    return store.refresh();
+  };
+  let store: TStore | null = null;
   const autoRefresh = useAutoRefresh(name, refresh, intervalMs);
 
   return () => {
-    const store = useStore();
-    refresh = store.refresh;
+    store = useStore();
     autoRefresh();
     return { store };
   };
