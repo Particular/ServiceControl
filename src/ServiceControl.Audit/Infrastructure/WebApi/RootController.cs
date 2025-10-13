@@ -18,17 +18,19 @@
         [HttpGet]
         public OkObjectResult Urls()
         {
-            var baseUrl = Request.GetDisplayUrl() + "/";
+            var baseUrl = Request.GetDisplayUrl();
+
+            if (!baseUrl.EndsWith('/'))
+            {
+                baseUrl += "/";
+            }
+
             var model = new RootUrls
             {
                 KnownEndpointsUrl = "/endpoints/known", // relative URI to allow proxying
-                MessageSearchUrl =
-                    baseUrl + "messages/search/{keyword}/{?page,per_page,direction,sort}",
-                EndpointsMessageSearchUrl =
-                    baseUrl +
-                    "endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
-                EndpointsMessagesUrl =
-                    baseUrl + "endpoints/{name}/messages/{?page,per_page,direction,sort}",
+                MessageSearchUrl = baseUrl + "messages/search/{keyword}/{?page,per_page,direction,sort}",
+                EndpointsMessageSearchUrl = baseUrl + "endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
+                EndpointsMessagesUrl = baseUrl + "endpoints/{name}/messages/{?page,per_page,direction,sort}",
                 AuditCountUrl = baseUrl + "endpoints/{name}/audit-count",
                 Name = SettingsReader.Read(Settings.SettingsRootNamespace, "Name", "ServiceControl.Audit"),
                 Description = SettingsReader.Read(Settings.SettingsRootNamespace, "Description", "The audit backend for the Particular Service Platform"),

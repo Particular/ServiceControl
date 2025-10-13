@@ -13,7 +13,7 @@
     {
         [Route("")]
         [HttpGet]
-        public Task<RootUrls> Urls() => configurationApi.GetUrls(Request.GetDisplayUrl() + "/", default);
+        public Task<RootUrls> Urls() => configurationApi.GetUrls(Request.GetDisplayUrl(), default);
 
         [Route("instance-info")]
         [Route("configuration")]
