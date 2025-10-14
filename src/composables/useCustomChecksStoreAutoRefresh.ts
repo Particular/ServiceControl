@@ -1,4 +1,4 @@
 import { useCustomChecksStore } from "@/stores/CustomChecksStore";
-import { createStoreAutoRefresh } from "./useAutoRefresh";
+import { useStoreAutoRefresh } from "./useAutoRefresh";
 
-export default createStoreAutoRefresh("customChecks", useCustomChecksStore, 5000);
+export default useStoreAutoRefresh("customChecks", useCustomChecksStore, 5000);

@@ -1,8 +1,8 @@
 import { onMounted, onUnmounted } from "vue";
-import createAutoRefresh from "./autoRefresh";
+import useFetchWithAutoRefresh from "./autoRefresh";
 
 export function useAutoRefresh(name: string, refresh: () => Promise<void>, intervalMs: number) {
-  const { start, stop } = createAutoRefresh(name, refresh, intervalMs);
+  const { start, stop } = useFetchWithAutoRefresh(name, refresh, intervalMs);
 
   function useAutoRefresh() {
     onMounted(start);
@@ -22,7 +22,7 @@ export function useAutoRefresh(name: string, refresh: () => Promise<void>, inter
  * @param intervalMs - Refresh interval in milliseconds
  * @returns A composable function that sets up auto-refresh and returns the store
  */
-export function createStoreAutoRefresh<TStore extends { refresh: () => Promise<void> }>(name: string, useStore: () => TStore, intervalMs: number) {
+export function useStoreAutoRefresh<TStore extends { refresh: () => Promise<void> }>(name: string, useStore: () => TStore, intervalMs: number) {
   const refresh = () => {
     if (!store) {
       return Promise.resolve();

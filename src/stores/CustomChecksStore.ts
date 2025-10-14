@@ -11,7 +11,7 @@ export const useCustomChecksStore = defineStore("CustomChecksStore", () => {
   const failingCount = ref(0);
   const failedChecks = ref<CustomCheck[]>([]);
 
-  const { count, inc, dec } = useCounter();
+  const { count, inc, dec } = useCounter(0);
   const skipRefresh = computed(() => count.value > 0);
 
   const refresh = async () => {

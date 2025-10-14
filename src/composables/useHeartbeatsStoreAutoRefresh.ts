@@ -1,4 +1,4 @@
 import { useHeartbeatsStore } from "@/stores/HeartbeatsStore";
-import { createStoreAutoRefresh } from "./useAutoRefresh";
+import { useStoreAutoRefresh } from "./useAutoRefresh";
 
-export default createStoreAutoRefresh("heartbeats", useHeartbeatsStore, 5000);
+export default useStoreAutoRefresh("heartbeats", useHeartbeatsStore, 5000);

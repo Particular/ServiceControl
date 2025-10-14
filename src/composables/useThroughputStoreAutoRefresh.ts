@@ -1,4 +1,4 @@
 import { useThroughputStore } from "@/stores/ThroughputStore";
-import { createStoreAutoRefresh } from "./useAutoRefresh";
+import { useStoreAutoRefresh } from "./useAutoRefresh";
 
-export default createStoreAutoRefresh("throughput", useThroughputStore, 60 * 60 * 1000 /* 1 hour */);
+export default useStoreAutoRefresh("throughput", useThroughputStore, 60 * 60 * 1000 /* 1 hour */);

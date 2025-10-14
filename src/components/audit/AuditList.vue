@@ -8,14 +8,14 @@ import AuditListItem from "@/components/audit/AuditListItem.vue";
 import { onBeforeMount, ref, watch } from "vue";
 import RefreshConfig from "../RefreshConfig.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import createAutoRefresh from "@/composables/autoRefresh";
+import useFetchWithAutoRefresh from "@/composables/autoRefresh";
 
 const store = useAuditStore();
 const { messages, totalCount, sortBy, messageFilterString, selectedEndpointName, itemsPerPage, dateRange } = storeToRefs(store);
 const route = useRoute();
 const router = useRouter();
 const autoRefreshValue = ref<number | null>(null);
-const { refreshNow, isRefreshing, updateInterval, start, stop } = createAutoRefresh("audit-list", store.refresh, 3000);
+const { refreshNow, isRefreshing, updateInterval, start, stop } = useFetchWithAutoRefresh("audit-list", store.refresh, 3000);
 const firstLoad = ref(true);
 
 onBeforeMount(() => {

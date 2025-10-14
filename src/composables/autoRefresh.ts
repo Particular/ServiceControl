@@ -1,12 +1,15 @@
 import { watch, ref, shallowReadonly, type WatchStopHandle } from "vue";
-import { useDocumentVisibility, useTimeoutPoll } from "@vueuse/core";
+import { useCounter, useDocumentVisibility, useTimeoutPoll } from "@vueuse/core";
 
-export default function createAutoRefresh(name: string, fetch: () => Promise<void>, intervalMs: number) {
-  let refCount = 0;
+export default function useFetchWithAutoRefresh(name: string, fetch: () => Promise<void>, intervalMs: number) {
   let watchStop: WatchStopHandle | null = null;
+  const { count, inc, dec, reset } = useCounter(0);
   const interval = ref(intervalMs);
   const isRefreshing = ref(false);
   const fetchWrapper = async () => {
+    if (isRefreshing.value) {
+      return;
+    }
     isRefreshing.value = true;
     await fetch();
     isRefreshing.value = false;
@@ -20,8 +23,8 @@ export default function createAutoRefresh(name: string, fetch: () => Promise<voi
   const visibility = useDocumentVisibility();
 
   const start = async () => {
-    refCount++;
-    if (refCount === 1) {
+    inc();
+    if (count.value === 1) {
       console.debug(`[AutoRefresh] Starting auto-refresh for ${name} every ${interval.value}ms`);
       resume();
       watchStop = watch(visibility, (current, previous) => {
@@ -36,22 +39,22 @@ export default function createAutoRefresh(name: string, fetch: () => Promise<voi
         }
       });
     } else {
-      console.debug(`[AutoRefresh] Incremented refCount for ${name} to ${refCount}`);
+      console.debug(`[AutoRefresh] Incremented refCount for ${name} to ${count.value}`);
       // Because another component has started using the auto-refresh, do an immediate refresh to ensure it has up-to-date data
       await fetchWrapper();
     }
   };
 
   const stop = () => {
-    refCount--;
-    if (refCount <= 0) {
+    dec();
+    if (count.value <= 0) {
       console.debug(`[AutoRefresh] Stopping auto-refresh for ${name}`);
       pause();
       watchStop?.();
       watchStop = null;
-      refCount = 0;
+      reset();
     } else {
-      console.debug(`[AutoRefresh] Decremented refCount for ${name} to ${refCount}`);
+      console.debug(`[AutoRefresh] Decremented refCount for ${name} to ${count.value}`);
     }
   };
 

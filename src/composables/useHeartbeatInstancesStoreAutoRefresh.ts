@@ -1,4 +1,4 @@
 import { useHeartbeatInstancesStore } from "@/stores/HeartbeatInstancesStore";
-import { createStoreAutoRefresh } from "./useAutoRefresh";
+import { useStoreAutoRefresh } from "./useAutoRefresh";
 
-export default createStoreAutoRefresh("heartbeatInstances", useHeartbeatInstancesStore, 5000);
+export default useStoreAutoRefresh("heartbeatInstances", useHeartbeatInstancesStore, 5000);
