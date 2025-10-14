@@ -1,5 +1,5 @@
 import { watch, ref, shallowReadonly, type WatchStopHandle } from "vue";
-import { useDocumentVisibility, useIntervalFn } from "@vueuse/core";
+import { useDocumentVisibility, useTimeoutPoll } from "@vueuse/core";
 
 export default function createAutoRefresh(name: string, fetch: () => Promise<void>, intervalMs: number) {
   let refCount = 0;
@@ -11,7 +11,7 @@ export default function createAutoRefresh(name: string, fetch: () => Promise<voi
     await fetch();
     isRefreshing.value = false;
   };
-  const { pause, resume } = useIntervalFn(
+  const { pause, resume } = useTimeoutPoll(
     fetchWrapper,
     interval,
     { immediate: false, immediateCallback: true } // we control first fetch manually
