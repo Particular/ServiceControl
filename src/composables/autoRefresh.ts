@@ -36,9 +36,9 @@ export default function createAutoRefresh(name: string, fetch: () => Promise<voi
         }
       });
     } else {
+      console.debug(`[AutoRefresh] Incremented refCount for ${name} to ${refCount}`);
       // Because another component has started using the auto-refresh, do an immediate refresh to ensure it has up-to-date data
       await fetchWrapper();
-      console.debug(`[AutoRefresh] Incremented refCount for ${name} to ${refCount}`);
     }
   };
 
