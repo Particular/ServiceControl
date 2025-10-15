@@ -42,7 +42,7 @@
             {
                 logger.LogWarning("Cannot edit message {FailedMessageId} because it has already been edited", failedMessageId);
                 // We return HTTP 200 even though the edit is being ignored. This is to keep the compatibility with older versions of ServicePulse that don't handle the payload.
-                return Ok(new { EditIgnored = true });
+                return Ok(new EditRetryResponse { EditIgnored = true });
             }
 
             var failedMessage = await store.ErrorBy(failedMessageId);
