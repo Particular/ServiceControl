@@ -27,12 +27,22 @@
 
         [Route("edit/{failedMessageId:required:minlength(1)}")]
         [HttpPost]
-        public async Task<IActionResult> Edit(string failedMessageId, [FromBody] EditMessageModel edit)
+        public async Task<ActionResult<EditRetryResponse>> Edit(string failedMessageId, [FromBody] EditMessageModel edit)
         {
             if (!settings.AllowMessageEditing)
             {
                 logger.LogInformation("Message edit-retry has not been enabled");
                 return NotFound();
+            }
+
+            //HINT: This validation is the first one because we want to minimize the chance of two users concurrently execute an edit-retry.
+            var editManager = await store.CreateEditFailedMessageManager();
+            var editId = await editManager.GetCurrentEditingMessageId(failedMessageId);
+            if (editId != null)
+            {
+                logger.LogWarning("Cannot edit message {FailedMessageId} because it has already been edited", failedMessageId);
+                // We return HTTP 200 even though the edit is being ignored. This is to keep the compatibility with older versions of ServicePulse that don't handle the payload.
+                return Ok(new EditRetryResponse { EditIgnored = true });
             }
 
             var failedMessage = await store.ErrorBy(failedMessageId);
@@ -45,8 +55,8 @@
 
             //WARN
             /*
-             * failedMessage.ProcessingAttempts.Last() return the lat retry attempt.
-             * In theory between teh time someone edits a failed message and retry it someone else
+             * failedMessage.ProcessingAttempts.Last() return the last retry attempt.
+             * In theory between the time someone edits a failed message and retry it someone else
              * could have retried the same message without editing. If this is the case "Last()" is
              * not anymore the same message.
              * Instead of using Last() it's probably better to select the processing attempt by looking for
@@ -74,7 +84,7 @@
                 NewHeaders = edit.MessageHeaders
             });
 
-            return Accepted();
+            return Accepted(new EditRetryResponse { EditIgnored = false });
         }
 
 
@@ -136,5 +146,10 @@
         public string MessageBody { get; set; }
 
         public Dictionary<string, string> MessageHeaders { get; set; }
+    }
+
+    public class EditRetryResponse
+    {
+        public bool EditIgnored { get; set; }
     }
 }
