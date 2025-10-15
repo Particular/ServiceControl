@@ -1,38 +1,51 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Settings
 {
     using System;
-    using System.Configuration;
     using System.Runtime.Loader;
     using System.Text.Json.Serialization;
     using Configuration;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using NLog.Common;
     using NServiceBus.Transport;
     using ServiceControl.Infrastructure;
     using Transports;
+    using ConfigurationManager = System.Configuration.ConfigurationManager;
 
     public class Settings
     {
-        public Settings(string transportType = null, string persisterType = null, LoggingSettings loggingSettings = null)
+        // TODO: All kinds of validation happening but validation and deserialization should be split
+        public Settings(
+            IConfigurationSection serviceBusSection,
+            IConfigurationSection serviceControlAuditsection,
+            IConfigurationSection serviceControlSection,
+            string transportType = null,
+            string persisterType = null,
+            LoggingSettings loggingSettings = null
+        )
         {
-            LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
+            LoggingSettings = loggingSettings; // TODO: ?? new();
 
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
-            InstanceName = SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", InstanceName);
+            InstanceName = serviceControlAuditsection.GetValue("InternalQueueName", InstanceName);
 
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file
-            InstanceName = SettingsReader.Read(SettingsRootNamespace, "InstanceName", InstanceName);
+            InstanceName = serviceControlAuditsection.GetValue("InstanceName", InstanceName);
 
-            TransportType = transportType ?? SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
+            TransportType = transportType ?? serviceControlAuditsection.GetValue<string>("TransportType");
 
-            PersistenceType = persisterType ?? SettingsReader.Read<string>(SettingsRootNamespace, "PersistenceType");
+            PersistenceType = persisterType ?? serviceControlAuditsection.GetValue<string>("PersistenceType");
 
-            TransportConnectionString = GetConnectionString();
+            TransportConnectionString = GetConnectionString(serviceControlAuditsection);
 
-            LoadAuditQueueInformation();
+            LoadAuditQueueInformation(
+                serviceControlAuditsection,
+                serviceBusSection,
+                serviceControlSection
+            ); //TODO: Ugly, extract to its own settings class
 
-            ForwardAuditMessages = GetForwardAuditMessages();
-            AuditRetentionPeriod = GetAuditRetentionPeriod();
+            ForwardAuditMessages = GetForwardAuditMessages(serviceControlAuditsection);
+            AuditRetentionPeriod = GetAuditRetentionPeriod(serviceControlAuditsection);
 
             if (AppEnvironment.RunningInContainer)
             {
@@ -41,44 +54,52 @@
             }
             else
             {
-                Hostname = SettingsReader.Read(SettingsRootNamespace, "Hostname", "localhost");
-                Port = SettingsReader.Read(SettingsRootNamespace, "Port", 44444);
+                Hostname = serviceControlAuditsection.GetValue("Hostname", "localhost");
+                Port = serviceControlAuditsection.GetValue("Port", 44444);
             }
 
-            MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
-            ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");
-            TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
-            EnableFullTextSearchOnBodies = SettingsReader.Read(SettingsRootNamespace, "EnableFullTextSearchOnBodies", true);
-            ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
+            MaximumConcurrencyLevel = serviceControlAuditsection.GetValue<int?>("MaximumConcurrencyLevel");
+            ServiceControlQueueAddress = serviceControlAuditsection.GetValue<string>("ServiceControlQueueAddress");
+            TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure(serviceControlAuditsection);
+            EnableFullTextSearchOnBodies = serviceControlAuditsection.GetValue("EnableFullTextSearchOnBodies", true);
+            ShutdownTimeout = serviceControlAuditsection.GetValue("ShutdownTimeout", ShutdownTimeout);
 
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
+
+            PrintMetrics = serviceControlAuditsection.GetValue<bool>("PrintMetrics");
+            OtlpEndpointUrl = serviceControlAuditsection.GetValue<string>(nameof(OtlpEndpointUrl));
+            VirtualDirectory = serviceControlAuditsection.GetValue("VirtualDirectory", string.Empty);
+            maxBodySizeToStore = serviceControlAuditsection.GetValue("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
+            ValidateConfiguration = serviceControlAuditsection.GetValue("ValidateConfig", true);
+
+            Name = serviceControlAuditsection.GetValue("Name", "ServiceControl.Audit");
+            Description = serviceControlAuditsection.GetValue("Description", "The audit backend for the Particular Service Platform");
+            MaintenanceMode = serviceControlAuditsection.GetValue("MaintenanceMode", false);
         }
 
-        void LoadAuditQueueInformation()
+        void LoadAuditQueueInformation(
+            IConfigurationSection serviceControlAuditsection,
+            IConfigurationSection serviceBusSection,
+            IConfigurationSection serviceControlSection
+        )
         {
-            var serviceBusRootNamespace = new SettingsRootNamespace("ServiceBus");
-            AuditQueue = SettingsReader.Read(serviceBusRootNamespace, "AuditQueue", "audit");
+            AuditQueue = serviceBusSection.GetValue("AuditQueue", "audit");
 
             if (string.IsNullOrEmpty(AuditQueue))
             {
                 throw new Exception("ServiceBus/AuditQueue value is required to start the instance");
             }
 
-            if (!SettingsReader.TryRead(SettingsRootNamespace, "IngestAuditMessages", out bool ingestAuditMessages))
-            {
-                // Backwards compatibility
-                var serviceControlNamespace = new SettingsRootNamespace("ServiceControl");
-                ingestAuditMessages = SettingsReader.Read(serviceControlNamespace, "IngestAuditMessages", true);
-            }
-
-            IngestAuditMessages = ingestAuditMessages;
+            IngestAuditMessages = serviceControlAuditsection.GetValue<bool?>("IngestAuditMessages")
+                                  // Backwards compatibility
+                                  ?? serviceControlSection.GetValue("IngestAuditMessages", true);
 
             if (IngestAuditMessages == false)
             {
                 logger.LogInformation("Audit ingestion disabled");
             }
 
-            AuditLogQueue = SettingsReader.Read<string>(serviceBusRootNamespace, "AuditLogQueue", null);
+            AuditLogQueue = serviceBusSection.GetValue<string>("AuditLogQueue", null);
 
             if (AuditLogQueue == null)
             {
@@ -87,15 +108,14 @@
             }
         }
 
-        [JsonIgnore]
-        public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
+        [JsonIgnore] public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
 
         public LoggingSettings LoggingSettings { get; }
 
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }
 
-        public bool ValidateConfiguration => SettingsReader.Read(SettingsRootNamespace, "ValidateConfig", true);
+        public bool ValidateConfiguration { get; }
 
         public string RootUrl
         {
@@ -116,10 +136,10 @@
 
         public int Port { get; set; }
 
-        public bool PrintMetrics => SettingsReader.Read<bool>(SettingsRootNamespace, "PrintMetrics");
-        public string OtlpEndpointUrl { get; set; } = SettingsReader.Read<string>(SettingsRootNamespace, nameof(OtlpEndpointUrl));
+        public bool PrintMetrics { get; set; }
+        public string OtlpEndpointUrl { get; set; }
         public string Hostname { get; private set; }
-        public string VirtualDirectory => SettingsReader.Read(SettingsRootNamespace, "VirtualDirectory", string.Empty);
+        public string VirtualDirectory { get; set; }
 
         public string TransportType { get; private set; }
 
@@ -179,10 +199,10 @@
             return transportSettings;
         }
 
-        TimeSpan GetTimeToRestartAuditIngestionAfterFailure()
+        TimeSpan GetTimeToRestartAuditIngestionAfterFailure(IConfigurationSection section)
         {
             string message;
-            var valueRead = SettingsReader.Read<string>(SettingsRootNamespace, "TimeToRestartAuditIngestionAfterFailure");
+            var valueRead = section.GetValue<string>("TimeToRestartAuditIngestionAfterFailure");
             if (valueRead == null)
             {
                 return TimeSpan.FromSeconds(60);
@@ -214,9 +234,9 @@
             return result;
         }
 
-        static bool GetForwardAuditMessages()
+        static bool GetForwardAuditMessages(IConfigurationSection serviceControlAuditsection)
         {
-            var forwardAuditMessages = SettingsReader.Read<bool?>(SettingsRootNamespace, "ForwardAuditMessages");
+            var forwardAuditMessages = serviceControlAuditsection.GetValue<bool?>("ForwardAuditMessages");
             if (forwardAuditMessages.HasValue)
             {
                 return forwardAuditMessages.Value;
@@ -225,9 +245,9 @@
             return false;
         }
 
-        static string GetConnectionString()
+        static string GetConnectionString(IConfigurationSection serviceControlAuditsection)
         {
-            var settingsValue = SettingsReader.Read<string>(SettingsRootNamespace, "ConnectionString");
+            var settingsValue = serviceControlAuditsection.GetValue<string>("ConnectionString");
             if (settingsValue != null)
             {
                 return settingsValue;
@@ -237,10 +257,10 @@
             return connectionStringSettings?.ConnectionString;
         }
 
-        TimeSpan GetAuditRetentionPeriod()
+        TimeSpan GetAuditRetentionPeriod(IConfigurationSection serviceControlAuditsection)
         {
             string message;
-            var valueRead = SettingsReader.Read<string>(SettingsRootNamespace, "AuditRetentionPeriod");
+            var valueRead = serviceControlAuditsection.GetValue<string>("AuditRetentionPeriod");
             if (valueRead == null)
             {
                 // SCMU actually defaults to 7 days, as does Dockerfile, but a change to same-up everything should be done in a major
@@ -291,11 +311,18 @@
         // logger is intentionally not static to prevent it from being initialized before LoggingConfigurator.ConfigureLogging has been called
         readonly ILogger logger = LoggerUtil.CreateStaticLogger<Settings>();
 
-        int maxBodySizeToStore = SettingsReader.Read(SettingsRootNamespace, "MaxBodySizeToStore", MaxBodySizeToStoreDefault);
+        int maxBodySizeToStore;
 
         public const string DEFAULT_INSTANCE_NAME = "Particular.ServiceControl.Audit";
-        public static readonly SettingsRootNamespace SettingsRootNamespace = new("ServiceControl.Audit");
+        public const string SectionName = "ServiceControl.Audit";
+        public const string SectionNameServiceBus = "ServiceBus";
+        public const string SectionNameServiceControl = "ServiceControl";
 
         const int MaxBodySizeToStoreDefault = 102400; //100 kb
+
+        public string Name { get; }
+        public string Description { get; }
+
+        public bool MaintenanceMode { get; }
     }
 }

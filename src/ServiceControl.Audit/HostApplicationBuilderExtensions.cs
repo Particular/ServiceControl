@@ -33,8 +33,10 @@ static class HostApplicationBuilderExtensions
         Settings settings,
         EndpointConfiguration configuration)
     {
+        var section = builder.Configuration.GetSection(Settings.SectionName);
+
         var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings);
-        var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
+        //var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
 
         RecordStartup(settings, configuration, persistenceConfiguration);
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Audit.Infrastructure.Hosting;
 using ServiceControl.Audit.Infrastructure.Hosting.Commands;
@@ -11,7 +12,15 @@ ILogger logger = null;
 
 try
 {
-    var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
+    var bootstrapConfig = new ConfigurationBuilder()
+        .SetBasePath(AppContext.BaseDirectory)
+        .AddLegacyAppSettings()
+        .AddEnvironmentVariables()
+        .Build();
+
+    var serviceControlAuditSection = bootstrapConfig.GetSection(Settings.SectionName);
+
+    var loggingSettings = new LoggingSettings(serviceControlAuditSection.Get<LoggingOptions>());
     LoggingConfigurator.ConfigureLogging(loggingSettings);
     logger = LoggerUtil.CreateStaticLogger(typeof(Program));
 
@@ -27,15 +36,20 @@ try
 
     ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
-    var arguments = new HostArguments(args);
+    var settings = new Settings(
+        bootstrapConfig.GetSection(Settings.SectionNameServiceControl),
+        serviceControlAuditSection,
+        bootstrapConfig.GetSection(Settings.SectionNameServiceBus),
+        loggingSettings: loggingSettings
+        );
+
+    var arguments = new HostArguments(args, settings);
 
     if (arguments.Help)
     {
         arguments.PrintUsage();
         return 0;
     }
-
-    var settings = new Settings(loggingSettings: loggingSettings);
 
     await new CommandRunner(arguments.Command).Execute(arguments, settings);
 

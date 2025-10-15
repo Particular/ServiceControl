@@ -19,6 +19,7 @@ using NServiceBus;
 using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Features;
 using NServiceBus.Transport;
+using Particular.LicensingComponent.Shared;
 using QueueLength;
 using ServiceControl.Infrastructure;
 using Timings;
@@ -58,6 +59,8 @@ public static class HostApplicationBuilderExtensions
         services.AddSingleton<MessageTypeRegistry>();
         services.AddSingleton<EndpointInstanceActivityTracker>();
         services.AddSingleton<LegacyQueueLengthReportHandler.LegacyQueueLengthEndpoints>();
+        services.AddSingleton<PlatformEndpointHelper>();
+        services.AddSingleton<ServiceControlSettings>();
 
         services.RegisterAsSelfAndImplementedInterfaces<RetriesStore>();
         services.RegisterAsSelfAndImplementedInterfaces<CriticalTimeStore>();

@@ -9,9 +9,9 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
 
     class HostArguments
     {
-        public HostArguments(string[] args)
+        public HostArguments(string[] args, Settings settings)
         {
-            if (SettingsReader.Read<bool>(Settings.SettingsRootNamespace, "MaintenanceMode"))
+            if (settings.MaintenanceMode)
             {
                 args = [.. args, "-m"];
             }

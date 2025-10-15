@@ -30,6 +30,9 @@ namespace ServiceControl.Audit.Persistence
 
             foreach (var key in persistenceConfiguration.ConfigurationKeys)
             {
+                // TODO: This copies values from settings to persister settings....... Should PersistenceSettings  be deserialized based on IConfiguration or IConfigurationSecction???
+                // TODO: Could this can be replaced with a DI registration for PersistenceSettings with a concrete type that is deserialized from IConfigurationSection?
+                // TODO: PersistenceSettings is currently needed during DI configuration, can this be deferred?
                 var value = SettingsReader.Read<string>(Settings.SettingsRootNamespace, key, null);
                 if (!string.IsNullOrWhiteSpace(value))
                 {

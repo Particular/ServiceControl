@@ -14,6 +14,7 @@
   <Import Project="..\ProjectReferences.Transports.props" />
 
   <ItemGroup>
+    <ProjectReference Include="..\Particular.LicensingComponent\Particular.LicensingComponent.csproj" />
     <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
     <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />

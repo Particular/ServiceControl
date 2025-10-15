@@ -4,14 +4,14 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-[Obsolete("Use the new ConfigurationBinder instead.", false)]
+[Obsolete("Use the new ConfigurationBinder instead.", true)]
 public static class SettingsReader
 {
-    [Obsolete("Use the new ConfigurationBinder instead.", false)]
+    [Obsolete("Use the new ConfigurationBinder instead.", true)]
     public static T Read<T>(SettingsRootNamespace settingsNamespace, string name, T defaultValue = default)
         => TryRead<T>(settingsNamespace, name, out var value) ? value : defaultValue;
 
-    [Obsolete("Use the new ConfigurationBinder instead.", false)]
+    [Obsolete("Use the new ConfigurationBinder instead.", true)]
     public static bool TryRead<T>(SettingsRootNamespace settingsNamespace, string name, [NotNullWhen(true)] out T value)
     {
         if (EnvironmentVariableSettingsReader.TryRead<T>(settingsNamespace, name, out var envValue))

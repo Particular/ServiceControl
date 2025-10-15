@@ -13,7 +13,9 @@ public class AuditThroughputCollectorHostedService(
     ILicensingDataStore dataStore,
     IAuditQuery auditQuery,
     TimeProvider timeProvider,
-    IBrokerThroughputQuery? brokerThroughputQuery = null) : BackgroundService
+    PlatformEndpointHelper platformEndpointHelper,
+    IBrokerThroughputQuery? brokerThroughputQuery = null
+    ) : BackgroundService
 {
     public TimeSpan DelayStart { get; set; } = TimeSpan.FromSeconds(40);
     public static List<string> AuditQueues { get; set; } = [];
@@ -98,7 +100,7 @@ public class AuditThroughputCollectorHostedService(
             EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()]
         };
 
-        if (PlatformEndpointHelper.IsPlatformEndpoint(scEndpoint.Name, throughputSettings))
+        if (platformEndpointHelper.IsPlatformEndpoint(scEndpoint.Name, throughputSettings))
         {
             endpoint.EndpointIndicators.Append(EndpointIndicator.PlatformEndpoint.ToString());
         }

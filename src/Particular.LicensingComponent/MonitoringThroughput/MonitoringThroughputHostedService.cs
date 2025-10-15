@@ -6,7 +6,13 @@ using NServiceBus.Transport;
 using ServiceControl.Transports;
 using Shared;
 
-class MonitoringThroughputHostedService(ITransportCustomization transportCustomization, TransportSettings transportSettings, ILogger<MonitoringThroughputHostedService> logger, MonitoringService monitoringService) : IHostedService
+class MonitoringThroughputHostedService(
+    ITransportCustomization transportCustomization,
+    TransportSettings transportSettings,
+    ILogger<MonitoringThroughputHostedService> logger,
+    MonitoringService monitoringService      ,
+    ServiceControlSettings serviceControlSettings
+    ) : IHostedService
 {
     TransportInfrastructure? transportInfrastructure;
 
@@ -26,8 +32,8 @@ class MonitoringThroughputHostedService(ITransportCustomization transportCustomi
     {
         logger.LogInformation("Starting {ServiceName}", nameof(MonitoringThroughputHostedService));
 
-        transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(ServiceControlSettings.ServiceControlThroughputDataQueue, transportSettings, Handle, (_, __) => Task.FromResult(ErrorHandleResult.Handled), (_, __) => Task.CompletedTask);
-        await transportInfrastructure.Receivers[ServiceControlSettings.ServiceControlThroughputDataQueue].StartReceive(cancellationToken);
+        transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(serviceControlSettings.ServiceControlThroughputDataQueue, transportSettings, Handle, (_, __) => Task.FromResult(ErrorHandleResult.Handled), (_, __) => Task.CompletedTask);
+        await transportInfrastructure.Receivers[serviceControlSettings.ServiceControlThroughputDataQueue].StartReceive(cancellationToken);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -36,7 +42,7 @@ class MonitoringThroughputHostedService(ITransportCustomization transportCustomi
 
         if (transportInfrastructure != null)
         {
-            await transportInfrastructure.Receivers[ServiceControlSettings.ServiceControlThroughputDataQueue].StopReceive(cancellationToken);
+            await transportInfrastructure.Receivers[serviceControlSettings.ServiceControlThroughputDataQueue].StopReceive(cancellationToken);
             await transportInfrastructure.Shutdown(cancellationToken);
         }
     }
