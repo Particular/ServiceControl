@@ -27,7 +27,7 @@
 
         [Route("edit/{failedMessageId:required:minlength(1)}")]
         [HttpPost]
-        public async Task<IActionResult> Edit(string failedMessageId, [FromBody] EditMessageModel edit)
+        public async Task<ActionResult<EditRetryResponse>> Edit(string failedMessageId, [FromBody] EditMessageModel edit)
         {
             if (!settings.AllowMessageEditing)
             {
@@ -43,7 +43,7 @@
                 logger.LogWarning("Cannot edit message {FailedMessageId} because it has already been edited", failedMessageId);
                 // We return HTTP 200 even though the edit is being ignored. This is to keep the compatibility with older versions of ServicePulse.
                 // Newer ServicePulse versions (starting with x.x) will handle the response's payload accordingly.
-                return Ok(new { EditIgnored = true });
+                return Ok(new EditRetryResponse { EditIgnored = true });
             }
 
             var failedMessage = await store.ErrorBy(failedMessageId);
@@ -85,7 +85,7 @@
                 NewHeaders = edit.MessageHeaders
             });
 
-            return Accepted(new { EditIgnored = false });
+            return Accepted(new EditRetryResponse { EditIgnored = false });
         }
 
 
@@ -147,5 +147,10 @@
         public string MessageBody { get; set; }
 
         public Dictionary<string, string> MessageHeaders { get; set; }
+    }
+
+    public class EditRetryResponse
+    {
+        public bool EditIgnored { get; set; }
     }
 }
