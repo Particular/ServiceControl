@@ -2,29 +2,17 @@
 {
     using System;
     using System.Collections.Generic;
+    using Microsoft.Extensions.Configuration;
 
-    public class PersistenceSettings
+    public sealed class PersistenceSettings(
+        TimeSpan auditRetentionPeriod,
+        bool enableFullTextSearchOnBodies,
+        int maxBodySizeToStore
+    )
     {
-        public PersistenceSettings(
-            TimeSpan auditRetentionPeriod,
-            bool enableFullTextSearchOnBodies,
-            int maxBodySizeToStore)
-        {
-            AuditRetentionPeriod = auditRetentionPeriod;
-            EnableFullTextSearchOnBodies = enableFullTextSearchOnBodies;
-            MaxBodySizeToStore = maxBodySizeToStore;
-
-            PersisterSpecificSettings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        }
-
         public bool MaintenanceMode { get; set; }
-
-        public TimeSpan AuditRetentionPeriod { get; set; }
-
-        public bool EnableFullTextSearchOnBodies { get; set; }
-
-        public int MaxBodySizeToStore { get; set; }
-
-        public IDictionary<string, string> PersisterSpecificSettings { get; }
+        public TimeSpan AuditRetentionPeriod { get; set; } = auditRetentionPeriod;
+        public bool EnableFullTextSearchOnBodies { get; set; } = enableFullTextSearchOnBodies;
+        public int MaxBodySizeToStore { get; set; } = maxBodySizeToStore;
     }
 }

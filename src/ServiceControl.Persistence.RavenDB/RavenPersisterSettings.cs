@@ -1,6 +1,10 @@
 ﻿using System;
+using System.IO;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Particular.LicensingComponent.Contracts;
 using ServiceControl.Persistence;
+using ServiceControl.Persistence.RavenDB;
 using ServiceControl.Persistence.RavenDB.CustomChecks;
 using ServiceControl.RavenDB;
 
@@ -24,6 +28,7 @@ class RavenPersisterSettings : PersistenceSettings, IRavenClientCertificateInfo
     /// User provided external RavenDB instance connection string
     /// </summary>
     public string ConnectionString { get; set; }
+
     public string ClientCertificatePath { get; set; }
     public string ClientCertificateBase64 { get; set; }
     public string ClientCertificatePassword { get; set; }

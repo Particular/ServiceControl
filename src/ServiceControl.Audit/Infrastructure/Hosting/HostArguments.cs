@@ -11,7 +11,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
     {
         public HostArguments(string[] args, Settings settings)
         {
-            if (settings.MaintenanceMode)
+            if (settings.MaintenanceMode) // TODO: Hack....
             {
                 args = [.. args, "-m"];
             }

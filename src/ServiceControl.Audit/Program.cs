@@ -37,11 +37,9 @@ try
     ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
     var settings = new Settings(
-        bootstrapConfig.GetSection(Settings.SectionNameServiceControl),
-        serviceControlAuditSection,
-        bootstrapConfig.GetSection(Settings.SectionNameServiceBus),
+        bootstrapConfig,
         loggingSettings: loggingSettings
-        );
+    );
 
     var arguments = new HostArguments(args, settings);
 
@@ -66,6 +64,7 @@ catch (Exception ex)
         LoggingConfigurator.ConfigureNLog("bootstrap.${shortdate}.txt", "./", NLog.LogLevel.Fatal);
         NLog.LogManager.GetCurrentClassLogger().Fatal(ex, "Unrecoverable error");
     }
+
     throw;
 }
 finally

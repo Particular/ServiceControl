@@ -1,13 +1,11 @@
 ﻿namespace ServiceControl.Audit.Persistence
 {
-    using System.Collections.Generic;
+    using Microsoft.Extensions.Configuration;
 
     public interface IPersistenceConfiguration
     {
         string Name { get; }
 
-        IEnumerable<string> ConfigurationKeys { get; }
-
-        IPersistence Create(PersistenceSettings settings);
+        IPersistence Create(PersistenceSettings settings, IConfiguration configuration);
     }
 }

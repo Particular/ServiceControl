@@ -1,13 +1,12 @@
 ﻿namespace ServiceControl.Audit.Persistence.InMemory
 {
     using System.Collections.Generic;
+    using Microsoft.Extensions.Configuration;
 
-    public class InMemoryPersistenceConfiguration : IPersistenceConfiguration
+    public sealed class InMemoryPersistenceConfiguration : IPersistenceConfiguration
     {
         public string Name => "InMemory";
 
-        public IEnumerable<string> ConfigurationKeys => new string[0];
-
-        public IPersistence Create(PersistenceSettings settings) => new InMemoryPersistence(settings);
+        public IPersistence Create(PersistenceSettings settings, IConfiguration configuration) => new InMemoryPersistence(settings);
     }
 }

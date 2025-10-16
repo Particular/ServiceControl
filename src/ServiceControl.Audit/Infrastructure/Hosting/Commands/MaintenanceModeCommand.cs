@@ -12,12 +12,15 @@
         public override async Task Execute(HostArguments args, Settings settings)
         {
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings);
-            var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
+
+            var hostBuilder = Host.CreateApplicationBuilder();
+            hostBuilder.Configuration.AddLegacyAppSettings();
+
+            var persistenceSettings = PersistenceConfigurationFactory.BuildPersistenceSettings(settings, hostBuilder.Configuration);
 
             persistenceSettings.MaintenanceMode = true;
 
-            var hostBuilder = Host.CreateApplicationBuilder();
-            hostBuilder.Services.AddPersistence(persistenceSettings, persistenceConfiguration);
+            hostBuilder.Services.AddPersistence(persistenceSettings, persistenceConfiguration, hostBuilder.Configuration);
 
             if (WindowsServiceHelpers.IsWindowsService())
             {

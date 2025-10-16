@@ -10,11 +10,13 @@ using System.Threading.Tasks;
 using AuditThroughput;
 using Contracts;
 using Infrastructure;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NuGet.Versioning;
 using NUnit.Framework;
 using ServiceControl.Transports.BrokerThroughput;
+using Shared;
 
 [TestFixture]
 class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixture
@@ -34,11 +36,19 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         CancellationToken token = tokenSource.Token;
         var fakeTimeProvider = new FakeTimeProvider();
         var auditQuery = new AuditQuery_NoAuditRemotes();
+        var emptyConfig = new ConfigurationBuilder().Build();
 
         using var auditThroughputCollectorHostedService = new AuditThroughputCollectorHostedService(
-            NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore,
-            auditQuery, fakeTimeProvider)
-        { DelayStart = TimeSpan.Zero };
+            NullLogger<AuditThroughputCollectorHostedService>.Instance,
+            configuration.ThroughputSettings,
+            DataStore,
+            auditQuery,
+            fakeTimeProvider,
+            new PlatformEndpointHelper(new ServiceControlSettings(emptyConfig))
+        )
+        {
+            DelayStart = TimeSpan.Zero
+        };
 
         //Act
         await auditThroughputCollectorHostedService.StartAsync(token);
@@ -64,10 +74,17 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         var fakeTimeProvider = new FakeTimeProvider();
         var auditQuery = new AuditQuery_ThrowingAnExceptionOnKnownEndpointsCall();
 
+        var emptyConfig = new ConfigurationBuilder().Build();
+
         using var auditThroughputCollectorHostedService = new AuditThroughputCollectorHostedService(
             NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore,
-            auditQuery, fakeTimeProvider)
-        { DelayStart = TimeSpan.Zero };
+            auditQuery,
+            fakeTimeProvider,
+            new PlatformEndpointHelper(new ServiceControlSettings(emptyConfig))
+            )
+        {
+            DelayStart = TimeSpan.Zero
+        };
 
         //Act
         await auditThroughputCollectorHostedService.StartAsync(token);
@@ -91,11 +108,17 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
         CancellationToken token = tokenSource.Token;
         var fakeTimeProvider = new FakeTimeProvider();
+        var emptyConfig = new ConfigurationBuilder().Build();
 
         using var auditThroughputCollectorHostedService = new AuditThroughputCollectorHostedService(
             NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore,
-            configuration.AuditQuery, fakeTimeProvider)
-        { DelayStart = TimeSpan.Zero };
+            configuration.AuditQuery,
+            fakeTimeProvider,
+            new PlatformEndpointHelper(new ServiceControlSettings(emptyConfig))
+            )
+        {
+            DelayStart = TimeSpan.Zero
+        };
 
         //Act
         await auditThroughputCollectorHostedService.StartAsync(token);
@@ -116,11 +139,17 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         string endpointName = "e$ndpoint&1";
         var auditQuery = new AuditQuery_WithOneEndpoint(endpointName, 0, DateOnly.FromDateTime(DateTime.UtcNow));
         string endpointNameSanitized = "e-ndpoint-1";
+        var emptyConfig = new ConfigurationBuilder().Build();
 
         using var auditThroughputCollectorHostedService = new AuditThroughputCollectorHostedService(
             NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore,
-            auditQuery, fakeTimeProvider, new BrokerThroughputQuery_WithSanitization())
-        { DelayStart = TimeSpan.Zero };
+            auditQuery,
+            fakeTimeProvider,
+            new PlatformEndpointHelper(new ServiceControlSettings(emptyConfig))
+            )
+        {
+            DelayStart = TimeSpan.Zero
+        };
 
         //Act
         await auditThroughputCollectorHostedService.StartAsync(token);
@@ -152,11 +181,16 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         var throughputDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1));
         long throughputCount = 5;
         var auditQuery = new AuditQuery_WithOneEndpoint(endpointName, throughputCount, throughputDate);
+        var emptyConfig = new ConfigurationBuilder().Build();
 
         using var auditThroughputCollectorHostedService = new AuditThroughputCollectorHostedService(
             NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore,
-            auditQuery: auditQuery, fakeTimeProvider)
-        { DelayStart = TimeSpan.Zero };
+            auditQuery: auditQuery,
+            fakeTimeProvider,
+            new PlatformEndpointHelper(new ServiceControlSettings(emptyConfig)))
+        {
+            DelayStart = TimeSpan.Zero
+        };
 
         //Act
         await auditThroughputCollectorHostedService.StartAsync(token1);
@@ -224,7 +258,11 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
 
         public Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken) =>
             Task.FromResult(
-                new ConnectionSettingsTestResult { ConnectionSuccessful = true, ConnectionErrorMessages = [] });
+                new ConnectionSettingsTestResult
+                {
+                    ConnectionSuccessful = true,
+                    ConnectionErrorMessages = []
+                });
 
         public bool InstanceParameter { get; set; }
     }
@@ -245,9 +283,16 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         public Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName,
             CancellationToken cancellationToken)
         {
-            var auditCount = new AuditCount { UtcDate = ThroughputDate, Count = ThroughputCount };
+            var auditCount = new AuditCount
+            {
+                UtcDate = ThroughputDate,
+                Count = ThroughputCount
+            };
 
-            return Task.FromResult(new List<AuditCount> { auditCount }.AsEnumerable());
+            return Task.FromResult(new List<AuditCount>
+            {
+                auditCount
+            }.AsEnumerable());
         }
 
         public Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken) =>
@@ -255,13 +300,21 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
 
         public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken)
         {
-            var scEndpoint = new ServiceControlEndpoint { Name = EndpointName, HeartbeatsEnabled = true };
+            var scEndpoint = new ServiceControlEndpoint
+            {
+                Name = EndpointName,
+                HeartbeatsEnabled = true
+            };
             return Task.FromResult<IEnumerable<ServiceControlEndpoint>>([scEndpoint]);
         }
 
         public Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken) =>
             Task.FromResult(
-                new ConnectionSettingsTestResult { ConnectionSuccessful = true, ConnectionErrorMessages = [] });
+                new ConnectionSettingsTestResult
+                {
+                    ConnectionSuccessful = true,
+                    ConnectionErrorMessages = []
+                });
 
         string EndpointName { get; }
         long ThroughputCount { get; }

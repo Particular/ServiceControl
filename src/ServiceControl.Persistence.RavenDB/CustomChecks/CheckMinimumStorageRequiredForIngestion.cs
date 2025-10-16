@@ -5,6 +5,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using NServiceBus.CustomChecks;
     using ServiceControl.Infrastructure;
     using ServiceControl.Persistence;
@@ -47,30 +48,33 @@
                 dataDriveInfo.RootDirectory,
                 Environment.MachineName,
                 percentageThreshold,
-                RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey);
+                RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
             stateHolder.CanIngestMore = false;
-            return CheckResult.Failed($"Error message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} configuration setting.");
-        }
-
-        public static void Validate(RavenPersisterSettings settings)
-        {
-            var logger = LoggerUtil.CreateStaticLogger<CheckMinimumStorageRequiredForIngestion>();
-            var threshold = settings.MinimumStorageLeftRequiredForIngestion;
-
-            if (threshold < 0)
-            {
-                logger.LogCritical("{RavenBootstrapperMinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0", RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey);
-                throw new Exception($"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.");
-            }
-
-            if (threshold > 100)
-            {
-                logger.LogCritical("{RavenBootstrapperMinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100", RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey);
-                throw new Exception($"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.");
-            }
+            return CheckResult.Failed($"Error message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} configuration setting.");
         }
 
         public const int MinimumStorageLeftRequiredForIngestionDefault = 5;
         static readonly Task<CheckResult> SuccessResult = Task.FromResult(CheckResult.Pass);
+
+
+        public sealed class Validation : IValidateOptions<RavenPersisterSettings>          // TODO: Register!!
+        {
+            public ValidateOptionsResult Validate(string name, RavenPersisterSettings options)
+            {
+                var threshold = options.MinimumStorageLeftRequiredForIngestion;
+
+                if (threshold < 0)
+                {
+                    return ValidateOptionsResult.Fail($"{RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.");
+                }
+
+                if (threshold > 100)
+                {
+                    return ValidateOptionsResult.Fail($"{RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.");
+                }
+
+                return ValidateOptionsResult.Success;
+            }
+        }
     }
 }

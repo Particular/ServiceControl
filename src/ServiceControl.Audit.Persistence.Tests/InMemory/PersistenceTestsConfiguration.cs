@@ -1,10 +1,13 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Primitives;
     using NServiceBus.CustomChecks;
     using ServiceControl.Audit.Persistence.InMemory;
     using UnitOfWork;
@@ -23,15 +26,16 @@
 
         public string Name => "InMemory";
 
-        public async Task Configure(Action<PersistenceSettings> setSettings)
+        public async Task Configure(Action<PersistenceSettings, IDictionary<string,string>> setSettings)
         {
             var config = new InMemoryPersistenceConfiguration();
             var hostBuilder = Host.CreateApplicationBuilder();
             var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
-            setSettings(settings);
+            setSettings(settings, null); // TODO: new Dictionary<string, string>();
 
-            var persistence = config.Create(settings);
+            var configuration = new ConfigurationBuilder().Build();
+            var persistence = config.Create(settings, configuration);
             persistence.AddPersistence(hostBuilder.Services);
             persistence.AddInstaller(hostBuilder.Services);
 

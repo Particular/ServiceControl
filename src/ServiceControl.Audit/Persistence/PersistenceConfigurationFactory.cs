@@ -3,6 +3,7 @@ namespace ServiceControl.Audit.Persistence
     using System;
     using System.IO;
     using Configuration;
+    using Microsoft.Extensions.Configuration;
     using ServiceControl.Audit.Infrastructure.Settings;
 
     static class PersistenceConfigurationFactory
@@ -16,6 +17,7 @@ namespace ServiceControl.Audit.Persistence
                 var loadContext = settings.AssemblyLoadContextResolver(assemblyPath);
                 var customizationType = Type.GetType(persistenceManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
 
+                // TODO: Why not just a big switch and have all types accessible by referencing all persisters?
                 return (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)
@@ -24,22 +26,16 @@ namespace ServiceControl.Audit.Persistence
             }
         }
 
-        public static PersistenceSettings BuildPersistenceSettings(this IPersistenceConfiguration persistenceConfiguration, Settings settings)
+        public static PersistenceSettings BuildPersistenceSettings(
+            Settings settings,
+            IConfiguration configuration      // TODO: Remove this dependency
+            )
         {
-            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
-
-            foreach (var key in persistenceConfiguration.ConfigurationKeys)
-            {
-                // TODO: This copies values from settings to persister settings....... Should PersistenceSettings  be deserialized based on IConfiguration or IConfigurationSecction???
-                // TODO: Could this can be replaced with a DI registration for PersistenceSettings with a concrete type that is deserialized from IConfigurationSection?
-                // TODO: PersistenceSettings is currently needed during DI configuration, can this be deferred?
-                var value = SettingsReader.Read<string>(Settings.SettingsRootNamespace, key, null);
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    persistenceSettings.PersisterSpecificSettings[key] = value;
-                }
-            }
-
+            var persistenceSettings = new PersistenceSettings(
+                auditRetentionPeriod: settings.AuditRetentionPeriod,
+                enableFullTextSearchOnBodies: settings.EnableFullTextSearchOnBodies,
+                maxBodySizeToStore: settings.MaxBodySizeToStore
+                );
             return persistenceSettings;
         }
     }

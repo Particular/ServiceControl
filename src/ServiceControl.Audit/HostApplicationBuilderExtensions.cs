@@ -28,7 +28,8 @@ static class HostApplicationBuilderExtensions
 {
     static readonly string InstanceVersion = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
 
-    public static void AddServiceControlAudit(this IHostApplicationBuilder builder,
+    public static void AddServiceControlAudit(
+        this IHostApplicationBuilder builder,
         Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError,
         Settings settings,
         EndpointConfiguration configuration)
@@ -36,7 +37,7 @@ static class HostApplicationBuilderExtensions
         var section = builder.Configuration.GetSection(Settings.SectionName);
 
         var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings);
-        //var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
+        var persistenceSettings = PersistenceConfigurationFactory.BuildPersistenceSettings(settings, section);
 
         RecordStartup(settings, configuration, persistenceConfiguration);
 
@@ -67,7 +68,7 @@ static class HostApplicationBuilderExtensions
         // directly and to make things more complex of course the order of registration still matters ;)
         services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
-        services.AddPersistence(persistenceSettings, persistenceConfiguration);
+        services.AddPersistence(persistenceSettings, persistenceConfiguration, section);
 
         NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, onCriticalError, configuration);
         builder.UseNServiceBus(configuration);
@@ -89,9 +90,12 @@ static class HostApplicationBuilderExtensions
 
     public static void AddServiceControlAuditInstallers(this IHostApplicationBuilder builder, Settings settings)
     {
+        var section = builder.Configuration.GetSection(Settings.SectionName);
+
         var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings);
-        var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
-        builder.Services.AddInstaller(persistenceSettings, persistenceConfiguration);
+        var persistenceSettings = PersistenceConfigurationFactory.BuildPersistenceSettings(settings, section);
+
+        builder.Services.AddInstaller(persistenceSettings, persistenceConfiguration, section);
     }
 
     public static void AddMetrics(this IHostApplicationBuilder builder, Settings settings)

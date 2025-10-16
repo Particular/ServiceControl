@@ -16,14 +16,16 @@
     {
         // TODO: All kinds of validation happening but validation and deserialization should be split
         public Settings(
-            IConfigurationSection serviceBusSection,
-            IConfigurationSection serviceControlAuditsection,
-            IConfigurationSection serviceControlSection,
+            IConfiguration configuration,
             string transportType = null,
             string persisterType = null,
             LoggingSettings loggingSettings = null
         )
         {
+            IConfiguration serviceBusSection = configuration.GetSection(SectionNameServiceBus);
+            IConfiguration serviceControlAuditsection = configuration.GetSection(SectionName);
+            IConfiguration serviceControlSection = configuration.GetSection(SectionNameServiceControl);
+
             LoggingSettings = loggingSettings; // TODO: ?? new();
 
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
@@ -78,9 +80,9 @@
         }
 
         void LoadAuditQueueInformation(
-            IConfigurationSection serviceControlAuditsection,
-            IConfigurationSection serviceBusSection,
-            IConfigurationSection serviceControlSection
+            IConfiguration serviceControlAuditsection,
+            IConfiguration serviceBusSection,
+            IConfiguration serviceControlSection
         )
         {
             AuditQueue = serviceBusSection.GetValue("AuditQueue", "audit");
@@ -92,6 +94,7 @@
 
             IngestAuditMessages = serviceControlAuditsection.GetValue<bool?>("IngestAuditMessages")
                                   // Backwards compatibility
+                                  // TODO: How far does this go back?
                                   ?? serviceControlSection.GetValue("IngestAuditMessages", true);
 
             if (IngestAuditMessages == false)
@@ -199,7 +202,7 @@
             return transportSettings;
         }
 
-        TimeSpan GetTimeToRestartAuditIngestionAfterFailure(IConfigurationSection section)
+        TimeSpan GetTimeToRestartAuditIngestionAfterFailure(IConfiguration section)
         {
             string message;
             var valueRead = section.GetValue<string>("TimeToRestartAuditIngestionAfterFailure");
@@ -234,7 +237,7 @@
             return result;
         }
 
-        static bool GetForwardAuditMessages(IConfigurationSection serviceControlAuditsection)
+        static bool GetForwardAuditMessages(IConfiguration serviceControlAuditsection)
         {
             var forwardAuditMessages = serviceControlAuditsection.GetValue<bool?>("ForwardAuditMessages");
             if (forwardAuditMessages.HasValue)
@@ -245,7 +248,7 @@
             return false;
         }
 
-        static string GetConnectionString(IConfigurationSection serviceControlAuditsection)
+        static string GetConnectionString(IConfiguration serviceControlAuditsection)
         {
             var settingsValue = serviceControlAuditsection.GetValue<string>("ConnectionString");
             if (settingsValue != null)
@@ -257,7 +260,7 @@
             return connectionStringSettings?.ConnectionString;
         }
 
-        TimeSpan GetAuditRetentionPeriod(IConfigurationSection serviceControlAuditsection)
+        TimeSpan GetAuditRetentionPeriod(IConfiguration serviceControlAuditsection)
         {
             string message;
             var valueRead = serviceControlAuditsection.GetValue<string>("AuditRetentionPeriod");

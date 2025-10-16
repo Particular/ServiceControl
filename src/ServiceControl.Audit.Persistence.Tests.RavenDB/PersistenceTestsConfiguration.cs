@@ -1,8 +1,10 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.CustomChecks;
@@ -30,27 +32,27 @@
 
         public string Name => "RavenDB";
 
-        public async Task Configure(Action<PersistenceSettings> setSettings)
+        public async Task Configure(Action<PersistenceSettings, IDictionary<string,string>> setSettings)
         {
             var config = new RavenPersistenceConfiguration();
             var hostBuilder = Host.CreateApplicationBuilder();
             var persistenceSettings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
+            var configSettings = new Dictionary<string, string>();
+            setSettings(persistenceSettings, configSettings);
 
-            setSettings(persistenceSettings);
-
-            if (!persistenceSettings.PersisterSpecificSettings.ContainsKey(RavenPersistenceConfiguration.DatabasePathKey))
+            if (!configSettings.ContainsKey(RavenPersistenceConfiguration.DatabasePathKey))
             {
                 var instance = await SharedEmbeddedServer.GetInstance();
 
-                persistenceSettings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = instance.ServerUrl;
+                configSettings[RavenPersistenceConfiguration.ConnectionStringKey] = instance.ServerUrl;
             }
 
-            if (!persistenceSettings.PersisterSpecificSettings.ContainsKey(RavenPersistenceConfiguration.LogPathKey))
+            if (!configSettings.ContainsKey(RavenPersistenceConfiguration.LogPathKey))
             {
-                persistenceSettings.PersisterSpecificSettings[RavenPersistenceConfiguration.LogPathKey] = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs");
+                configSettings[RavenPersistenceConfiguration.LogPathKey] = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs");
             }
 
-            if (persistenceSettings.PersisterSpecificSettings.TryGetValue(RavenPersistenceConfiguration.DatabaseNameKey, out var configuredDatabaseName))
+            if (configSettings.TryGetValue(RavenPersistenceConfiguration.DatabaseNameKey, out var configuredDatabaseName))
             {
                 databaseName = configuredDatabaseName;
             }
@@ -58,10 +60,19 @@
             {
                 databaseName = Guid.NewGuid().ToString();
 
-                persistenceSettings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabaseNameKey] = databaseName;
+                configSettings[RavenPersistenceConfiguration.DatabaseNameKey] = databaseName;
             }
 
-            var persistence = config.Create(persistenceSettings);
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    { "ServiceBus:ConnectionString", "Endpoint=sb://test.servicebus.windows.net/" },
+                    { "ServiceBus:Topology", """{"Topics": [{"Name": "test-topic"}]}""" },
+                    { "Logging:LogLevel:Default", "Debug" }
+                })
+                .Build();
+
+            var persistence = config.Create(persistenceSettings, configuration);
             persistence.AddPersistence(hostBuilder.Services);
             persistence.AddInstaller(hostBuilder.Services);
 

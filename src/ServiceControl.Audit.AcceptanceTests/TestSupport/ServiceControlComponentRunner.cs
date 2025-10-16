@@ -2,7 +2,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 {
     using System;
     using System.Collections.Generic;
-    using System.Configuration;
     using System.IO;
     using System.Net.Http;
     using System.Runtime.Loader;
@@ -16,12 +15,14 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.TestHost;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceControl.Infrastructure;
+    using ConfigurationManager = System.Configuration.ConfigurationManager;
 
     public class ServiceControlComponentRunner(
         ITransportIntegration transportToUse,
@@ -44,10 +45,28 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(logPath);
 
-            var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace, defaultLevel: LogLevel.Debug, logPath: logPath);
+
+            var loggingSettings = new LoggingSettings(new LoggingOptions
+            {
+                // TODO:
+            }, defaultLevel: LogLevel.Debug, logPath: logPath);
             LoggerUtil.ActiveLoggers = Loggers.Test;
 
-            settings = new Settings(transportToUse.TypeName, persistenceToUse.PersistenceType, loggingSettings)
+            var configuration = new ConfigurationBuilder()
+                // .AddInMemoryCollection(new Dictionary<string, string?>
+                // {
+                //     { "ServiceBus:ConnectionString", "Endpoint=sb://test.servicebus.windows.net/" },
+                //     { "ServiceBus:Topology", """{"Topics": [{"Name": "test-topic"}]}""" },
+                //     { "Logging:LogLevel:Default", "Debug" }
+                // })
+                .Build();
+
+            settings = new Settings(
+                configuration: configuration,
+                transportType: transportToUse.TypeName,
+                persisterType: persistenceToUse.PersistenceType,
+                loggingSettings: loggingSettings
+            )
             {
                 InstanceName = instanceName,
                 TransportConnectionString = transportToUse.ConnectionString,
@@ -101,13 +120,13 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupCommand = new SetupCommand();
-                await setupCommand.Execute(new HostArguments([]), settings);
+                await setupCommand.Execute(new HostArguments([], settings), settings);
             }
 
-            var configuration = new EndpointConfiguration(instanceName);
-            configuration.CustomizeServiceControlAuditEndpointTesting(context);
+            var endpointConfiguration = new EndpointConfiguration(instanceName);
+            endpointConfiguration.CustomizeServiceControlAuditEndpointTesting(context);
 
-            customConfiguration(configuration);
+            customConfiguration(endpointConfiguration);
 
             using (new DiagnosticTimer($"Starting ServiceControl {instanceName}"))
             {
@@ -127,7 +146,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     return criticalErrorContext.Stop(cancellationToken);
-                }, settings, configuration);
+                }, settings, endpointConfiguration);
 
                 hostBuilder.AddServiceControlAuditApi();
 

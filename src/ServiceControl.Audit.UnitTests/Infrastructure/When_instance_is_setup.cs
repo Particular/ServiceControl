@@ -8,6 +8,7 @@
     using Audit.Infrastructure.Hosting;
     using Audit.Infrastructure.Hosting.Commands;
     using Audit.Infrastructure.Settings;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Transport;
@@ -21,20 +22,29 @@
         {
             var manifest = new TransportManifest
             {
-                Definitions = [new TransportManifestDefinition
-                {
-                    Name = "FakeTransport",
-                    Location = AppContext.BaseDirectory,
-                    AssemblyName = Assembly.GetExecutingAssembly().GetName().Name,
-                    TypeName = typeof(FakeTransport).AssemblyQualifiedName
-                }]
+                Definitions =
+                [
+                    new TransportManifestDefinition
+                    {
+                        Name = "FakeTransport",
+                        Location = AppContext.BaseDirectory,
+                        AssemblyName = Assembly.GetExecutingAssembly().GetName().Name,
+                        TypeName = typeof(FakeTransport).AssemblyQualifiedName
+                    }
+                ]
             };
 
             TransportManifestLibrary.TransportManifests.Add(manifest);
 
             var instanceInputQueueName = "SomeInstanceQueue";
 
-            var settings = new Settings("FakeTransport", "InMemory")
+            var emptyConfig = new ConfigurationBuilder().Build();
+
+            var settings = new Settings(
+                configuration: emptyConfig,
+                transportType: "FakeTransport",
+                persisterType: "InMemory"
+            )
             {
                 InstanceName = instanceInputQueueName,
                 ForwardAuditMessages = true,
@@ -42,14 +52,11 @@
             };
 
             var setupCommand = new SetupCommand();
-            await setupCommand.Execute(new HostArguments([]), settings);
+            await setupCommand.Execute(new HostArguments([], settings), settings);
 
             Assert.That(FakeTransport.QueuesCreated, Is.EquivalentTo(new[]
             {
-                instanceInputQueueName,
-                $"{instanceInputQueueName}.Errors",
-                settings.AuditQueue,
-                settings.AuditLogQueue
+                instanceInputQueueName, $"{instanceInputQueueName}.Errors", settings.AuditQueue, settings.AuditLogQueue
             }));
         }
     }
@@ -88,6 +95,7 @@
             OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null,
             TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly) =>
             throw new NotImplementedException();
+
         public string ToTransportQualifiedQueueName(string queueName) => queueName;
     }
 }
