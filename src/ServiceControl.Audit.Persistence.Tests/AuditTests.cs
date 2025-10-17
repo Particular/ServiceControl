@@ -80,7 +80,7 @@
         [Test]
         public async Task Can_roundtrip_message_body()
         {
-            string expectedContentType = "text/xml";
+            string expectedContentType = "text/plain";
             var unitOfWork = await StartAuditUnitOfWork(1);
 
             var body = new byte[100];

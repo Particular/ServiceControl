@@ -35,7 +35,7 @@
             if (!body.IsEmpty)
             {
                 await using var stream = new ReadOnlyStream(body);
-                var contentType = processedMessage.Headers.GetValueOrDefault(Headers.ContentType, "text/xml");
+                var contentType = processedMessage.Headers.GetValueOrDefault(Headers.ContentType, "text/plain");
 
                 await bodyStorage.Store(processedMessage.Id, contentType, body.Length, stream, cancellationToken);
             }
