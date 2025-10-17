@@ -62,7 +62,7 @@ async function refresh() {
 
 <template>
   <div class="refresh-config">
-    <ActionButton size="sm" :icon="faRefresh" :loading="showSpinning" tooltip="refresh" @click="refresh">Refresh List</ActionButton>
+    <ActionButton size="sm" :icon="faRefresh" :loading="showSpinning" @click="refresh">Refresh List</ActionButton>
     <div class="filter">
       <div class="filter-label">Auto-Refresh:</div>
       <div class="filter-component">
