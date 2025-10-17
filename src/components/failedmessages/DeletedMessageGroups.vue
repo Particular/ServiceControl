@@ -333,23 +333,20 @@ onMounted(async () => {
                               <div class="col-sm-12 no-side-padding">
                                 <p class="lead break" v-bind:class="{ 'msg-type-hover': group.hover2, 'msg-type-hover-off': group.hover3 }">{{ group.title }}</p>
                                 <p class="metadata" v-if="!isBeingRestored(group.workflow_state.status)">
-                                  <span class="metadata">
-                                    <FAIcon :icon="faEnvelope" class="icon" />
+                                  <MetadataItem :icon="faEnvelope">
                                     {{ group.count }} message<span v-if="group.count > 1">s</span>
                                     <span v-if="group.operation_remaining_count"> (currently restoring {{ group.operation_remaining_count }} </span>
-                                  </span>
+                                  </MetadataItem>
 
-                                  <span class="metadata">
-                                    <FAIcon :icon="faClock" class="icon" />
+                                  <MetadataItem :icon="faClock">
                                     First failed:
                                     <time-since :date-utc="group.first"></time-since>
-                                  </span>
+                                  </MetadataItem>
 
-                                  <span class="metadata">
-                                    <FAIcon :icon="faClock" class="icon" />
+                                  <MetadataItem :icon="faClock">
                                     Last failed:
                                     <time-since :date-utc="group.last"></time-since>
-                                  </span>
+                                  </MetadataItem>
 
                                   <MetadataItem :icon="faArrowRotateRight"> Last retried: <time-since :date-utc="group.last_operation_completion_time"></time-since> </MetadataItem>
                                 </p>
