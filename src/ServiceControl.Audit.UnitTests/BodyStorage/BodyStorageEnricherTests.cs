@@ -92,7 +92,7 @@ namespace ServiceControl.UnitTests.BodyStorage
                 [Headers.MessageId] = "someid",
                 ["ServiceControl.Retry.UniqueMessageId"] = "someid",
                 [Headers.ProcessingEndpoint] = "someendpoint",
-                [Headers.ContentType] = "text/xml"
+                [Headers.ContentType] = "text/plain"
             };
 
             var message = new ProcessedMessage(headers, metadata);
