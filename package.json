@@ -19,7 +19,7 @@
   "dependencies": {
     "@codemirror/lang-json": "6.0.2",
     "@codemirror/lang-xml": "6.1.0",
-    "@codemirror/legacy-modes": "6.5.1",
+    "@codemirror/legacy-modes": "6.5.2",
     "@dagrejs/dagre": "1.1.5",
     "@fortawesome/fontawesome-svg-core": "7.1.0",
     "@fortawesome/free-brands-svg-icons": "7.1.0",
