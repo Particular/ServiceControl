@@ -24,6 +24,7 @@ try
     var bootstrapSettings = section.Get<Settings>();
 
     var loggingSettings = LoggingSettingsFactory.Create(section);
+    bootstrapSettings.LoggingSettings = loggingSettings;    // TODO: Remove this when we have a better way to pass logging settings to the host
 
     LoggingConfigurator.ConfigureLogging(loggingSettings);
 

@@ -22,6 +22,7 @@
             LoggingSettings loggingSettings = null
         )
         {
+            // TODO: Consider GetRequiredSection ?
             IConfiguration serviceBusSection = configuration.GetSection(SectionNameServiceBus);
             IConfiguration serviceControlAuditsection = configuration.GetSection(SectionName);
             IConfiguration serviceControlSection = configuration.GetSection(SectionNameServiceControl);

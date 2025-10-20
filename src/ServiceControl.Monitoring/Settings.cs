@@ -18,9 +18,8 @@ namespace ServiceControl.Monitoring
 
         public Settings(ILogger<Settings> logger, IConfigurationSection section, LoggingSettings loggingSettings, string transportType = null)
         {
-            LoggingSettings = loggingSettings; // TODO: Previously had a COALESCE
+            LoggingSettings = loggingSettings;
 
-            // Overwrite the instance name if it is specified in ENVVAR, reg, or config file
             InstanceName = section.GetValue("InstanceName", DEFAULT_INSTANCE_NAME);
 
             TransportType = section.GetValue("TransportType", transportType);

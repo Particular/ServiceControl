@@ -13,7 +13,7 @@ public class Settings
 {
     public ServiceControlSettings ServiceControlSettings { get; set; }
     [JsonIgnore] public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
-    public LoggingSettings LoggingSettings { get; set; }
+    public LoggingSettings LoggingSettings { get; set; } = new ();
     public string NotificationsFilter { get; set; }
     public bool AllowMessageEditing { get; set; }
     public Func<MessageContext, bool> MessageFilter { get; set; } //HINT: acceptance tests only
