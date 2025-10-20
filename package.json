@@ -45,7 +45,7 @@
     "vue-toastification": "2.0.0-rc.5",
     "vue3-cookies": "1.0.6",
     "vue3-simple-typeahead": "1.0.11",
-    "xml-formatter": "3.6.6"
+    "xml-formatter": "3.6.7"
   },
   "devDependencies": {
     "@eslint/js": "9.35.0",
