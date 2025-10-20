@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ConnectionResultView from "@/views/throughputreport/setup/ConnectionResultView.vue";
-import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
+import { isMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import useThroughputStoreAutoRefresh from "@/composables/useThroughputStoreAutoRefresh";
@@ -29,7 +29,7 @@ async function testConnection() {
           <a href="https://docs.particular.net/servicecontrol/servicecontrol-instances/remotes#configuration" target="_blank">Learn how to configure audit instances</a>
         </template>
       </ConnectionResultView>
-      <ConnectionResultView v-if="useIsMonitoringEnabled() && testResults !== null" title="Monitoring" :result="testResults.monitoring_connection_result">
+      <ConnectionResultView v-if="isMonitoringEnabled() && testResults !== null" title="Monitoring" :result="testResults.monitoring_connection_result">
         <template #instructions>
           <a href="https://docs.particular.net/servicecontrol/monitoring-instances/installation/creating-config-file" target="_blank">Learn how to configure monitor instances</a>
         </template>

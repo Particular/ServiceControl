@@ -2,12 +2,12 @@
 // Composables
 import { computed, watch, onMounted, onUnmounted } from "vue";
 import { useRoute, useRouter, RouterLink } from "vue-router";
-import { monitoringConnectionState, connectionState } from "../../composables/serviceServiceControl";
 import { licenseStatus } from "../../composables/serviceLicense";
-import { useIsMonitoringDisabled } from "../../composables/serviceServiceControlUrls";
+import { isMonitoringDisabled } from "../../composables/serviceServiceControlUrls";
 import { storeToRefs } from "pinia";
 //stores
 import { useMonitoringEndpointDetailsStore } from "../../stores/MonitoringEndpointDetailsStore";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
 // Components
 import LicenseExpired from "../../components/LicenseExpired.vue";
 import ServiceControlNotAvailable from "../../components/ServiceControlNotAvailable.vue";
@@ -22,6 +22,10 @@ import { useMonitoringHistoryPeriodStore } from "@/stores/MonitoringHistoryPerio
 import routeLinks from "@/router/routeLinks";
 import FAIcon from "@/components/FAIcon.vue";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
+
+const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+const connectionState = connectionStore.connectionState;
+const monitoringConnectionState = connectionStore.monitoringConnectionState;
 
 const route = useRoute();
 const router = useRouter();
@@ -85,7 +89,7 @@ onMounted(() => {
         <!--MonitoringNotAvailable-->
         <div class="row">
           <div class="col-sm-12">
-            <MonitoringNotAvailable v-if="monitoringConnectionState.unableToConnect || useIsMonitoringDisabled()"></MonitoringNotAvailable>
+            <MonitoringNotAvailable v-if="monitoringConnectionState.unableToConnect || isMonitoringDisabled()"></MonitoringNotAvailable>
           </div>
         </div>
         <!--Header-->

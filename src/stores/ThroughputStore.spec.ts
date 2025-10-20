@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import * as precondition from "../../test/preconditions";
-import { useServiceControl } from "@/composables/serviceServiceControl";
 import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { Transport } from "@/views/throughputreport/transport";
 import { makeDriverForTests } from "@component-test-utils";
 import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
 import { useThroughputStore } from "@/stores/ThroughputStore";
 import { createTestingPinia } from "@pinia/testing";
-import { storeToRefs } from "pinia";
+import { setActivePinia, storeToRefs } from "pinia";
 import { Driver } from "../../test/driver";
 import { disableMonitoring } from "../../test/drivers/vitest/setup";
+import { useEnvironmentAndVersionsStore } from "./EnvironmentAndVersionsStore";
 
 describe("ThroughputStore tests", () => {
   async function setup(preSetup: (driver: Driver) => Promise<void>) {
@@ -21,9 +21,11 @@ describe("ThroughputStore tests", () => {
     await driver.setUp(precondition.hasServiceControlMonitoringInstance);
 
     useServiceControlUrls();
-    await useServiceControl();
 
-    const store = useThroughputStore(createTestingPinia({ stubActions: false }));
+    setActivePinia(createTestingPinia({ stubActions: false }));
+    await useEnvironmentAndVersionsStore().refresh();
+
+    const store = useThroughputStore();
     const refs = storeToRefs(store);
     await store.refresh();
 

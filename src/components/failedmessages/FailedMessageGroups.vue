@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
 import { licenseStatus } from "../../composables/serviceLicense";
-import { connectionState } from "../../composables/serviceServiceControl";
 import { useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
 import { useCookies } from "vue3-cookies";
 import LicenseExpired from "../../components/LicenseExpired.vue";
@@ -13,6 +12,10 @@ import SortOptions, { SortDirection } from "@/resources/SortOptions";
 import GroupOperation from "@/resources/GroupOperation";
 import getSortFunction from "@/components/getSortFunction";
 import { faArrowDownAZ, faArrowDownZA, faArrowDownShortWide, faArrowDownWideShort, faArrowDown19, faArrowDown91 } from "@fortawesome/free-solid-svg-icons";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+
+const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+const connectionState = connectionStore.connectionState;
 
 const selectedClassifier = ref<string>("");
 const classifiers = ref<string[]>([]);

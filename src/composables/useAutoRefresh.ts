@@ -1,10 +1,11 @@
-import { onMounted, onUnmounted } from "vue";
+import { getCurrentInstance, onMounted, onUnmounted } from "vue";
 import useFetchWithAutoRefresh from "./autoRefresh";
 
 export function useAutoRefresh(name: string, refresh: () => Promise<void>, intervalMs: number) {
   const { start, stop } = useFetchWithAutoRefresh(name, refresh, intervalMs);
 
   function useAutoRefresh() {
+    if (!getCurrentInstance()) return; //should only happen in some test contexts. Refresh will need to be called manually for those cases
     onMounted(start);
     onUnmounted(stop);
   }

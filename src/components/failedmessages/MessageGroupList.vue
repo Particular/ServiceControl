@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { stats } from "../../composables/serviceServiceControl";
 import { useShowToast } from "../../composables/toast";
 import { isError, useAcknowledgeArchiveGroup, useArchiveExceptionGroup, useDeleteNote, useEditOrCreateNote, useGetExceptionGroups, useRetryExceptionGroup } from "../../composables/serviceMessageGroup";
 import NoData from "../NoData.vue";
@@ -83,11 +82,6 @@ async function getExceptionGroups(classifier?: string) {
 
   // need a map in some ui state for controlling animations
   exceptionGroups.value = result.map(initializeGroupState);
-
-  if (exceptionGroups.value.length !== stats.number_of_exception_groups) {
-    stats.number_of_exception_groups = exceptionGroups.value.length;
-    emit("ExceptionGroupCountUpdated", stats.number_of_exception_groups);
-  }
 
   groupsWithNotesAdded = groupsWithNotesAdded.filter((note) => !note.alreadySaved);
 }

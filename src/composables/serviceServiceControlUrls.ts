@@ -39,12 +39,13 @@ function useServiceControlUrls() {
 
 export { useServiceControlUrls, serviceControlUrl, monitoringUrl };
 
-export function useIsMonitoringDisabled() {
+//TODO: the callsites of this should be relying on a computed boolean, rather than a boolean, so that when it changes they also change
+export function isMonitoringDisabled() {
   return monitoringUrl.value == null || monitoringUrl.value === "" || monitoringUrl.value === "!";
 }
 
-export function useIsMonitoringEnabled() {
-  return !useIsMonitoringDisabled();
+export function isMonitoringEnabled() {
+  return !isMonitoringDisabled();
 }
 
 export function useFetchFromServiceControl(suffix: string, options?: { cache?: RequestCache }) {
@@ -67,7 +68,7 @@ export async function useTypedFetchFromServiceControl<T>(suffix: string): Promis
 }
 
 export async function useTypedFetchFromMonitoring<T>(suffix: string): Promise<[Response?, T?]> {
-  if (useIsMonitoringDisabled()) {
+  if (isMonitoringDisabled()) {
     return [];
   }
 
@@ -77,7 +78,7 @@ export async function useTypedFetchFromMonitoring<T>(suffix: string): Promise<[R
   return [response, data];
 }
 
-export function usePostToServiceControl(suffix: string, payload: object | null = null) {
+export function postToServiceControl(suffix: string, payload: object | null = null) {
   const requestOptions: RequestInit = {
     method: "POST",
   };
@@ -88,7 +89,7 @@ export function usePostToServiceControl(suffix: string, payload: object | null =
   return fetch(serviceControlUrl.value + suffix, requestOptions);
 }
 
-export function usePutToServiceControl(suffix: string, payload: object | null) {
+export function putToServiceControl(suffix: string, payload: object | null) {
   const requestOptions: RequestInit = {
     method: "PUT",
   };
@@ -99,7 +100,7 @@ export function usePutToServiceControl(suffix: string, payload: object | null) {
   return fetch(serviceControlUrl.value + suffix, requestOptions);
 }
 
-export function useDeleteFromServiceControl(suffix: string) {
+export function deleteFromServiceControl(suffix: string) {
   const requestOptions: RequestInit = {
     method: "DELETE",
   };
@@ -113,7 +114,7 @@ export function useDeleteFromMonitoring(suffix: string) {
 }
 
 export function useOptionsFromMonitoring() {
-  if (useIsMonitoringDisabled()) {
+  if (isMonitoringDisabled()) {
     return Promise.resolve(null);
   }
 
@@ -123,7 +124,7 @@ export function useOptionsFromMonitoring() {
   return fetch(monitoringUrl.value ?? "", requestOptions);
 }
 
-export function usePatchToServiceControl(suffix: string, payload: object | null) {
+export function patchToServiceControl(suffix: string, payload: object | null) {
   const requestOptions: RequestInit = {
     method: "PATCH",
   };

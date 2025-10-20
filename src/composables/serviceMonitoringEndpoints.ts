@@ -1,6 +1,5 @@
 import { ref } from "vue";
-import { useTypedFetchFromMonitoring, useIsMonitoringDisabled } from "./serviceServiceControlUrls";
-import { monitoringConnectionState } from "./serviceServiceControl";
+import { useTypedFetchFromMonitoring, isMonitoringEnabled } from "./serviceServiceControlUrls";
 import { useGetExceptionGroups } from "./serviceMessageGroup";
 import { type Endpoint, type GroupedEndpoint, type EndpointGroup, type EndpointDetails, type EndpointDetailsError } from "@/resources/MonitoringEndpoint";
 
@@ -17,9 +16,9 @@ export function useFindEndpointSegments(endpoints: Endpoint[]) {
  * @param historyPeriod - The history period value.  The default is (1)
  * @returns A array of monitoring endpoint objects
  */
-export async function useGetAllMonitoredEndpoints(historyPeriod = 1) {
+export async function getAllMonitoredEndpoints(historyPeriod = 1) {
   let endpoints: Endpoint[] = [];
-  if (!useIsMonitoringDisabled() && !monitoringConnectionState.unableToConnect) {
+  if (isMonitoringEnabled()) {
     try {
       const [, data] = await useTypedFetchFromMonitoring<Endpoint[]>(`monitored-endpoints?history=${historyPeriod}`);
       endpoints = data ?? [];
@@ -27,8 +26,6 @@ export async function useGetAllMonitoredEndpoints(historyPeriod = 1) {
     } catch (error) {
       console.error(error);
     }
-  } else {
-    await addEndpointsFromScSubscription(endpoints);
   }
   return endpoints;
 }
@@ -69,12 +66,12 @@ export function useGroupEndpoints(endpoints: Endpoint[], numberOfSegments: numbe
  * @param The history period value.  The default is (1)
  * @returns The details of the endpoint
  */
-export function useGetEndpointDetails(endpointName: string, historyPeriod = 1) {
+export function getEndpointDetails(endpointName: string, historyPeriod = 1) {
   const data = ref<EndpointDetails | EndpointDetailsError | null>(null);
   return {
     data,
     refresh: async () => {
-      if (!useIsMonitoringDisabled() && !monitoringConnectionState.unableToConnect) {
+      if (isMonitoringEnabled()) {
         try {
           const [, details] = await useTypedFetchFromMonitoring<EndpointDetails>(`${`monitored-endpoints`}/${endpointName}?history=${historyPeriod}`);
           data.value = details!;

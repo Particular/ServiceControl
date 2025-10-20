@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import ThroughputConnectionSettings from "@/resources/ThroughputConnectionSettings";
 import throughputClient from "@/views/throughputreport/throughputClient";
-import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
+import { isMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
 import ConfigurationCode from "@/views/throughputreport/setup/ConfigurationCode.vue";
 import { storeToRefs } from "pinia";
 import FAIcon from "@/components/FAIcon.vue";
@@ -21,7 +21,7 @@ const needsConfiguration = computed(() => {
   const broker = settingsInfo.value?.broker_settings?.length ?? 0;
   const monitoring = settingsInfo.value?.monitoring_settings?.length ?? 0;
   const serviceControl = settingsInfo.value?.service_control_settings?.length ?? 0;
-  return broker > 0 || (monitoring > 0 && useIsMonitoringEnabled()) || serviceControl > 0;
+  return broker > 0 || (monitoring > 0 && isMonitoringEnabled()) || serviceControl > 0;
 });
 </script>
 
@@ -76,7 +76,7 @@ const needsConfiguration = computed(() => {
         </div>
       </div>
     </template>
-    <template v-if="useIsMonitoringEnabled() && (settingsInfo?.monitoring_settings.length ?? 0 > 0)">
+    <template v-if="isMonitoringEnabled() && (settingsInfo?.monitoring_settings.length ?? 0 > 0)">
       <div class="row configuration">
         <div class="col-12">
           <h4>Monitoring Settings</h4>

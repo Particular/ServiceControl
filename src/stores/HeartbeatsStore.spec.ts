@@ -1,16 +1,16 @@
 import { describe, expect, test } from "vitest";
 import { Driver } from "../../test/driver";
 import { makeDriverForTests } from "@component-test-utils";
-import { storeToRefs } from "pinia";
+import { setActivePinia, storeToRefs } from "pinia";
 import { createTestingPinia } from "@pinia/testing";
 import { EndpointsView } from "@/resources/EndpointView";
 import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
-import { useServiceControl } from "@/composables/serviceServiceControl";
 import * as precondition from "../../test/preconditions";
 import { EndpointSettings } from "@/resources/EndpointSettings";
 import { serviceControlWithHeartbeats } from "@/components/heartbeats/serviceControlWithHeartbeats";
 import { EndpointStatus } from "@/resources/Heartbeat";
 import { ColumnNames, useHeartbeatsStore } from "@/stores/HeartbeatsStore";
+import { useEnvironmentAndVersionsStore } from "./EnvironmentAndVersionsStore";
 
 describe("HeartbeatsStore tests", () => {
   async function setup(endpoints: EndpointsView[], endpointSettings: EndpointSettings[] = [{ name: "", track_instances: true }], preSetup: (driver: Driver) => Promise<void> = () => Promise.resolve()) {
@@ -21,9 +21,11 @@ describe("HeartbeatsStore tests", () => {
     await driver.setUp(precondition.hasHeartbeatsEndpoints(endpoints, endpointSettings));
 
     useServiceControlUrls();
-    await useServiceControl();
 
-    const store = useHeartbeatsStore(createTestingPinia({ stubActions: false }));
+    setActivePinia(createTestingPinia({ stubActions: false }));
+    await useEnvironmentAndVersionsStore().refresh();
+
+    const store = useHeartbeatsStore();
     const storeRefs = storeToRefs(store);
     await store.refresh();
 

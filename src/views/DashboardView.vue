@@ -2,11 +2,14 @@
 import EventItemShort from "@/components/EventItemShort.vue";
 import LicenseExpired from "@/components/LicenseExpired.vue";
 import ServiceControlNotAvailable from "@/components/ServiceControlNotAvailable.vue";
-import { connectionState } from "@/composables/serviceServiceControl";
 import { licenseStatus } from "@/composables/serviceLicense";
 import CustomChecksDashboardItem from "@/components/customchecks/CustomChecksDashboardItem.vue";
 import HeartbeatsDashboardItem from "@/components/heartbeats/HeartbeatsDashboardItem.vue";
 import FailedMessagesDashboardItem from "@/components/failedmessages/FailedMessagesDashboardItem.vue";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+
+const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+const connectionState = connectionStore.connectionState;
 </script>
 
 <template>

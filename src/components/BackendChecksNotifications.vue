@@ -2,13 +2,20 @@
 import { computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import "bootstrap";
-import { monitoringUrl, serviceControlUrl, useIsMonitoringDisabled } from "@/composables/serviceServiceControlUrls";
-import { monitoringConnectionState, connectionState, environment } from "@/composables/serviceServiceControl";
+import { monitoringUrl, serviceControlUrl, isMonitoringDisabled } from "@/composables/serviceServiceControlUrls";
 import routeLinks from "@/router/routeLinks";
 import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+import useEnvironmentAndVersionsAutoRefresh from "@/composables/useEnvironmentAndVersionsAutoRefresh";
 
 const router = useRouter();
+
+const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+const connectionState = connectionStore.connectionState;
+const monitoringConnectionState = connectionStore.monitoringConnectionState;
+const { store: environmentStore } = useEnvironmentAndVersionsAutoRefresh();
+const environment = environmentStore.environment;
 
 const primaryConnectionFailure = computed(() => connectionState.unableToConnect);
 const monitoringConnectionFailure = computed(() => monitoringConnectionState.unableToConnect);
@@ -27,7 +34,7 @@ watch(primaryConnectionFailure, (newValue, oldValue) => {
 
 watch(monitoringConnectionFailure, (newValue, oldValue) => {
   // Only watch the state change if monitoring is enabled
-  if (useIsMonitoringDisabled()) {
+  if (isMonitoringDisabled()) {
     return;
   }
 

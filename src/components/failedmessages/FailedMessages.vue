@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import { licenseStatus } from "../../composables/serviceLicense";
-import { connectionState } from "../../composables/serviceServiceControl";
-import { useFetchFromServiceControl, usePatchToServiceControl, useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
+import { useFetchFromServiceControl, patchToServiceControl, useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
 import { useShowToast } from "../../composables/toast";
 import { useRetryMessages } from "../../composables/serviceFailedMessage";
 import { useDownloadFileFromString } from "../../composables/fileDownloadCreator";
@@ -20,6 +19,10 @@ import { TYPE } from "vue-toastification";
 import GroupOperation from "@/resources/GroupOperation";
 import { faArrowDownAZ, faArrowDownZA, faArrowDownShortWide, faArrowDownWideShort, faArrowRotateRight, faTrash, faDownload } from "@fortawesome/free-solid-svg-icons";
 import ActionButton from "@/components/ActionButton.vue";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+
+const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+const connectionState = connectionStore.connectionState;
 
 let pollingFaster = false;
 let refreshInterval: number | undefined;
@@ -212,7 +215,7 @@ async function deleteSelectedMessages() {
   const selectedMessages = messageList.value?.getSelectedMessages() ?? [];
 
   useShowToast(TYPE.INFO, "Info", "Deleting " + selectedMessages.length + " messages...");
-  await usePatchToServiceControl(
+  await patchToServiceControl(
     "errors/archive",
     selectedMessages.map((m) => m.id)
   );

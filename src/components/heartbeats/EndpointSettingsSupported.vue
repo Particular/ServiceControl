@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import ConditionalRender from "@/components/ConditionalRender.vue";
-import isEndpointSettingsSupported, { minimumSCVersionForEndpointSettings } from "@/components/heartbeats/isEndpointSettingsSupported";
+import useIsEndpointSettingsSupported, { minimumSCVersionForEndpointSettings } from "@/components/heartbeats/isEndpointSettingsSupported";
+
+const isEndpointSettingsSupported = useIsEndpointSettingsSupported();
 </script>
 
 <template>

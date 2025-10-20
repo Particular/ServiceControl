@@ -2,10 +2,14 @@
 import { ref } from "vue";
 import LicenseExpired from "../LicenseExpired.vue";
 import { licenseStatus } from "@/composables/serviceLicense";
-import { monitoringUrl as configuredMonitoringUrl, serviceControlUrl as configuredServiceControlUrl, updateServiceControlUrls, useIsMonitoringDisabled } from "../../composables/serviceServiceControlUrls";
-import { connectionState, monitoringConnectionState } from "@/composables/serviceServiceControl";
+import { monitoringUrl as configuredMonitoringUrl, serviceControlUrl as configuredServiceControlUrl, updateServiceControlUrls, isMonitoringDisabled } from "../../composables/serviceServiceControlUrls";
 import { faCheck, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 import FAIcon from "@/components/FAIcon.vue";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+
+const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+const connectionState = connectionStore.connectionState;
+const monitoringConnectionState = connectionStore.monitoringConnectionState;
 
 const isExpired = licenseStatus.isExpired;
 
@@ -97,7 +101,7 @@ function saveConnections() {
                   <label for="monitoringUrl">
                     CONNECTION URL
                     <span class="auxilliary-label">(OPTIONAL) (Enter ! to disable monitoring)</span>
-                    <template v-if="monitoringConnectionState.unableToConnect && !useIsMonitoringDisabled()">
+                    <template v-if="monitoringConnectionState.unableToConnect && !isMonitoringDisabled()">
                       <span class="failed-validation"><FAIcon :icon="faExclamationTriangle" /> Unable to connect </span>
                     </template>
                   </label>

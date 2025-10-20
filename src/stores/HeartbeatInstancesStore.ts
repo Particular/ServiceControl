@@ -1,4 +1,4 @@
-import { useDeleteFromServiceControl, usePatchToServiceControl } from "@/composables/serviceServiceControlUrls";
+import { deleteFromServiceControl, patchToServiceControl } from "@/composables/serviceServiceControlUrls";
 import { acceptHMRUpdate, defineStore, storeToRefs } from "pinia";
 import { computed, ref, watch } from "vue";
 import moment from "moment";
@@ -43,12 +43,12 @@ export const useHeartbeatInstancesStore = defineStore("HeartbeatInstancesStore",
   }
 
   async function deleteEndpointInstance(endpoint: EndpointsView) {
-    await useDeleteFromServiceControl(`endpoints/${endpoint.id}`);
+    await deleteFromServiceControl(`endpoints/${endpoint.id}`);
     await store.refresh();
   }
 
   async function toggleEndpointMonitor(endpoints: EndpointsView[]) {
-    await Promise.all(endpoints.map((endpoint) => usePatchToServiceControl(`endpoints/${endpoint.id}`, { monitor_heartbeat: !endpoint.monitor_heartbeat })));
+    await Promise.all(endpoints.map((endpoint) => patchToServiceControl(`endpoints/${endpoint.id}`, { monitor_heartbeat: !endpoint.monitor_heartbeat })));
     await store.refresh();
   }
 

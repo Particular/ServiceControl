@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
 import * as precondition from "../../../../test/preconditions";
-import { useServiceControl } from "@/composables/serviceServiceControl";
 import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { Transport } from "@/views/throughputreport/transport";
 import { makeDriverForTests, render, screen, userEvent } from "@component-test-utils";
@@ -31,7 +30,6 @@ describe("DetectedListView tests", () => {
     await preSetup(driver);
 
     useServiceControlUrls();
-    await useServiceControl();
     const el = document.createElement("div");
     el.id = "modalDisplay";
     document.body.appendChild(el);

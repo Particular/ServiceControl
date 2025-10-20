@@ -2,7 +2,6 @@
 import { onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { licenseStatus } from "../../composables/serviceLicense";
-import { connectionState, stats } from "../../composables/serviceServiceControl";
 import { useShowToast } from "../../composables/toast";
 import { isError, useGetArchiveGroups, useRestoreGroup } from "../../composables/serviceMessageGroup";
 import { useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
@@ -19,6 +18,7 @@ import MetadataItem from "@/components/MetadataItem.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { faArrowRotateRight, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { faClock } from "@fortawesome/free-regular-svg-icons";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
 
 const statusesForRestoreOperation = ["restorestarted", "restoreprogressing", "restorefinalizing", "restorecompleted"] as const;
 type RestoreOperationStatus = (typeof statusesForRestoreOperation)[number];
@@ -56,6 +56,9 @@ const route = useRoute();
 const router = useRouter();
 const showRestoreGroupModal = ref(false);
 const selectedGroup = ref<ExtendedFailureGroupView>();
+
+const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+const connectionState = connectionStore.connectionState;
 
 const groupRestoreSuccessful = ref<boolean | null>(null);
 const selectedClassifier = ref<string | null>(null);
@@ -116,10 +119,6 @@ async function getArchiveGroups(classifier: string) {
   archiveGroups.value = mappedResults.sort((group1, group2) => {
     return group1.index - group2.index;
   });
-
-  if (archiveGroups.value.length !== stats.number_of_archive_groups) {
-    stats.number_of_archive_groups = archiveGroups.value.length;
-  }
 }
 
 function initializeGroupState(group: FailureGroupView): ExtendedFailureGroupView {

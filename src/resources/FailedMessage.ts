@@ -2,7 +2,7 @@ import type EndpointDetails from "@/resources/EndpointDetails";
 import type Header from "@/resources/Header";
 import { ConversationModel } from "./SequenceDiagram/SequenceModel";
 
-export default interface FailedMessage {
+export interface FailedMessage {
   id: string;
   message_type: string;
   time_sent?: string;

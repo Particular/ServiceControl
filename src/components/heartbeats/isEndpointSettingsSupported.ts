@@ -1,8 +1,8 @@
-import { computed } from "vue";
-import { useIsSupported } from "@/composables/serviceSemVer";
-import { environment } from "@/composables/serviceServiceControl";
+import useEnvironmentAndVersionsAutoRefresh from "@/composables/useEnvironmentAndVersionsAutoRefresh";
 
 export const minimumSCVersionForEndpointSettings = "5.9.0";
-const isEndpointSettingsSupported = computed(() => useIsSupported(environment.sc_version, minimumSCVersionForEndpointSettings));
 
-export default isEndpointSettingsSupported;
+export default function useIsEndpointSettingsSupported() {
+  const { store: environmentStore } = useEnvironmentAndVersionsAutoRefresh();
+  return environmentStore.serviceControlIsGreaterThan(minimumSCVersionForEndpointSettings);
+}

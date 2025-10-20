@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { useRetryEditedMessage } from "@/composables/serviceFailedMessage";
 import MessageHeader from "./EditMessageHeader.vue";
 import type Header from "@/resources/Header";
 import parseContentType from "@/composables/contentTypeParser";
@@ -12,6 +11,8 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FAIcon from "@/components/FAIcon.vue";
 import { faExclamationCircle, faExclamationTriangle, faUndo } from "@fortawesome/free-solid-svg-icons";
 import { useDebounceFn } from "@vueuse/core";
+import { postToServiceControl } from "@/composables/serviceServiceControlUrls";
+import useEnvironmentAndVersionsAutoRefresh from "@/composables/useEnvironmentAndVersionsAutoRefresh";
 
 interface HeaderWithEditing extends Header {
   isLocked: boolean;
@@ -53,8 +54,11 @@ const localMessage = ref<LocalMessageState>({
 const showEditAndRetryConfirmation = ref(false);
 const showCancelConfirmation = ref(false);
 const showEditRetryGenericError = ref(false);
-const store = useMessageStore();
-const { state, headers, body, edit_and_retry_config } = storeToRefs(store);
+const messageStore = useMessageStore();
+const { state, headers, body, edit_and_retry_config } = storeToRefs(messageStore);
+const { store: environmentStore } = useEnvironmentAndVersionsAutoRefresh();
+const areSimpleHeadersSupported = environmentStore.serviceControlIsGreaterThan("5.2.0");
+
 const id = computed(() => state.value.data.id ?? "");
 const uneditedMessageBody = computed(() => body.value.data.value ?? "");
 const regExToPruneLineEndings = new RegExp(/[\n\r]*/, "g");
@@ -105,7 +109,24 @@ function removeHeadersMarkedAsRemoved() {
 async function retryEditedMessage() {
   removeHeadersMarkedAsRemoved();
   try {
-    await useRetryEditedMessage(id.value, localMessage);
+    const payload = {
+      message_body: localMessage.value.messageBody,
+      message_headers: areSimpleHeadersSupported.value
+        ? localMessage.value.headers.reduce(
+            (result, header) => {
+              const { key, value } = header as { key: string; value: string };
+              result[key] = value;
+              return result;
+            },
+            {} as { [key: string]: string }
+          )
+        : localMessage.value.headers,
+    };
+    const response = await postToServiceControl(`edit/${id.value}`, payload);
+    if (!response.ok) {
+      throw new Error(response.statusText);
+    }
+
     localMessage.value.retried = true;
     return emit("confirm");
   } catch {

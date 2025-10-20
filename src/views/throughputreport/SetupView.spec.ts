@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
 import * as precondition from "../../../test/preconditions";
-import { useServiceControl } from "@/composables/serviceServiceControl";
 import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { minimumSCVersionForThroughput } from "@/views/throughputreport/isThroughputSupported";
 import { createTestingPinia } from "@pinia/testing";
@@ -50,7 +49,6 @@ describe("SetupView tests", () => {
     await preSetup(driver);
 
     useServiceControlUrls();
-    await useServiceControl();
     const { debug } = render(SetupView, {
       global: {
         stubs: {

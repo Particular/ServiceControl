@@ -1,4 +1,4 @@
-import { useDeleteFromServiceControl, useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
+import { deleteFromServiceControl, useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
 import CustomCheck from "@/resources/CustomCheck";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, ref, watch } from "vue";
@@ -40,7 +40,7 @@ export const useCustomChecksStore = defineStore("CustomChecksStore", () => {
 
       // HINT: This is required to handle the difference between ServiceControl 4 and 5
       const guid = id.toLocaleLowerCase().startsWith(prefix) ? id.substring(prefix.length) : id;
-      await useDeleteFromServiceControl(`${prefix}${guid}`);
+      await deleteFromServiceControl(`${prefix}${guid}`);
     } finally {
       dec();
     }

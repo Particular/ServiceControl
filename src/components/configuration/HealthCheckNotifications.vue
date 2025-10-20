@@ -3,7 +3,6 @@ import { onMounted, ref } from "vue";
 import LicenseExpired from "../LicenseExpired.vue";
 import ServiceControlNotAvailable from "../ServiceControlNotAvailable.vue";
 import { licenseStatus } from "@/composables/serviceLicense";
-import { connectionState } from "@/composables/serviceServiceControl";
 import HealthCheckNotifications_EmailConfiguration from "./HealthCheckNotifications_ConfigureEmail.vue";
 import { useEmailNotifications, useTestEmailNotifications, useToggleEmailNotifications, useUpdateEmailNotifications } from "@/composables/serviceNotifications";
 import { useShowToast } from "@/composables/toast";
@@ -14,6 +13,13 @@ import OnOffSwitch from "../OnOffSwitch.vue";
 import FAIcon from "@/components/FAIcon.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { faCheck, faEdit, faEnvelope, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+import { useEnvironmentAndVersionsStore } from "@/stores/EnvironmentAndVersionsStore";
+
+const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+const connectionState = connectionStore.connectionState;
+const environmentStore = useEnvironmentAndVersionsStore();
+const hasResponseStatusInHeader = environmentStore.serviceControlIsGreaterThan("5.2");
 
 const isExpired = licenseStatus.isExpired;
 const emailTestSuccessful = ref<boolean | null>(null);
@@ -77,7 +83,7 @@ async function testEmailNotifications() {
   emailTestInProgress.value = true;
   emailToggleSuccessful.value = null;
   emailUpdateSuccessful.value = null;
-  const result = await useTestEmailNotifications();
+  const result = await useTestEmailNotifications(hasResponseStatusInHeader.value);
   emailTestSuccessful.value = result.message === "success";
   emailTestInProgress.value = false;
 }

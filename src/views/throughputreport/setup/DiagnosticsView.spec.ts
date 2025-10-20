@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
 import * as precondition from "../../../../test/preconditions";
-import { useServiceControl } from "@/composables/serviceServiceControl";
 import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { minimumSCVersionForThroughput } from "@/views/throughputreport/isThroughputSupported";
 import DiagnosticsView from "./DiagnosticsView.vue";
@@ -49,7 +48,6 @@ describe("DiagnosticsView tests", () => {
     );
 
     useServiceControlUrls();
-    await useServiceControl();
 
     const { debug } = render(DiagnosticsView, {
       global: {

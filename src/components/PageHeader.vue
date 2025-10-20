@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { RouterLink } from "vue-router";
-import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
+import { isMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
 import routeLinks from "@/router/routeLinks";
 import CustomChecksMenuItem from "@/components/customchecks/CustomChecksMenuItem.vue";
 import HeartbeatsMenuItem from "@/components/heartbeats/HeartbeatsMenuItem.vue";
@@ -19,7 +19,7 @@ const menuItems = computed(
   () => [
   DashboardMenuItem,
   HeartbeatsMenuItem,
-  ...(useIsMonitoringEnabled() ? [MonitoringMenuItem] : []),
+  ...(isMonitoringEnabled() ? [MonitoringMenuItem] : []),
   AuditMenuItem,
   FailedMessagesMenuItem,
   CustomChecksMenuItem,

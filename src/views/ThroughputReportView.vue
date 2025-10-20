@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import ReportGenerationState from "@/resources/ReportGenerationState";
+import { ref } from "vue";
 import throughputClient from "@/views/throughputreport/throughputClient";
 import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
@@ -9,13 +8,14 @@ import ThroughputSupported from "@/views/throughputreport/ThroughputSupported.vu
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import FAIcon from "@/components/FAIcon.vue";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
+import { computedAsync } from "@vueuse/core";
+import useIsThroughputSupported from "./throughputreport/isThroughputSupported";
 
-const reportState = ref<ReportGenerationState | null>(null);
 const showWarning = ref<boolean>(false);
 
-onMounted(async () => {
-  reportState.value = await throughputClient.reportAvailable();
-});
+const isThroughputSupported = useIsThroughputSupported();
+
+const reportState = computedAsync(async () => (isThroughputSupported.value ? await throughputClient.reportAvailable() : null), null);
 
 async function generateReport() {
   const results = await throughputClient.endpoints();

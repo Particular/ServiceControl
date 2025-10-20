@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import ConditionalRender from "@/components/ConditionalRender.vue";
-import isThroughputSupported, { minimumSCVersionForThroughput } from "@/views/throughputreport/isThroughputSupported";
+import useIsThroughputSupported, { minimumSCVersionForThroughput } from "./isThroughputSupported";
+
+const isThroughputSupported = useIsThroughputSupported();
 </script>
 
 <template>

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import { licenseStatus } from "../../composables/serviceLicense";
-import { connectionState } from "../../composables/serviceServiceControl";
-import { usePatchToServiceControl, usePostToServiceControl, useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
+import { patchToServiceControl, postToServiceControl, useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
 import { useShowToast } from "../../composables/toast";
 import { useCookies } from "vue3-cookies";
 import OrderBy from "@/components/OrderBy.vue";
@@ -21,6 +20,10 @@ import { faArrowDownAZ, faArrowDownZA, faArrowDownShortWide, faArrowDownWideShor
 import FAIcon from "@/components/FAIcon.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { faCheckSquare } from "@fortawesome/free-regular-svg-icons";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+
+const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+const connectionState = connectionStore.connectionState;
 
 let refreshInterval: number | undefined;
 let sortMethod: SortOptions<GroupOperation> | undefined;
@@ -148,7 +151,7 @@ async function retrySelectedMessages() {
   const selectedMessages = messageList.value?.getSelectedMessages() ?? [];
 
   useShowToast(TYPE.INFO, "Info", "Selected messages were submitted for retry...");
-  await usePostToServiceControl(
+  await postToServiceControl(
     "pendingretries/retry",
     selectedMessages.map((m) => m.id)
   );
@@ -161,14 +164,14 @@ async function resolveSelectedMessages() {
   const selectedMessages = messageList.value?.getSelectedMessages() ?? [];
 
   useShowToast(TYPE.INFO, "Info", "Selected messages were marked as resolved.");
-  await usePatchToServiceControl("pendingretries/resolve", { uniquemessageids: selectedMessages.map((m) => m.id) });
+  await patchToServiceControl("pendingretries/resolve", { uniquemessageids: selectedMessages.map((m) => m.id) });
   messageList.value?.deselectAll();
   selectedMessages.forEach((m) => (m.resolved = true));
 }
 
 async function resolveAllMessages() {
   useShowToast(TYPE.INFO, "Info", "All filtered messages were marked as resolved.");
-  await usePatchToServiceControl("pendingretries/resolve", { from: new Date(0).toISOString(), to: new Date().toISOString() });
+  await patchToServiceControl("pendingretries/resolve", { from: new Date(0).toISOString(), to: new Date().toISOString() });
   messageList.value?.deselectAll();
   messageList.value?.resolveAll();
 }
@@ -184,7 +187,7 @@ async function retryAllMessages() {
     data.queueaddress = selectedQueue.value;
   }
 
-  await usePostToServiceControl(url, data);
+  await postToServiceControl(url, data);
   messages.value.forEach((message) => {
     message.selected = false;
     message.submittedForRetrial = true;

@@ -5,12 +5,14 @@ import * as MonitoringEndpoints from "../composables/serviceMonitoringEndpoints"
 import { useMonitoringHistoryPeriodStore } from "./MonitoringHistoryPeriodStore";
 import type { EndpointGroup, Endpoint, GroupedEndpoint } from "@/resources/MonitoringEndpoint";
 import type { SortInfo } from "@/components/SortInfo";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
 
 export const useMonitoringStore = defineStore("MonitoringStore", () => {
   const historyPeriodStore = useMonitoringHistoryPeriodStore();
 
   const route = useRoute();
   const router = useRouter();
+  const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
 
   //STORE STATE CONSTANTS
   const grouping = ref({
@@ -52,7 +54,11 @@ export const useMonitoringStore = defineStore("MonitoringStore", () => {
   }
 
   async function updateEndpointList() {
-    endpointList.value = await MonitoringEndpoints.useGetAllMonitoredEndpoints(historyPeriodStore.historyPeriod.pVal);
+    if (connectionStore.monitoringConnectionState.unableToConnect) {
+      endpointList.value = [];
+    } else {
+      endpointList.value = await MonitoringEndpoints.getAllMonitoredEndpoints(historyPeriodStore.historyPeriod.pVal);
+    }
     if (!endpointListIsEmpty.value) {
       updateGroupSegments();
       if (endpointListIsGrouped.value) {

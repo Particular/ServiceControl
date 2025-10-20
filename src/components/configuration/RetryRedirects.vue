@@ -3,12 +3,11 @@ import { onMounted, reactive, ref } from "vue";
 import LicenseExpired from "../LicenseExpired.vue";
 import { licenseStatus } from "@/composables/serviceLicense";
 import ServiceControlNotAvailable from "../ServiceControlNotAvailable.vue";
-import { connectionState } from "@/composables/serviceServiceControl";
 import NoData from "../NoData.vue";
 import BusyIndicator from "../BusyIndicator.vue";
 import { useShowToast } from "@/composables/toast";
 import TimeSince from "../TimeSince.vue";
-import { useCreateRedirects, useDeleteRedirects, useRedirects, useRetryPendingMessagesForQueue, useUpdateRedirects } from "@/composables/serviceRedirects";
+import { useRedirects, useRetryPendingMessagesForQueue } from "@/composables/serviceRedirects";
 import ConfirmDialog from "../ConfirmDialog.vue";
 import { TYPE } from "vue-toastification";
 import type Redirect from "@/resources/Redirect";
@@ -17,8 +16,16 @@ import redirectCountUpdated from "@/components/configuration/redirectCountUpdate
 import FAIcon from "@/components/FAIcon.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { faClock } from "@fortawesome/free-regular-svg-icons";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+import { deleteFromServiceControl, postToServiceControl, putToServiceControl } from "@/composables/serviceServiceControlUrls";
+import useEnvironmentAndVersionsAutoRefresh from "@/composables/useEnvironmentAndVersionsAutoRefresh";
 
 const isExpired = licenseStatus.isExpired;
+
+const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+const connectionState = connectionStore.connectionState;
+const { store: environmentStore } = useEnvironmentAndVersionsAutoRefresh();
+const hasResponseStatusInHeader = environmentStore.serviceControlIsGreaterThan("5.2.0");
 
 const loadingData = ref(true);
 const redirects = reactive<{ total: number; data: Redirect[] }>({
@@ -66,10 +73,16 @@ function editRedirect(redirect: Redirect) {
   showEdit.value = true;
 }
 
-async function saveEditedRedirect(redirect: RetryRedirect) {
+async function saveUpdatedRedirect(redirect: RetryRedirect) {
   redirectSaveSuccessful.value = null;
   showEdit.value = false;
-  const result = await useUpdateRedirects(redirect.redirectId, redirect.sourceQueue, redirect.targetQueue);
+  const result = handleResponse(
+    await putToServiceControl(`redirects/${redirect.redirectId}`, {
+      id: redirect.redirectId,
+      fromphysicaladdress: redirect.sourceQueue,
+      tophysicaladdress: redirect.targetQueue,
+    })
+  );
   if (result.message === "success") {
     redirectSaveSuccessful.value = true;
     useShowToast(TYPE.INFO, "Info", "Redirect updated successfully");
@@ -92,7 +105,12 @@ async function saveEditedRedirect(redirect: RetryRedirect) {
 async function saveCreatedRedirect(redirect: RetryRedirect) {
   redirectSaveSuccessful.value = null;
   showEdit.value = false;
-  const result = await useCreateRedirects(redirect.sourceQueue, redirect.targetQueue);
+  const result = handleResponse(
+    await postToServiceControl("redirects", {
+      fromphysicaladdress: redirect.sourceQueue,
+      tophysicaladdress: redirect.targetQueue,
+    })
+  );
   if (result.message === "success") {
     redirectSaveSuccessful.value = true;
     useShowToast(TYPE.INFO, "Info", "Redirect created successfully");
@@ -115,8 +133,8 @@ function deleteRedirect(redirect: Redirect) {
   showDelete.value = true;
 }
 
-async function saveDeleteRedirect() {
-  const result = await useDeleteRedirects(selectedRedirect.value.message_redirect_id);
+async function saveDeletedRedirect() {
+  const result = handleResponse(await deleteFromServiceControl(`redirects/${selectedRedirect.value.message_redirect_id}`));
   if (result.message === "success") {
     redirectSaveSuccessful.value = true;
     useShowToast(TYPE.INFO, "Info", "Redirect deleted");
@@ -130,6 +148,16 @@ async function saveDeleteRedirect() {
 onMounted(() => {
   getRedirect();
 });
+
+function handleResponse(response: Response) {
+  const responseStatusText = hasResponseStatusInHeader.value ? response.headers.get("X-Particular-Reason") : response.statusText;
+  return {
+    message: response.ok ? "success" : `error:${response.statusText}`,
+    status: response.status,
+    statusText: responseStatusText,
+    data: response,
+  };
+}
 </script>
 
 <template>
@@ -192,14 +220,14 @@ onMounted(() => {
               @cancel="showDelete = false"
               @confirm="
                 showDelete = false;
-                saveDeleteRedirect();
+                saveDeletedRedirect();
               "
               :heading="'Are you sure you want to end the redirect?'"
               :body="'Once the redirect is ended, any affected messages will be sent to the original destination queue. Ensure this queue is ready to accept messages again.'"
             ></ConfirmDialog>
           </Teleport>
           <Teleport to="#modalDisplay">
-            <RetryRedirectEdit v-if="showEdit" v-bind="selectedRedirect" @cancel="showEdit = false" @create="saveCreatedRedirect" @edit="saveEditedRedirect"></RetryRedirectEdit>
+            <RetryRedirectEdit v-if="showEdit" v-bind="selectedRedirect" @cancel="showEdit = false" @create="saveCreatedRedirect" @edit="saveUpdatedRedirect"></RetryRedirectEdit>
           </Teleport>
         </section>
       </template>

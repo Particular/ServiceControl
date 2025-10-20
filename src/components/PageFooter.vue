@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { connectionState, environment, monitoringConnectionState, newVersions } from "../composables/serviceServiceControl";
 import { monitoringUrl, serviceControlUrl } from "../composables/serviceServiceControlUrls";
 import { license, licenseStatus } from "../composables/serviceLicense";
 import { LicenseStatus } from "@/resources/LicenseInfo";
@@ -8,6 +7,15 @@ import routeLinks from "@/router/routeLinks";
 import { useConfiguration } from "@/composables/configuration";
 import FAIcon from "@/components/FAIcon.vue";
 import { faArrowTurnUp, faPlus } from "@fortawesome/free-solid-svg-icons";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+import useEnvironmentAndVersionsAutoRefresh from "@/composables/useEnvironmentAndVersionsAutoRefresh";
+
+const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+const connectionState = connectionStore.connectionState;
+const monitoringConnectionState = connectionStore.monitoringConnectionState;
+const { store: environmentAndVersionsStore } = useEnvironmentAndVersionsAutoRefresh();
+const newVersions = environmentAndVersionsStore.newVersions;
+const environment = environmentAndVersionsStore.environment;
 
 const isMonitoringEnabled = computed(() => {
   return monitoringUrl.value !== "!" && monitoringUrl.value !== "" && monitoringUrl.value !== null && monitoringUrl.value !== undefined;

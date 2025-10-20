@@ -6,20 +6,22 @@ import ExclamationMark from "@/components/ExclamationMark.vue";
 import { LicenseWarningLevel } from "@/composables/LicenseStatus";
 import { WarningLevel } from "@/components/WarningLevel";
 import routeLinks from "@/router/routeLinks";
-import { displayConnectionsWarning } from "@/components/configuration/displayConnectionsWarning";
 import { storeToRefs } from "pinia";
 import FAIcon from "@/components/FAIcon.vue";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
 import useThroughputStoreAutoRefresh from "@/composables/useThroughputStoreAutoRefresh";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
 
 const { store } = useThroughputStoreAutoRefresh();
 const { hasErrors } = storeToRefs(store);
+
+const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
 
 const displayWarn = computed(() => {
   return licenseStatus.warningLevel === LicenseWarningLevel.Warning;
 });
 const displayDanger = computed(() => {
-  return hasErrors.value || displayConnectionsWarning.value || licenseStatus.warningLevel === LicenseWarningLevel.Danger;
+  return hasErrors.value || connectionStore.displayConnectionsWarning || licenseStatus.warningLevel === LicenseWarningLevel.Danger;
 });
 </script>
 

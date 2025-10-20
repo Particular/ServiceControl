@@ -1,9 +1,7 @@
-import { usePostToServiceControl, useTypedFetchFromServiceControl } from "./serviceServiceControlUrls";
+import { postToServiceControl, useTypedFetchFromServiceControl } from "./serviceServiceControlUrls";
 
 import type EmailNotifications from "@/resources/EmailNotifications";
 import type UpdateEmailNotificationsSettingsRequest from "@/resources/UpdateEmailNotificationsSettingsRequest";
-import { useIsSupported } from "@/composables/serviceSemVer";
-import { environment } from "@/composables/serviceServiceControl";
 
 export async function useEmailNotifications() {
   try {
@@ -20,7 +18,7 @@ export async function useEmailNotifications() {
 
 export async function useUpdateEmailNotifications(settings: UpdateEmailNotificationsSettingsRequest) {
   try {
-    const response = await usePostToServiceControl("notifications/email", settings);
+    const response = await postToServiceControl("notifications/email", settings);
     return {
       message: response.ok ? "success" : `error:${response.statusText}`,
     };
@@ -32,10 +30,10 @@ export async function useUpdateEmailNotifications(settings: UpdateEmailNotificat
   }
 }
 
-export async function useTestEmailNotifications() {
+export async function useTestEmailNotifications(hasResponseStatusInHeaders: boolean) {
   try {
-    const response = await usePostToServiceControl("notifications/email/test");
-    const responseStatusText = useIsSupported(environment.sc_version, "5.2") ? response.headers.get("X-Particular-Reason") : response.statusText;
+    const response = await postToServiceControl("notifications/email/test");
+    const responseStatusText = hasResponseStatusInHeaders ? response.headers.get("X-Particular-Reason") : response.statusText;
     return {
       message: response.ok ? "success" : `error:${responseStatusText}`,
     };
@@ -49,7 +47,7 @@ export async function useTestEmailNotifications() {
 
 export async function useToggleEmailNotifications(enabled: boolean) {
   try {
-    const response = await usePostToServiceControl("notifications/email/toggle", {
+    const response = await postToServiceControl("notifications/email/toggle", {
       enabled: enabled,
     });
     return {

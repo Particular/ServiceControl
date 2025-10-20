@@ -1,8 +1,8 @@
-import { computed } from "vue";
-import { useIsSupported } from "@/composables/serviceSemVer";
-import { environment } from "@/composables/serviceServiceControl";
+import useEnvironmentAndVersionsAutoRefresh from "@/composables/useEnvironmentAndVersionsAutoRefresh";
 
 export const minimumSCVersionForAllMessages = "6.6.0";
-const isAllMessagesSupported = computed(() => useIsSupported(environment.sc_version, minimumSCVersionForAllMessages));
 
-export default isAllMessagesSupported;
+export default function useIsAllMessagesSupported() {
+  const { store: environmentStore } = useEnvironmentAndVersionsAutoRefresh();
+  return environmentStore.serviceControlIsGreaterThan(minimumSCVersionForAllMessages);
+}

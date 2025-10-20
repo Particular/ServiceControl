@@ -1,7 +1,7 @@
 import Configuration, { EditAndRetryConfig } from "@/resources/Configuration";
 import { SetupFactoryOptions } from "../driver";
 import RecoverabilityHistoryResponse from "@/resources/RecoverabilityHistoryResponse";
-import FailedMessage from "@/resources/FailedMessage";
+import { FailedMessage } from "@/resources/FailedMessage";
 import Message from "@/resources/Message";
 
 export const serviceControlConfigurationDefaultHandler = ({ driver }: SetupFactoryOptions) => {

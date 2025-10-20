@@ -3,10 +3,24 @@ import { onMounted, ref } from "vue";
 import LicenseExpired from "../LicenseExpired.vue";
 import ServiceControlNotAvailable from "../ServiceControlNotAvailable.vue";
 import { licenseStatus } from "@/composables/serviceLicense";
-import { connectionState, useServiceControlConnections } from "@/composables/serviceServiceControl";
 import BusyIndicator from "../BusyIndicator.vue";
 import CodeEditor from "@/components/CodeEditor.vue";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+import { monitoringUrl, serviceControlUrl, useTypedFetchFromMonitoring, useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
 
+interface ServiceControlInstanceConnection {
+  settings: { [key: string]: object };
+  errors: string[];
+}
+
+interface MetricsConnectionDetails {
+  Enabled: boolean;
+  MetricsQueue?: string;
+  Interval?: string;
+}
+
+const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+const connectionState = connectionStore.connectionState;
 const isExpired = licenseStatus.isExpired;
 
 const loading = ref(true);
@@ -28,7 +42,7 @@ async function getCode() {
 var servicePlatformConnection = ServicePlatformConnectionConfiguration.Parse(json);
 endpointConfiguration.ConnectToServicePlatform(servicePlatformConnection);
 `;
-  const connections = await useServiceControlConnections();
+  const connections = await serviceControlConnections();
   const config = {
     Heartbeats: connections.serviceControl.settings.Heartbeats,
     CustomChecks: connections.serviceControl.settings.CustomChecks,
@@ -60,6 +74,41 @@ function switchCodeOnlyTab() {
 
 function switchJsonTab() {
   showCodeOnlyTab.value = false;
+}
+
+async function serviceControlConnections() {
+  const scConnectionResult = getServiceControlConnection();
+  const monitoringConnectionResult = getMonitoringConnection();
+
+  const [scConnection, mConnection] = await Promise.all([scConnectionResult, monitoringConnectionResult]);
+  return {
+    serviceControl: {
+      settings: scConnection?.settings ?? {},
+      errors: scConnection?.errors ?? [],
+    } as ServiceControlInstanceConnection,
+    monitoring: {
+      settings: mConnection?.Metrics ?? ({ Enabled: false } as MetricsConnectionDetails),
+      errors: mConnection?.errors ?? [],
+    },
+  };
+}
+
+async function getServiceControlConnection() {
+  try {
+    const [, data] = await useTypedFetchFromServiceControl<ServiceControlInstanceConnection>("connection");
+    return data;
+  } catch {
+    return { errors: [`Error reaching ServiceControl at ${serviceControlUrl.value} connection`] } as ServiceControlInstanceConnection;
+  }
+}
+
+async function getMonitoringConnection() {
+  try {
+    const [, data] = await useTypedFetchFromMonitoring<{ Metrics: MetricsConnectionDetails }>("connection");
+    return { ...data, errors: [] };
+  } catch {
+    return { Metrics: null, errors: [`Error SC Monitoring instance at ${monitoringUrl.value}connection`] };
+  }
 }
 </script>
 

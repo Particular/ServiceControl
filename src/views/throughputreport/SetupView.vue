@@ -2,7 +2,7 @@
 import isRouteSelected from "@/composables/isRouteSelected";
 import routeLinks from "@/router/routeLinks";
 import { storeToRefs } from "pinia";
-import { useIsMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
+import { isMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
 import ThroughputSupported from "@/views/throughputreport/ThroughputSupported.vue";
 import FAIcon from "@/components/FAIcon.vue";
 import { faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
@@ -28,7 +28,7 @@ const { testResults, isBrokerTransport } = storeToRefs(store);
                 <h6><FAIcon :icon="faTimes" class="text-danger" /> The connection to one or more Audit instances was not successful.</h6>
               </div>
             </template>
-            <template v-if="useIsMonitoringEnabled()">
+            <template v-if="isMonitoringEnabled()">
               <template v-if="testResults?.monitoring_connection_result.connection_successful">
                 <div>
                   <h6><FAIcon :icon="faCheck" class="text-success" /> Successfully connected to Monitoring for usage collection.</h6>

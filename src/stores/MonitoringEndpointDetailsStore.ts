@@ -9,6 +9,7 @@ import { useGetExceptionGroupsForEndpoint } from "../composables/serviceMessageG
 import type GroupOperation from "@/resources/GroupOperation";
 import { emptyEndpointDetails } from "@/components/monitoring/endpoints";
 import { useMemoize } from "@vueuse/core";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
 
 async function getFailureDetails(classifier: string, classifierFilter: string) {
   const failedMessages: GroupOperation[] = await useGetExceptionGroupsForEndpoint(classifier, classifierFilter);
@@ -21,8 +22,9 @@ async function getFailureDetails(classifier: string, classifierFilter: string) {
 
 export const useMonitoringEndpointDetailsStore = defineStore("MonitoringEndpointDetailsStore", () => {
   const historyPeriodStore = useMonitoringHistoryPeriodStore();
+  const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
 
-  const getMemoisedEndpointDetails = useMemoize(MonitoringEndpoints.useGetEndpointDetails);
+  const getMemoisedEndpointDetails = useMemoize(MonitoringEndpoints.getEndpointDetails);
 
   const endpointName = ref<string>("");
   const endpointDetails = ref<ExtendedEndpointDetails>(emptyEndpointDetails());
@@ -34,7 +36,7 @@ export const useMonitoringEndpointDetailsStore = defineStore("MonitoringEndpoint
 
   async function getEndpointDetails(name: string) {
     const { data, refresh } = getMemoisedEndpointDetails(name, historyPeriodStore.historyPeriod.pVal);
-    await refresh();
+    if (!connectionStore.monitoringConnectionState.unableToConnect) await refresh();
 
     if (data.value == null || isError(data.value)) {
       endpointDetails.value.instances.forEach((item) => (item.isScMonitoringDisconnected = true));

@@ -2,7 +2,6 @@
 import { computed } from "vue";
 import { license, licenseStatus } from "@/composables/serviceLicense";
 import ServiceControlNotAvailable from "../ServiceControlNotAvailable.vue";
-import { connectionState } from "@/composables/serviceServiceControl";
 import BusyIndicator from "../BusyIndicator.vue";
 import ExclamationMark from "./../../components/ExclamationMark.vue";
 import convertToWarningLevel from "@/components/configuration/convertToWarningLevel";
@@ -10,6 +9,7 @@ import { useConfiguration } from "@/composables/configuration";
 import { typeText } from "@/resources/LicenseInfo";
 import { faExternalLink } from "@fortawesome/free-solid-svg-icons";
 import FAIcon from "@/components/FAIcon.vue";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
 
 // This is needed because the ConfigurationView.vue routerView expects this event.
 // The event is only actually emitted on the RetryRedirects.vue component
@@ -24,6 +24,8 @@ const loading = computed(() => {
 });
 
 const configuration = useConfiguration();
+const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+const connectionState = connectionStore.connectionState;
 </script>
 
 <template>

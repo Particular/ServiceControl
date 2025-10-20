@@ -1,6 +1,6 @@
 const reSemver = /^v?((\d+)\.(\d+)\.(\d+))(?:-([\dA-Za-z\-_]+(?:\.[\dA-Za-z\-_]+)*))?(?:\+([\dA-Za-z\-_]+(?:\.[\dA-Za-z\-_]+)*))?$/;
 
-export function useIsUpgradeAvailable(currentVersion: string, latestVersion: string) {
+export function isUpgradeAvailable(currentVersion: string, latestVersion: string) {
   const latest = parse(latestVersion.split("-")[0]);
   const current = parse(currentVersion.split("-")[0]);
 
@@ -20,7 +20,7 @@ export function useIsUpgradeAvailable(currentVersion: string, latestVersion: str
   return false;
 }
 
-export function useIsSupported(currentVersion: string, minSupportedVersion: string) {
+export function isSupported(currentVersion: string, minSupportedVersion: string) {
   const minSupported = parse(minSupportedVersion);
   const current = parse(currentVersion);
 

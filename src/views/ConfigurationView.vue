@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { licenseStatus } from "@/composables/serviceLicense";
-import { connectionState } from "@/composables/serviceServiceControl";
 import { useRedirects } from "@/composables/serviceRedirects";
 import ExclamationMark from "../components/ExclamationMark.vue";
 import convertToWarningLevel from "@/components/configuration/convertToWarningLevel";
@@ -9,14 +8,16 @@ import redirectCountUpdated from "@/components/configuration/redirectCountUpdate
 import routeLinks from "@/router/routeLinks";
 import isRouteSelected from "@/composables/isRouteSelected";
 import { WarningLevel } from "@/components/WarningLevel";
-import { displayConnectionsWarning } from "@/components/configuration/displayConnectionsWarning";
 import { useLink, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import useThroughputStoreAutoRefresh from "@/composables/useThroughputStoreAutoRefresh";
+import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
 
 const redirectCount = ref(0);
-const { store } = useThroughputStoreAutoRefresh();
-const { hasErrors } = storeToRefs(store);
+const { store: throughputStore } = useThroughputStoreAutoRefresh();
+const { hasErrors } = storeToRefs(throughputStore);
+const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+const connectionState = connectionStore.connectionState;
 watch(redirectCountUpdated, () => (redirectCount.value = redirectCountUpdated.count));
 
 onMounted(async () => {
@@ -81,7 +82,7 @@ function preventIfDisabled(e: Event) {
             <h5 :class="{ active: isRouteSelected(routeLinks.configuration.connections.link) }" class="nav-item" role="tab" aria-label="connections">
               <RouterLink :to="routeLinks.configuration.connections.link">
                 Connections
-                <exclamation-mark v-if="displayConnectionsWarning" :type="WarningLevel.Danger" />
+                <exclamation-mark v-if="connectionStore.displayConnectionsWarning" :type="WarningLevel.Danger" />
               </RouterLink>
             </h5>
             <h5 :class="{ active: isRouteSelected(routeLinks.configuration.endpointConnection.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item" role="tab" aria-label="endpoint-connection">
