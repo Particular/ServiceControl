@@ -39,6 +39,7 @@
                 }
                 catch (Exception ex)
                 {
+                    await Task.Delay(5000, stoppingToken);
                     logger.LogWarning(ex, "Problem getting learning transport queue length");
                 }
             }
