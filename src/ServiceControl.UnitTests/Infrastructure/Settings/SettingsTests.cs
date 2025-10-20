@@ -12,7 +12,7 @@
         public void Should_read_RemoteInstances_from_serialized_json()
         {
             var configValue = """[{"api_uri":"http://instance1"},{"api_uri":"http://instance2"}]""";
-            var remoteInstances = Settings.ParseRemoteInstances(configValue);
+            var remoteInstances = SettingsConfiguration.ParseRemoteInstances(configValue);
 
             Assert.That(
                 new[] { new RemoteInstanceSetting("http://instance1"), new RemoteInstanceSetting("http://instance2") },

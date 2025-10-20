@@ -85,7 +85,7 @@
 
                 await Task.WhenAll(announcerTasks);
 
-                if (settings.ForwardErrorMessages)
+                if (settings.ForwardErrorMessages == true)
                 {
                     logger.LogDebug("Forwarding {FailedMessageCount} messages", storedFailed.Count);
 

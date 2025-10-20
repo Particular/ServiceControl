@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Reflection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Particular.ServiceControl.Hosting;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Configuration;
@@ -11,8 +14,19 @@ ILogger logger = null;
 
 try
 {
-    var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
+    var bootstrapConfig = new ConfigurationBuilder()
+        .SetBasePath(AppContext.BaseDirectory)
+        .AddLegacyAppSettings()
+        .AddEnvironmentVariables()
+        .Build();
+
+    var section = bootstrapConfig.GetSection(SettingsConfiguration.SectionName);
+    var bootstrapSettings = section.Get<Settings>();
+
+    var loggingSettings = LoggingSettingsFactory.Create(section);
+
     LoggingConfigurator.ConfigureLogging(loggingSettings);
+
     logger = LoggerUtil.CreateStaticLogger(typeof(Program));
 
     AppDomain.CurrentDomain.UnhandledException += (s, e) => logger.LogError(e.ExceptionObject as Exception, "Unhandled exception was caught");
@@ -25,9 +39,10 @@ try
         return exitCode;
     }
 
+
     ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
-    var arguments = new HostArguments(args);
+    var arguments = new HostArguments(args, bootstrapSettings);
 
     if (arguments.Help)
     {
@@ -35,9 +50,7 @@ try
         return 0;
     }
 
-    var settings = new Settings(loggingSettings: loggingSettings);
-
-    await new CommandRunner(arguments.Command).Execute(arguments, settings);
+    await new CommandRunner(arguments.Command).Execute(arguments, bootstrapSettings);
 
     return 0;
 }
@@ -52,6 +65,7 @@ catch (Exception ex)
         LoggingConfigurator.ConfigureNLog("bootstrap.${shortdate}.txt", "./", NLog.LogLevel.Fatal);
         NLog.LogManager.GetCurrentClassLogger().Fatal(ex, "Unrecoverable error");
     }
+
     throw;
 }
 finally

@@ -114,7 +114,7 @@
                 context.CreateQueue(settings.ErrorQueue);
             }
 
-            if (settings.ForwardErrorMessages && settings.ErrorLogQueue != null)
+            if (settings.ForwardErrorMessages == true && settings.ErrorLogQueue != null)
             {
                 context.CreateQueue(settings.ErrorLogQueue);
             }
@@ -125,7 +125,7 @@
             public FailedMessageNotificationsHostedService(
                 IDomainEvents domainEvents,
                 IFailedMessageViewIndexNotifications store
-                )
+            )
             {
                 this.domainEvents = domainEvents;
                 this.store = store;

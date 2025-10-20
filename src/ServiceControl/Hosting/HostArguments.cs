@@ -5,13 +5,14 @@ namespace Particular.ServiceControl.Hosting
     using System.Reflection;
     using global::ServiceControl.Configuration;
     using global::ServiceControl.Hosting.Commands;
+    using Particular.LicensingComponent.Shared;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class HostArguments
     {
-        public HostArguments(string[] args)
+        public HostArguments(string[] args, Settings settings)
         {
-            if (SettingsReader.Read<bool>(Settings.SettingsRootNamespace, "MaintenanceMode"))
+            if (settings.MaintenanceMode)
             {
                 args = [.. args, "-m"];
             }

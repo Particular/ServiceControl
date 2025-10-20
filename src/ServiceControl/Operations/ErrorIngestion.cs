@@ -213,7 +213,7 @@
 
                 messageReceiver = transportInfrastructure.Receivers[errorQueue];
 
-                if (settings.ForwardErrorMessages)
+                if (settings.ForwardErrorMessages == true)
                 {
                     await ingestor.VerifyCanReachForwardingAddress(cancellationToken);
                 }

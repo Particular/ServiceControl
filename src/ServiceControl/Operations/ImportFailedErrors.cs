@@ -14,7 +14,7 @@
     {
         public async Task Run(CancellationToken cancellationToken = default)
         {
-            if (settings.ForwardErrorMessages)
+            if (settings.ForwardErrorMessages == true)
             {
                 await errorIngestor.VerifyCanReachForwardingAddress(cancellationToken);
             }

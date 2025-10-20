@@ -46,10 +46,12 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             Directory.CreateDirectory(logPath);
 
 
-            var loggingSettings = new LoggingSettings(new LoggingOptions
+            var loggingSettings = new LoggingSettings
             {
-                // TODO:
-            }, defaultLevel: LogLevel.Debug, logPath: logPath);
+                LogLevel = LogLevel.Debug,
+                LogPath = logPath
+            };
+
             LoggerUtil.ActiveLoggers = Loggers.Test;
 
             var configuration = new ConfigurationBuilder()

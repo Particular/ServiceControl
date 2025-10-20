@@ -18,7 +18,7 @@ try
 
     var section = bootstrapConfig.GetSection(Settings.SectionName);
 
-    var loggingSettings = new LoggingSettings(section.Get<LoggingOptions>());
+    var loggingSettings = LoggingSettingsFactory.Create(bootstrapConfig);
     LoggingConfigurator.ConfigureLogging(loggingSettings);
     logger = LoggerUtil.CreateStaticLogger<Program>();
 

@@ -7,6 +7,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using NServiceBus;
     using Operations;
     using Particular.ServiceControl;
@@ -16,11 +17,19 @@
 
     class ImportFailedErrorsCommand : AbstractCommand
     {
+        public class ForceDisableIngestion : IPostConfigureOptions<Settings> // TODO: Register
+        {
+            public void PostConfigure(string name, Settings options)
+            {
+                options.IngestErrorMessages = false;
+                options.RunRetryProcessor = false;
+                options.DisableHealthChecks = true;
+            }
+        }
+
         public override async Task Execute(HostArguments args, Settings settings)
         {
-            settings.IngestErrorMessages = false;
-            settings.RunRetryProcessor = false;
-            settings.DisableHealthChecks = true;
+            new ForceDisableIngestion().PostConfigure(null, settings); // TODO
 
             EndpointConfiguration endpointConfiguration = CreateEndpointConfiguration(settings);
 

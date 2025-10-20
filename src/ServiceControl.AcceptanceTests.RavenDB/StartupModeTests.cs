@@ -24,12 +24,11 @@
         {
             var transportIntegration = new ConfigureEndpointLearningTransport();
 
-            settings = new Settings(
-                transportType: transportIntegration.TypeName,
-                forwardErrorMessages: false,
-                errorRetentionPeriod: TimeSpan.FromDays(1),
-                persisterType: "RavenDB")
+            settings = new Settings
             {
+                TransportType = transportIntegration.TypeName,
+                ErrorRetentionPeriod = TimeSpan.FromDays(1),
+                PersistenceType = "RavenDB",
                 TransportConnectionString = transportIntegration.ConnectionString,
                 AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
             };
@@ -56,7 +55,7 @@
 
         [Test]
         public async Task CanRunImportFailedMessagesMode()
-            => await new TestableImportFailedErrorsCommand().Execute(new HostArguments(Array.Empty<string>()), settings);
+            => await new TestableImportFailedErrorsCommand().Execute(new HostArguments([], settings), settings);
 
         class TestableImportFailedErrorsCommand() : ImportFailedErrorsCommand()
         {

@@ -49,11 +49,19 @@
         {
             var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(logPath);
-            var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace, defaultLevel: LogLevel.Debug, logPath: logPath);
+            var loggingSettings = new LoggingSettings
+            {
+                LogLevel = LogLevel.Debug,
+                LogPath = logPath
+            };
             LoggerUtil.ActiveLoggers = Loggers.Test;
 
-            var settings = new Settings(transportToUse.TypeName, persistenceToUse.PersistenceType, loggingSettings, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
+            var settings = new Settings
             {
+                TransportType = transportToUse.TypeName,
+                PersistenceType = persistenceToUse.PersistenceType,
+                LoggingSettings = loggingSettings,
+                ErrorRetentionPeriod = TimeSpan.FromDays(10),
                 InstanceName = instanceName,
                 AllowMessageEditing = true,
                 ForwardErrorMessages = false,
@@ -104,7 +112,7 @@
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupCommand = new SetupCommand();
-                await setupCommand.Execute(new HostArguments([]), settings);
+                await setupCommand.Execute(new HostArguments([], settings), settings);
             }
 
             var configuration = new EndpointConfiguration(instanceName);

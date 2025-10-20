@@ -20,7 +20,7 @@ try
 
     var serviceControlAuditSection = bootstrapConfig.GetSection(Settings.SectionName);
 
-    var loggingSettings = new LoggingSettings(serviceControlAuditSection.Get<LoggingOptions>());
+    var loggingSettings = LoggingSettingsFactory.Create(serviceControlAuditSection);
     LoggingConfigurator.ConfigureLogging(loggingSettings);
     logger = LoggerUtil.CreateStaticLogger(typeof(Program));
 

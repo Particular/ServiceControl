@@ -2,6 +2,7 @@ namespace ServiceControl.Persistence
 {
     using System;
     using System.IO;
+    using Configuration;
     using ServiceBus.Management.Infrastructure.Settings;
 
     static class PersistenceFactory
@@ -11,7 +12,7 @@ namespace ServiceControl.Persistence
             var persistenceConfiguration = CreatePersistenceConfiguration(settings);
 
             //HINT: This is false when executed from acceptance tests
-            settings.PersisterSpecificSettings ??= persistenceConfiguration.CreateSettings(Settings.SettingsRootNamespace);
+            settings.PersisterSpecificSettings ??= persistenceConfiguration.CreateSettings(new SettingsRootNamespace(SettingsConfiguration.SectionName));
             settings.PersisterSpecificSettings.MaintenanceMode = maintenanceMode;
 
             var persistence = persistenceConfiguration.Create(settings.PersisterSpecificSettings);

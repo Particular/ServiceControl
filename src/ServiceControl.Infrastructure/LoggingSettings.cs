@@ -4,51 +4,47 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
-public class LoggingSettings
+public static class LoggingOptionsToSettings
 {
-    public LoggingSettings(
-        LoggingOptions options,
-        LogLevel defaultLevel = LogLevel.Information,
-        string logPath = null
-    )
+    public static void Map(LoggingOptions src, LoggingSettings dst)
     {
         var activeLoggers = Loggers.None;
-        if (options.LoggingProviders.Contains("NLog"))
+        if (src.LoggingProviders.Contains("NLog"))
         {
             activeLoggers |= Loggers.NLog;
         }
-        if (options.LoggingProviders.Contains("Seq"))
+
+        if (src.LoggingProviders.Contains("Seq"))
         {
             activeLoggers |= Loggers.Seq;
-            if (!string.IsNullOrWhiteSpace(options.SeqAddress))
+            if (!string.IsNullOrWhiteSpace(src.SeqAddress))
             {
-                LoggerUtil.SeqAddress = options.SeqAddress;
+                LoggerUtil.SeqAddress = src.SeqAddress;
             }
         }
-        if (options.LoggingProviders.Contains("Otlp"))
+
+        if (src.LoggingProviders.Contains("Otlp"))
         {
             activeLoggers |= Loggers.Otlp;
         }
+
         //this defaults to NLog because historically that was the default, and we don't want to break existing installs that don't have the config key to define loggingProviders
         LoggerUtil.ActiveLoggers = activeLoggers == Loggers.None ? Loggers.NLog : activeLoggers;
 
-        LogLevel = InitializeLogLevel(options.LogLevel, defaultLevel);
-        LogPath = Environment.ExpandEnvironmentVariables(options.LogPath ?? DefaultLogLocation());
-    }
+        dst.LogLevel = InitializeLogLevel(src.LogLevel, dst.LogLevel);
+        dst.LogPath = Environment.ExpandEnvironmentVariables(src.LogPath ?? DefaultLogLocation());
 
-    public LogLevel LogLevel { get; }
-
-    public string LogPath { get; }
-
-    static LogLevel InitializeLogLevel(string levelText, LogLevel defaultLevel)
-    {
-        if (string.IsNullOrWhiteSpace(levelText))
+        static LogLevel InitializeLogLevel(string levelText, LogLevel defaultLevel)
         {
-            return defaultLevel;
-        }
+            if (string.IsNullOrWhiteSpace(levelText))
+            {
+                return defaultLevel;
+            }
 
-        return ParseLogLevel(levelText, defaultLevel);
+            return ParseLogLevel(levelText, defaultLevel);
+        }
     }
 
     // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
@@ -56,14 +52,13 @@ public class LoggingSettings
     static string DefaultLogLocation() => Path.Combine(AppContext.BaseDirectory, ".logs");
 
     // This is not a complete mapping of NLog levels, just the ones that are different.
-    static readonly Dictionary<string, LogLevel> NLogAliases =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["info"] = LogLevel.Information,
-            ["warn"] = LogLevel.Warning,
-            ["fatal"] = LogLevel.Critical,
-            ["off"] = LogLevel.None
-        };
+    static readonly Dictionary<string, LogLevel> NLogAliases = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["info"] = LogLevel.Information,
+        ["warn"] = LogLevel.Warning,
+        ["fatal"] = LogLevel.Critical,
+        ["off"] = LogLevel.None
+    };
 
     static LogLevel ParseLogLevel(string value, LogLevel defaultLevel)
     {
@@ -83,10 +78,17 @@ public class LoggingSettings
     }
 }
 
+
+public class LoggingSettings // TODO: Register
+{
+    public LogLevel LogLevel { get; set; } = LogLevel.Information;
+    public string LogPath { get; set; }
+}
+
 public record LoggingOptions
 {
     public string LogLevel { get; set; }
     public string LogPath { get; set; }
     public string LoggingProviders { get; set; }
-    public string SeqAddress {get; set;}
+    public string SeqAddress { get; set; }
 }

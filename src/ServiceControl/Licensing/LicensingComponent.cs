@@ -24,5 +24,5 @@ class LicensingComponent : ServiceControlComponent
 
     public override void Setup(Settings settings, IComponentInstallationContext context,
         IHostApplicationBuilder hostBuilder) =>
-        context.CreateQueue(ServiceControlSettings.ServiceControlThroughputDataQueue);
+        context.CreateQueue(settings.ServiceControlSettings.ServiceControlThroughputDataQueue);
 }
