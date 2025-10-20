@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Configuration
 {
+    using System;
     using System.Configuration;
     using System.IO;
     using System.Linq;
@@ -10,6 +11,7 @@
     {
         // ConfigurationManager on .NET is looking for {assembly}.dll.config files, but all previous versions of ServiceControl will have {assembly}.exe.config instead.
         // This code reads in the exe.config files and adds all the values into the ConfigurationManager's collections.
+        [Obsolete("TODO: Check if this is still needed if all settings or can be integrared in the LegacyAppSettingsConfigurationProvider or maybe even a new provider")]
         public static void PopulateAppSettings(Assembly assembly)
         {
             var location = Path.GetDirectoryName(assembly.Location);
