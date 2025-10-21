@@ -12,8 +12,8 @@ using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Core.Pipeline;
 using Azure.Identity;
-using Azure.Monitor.Query;
-using Azure.Monitor.Query.Models;
+using Azure.Monitor.Query.Metrics;
+using Azure.Monitor.Query.Metrics.Models;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.ServiceBus;
@@ -26,7 +26,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     : BrokerThroughputQuery(logger, "AzureServiceBus")
 {
     string serviceBusName = string.Empty;
-    MetricsQueryClient? client;
+    MetricsClient? client;
     ArmClient? armClient;
     string? resourceId;
     ArmEnvironment armEnvironment;
@@ -129,8 +129,8 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
         }
 
-        client = new MetricsQueryClient(armEnvironment.Endpoint, clientCredentials,
-            new MetricsQueryClientOptions
+        client = new MetricsClient(armEnvironment.Endpoint, clientCredentials,
+            new MetricsClientOptions
             {
                 Audience = metricsQueryAudience,
                 Transport = new HttpClientTransport(
@@ -152,31 +152,31 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
         return;
 
-        (ArmEnvironment armEnvironment, MetricsQueryAudience metricsQueryAudience) GetEnvironment()
+        (ArmEnvironment armEnvironment, MetricsClientAudience metricsQueryAudience) GetEnvironment()
         {
             if (managementUrlParsed == null)
             {
-                return (ArmEnvironment.AzurePublicCloud, MetricsQueryAudience.AzurePublicCloud);
+                return (ArmEnvironment.AzurePublicCloud, MetricsClientAudience.AzurePublicCloud);
             }
 
             if (managementUrlParsed == ArmEnvironment.AzurePublicCloud.Endpoint)
             {
-                return (ArmEnvironment.AzurePublicCloud, MetricsQueryAudience.AzurePublicCloud);
+                return (ArmEnvironment.AzurePublicCloud, MetricsClientAudience.AzurePublicCloud);
             }
 
             if (managementUrlParsed == ArmEnvironment.AzureChina.Endpoint)
             {
-                return (ArmEnvironment.AzureChina, MetricsQueryAudience.AzureChina);
+                return (ArmEnvironment.AzureChina, MetricsClientAudience.AzureChina);
             }
 
             if (managementUrlParsed == ArmEnvironment.AzureGermany.Endpoint)
             {
-                return (ArmEnvironment.AzureGermany, MetricsQueryAudience.AzurePublicCloud);
+                return (ArmEnvironment.AzureGermany, MetricsClientAudience.AzurePublicCloud);
             }
 
             if (managementUrlParsed == ArmEnvironment.AzureGovernment.Endpoint)
             {
-                return (ArmEnvironment.AzureGovernment, MetricsQueryAudience.AzureGovernment);
+                return (ArmEnvironment.AzureGovernment, MetricsClientAudience.AzureGovernment);
             }
 
             string options = string.Join(", ",
@@ -187,7 +187,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
                 }.Select(armEnvironment => $"\"{armEnvironment.Endpoint}\""));
             InitialiseErrors.Add($"Management url configuration is invalid, available options are {options}");
 
-            return (ArmEnvironment.AzurePublicCloud, MetricsQueryAudience.AzurePublicCloud);
+            return (ArmEnvironment.AzurePublicCloud, MetricsClientAudience.AzurePublicCloud);
         }
     }
 
@@ -247,20 +247,22 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     async Task<IReadOnlyList<MetricValue>> GetMetrics(string queueName, DateOnly startTime, DateOnly endTime,
         CancellationToken cancellationToken = default)
     {
-        var response = await client!.QueryResourceAsync(resourceId,
-            new[] { "CompleteMessage" },
-            new MetricsQueryOptions
+        var response = await client!.QueryResourcesAsync(
+            [new ResourceIdentifier(resourceId!)],
+            ["CompleteMessage"],
+            "Microsoft.ServiceBus/namespaces",
+            new MetricsQueryResourcesOptions
             {
                 Filter = $"EntityName eq '{queueName}'",
-                TimeRange = new QueryTimeRange(startTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc), endTime.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc)),
+                TimeRange = new MetricsQueryTimeRange(startTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc), endTime.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc)),
                 Granularity = TimeSpan.FromDays(1)
             },
             cancellationToken);
 
         var metricValues =
-            response.Value.Metrics.FirstOrDefault()?.TimeSeries.FirstOrDefault()?.Values ?? [];
+            response.Value.Values.FirstOrDefault()?.Metrics.FirstOrDefault()?.TimeSeries.FirstOrDefault()?.Values ?? [];
 
-        return metricValues;
+        return metricValues.AsReadOnly();
     }
 
     public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
