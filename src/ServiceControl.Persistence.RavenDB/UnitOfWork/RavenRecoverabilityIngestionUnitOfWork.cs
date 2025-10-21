@@ -33,7 +33,7 @@
             List<FailedMessage.FailureGroup> groups)
         {
             var uniqueMessageId = context.Headers.UniqueId();
-            var contentType = GetContentType(context.Headers, "text/xml");
+            var contentType = GetContentType(context.Headers, "text/plain");
             var bodySize = context.Body.Length;
 
             processingAttempt.MessageMetadata.Add("ContentType", contentType);

@@ -21,7 +21,7 @@
                 return;
             }
 
-            var contentType = GetContentType(processedMessage.Headers, "text/xml");
+            var contentType = GetContentType(processedMessage.Headers, "text/plain");
             processedMessage.MessageMetadata.Add("ContentType", contentType);
 
             var stored = await TryStoreBody(body, processedMessage, bodySize, contentType, cancellationToken);
