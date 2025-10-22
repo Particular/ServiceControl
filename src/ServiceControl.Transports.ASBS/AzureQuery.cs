@@ -317,15 +317,9 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     Uri BuildMetricsEndpointFromAudience(MetricsClientAudience audience, string regionName)
     {
         var region = regionName.ToLowerInvariant();
-
-        var audienceUri = new Uri(audience.ToString());
-        var audienceHost = audienceUri.Host; // e.g., "metrics.monitor.azure.com"
-
-        var regionalHost = audienceHost.StartsWith("metrics.", StringComparison.OrdinalIgnoreCase)
-            ? audienceHost.Replace("metrics.", $"{region}.metrics.")
-            : $"{region}.metrics.{audienceHost}";
-
-        return new Uri($"https://{regionalHost}");
+        var builder = new UriBuilder(audience.ToString());
+        builder.Host = $"{region}.{builder.Host}";
+        return builder.Uri;
     }
 
     async Task<HashSet<string>> GetValidNamespaceNames(CancellationToken cancellationToken = default)
