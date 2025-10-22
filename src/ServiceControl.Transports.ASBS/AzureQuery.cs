@@ -29,7 +29,6 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     MetricsClient? client;
     ArmClient? armClient;
     TokenCredential? credential;
-    Uri? metricsEndpoint;
     string? resourceId;
     ArmEnvironment armEnvironment;
     MetricsClientAudience metricsQueryAudience;
@@ -275,26 +274,21 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
                 var regionName = serviceBusNamespaceResource.Data.Location.Name;
 
                 // Build the regional Azure Monitor Metrics endpoint from the audience
-                var newEndpoint = BuildMetricsEndpointFromAudience(metricsQueryAudience, regionName);
+                var metricsEndpoint = BuildMetricsEndpointFromAudience(metricsQueryAudience, regionName);
 
-                // Create or refresh the MetricsClient if it's missing or points to a different region
-                if (client is null || metricsEndpoint?.ToString() != newEndpoint.ToString())
-                {
-                    metricsEndpoint = newEndpoint;
-
-                    client = new MetricsClient(
-                        metricsEndpoint,
-                        credential!,
-                        new MetricsClientOptions
-                        {
-                            Audience = metricsQueryAudience,
-                            Transport = new HttpClientTransport(
-                                new HttpClient(new SocketsHttpHandler
-                                {
-                                    PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
-                                }))
-                        });
-                }
+                // CreateNewOnMetadataUpdateAttribute the MetricsClient for this namespace
+                client = new MetricsClient(
+                    metricsEndpoint,
+                    credential!,
+                    new MetricsClientOptions
+                    {
+                        Audience = metricsQueryAudience,
+                        Transport = new HttpClientTransport(
+                            new HttpClient(new SocketsHttpHandler
+                            {
+                                PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
+                            }))
+                    });
 
                 await foreach (var queue in serviceBusNamespaceResource.GetServiceBusQueues()
                                    .WithCancellation(cancellationToken))
