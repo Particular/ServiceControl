@@ -28,8 +28,11 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     string serviceBusName = string.Empty;
     MetricsClient? client;
     ArmClient? armClient;
+    TokenCredential? credential;
+    Uri? metricsEndpoint;
     string? resourceId;
     ArmEnvironment armEnvironment;
+    MetricsClientAudience metricsQueryAudience;
 
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
@@ -102,7 +105,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             Diagnostics.AppendLine("Client secret set");
         }
 
-        (armEnvironment, var metricsQueryAudience) = GetEnvironment();
+        (armEnvironment, metricsQueryAudience) = GetEnvironment();
 
         if (managementUrl == null)
         {
@@ -118,28 +121,17 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             return;
         }
 
-        TokenCredential clientCredentials;
         if (connectionSettings.AuthenticationMethod is TokenCredentialAuthentication tokenCredentialAuthentication)
         {
             Diagnostics.AppendLine("Attempting to use managed identity");
-            clientCredentials = tokenCredentialAuthentication.Credential;
+            credential = tokenCredentialAuthentication.Credential;
         }
         else
         {
-            clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
+            credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
         }
 
-        client = new MetricsClient(armEnvironment.Endpoint, clientCredentials,
-            new MetricsClientOptions
-            {
-                Audience = metricsQueryAudience,
-                Transport = new HttpClientTransport(
-                    new HttpClient(new SocketsHttpHandler
-                    {
-                        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
-                    }))
-            });
-        armClient = new ArmClient(clientCredentials, subscriptionId,
+        armClient = new ArmClient(credential, subscriptionId,
             new ArmClientOptions
             {
                 Environment = armEnvironment,
@@ -229,7 +221,6 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         while (currentDate <= endDate)
         {
             data.Add(currentDate, new QueueThroughput { TotalThroughput = 0, DateUTC = currentDate });
-
             currentDate = currentDate.AddDays(1);
         }
 
@@ -274,12 +265,37 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         var namespaces =
             subscription.GetServiceBusNamespacesAsync(cancellationToken);
 
-        await foreach (var serviceBusNamespaceResource in namespaces.WithCancellation(
-                           cancellationToken))
+        await foreach (var serviceBusNamespaceResource in namespaces.WithCancellation(cancellationToken))
         {
             if (validNamespaces.Contains(serviceBusNamespaceResource.Data.Name))
             {
                 resourceId = serviceBusNamespaceResource.Id;
+
+                // Determine the region of the namespace
+                var regionName = serviceBusNamespaceResource.Data.Location.Name;
+
+                // Build the regional Azure Monitor Metrics endpoint from the audience
+                var newEndpoint = BuildMetricsEndpointFromAudience(metricsQueryAudience, regionName);
+
+                // Create or refresh the MetricsClient if it's missing or points to a different region
+                if (client is null || metricsEndpoint?.ToString() != newEndpoint.ToString())
+                {
+                    metricsEndpoint = newEndpoint;
+
+                    client = new MetricsClient(
+                        metricsEndpoint,
+                        credential!,
+                        new MetricsClientOptions
+                        {
+                            Audience = metricsQueryAudience,
+                            Transport = new HttpClientTransport(
+                                new HttpClient(new SocketsHttpHandler
+                                {
+                                    PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
+                                }))
+                        });
+                }
+
                 await foreach (var queue in serviceBusNamespaceResource.GetServiceBusQueues()
                                    .WithCancellation(cancellationToken))
                 {
@@ -302,6 +318,21 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         { ArmEnvironment.AzureGermany, "servicebus.cloudapi.de" },
         { ArmEnvironment.AzureChina, "servicebus.chinacloudapi.cn" },
     };
+
+    // Build metrics endpoint host directly from the configured audience.
+    Uri BuildMetricsEndpointFromAudience(MetricsClientAudience audience, string regionName)
+    {
+        var region = regionName.ToLowerInvariant();
+
+        var audienceUri = new Uri(audience.ToString());
+        var audienceHost = audienceUri.Host; // e.g., "metrics.monitor.azure.com"
+
+        var regionalHost = audienceHost.StartsWith("metrics.", StringComparison.OrdinalIgnoreCase)
+            ? audienceHost.Replace("metrics.", $"{region}.metrics.")
+            : $"{region}.metrics.{audienceHost}";
+
+        return new Uri($"https://{regionalHost}");
+    }
 
     async Task<HashSet<string>> GetValidNamespaceNames(CancellationToken cancellationToken = default)
     {
