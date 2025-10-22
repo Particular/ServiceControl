@@ -8,6 +8,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging.Abstractions;
+    using Microsoft.Extensions.Options;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -67,7 +68,10 @@
                 TransportAddress = "TestAddress"
             };
 
-            var transportCustomization = new TestTransportCustomization { TransportInfrastructure = transportInfrastructure };
+            var transportCustomization = new TestTransportCustomization
+            {
+                TransportInfrastructure = transportInfrastructure
+            };
 
             var testReturnToSenderDequeuer = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance), ErrorStore, domainEvents, "TestEndpoint",
                 errorQueueNameCache, transportCustomization);
@@ -187,8 +191,7 @@
                     //Continue trying until there is no exception -> poison message is removed from the batch
                     c = true;
                 }
-            }
-            while (c);
+            } while (c);
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
 
@@ -239,9 +242,7 @@
                 [
                     new FailedMessage.FailureGroup
                     {
-                        Id = groupId,
-                        Title = groupId,
-                        Type = groupId
+                        Id = groupId, Title = groupId, Type = groupId
                     }
                 ],
                 Status = FailedMessageStatus.Unresolved,
@@ -331,9 +332,30 @@
 
         class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
         {
-            public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore store, IDomainEvents domainEvents, string endpointName,
-                ErrorQueueNameCache cache, ITransportCustomization transportCustomization)
-                : base(returnToSender, store, domainEvents, transportCustomization, null, new Settings { InstanceName = endpointName }, cache, NullLogger<ReturnToSenderDequeuer>.Instance)
+            public TestReturnToSenderDequeuer(
+                ReturnToSender returnToSender,
+                IErrorMessageDataStore store,
+                IDomainEvents domainEvents,
+                string endpointName,
+                ErrorQueueNameCache cache,
+                ITransportCustomization transportCustomization
+            )
+                : base(
+                    returnToSender,
+                    store,
+                    domainEvents,
+                    transportCustomization,
+                    null,
+                    Options.Create(new Settings
+                    {
+                        ServiceControl =
+                        {
+                            InstanceName = endpointName
+                        }
+                    }),
+                    cache,
+                    NullLogger<ReturnToSenderDequeuer>.Instance
+                )
             {
             }
 
@@ -356,6 +378,7 @@
                 Func<string, Exception, Task> onCriticalError = null,
                 NServiceBus.TransportTransactionMode preferredTransactionMode =
                     NServiceBus.TransportTransactionMode.ReceiveOnly) => Task.FromResult(TransportInfrastructure);
+
             public void CustomizeAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
             public void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
             public void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();

@@ -10,6 +10,7 @@
     using Infrastructure.DomainEvents;
     using Infrastructure.Metrics;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using Recoverability;
@@ -28,12 +29,12 @@
             IIngestionUnitOfWorkFactory unitOfWorkFactory,
             Lazy<IMessageDispatcher> messageDispatcher,
             ITransportCustomization transportCustomization,
-            Settings settings,
+            IOptions<Settings> settingsOptions,
             ILogger<ErrorIngestor> logger)
         {
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.messageDispatcher = messageDispatcher;
-            this.settings = settings;
+            settings = settingsOptions.Value;
             this.logger = logger;
             bulkInsertDurationMeter = metrics.GetMeter("Error ingestion - bulk insert duration", FrequencyInMilliseconds);
             var ingestedMeter = metrics.GetCounter("Error ingestion - ingested");
@@ -48,7 +49,7 @@
 
             errorProcessor = new ErrorProcessor(enrichers, failedMessageEnrichers.ToArray(), domainEvents, ingestedMeter, logger);
             retryConfirmationProcessor = new RetryConfirmationProcessor(domainEvents);
-            logQueueAddress = new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(this.settings.ErrorLogQueue));
+            logQueueAddress = new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(settings.ServiceBus.ErrorLogQueue));
         }
 
         public async Task Ingest(List<MessageContext> contexts, CancellationToken cancellationToken)
@@ -85,7 +86,7 @@
 
                 await Task.WhenAll(announcerTasks);
 
-                if (settings.ForwardErrorMessages == true)
+                if (settings.ServiceControl.ForwardErrorMessages == true)
                 {
                     logger.LogDebug("Forwarding {FailedMessageCount} messages", storedFailed.Count);
 
@@ -184,7 +185,7 @@
             }
             catch (Exception e)
             {
-                throw new Exception($"Unable to write to forwarding queue {settings.ErrorLogQueue}", e);
+                throw new Exception($"Unable to write to forwarding queue {settings.ServiceBus.ErrorLogQueue}", e);
             }
         }
 

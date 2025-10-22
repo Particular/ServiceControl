@@ -24,7 +24,7 @@
 
             SetSettings = settings =>
             {
-                settings.DisableHealthChecks = false;
+                settings.ServiceControl.DisableHealthChecks = false;
             };
             EventLogItem entry = null;
 

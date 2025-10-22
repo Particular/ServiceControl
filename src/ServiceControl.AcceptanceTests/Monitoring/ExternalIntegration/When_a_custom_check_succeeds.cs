@@ -64,10 +64,10 @@
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
-                    routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_INSTANCE_NAME);
+                    routing.RouteToEndpoint(typeof(MessageFailed).Assembly, PrimaryOptions.DEFAULT_INSTANCE_NAME);
                 }, publisherMetadata =>
                 {
-                    publisherMetadata.RegisterPublisherFor<CustomCheckSucceeded>(Settings.DEFAULT_INSTANCE_NAME);
+                    publisherMetadata.RegisterPublisherFor<CustomCheckSucceeded>(PrimaryOptions.DEFAULT_INSTANCE_NAME);
                 });
 
             public class CustomCheckSucceededHandler(MyContext testContext) : IHandleMessages<CustomCheckSucceeded>

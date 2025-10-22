@@ -20,8 +20,8 @@
         {
             SetSettings = s =>
             {
-                s.TimeToRestartErrorIngestionAfterFailure = TimeSpan.FromSeconds(1);
-                s.DisableHealthChecks = false;
+                s.ServiceControl.TimeToRestartErrorIngestionAfterFailure = TimeSpan.FromSeconds(1);
+                s.ServiceControl.DisableHealthChecks = false;
             };
         }
 
@@ -97,7 +97,7 @@
             public Sender() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.ReportCustomChecksTo(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromSeconds(1));
+                    c.ReportCustomChecksTo(PrimaryOptions.DEFAULT_INSTANCE_NAME, TimeSpan.FromSeconds(1));
                     c.NoRetries();
                 });
 

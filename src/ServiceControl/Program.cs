@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Particular.ServiceControl.Hosting;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Configuration;
@@ -20,13 +18,10 @@ try
         .AddEnvironmentVariables()
         .Build();
 
-    var section = bootstrapConfig.GetSection(SettingsConfiguration.SectionName);
-    var bootstrapSettings = section.Get<Settings>();
+    var section = bootstrapConfig.GetSection(PrimaryOptions.SectionName);
+    var loggingOptions = section.Get<LoggingOptions>();
 
-    var loggingSettings = LoggingSettingsFactory.Create(section);
-    bootstrapSettings.LoggingSettings = loggingSettings;    // TODO: Remove this when we have a better way to pass logging settings to the host
-
-    LoggingConfigurator.ConfigureLogging(loggingSettings);
+    LoggingConfigurator.ConfigureLogging(loggingOptions);
 
     logger = LoggerUtil.CreateStaticLogger(typeof(Program));
 
@@ -43,7 +38,7 @@ try
 
     ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
-    var arguments = new HostArguments(args, bootstrapSettings);
+    var arguments = new HostArguments(args, bootstrapConfig.GetValue<bool>("ServiceControl:MaintenanceMode"));
 
     if (arguments.Help)
     {
@@ -51,7 +46,7 @@ try
         return 0;
     }
 
-    await new CommandRunner(arguments.Command).Execute(arguments, bootstrapSettings);
+    await new CommandRunner(arguments.Command).Execute(arguments);
 
     return 0;
 }

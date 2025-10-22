@@ -17,37 +17,37 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 SerializerOptions = providerMultiInstance.SerializerOptions[instanceName],
             };
 
-        public static Task Put<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME) where T : class
+        public static Task Put<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = PrimaryOptions.DEFAULT_INSTANCE_NAME) where T : class
         {
             return providerMultiInstance.ToHttpExtension(instanceName).Put(url, payload, requestHasFailed);
         }
 
-        public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, string instanceName = Settings.DEFAULT_INSTANCE_NAME)
+        public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, string instanceName = PrimaryOptions.DEFAULT_INSTANCE_NAME)
         {
             return providerMultiInstance.ToHttpExtension(instanceName).GetRaw(url);
         }
 
-        public static Task<ManyResult<T>> TryGetMany<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME) where T : class
+        public static Task<ManyResult<T>> TryGetMany<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, Predicate<T> condition = null, string instanceName = PrimaryOptions.DEFAULT_INSTANCE_NAME) where T : class
         {
             return providerMultiInstance.ToHttpExtension(instanceName).TryGetMany(url, condition);
         }
 
-        public static Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME) where T : class
+        public static Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, string instanceName = PrimaryOptions.DEFAULT_INSTANCE_NAME) where T : class
         {
             return providerMultiInstance.ToHttpExtension(instanceName).Patch(url, payload);
         }
 
-        public static Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME) where T : class
+        public static Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, Predicate<T> condition = null, string instanceName = PrimaryOptions.DEFAULT_INSTANCE_NAME) where T : class
         {
             return providerMultiInstance.ToHttpExtension(instanceName).TryGet(url, condition);
         }
 
-        public static Task<SingleResult<T>> TryGetSingle<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME) where T : class
+        public static Task<SingleResult<T>> TryGetSingle<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, Predicate<T> condition = null, string instanceName = PrimaryOptions.DEFAULT_INSTANCE_NAME) where T : class
         {
             return providerMultiInstance.ToHttpExtension(instanceName).TryGetSingle(url, condition);
         }
 
-        public static Task Post<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME) where T : class
+        public static Task Post<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = PrimaryOptions.DEFAULT_INSTANCE_NAME) where T : class
         {
             return providerMultiInstance.ToHttpExtension(instanceName).Post(url, payload, requestHasFailed);
         }

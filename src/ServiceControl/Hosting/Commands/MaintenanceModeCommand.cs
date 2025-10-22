@@ -1,18 +1,21 @@
 ﻿namespace ServiceControl.Hosting.Commands
 {
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Hosting.WindowsServices;
     using Particular.ServiceControl.Hosting;
     using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class MaintenanceModeCommand : AbstractCommand
+    sealed class MaintenanceModeCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings)
+        public override async Task Execute(HostArguments args)
         {
             var hostBuilder = Host.CreateApplicationBuilder();
-            hostBuilder.Services.AddPersistence(settings, maintenanceMode: true);
+            hostBuilder.SetupApplicationConfiguration();
+            var settings = hostBuilder.Configuration.Get<Settings>();
+            hostBuilder.Services.AddPersistence(hostBuilder.Configuration, settings);
 
             if (WindowsServiceHelpers.IsWindowsService())
             {

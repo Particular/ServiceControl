@@ -32,7 +32,7 @@
         {
             SetSettings = settings =>
             {
-                settings.DisableHealthChecks = false;
+                settings.ServiceControl.DisableHealthChecks = false;
             };
 
             CustomizeHostBuilder = builder =>

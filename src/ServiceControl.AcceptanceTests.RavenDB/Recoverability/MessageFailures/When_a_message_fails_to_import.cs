@@ -34,8 +34,8 @@
 
             SetSettings = settings =>
             {
-                settings.ForwardErrorMessages = true;
-                settings.ErrorLogQueue = Conventions.EndpointNamingConvention(typeof(ErrorLogSpy));
+                settings.ServiceControl.ForwardErrorMessages = true;
+                settings.ServiceBus.ErrorLogQueue = Conventions.EndpointNamingConvention(typeof(ErrorLogSpy));
             };
 
             var runResult = await Define<MyContext>()

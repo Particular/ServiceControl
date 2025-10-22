@@ -17,7 +17,7 @@ class WhenRetryingWithEdit : WhenRetrying
     [Test]
     public async Task ShouldCreateNewMessageAndResolveEditedMessage()
     {
-        CustomServiceControlPrimarySettings = s => { s.AllowMessageEditing = true; };
+        CustomServiceControlPrimarySettings = s => { s.ServiceControl.AllowMessageEditing = true; };
 
         await Define<MyContext>()
             .WithEndpoint<FailureEndpoint>(b =>

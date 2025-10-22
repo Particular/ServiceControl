@@ -3,13 +3,24 @@ namespace ServiceControl.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+public record LoggingOptions
+{
+    public string LogLevel { get; set; }
+    public string LogPath { get; set; }
+    public string LoggingProviders { get; set; }
+    public string SeqAddress { get; set; }
+}
+
 public static class LoggingOptionsToSettings
 {
-    public static void Map(LoggingOptions src, LoggingSettings dst)
+    public static LoggingSettings Map(LoggingOptions src)
     {
+        LoggingSettings dst = new();
+
         var activeLoggers = Loggers.None;
         if (src.LoggingProviders.Contains("NLog"))
         {
@@ -45,6 +56,8 @@ public static class LoggingOptionsToSettings
 
             return ParseLogLevel(levelText, defaultLevel);
         }
+
+        return dst;
     }
 
     // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
@@ -83,12 +96,4 @@ public class LoggingSettings // TODO: Register
 {
     public LogLevel LogLevel { get; set; } = LogLevel.Information;
     public string LogPath { get; set; }
-}
-
-public record LoggingOptions
-{
-    public string LogLevel { get; set; }
-    public string LogPath { get; set; }
-    public string LoggingProviders { get; set; }
-    public string SeqAddress { get; set; }
 }

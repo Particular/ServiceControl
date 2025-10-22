@@ -69,10 +69,10 @@
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
-                    routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_INSTANCE_NAME);
+                    routing.RouteToEndpoint(typeof(MessageFailed).Assembly, PrimaryOptions.DEFAULT_INSTANCE_NAME);
                 }, publisherMetadata =>
                 {
-                    publisherMetadata.RegisterPublisherFor<CustomCheckFailed>(Settings.DEFAULT_INSTANCE_NAME);
+                    publisherMetadata.RegisterPublisherFor<CustomCheckFailed>(PrimaryOptions.DEFAULT_INSTANCE_NAME);
                 });
 
             public class CustomCheckFailedHandler(MyContext testContext) : IHandleMessages<CustomCheckFailed>

@@ -10,6 +10,7 @@
     using Infrastructure.Metrics;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using NServiceBus;
     using NServiceBus.Transport;
     using Persistence;
@@ -22,7 +23,7 @@
         static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
 
         public ErrorIngestion(
-            Settings settings,
+            IOptions<Settings> settingsOptions,
             ITransportCustomization transportCustomization,
             TransportSettings transportSettings,
             Metrics metrics,
@@ -33,10 +34,10 @@
             IHostApplicationLifetime applicationLifetime,
             ILogger<ErrorIngestion> logger)
         {
-            this.settings = settings;
+            settings = settingsOptions.Value;
             this.transportCustomization = transportCustomization;
             this.transportSettings = transportSettings;
-            errorQueue = settings.ErrorQueue;
+            errorQueue = settings.ServiceBus.ErrorQueue;
             this.ingestor = ingestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.applicationLifetime = applicationLifetime;
@@ -58,7 +59,7 @@
                 FullMode = BoundedChannelFullMode.Wait
             });
 
-            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, settings.LoggingSettings, OnCriticalError, logger);
+            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, settings.Logging, OnCriticalError, logger);
 
             watchdog = new Watchdog(
                 "failed message ingestion",
@@ -66,7 +67,7 @@
                 EnsureStopped,
                 ingestionState.ReportError,
                 ingestionState.Clear,
-                settings.TimeToRestartErrorIngestionAfterFailure,
+                settings.ServiceControl.TimeToRestartErrorIngestionAfterFailure,
                 logger
             );
         }
@@ -213,7 +214,7 @@
 
                 messageReceiver = transportInfrastructure.Receivers[errorQueue];
 
-                if (settings.ForwardErrorMessages == true)
+                if (settings.ServiceControl.ForwardErrorMessages == true)
                 {
                     await ingestor.VerifyCanReachForwardingAddress(cancellationToken);
                 }
@@ -264,7 +265,7 @@
 
         async Task OnMessage(MessageContext messageContext, CancellationToken cancellationToken)
         {
-            if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
+            if (settings.ServiceControl.MessageFilter != null && settings.ServiceControl.MessageFilter(messageContext))
             {
                 return;
             }

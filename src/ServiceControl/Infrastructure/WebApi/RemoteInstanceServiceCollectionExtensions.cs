@@ -30,7 +30,7 @@ static class RemoteInstanceServiceCollectionExtensions
 
     public static void AddRemoteInstancesHttpClients(this IServiceCollection services, Settings settings)
     {
-        foreach (var remoteInstance in settings.RemoteInstances)
+        foreach (var remoteInstance in settings.ServiceControl.RemoteInstanceSettings)
         {
             var remoteClientBuilder = services.AddHttpClient(remoteInstance.InstanceId, client =>
             {

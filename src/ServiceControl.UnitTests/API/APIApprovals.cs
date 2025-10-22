@@ -146,7 +146,7 @@
 
             var result = string.Empty;
 
-            var dataStoreSettings = new[] { nameof(Settings.PersistenceType) };
+            var dataStoreSettings = new[] { nameof(PrimaryOptions.PersistenceType) };
 
             foreach (var settingLine in settingsLines)
             {

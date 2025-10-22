@@ -30,7 +30,11 @@ namespace Particular.ServiceControl
 
     static class HostApplicationBuilderExtensions
     {
-        public static void AddServiceControl(this IHostApplicationBuilder hostBuilder, Settings settings, EndpointConfiguration configuration)
+        public static void AddServiceControl(
+            this IHostApplicationBuilder hostBuilder,
+            Settings settings,
+            EndpointConfiguration configuration
+        )
         {
             ArgumentNullException.ThrowIfNull(configuration);
 
@@ -42,14 +46,14 @@ namespace Particular.ServiceControl
             }
 
             hostBuilder.Logging.ClearProviders();
-            hostBuilder.Logging.ConfigureLogging(settings.LoggingSettings.LogLevel);
+            hostBuilder.Logging.ConfigureLogging(settings.Logging.LogLevel);
 
             var services = hostBuilder.Services;
-            var transportSettings = settings.ToTransportSettings();
+            var transportSettings = settings.ServiceControl.ToTransportSettings();
             var transportCustomization = TransportFactory.Create(transportSettings);
             transportCustomization.AddTransportForPrimary(services, transportSettings);
 
-            services.Configure<HostOptions>(options => options.ShutdownTimeout = settings.ShutdownTimeout);
+            services.Configure<HostOptions>(options => options.ShutdownTimeout = settings.ServiceControl.ShutdownTimeout);
             services.AddSingleton<IDomainEvents, DomainEvents>();
 
             services.AddSingleton<MessageStreamerHub>();
@@ -73,13 +77,13 @@ namespace Particular.ServiceControl
             services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
             services.AddLicenseCheck();
-            services.AddPersistence(settings);
-            services.AddMetrics(settings.PrintMetrics);
+            services.AddPersistence(hostBuilder.Configuration, settings);
+            services.AddMetrics(settings.ServiceControl.PrintMetrics);
 
             NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, configuration);
             hostBuilder.UseNServiceBus(configuration);
 
-            if (!settings.DisableExternalIntegrationsPublishing)
+            if (!settings.ServiceControl.DisableExternalIntegrationsPublishing)
             {
                 hostBuilder.AddExternalIntegrationEvents();
             }
@@ -88,7 +92,7 @@ namespace Particular.ServiceControl
             hostBuilder.AddEmailNotifications();
             hostBuilder.AddAsyncTimer();
 
-            if (!settings.DisableHealthChecks)
+            if (!settings.ServiceControl.DisableHealthChecks)
             {
                 hostBuilder.AddInternalCustomChecks();
             }
@@ -104,7 +108,7 @@ namespace Particular.ServiceControl
 
         public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder, Settings settings)
         {
-            var persistence = PersistenceFactory.Create(settings);
+            var persistence = PersistenceFactory.Create(hostApplicationBuilder.Configuration, settings);
             persistence.AddInstaller(hostApplicationBuilder.Services);
         }
 
@@ -112,18 +116,19 @@ namespace Particular.ServiceControl
         {
             var version = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
 
-            var startupMessage = $@"
--------------------------------------------------------------
-ServiceControl Version:             {version}
-Audit Retention Period (optional):  {settings.AuditRetentionPeriod}
-Error Retention Period:             {settings.ErrorRetentionPeriod}
-Ingest Error Messages:              {settings.IngestErrorMessages}
-Forwarding Error Messages:          {settings.ForwardErrorMessages}
-ServiceControl Logging Level:       {settings.LoggingSettings.LogLevel}
-Selected Transport Customization:   {settings.TransportType}
--------------------------------------------------------------";
+            var startupMessage = $"""
+                                  -------------------------------------------------------------
+                                  ServiceControl Version:             {version}
+                                  Audit Retention Period (optional):  {settings.ServiceControl.AuditRetentionPeriod}
+                                  Error Retention Period:             {settings.ServiceControl.ErrorRetentionPeriod}
+                                  Ingest Error Messages:              {settings.ServiceControl.IngestErrorMessages}
+                                  Forwarding Error Messages:          {settings.ServiceControl.ForwardErrorMessages}
+                                  ServiceControl Logging Level:       {settings.Logging.LogLevel}
+                                  Selected Transport Customization:   {settings.ServiceControl.TransportType}
+                                  ------------------------------------------------------------
+                                  """;
 
-            var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel);
+            var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.Logging.LogLevel);
             logger.LogInformation(startupMessage);
             endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
             {

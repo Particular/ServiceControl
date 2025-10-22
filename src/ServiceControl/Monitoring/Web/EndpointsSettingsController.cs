@@ -45,7 +45,7 @@ public class EndpointsSettingsController(
 
         if (noResults)
         {
-            yield return new SettingsData { Name = string.Empty, TrackInstances = settings.TrackInstancesInitialValue };
+            yield return new SettingsData { Name = string.Empty, TrackInstances = settings.ServiceControl.TrackInstancesInitialValue };
         }
     }
 

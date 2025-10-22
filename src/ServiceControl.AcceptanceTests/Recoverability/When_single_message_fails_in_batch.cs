@@ -30,7 +30,7 @@
 
             SetSettings = settings =>
             {
-                settings.MaximumConcurrencyLevel = maximumConcurrencyLevel;
+                settings.ServiceControl.MaximumConcurrencyLevel = maximumConcurrencyLevel;
             };
 
             await Define<MyContext>(ctx =>

@@ -26,11 +26,14 @@
 
             settings = new Settings
             {
-                TransportType = transportIntegration.TypeName,
-                ErrorRetentionPeriod = TimeSpan.FromDays(1),
-                PersistenceType = "RavenDB",
-                TransportConnectionString = transportIntegration.ConnectionString,
-                AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
+                ServiceControl =
+                {
+                    TransportType = transportIntegration.TypeName,
+                    ErrorRetentionPeriod = TimeSpan.FromDays(1),
+                    PersistenceType = "RavenDB",
+                    ConnectionString = transportIntegration.ConnectionString,
+                    AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
+                }
             };
 
             configuration = new AcceptanceTestStorageConfiguration();
@@ -46,7 +49,8 @@
             // ideally we'd be using the MaintenanceModeCommand here but that indefinitely blocks due to the RunAsync
             // not terminating.
             var hostBuilder = Host.CreateApplicationBuilder();
-            hostBuilder.Services.AddPersistence(settings, maintenanceMode: true);
+            settings.ServiceControl.MaintenanceMode = true;
+            hostBuilder.Services.AddPersistence(hostBuilder.Configuration, settings); // TODO: Configuration needs to be initialized
 
             using var host = hostBuilder.Build();
             await host.StartAsync();
@@ -55,7 +59,7 @@
 
         [Test]
         public async Task CanRunImportFailedMessagesMode()
-            => await new TestableImportFailedErrorsCommand().Execute(new HostArguments([], settings), settings);
+            => await new TestableImportFailedErrorsCommand().Execute(new HostArguments([], maintenanceMode: false));
 
         class TestableImportFailedErrorsCommand() : ImportFailedErrorsCommand()
         {
@@ -64,7 +68,10 @@
                 var configuration = base.CreateEndpointConfiguration(settings);
 
                 //HINT: we want to exclude this assembly to prevent loading features that are part of the acceptance testing framework
-                var thisAssembly = new[] { typeof(StartupModeTests).Assembly.GetName().Name };
+                var thisAssembly = new[]
+                {
+                    typeof(StartupModeTests).Assembly.GetName().Name
+                };
 
                 configuration.AssemblyScanner().ExcludeAssemblies(thisAssembly);
 

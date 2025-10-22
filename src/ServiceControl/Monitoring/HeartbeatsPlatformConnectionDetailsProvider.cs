@@ -21,7 +21,7 @@
         {
             // NOTE: The default grace period is 40s and the default frequency is 10s.
             // In a low-latency environment, an endpoint would need to miss more than 4 heartbeats to be considered down
-            var frequency = TimeSpan.FromTicks(settings.HeartbeatGracePeriod.Ticks / 4);
+            var frequency = TimeSpan.FromTicks(settings.ServiceControl.HeartbeatGracePeriod.Ticks / 4);
             var timeToLive = TimeSpan.FromTicks(frequency.Ticks * 4);
             connection.Add(
                 "Heartbeats",

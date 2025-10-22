@@ -28,8 +28,8 @@
 
             SetSettings = settings =>
             {
-                settings.NotificationsFilter = "MyCustomCheckId#Other custom check";
-                settings.EmailDropFolder = emailDropPath;
+                settings.ServiceControl.NotificationsFilter = "MyCustomCheckId#Other custom check";
+                settings.ServiceControl.EmailDropFolder = emailDropPath;
             };
 
             CustomizeHostBuilder = hostBuilder => hostBuilder.Services.AddHostedService<SetupNotificationSettings>();
@@ -87,7 +87,7 @@
 
         public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
         {
-            public EndpointWithFailingCustomCheck() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromSeconds(1)); });
+            public EndpointWithFailingCustomCheck() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(PrimaryOptions.DEFAULT_INSTANCE_NAME, TimeSpan.FromSeconds(1)); });
 
             class FailingCustomCheck() : CustomCheck("MyCustomCheckId", "MyCategory")
             {

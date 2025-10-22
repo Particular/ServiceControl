@@ -24,11 +24,11 @@
             var remoteInstanceSetting = new RemoteInstanceSetting("http://localhost:12121");
             CustomServiceControlPrimarySettings = settings =>
             {
-                var currentSetting = settings.RemoteInstances[0];
-                settings.RemoteInstances = [currentSetting, remoteInstanceSetting];
+                var currentSetting = settings.ServiceControl.RemoteInstanceSettings[0];
+                settings.ServiceControl.RemoteInstanceSettings = [currentSetting, remoteInstanceSetting];
 
                 // Toggle the health checks because the behavior should not depend on the health checks running or not running
-                settings.DisableHealthChecks = disableHealthChecks;
+                settings.ServiceControl.DisableHealthChecks = disableHealthChecks;
                 settings.PersisterSpecificSettings.OverrideCustomCheckRepeatTime = TimeSpan.FromSeconds(2);
             };
 

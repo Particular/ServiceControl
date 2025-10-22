@@ -14,6 +14,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Operations;
     using Particular.ServiceControl;
     using Persistence;
@@ -23,7 +24,11 @@
 
     class RecoverabilityComponent : ServiceControlComponent
     {
-        public override void Configure(Settings settings, ITransportCustomization transportCustomization, IHostApplicationBuilder hostBuilder)
+        public override void Configure(
+            Settings settings,
+            ITransportCustomization transportCustomization,
+            IHostApplicationBuilder hostBuilder
+        )
         {
             var services = hostBuilder.Services;
             services.AddPlatformConnectionProvider<RecoverabilityPlatformConnectionDetailsProvider>();
@@ -55,7 +60,8 @@
             services.AddSingleton<ImportFailedErrors>();
             services.AddSingleton<ErrorIngestor>();
             services.AddSingleton<ErrorIngestionCustomCheck.State>();
-            if (settings.IngestErrorMessages)
+
+            if (settings.ServiceControl.IngestErrorMessages)
             {
                 services.AddHostedService<ErrorIngestion>();
             }
@@ -64,7 +70,7 @@
             services.AddSingleton<RetryDocumentManager>();
             services.AddSingleton<RetriesGateway>();
             services.AddSingleton<RetryProcessor>();
-            if (settings.RunRetryProcessor)
+            if (settings.ServiceControl.RunRetryProcessor)
             {
                 services.AddHostedService<RebuildRetryGroupStatusesHostedService>();
                 services.AddHostedService<BulkRetryBatchCreationHostedService>();
@@ -107,16 +113,16 @@
 
         public override void Setup(Settings settings, IComponentInstallationContext context, IHostApplicationBuilder hostBuilder)
         {
-            context.CreateQueue(settings.StagingQueue);
+            context.CreateQueue(settings.ServiceControl.StagingQueue);
 
-            if (settings.IngestErrorMessages)
+            if (settings.ServiceControl.IngestErrorMessages)
             {
-                context.CreateQueue(settings.ErrorQueue);
+                context.CreateQueue(settings.ServiceBus.ErrorQueue);
             }
 
-            if (settings.ForwardErrorMessages == true && settings.ErrorLogQueue != null)
+            if (settings.ServiceControl.ForwardErrorMessages == true && settings.ServiceBus.ErrorLogQueue != null)
             {
-                context.CreateQueue(settings.ErrorLogQueue);
+                context.CreateQueue(settings.ServiceBus.ErrorLogQueue);
             }
         }
 
@@ -249,19 +255,19 @@
         {
             public ProcessRetryBatchesHostedService(
                 RetryProcessor processor,
-                Settings settings,
+                IOptions<Settings> settings,
                 IAsyncTimer scheduler,
                 ILogger<ProcessRetryBatchesHostedService> logger)
             {
                 this.processor = processor;
-                this.settings = settings;
+                this.settings = settings.Value;
                 this.scheduler = scheduler;
                 this.logger = logger;
             }
 
             public Task StartAsync(CancellationToken cancellationToken)
             {
-                timer = scheduler.Schedule(Process, TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e => logger.LogError(e, "Unhandled exception while processing retry batches"));
+                timer = scheduler.Schedule(Process, TimeSpan.Zero, settings.ServiceControl.ProcessRetryBatchesFrequency, e => logger.LogError(e, "Unhandled exception while processing retry batches"));
                 return Task.CompletedTask;
             }
 

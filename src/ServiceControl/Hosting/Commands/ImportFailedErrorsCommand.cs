@@ -4,6 +4,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
@@ -17,23 +18,20 @@
 
     class ImportFailedErrorsCommand : AbstractCommand
     {
-        public class ForceDisableIngestion : IPostConfigureOptions<Settings> // TODO: Register
+        public override async Task Execute(HostArguments args)
         {
-            public void PostConfigure(string name, Settings options)
+            var hostBuilder = Host.CreateApplicationBuilder();
+            hostBuilder.SetupApplicationConfiguration();
+            hostBuilder.Services.Configure<PrimaryOptions>(s =>
             {
-                options.IngestErrorMessages = false;
-                options.RunRetryProcessor = false;
-                options.DisableHealthChecks = true;
-            }
-        }
+                s.IngestErrorMessages = false;
+                s.RunRetryProcessor = false;
+                s.DisableHealthChecks = true;
+            });
 
-        public override async Task Execute(HostArguments args, Settings settings)
-        {
-            new ForceDisableIngestion().PostConfigure(null, settings); // TODO
+            var settings = hostBuilder.Configuration.Get<Settings>(); // THIS WILL NOT RESOLVE SETTINGS WITH THE ABOVE VALUES !!!! TOOD: SHould really use a different type any settings used here.
 
             EndpointConfiguration endpointConfiguration = CreateEndpointConfiguration(settings);
-
-            var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
             hostBuilder.AddServiceControlApi();
 
@@ -59,13 +57,30 @@
             }
         }
 
+
         protected virtual EndpointConfiguration CreateEndpointConfiguration(Settings settings)
         {
-            var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
+            var endpointConfiguration = new EndpointConfiguration(settings.ServiceControl.InstanceName);
             var assemblyScanner = endpointConfiguration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 
             return endpointConfiguration;
+        }
+    }
+
+    public static class HostBuilderExt
+    {
+        public static void SetupApplicationConfiguration(this IHostApplicationBuilder hostBuilder)
+        {
+            hostBuilder.Configuration
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddLegacyAppSettings()
+                .AddEnvironmentVariables();
+
+            hostBuilder.Services.AddOptions<PrimaryOptions>()
+                .Bind(hostBuilder.Configuration.GetSection(PrimaryOptions.SectionName))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
         }
     }
 }

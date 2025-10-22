@@ -29,7 +29,7 @@
                 ExpirationDate = activeLicense.Details.ExpirationDate?.ToString("O") ?? string.Empty,
                 Status = activeLicense.IsValid ? "valid" : "invalid",
                 LicenseType = activeLicense.Details.LicenseType ?? string.Empty,
-                InstanceName = settings.InstanceName ?? string.Empty,
+                InstanceName = settings.ServiceControl.InstanceName ?? string.Empty,
                 LicenseStatus = activeLicense.Details.Status,
                 LicenseExtensionUrl = connectorHeartbeatStatus.LastHeartbeat == null
                     ? $"https://particular.net/extend-your-trial?p={clientName}"

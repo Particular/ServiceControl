@@ -2,20 +2,16 @@ namespace ServiceControl.Persistence
 {
     using System;
     using System.IO;
-    using Configuration;
+    using Microsoft.Extensions.Configuration;
     using ServiceBus.Management.Infrastructure.Settings;
 
     static class PersistenceFactory
     {
-        public static IPersistence Create(Settings settings, bool maintenanceMode = false)
+        public static IPersistence Create(IConfiguration configuration, Settings settings)
         {
             var persistenceConfiguration = CreatePersistenceConfiguration(settings);
-
-            //HINT: This is false when executed from acceptance tests
-            settings.PersisterSpecificSettings ??= persistenceConfiguration.CreateSettings(new SettingsRootNamespace(SettingsConfiguration.SectionName));
-            settings.PersisterSpecificSettings.MaintenanceMode = maintenanceMode;
-
-            var persistence = persistenceConfiguration.Create(settings.PersisterSpecificSettings);
+            var section = configuration.GetSection(PrimaryOptions.SectionName);
+            var persistence = persistenceConfiguration.Create(section);
             return persistence;
         }
 
@@ -23,16 +19,16 @@ namespace ServiceControl.Persistence
         {
             try
             {
-                var persistenceManifest = PersistenceManifestLibrary.Find(settings.PersistenceType);
+                var persistenceManifest = PersistenceManifestLibrary.Find(settings.ServiceControl.PersistenceType);
                 var assemblyPath = Path.Combine(persistenceManifest.Location, $"{persistenceManifest.AssemblyName}.dll");
-                var loadContext = settings.AssemblyLoadContextResolver(assemblyPath);
+                var loadContext = settings.ServiceControl.AssemblyLoadContextResolver(assemblyPath);
                 var customizationType = Type.GetType(persistenceManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
 
                 return (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load persistence customization type {settings.PersistenceType}.", e);
+                throw new Exception($"Could not load persistence customization type {settings.ServiceControl.PersistenceType}.", e);
             }
         }
     }

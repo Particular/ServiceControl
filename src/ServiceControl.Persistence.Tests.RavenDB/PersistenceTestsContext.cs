@@ -40,7 +40,7 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 
         var persistence = new RavenPersistence(settings);
 
-        persistence.AddPersistence(hostBuilder.Services);
+        persistence.AddPersistence(hostBuilder.Services, hostBuilder.Configuration);
         persistence.AddInstaller(hostBuilder.Services);
     }
 

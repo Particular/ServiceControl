@@ -10,19 +10,25 @@ using ServiceBus.Management.Infrastructure.Settings;
 
 class LicensingComponent : ServiceControlComponent
 {
-    public override void Configure(Settings settings, ITransportCustomization transportCustomization,
-        IHostApplicationBuilder hostBuilder)
+    public override void Configure(
+        Settings settings,
+        ITransportCustomization transportCustomization,
+        IHostApplicationBuilder hostBuilder
+    )
     {
         var licenseDetails = LicenseManager.FindLicense().Details;
         hostBuilder.AddLicensingComponent(
-            TransportManifestLibrary.Find(settings.TransportType)?.Name ?? settings.TransportType,
-            settings.ErrorQueue,
-            settings.InstanceName,
+            TransportManifestLibrary.Find(settings.ServiceControl.TransportType)?.Name ?? settings.ServiceControl.TransportType,
+            settings.ServiceBus.ErrorQueue,
+            settings.ServiceControl.InstanceName,
             licenseDetails.RegisteredTo,
             ServiceControlVersion.GetFileVersion());
     }
 
-    public override void Setup(Settings settings, IComponentInstallationContext context,
-        IHostApplicationBuilder hostBuilder) =>
-        context.CreateQueue(settings.ServiceControlSettings.ServiceControlThroughputDataQueue);
+    public override void Setup(
+        Settings settings,
+        IComponentInstallationContext context,
+        IHostApplicationBuilder hostBuilder
+    ) =>
+        context.CreateQueue(settings.ServiceControl.ServiceControlSettings.ServiceControlThroughputDataQueue);
 }

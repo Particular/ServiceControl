@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Infrastructure.DomainEvents;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NServiceBus;
 using NServiceBus.Transport;
 using Persistence;
@@ -20,14 +21,15 @@ class ReturnToSenderDequeuer : IHostedService
         IDomainEvents domainEvents,
         ITransportCustomization transportCustomization,
         TransportSettings transportSettings,
-        Settings settings,
+        IOptions<Settings> settingsOptions,
         ErrorQueueNameCache errorQueueNameCache,
         ILogger<ReturnToSenderDequeuer> logger
     )
     {
-        InputAddress = transportCustomization.ToTransportQualifiedQueueName(settings.StagingQueue);
+        var settings = settingsOptions.Value;
+        InputAddress = transportCustomization.ToTransportQualifiedQueueName(settings.ServiceControl.StagingQueue);
         this.returnToSender = returnToSender;
-        errorQueue = settings.ErrorQueue;
+        errorQueue = settings.ServiceBus.ErrorQueue;
         this.transportCustomization = transportCustomization;
         this.transportSettings = transportSettings;
         this.errorQueueNameCache = errorQueueNameCache;

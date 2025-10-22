@@ -2,6 +2,7 @@
 {
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Options;
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using Persistence;
@@ -10,11 +11,13 @@
     public class ImportFailedErrors(
         IFailedErrorImportDataStore store,
         ErrorIngestor errorIngestor,
-        Settings settings)
+        IOptions<Settings> settingsOptions
+    )
     {
         public async Task Run(CancellationToken cancellationToken = default)
         {
-            if (settings.ForwardErrorMessages == true)
+            var settings = settingsOptions.Value;
+            if (settings.ServiceControl.ForwardErrorMessages == true)
             {
                 await errorIngestor.VerifyCanReachForwardingAddress(cancellationToken);
             }
@@ -26,7 +29,7 @@
                     transportMessage.Headers,
                     transportMessage.Body,
                     EmptyTransaction,
-                    settings.ErrorQueue,
+                    settings.ServiceBus.ErrorQueue,
                     EmptyContextBag
                 );
                 var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);

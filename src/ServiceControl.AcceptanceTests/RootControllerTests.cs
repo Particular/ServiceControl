@@ -19,13 +19,13 @@
 
             SetSettings = settings =>
             {
-                settings.RemoteInstances =
+                settings.ServiceControl.RemoteInstanceSettings =
                 [
-                    new RemoteInstanceSetting(settings.RootUrl),
-                    new RemoteInstanceSetting(settings.RootUrl)
+                    new RemoteInstanceSetting(settings.ServiceControl.RootUrl),
+                    new RemoteInstanceSetting(settings.ServiceControl.RootUrl)
                 ];
-                serviceName = settings.InstanceName;
-                baseAddress = settings.RootUrl;
+                serviceName = settings.ServiceControl.InstanceName;
+                baseAddress = settings.ServiceControl.RootUrl;
             };
 
             JsonArray config = null;

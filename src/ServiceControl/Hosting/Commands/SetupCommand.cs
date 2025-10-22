@@ -2,6 +2,7 @@
 {
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Particular.ServiceControl;
@@ -11,11 +12,14 @@
     using ServiceControl.Infrastructure;
     using Transports;
 
-    class SetupCommand : AbstractCommand
+    sealed class SetupCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings)
+        public override async Task Execute(HostArguments args)
         {
             var hostBuilder = Host.CreateApplicationBuilder();
+            hostBuilder.SetupApplicationConfiguration();
+            var settings = hostBuilder.Configuration.Get<Settings>();
+
             hostBuilder.AddServiceControlInstallers(settings);
 
             var componentSetupContext = new ComponentInstallationContext();
@@ -40,7 +44,7 @@
             }
             else
             {
-                var transportSettings = settings.ToTransportSettings();
+                var transportSettings = settings.ServiceControl.ToTransportSettings();
                 transportSettings.RunCustomChecks = false;
                 var transportCustomization = TransportFactory.Create(transportSettings);
 
