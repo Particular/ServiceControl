@@ -77,7 +77,9 @@ namespace Particular.ServiceControl
             services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
             services.AddLicenseCheck();
-            services.AddPersistence(hostBuilder.Configuration);
+
+            hostBuilder.AddPersistence();
+
             services.AddMetrics(settings.ServiceControl.PrintMetrics);
 
             NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, configuration);

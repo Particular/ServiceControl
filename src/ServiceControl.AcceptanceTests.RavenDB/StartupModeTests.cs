@@ -52,7 +52,7 @@
             // not terminating.
             var hostBuilder = Host.CreateApplicationBuilder();
             settings.ServiceControl.MaintenanceMode = true;
-            hostBuilder.Services.AddPersistence(hostBuilder.Configuration); // TODO: Configuration needs to be initialized
+            hostBuilder.AddPersistence(); // TODO: Configuration needs to be initialized
 
             using var host = hostBuilder.Build();
             await host.StartAsync();
