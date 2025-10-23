@@ -280,7 +280,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         metricsClient ??= await InitializeMetricsClient(cancellationToken);
 
         var response = await metricsClient.QueryResourcesAsync(
-            [new ResourceIdentifier(resourceId!)],
+            [resourceId!],
             ["CompleteMessage"],
             "Microsoft.ServiceBus/namespaces",
             new MetricsQueryResourcesOptions
