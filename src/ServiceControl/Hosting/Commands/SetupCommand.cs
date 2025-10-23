@@ -20,7 +20,7 @@
             hostBuilder.SetupApplicationConfiguration();
             var settings = hostBuilder.Configuration.Get<Settings>();
 
-            hostBuilder.AddServiceControlInstallers(settings);
+            hostBuilder.AddServiceControlInstallers();
 
             var componentSetupContext = new ComponentInstallationContext();
 

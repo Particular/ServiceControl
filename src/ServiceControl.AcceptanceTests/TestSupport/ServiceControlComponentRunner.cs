@@ -21,6 +21,7 @@
     using NServiceBus.AcceptanceTesting.Support;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
+    using Persistence;
     using RavenDB.Shared;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
@@ -51,9 +52,13 @@
             Directory.CreateDirectory(logPath);
             var loggingSettings = new LoggingSettings
             {
-                LogLevel = LogLevel.Debug, LogPath = logPath
+                LogLevel = LogLevel.Debug,
+                LogPath = logPath
             };
             LoggerUtil.ActiveLoggers = Loggers.Test;
+
+            PersistenceFactory.AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default;
+
 
             var settings = new Settings
             {
@@ -101,8 +106,7 @@
                         }
 
                         return false;
-                    },
-                    AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
+                    }
                 }
             };
 

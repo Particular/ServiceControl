@@ -14,8 +14,7 @@
         {
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.SetupApplicationConfiguration();
-            var settings = hostBuilder.Configuration.Get<Settings>();
-            hostBuilder.Services.AddPersistence(hostBuilder.Configuration, settings);
+            hostBuilder.Services.AddPersistence(hostBuilder.Configuration);
 
             if (WindowsServiceHelpers.IsWindowsService())
             {

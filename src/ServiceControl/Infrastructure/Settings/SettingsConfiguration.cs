@@ -159,7 +159,7 @@ class PrimaryOptionsPostConfiguration : IPostConfigureOptions<PrimaryOptions> //
         options.ConnectionString ??= System.Configuration.ConfigurationManager.ConnectionStrings["NServiceBus/Transport"]?.ConnectionString;
         options.InstanceId = InstanceIdGenerator.FromApiUrl(options.ApiUrl);
 
-        options.RemoteInstanceSettings= string.IsNullOrEmpty(options.RemoteInstances)
+        options.RemoteInstanceSettings = string.IsNullOrEmpty(options.RemoteInstances)
             ? []
             : ParseRemoteInstances(options.RemoteInstances);
     }

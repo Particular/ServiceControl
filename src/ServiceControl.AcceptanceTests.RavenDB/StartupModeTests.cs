@@ -4,6 +4,7 @@
     using System.Runtime.Loader;
     using System.Threading.Tasks;
     using Hosting.Commands;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging.Abstractions;
     using NServiceBus;
@@ -22,6 +23,8 @@
         [SetUp]
         public async Task InitializeSettings()
         {
+            PersistenceFactory.AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default;
+
             var transportIntegration = new ConfigureEndpointLearningTransport();
 
             settings = new Settings
@@ -32,7 +35,6 @@
                     ErrorRetentionPeriod = TimeSpan.FromDays(1),
                     PersistenceType = "RavenDB",
                     ConnectionString = transportIntegration.ConnectionString,
-                    AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
                 }
             };
 
@@ -50,7 +52,7 @@
             // not terminating.
             var hostBuilder = Host.CreateApplicationBuilder();
             settings.ServiceControl.MaintenanceMode = true;
-            hostBuilder.Services.AddPersistence(hostBuilder.Configuration, settings); // TODO: Configuration needs to be initialized
+            hostBuilder.Services.AddPersistence(hostBuilder.Configuration); // TODO: Configuration needs to be initialized
 
             using var host = hostBuilder.Build();
             await host.StartAsync();

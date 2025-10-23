@@ -37,13 +37,13 @@ class ConfigureSettings(          // TODO: Register
 
 public class PrimaryOptions
 {
+
     public const string SectionName = "ServiceControl";
 
     public string TransportType { get; set; }
     public string PersistenceType { get; set; }
     public bool MaintenanceMode { get; set; }
     public ServiceControlSettings ServiceControlSettings { get; set; }
-    [JsonIgnore] public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; } = static (assemblyPath) => new PluginAssemblyLoadContext(assemblyPath);
     public string NotificationsFilter { get; set; }
     public bool AllowMessageEditing { get; set; }
     public Func<MessageContext, bool> MessageFilter { get; set; } //HINT: acceptance tests only
@@ -97,8 +97,7 @@ public class PrimaryOptions
             ConnectionString = ConnectionString,
             MaxConcurrency = MaximumConcurrencyLevel,
             RunCustomChecks = true,
-            TransportType = TransportType,
-            AssemblyLoadContextResolver = AssemblyLoadContextResolver
+            TransportType = TransportType
         };
         return transportSettings;
     }

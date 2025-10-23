@@ -8,11 +8,10 @@ namespace ServiceControl.Persistence
     {
         public static void AddPersistence(
             this IServiceCollection services,
-            IConfiguration configuration,
-            Settings settings
+            IConfiguration configuration
         )
         {
-            var persistence = PersistenceFactory.Create(configuration, settings);
+            var persistence = PersistenceFactory.Create(configuration);
             persistence.AddPersistence(services, configuration);
         }
     }

@@ -77,8 +77,13 @@
                 .AddLegacyAppSettings()
                 .AddEnvironmentVariables();
 
+            // TODO: Add LoggingOptions/Settings
             hostBuilder.Services.AddOptions<PrimaryOptions>()
                 .Bind(hostBuilder.Configuration.GetSection(PrimaryOptions.SectionName))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+            hostBuilder.Services.AddOptions<ServiceBusOptions>()
+                .Bind(hostBuilder.Configuration.GetSection(ServiceBusOptions.SectionName))
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
         }

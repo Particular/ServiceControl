@@ -77,7 +77,7 @@ namespace Particular.ServiceControl
             services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
             services.AddLicenseCheck();
-            services.AddPersistence(hostBuilder.Configuration, settings);
+            services.AddPersistence(hostBuilder.Configuration);
             services.AddMetrics(settings.ServiceControl.PrintMetrics);
 
             NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, configuration);
@@ -106,12 +106,13 @@ namespace Particular.ServiceControl
             hostBuilder.AddServiceControlComponents(settings, transportCustomization, ServiceControlMainInstance.Components);
         }
 
-        public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder, Settings settings)
+        public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder)
         {
-            var persistence = PersistenceFactory.Create(hostApplicationBuilder.Configuration, settings);
+            var persistence = PersistenceFactory.Create(hostApplicationBuilder.Configuration);
             persistence.AddInstaller(hostApplicationBuilder.Services);
         }
 
+        // TODO: Move to start
         static void RecordStartup(Settings settings, EndpointConfiguration endpointConfiguration)
         {
             var version = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
