@@ -3,6 +3,7 @@ namespace ServiceControl.Persistence.RavenDB;
 using CustomChecks;
 using MessageFailures;
 using MessageRedirects;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 using Operations.BodyStorage;
@@ -20,7 +21,7 @@ using PersistenceSettings = PersistenceSettings;
 
 class RavenPersistence(RavenPersisterSettings settings) : IPersistence
 {
-    public void AddPersistence(IServiceCollection services)
+    public void AddPersistence(IServiceCollection services, IConfiguration configuration)
     {
         ConfigureLifecycle(services);
 

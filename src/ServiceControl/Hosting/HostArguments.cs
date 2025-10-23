@@ -3,15 +3,14 @@ namespace Particular.ServiceControl.Hosting
     using System;
     using System.IO;
     using System.Reflection;
-    using global::ServiceControl.Configuration;
     using global::ServiceControl.Hosting.Commands;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Microsoft.Extensions.Configuration;
 
     class HostArguments
     {
-        public HostArguments(string[] args)
+        public HostArguments(string[] args, bool maintenanceMode)
         {
-            if (SettingsReader.Read<bool>(Settings.SettingsRootNamespace, "MaintenanceMode"))
+            if (maintenanceMode)
             {
                 args = [.. args, "-m"];
             }

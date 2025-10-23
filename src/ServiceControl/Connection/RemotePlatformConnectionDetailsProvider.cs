@@ -13,7 +13,7 @@
     {
         public Task ProvideConnectionDetails(PlatformConnectionDetails connection) =>
             Task.WhenAll(
-                settings.RemoteInstances
+                settings.ServiceControl.RemoteInstanceSettings
                     .Select(remote => UpdateFromRemote(remote, connection))
             );
 

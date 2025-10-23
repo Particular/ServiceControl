@@ -12,6 +12,7 @@
     using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.AspNetCore.Mvc.Routing;
     using Microsoft.AspNetCore.Routing;
+    using Microsoft.Extensions.Configuration;
     using NUnit.Framework;
     using Particular.Approvals;
 
@@ -21,8 +22,19 @@
         [Test]
         public void RootPathValue()
         {
-            var httpContext = new DefaultHttpContext { Request = { Scheme = "http", Host = new HostString("localhost") } };
-            var actionContext = new ActionContext { HttpContext = httpContext, RouteData = new RouteData(), ActionDescriptor = new ControllerActionDescriptor() };
+            var httpContext = new DefaultHttpContext
+            {
+                Request =
+                {
+                    Scheme = "http", Host = new HostString("localhost")
+                }
+            };
+            var actionContext = new ActionContext
+            {
+                HttpContext = httpContext,
+                RouteData = new RouteData(),
+                ActionDescriptor = new ControllerActionDescriptor()
+            };
             var controllerContext = new ControllerContext(actionContext);
 
             var settings = CreateTestSettings();
@@ -48,9 +60,9 @@
                     var type = method.DeclaringType;
                     var httpMethods = method.GetCustomAttributes(true)
                         .OfType<IActionHttpMethodProvider>()
-                           .SelectMany(att => att.HttpMethods.Select(m => m))
-                           .Distinct()
-                           .OrderBy(httpMethod => httpMethod)
+                        .SelectMany(att => att.HttpMethods.Select(m => m))
+                        .Distinct()
+                        .OrderBy(httpMethod => httpMethod)
                         .ToArray();
 
                     if (!httpMethods.Any())
@@ -76,6 +88,7 @@
             {
                 builder.AppendLine($"{item.HttpMethods} /{item.Route} => {item.MethodSignature}");
             }
+
             var httpApi = builder.ToString();
             Console.Write(httpApi);
 
@@ -128,6 +141,10 @@
             Approver.Verify(settings);
         }
 
-        static Settings CreateTestSettings() => new("LearningTransport", "InMemory");
+        static Settings CreateTestSettings() => new(
+            configuration: new ConfigurationBuilder().Build(),
+            transportType: "LearningTransport",
+            persisterType: "InMemory"
+        );
     }
 }

@@ -11,9 +11,11 @@ using System.Threading.Tasks;
 using Approvals;
 using Contracts;
 using Infrastructure;
+using Microsoft.Extensions.Configuration;
 using MonitoringThroughput;
 using NUnit.Framework;
 using ServiceControl.Transports.BrokerThroughput;
+using Shared;
 
 [TestFixture]
 class MonitoringService_Tests : ThroughputCollectorTestFixture
@@ -82,7 +84,13 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
             EndpointThroughputData = new EndpointThroughputData[] { new() { Name = endpointName, Throughput = 15 } }
         };
 
-        var monitoringService = new MonitoringService(DataStore, new BrokerThroughputQuery_WithSanitization());
+        var emptyConfig = new ConfigurationBuilder().Build();
+
+        var monitoringService = new MonitoringService(
+            DataStore,
+            new ServiceControlSettings(emptyConfig),
+            new BrokerThroughputQuery_WithSanitization()
+        );
         byte[] messageBytes = JsonSerializer.SerializeToUtf8Bytes(message);
         await monitoringService.RecordMonitoringThroughput(messageBytes, default);
         string endpointNameSanitized = "e-ndpoint-1";
@@ -90,7 +98,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         // Act
         Endpoint foundEndpoint = await DataStore.GetEndpoint(endpointName, ThroughputSource.Monitoring, default);
 
-        // Assert        
+        // Assert
         Assert.That(foundEndpoint, Is.Not.Null, $"Expected endpoint {endpointName} not found.");
         Assert.That(foundEndpoint.SanitizedName, Is.EqualTo(endpointNameSanitized),
             $"Endpoint {endpointName} name not sanitized correctly.");

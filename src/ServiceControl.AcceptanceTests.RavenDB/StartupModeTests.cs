@@ -4,6 +4,7 @@
     using System.Runtime.Loader;
     using System.Threading.Tasks;
     using Hosting.Commands;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging.Abstractions;
     using NServiceBus;
@@ -22,16 +23,19 @@
         [SetUp]
         public async Task InitializeSettings()
         {
+            PersistenceFactory.AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default;
+
             var transportIntegration = new ConfigureEndpointLearningTransport();
 
-            settings = new Settings(
-                transportType: transportIntegration.TypeName,
-                forwardErrorMessages: false,
-                errorRetentionPeriod: TimeSpan.FromDays(1),
-                persisterType: "RavenDB")
+            settings = new Settings
             {
-                TransportConnectionString = transportIntegration.ConnectionString,
-                AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
+                ServiceControl =
+                {
+                    TransportType = transportIntegration.TypeName,
+                    ErrorRetentionPeriod = TimeSpan.FromDays(1),
+                    PersistenceType = "RavenDB",
+                    ConnectionString = transportIntegration.ConnectionString,
+                }
             };
 
             configuration = new AcceptanceTestStorageConfiguration();
@@ -47,7 +51,8 @@
             // ideally we'd be using the MaintenanceModeCommand here but that indefinitely blocks due to the RunAsync
             // not terminating.
             var hostBuilder = Host.CreateApplicationBuilder();
-            hostBuilder.Services.AddPersistence(settings, maintenanceMode: true);
+            settings.ServiceControl.MaintenanceMode = true;
+            hostBuilder.AddPersistence(); // TODO: Configuration needs to be initialized
 
             using var host = hostBuilder.Build();
             await host.StartAsync();
@@ -56,7 +61,7 @@
 
         [Test]
         public async Task CanRunImportFailedMessagesMode()
-            => await new TestableImportFailedErrorsCommand().Execute(new HostArguments(Array.Empty<string>()), settings);
+            => await new TestableImportFailedErrorsCommand().Execute(new HostArguments([], maintenanceMode: false));
 
         class TestableImportFailedErrorsCommand() : ImportFailedErrorsCommand()
         {
@@ -65,7 +70,10 @@
                 var configuration = base.CreateEndpointConfiguration(settings);
 
                 //HINT: we want to exclude this assembly to prevent loading features that are part of the acceptance testing framework
-                var thisAssembly = new[] { typeof(StartupModeTests).Assembly.GetName().Name };
+                var thisAssembly = new[]
+                {
+                    typeof(StartupModeTests).Assembly.GetName().Name
+                };
 
                 configuration.AssemblyScanner().ExcludeAssemblies(thisAssembly);
 

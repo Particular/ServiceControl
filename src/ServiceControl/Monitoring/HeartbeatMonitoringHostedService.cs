@@ -17,7 +17,7 @@
             this.persistence = persistence;
             this.scheduler = scheduler;
             this.logger = logger;
-            gracePeriod = settings.HeartbeatGracePeriod;
+            gracePeriod = settings.ServiceControl.HeartbeatGracePeriod;
         }
         public async Task StartAsync(CancellationToken cancellationToken)
         {

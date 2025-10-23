@@ -29,7 +29,7 @@
         [HttpPost]
         public async Task<ActionResult<EditRetryResponse>> Edit(string failedMessageId, [FromBody] EditMessageModel edit)
         {
-            if (!settings.AllowMessageEditing)
+            if (!settings.ServiceControl.AllowMessageEditing)
             {
                 logger.LogInformation("Message edit-retry has not been enabled");
                 return NotFound();
@@ -91,7 +91,7 @@
         EditConfigurationModel GetEditConfiguration() =>
             new()
             {
-                Enabled = settings.AllowMessageEditing,
+                Enabled = settings.ServiceControl.AllowMessageEditing,
                 LockedHeaders = new[]
                 {
                     Headers.MessageId,

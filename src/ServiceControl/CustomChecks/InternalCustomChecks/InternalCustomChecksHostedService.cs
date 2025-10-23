@@ -7,8 +7,10 @@
     using Infrastructure.BackgroundTasks;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using NServiceBus.CustomChecks;
     using NServiceBus.Hosting;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Operations;
 
     class InternalCustomChecksHostedService(
@@ -16,7 +18,7 @@
         HostInformation hostInfo,
         IAsyncTimer scheduler,
         CustomCheckResultProcessor checkResultProcessor,
-        string endpointName,
+        IOptions<PrimaryOptions> options,
         ILogger<InternalCustomChecksHostedService> logger)
         : IHostedService
     {
@@ -45,7 +47,7 @@
         {
             Host = hostInfo.DisplayName,
             HostId = hostInfo.HostId,
-            Name = endpointName
+            Name = options.Value.InstanceName
         };
         IList<InternalCustomCheckManager> managers = [];
     }

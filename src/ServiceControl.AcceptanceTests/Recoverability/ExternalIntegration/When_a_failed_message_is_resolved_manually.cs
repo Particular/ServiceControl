@@ -69,8 +69,8 @@
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
-                    routing.RouteToEndpoint(typeof(MessageFailureResolvedManually).Assembly, Settings.DEFAULT_INSTANCE_NAME);
-                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<MessageFailureResolvedManually>(Settings.DEFAULT_INSTANCE_NAME); });
+                    routing.RouteToEndpoint(typeof(MessageFailureResolvedManually).Assembly, PrimaryOptions.DEFAULT_INSTANCE_NAME);
+                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<MessageFailureResolvedManually>(PrimaryOptions.DEFAULT_INSTANCE_NAME); });
 
             public class FailureHandler(Context testContext) : IHandleMessages<MessageFailureResolvedManually>
             {

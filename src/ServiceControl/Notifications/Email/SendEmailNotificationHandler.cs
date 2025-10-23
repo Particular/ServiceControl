@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using NServiceBus;
     using NServiceBus.Transport;
     using Persistence;
@@ -14,13 +15,13 @@
         readonly EmailThrottlingState throttlingState;
         readonly EmailSender emailSender;
 
-        public SendEmailNotificationHandler(IErrorMessageDataStore store, Settings settings, EmailThrottlingState throttlingState, EmailSender emailSender, ILogger<SendEmailNotificationHandler> logger)
+        public SendEmailNotificationHandler(IErrorMessageDataStore store, IOptions<PrimaryOptions> settings, EmailThrottlingState throttlingState, EmailSender emailSender, ILogger<SendEmailNotificationHandler> logger)
         {
             this.store = store;
             this.throttlingState = throttlingState;
             this.emailSender = emailSender;
             this.logger = logger;
-            emailDropFolder = settings.EmailDropFolder;
+            emailDropFolder = settings.Value.EmailDropFolder;
         }
 
         public async Task Handle(SendEmailNotification message, IMessageHandlerContext context)

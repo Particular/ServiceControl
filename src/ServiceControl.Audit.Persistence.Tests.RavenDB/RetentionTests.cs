@@ -15,10 +15,10 @@
     {
         public override Task Setup()
         {
-            SetSettings = s =>
+            SetSettings = (s,keys) =>
             {
                 s.AuditRetentionPeriod = TimeSpan.FromSeconds(2);
-                s.PersisterSpecificSettings["ExpirationProcessTimerInSeconds"] = 3.ToString();
+                keys["ExpirationProcessTimerInSeconds"] = 3.ToString();
             };
             return base.Setup();
         }

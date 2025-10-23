@@ -6,15 +6,16 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Options;
     using NServiceBus.CustomChecks;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class CheckRemotes : CustomCheck
     {
-        public CheckRemotes(Settings settings, IHttpClientFactory httpClientFactory) : base("ServiceControl Remotes", "Health", TimeSpan.FromSeconds(30))
+        public CheckRemotes(IOptions<PrimaryOptions> options, IHttpClientFactory httpClientFactory) : base("ServiceControl Remotes", "Health", TimeSpan.FromSeconds(30))
         {
             this.httpClientFactory = httpClientFactory;
-            remoteInstanceSetting = settings.RemoteInstances;
+            remoteInstanceSetting = options.Value.RemoteInstanceSettings;
             remoteQueryTasks = new List<Task>(remoteInstanceSetting.Length);
         }
 

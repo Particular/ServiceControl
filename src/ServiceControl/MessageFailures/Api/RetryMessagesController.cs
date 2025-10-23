@@ -27,13 +27,13 @@
         [HttpPost]
         public async Task<IActionResult> RetryMessageBy([FromQuery(Name = "instance_id")] string instanceId, string failedMessageId)
         {
-            if (string.IsNullOrWhiteSpace(instanceId) || instanceId == settings.InstanceId)
+            if (string.IsNullOrWhiteSpace(instanceId) || instanceId == settings.ServiceControl.InstanceId)
             {
                 await messageSession.SendLocal<RetryMessage>(m => m.FailedMessageId = failedMessageId);
                 return Accepted();
             }
 
-            var remote = settings.RemoteInstances.SingleOrDefault(r => r.InstanceId == instanceId);
+            var remote = settings.ServiceControl.RemoteInstanceSettings.SingleOrDefault(r => r.InstanceId == instanceId);
 
             if (remote == null)
             {

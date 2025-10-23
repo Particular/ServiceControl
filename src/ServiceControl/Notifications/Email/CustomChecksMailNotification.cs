@@ -7,12 +7,14 @@
     using Contracts.CustomChecks;
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class CustomChecksMailNotification : IDomainHandler<CustomCheckFailed>, IDomainHandler<CustomCheckSucceeded>
     {
         readonly IMessageSession messageSession;
+        readonly Settings settings;
         readonly EmailThrottlingState throttlingState;
         readonly string instanceName;
         string instanceAddress;
@@ -29,17 +31,18 @@
             "Error Message Ingestion"
         };
 
-        public CustomChecksMailNotification(IMessageSession messageSession, Settings settings, EmailThrottlingState throttlingState, ILogger<CustomChecksMailNotification> logger)
+        public CustomChecksMailNotification(IMessageSession messageSession, IOptions<Settings> settingsOptions, EmailThrottlingState throttlingState, ILogger<CustomChecksMailNotification> logger)
         {
             this.messageSession = messageSession;
             this.throttlingState = throttlingState;
             this.logger = logger;
-            instanceName = settings.InstanceName;
-            instanceAddress = settings.ApiUrl;
+            settings = settingsOptions.Value;
+            instanceName = settings.ServiceControl.InstanceName;
+            instanceAddress = settings.ServiceControl.ApiUrl;
 
-            if (string.IsNullOrWhiteSpace(settings.NotificationsFilter) == false)
+            if (string.IsNullOrWhiteSpace(settings.ServiceControl.NotificationsFilter) == false)
             {
-                serviceControlHealthCustomCheckIds = NotificationsFilterParser.Parse(settings.NotificationsFilter);
+                serviceControlHealthCustomCheckIds = NotificationsFilterParser.Parse(settings.ServiceControl.NotificationsFilter);
             }
         }
 
