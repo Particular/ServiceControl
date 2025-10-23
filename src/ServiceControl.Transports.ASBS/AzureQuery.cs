@@ -268,8 +268,9 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
     static Uri BuildMetricsEndpoint(MetricsClientAudience audience, string regionName)
     {
+        var region = regionName.ToLowerInvariant();
         var builder = new UriBuilder(audience.ToString());
-        builder.Host = $"{regionName.ToLowerInvariant()}.{builder.Host}";
+        builder.Host = $"{region}.{builder.Host}";
         return builder.Uri;
     }
 
@@ -332,15 +333,6 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         { ArmEnvironment.AzureGermany, "servicebus.cloudapi.de" },
         { ArmEnvironment.AzureChina, "servicebus.chinacloudapi.cn" },
     };
-
-    // Build metrics endpoint host directly from the configured audience.
-    Uri BuildMetricsEndpointFromAudience(MetricsClientAudience audience, string regionName)
-    {
-        var region = regionName.ToLowerInvariant();
-        var builder = new UriBuilder(audience.ToString());
-        builder.Host = $"{region}.{builder.Host}";
-        return builder.Uri;
-    }
 
     async Task<HashSet<string>> GetValidNamespaceNames(CancellationToken cancellationToken = default)
     {
