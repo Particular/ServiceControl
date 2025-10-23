@@ -3,6 +3,8 @@ namespace Particular.ServiceControl
     using System;
     using System.Diagnostics;
     using System.Runtime.InteropServices;
+    using System.Threading;
+    using System.Threading.Tasks;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
     using global::ServiceControl.Hosting;
@@ -17,13 +19,16 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Transports;
     using Licensing;
     using Microsoft.AspNetCore.HttpLogging;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Hosting.WindowsServices;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Transport;
+    using NuGet.Versioning;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -33,12 +38,11 @@ namespace Particular.ServiceControl
         public static void AddServiceControl(
             this IHostApplicationBuilder hostBuilder,
             Settings settings,
-            EndpointConfiguration configuration
+            EndpointConfiguration endpointConfiguration
         )
         {
-            ArgumentNullException.ThrowIfNull(configuration);
 
-            RecordStartup(settings, configuration);
+            AddVersion(hostBuilder);
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.UserInteractive && Debugger.IsAttached)
             {
@@ -46,7 +50,7 @@ namespace Particular.ServiceControl
             }
 
             hostBuilder.Logging.ClearProviders();
-            hostBuilder.Logging.ConfigureLogging(settings.Logging.LogLevel);
+            hostBuilder.Logging.ConfigureLogging(settings.Logging.ToLoggingSettings().LogLevel);
 
             var services = hostBuilder.Services;
             var transportSettings = settings.ServiceControl.ToTransportSettings();
@@ -82,8 +86,12 @@ namespace Particular.ServiceControl
 
             services.AddMetrics(settings.ServiceControl.PrintMetrics);
 
-            NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, configuration);
-            hostBuilder.UseNServiceBus(configuration);
+            NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, endpointConfiguration);
+            endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
+            {
+                Settings = settings,
+            });
+            hostBuilder.UseNServiceBus(endpointConfiguration);
 
             if (!settings.ServiceControl.DisableExternalIntegrationsPublishing)
             {
@@ -108,35 +116,41 @@ namespace Particular.ServiceControl
             hostBuilder.AddServiceControlComponents(settings, transportCustomization, ServiceControlMainInstance.Components);
         }
 
+        static void AddVersion(IHostApplicationBuilder hostBuilder) => hostBuilder.Services.AddSingleton(NuGetVersion.Parse(FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion));
+
         public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder)
         {
             var persistence = PersistenceFactory.Create(hostApplicationBuilder.Configuration);
             persistence.AddInstaller(hostApplicationBuilder.Services);
         }
+    }
 
-        // TODO: Move to start
-        static void RecordStartup(Settings settings, EndpointConfiguration endpointConfiguration)
+    public class RecordStartup(
+        ILogger<RecordStartup> logger,
+        IOptions<PrimaryOptions> primaryOptions,
+        IOptions<LoggingOptions> loggingOptions,
+        NuGetVersion version
+    ) : BackgroundService
+    {
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var version = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
+            var primary = primaryOptions.Value;
+            var logging = loggingOptions.Value;
 
             var startupMessage = $"""
                                   -------------------------------------------------------------
                                   ServiceControl Version:             {version}
-                                  Audit Retention Period (optional):  {settings.ServiceControl.AuditRetentionPeriod}
-                                  Error Retention Period:             {settings.ServiceControl.ErrorRetentionPeriod}
-                                  Ingest Error Messages:              {settings.ServiceControl.IngestErrorMessages}
-                                  Forwarding Error Messages:          {settings.ServiceControl.ForwardErrorMessages}
-                                  ServiceControl Logging Level:       {settings.Logging.LogLevel}
-                                  Selected Transport Customization:   {settings.ServiceControl.TransportType}
+                                  Audit Retention Period (optional):  {primary.AuditRetentionPeriod}
+                                  Error Retention Period:             {primary.ErrorRetentionPeriod}
+                                  Ingest Error Messages:              {primary.IngestErrorMessages}
+                                  Forwarding Error Messages:          {primary.ForwardErrorMessages}
+                                  ServiceControl Logging Level:       {logging.LogLevel}
+                                  Selected Transport Customization:   {primary.TransportType}
                                   ------------------------------------------------------------
                                   """;
 
-            var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.Logging.LogLevel);
             logger.LogInformation(startupMessage);
-            endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
-            {
-                Settings = settings,
-            });
+            return Task.CompletedTask;
         }
     }
 }

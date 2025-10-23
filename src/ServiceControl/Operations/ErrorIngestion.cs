@@ -32,7 +32,9 @@
             ErrorIngestor ingestor,
             IIngestionUnitOfWorkFactory unitOfWorkFactory,
             IHostApplicationLifetime applicationLifetime,
-            ILogger<ErrorIngestion> logger)
+            ILogger<ErrorIngestion> logger,
+            IOptions<LoggingOptions> loggingOptions
+        )
         {
             settings = settingsOptions.Value;
             this.transportCustomization = transportCustomization;
@@ -59,7 +61,7 @@
                 FullMode = BoundedChannelFullMode.Wait
             });
 
-            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, settings.Logging, OnCriticalError, logger);
+            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, loggingOptions, OnCriticalError, logger);
 
             watchdog = new Watchdog(
                 "failed message ingestion",

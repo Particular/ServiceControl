@@ -50,11 +50,7 @@
         {
             var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(logPath);
-            var loggingSettings = new LoggingSettings
-            {
-                LogLevel = LogLevel.Debug,
-                LogPath = logPath
-            };
+            var logLevel = LogLevel.Debug;
             LoggerUtil.ActiveLoggers = Loggers.Test;
 
             PersistenceFactory.AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default;
@@ -62,7 +58,11 @@
 
             var settings = new Settings
             {
-                Logging = loggingSettings,
+                Logging =
+                {
+                    LogLevel = logLevel.ToString(),
+                    LogPath = logPath
+                },
                 ServiceControl =
                 {
                     TransportType = transportToUse.TypeName,
@@ -80,7 +80,7 @@
                     {
                         var headers = messageContext.Headers;
                         var id = messageContext.NativeMessageId;
-                        var logger = LoggerUtil.CreateStaticLogger<ServiceControlComponentRunner>(loggingSettings.LogLevel);
+                        var logger = LoggerUtil.CreateStaticLogger<ServiceControlComponentRunner>(logLevel);
                         headers.TryGetValue(Headers.MessageId, out var originalMessageId);
                         logger.LogDebug("OnMessage for message '{MessageId}'({OriginalMessageId})", id, originalMessageId ?? string.Empty);
 

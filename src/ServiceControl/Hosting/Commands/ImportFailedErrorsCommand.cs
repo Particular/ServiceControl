@@ -8,7 +8,6 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using NServiceBus;
     using Operations;
     using Particular.ServiceControl;
@@ -57,7 +56,6 @@
             }
         }
 
-
         protected virtual EndpointConfiguration CreateEndpointConfiguration(Settings settings)
         {
             var endpointConfiguration = new EndpointConfiguration(settings.ServiceControl.InstanceName);
@@ -65,27 +63,6 @@
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 
             return endpointConfiguration;
-        }
-    }
-
-    public static class HostBuilderExt
-    {
-        public static void SetupApplicationConfiguration(this IHostApplicationBuilder hostBuilder)
-        {
-            hostBuilder.Configuration
-                .SetBasePath(AppContext.BaseDirectory)
-                .AddLegacyAppSettings()
-                .AddEnvironmentVariables();
-
-            // TODO: Add LoggingOptions/Settings
-            hostBuilder.Services.AddOptions<PrimaryOptions>()
-                .Bind(hostBuilder.Configuration.GetSection(PrimaryOptions.SectionName))
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
-            hostBuilder.Services.AddOptions<ServiceBusOptions>()
-                .Bind(hostBuilder.Configuration.GetSection(ServiceBusOptions.SectionName))
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
         }
     }
 }

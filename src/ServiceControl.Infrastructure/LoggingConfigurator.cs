@@ -16,7 +16,7 @@ namespace ServiceControl.Infrastructure
     {
         public static void ConfigureLogging(LoggingOptions options)
         {
-            var loggingSettings = LoggingOptionsToSettings.Map(options);
+            var loggingSettings = options.ToLoggingSettings();
 
             //used for loggers outside of ServiceControl (i.e. transports and core) to use the logger factory defined here
             LogManager.UseFactory(new ExtensionsLoggerFactory(LoggerFactory.Create(configure => configure.ConfigureLogging(loggingSettings.LogLevel))));
