@@ -26,12 +26,12 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     : BrokerThroughputQuery(logger, "AzureServiceBus")
 {
     string serviceBusName = string.Empty;
-    MetricsClient? client;
     ArmClient? armClient;
     TokenCredential? credential;
-    string? resourceId;
+    ResourceIdentifier? resourceId;
     ArmEnvironment armEnvironment;
-    MetricsClientAudience metricsQueryAudience;
+    MetricsClientAudience metricsClientAudience;
+    MetricsClient? metricsClient;
 
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
@@ -104,7 +104,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             Diagnostics.AppendLine("Client secret set");
         }
 
-        (armEnvironment, metricsQueryAudience) = GetEnvironment();
+        (armEnvironment, metricsClientAudience) = GetEnvironment();
 
         if (managementUrl == null)
         {
@@ -143,7 +143,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
         return;
 
-        (ArmEnvironment armEnvironment, MetricsClientAudience metricsQueryAudience) GetEnvironment()
+        (ArmEnvironment armEnvironment, MetricsClientAudience metricsClientAudience) GetEnvironment()
         {
             if (managementUrlParsed == null)
             {
@@ -234,10 +234,51 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         }
     }
 
+    async Task<MetricsClient> InitializeMetricsClient(CancellationToken cancellationToken = default)
+    {
+        if (resourceId is null || armClient is null || credential is null)
+        {
+            throw new InvalidOperationException("AzureQuery has not been initialized correctly.");
+        }
+
+        var serviceBusNamespaceResource = await armClient
+            .GetServiceBusNamespaceResource(resourceId).GetAsync(cancellationToken)
+                ?? throw new Exception($"Could not find ServiceBus with resource Id: \"{resourceId}\"");
+
+        // Determine the region of the namespace
+        var regionName = serviceBusNamespaceResource.Value.Data.Location.Name;
+
+        // Build the regional Azure Monitor Metrics endpoint from the audience
+        var metricsEndpoint = BuildMetricsEndpoint(metricsClientAudience, regionName);
+
+        // CreateNewOnMetadataUpdateAttribute the MetricsClient for this namespace
+        return new MetricsClient(
+            metricsEndpoint,
+            credential!,
+            new MetricsClientOptions
+            {
+                Audience = metricsClientAudience,
+                Transport = new HttpClientTransport(
+                    new HttpClient(new SocketsHttpHandler
+                    {
+                        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
+                    }))
+            });
+    }
+
+    static Uri BuildMetricsEndpoint(MetricsClientAudience audience, string regionName)
+    {
+        var builder = new UriBuilder(audience.ToString());
+        builder.Host = $"{regionName.ToLowerInvariant()}.{builder.Host}";
+        return builder.Uri;
+    }
+
     async Task<IReadOnlyList<MetricValue>> GetMetrics(string queueName, DateOnly startTime, DateOnly endTime,
         CancellationToken cancellationToken = default)
     {
-        var response = await client!.QueryResourcesAsync(
+        metricsClient ??= await InitializeMetricsClient(cancellationToken);
+
+        var response = await metricsClient.QueryResourcesAsync(
             [new ResourceIdentifier(resourceId!)],
             ["CompleteMessage"],
             "Microsoft.ServiceBus/namespaces",
@@ -261,34 +302,13 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         var validNamespaces = await GetValidNamespaceNames(cancellationToken);
 
         SubscriptionResource? subscription = await armClient!.GetDefaultSubscriptionAsync(cancellationToken);
-        var namespaces =
-            subscription.GetServiceBusNamespacesAsync(cancellationToken);
+        var namespaces = subscription.GetServiceBusNamespacesAsync(cancellationToken);
 
         await foreach (var serviceBusNamespaceResource in namespaces.WithCancellation(cancellationToken))
         {
             if (validNamespaces.Contains(serviceBusNamespaceResource.Data.Name))
             {
                 resourceId = serviceBusNamespaceResource.Id;
-
-                // Determine the region of the namespace
-                var regionName = serviceBusNamespaceResource.Data.Location.Name;
-
-                // Build the regional Azure Monitor Metrics endpoint from the audience
-                var metricsEndpoint = BuildMetricsEndpointFromAudience(metricsQueryAudience, regionName);
-
-                // CreateNewOnMetadataUpdateAttribute the MetricsClient for this namespace
-                client = new MetricsClient(
-                    metricsEndpoint,
-                    credential!,
-                    new MetricsClientOptions
-                    {
-                        Audience = metricsQueryAudience,
-                        Transport = new HttpClientTransport(
-                            new HttpClient(new SocketsHttpHandler
-                            {
-                                PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
-                            }))
-                    });
 
                 await foreach (var queue in serviceBusNamespaceResource.GetServiceBusQueues()
                                    .WithCancellation(cancellationToken))
