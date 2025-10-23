@@ -71,6 +71,7 @@
             // mark the new message with a link to the original message id
             outgoingMessage.Headers.Add("ServiceControl.EditOf", message.FailedMessageId);
             outgoingMessage.Headers["ServiceControl.Retry.AcknowledgementQueue"] = errorQueueNameCache.ResolvedErrorAddress;
+            outgoingMessage.Headers["ServiceControl.Retry.UniqueMessageId"] = Guid.NewGuid().ToString("D");
 
             var address = ApplyRedirect(attempt.FailureDetails.AddressOfFailingEndpoint, redirects);
 
