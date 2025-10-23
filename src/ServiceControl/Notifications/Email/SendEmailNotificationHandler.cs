@@ -32,6 +32,8 @@
                 notifications = await manager.LoadSettings(cacheTimeout);
             }
 
+            logger.LogInformation("Processing email notification. Subject: {Subject}, Body: {Body}", message.Subject, message.Body);
+
             if (notifications == null || !notifications.Email.Enabled)
             {
                 logger.LogInformation("Skipping email sending. Notifications turned-off");

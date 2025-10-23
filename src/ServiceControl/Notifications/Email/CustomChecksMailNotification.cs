@@ -25,7 +25,6 @@
             "ServiceControl database",
             "ServiceControl Remotes",
             "Error Message Ingestion Process",
-            "Audit Message Ingestion",
             "Error Message Ingestion"
         };
 
