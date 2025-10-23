@@ -9,6 +9,8 @@ public static class LoggerOptionsExtensions
 {
     public static LoggingSettings ToLoggingSettings(this LoggingOptions src)
     {
+        ArgumentNullException.ThrowIfNull(src);
+
         LoggingSettings dst = new();
 
         var activeLoggers = Loggers.None;
@@ -32,7 +34,9 @@ public static class LoggerOptionsExtensions
         }
 
         //this defaults to NLog because historically that was the default, and we don't want to break existing installs that don't have the config key to define loggingProviders
-        LoggerUtil.ActiveLoggers = activeLoggers == Loggers.None ? Loggers.NLog : activeLoggers;
+        LoggerUtil.ActiveLoggers = activeLoggers == Loggers.None
+            ? Loggers.NLog
+            : activeLoggers;
 
         dst.LogLevel = InitializeLogLevel(src.LogLevel, dst.LogLevel);
         dst.LogPath = Environment.ExpandEnvironmentVariables(src.LogPath ?? DefaultLogLocation());

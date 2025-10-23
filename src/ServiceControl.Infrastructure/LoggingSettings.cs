@@ -6,7 +6,7 @@ public record LoggingOptions
 {
     public string LogLevel { get; set; } = "Information";
     public string LogPath { get; set; }
-    public string LoggingProviders { get; set; }
+    public string LoggingProviders { get; set; } = "NLog";
     public string SeqAddress { get; set; }
 }
 
