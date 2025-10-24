@@ -84,6 +84,15 @@
                 {
                     var failedMessageId = await GetFailedMessageId(context);
                     announcerTasks.Add(retryConfirmationProcessor.Announce(failedMessageId));
+
+                    //OPTIONAL: raise events for the entire chain of edits and retries
+                    // var retryUniqueMessageId = context.Headers["ServiceControl.Retry.UniqueMessageId"];
+                    // var failedMessageIds = await GetFailedMessageIdChain(retryUniqueMessageId);
+
+                    // foreach (var failedMessageId in failedMessageIds)
+                    // {
+                    //     announcerTasks.Add(retryConfirmationProcessor.Announce(failedMessageId));
+                    // }
                 }
 
                 await Task.WhenAll(announcerTasks);
@@ -110,10 +119,10 @@
                 throw;
             }
         }
-
         async Task<string> GetFailedMessageId(MessageContext context)
         {
             var retryUniqueMessageId = context.Headers["ServiceControl.Retry.UniqueMessageId"];
+
 
             //Check if this retry was recorded as an edit and retry in order to locate the original failedMessageId; 
             using var editFailedMessagesManager = await errorMessageDataStore.CreateEditFailedMessageManager();
@@ -122,6 +131,34 @@
             // If not found, this is a regular retry, so return retryUniqueMessageId
             return failedMessageId ?? retryUniqueMessageId;
         }
+
+        // async Task<List<string>> GetFailedMessageIdChain(string retryUniqueMessageId)
+        // {
+        //     var failedMessageIds = new List<string>();
+        //     var currentId = retryUniqueMessageId;
+
+        //     using var editFailedMessagesManager = await errorMessageDataStore.CreateEditFailedMessageManager();
+
+        //     while (true)
+        //     {
+        //         var failedMessageId = await editFailedMessagesManager.GetFailedMessageIdByEditId(currentId);
+
+        //         if (failedMessageId == null)
+        //         {
+        //             // If not found, this is a regular retry, so include the current ID
+        //             failedMessageIds.Add(currentId);
+        //             break;
+        //         }
+
+        //         // Found an edit - add the original failed message ID to our chain
+        //         failedMessageIds.Add(failedMessageId);
+
+        //         // Continue navigating the chain by looking for edits of this failed message
+        //         currentId = failedMessageId;
+        //     }
+
+        //     return failedMessageIds;
+        // }
 
         async Task<IReadOnlyList<MessageContext>> PersistFailedMessages(List<MessageContext> failedMessageContexts, List<MessageContext> retriedMessageContexts, CancellationToken cancellationToken)
         {
