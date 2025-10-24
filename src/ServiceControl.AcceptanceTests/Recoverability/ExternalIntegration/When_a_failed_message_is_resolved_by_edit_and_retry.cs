@@ -40,27 +40,22 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                     ctx => Task.FromResult(ctx.ExternalProcessorSubscribed))
                 .Do("EditAndRetry", async ctx =>
                 {
-                    // Prepare the edit payload that conforms to the web API's snake_case format
-                    // Based on AMessage structure from the base class
+                    // First retrieve the original failed message to get all its headers
+                    var originalFailedMessageResult = await this.TryGet<FailedMessage>($"/api/errors/{ctx.FailedMessageId}");
+                    var originalFailedMessage = originalFailedMessageResult.Item;
+
+                    // Convert the original headers to Dictionary<string, string> for the edit payload
+                    var originalHeaders = new Dictionary<string, string>();
+                    foreach (var header in originalFailedMessage.ProcessingAttempts[0].Headers)
+                    {
+                        originalHeaders[header.Key] = header.Value;
+                    }
+
+                    // Prepare the edit payload with all original headers (locked headers unchanged, others can be modified)
                     var editPayload = new
                     {
-                        message_body = "{}",  // Empty JSON body for AMessage (ICommand with no properties)
-                        message_headers = new Dictionary<string, string>
-                        {
-                            ["NServiceBus.MessageId"] = Guid.NewGuid().ToString(),
-                            ["NServiceBus.MessageIntent"] = "Send",
-                            ["NServiceBus.ConversationId"] = Guid.NewGuid().ToString(),
-                            ["NServiceBus.CorrelationId"] = Guid.NewGuid().ToString(),
-                            ["NServiceBus.ReplyToAddress"] = "TestEndpoint",
-                            ["NServiceBus.OriginatingMachine"] = "TestMachine",
-                            ["NServiceBus.OriginatingEndpoint"] = "TestEndpoint",
-                            ["NServiceBus.ContentType"] = "application/json",
-                            ["NServiceBus.EnclosedMessageTypes"] = typeof(AMessage).AssemblyQualifiedName,
-                            ["NServiceBus.Version"] = "8.0.0",
-                            ["NServiceBus.TimeSent"] = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss:ffffff Z"),
-                            ["NServiceBus.ProcessingMachine"] = "TestMachine",
-                            ["NServiceBus.ProcessingEndpoint"] = nameof(ErrorSender)
-                        }
+                        message_body = "{}",  // Empty JSON body for AMessage (ICommand with no properties) 
+                        message_headers = originalHeaders  // Use all original headers to satisfy controller validation
                     };
 
                     await this.Post($"/api/edit/{ctx.FailedMessageId}", editPayload);
