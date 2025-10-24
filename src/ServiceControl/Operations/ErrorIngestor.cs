@@ -15,12 +15,12 @@
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence.UnitOfWork;
+    using ServiceControl.Persistence;
     using ServiceControl.Transports;
 
     public class ErrorIngestor
     {
         static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
-
         public ErrorIngestor(Metrics metrics,
             IEnumerable<IEnrichImportedErrorMessages> errorEnrichers,
             IEnumerable<IFailedMessageEnricher> failedMessageEnrichers,
@@ -28,11 +28,13 @@
             IIngestionUnitOfWorkFactory unitOfWorkFactory,
             Lazy<IMessageDispatcher> messageDispatcher,
             ITransportCustomization transportCustomization,
+            IErrorMessageDataStore errorMessageDataStore,
             Settings settings,
             ILogger<ErrorIngestor> logger)
         {
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.messageDispatcher = messageDispatcher;
+            this.errorMessageDataStore = errorMessageDataStore;
             this.settings = settings;
             this.logger = logger;
             bulkInsertDurationMeter = metrics.GetMeter("Error ingestion - bulk insert duration", FrequencyInMilliseconds);
@@ -80,7 +82,8 @@
                 }
                 foreach (var context in retriedMessages)
                 {
-                    announcerTasks.Add(retryConfirmationProcessor.Announce(context));
+                    var failedMessageId = await GetFailedMessageId(context);
+                    announcerTasks.Add(retryConfirmationProcessor.Announce(failedMessageId));
                 }
 
                 await Task.WhenAll(announcerTasks);
@@ -106,6 +109,18 @@
                 // making sure to rethrow so that all messages get marked as failed
                 throw;
             }
+        }
+
+        async Task<string> GetFailedMessageId(MessageContext context)
+        {
+            var retryUniqueMessageId = context.Headers["ServiceControl.Retry.UniqueMessageId"];
+
+            //Check if this retry was recorded as an edit and retry in order to locate the original failedMessageId; 
+            using var editFailedMessagesManager = await errorMessageDataStore.CreateEditFailedMessageManager();
+            var failedMessageId = await editFailedMessagesManager.GetFailedMessageIdByEditId(retryUniqueMessageId);
+
+            // If not found, this is a regular retry, so return retryUniqueMessageId
+            return failedMessageId ?? retryUniqueMessageId;
         }
 
         async Task<IReadOnlyList<MessageContext>> PersistFailedMessages(List<MessageContext> failedMessageContexts, List<MessageContext> retriedMessageContexts, CancellationToken cancellationToken)
@@ -193,6 +208,7 @@
         readonly Settings settings;
         readonly ErrorProcessor errorProcessor;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
+        readonly IErrorMessageDataStore errorMessageDataStore;
         readonly RetryConfirmationProcessor retryConfirmationProcessor;
         readonly UnicastAddressTag logQueueAddress;
 
