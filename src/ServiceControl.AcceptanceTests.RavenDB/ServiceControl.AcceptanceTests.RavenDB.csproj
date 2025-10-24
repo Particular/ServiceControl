@@ -28,6 +28,17 @@
     <Compile Include="..\ServiceControl.AcceptanceTests\**\*.cs" LinkBase="Shared" />
     <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\SharedEmbeddedServer.cs" />
     <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\StopSharedDatabase.cs" />
+    <Compile Update="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_failed_message_is_resolved_by_edit_and_retry.cs">
+      <Link>Shared\Recoverability\When_a_failed_message_is_resolved_by_edit_and_retry.cs</Link>
+    </Compile>
+    <Compile Update="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_failed_message_is_resolved_by_edit_and_retry.cs">
+      <LinkBase>Shared/</LinkBase>
+      <Link>Shared\Recoverability\ExternalIntegration\When_a_failed_message_is_resolved_by_edit_and_retry.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Shared\Recoverability\ExternalIntegration\" />
   </ItemGroup>
 
 </Project>

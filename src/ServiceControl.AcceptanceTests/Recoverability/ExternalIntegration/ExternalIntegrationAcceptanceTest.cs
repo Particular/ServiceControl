@@ -20,7 +20,8 @@
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoDelayedRetries();
-                    c.ReportSuccessfulRetriesToServiceControl();
+                    //TODO: Get back to this to determine whether or not this duplication for simulating the production code is really needed
+                    //c.ReportSuccessfulRetriesToServiceControl();
                 });
 
             public class AHandler : IHandleMessages<AMessage>
