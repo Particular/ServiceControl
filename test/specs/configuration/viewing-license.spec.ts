@@ -46,8 +46,8 @@ describe("FEATURE: License", () => {
       await driver.setUp(precondition.hasExpiredLicense(LicenseType.Subscription, 5)); //license expired 6 days before
       await driver.goTo("/configuration/license");
       await waitFor(async () => {
-        expect(await licenseTabList()).toHaveLength(2);
-        expect(await licenseTabNames()).toEqual(expect.arrayContaining(["License", "Usage Setup"]));
+        expect(await licenseTabList()).toHaveLength(3);
+        expect(await licenseTabNames()).toEqual(expect.arrayContaining(["License", "Usage Setup", "Connections"]));
       });
     });
   });
@@ -106,8 +106,9 @@ describe("FEATURE: License", () => {
       await driver.setUp(precondition.hasExpiringLicense(LicenseType.UpgradeProtection, -1));
       await driver.goTo("/configuration/license");
       await waitFor(async () => {
-        expect(await licenseExpiryDaysLeft()).toBeVisible();
-        expect((await licenseExpiryDaysLeft()).textContent).toContain("expired");
+        const testable = await licenseExpiryDaysLeft();
+        expect(testable).toBeVisible();
+        expect(testable.textContent).toContain("expired");
       });
     });
   });

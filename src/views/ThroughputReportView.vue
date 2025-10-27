@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import throughputClient from "@/views/throughputreport/throughputClient";
+import createThroughputClient from "@/views/throughputreport/throughputClient";
 import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import ServiceControlAvailable from "@/components/ServiceControlAvailable.vue";
@@ -14,6 +14,7 @@ import useIsThroughputSupported from "./throughputreport/isThroughputSupported";
 const showWarning = ref<boolean>(false);
 
 const isThroughputSupported = useIsThroughputSupported();
+const throughputClient = createThroughputClient();
 
 const reportState = computedAsync(async () => (isThroughputSupported.value ? await throughputClient.reportAvailable() : null), null);
 

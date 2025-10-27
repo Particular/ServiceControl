@@ -1,12 +1,12 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { ref, watch } from "vue";
 import { SagaHistory, SagaMessage } from "@/resources/SagaHistory";
-import { useFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
 import Message from "@/resources/Message";
 import { parse, stringify } from "lossless-json";
 import xmlFormat from "xml-formatter";
 import { DataContainer } from "./DataContainer";
 import { useMessageStore } from "./MessageStore";
+import { useServiceControlStore } from "./ServiceControlStore";
 
 export interface SagaMessageData {
   message_id: string;
@@ -26,6 +26,7 @@ export const useSagaDiagramStore = defineStore("SagaDiagramStore", () => {
   const scrollToTimeout = ref(false);
   const MessageBodyEndpoint = "messages/{0}/body";
   const messageStore = useMessageStore();
+  const serviceControlStore = useServiceControlStore();
 
   watch(
     () => messageStore.state.data.message_id,
@@ -64,7 +65,7 @@ export const useSagaDiagramStore = defineStore("SagaDiagramStore", () => {
     error.value = null;
 
     try {
-      const response = await useFetchFromServiceControl(`sagas/${id}`);
+      const response = await serviceControlStore.fetchFromServiceControl(`sagas/${id}`);
 
       if (response.status === 404) {
         sagaHistory.value = null;
@@ -95,7 +96,7 @@ export const useSagaDiagramStore = defineStore("SagaDiagramStore", () => {
     result.body.failed_to_load = false;
 
     try {
-      const response = await useFetchFromServiceControl(bodyUrl);
+      const response = await serviceControlStore.fetchFromServiceControl(bodyUrl);
       if (response.status === 404) {
         result.body.not_found = true;
         return result;
@@ -142,7 +143,7 @@ export const useSagaDiagramStore = defineStore("SagaDiagramStore", () => {
 
   async function getAuditMessages(sagaId: string) {
     try {
-      const response = await useFetchFromServiceControl(`messages/search?q=${sagaId}`);
+      const response = await serviceControlStore.fetchFromServiceControl(`messages/search?q=${sagaId}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

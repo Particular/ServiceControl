@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
 import * as precondition from "../../../../test/preconditions";
-import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { minimumSCVersionForThroughput } from "@/views/throughputreport/isThroughputSupported";
 import DiagnosticsView from "./DiagnosticsView.vue";
 import { createTestingPinia } from "@pinia/testing";
@@ -8,10 +7,13 @@ import { Transport } from "@/views/throughputreport/transport";
 import { makeDriverForTests, userEvent, render, screen } from "@component-test-utils";
 import { Driver } from "../../../../test/driver";
 import { disableMonitoring } from "../../../../test/drivers/vitest/setup";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
+import { setActivePinia } from "pinia";
 
 describe("DiagnosticsView tests", () => {
   async function setup() {
     const driver = makeDriverForTests();
+    setActivePinia(createTestingPinia({ stubActions: false }));
 
     await driver.setUp(precondition.hasServiceControlMainInstance(minimumSCVersionForThroughput));
     await driver.setUp(precondition.hasUpToDateServicePulse);
@@ -47,11 +49,11 @@ describe("DiagnosticsView tests", () => {
       })
     );
 
-    useServiceControlUrls();
+    useServiceControlStore();
 
     const { debug } = render(DiagnosticsView, {
       global: {
-        plugins: [createTestingPinia({ stubActions: false })],
+        plugins: [],
         directives: {
           // Add stub for tippy directive
           tippy: () => {},

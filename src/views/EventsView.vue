@@ -1,24 +1,18 @@
 <script setup lang="ts">
-import { licenseStatus } from "@/composables/serviceLicense";
-import LicenseExpired from "@/components/LicenseExpired.vue";
+import LicenseNotExpired from "@/components/LicenseNotExpired.vue";
 import DataView from "@/components/AutoRefreshDataView.vue";
 import EventLogItem from "@/components/EventLogItem.vue";
-import ServiceControlNotAvailable from "@/components/ServiceControlNotAvailable.vue";
+import ServiceControlAvailable from "@/components/ServiceControlAvailable.vue";
 import type EventLogItemType from "@/resources/EventLogItem";
 import { ref } from "vue";
 import type DataViewPageModel from "@/components/DataViewPageModel";
-import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
 
 const pageModel = ref<DataViewPageModel<EventLogItemType>>({ data: [], totalCount: 0 });
-const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
-const connectionState = connectionStore.connectionState;
 </script>
 
 <template>
-  <LicenseExpired />
-  <template v-if="!licenseStatus.isExpired">
-    <ServiceControlNotAvailable />
-    <template v-if="connectionState.connected">
+  <ServiceControlAvailable>
+    <LicenseNotExpired>
       <div class="container">
         <div class="row">
           <div class="col-12">
@@ -38,6 +32,6 @@ const connectionState = connectionStore.connectionState;
           </div>
         </div>
       </div>
-    </template>
-  </template>
+    </LicenseNotExpired>
+  </ServiceControlAvailable>
 </template>

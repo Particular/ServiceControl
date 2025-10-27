@@ -6,7 +6,6 @@ import TimeSince from "../TimeSince.vue";
 import FlowDiagram from "./FlowDiagram/FlowDiagram.vue";
 import SequenceDiagram from "./SequenceDiagram.vue";
 import routeLinks from "@/router/routeLinks";
-import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnected";
 import BodyView from "@/components/messages/BodyView.vue";
 import HeadersView from "@/components/messages/HeadersView.vue";
 import StackTraceView from "@/components/messages/StacktraceView.vue";
@@ -24,15 +23,18 @@ import { hexToCSSFilter } from "hex-to-css-filter";
 import SagaDiagram from "./SagaDiagram.vue";
 import FAIcon from "@/components/FAIcon.vue";
 import { faChevronLeft, faTrash, faLaptop, faClockRotateLeft, faClock } from "@fortawesome/free-solid-svg-icons";
+import { useConfigurationStore } from "@/stores/ConfigurationStore";
 
 const route = useRoute();
 const id = computed(() => route.params.id as string);
 const messageId = computed(() => route.params.messageId as string);
 const isError = computed(() => messageId.value === undefined);
-const isMassTransitConnected = useIsMassTransitConnected();
+const backLink = ref<RouteLocationAsPathGeneric>({ path: routeLinks.failedMessage.failedMessages.link });
+
+const configurationStore = useConfigurationStore();
+const { isMassTransitConnected } = storeToRefs(configurationStore);
 const store = useMessageStore();
 const { state } = storeToRefs(store);
-const backLink = ref<RouteLocationAsPathGeneric>({ path: routeLinks.failedMessage.failedMessages.link });
 
 const hasParticipatedInSaga = computed(() => store.state.data.invoked_saga?.has_saga);
 
@@ -91,7 +93,7 @@ watch(
   },
   { immediate: true }
 );
-const endpointColor = hexToCSSFilter("#929E9E").filter;
+const endpointColor = hexToCSSFilter("#777F7F").filter;
 
 onMounted(() => {
   const { back, ...otherArgs } = route.query;
@@ -181,7 +183,7 @@ h1.message-type-title {
 }
 
 .message-metadata {
-  display: inline;
+  display: flex;
 }
 
 div.btn-toolbar.message-toolbar {
@@ -213,6 +215,7 @@ button img {
   background-image: url("@/assets/endpoint.svg");
   background-position: center;
   background-repeat: no-repeat;
+  display: inline-block;
   height: 15px;
   width: 15px;
 }

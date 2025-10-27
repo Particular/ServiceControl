@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { useConfiguration } from "@/composables/configuration";
 import { useDateFormatter } from "@/composables/dateFormatter";
 import StatusIcon from "@/components/StatusIcon.vue";
+import { useConfigurationStore } from "@/stores/ConfigurationStore";
+import { storeToRefs } from "pinia";
 
-const configuration = useConfiguration();
+const configurationStore = useConfigurationStore();
+const { configuration } = storeToRefs(configurationStore);
 const { formatDate } = useDateFormatter();
 </script>
 

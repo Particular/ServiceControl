@@ -1,11 +1,14 @@
-import { acceptHMRUpdate, defineStore } from "pinia";
+import { acceptHMRUpdate, defineStore, storeToRefs } from "pinia";
 import { computed, onMounted, onUnmounted, reactive, ref } from "vue";
-import { useTypedFetchFromMonitoring, useTypedFetchFromServiceControl, isMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
 import { FailedMessage, FailedMessageStatus } from "@/resources/FailedMessage";
 import { ConnectionState } from "@/resources/ConnectionState";
 import { useCounter } from "@vueuse/core";
+import { useServiceControlStore } from "./ServiceControlStore";
 
 export const useConnectionsAndStatsStore = defineStore("ConnectionsAndStatsStore", () => {
+  const serviceControlStore = useServiceControlStore();
+  const { isMonitoringEnabled } = storeToRefs(serviceControlStore);
+
   const failedMessageCount = ref(0);
   const archivedMessageCount = ref(0);
   const pendingRetriesMessageCount = ref(0);
@@ -31,7 +34,7 @@ export const useConnectionsAndStatsStore = defineStore("ConnectionsAndStatsStore
     unableToConnect: null,
   });
 
-  const displayConnectionsWarning = computed(() => (connectionState.unableToConnect || (monitoringConnectionState.unableToConnect && isMonitoringEnabled())) ?? false);
+  const displayConnectionsWarning = computed(() => (connectionState.unableToConnect || (monitoringConnectionState.unableToConnect && isMonitoringEnabled.value)) ?? false);
 
   async function refresh() {
     const failedMessagesResult = getErrorMessagesCount(FailedMessageStatus.Unresolved);
@@ -49,7 +52,7 @@ export const useConnectionsAndStatsStore = defineStore("ConnectionsAndStatsStore
 
   function getErrorMessagesCount(status: FailedMessageStatus) {
     return fetchAndSetConnectionState(
-      () => useTypedFetchFromServiceControl<FailedMessage>(`errors?status=${status}`),
+      () => serviceControlStore.fetchTypedFromServiceControl<FailedMessage>(`errors?status=${status}`),
       connectionState,
       (response) => parseInt(response.headers.get("Total-Count") ?? "0"),
       0
@@ -58,7 +61,7 @@ export const useConnectionsAndStatsStore = defineStore("ConnectionsAndStatsStore
 
   function getDisconnectedEndpointsCount() {
     return fetchAndSetConnectionState(
-      () => useTypedFetchFromMonitoring<number>("monitored-endpoints/disconnected"),
+      () => serviceControlStore.fetchTypedFromMonitoring<number>("monitored-endpoints/disconnected"),
       monitoringConnectionState,
       (_, data) => {
         return data;
@@ -132,4 +135,4 @@ if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useConnectionsAndStatsStore, import.meta.hot));
 }
 
-export type StatsStore = ReturnType<typeof useConnectionsAndStatsStore>;
+export type ConnectionsAndStatsStore = ReturnType<typeof useConnectionsAndStatsStore>;

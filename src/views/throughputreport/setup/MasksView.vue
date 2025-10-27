@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import throughputClient from "@/views/throughputreport/throughputClient";
+import createThroughputClient from "@/views/throughputreport/throughputClient";
 import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import { useEnvironmentAndVersionsStore } from "@/stores/EnvironmentAndVersionsStore";
@@ -11,6 +11,8 @@ const separator = "\n";
 
 const environmentStore = useEnvironmentAndVersionsStore();
 const isThroughputSupported = useIsThroughputSupported();
+
+const throughputClient = createThroughputClient();
 
 onMounted(async () => {
   if (environmentStore.environment.sc_version === "") await environmentStore.refresh();

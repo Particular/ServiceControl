@@ -1,12 +1,14 @@
 import { isSupported, isUpgradeAvailable } from "@/composables/serviceSemVer";
-import { useTypedFetchFromMonitoring, useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
 import Release from "@/resources/Release";
 import RootUrls from "@/resources/RootUrls";
 import { useMemoize } from "@vueuse/core";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, reactive } from "vue";
+import { useServiceControlStore } from "./ServiceControlStore";
 
 export const useEnvironmentAndVersionsStore = defineStore("EnvironmentAndVersionsStore", () => {
+  const serviceControlStore = useServiceControlStore();
+
   const environment = reactive({
     monitoring_version: "",
     sc_version: "",
@@ -83,7 +85,7 @@ export const useEnvironmentAndVersionsStore = defineStore("EnvironmentAndVersion
 
   async function getPrimaryVersion() {
     try {
-      const [response, data] = await useTypedFetchFromServiceControl<RootUrls>("");
+      const [response, data] = await serviceControlStore.fetchTypedFromServiceControl<RootUrls>("");
       environment.sc_version = response.headers.get("X-Particular-Version") ?? "";
       return data;
     } catch {
@@ -93,7 +95,7 @@ export const useEnvironmentAndVersionsStore = defineStore("EnvironmentAndVersion
 
   async function setMonitoringVersion() {
     try {
-      const [response] = await useTypedFetchFromMonitoring("");
+      const [response] = await serviceControlStore.fetchTypedFromMonitoring("");
       if (response) {
         environment.monitoring_version = response.headers.get("X-Particular-Version") ?? "";
       }
@@ -144,4 +146,4 @@ if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useEnvironmentAndVersionsStore, import.meta.hot));
 }
 
-export type StatsStore = ReturnType<typeof useEnvironmentAndVersionsStore>;
+export type EnvironmentAndVersionsStore = ReturnType<typeof useEnvironmentAndVersionsStore>;

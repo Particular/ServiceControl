@@ -1,11 +1,12 @@
 import { defineStore, acceptHMRUpdate } from "pinia";
 import { computed, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import * as MonitoringEndpoints from "../composables/serviceMonitoringEndpoints";
 import { useMonitoringHistoryPeriodStore } from "./MonitoringHistoryPeriodStore";
 import type { EndpointGroup, Endpoint, GroupedEndpoint } from "@/resources/MonitoringEndpoint";
 import type { SortInfo } from "@/components/SortInfo";
 import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+import { useServiceControlStore } from "./ServiceControlStore";
+import GroupOperation from "@/resources/GroupOperation";
 
 export const useMonitoringStore = defineStore("MonitoringStore", () => {
   const historyPeriodStore = useMonitoringHistoryPeriodStore();
@@ -13,6 +14,7 @@ export const useMonitoringStore = defineStore("MonitoringStore", () => {
   const route = useRoute();
   const router = useRouter();
   const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+  const serviceControlStore = useServiceControlStore();
 
   //STORE STATE CONSTANTS
   const grouping = ref({
@@ -32,7 +34,7 @@ export const useMonitoringStore = defineStore("MonitoringStore", () => {
   const endpointListCount = computed<number>(() => endpointList.value.length);
   const endpointListIsEmpty = computed<boolean>(() => endpointListCount.value === 0);
   const endpointListIsGrouped = computed<boolean>(() => grouping.value.selectedGrouping !== 0);
-  const getEndpointList = computed<Endpoint[]>(() => (filterString.value !== "" ? MonitoringEndpoints.useFilterAllMonitoredEndpointsByName(endpointList.value, filterString.value) : endpointList.value));
+  const getEndpointList = computed<Endpoint[]>(() => (filterString.value ? endpointList.value.filter((endpoint) => endpoint.name.toLowerCase().includes(filterString.value.toLowerCase())) : endpointList.value));
 
   watch(sortBy, async () => await updateEndpointList(), { deep: true });
   watch(filterString, async (newValue) => {
@@ -57,7 +59,7 @@ export const useMonitoringStore = defineStore("MonitoringStore", () => {
     if (connectionStore.monitoringConnectionState.unableToConnect) {
       endpointList.value = [];
     } else {
-      endpointList.value = await MonitoringEndpoints.getAllMonitoredEndpoints(historyPeriodStore.historyPeriod.pVal);
+      endpointList.value = await getAllMonitoredEndpoints();
     }
     if (!endpointListIsEmpty.value) {
       updateGroupSegments();
@@ -67,6 +69,35 @@ export const useMonitoringStore = defineStore("MonitoringStore", () => {
         sortEndpointList();
       }
     }
+  }
+
+  async function getAllMonitoredEndpoints() {
+    let endpoints: Endpoint[] = [];
+    if (serviceControlStore.isMonitoringEnabled) {
+      try {
+        const [, data] = await serviceControlStore.fetchTypedFromMonitoring<Endpoint[]>(`monitored-endpoints?history=${historyPeriodStore.historyPeriod.pVal}`);
+        endpoints = data ?? [];
+        const [, exceptionGroups] = await serviceControlStore.fetchTypedFromServiceControl<GroupOperation[]>(`recoverability/groups/Endpoint Name`);
+
+        //Squash and add to existing monitored endpoints
+        if (exceptionGroups.length > 0) {
+          //sort the exceptionGroups array by name - case sensitive
+          exceptionGroups.sort((a, b) => (a.title > b.title ? 1 : a.title < b.title ? -1 : 0)); //desc
+          exceptionGroups
+            .filter((exceptionGroup) => exceptionGroup.operation_status !== "ArchiveCompleted")
+            .forEach((exceptionGroup) => {
+              const monitoredEndpoint = endpoints.find((item) => item.name === exceptionGroup.title);
+              if (monitoredEndpoint) {
+                monitoredEndpoint.serviceControlId = exceptionGroup.id;
+                monitoredEndpoint.errorCount = exceptionGroup.count;
+              }
+            });
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    return endpoints;
   }
 
   function updateSelectedGrouping(groupSize: number) {
@@ -79,12 +110,48 @@ export const useMonitoringStore = defineStore("MonitoringStore", () => {
   }
 
   function updateGroupSegments() {
-    grouping.value.groupSegments = MonitoringEndpoints.useFindEndpointSegments(endpointList.value);
+    grouping.value.groupSegments = endpointList.value.reduce((acc, cur) => Math.max(acc, cur.name.split(".").length - 1), 0);
   }
 
   function updateGroupedEndpoints() {
-    grouping.value.groupedEndpoints = MonitoringEndpoints.useGroupEndpoints(getEndpointList.value, grouping.value.selectedGrouping);
+    const groups = new Map<string, EndpointGroup>();
+    for (const element of getEndpointList.value) {
+      const newGrouping = parseEndpoint(element, grouping.value.selectedGrouping);
+
+      const resultGroup = groups.get(newGrouping.groupName) ?? {
+        group: newGrouping.groupName,
+        endpoints: [],
+      };
+      resultGroup.endpoints.push(newGrouping);
+      groups.set(newGrouping.groupName, resultGroup);
+    }
+
+    grouping.value.groupedEndpoints = [...groups.values()];
     sortGroupedEndpointList();
+  }
+
+  function parseEndpoint(endpoint: Endpoint, maxGroupSegments: number) {
+    if (maxGroupSegments === 0) {
+      return {
+        groupName: "Ungrouped",
+        shortName: endpoint.name,
+        endpoint: endpoint,
+      };
+    }
+
+    const segments = endpoint.name.split(".");
+    const groupSegments = segments.slice(0, maxGroupSegments);
+    const endpointSegments = segments.slice(maxGroupSegments);
+    if (endpointSegments.length === 0) {
+      // the endpoint's name is shorter than the group size
+      return parseEndpoint(endpoint, maxGroupSegments - 1);
+    }
+
+    return {
+      groupName: groupSegments.join("."),
+      shortName: endpointSegments.join("."),
+      endpoint,
+    } as GroupedEndpoint;
   }
 
   function sortEndpointList() {

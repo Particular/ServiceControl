@@ -196,6 +196,7 @@ div.failed-message-data {
 
 .pa-endpoint {
   position: relative;
+  display: inline-block;
   top: 3px;
   background-image: url("@/assets/endpoint.svg");
   background-position: center;

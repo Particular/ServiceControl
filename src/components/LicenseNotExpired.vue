@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import ConditionalRender from "@/components/ConditionalRender.vue";
-import { licenseStatus } from "@/composables/serviceLicense";
 import LicenseExpired from "@/components/LicenseExpired.vue";
+import { useLicenseStore } from "@/stores/LicenseStore";
+
+const licenseStore = useLicenseStore();
+const { licenseStatus } = licenseStore;
 </script>
 
 <template>

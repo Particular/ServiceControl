@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnected";
 import MonitoringFilter from "./MonitoringFilter.vue";
+import { useConfigurationStore } from "@/stores/ConfigurationStore";
+import { storeToRefs } from "pinia";
 
-const isMassTransitConnected = useIsMassTransitConnected();
+const configurationStore = useConfigurationStore();
+const { isMassTransitConnected } = storeToRefs(configurationStore);
 </script>
 
 <template>

@@ -2,15 +2,13 @@
 // Composables
 import { computed, watch, onMounted, onUnmounted } from "vue";
 import { useRoute, useRouter, RouterLink } from "vue-router";
-import { licenseStatus } from "../../composables/serviceLicense";
-import { isMonitoringDisabled } from "../../composables/serviceServiceControlUrls";
 import { storeToRefs } from "pinia";
 //stores
 import { useMonitoringEndpointDetailsStore } from "../../stores/MonitoringEndpointDetailsStore";
 import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
 // Components
-import LicenseExpired from "../../components/LicenseExpired.vue";
-import ServiceControlNotAvailable from "../../components/ServiceControlNotAvailable.vue";
+import LicenseNotExpired from "../../components/LicenseNotExpired.vue";
+import ServiceControlAvailable from "../../components/ServiceControlAvailable.vue";
 import MonitoringNotAvailable from "./MonitoringNotAvailable.vue";
 import PeriodSelector from "./MonitoringHistoryPeriod.vue";
 import EndpointBacklog from "./EndpointBacklog.vue";
@@ -22,9 +20,9 @@ import { useMonitoringHistoryPeriodStore } from "@/stores/MonitoringHistoryPerio
 import routeLinks from "@/router/routeLinks";
 import FAIcon from "@/components/FAIcon.vue";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
 
 const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
-const connectionState = connectionStore.connectionState;
 const monitoringConnectionState = connectionStore.monitoringConnectionState;
 
 const route = useRoute();
@@ -34,6 +32,8 @@ let refreshInterval: number;
 
 const monitoringStore = useMonitoringEndpointDetailsStore();
 const monitoringHistoryPeriodStore = useMonitoringHistoryPeriodStore();
+const serviceControlStore = useServiceControlStore();
+const { isMonitoringDisabled } = storeToRefs(serviceControlStore);
 
 const { historyPeriod } = storeToRefs(monitoringHistoryPeriodStore);
 const { negativeCriticalTimeIsPresent, endpointDetails: endpoint } = storeToRefs(monitoringStore);
@@ -81,15 +81,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <LicenseExpired />
-  <template v-if="!licenseStatus.isExpired">
-    <div class="container monitoring-view">
-      <ServiceControlNotAvailable />
-      <template v-if="connectionState.connected">
-        <!--MonitoringNotAvailable-->
+  <div class="container monitoring-view">
+    <ServiceControlAvailable>
+      <LicenseNotExpired>
+        <!--MonitoringAvailable-->
         <div class="row">
           <div class="col-sm-12">
-            <MonitoringNotAvailable v-if="monitoringConnectionState.unableToConnect || isMonitoringDisabled()"></MonitoringNotAvailable>
+            <MonitoringNotAvailable v-if="monitoringConnectionState.unableToConnect || isMonitoringDisabled"></MonitoringNotAvailable>
           </div>
         </div>
         <!--Header-->
@@ -162,9 +160,9 @@ onMounted(() => {
             <EndpointMessageTypes />
           </section>
         </div>
-      </template>
-    </div>
-  </template>
+      </LicenseNotExpired>
+    </ServiceControlAvailable>
+  </div>
 </template>
 
 <style scoped>

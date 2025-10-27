@@ -6,18 +6,19 @@ import { storeToRefs } from "pinia";
 import ServiceControlAvailable from "@/components/ServiceControlAvailable.vue";
 import LicenseNotExpired from "@/components/LicenseNotExpired.vue";
 import FilterInput from "@/components/FilterInput.vue";
-import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnected";
 import useHeartbeatsStoreAutoRefresh from "@/composables/useHeartbeatsStoreAutoRefresh";
+import { useConfigurationStore } from "@/stores/ConfigurationStore";
 
 const { store } = useHeartbeatsStoreAutoRefresh();
 const { unhealthyEndpoints, healthyEndpoints, endpointFilterString } = storeToRefs(store);
 
-const isMassTransitConnected = useIsMassTransitConnected();
+const configurationStore = useConfigurationStore();
+const { isMassTransitConnected } = storeToRefs(configurationStore);
 </script>
 
 <template>
-  <LicenseNotExpired>
-    <ServiceControlAvailable>
+  <ServiceControlAvailable>
+    <LicenseNotExpired>
       <div class="container">
         <div class="row">
           <div class="col-12">
@@ -54,8 +55,8 @@ const isMassTransitConnected = useIsMassTransitConnected();
         </div>
         <RouterView />
       </div>
-    </ServiceControlAvailable>
-  </LicenseNotExpired>
+    </LicenseNotExpired>
+  </ServiceControlAvailable>
 </template>
 
 <style scoped>

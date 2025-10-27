@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { watch, onMounted } from "vue";
-import { useLicense } from "@/composables/serviceLicense";
 import { LicenseStatus } from "@/resources/LicenseInfo";
 import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import routeLinks from "@/router/routeLinks";
 import { useRouter } from "vue-router";
-import { useConfiguration } from "@/composables/configuration";
+import { useConfigurationStore } from "@/stores/ConfigurationStore";
+import { storeToRefs } from "pinia";
+import { useLicenseStore } from "@/stores/LicenseStore";
 
 const router = useRouter();
-const { license, getOrUpdateLicenseStatus } = useLicense();
+const licenseStore = useLicenseStore();
+const license = licenseStore.license;
 
-const configuration = useConfiguration();
+const configurationStore = useConfigurationStore();
+const { configuration } = storeToRefs(configurationStore);
 
 function displayWarningMessage(licenseStatus: LicenseStatus) {
   const configurationRootLink = router.resolve(routeLinks.configuration.root).href;
@@ -57,7 +60,7 @@ watch(
 );
 
 onMounted(async () => {
-  await getOrUpdateLicenseStatus();
+  await licenseStore.refresh();
 });
 </script>
 <template>

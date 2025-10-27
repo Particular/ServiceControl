@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import LicenseExpired from "../LicenseExpired.vue";
-import ServiceControlNotAvailable from "../ServiceControlNotAvailable.vue";
-import { licenseStatus } from "@/composables/serviceLicense";
-import BusyIndicator from "../BusyIndicator.vue";
+import LicenseNotExpired from "../LicenseNotExpired.vue";
+import ServiceControlAvailable from "../ServiceControlAvailable.vue";
 import CodeEditor from "@/components/CodeEditor.vue";
-import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
-import { monitoringUrl, serviceControlUrl, useTypedFetchFromMonitoring, useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
+import { storeToRefs } from "pinia";
+import LoadingSpinner from "../LoadingSpinner.vue";
 
 interface ServiceControlInstanceConnection {
   settings: { [key: string]: object };
@@ -19,9 +18,8 @@ interface MetricsConnectionDetails {
   Interval?: string;
 }
 
-const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
-const connectionState = connectionStore.connectionState;
-const isExpired = licenseStatus.isExpired;
+const serviceControlStore = useServiceControlStore();
+const { serviceControlUrl, monitoringUrl } = storeToRefs(serviceControlStore);
 
 const loading = ref(true);
 const showCodeOnlyTab = ref(true);
@@ -95,7 +93,7 @@ async function serviceControlConnections() {
 
 async function getServiceControlConnection() {
   try {
-    const [, data] = await useTypedFetchFromServiceControl<ServiceControlInstanceConnection>("connection");
+    const [, data] = await serviceControlStore.fetchTypedFromServiceControl<ServiceControlInstanceConnection>("connection");
     return data;
   } catch {
     return { errors: [`Error reaching ServiceControl at ${serviceControlUrl.value} connection`] } as ServiceControlInstanceConnection;
@@ -104,7 +102,7 @@ async function getServiceControlConnection() {
 
 async function getMonitoringConnection() {
   try {
-    const [, data] = await useTypedFetchFromMonitoring<{ Metrics: MetricsConnectionDetails }>("connection");
+    const [, data] = await serviceControlStore.fetchTypedFromMonitoring<{ Metrics: MetricsConnectionDetails }>("connection");
     return { ...data, errors: [] };
   } catch {
     return { Metrics: null, errors: [`Error SC Monitoring instance at ${monitoringUrl.value}connection`] };
@@ -113,11 +111,9 @@ async function getMonitoringConnection() {
 </script>
 
 <template>
-  <LicenseExpired />
-  <template v-if="!isExpired">
-    <section name="platformconnection">
-      <ServiceControlNotAvailable />
-      <template v-if="!connectionState.unableToConnect">
+  <section name="platformconnection">
+    <ServiceControlAvailable>
+      <LicenseNotExpired>
         <div class="box configuration">
           <div class="row">
             <div class="col-12">
@@ -134,7 +130,7 @@ async function getMonitoringConnection() {
           </div>
           <div class="row tabs-config-snippets">
             <div class="col-12">
-              <busy-indicator v-show="loading"></busy-indicator>
+              <LoadingSpinner v-show="loading"></LoadingSpinner>
 
               <!-- Nav tabs -->
               <div v-if="!loading" class="tabs" role="tablist">
@@ -179,9 +175,9 @@ async function getMonitoringConnection() {
             </div>
           </div>
         </div>
-      </template>
-    </section>
-  </template>
+      </LicenseNotExpired>
+    </ServiceControlAvailable>
+  </section>
 </template>
 
 <style scoped>

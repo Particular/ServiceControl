@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ActionButton from "@/components/ActionButton.vue";
 import { useMessageStore } from "@/stores/MessageStore";
-import { useDownloadFileFromString } from "@/composables/fileDownloadCreator";
+import { downloadFileFromString } from "@/composables/fileDownloadCreator";
 import { showToastAfterOperation } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import { ref } from "vue";
@@ -15,7 +15,7 @@ async function exportMessage() {
   await showToastAfterOperation(
     async () => {
       const exportedString = await store.exportMessage();
-      useDownloadFileFromString(exportedString, "text/txt", "message.txt");
+      downloadFileFromString(exportedString, "text/txt", "message.txt");
     },
     TYPE.INFO,
     "Info",

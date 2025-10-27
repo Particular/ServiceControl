@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
-import { licenseStatus } from "@/composables/serviceLicense";
-import { useRedirects } from "@/composables/serviceRedirects";
+import { computed, onMounted } from "vue";
 import ExclamationMark from "../components/ExclamationMark.vue";
 import convertToWarningLevel from "@/components/configuration/convertToWarningLevel";
-import redirectCountUpdated from "@/components/configuration/redirectCountUpdated";
 import routeLinks from "@/router/routeLinks";
 import isRouteSelected from "@/composables/isRouteSelected";
 import { WarningLevel } from "@/components/WarningLevel";
@@ -12,13 +9,16 @@ import { useLink, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import useThroughputStoreAutoRefresh from "@/composables/useThroughputStoreAutoRefresh";
 import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+import { useRedirectsStore } from "@/stores/RedirectsStore";
+import { useLicenseStore } from "@/stores/LicenseStore";
 
-const redirectCount = ref(0);
 const { store: throughputStore } = useThroughputStoreAutoRefresh();
 const { hasErrors } = storeToRefs(throughputStore);
 const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
 const connectionState = connectionStore.connectionState;
-watch(redirectCountUpdated, () => (redirectCount.value = redirectCountUpdated.count));
+const redirectsStore = useRedirectsStore();
+const licenseStore = useLicenseStore();
+const { licenseStatus } = licenseStore;
 
 onMounted(async () => {
   if (notConnected.value) {
@@ -30,8 +30,7 @@ onMounted(async () => {
     }
   }
 
-  const result = await useRedirects();
-  redirectCount.value = result.total;
+  redirectsStore.refresh();
 });
 
 const notConnected = computed(() => !connectionState.connected && !connectionState.connectedRecently);
@@ -77,7 +76,7 @@ function preventIfDisabled(e: Event) {
               <RouterLink :to="routeLinks.configuration.healthCheckNotifications.link">Health Check Notifications</RouterLink>
             </h5>
             <h5 :class="{ active: isRouteSelected(routeLinks.configuration.retryRedirects.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item" role="tab" aria-label="retry-redirects">
-              <RouterLink :to="routeLinks.configuration.retryRedirects.link">Retry Redirects ({{ redirectCount }})</RouterLink>
+              <RouterLink :to="routeLinks.configuration.retryRedirects.link">Retry Redirects ({{ redirectsStore.redirects.total }})</RouterLink>
             </h5>
             <h5 :class="{ active: isRouteSelected(routeLinks.configuration.connections.link) }" class="nav-item" role="tab" aria-label="connections">
               <RouterLink :to="routeLinks.configuration.connections.link">
@@ -87,6 +86,14 @@ function preventIfDisabled(e: Event) {
             </h5>
             <h5 :class="{ active: isRouteSelected(routeLinks.configuration.endpointConnection.link), disabled: notConnected }" @click.capture="preventIfDisabled" class="nav-item" role="tab" aria-label="endpoint-connection">
               <RouterLink :to="routeLinks.configuration.endpointConnection.link">Endpoint Connection</RouterLink>
+            </h5>
+          </template>
+          <template v-else>
+            <h5 :class="{ active: isRouteSelected(routeLinks.configuration.connections.link) }" class="nav-item" role="tab" aria-label="connections">
+              <RouterLink :to="routeLinks.configuration.connections.link">
+                Connections
+                <exclamation-mark v-if="connectionStore.displayConnectionsWarning" :type="WarningLevel.Danger" />
+              </RouterLink>
             </h5>
           </template>
         </div>

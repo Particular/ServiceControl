@@ -11,8 +11,8 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FAIcon from "@/components/FAIcon.vue";
 import { faExclamationCircle, faExclamationTriangle, faUndo } from "@fortawesome/free-solid-svg-icons";
 import { useDebounceFn } from "@vueuse/core";
-import { postToServiceControl } from "@/composables/serviceServiceControlUrls";
 import useEnvironmentAndVersionsAutoRefresh from "@/composables/useEnvironmentAndVersionsAutoRefresh";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
 
 interface HeaderWithEditing extends Header {
   isLocked: boolean;
@@ -58,6 +58,7 @@ const messageStore = useMessageStore();
 const { state, headers, body, edit_and_retry_config } = storeToRefs(messageStore);
 const { store: environmentStore } = useEnvironmentAndVersionsAutoRefresh();
 const areSimpleHeadersSupported = environmentStore.serviceControlIsGreaterThan("5.2.0");
+const serviceControlStore = useServiceControlStore();
 
 const id = computed(() => state.value.data.id ?? "");
 const uneditedMessageBody = computed(() => body.value.data.value ?? "");
@@ -122,7 +123,7 @@ async function retryEditedMessage() {
           )
         : localMessage.value.headers,
     };
-    const response = await postToServiceControl(`edit/${id.value}`, payload);
+    const response = await serviceControlStore.postToServiceControl(`edit/${id.value}`, payload);
     if (!response.ok) {
       throw new Error(response.statusText);
     }

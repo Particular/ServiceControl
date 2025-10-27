@@ -1,42 +1,46 @@
-import { useFetchFromServiceControl, postToServiceControl, useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
 import EndpointThroughputSummary from "@/resources/EndpointThroughputSummary";
 import UpdateUserIndicator from "@/resources/UpdateUserIndicator";
 import ConnectionTestResults from "@/resources/ConnectionTestResults";
 import ThroughputConnectionSettings from "@/resources/ThroughputConnectionSettings";
-import { useDownloadFileFromResponse } from "@/composables/fileDownloadCreator";
+import { downloadFileFromResponse } from "@/composables/fileDownloadCreator";
 import ReportGenerationState from "@/resources/ReportGenerationState";
 import { parse } from "@tinyhttp/content-disposition";
+import { ServiceControlStore, useServiceControlStore } from "@/stores/ServiceControlStore";
 
 class ThroughputClient {
-  constructor(readonly basePath: string) {}
+  serviceControlStore: ServiceControlStore;
+  constructor(readonly basePath: string) {
+    //this module is only called from within view setup or other pinia stores, so this call is lifecycle safe
+    this.serviceControlStore = useServiceControlStore();
+  }
 
   public async endpoints() {
-    const [, data] = await useTypedFetchFromServiceControl<EndpointThroughputSummary[]>(`${this.basePath}/endpoints`);
+    const [, data] = await this.serviceControlStore.fetchTypedFromServiceControl<EndpointThroughputSummary[]>(`${this.basePath}/endpoints`);
 
     return data;
   }
 
   public async updateIndicators(data: UpdateUserIndicator[]): Promise<void> {
-    await postToServiceControl(`${this.basePath}/endpoints/update`, data);
+    await this.serviceControlStore.postToServiceControl(`${this.basePath}/endpoints/update`, data);
   }
 
   public async test() {
-    const [, data] = await useTypedFetchFromServiceControl<ConnectionTestResults>(`${this.basePath}/settings/test`);
+    const [, data] = await this.serviceControlStore.fetchTypedFromServiceControl<ConnectionTestResults>(`${this.basePath}/settings/test`);
     return data;
   }
 
   public async setting() {
-    const [, data] = await useTypedFetchFromServiceControl<ThroughputConnectionSettings>(`${this.basePath}/settings/info`);
+    const [, data] = await this.serviceControlStore.fetchTypedFromServiceControl<ThroughputConnectionSettings>(`${this.basePath}/settings/info`);
     return data;
   }
 
   public async reportAvailable() {
-    const [, data] = await useTypedFetchFromServiceControl<ReportGenerationState>(`${this.basePath}/report/available`);
+    const [, data] = await this.serviceControlStore.fetchTypedFromServiceControl<ReportGenerationState>(`${this.basePath}/report/available`);
     return data;
   }
 
   public async downloadReport() {
-    const response = await useFetchFromServiceControl(`${this.basePath}/report/file?spVersion=${encodeURIComponent(window.defaultConfig.version)}`);
+    const response = await this.serviceControlStore.fetchFromServiceControl(`${this.basePath}/report/file?spVersion=${encodeURIComponent(window.defaultConfig.version)}`);
     if (response.ok) {
       let fileName = "throughput-report.json";
       const contentType = response.headers.get("Content-Type") ?? "application/json";
@@ -48,20 +52,20 @@ class ThroughputClient {
       } catch {
         //fallback to the default name, if filename is missing in response header
       }
-      await useDownloadFileFromResponse(response, contentType, fileName);
+      await downloadFileFromResponse(response, contentType, fileName);
       return fileName;
     }
     return "";
   }
 
   public async getMasks() {
-    const [, data] = await useTypedFetchFromServiceControl<string[]>(`${this.basePath}/settings/masks`);
+    const [, data] = await this.serviceControlStore.fetchTypedFromServiceControl<string[]>(`${this.basePath}/settings/masks`);
     return data;
   }
 
   public async updateMasks(data: string[]): Promise<void> {
-    await postToServiceControl(`${this.basePath}/settings/masks/update`, data);
+    await this.serviceControlStore.postToServiceControl(`${this.basePath}/settings/masks/update`, data);
   }
 }
 
-export default new ThroughputClient("licensing");
+export default () => new ThroughputClient("licensing");

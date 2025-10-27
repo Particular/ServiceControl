@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
 import * as precondition from "../../../test/preconditions";
-import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { createTestingPinia } from "@pinia/testing";
 import { Transport } from "@/views/throughputreport/transport";
 import { makeDriverForTests, render, screen, userEvent } from "@component-test-utils";
@@ -10,10 +9,13 @@ import makeRouter from "@/router";
 import { flushPromises, RouterLinkStub } from "@vue/test-utils";
 import EndpointsView from "./EndpointsView.vue";
 import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
+import { setActivePinia } from "pinia";
 
 describe("EndpointsView tests", () => {
   async function setup(transport: Transport) {
     const driver = makeDriverForTests();
+    setActivePinia(createTestingPinia({ stubActions: false }));
 
     await driver.setUp(serviceControlWithThroughput);
     await driver.setUp(precondition.hasLicensingSettingTest({ transport }));
@@ -27,13 +29,14 @@ describe("EndpointsView tests", () => {
     const driver = await setup(transport);
     await preSetup(driver);
 
-    useServiceControlUrls();
+    useServiceControlStore();
+
     const { debug } = render(EndpointsView, {
       global: {
         stubs: {
           RouterLink: RouterLinkStub,
         },
-        plugins: [makeRouter(), createTestingPinia({ stubActions: false })],
+        plugins: [makeRouter()],
         directives: {
           // Add stub for tippy directive
           tippy: () => {},

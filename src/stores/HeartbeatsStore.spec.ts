@@ -4,25 +4,24 @@ import { makeDriverForTests } from "@component-test-utils";
 import { setActivePinia, storeToRefs } from "pinia";
 import { createTestingPinia } from "@pinia/testing";
 import { EndpointsView } from "@/resources/EndpointView";
-import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import * as precondition from "../../test/preconditions";
 import { EndpointSettings } from "@/resources/EndpointSettings";
 import { serviceControlWithHeartbeats } from "@/components/heartbeats/serviceControlWithHeartbeats";
 import { EndpointStatus } from "@/resources/Heartbeat";
 import { ColumnNames, useHeartbeatsStore } from "@/stores/HeartbeatsStore";
 import { useEnvironmentAndVersionsStore } from "./EnvironmentAndVersionsStore";
+import { useServiceControlStore } from "./ServiceControlStore";
 
 describe("HeartbeatsStore tests", () => {
   async function setup(endpoints: EndpointsView[], endpointSettings: EndpointSettings[] = [{ name: "", track_instances: true }], preSetup: (driver: Driver) => Promise<void> = () => Promise.resolve()) {
     const driver = makeDriverForTests();
+    setActivePinia(createTestingPinia({ stubActions: false }));
 
     await preSetup(driver);
     await driver.setUp(serviceControlWithHeartbeats);
     await driver.setUp(precondition.hasHeartbeatsEndpoints(endpoints, endpointSettings));
 
-    useServiceControlUrls();
-
-    setActivePinia(createTestingPinia({ stubActions: false }));
+    useServiceControlStore();
     await useEnvironmentAndVersionsStore().refresh();
 
     const store = useHeartbeatsStore();

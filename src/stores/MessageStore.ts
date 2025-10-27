@@ -5,13 +5,12 @@ import type EndpointDetails from "@/resources/EndpointDetails";
 import { FailedMessage, ExceptionDetails, FailedMessageStatus } from "@/resources/FailedMessage";
 import { useEditRetryStore } from "@/stores/EditRetryStore";
 import { useConfigurationStore } from "@/stores/ConfigurationStore";
-import { useFetchFromServiceControl, useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
 import Message, { MessageStatus } from "@/resources/Message";
 import moment from "moment/moment";
 import { parse, stringify } from "lossless-json";
 import xmlFormat from "xml-formatter";
-import { useArchiveMessage, useRetryMessages, useUnarchiveMessage } from "@/composables/serviceFailedMessage";
 import { DataContainer } from "./DataContainer";
+import { useServiceControlStore } from "./ServiceControlStore";
 
 interface Model {
   id?: string;
@@ -68,13 +67,14 @@ export const useMessageStore = defineStore("MessageStore", () => {
   const conversationData = ref<DataContainer<Message[]>>({ data: [] });
   const editRetryStore = useEditRetryStore();
   const configStore = useConfigurationStore();
+  const serviceControlStore = useServiceControlStore();
 
   const { config: edit_and_retry_config } = storeToRefs(editRetryStore);
   const { configuration } = storeToRefs(configStore);
   const error_retention_period = computed(() => moment.duration(configuration.value?.data_retention?.error_retention_period).asHours());
 
   // eslint-disable-next-line promise/catch-or-return,promise/prefer-await-to-then,promise/valid-params
-  Promise.all([editRetryStore.loadConfig(), configStore.loadConfig()]).then();
+  Promise.all([editRetryStore.loadConfig(), configStore.refresh()]).then();
 
   function reset() {
     state.data = { failure_metadata: {}, failure_status: {}, dialog_status: {}, invoked_saga: {} };
@@ -91,7 +91,7 @@ export const useMessageStore = defineStore("MessageStore", () => {
     state.not_found = false;
 
     try {
-      const response = await useFetchFromServiceControl(`errors/last/${id}`);
+      const response = await serviceControlStore.fetchFromServiceControl(`errors/last/${id}`);
       if (response.status === 404) {
         state.not_found = true;
         return;
@@ -136,7 +136,7 @@ export const useMessageStore = defineStore("MessageStore", () => {
     state.not_found = headers.value.not_found = false;
 
     try {
-      const [, data] = await useTypedFetchFromServiceControl<Message[]>(`messages/search/${messageId}`);
+      const [, data] = await serviceControlStore.fetchTypedFromServiceControl<Message[]>(`messages/search/${messageId}`);
 
       const message = data.find((value) => value.id === id);
 
@@ -174,7 +174,7 @@ export const useMessageStore = defineStore("MessageStore", () => {
     conversationLoadedId = conversationId;
     conversationData.value.loading = true;
     try {
-      const [, data] = await useTypedFetchFromServiceControl<Message[]>(`conversations/${conversationId}`);
+      const [, data] = await serviceControlStore.fetchTypedFromServiceControl<Message[]>(`conversations/${conversationId}`);
 
       conversationData.value.data = data;
     } catch {
@@ -197,7 +197,7 @@ export const useMessageStore = defineStore("MessageStore", () => {
     body.value.failed_to_load = false;
 
     try {
-      const response = await useFetchFromServiceControl(state.data.body_url.substring(1));
+      const response = await serviceControlStore.fetchFromServiceControl(state.data.body_url.substring(1));
       if (response.status === 404) {
         body.value.not_found = true;
 
@@ -229,22 +229,35 @@ export const useMessageStore = defineStore("MessageStore", () => {
 
   async function archiveMessage() {
     if (state.data.id) {
-      await useArchiveMessage([state.data.id]);
+      const response = await serviceControlStore.patchToServiceControl("errors/archive/", [state.data.id]);
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
       state.data.failure_status.archiving = true;
     }
   }
 
   async function restoreMessage() {
     if (state.data.id) {
-      await useUnarchiveMessage([state.data.id]);
+      const response = await serviceControlStore.patchToServiceControl("errors/unarchive/", [state.data.id]);
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
       state.data.failure_status.restoring = true;
     }
   }
 
   async function retryMessage() {
     if (state.data.id) {
-      await useRetryMessages([state.data.id]);
+      await retryMessages([state.data.id]);
       state.data.failure_status.retry_in_progress = true;
+    }
+  }
+
+  async function retryMessages(ids: string[]) {
+    const response = await serviceControlStore.postToServiceControl("errors/retry", ids);
+    if (!response.ok) {
+      throw new Error(response.statusText);
     }
   }
 
@@ -259,7 +272,7 @@ export const useMessageStore = defineStore("MessageStore", () => {
       // eslint-disable-next-line no-await-in-loop
       await new Promise((resolve) => setTimeout(resolve, 1000));
       // eslint-disable-next-line no-await-in-loop
-      const [, data] = await useTypedFetchFromServiceControl<FailedMessage>(`errors/last/${state.data.id}`);
+      const [, data] = await serviceControlStore.fetchTypedFromServiceControl<FailedMessage>(`errors/last/${state.data.id}`);
       if (status === data.status) {
         break;
       }
@@ -316,6 +329,7 @@ export const useMessageStore = defineStore("MessageStore", () => {
     archiveMessage,
     restoreMessage,
     retryMessage,
+    retryMessages,
     conversationData,
     pollForNextUpdate,
   };

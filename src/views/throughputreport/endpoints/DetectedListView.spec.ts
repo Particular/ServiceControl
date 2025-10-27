@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
 import * as precondition from "../../../../test/preconditions";
-import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { Transport } from "@/views/throughputreport/transport";
 import { makeDriverForTests, render, screen, userEvent } from "@component-test-utils";
 import { Driver, SetupFactoryOptions } from "../../../../test/driver";
@@ -12,10 +11,14 @@ import { within } from "@testing-library/vue";
 import UpdateUserIndicator from "@/resources/UpdateUserIndicator";
 import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
 import { flushPromises } from "@vue/test-utils";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
+import { setActivePinia } from "pinia";
+import { createTestingPinia } from "@pinia/testing";
 
 describe("DetectedListView tests", () => {
   async function setup() {
     const driver = makeDriverForTests();
+    setActivePinia(createTestingPinia({ stubActions: false }));
 
     await driver.setUp(serviceControlWithThroughput);
     await driver.setUp(precondition.hasLicensingSettingTest({ transport: Transport.AmazonSQS }));
@@ -29,7 +32,8 @@ describe("DetectedListView tests", () => {
     const driver = await setup();
     await preSetup(driver);
 
-    useServiceControlUrls();
+    useServiceControlStore();
+
     const el = document.createElement("div");
     el.id = "modalDisplay";
     document.body.appendChild(el);

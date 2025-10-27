@@ -1,8 +1,10 @@
 ﻿<script setup lang="ts">
-import { ref } from "vue";
-import { monitoringUrl as configuredMonitoringUrl } from "../../composables/serviceServiceControlUrls";
 import routeLinks from "@/router/routeLinks";
-const monitoringUrl = ref(configuredMonitoringUrl.value);
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
+import { storeToRefs } from "pinia";
+
+const store = useServiceControlStore();
+const { monitoringUrl } = storeToRefs(store);
 </script>
 
 <template>

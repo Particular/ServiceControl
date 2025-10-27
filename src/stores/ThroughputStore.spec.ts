@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import * as precondition from "../../test/preconditions";
-import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { Transport } from "@/views/throughputreport/transport";
 import { makeDriverForTests } from "@component-test-utils";
 import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
@@ -10,19 +9,19 @@ import { setActivePinia, storeToRefs } from "pinia";
 import { Driver } from "../../test/driver";
 import { disableMonitoring } from "../../test/drivers/vitest/setup";
 import { useEnvironmentAndVersionsStore } from "./EnvironmentAndVersionsStore";
+import { useServiceControlStore } from "./ServiceControlStore";
 
 describe("ThroughputStore tests", () => {
   async function setup(preSetup: (driver: Driver) => Promise<void>) {
     const driver = makeDriverForTests();
+    setActivePinia(createTestingPinia({ stubActions: false }));
 
     await preSetup(driver);
     await driver.setUp(serviceControlWithThroughput);
     await driver.setUp(precondition.hasNoDisconnectedEndpoints);
     await driver.setUp(precondition.hasServiceControlMonitoringInstance);
 
-    useServiceControlUrls();
-
-    setActivePinia(createTestingPinia({ stubActions: false }));
+    useServiceControlStore();
     await useEnvironmentAndVersionsStore().refresh();
 
     const store = useThroughputStore();

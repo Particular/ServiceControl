@@ -1,17 +1,22 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import ThroughputConnectionSettings from "@/resources/ThroughputConnectionSettings";
-import throughputClient from "@/views/throughputreport/throughputClient";
-import { isMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
+import createThroughputClient from "@/views/throughputreport/throughputClient";
 import ConfigurationCode from "@/views/throughputreport/setup/ConfigurationCode.vue";
 import { storeToRefs } from "pinia";
 import FAIcon from "@/components/FAIcon.vue";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import useThroughputStoreAutoRefresh from "@/composables/useThroughputStoreAutoRefresh";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
 
 const { store } = useThroughputStoreAutoRefresh();
 const { isBrokerTransport } = storeToRefs(store);
 const settingsInfo = ref<ThroughputConnectionSettings | null>(null);
+
+const serviceControlStore = useServiceControlStore();
+const { isMonitoringEnabled } = storeToRefs(serviceControlStore);
+
+const throughputClient = createThroughputClient();
 
 onMounted(async () => {
   settingsInfo.value = await throughputClient.setting();
@@ -21,7 +26,7 @@ const needsConfiguration = computed(() => {
   const broker = settingsInfo.value?.broker_settings?.length ?? 0;
   const monitoring = settingsInfo.value?.monitoring_settings?.length ?? 0;
   const serviceControl = settingsInfo.value?.service_control_settings?.length ?? 0;
-  return broker > 0 || (monitoring > 0 && isMonitoringEnabled()) || serviceControl > 0;
+  return broker > 0 || (monitoring > 0 && isMonitoringEnabled.value) || serviceControl > 0;
 });
 </script>
 
@@ -76,7 +81,7 @@ const needsConfiguration = computed(() => {
         </div>
       </div>
     </template>
-    <template v-if="isMonitoringEnabled() && (settingsInfo?.monitoring_settings.length ?? 0 > 0)">
+    <template v-if="isMonitoringEnabled && (settingsInfo?.monitoring_settings.length ?? 0 > 0)">
       <div class="row configuration">
         <div class="col-12">
           <h4>Monitoring Settings</h4>

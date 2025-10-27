@@ -67,6 +67,7 @@ const endpointColor = hexToCSSFilter("#929E9E").filter;
 
 .pa-endpoint {
   position: relative;
+  display: inline-block;
   top: 3px;
   background-image: url("@/assets/endpoint.svg");
   background-position: center;

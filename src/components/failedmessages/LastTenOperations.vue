@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import NoData from "../NoData.vue";
-import { useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
 import TimeSince from "../TimeSince.vue";
 import type HistoricRetryOperation from "@/resources/HistoricRetryOperation";
 import RecoverabilityHistoryResponse from "@/resources/RecoverabilityHistoryResponse";
 import FAIcon from "@/components/FAIcon.vue";
 import { faAngleDown, faAngleRight, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { faClock } from "@fortawesome/free-regular-svg-icons";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
 
 const historicOperations = ref<HistoricRetryOperation[]>([]);
 const showHistoricRetries = ref(false);
 
+const serviceControlStore = useServiceControlStore();
+
 async function getHistoricOperations() {
-  const [, data] = await useTypedFetchFromServiceControl<RecoverabilityHistoryResponse>("recoverability/history");
+  const [, data] = await serviceControlStore.fetchTypedFromServiceControl<RecoverabilityHistoryResponse>("recoverability/history");
   historicOperations.value = data.historic_operations;
 }
 

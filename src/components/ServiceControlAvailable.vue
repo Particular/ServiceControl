@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import ConditionalRender from "@/components/ConditionalRender.vue";
 import routeLinks from "@/router/routeLinks";
-import { serviceControlUrl } from "@/composables/serviceServiceControlUrls";
 import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
+import { storeToRefs } from "pinia";
 
 const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
 const connectionState = connectionStore.connectionState;
+const serviceControlStore = useServiceControlStore();
+const { serviceControlUrl } = storeToRefs(serviceControlStore);
 </script>
 
 <template>

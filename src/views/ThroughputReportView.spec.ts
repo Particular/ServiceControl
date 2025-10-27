@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
 import * as precondition from "../../test/preconditions";
-import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { createTestingPinia } from "@pinia/testing";
 import { Transport } from "@/views/throughputreport/transport";
 import { makeDriverForTests, render, screen, userEvent } from "@component-test-utils";
@@ -11,10 +10,13 @@ import { flushPromises, RouterLinkStub } from "@vue/test-utils";
 import ThroughputReportView from "@/views/ThroughputReportView.vue";
 import Toast from "vue-toastification";
 import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
+import { setActivePinia } from "pinia";
 
 describe("EndpointsView tests", () => {
   async function setup() {
     const driver = makeDriverForTests();
+    setActivePinia(createTestingPinia({ stubActions: false }));
 
     await driver.setUp(serviceControlWithThroughput);
 
@@ -28,7 +30,8 @@ describe("EndpointsView tests", () => {
     const driver = await setup();
     await preSetup(driver);
 
-    useServiceControlUrls();
+    useServiceControlStore();
+
     const el = document.createElement("div");
     el.id = "modalDisplay";
     document.body.appendChild(el);
@@ -39,7 +42,7 @@ describe("EndpointsView tests", () => {
         stubs: {
           RouterLink: RouterLinkStub,
         },
-        plugins: [makeRouter(), Toast, createTestingPinia({ stubActions: false })],
+        plugins: [makeRouter(), Toast],
         directives: {
           // Add stub for tippy directive
           tippy: () => {},

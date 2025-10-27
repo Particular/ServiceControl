@@ -1,13 +1,14 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { ref } from "vue";
 import { EditAndRetryConfig } from "@/resources/Configuration";
-import { useTypedFetchFromServiceControl } from "@/composables/serviceServiceControlUrls";
+import { useServiceControlStore } from "./ServiceControlStore";
 
 export const useEditRetryStore = defineStore("EditRetryStore", () => {
   const config = ref<EditAndRetryConfig>({ enabled: false, locked_headers: [], sensitive_headers: [] });
+  const serviceControlStore = useServiceControlStore();
 
   async function loadConfig() {
-    const [, data] = await useTypedFetchFromServiceControl<EditAndRetryConfig>("edit/config");
+    const [, data] = await serviceControlStore.fetchTypedFromServiceControl<EditAndRetryConfig>("edit/config");
     config.value = data;
   }
 

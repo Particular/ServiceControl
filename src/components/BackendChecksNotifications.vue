@@ -2,12 +2,13 @@
 import { computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import "bootstrap";
-import { monitoringUrl, serviceControlUrl, isMonitoringDisabled } from "@/composables/serviceServiceControlUrls";
 import routeLinks from "@/router/routeLinks";
 import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
 import useEnvironmentAndVersionsAutoRefresh from "@/composables/useEnvironmentAndVersionsAutoRefresh";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
+import { storeToRefs } from "pinia";
 
 const router = useRouter();
 
@@ -16,6 +17,8 @@ const connectionState = connectionStore.connectionState;
 const monitoringConnectionState = connectionStore.monitoringConnectionState;
 const { store: environmentStore } = useEnvironmentAndVersionsAutoRefresh();
 const environment = environmentStore.environment;
+const serviceControlStore = useServiceControlStore();
+const { monitoringUrl, serviceControlUrl, isMonitoringDisabled } = storeToRefs(serviceControlStore);
 
 const primaryConnectionFailure = computed(() => connectionState.unableToConnect);
 const monitoringConnectionFailure = computed(() => monitoringConnectionState.unableToConnect);
@@ -34,7 +37,7 @@ watch(primaryConnectionFailure, (newValue, oldValue) => {
 
 watch(monitoringConnectionFailure, (newValue, oldValue) => {
   // Only watch the state change if monitoring is enabled
-  if (isMonitoringDisabled()) {
+  if (isMonitoringDisabled.value) {
     return;
   }
 

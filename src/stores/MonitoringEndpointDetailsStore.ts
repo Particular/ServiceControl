@@ -1,30 +1,41 @@
 import { defineStore, acceptHMRUpdate } from "pinia";
 import { ref } from "vue";
 import MessageTypes from "@/components/monitoring/messageTypes";
-import * as MonitoringEndpoints from "@/composables/serviceMonitoringEndpoints";
 import { formatGraphDuration } from "../components/monitoring/formatGraph";
 import { type ExtendedEndpointDetails, type ExtendedEndpointInstance, type MessageType, type EndpointDetails, type EndpointDetailsError, isError } from "@/resources/MonitoringEndpoint";
 import { useMonitoringHistoryPeriodStore } from "./MonitoringHistoryPeriodStore";
-import { useGetExceptionGroupsForEndpoint } from "../composables/serviceMessageGroup";
+import createMessageGroupClient from "../components/failedmessages/messageGroupClient";
 import type GroupOperation from "@/resources/GroupOperation";
 import { emptyEndpointDetails } from "@/components/monitoring/endpoints";
 import { useMemoize } from "@vueuse/core";
 import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
-
-async function getFailureDetails(classifier: string, classifierFilter: string) {
-  const failedMessages: GroupOperation[] = await useGetExceptionGroupsForEndpoint(classifier, classifierFilter);
-  const groupOperation: GroupOperation | undefined = failedMessages[0];
-  return {
-    serviceControlId: groupOperation?.id ?? "",
-    errorCount: groupOperation?.count ?? 0,
-  };
-}
+import { useServiceControlStore } from "./ServiceControlStore";
 
 export const useMonitoringEndpointDetailsStore = defineStore("MonitoringEndpointDetailsStore", () => {
   const historyPeriodStore = useMonitoringHistoryPeriodStore();
   const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+  const serviceControlStore = useServiceControlStore();
+  const messageGroupClient = createMessageGroupClient();
 
-  const getMemoisedEndpointDetails = useMemoize(MonitoringEndpoints.getEndpointDetails);
+  const getMemoisedEndpointDetails = useMemoize((endpointName: string, historyPeriod = 1) => {
+    const data = ref<EndpointDetails | EndpointDetailsError | null>(null);
+    return {
+      data,
+      refresh: async () => {
+        if (serviceControlStore.isMonitoringEnabled) {
+          try {
+            const [, details] = await serviceControlStore.fetchTypedFromMonitoring<EndpointDetails>(`${`monitored-endpoints`}/${endpointName}?history=${historyPeriod}`);
+            data.value = details!;
+          } catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+              data.value = { error: error.message } as EndpointDetailsError;
+            }
+          }
+        }
+      },
+    };
+  });
 
   const endpointName = ref<string>("");
   const endpointDetails = ref<ExtendedEndpointDetails>(emptyEndpointDetails());
@@ -78,6 +89,15 @@ export const useMonitoringEndpointDetailsStore = defineStore("MonitoringEndpoint
     const { serviceControlId, errorCount } = await getFailureDetails("Endpoint Name", endpointName.value);
     endpointDetails.value.serviceControlId = serviceControlId;
     endpointDetails.value.errorCount = errorCount;
+  }
+
+  async function getFailureDetails(classifier: string, classifierFilter: string) {
+    const failedMessages: GroupOperation[] = await messageGroupClient.getExceptionGroupsForEndpoint(classifier, classifierFilter);
+    const groupOperation: GroupOperation | undefined = failedMessages[0];
+    return {
+      serviceControlId: groupOperation?.id ?? "",
+      errorCount: groupOperation?.count ?? 0,
+    };
   }
 
   function updateMessageTypes() {

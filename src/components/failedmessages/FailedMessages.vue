@@ -1,15 +1,12 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
-import { licenseStatus } from "../../composables/serviceLicense";
-import { useFetchFromServiceControl, patchToServiceControl, useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
 import { useShowToast } from "../../composables/toast";
-import { useRetryMessages } from "../../composables/serviceFailedMessage";
-import { useDownloadFileFromString } from "../../composables/fileDownloadCreator";
+import { downloadFileFromString } from "../../composables/fileDownloadCreator";
 import { onBeforeRouteLeave, useRoute } from "vue-router";
-import { useArchiveExceptionGroup, useRetryExceptionGroup } from "../../composables/serviceMessageGroup";
-import LicenseExpired from "../../components/LicenseExpired.vue";
+import createMessageGroupClient from "./messageGroupClient";
+import LicenseNotExpired from "../../components/LicenseNotExpired.vue";
 import OrderBy from "@/components/OrderBy.vue";
-import ServiceControlNotAvailable from "../ServiceControlNotAvailable.vue";
+import ServiceControlAvailable from "../ServiceControlAvailable.vue";
 import MessageList, { IMessageList } from "./MessageList.vue";
 import ConfirmDialog from "../ConfirmDialog.vue";
 import PaginationStrip from "../../components/PaginationStrip.vue";
@@ -19,10 +16,12 @@ import { TYPE } from "vue-toastification";
 import GroupOperation from "@/resources/GroupOperation";
 import { faArrowDownAZ, faArrowDownZA, faArrowDownShortWide, faArrowDownWideShort, faArrowRotateRight, faTrash, faDownload } from "@fortawesome/free-solid-svg-icons";
 import ActionButton from "@/components/ActionButton.vue";
-import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
+import { useMessageStore } from "@/stores/MessageStore";
 
-const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
-const connectionState = connectionStore.connectionState;
+const serviceControlStore = useServiceControlStore();
+const messageStore = useMessageStore();
+const messageGroupClient = createMessageGroupClient();
 
 let pollingFaster = false;
 let refreshInterval: number | undefined;
@@ -63,7 +62,7 @@ function loadMessages() {
 }
 
 async function loadGroupDetails(groupId: string) {
-  const response = await useFetchFromServiceControl(`recoverability/groups/id/${groupId}`);
+  const response = await serviceControlStore.fetchFromServiceControl(`recoverability/groups/id/${groupId}`);
   const data = await response.json();
   groupName.value = data.title;
 }
@@ -79,7 +78,7 @@ function loadPagedMessages(groupId: string, page: number, sortBy?: string, direc
 
   async function loadMessages() {
     try {
-      const [response, data] = await useTypedFetchFromServiceControl<ExtendedFailedMessage[]>(
+      const [response, data] = await serviceControlStore.fetchTypedFromServiceControl<ExtendedFailedMessage[]>(
         `${groupId ? `recoverability/groups/${groupId}/` : ""}errors?status=${FailedMessageStatus.Unresolved}&page=${page}&per_page=${perPage}&sort=${sortBy}&direction=${direction}`
       );
       totalCount.value = parseInt(response.headers.get("Total-Count") ?? "");
@@ -119,7 +118,7 @@ function loadPagedMessages(groupId: string, page: number, sortBy?: string, direc
 async function retryRequested(id: string) {
   changeRefreshInterval(1000);
   useShowToast(TYPE.INFO, "Info", "Message retry requested...");
-  await useRetryMessages([id]);
+  await messageStore.retryMessages([id]);
   const message = messages.value.find((m) => m.id === id);
   if (message) {
     message.retryInProgress = true;
@@ -131,7 +130,7 @@ async function retrySelected() {
   changeRefreshInterval(1000);
   const selectedMessages = messageList.value?.getSelectedMessages() ?? [];
   useShowToast(TYPE.INFO, "Info", "Retrying " + selectedMessages.length + " messages...");
-  await useRetryMessages(selectedMessages.map((m) => m.id));
+  await messageStore.retryMessages(selectedMessages.map((m) => m.id));
   messageList.value?.deselectAll();
   selectedMessages.forEach((m) => (m.retryInProgress = true));
 }
@@ -191,7 +190,7 @@ function exportSelected() {
   }
 
   const csvStr = toCSV(preparedMessagesForExport);
-  useDownloadFileFromString(csvStr, "text/csv", "failedMessages.csv");
+  downloadFileFromString(csvStr, "text/csv", "failedMessages.csv");
 }
 
 function numberSelected() {
@@ -215,7 +214,7 @@ async function deleteSelectedMessages() {
   const selectedMessages = messageList.value?.getSelectedMessages() ?? [];
 
   useShowToast(TYPE.INFO, "Info", "Deleting " + selectedMessages.length + " messages...");
-  await patchToServiceControl(
+  await serviceControlStore.patchToServiceControl(
     "errors/archive",
     selectedMessages.map((m) => m.id)
   );
@@ -225,13 +224,13 @@ async function deleteSelectedMessages() {
 
 async function retryGroup() {
   useShowToast(TYPE.INFO, "Info", "Retrying all messages...");
-  await useRetryExceptionGroup(groupId.value);
+  await messageGroupClient.retryExceptionGroup(groupId.value);
   messages.value.forEach((m) => (m.retryInProgress = true));
 }
 
 async function deleteGroup() {
   useShowToast(TYPE.INFO, "Info", "Deleting all messages...");
-  await useArchiveExceptionGroup(groupId.value);
+  await messageGroupClient.archiveExceptionGroup(groupId.value);
   messages.value.forEach((m) => (m.deleteInProgress = true));
 }
 
@@ -280,10 +279,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <LicenseExpired />
-  <template v-if="!licenseStatus.isExpired">
-    <ServiceControlNotAvailable />
-    <template v-if="!connectionState.unableToConnect">
+  <ServiceControlAvailable>
+    <LicenseNotExpired>
       <section name="message_groups">
         <div class="row" v-if="groupName && messages.length > 0">
           <div class="col-sm-12">
@@ -352,8 +349,8 @@ onMounted(() => {
           ></ConfirmDialog>
         </Teleport>
       </section>
-    </template>
-  </template>
+    </LicenseNotExpired>
+  </ServiceControlAvailable>
 </template>
 
 <style scoped></style>

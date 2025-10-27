@@ -15,6 +15,7 @@ import { hexToCSSFilter } from "hex-to-css-filter";
 import SagaName from "@/components/SagaName.vue";
 import { useLayout } from "@/components/messages/FlowDiagram/useLayout";
 import { formatTypeName } from "@/composables/formatUtils";
+import TextEllipses from "@/components/TextEllipses.vue";
 
 enum MessageType {
   Event = "Event message",

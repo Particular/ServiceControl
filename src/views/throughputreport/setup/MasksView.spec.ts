@@ -2,12 +2,13 @@ import { makeDriverForTests, userEvent, render, screen } from "@component-test-u
 import MasksView from "@/views/throughputreport/setup/MasksView.vue";
 import { describe, expect, test } from "vitest";
 import * as precondition from "../../../../test/preconditions";
-import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { minimumSCVersionForThroughput } from "@/views/throughputreport/isThroughputSupported";
 import Toast from "vue-toastification";
 import { disableMonitoring } from "../../../../test/drivers/vitest/setup";
 import { flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
+import { setActivePinia } from "pinia";
 
 describe("MaskView tests", () => {
   async function setup() {
@@ -26,8 +27,11 @@ describe("MaskView tests", () => {
   async function renderComponent(body: string[] = []) {
     const driver = await setup();
     driver.mockEndpoint(`${window.defaultConfig.service_control_url}licensing/settings/masks`, { body });
-    useServiceControlUrls();
-    const { debug } = render(MasksView, { global: { plugins: [Toast, createTestingPinia({ stubActions: false })], directives: { tippy: () => {} } } });
+    setActivePinia(createTestingPinia({ stubActions: false }));
+
+    useServiceControlStore();
+
+    const { debug } = render(MasksView, { global: { plugins: [Toast], directives: { tippy: () => {} } } });
     await flushPromises();
 
     return { debug, driver };

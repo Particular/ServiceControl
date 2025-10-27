@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
-import { licenseStatus } from "../../composables/serviceLicense";
-import { patchToServiceControl, postToServiceControl, useTypedFetchFromServiceControl } from "../../composables/serviceServiceControlUrls";
 import { useShowToast } from "../../composables/toast";
 import { useCookies } from "vue3-cookies";
 import OrderBy from "@/components/OrderBy.vue";
-import LicenseExpired from "../../components/LicenseExpired.vue";
-import ServiceControlNotAvailable from "../ServiceControlNotAvailable.vue";
+import LicenseNotExpired from "../../components/LicenseNotExpired.vue";
+import ServiceControlAvailable from "../ServiceControlAvailable.vue";
 import MessageList, { IMessageList } from "./MessageList.vue";
 import ConfirmDialog from "../ConfirmDialog.vue";
 import PaginationStrip from "../../components/PaginationStrip.vue";
@@ -15,15 +13,17 @@ import SortOptions, { SortDirection } from "@/resources/SortOptions";
 import QueueAddress from "@/resources/QueueAddress";
 import { TYPE } from "vue-toastification";
 import GroupOperation from "@/resources/GroupOperation";
-import { useIsMassTransitConnected } from "@/composables/useIsMassTransitConnected";
 import { faArrowDownAZ, faArrowDownZA, faArrowDownShortWide, faArrowDownWideShort, faInfoCircle, faExternalLink, faFilter, faTimes, faArrowRightRotate } from "@fortawesome/free-solid-svg-icons";
 import FAIcon from "@/components/FAIcon.vue";
 import ActionButton from "@/components/ActionButton.vue";
 import { faCheckSquare } from "@fortawesome/free-regular-svg-icons";
-import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
+import { useConfigurationStore } from "@/stores/ConfigurationStore";
+import { storeToRefs } from "pinia";
 
-const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
-const connectionState = connectionStore.connectionState;
+const serviceControlStore = useServiceControlStore();
+const configurationStore = useConfigurationStore();
+const { isMassTransitConnected } = storeToRefs(configurationStore);
 
 let refreshInterval: number | undefined;
 let sortMethod: SortOptions<GroupOperation> | undefined;
@@ -60,12 +60,11 @@ const sortOptions: SortOptions<GroupOperation>[] = [
   },
 ];
 const periodOptions = ["All Pending Retries", "Retried in the last 2 Hours", "Retried in the last 1 Day", "Retried in the last 7 Days"];
-const isMassTransitConnected = useIsMassTransitConnected();
 
 watch(pageNumber, () => loadPendingRetryMessages());
 
 async function loadEndpoints() {
-  const [, data] = await useTypedFetchFromServiceControl<QueueAddress[]>("errors/queues/addresses");
+  const [, data] = await serviceControlStore.fetchTypedFromServiceControl<QueueAddress[]>("errors/queues/addresses");
   endpoints.value = data.map((endpoint) => endpoint.physical_address);
 }
 
@@ -104,7 +103,7 @@ async function loadPagedPendingRetryMessages(page: number, searchPhrase: string,
   if (searchPhrase === "empty") searchPhrase = "";
 
   try {
-    const [response, data] = await useTypedFetchFromServiceControl<ExtendedFailedMessage[]>(
+    const [response, data] = await serviceControlStore.fetchTypedFromServiceControl<ExtendedFailedMessage[]>(
       `errors?status=${FailedMessageStatus.RetryIssued}&page=${page}&per_page=${perPage}&sort=${sortBy}&direction=${direction}&queueaddress=${searchPhrase}&modified=${startDate.toISOString()}...${endDate.toISOString()}`
     );
     totalCount.value = parseInt(response.headers.get("Total-Count") ?? "0");
@@ -151,7 +150,7 @@ async function retrySelectedMessages() {
   const selectedMessages = messageList.value?.getSelectedMessages() ?? [];
 
   useShowToast(TYPE.INFO, "Info", "Selected messages were submitted for retry...");
-  await postToServiceControl(
+  await serviceControlStore.postToServiceControl(
     "pendingretries/retry",
     selectedMessages.map((m) => m.id)
   );
@@ -164,14 +163,14 @@ async function resolveSelectedMessages() {
   const selectedMessages = messageList.value?.getSelectedMessages() ?? [];
 
   useShowToast(TYPE.INFO, "Info", "Selected messages were marked as resolved.");
-  await patchToServiceControl("pendingretries/resolve", { uniquemessageids: selectedMessages.map((m) => m.id) });
+  await serviceControlStore.patchToServiceControl("pendingretries/resolve", { uniquemessageids: selectedMessages.map((m) => m.id) });
   messageList.value?.deselectAll();
   selectedMessages.forEach((m) => (m.resolved = true));
 }
 
 async function resolveAllMessages() {
   useShowToast(TYPE.INFO, "Info", "All filtered messages were marked as resolved.");
-  await patchToServiceControl("pendingretries/resolve", { from: new Date(0).toISOString(), to: new Date().toISOString() });
+  await serviceControlStore.patchToServiceControl("pendingretries/resolve", { from: new Date(0).toISOString(), to: new Date().toISOString() });
   messageList.value?.deselectAll();
   messageList.value?.resolveAll();
 }
@@ -187,7 +186,7 @@ async function retryAllMessages() {
     data.queueaddress = selectedQueue.value;
   }
 
-  await postToServiceControl(url, data);
+  await serviceControlStore.postToServiceControl(url, data);
   messages.value.forEach((message) => {
     message.selected = false;
     message.submittedForRetrial = true;
@@ -245,10 +244,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <LicenseExpired />
-  <template v-if="!licenseStatus.isExpired">
-    <ServiceControlNotAvailable />
-    <template v-if="!connectionState.unableToConnect">
+  <ServiceControlAvailable>
+    <LicenseNotExpired>
       <section name="pending_retries">
         <div class="row">
           <div class="col-12">
@@ -368,8 +365,8 @@ onMounted(() => {
           ></ConfirmDialog>
         </Teleport>
       </section>
-    </template>
-  </template>
+    </LicenseNotExpired>
+  </ServiceControlAvailable>
 </template>
 
 <style scoped>

@@ -2,7 +2,7 @@
 import { onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useShowToast } from "../../composables/toast";
-import { isError, useAcknowledgeArchiveGroup, useArchiveExceptionGroup, useDeleteNote, useEditOrCreateNote, useGetExceptionGroups, useRetryExceptionGroup } from "../../composables/serviceMessageGroup";
+import createMessageGroupClient from "./messageGroupClient";
 import NoData from "../NoData.vue";
 import TimeSince from "../TimeSince.vue";
 import FailedMessageGroupNoteEdit from "./FailedMessageGroupNoteEdit.vue";
@@ -63,8 +63,10 @@ const noteSaveSuccessful = ref<boolean | null>(null);
 const groupDeleteSuccessful = ref<boolean | null>(null);
 const groupRetrySuccessful = ref<boolean | null>(null);
 
+const messageGroupClient = createMessageGroupClient();
+
 async function getExceptionGroups(classifier?: string) {
-  const result = await useGetExceptionGroups(classifier);
+  const result = await messageGroupClient.getExceptionGroups(classifier);
   if (props.sortFunction) {
     result.sort(props.sortFunction);
   }
@@ -123,8 +125,8 @@ async function saveDeleteNote(group?: GroupOperation, hideToastMessage?: boolean
   showDeleteNoteModal.value = false;
 
   if (group) {
-    const result = await useDeleteNote(group.id);
-    if (isError(result)) {
+    const result = await messageGroupClient.deleteNote(group.id);
+    if (messageGroupClient.isError(result)) {
       noteSaveSuccessful.value = false;
       if (!hideToastMessage) {
         useShowToast(TYPE.ERROR, "Error", `Failed to delete a Note: ${result.message}`);
@@ -147,8 +149,8 @@ async function saveNote(group: GroupOperation, comment: string) {
 
   groupsWithNotesAdded.push({ groupId: group.id, comment: comment });
 
-  const result = await useEditOrCreateNote(group.id, comment);
-  if (isError(result)) {
+  const result = await messageGroupClient.editOrCreateNote(group.id, comment);
+  if (messageGroupClient.isError(result)) {
     noteSaveSuccessful.value = false;
     useShowToast(TYPE.ERROR, "Error", `Failed to update Note: ${result.message}`);
   } else {
@@ -189,8 +191,8 @@ async function saveDeleteGroup(group?: ExtendedGroupOperation) {
     changeRefreshInterval(1000);
 
     saveDeleteNote(group, true); // delete comment note when group is archived
-    const result = await useArchiveExceptionGroup(group.id);
-    if (isError(result)) {
+    const result = await messageGroupClient.archiveExceptionGroup(group.id);
+    if (messageGroupClient.isError(result)) {
       groupDeleteSuccessful.value = false;
       useShowToast(TYPE.ERROR, "Error", `Failed to delete the group: ${result.message}`);
     } else {
@@ -244,8 +246,8 @@ async function saveRetryGroup(group?: ExtendedGroupOperation) {
     changeRefreshInterval(1000);
 
     saveDeleteNote(group, true);
-    const result = await useRetryExceptionGroup(group.id);
-    if (isError(result)) {
+    const result = await messageGroupClient.retryExceptionGroup(group.id);
+    if (messageGroupClient.isError(result)) {
       groupRetrySuccessful.value = false;
       useShowToast(TYPE.ERROR, "Error", `Failed to retry the group: ${result.message}`);
     } else groupRetrySuccessful.value = true;
@@ -261,8 +263,8 @@ function getClassesForRetryOperation(stepStatus: string, currentStatus: string) 
 }
 
 const acknowledgeGroup = async function (group: GroupOperation) {
-  const result = await useAcknowledgeArchiveGroup(group.id);
-  if (isError(result)) useShowToast(TYPE.ERROR, "Error", `Acknowledging Group Failed: ${result.message}`);
+  const result = await messageGroupClient.acknowledgeArchiveGroup(group.id);
+  if (messageGroupClient.isError(result)) useShowToast(TYPE.ERROR, "Error", `Acknowledging Group Failed: ${result.message}`);
   else {
     if (group.operation_status === "ArchiveCompleted") {
       useShowToast(TYPE.INFO, "Info", "Group deleted successfully");

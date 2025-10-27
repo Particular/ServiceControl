@@ -1,8 +1,6 @@
 import { SetupFactoryOptions } from "../driver";
 import LicenseInfo, { LicenseStatus, LicenseType } from "@/resources/LicenseInfo";
-import { useLicense } from "@/composables/serviceLicense";
 
-const { license } = useLicense();
 const licenseResponseTemplate = <LicenseInfo>{
   registered_to: "ACME Software",
   edition: "Enterprise",
@@ -54,9 +52,6 @@ const getLicenseMockedResponse =
         licenseExtensionUrl = extensionUrl ? extensionUrl : "https://particular.net/extend-your-trial?p=servicepulse";
         break;
     }
-
-    //We need to reset the global state to ensure the warning toast is always triggered by the value changing between multiple test runs. See documented issue and proposed solution https://github.com/Particular/ServicePulse/issues/1905
-    license.license_status = LicenseStatus.Unavailable;
 
     const response = {
       ...licenseResponseTemplate,

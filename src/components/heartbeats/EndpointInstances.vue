@@ -12,7 +12,6 @@ import { useShowToast } from "@/composables/toast";
 import { TYPE } from "vue-toastification";
 import { ColumnNames } from "@/stores/HeartbeatInstancesStore";
 import { EndpointsView } from "@/resources/EndpointView";
-import { getEndpointSettings, defaultEndpointSettingsValue } from "@/components/heartbeats/endpointSettingsClient";
 import { EndpointSettings } from "@/resources/EndpointSettings";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import LastHeartbeat from "@/components/heartbeats/LastHeartbeat.vue";
@@ -21,7 +20,7 @@ import ResultsCount from "../ResultsCount.vue";
 import { faBell, faBellSlash, faChevronLeft, faHeartbeat, faTrash } from "@fortawesome/free-solid-svg-icons";
 import FAIcon from "@/components/FAIcon.vue";
 import useHeartbeatInstancesStoreAutoRefresh from "@/composables/useHeartbeatInstancesStoreAutoRefresh";
-import useIsEndpointSettingsSupported from "./isEndpointSettingsSupported";
+import { useEndpointSettingsStore } from "@/stores/EndpointSettingsStore";
 
 enum Operation {
   Mute = "mute",
@@ -33,7 +32,9 @@ const router = useRouter();
 const endpointName = route.params.endpointName.toString();
 const { store } = useHeartbeatInstancesStoreAutoRefresh();
 const { filteredInstances, sortedInstances, instanceFilterString, sortByInstances } = storeToRefs(store);
-const endpointSettings = ref<EndpointSettings[]>([defaultEndpointSettingsValue()]);
+const endpointSettingsStore = useEndpointSettingsStore();
+const endpointSettings = ref<EndpointSettings[]>([endpointSettingsStore.defaultEndpointSettingsValue]);
+
 const backLink = ref<string>(routeLinks.heartbeats.root);
 const filterToValidInstances = (data: EndpointsView[]) =>
   data
@@ -50,15 +51,13 @@ const filteredValidInstances = computed(() => filterToValidInstances(filteredIns
 const totalValidInstances = computed(() => filterToValidInstances(sortedInstances.value));
 const showBulkWarningDialog = ref(false);
 const dialogWarningOperation = ref(Operation.Mute);
-const isEndpointSettingsSupported = useIsEndpointSettingsSupported();
 
 onMounted(async () => {
   const back = useRouter().currentRoute.value.query.back as string;
   if (back) {
     backLink.value = back;
   }
-  const endpointSettingsPromise = isEndpointSettingsSupported.value ? getEndpointSettings() : Promise.resolve([defaultEndpointSettingsValue()]);
-  endpointSettings.value = await endpointSettingsPromise;
+  endpointSettings.value = await endpointSettingsStore.getEndpointSettings();
 });
 
 function showBulkOperationWarningDialog(operation: Operation) {

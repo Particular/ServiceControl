@@ -1,14 +1,18 @@
-import { acceptHMRUpdate, defineStore } from "pinia";
+import { acceptHMRUpdate, defineStore, storeToRefs } from "pinia";
 import { computed, ref, watch } from "vue";
 import ConnectionTestResults from "@/resources/ConnectionTestResults";
-import throughputClient from "@/views/throughputreport/throughputClient";
+import createThroughputClient from "@/views/throughputreport/throughputClient";
 import { Transport } from "@/views/throughputreport/transport";
-import { isMonitoringEnabled } from "@/composables/serviceServiceControlUrls";
 import useIsThroughputSupported from "@/views/throughputreport/isThroughputSupported";
+import { useServiceControlStore } from "./ServiceControlStore";
 
 export const useThroughputStore = defineStore("ThroughputStore", () => {
+  const serviceControlStore = useServiceControlStore();
+  const { isMonitoringEnabled } = storeToRefs(serviceControlStore);
+
   const testResults = ref<ConnectionTestResults | null>(null);
   const isThroughputSupported = useIsThroughputSupported();
+  const throughputClient = createThroughputClient();
 
   const refresh = async () => {
     if (isThroughputSupported.value) {
@@ -25,11 +29,12 @@ export const useThroughputStore = defineStore("ThroughputStore", () => {
     // if Audit connection test fails, we will return true.
     // the connection test will return true if there are no Audit instances configured.
     if (!testResults.value?.audit_connection_result.connection_successful) {
+      //TODO: should this be a warning rather than an error?
       return true;
     }
 
     // if Monitoring is enabled, we return whatever the value of the connection test
-    if (isMonitoringEnabled()) {
+    if (isMonitoringEnabled.value) {
       return !testResults.value?.monitoring_connection_result.connection_successful;
     }
 

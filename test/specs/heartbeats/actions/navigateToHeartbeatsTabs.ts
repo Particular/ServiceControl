@@ -5,7 +5,8 @@ export async function navigateToHeartbeatsConfiguration() {
   configurationTab.click();
 
   // Wait for the tab to switch
-  await screen.findByRole("region", { name: "Endpoint Configuration" });
+  //TODO: determine why timeout had to be increased when these tests are run as part of the full application suite
+  await screen.findByRole("region", { name: "Endpoint Configuration" }, { timeout: 5000 });
 }
 
 export async function navigateToHealthyHeartbeats() {

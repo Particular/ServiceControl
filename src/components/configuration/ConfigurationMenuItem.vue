@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
 import { computed } from "vue";
-import { licenseStatus } from "@/composables/serviceLicense";
 import ExclamationMark from "@/components/ExclamationMark.vue";
 import { LicenseWarningLevel } from "@/composables/LicenseStatus";
 import { WarningLevel } from "@/components/WarningLevel";
@@ -11,11 +10,14 @@ import FAIcon from "@/components/FAIcon.vue";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
 import useThroughputStoreAutoRefresh from "@/composables/useThroughputStoreAutoRefresh";
 import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+import { useLicenseStore } from "@/stores/LicenseStore";
 
 const { store } = useThroughputStoreAutoRefresh();
 const { hasErrors } = storeToRefs(store);
 
 const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
+const licenseStore = useLicenseStore();
+const { licenseStatus } = licenseStore;
 
 const displayWarn = computed(() => {
   return licenseStatus.warningLevel === LicenseWarningLevel.Warning;

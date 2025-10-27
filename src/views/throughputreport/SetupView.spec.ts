@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
 import * as precondition from "../../../test/preconditions";
-import { useServiceControlUrls } from "@/composables/serviceServiceControlUrls";
 import { minimumSCVersionForThroughput } from "@/views/throughputreport/isThroughputSupported";
 import { createTestingPinia } from "@pinia/testing";
 import { Transport } from "@/views/throughputreport/transport";
@@ -12,10 +11,13 @@ import { ConnectionSettingsTestResult } from "@/resources/ConnectionTestResults"
 import makeRouter from "@/router";
 import { flushPromises, RouterLinkStub } from "@vue/test-utils";
 import { serviceControlWithThroughput } from "@/views/throughputreport/serviceControlWithThroughput";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
+import { setActivePinia } from "pinia";
 
 describe("SetupView tests", () => {
   async function setup() {
     const driver = makeDriverForTests();
+    setActivePinia(createTestingPinia({ stubActions: false }));
 
     await driver.setUp(serviceControlWithThroughput);
 
@@ -48,13 +50,14 @@ describe("SetupView tests", () => {
 
     await preSetup(driver);
 
-    useServiceControlUrls();
+    useServiceControlStore();
+
     const { debug } = render(SetupView, {
       global: {
         stubs: {
           RouterLink: RouterLinkStub,
         },
-        plugins: [makeRouter(), createTestingPinia({ stubActions: false })],
+        plugins: [makeRouter()],
         directives: {
           // Add stub for tippy directive
           tippy: () => {},

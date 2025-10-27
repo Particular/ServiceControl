@@ -1,39 +1,31 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { license, licenseStatus } from "@/composables/serviceLicense";
-import ServiceControlNotAvailable from "../ServiceControlNotAvailable.vue";
-import BusyIndicator from "../BusyIndicator.vue";
+import ServiceControlAvailable from "../ServiceControlAvailable.vue";
 import ExclamationMark from "./../../components/ExclamationMark.vue";
 import convertToWarningLevel from "@/components/configuration/convertToWarningLevel";
-import { useConfiguration } from "@/composables/configuration";
 import { typeText } from "@/resources/LicenseInfo";
 import { faExternalLink } from "@fortawesome/free-solid-svg-icons";
 import FAIcon from "@/components/FAIcon.vue";
-import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+import { useConfigurationStore } from "@/stores/ConfigurationStore";
+import { storeToRefs } from "pinia";
+import { useLicenseStore } from "@/stores/LicenseStore";
+import LoadingSpinner from "../LoadingSpinner.vue";
 
-// This is needed because the ConfigurationView.vue routerView expects this event.
-// The event is only actually emitted on the RetryRedirects.vue component
-// but if we don't include it, the console will show warnings about not being able to
-// subscribe to this event
-defineEmits<{
-  redirectCountUpdated: [count: number];
-}>();
+const configurationStore = useConfigurationStore();
+const { configuration } = storeToRefs(configurationStore);
+const licenseStore = useLicenseStore();
+const { licenseStatus, license } = licenseStore;
 
 const loading = computed(() => {
   return !license || license.status === "";
 });
-
-const configuration = useConfiguration();
-const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
-const connectionState = connectionStore.connectionState;
 </script>
 
 <template>
   <section name="license">
-    <ServiceControlNotAvailable />
-    <template v-if="!connectionState.unableToConnect">
+    <ServiceControlAvailable>
       <section>
-        <busy-indicator v-if="loading"></busy-indicator>
+        <LoadingSpinner v-if="loading" />
 
         <template v-if="!loading">
           <div class="box">
@@ -123,7 +115,7 @@ const connectionState = connectionStore.connectionState;
           </div>
         </template>
       </section>
-    </template>
+    </ServiceControlAvailable>
   </section>
 </template>
 

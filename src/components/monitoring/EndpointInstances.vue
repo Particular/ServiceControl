@@ -2,7 +2,6 @@
 import { ref, onMounted } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import { formatGraphDecimal, formatGraphDuration, smallGraphsMinimumYAxis } from "./formatGraph";
-import { useDeleteFromMonitoring, useOptionsFromMonitoring } from "@/composables/serviceServiceControlUrls";
 import { storeToRefs } from "pinia";
 import { useMonitoringEndpointDetailsStore } from "@/stores/MonitoringEndpointDetailsStore";
 import NoData from "@/components/NoData.vue";
@@ -13,16 +12,19 @@ import ColumnHeader from "@/components/ColumnHeader.vue";
 import { CriticalTime, InstanceName, ProcessingTime, ScheduledRetries, Throughput } from "@/resources/MonitoringResources";
 import FAIcon from "@/components/FAIcon.vue";
 import { faEnvelope, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { useServiceControlStore } from "@/stores/ServiceControlStore";
 
 const isRemovingEndpointEnabled = ref<boolean>(false);
 const router = useRouter();
-const monitoringStore = useMonitoringEndpointDetailsStore();
 
+const monitoringStore = useMonitoringEndpointDetailsStore();
 const { endpointDetails: endpoint, endpointName } = storeToRefs(monitoringStore);
+
+const serviceControlStore = useServiceControlStore();
 
 async function removeEndpoint(endpointName: string, instance: ExtendedEndpointInstance) {
   try {
-    await useDeleteFromMonitoring("monitored-instance/" + endpointName + "/" + instance.id);
+    await serviceControlStore.deleteFromMonitoring("monitored-instance/" + endpointName + "/" + instance.id);
     endpoint.value.instances.splice(endpoint.value.instances.indexOf(instance), 1);
     if (endpoint.value.instances.length === 0) {
       router.push(routeLinks.monitoring.root);
@@ -35,7 +37,7 @@ async function removeEndpoint(endpointName: string, instance: ExtendedEndpointIn
 
 async function getIsRemovingEndpointEnabled() {
   try {
-    const response = await useOptionsFromMonitoring();
+    const response = await serviceControlStore.optionsFromMonitoring();
     if (response) {
       const headers = response.headers;
       const allow = headers.get("Allow");

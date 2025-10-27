@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import { useDateFormatter } from "@/composables/dateFormatter";
 
 const props = withDefaults(
@@ -32,9 +32,11 @@ function updateText() {
   }
 }
 
+//this will update the value immediately and if the props value changes
+watch(() => props.dateUtc, updateText, { immediate: true });
+//this updates the value according to time passed, e.g. timesince changing from 'moments ago' to 'a minute ago'
 onMounted(() => {
   interval = window.setInterval(updateText, 5000);
-  updateText();
 });
 
 onUnmounted(() => window.clearInterval(interval));

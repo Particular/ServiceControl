@@ -3,7 +3,7 @@ import EndpointThroughputSummary from "@/resources/EndpointThroughputSummary";
 import { UserIndicator } from "@/views/throughputreport/endpoints/userIndicator";
 import DropDown, { type Item } from "@/components/DropDown.vue";
 import { computed, onMounted, reactive, ref, watch } from "vue";
-import throughputClient from "@/views/throughputreport/throughputClient";
+import createThroughputClient from "@/views/throughputreport/throughputClient";
 import UpdateUserIndicator from "@/resources/UpdateUserIndicator";
 import { TYPE } from "vue-toastification";
 import { DataSource } from "@/views/throughputreport/endpoints/dataSource";
@@ -12,9 +12,9 @@ import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import { useShowToast } from "@/composables/toast";
 import ResultsCount from "@/components/ResultsCount.vue";
 import { useHiddenFeature } from "./useHiddenFeature";
-import { license } from "@/composables/serviceLicense";
 import FAIcon from "@/components/FAIcon.vue";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
+import { useLicenseStore } from "@/stores/LicenseStore";
 
 enum NameFilterType {
   beginsWith = "Begins with",
@@ -52,6 +52,10 @@ const props = defineProps<DetectedListViewProps>();
 const data = ref<EndpointThroughputSummary[]>([]);
 const dataChanges = ref(new Map<string, { indicator: string }>());
 const filterData = reactive({ name: "", nameFilterType: NameFilterType.beginsWith, sort: "name", showUnsetOnly: false });
+
+const licenseStore = useLicenseStore();
+const { license } = licenseStore;
+
 const filterNameOptions = [
   { text: NameFilterType.beginsWith, filter: (a: EndpointThroughputSummary) => a.name.toLowerCase().startsWith(filterData.name.toLowerCase()) },
   { text: NameFilterType.contains, filter: (a: EndpointThroughputSummary) => a.name.toLowerCase().includes(filterData.name.toLowerCase()) },
@@ -73,6 +77,8 @@ const filteredData = computed(() => {
 // We can remove this hidden toggle once we have new edition licenses.
 const hiddenFeatureToggle = useHiddenFeature(["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown"]);
 const showMonthly = computed(() => license.edition === "MonthlyUsage" || hiddenFeatureToggle.value);
+
+const throughputClient = createThroughputClient();
 
 onMounted(async () => {
   await loadData();
