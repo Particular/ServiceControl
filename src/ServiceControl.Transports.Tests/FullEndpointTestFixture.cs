@@ -7,7 +7,8 @@
     using ServiceControl.Infrastructure;
 
     [TestFixture]
-    class FullEndpointTestFixture
+
+    abstract class FullEndpointTestFixture
     {
         [SetUp]
         public virtual async Task Setup()
