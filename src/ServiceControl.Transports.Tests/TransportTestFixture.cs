@@ -18,12 +18,13 @@
     using Transports;
 
     [TestFixture]
-    class TransportTestFixture
+
+    abstract class TransportTestFixture
     {
         [SetUp]
         public virtual async Task Setup()
         {
-            //used for loggers outside of ServiceControl (i.e. transports and core) to use the logger factory defined here
+            //used for loggers outside ServiceControl (i.e. transports and core) to use the logger factory defined here
             LogManager.UseFactory(new ExtensionsLoggerFactory(new TestContextAppenderFactory(Microsoft.Extensions.Logging.LogLevel.Warning)));
             LoggerUtil.ActiveLoggers = Loggers.Test;
             configuration = new TransportTestsConfiguration();

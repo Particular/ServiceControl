@@ -3,7 +3,7 @@
     using System.IO;
     using NUnit.Framework;
 
-    public class InstallationFixture
+    public abstract class InstallationFixture
     {
         [SetUp]
         public void SetUp()
