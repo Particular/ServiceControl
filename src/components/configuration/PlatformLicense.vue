@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import ServiceControlAvailable from "../ServiceControlAvailable.vue";
 import ExclamationMark from "./../../components/ExclamationMark.vue";
 import convertToWarningLevel from "@/components/configuration/convertToWarningLevel";
@@ -14,11 +13,8 @@ import LoadingSpinner from "../LoadingSpinner.vue";
 const configurationStore = useConfigurationStore();
 const { configuration } = storeToRefs(configurationStore);
 const licenseStore = useLicenseStore();
+const { loading, licenseEdition, formattedExpirationDate, formattedUpgradeProtectionExpiration, formattedInstanceName } = storeToRefs(licenseStore);
 const { licenseStatus, license } = licenseStore;
-
-const loading = computed(() => {
-  return !license || license.status === "";
-});
 </script>
 
 <template>
@@ -26,13 +22,12 @@ const loading = computed(() => {
     <ServiceControlAvailable>
       <section>
         <LoadingSpinner v-if="loading" />
-
-        <template v-if="!loading">
+        <template v-else>
           <div class="box">
             <div class="row">
               <div class="license-info">
                 <div>
-                  <b>Platform license type:</b> <span role="note" aria-label="license-type">{{ typeText(license, configuration) }}{{ license.licenseEdition }}</span>
+                  <b>Platform license type:</b> <span role="note" aria-label="license-type">{{ typeText(license, configuration) }}{{ licenseEdition }}</span>
                 </div>
 
                 <template v-if="licenseStatus.isSubscriptionLicense">
@@ -45,7 +40,7 @@ const loading = computed(() => {
                         'license-expired': licenseStatus.isPlatformExpired,
                       }"
                     >
-                      {{ license.formattedExpirationDate }}
+                      {{ formattedExpirationDate }}
                       <span role="note" aria-label="license-days-left">{{ licenseStatus.subscriptionDaysLeft }}</span>
                       <exclamation-mark :type="convertToWarningLevel(licenseStatus.warningLevel)" />
                     </span>
@@ -62,7 +57,7 @@ const loading = computed(() => {
                         'license-expired': licenseStatus.isPlatformTrialExpired,
                       }"
                     >
-                      {{ license.formattedExpirationDate }}
+                      {{ formattedExpirationDate }}
                       <span role="note" aria-label="license-days-left"> {{ licenseStatus.trialDaysLeft }}</span>
                       <exclamation-mark :type="convertToWarningLevel(licenseStatus.warningLevel)" />
                     </span>
@@ -85,7 +80,7 @@ const loading = computed(() => {
                           'license-expired': licenseStatus.isInvalidDueToUpgradeProtectionExpired,
                         }"
                       >
-                        {{ license.formattedUpgradeProtectionExpiration }}
+                        {{ formattedUpgradeProtectionExpiration }}
                         <span role="note" aria-label="license-days-left">{{ licenseStatus.upgradeDaysLeft }}</span>
                         <exclamation-mark :type="convertToWarningLevel(licenseStatus.warningLevel)" />
                       </span>
@@ -98,7 +93,7 @@ const loading = computed(() => {
                 </template>
                 <div>
                   <b>ServiceControl instance:</b>
-                  {{ license.formattedInstanceName }}
+                  {{ formattedInstanceName }}
                 </div>
                 <ul class="license-install-info">
                   <li>
