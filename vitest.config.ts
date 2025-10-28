@@ -22,7 +22,6 @@ export default defineConfig({
     css: true,
     testTimeout: 15000,
     coverage: {
-      all: true,
       exclude: [`**/__test__/**/*`, `**/.eslintrc.js`, `**/*.spec.ts`, `test/**/*`],
       provider: `v8`,
       reporter: ["text", "text-summary", "cobertura"],
