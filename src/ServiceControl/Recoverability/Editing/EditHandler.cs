@@ -27,6 +27,7 @@
 
         public async Task Handle(EditAndSend message, IMessageHandlerContext context)
         {
+            string editRequestIdentifier = context.MessageId;
             FailedMessage failedMessage;
             using (var session = await store.CreateEditFailedMessageManager())
             {
@@ -38,7 +39,7 @@
                     return;
                 }
 
-                var editId = await session.GetCurrentEditingMessageId(message.FailedMessageId);
+                var editId = await session.GetCurrentEditingRequestId(message.FailedMessageId);
                 if (editId == null)
                 {
                     if (failedMessage.Status != FailedMessageStatus.Unresolved)
@@ -48,9 +49,9 @@
                     }
 
                     // create a retries document to prevent concurrent edits
-                    await session.SetCurrentEditingMessageId(context.MessageId);
+                    await session.SetCurrentEditingRequestId(editRequestIdentifier);
                 }
-                else if (editId != context.MessageId)
+                else if (editId != editRequestIdentifier)
                 {
                     logger.LogWarning("Discarding edit & retry request because the failed message id {FailedMessageId} has already been edited by Message ID {EditedMessageId}", message.FailedMessageId, editId);
                     return;
@@ -71,6 +72,7 @@
             // mark the new message with a link to the original message id
             outgoingMessage.Headers.Add("ServiceControl.EditOf", message.FailedMessageId);
             outgoingMessage.Headers["ServiceControl.Retry.AcknowledgementQueue"] = errorQueueNameCache.ResolvedErrorAddress;
+            outgoingMessage.Headers["ServiceControl.Retry.UniqueMessageId"] = editRequestIdentifier; //lets re-use the edit request identifier as the value for ServiceControl.Retry.UniqueMessageId so that when the notification from NSB about successful retries arrives, we can use this Id to query FailedMessageEdit by EditId  
 
             var address = ApplyRedirect(attempt.FailureDetails.AddressOfFailingEndpoint, redirects);
 

@@ -1,10 +1,13 @@
 ﻿namespace ServiceControl.Persistence.RavenDB
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
+    using Raven.Client.Documents;
     using Raven.Client.Documents.Session;
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.Recoverability.Editing;
+    using ServiceControl.Persistence.RavenDB.Indexes;
 
     class EditFailedMessageManager : AbstractSessionManager, IEditFailedMessagesManager
     {
@@ -25,13 +28,13 @@
             return failedMessage;
         }
 
-        public async Task<string> GetCurrentEditingMessageId(string failedMessageId)
+        public async Task<string> GetCurrentEditingRequestId(string failedMessageId)
         {
             var edit = await session.LoadAsync<FailedMessageEdit>(FailedMessageEdit.MakeDocumentId(failedMessageId));
             return edit?.EditId;
         }
 
-        public Task SetCurrentEditingMessageId(string editingMessageId)
+        public Task SetCurrentEditingRequestId(string editingMessageId)
         {
             if (failedMessage == null)
             {
@@ -53,6 +56,22 @@
             expirationManager.EnableExpiration(session, failedMessage);
 
             return Task.CompletedTask;
+        }
+
+        public async Task<string> GetFailedMessageIdByEditId(string editId)
+        {
+            var edit = await session.Query<FailedMessageEdit, FailedMessageEditIndex>()
+                .Customize(x => x.WaitForNonStaleResults())
+                .Where(x => x.EditId == editId)
+                .SingleOrDefaultAsync();
+            // .FirstOrDefaultAsync();
+
+            if (edit?.FailedMessageId != null)
+            {
+                return FailedMessageIdGenerator.GetMessageIdFromDocumentId(edit.FailedMessageId);
+            }
+
+            return null;
         }
     }
 }
