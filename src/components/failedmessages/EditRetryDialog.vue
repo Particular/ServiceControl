@@ -10,16 +10,8 @@ import { storeToRefs } from "pinia";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FAIcon from "@/components/FAIcon.vue";
 import { faExclamationCircle, faExclamationTriangle, faUndo } from "@fortawesome/free-solid-svg-icons";
+import { HeaderWithEditing } from "@/resources/EditMessage";
 import { useDebounceFn } from "@vueuse/core";
-import useEnvironmentAndVersionsAutoRefresh from "@/composables/useEnvironmentAndVersionsAutoRefresh";
-import { useServiceControlStore } from "@/stores/ServiceControlStore";
-
-interface HeaderWithEditing extends Header {
-  isLocked: boolean;
-  isSensitive: boolean;
-  isMarkedAsRemoved: boolean;
-  isChanged: boolean;
-}
 
 const emit = defineEmits<{
   cancel: [];
@@ -56,9 +48,6 @@ const showCancelConfirmation = ref(false);
 const showEditRetryGenericError = ref(false);
 const messageStore = useMessageStore();
 const { state, headers, body, edit_and_retry_config } = storeToRefs(messageStore);
-const { store: environmentStore } = useEnvironmentAndVersionsAutoRefresh();
-const areSimpleHeadersSupported = environmentStore.serviceControlIsGreaterThan("5.2.0");
-const serviceControlStore = useServiceControlStore();
 
 const id = computed(() => state.value.data.id ?? "");
 const uneditedMessageBody = computed(() => body.value.data.value ?? "");
@@ -110,24 +99,7 @@ function removeHeadersMarkedAsRemoved() {
 async function retryEditedMessage() {
   removeHeadersMarkedAsRemoved();
   try {
-    const payload = {
-      message_body: localMessage.value.messageBody,
-      message_headers: areSimpleHeadersSupported.value
-        ? localMessage.value.headers.reduce(
-            (result, header) => {
-              const { key, value } = header as { key: string; value: string };
-              result[key] = value;
-              return result;
-            },
-            {} as { [key: string]: string }
-          )
-        : localMessage.value.headers,
-    };
-    const response = await serviceControlStore.postToServiceControl(`edit/${id.value}`, payload);
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-
+    await messageStore.retryEditedMessage(id.value, localMessage);
     localMessage.value.retried = true;
     return emit("confirm");
   } catch {
