@@ -58,7 +58,7 @@
             var failedMessage = await ErrorMessageDataStore.ErrorBy(failedMessageId);
 
             var editFailedMessagesManager = await ErrorMessageDataStore.CreateEditFailedMessageManager();
-            var editOperation = await editFailedMessagesManager.GetCurrentEditingMessageId(failedMessageId);
+            var editOperation = await editFailedMessagesManager.GetCurrentEditingRequestId(failedMessageId);
 
             Assert.Multiple(() =>
             {
@@ -79,7 +79,7 @@
             using (var editFailedMessagesManager = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {
                 _ = await editFailedMessagesManager.GetFailedMessage(failedMessageId);
-                await editFailedMessagesManager.SetCurrentEditingMessageId(previousEdit);
+                await editFailedMessagesManager.SetCurrentEditingRequestId(previousEdit);
                 await editFailedMessagesManager.SaveChanges();
             }
 
@@ -91,7 +91,7 @@
             using (var editFailedMessagesManagerAssert = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {
                 var failedMessage = await editFailedMessagesManagerAssert.GetFailedMessage(failedMessageId);
-                var editId = await editFailedMessagesManagerAssert.GetCurrentEditingMessageId(failedMessageId);
+                var editId = await editFailedMessagesManagerAssert.GetCurrentEditingRequestId(failedMessageId);
 
                 Assert.Multiple(() =>
                 {
@@ -130,7 +130,7 @@
                 var failedMessage2 = await x.GetFailedMessage(failedMessage.UniqueMessageId);
                 Assert.That(failedMessage2, Is.Not.Null, "Edited failed message");
 
-                var editId = await x.GetCurrentEditingMessageId(failedMessage2.UniqueMessageId);
+                var editId = await x.GetCurrentEditingRequestId(failedMessage2.UniqueMessageId);
 
                 Assert.Multiple(() =>
                 {
