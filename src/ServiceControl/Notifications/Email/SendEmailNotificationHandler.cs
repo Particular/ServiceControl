@@ -32,9 +32,11 @@
                 notifications = await manager.LoadSettings(cacheTimeout);
             }
 
+            logger.LogInformation("Processing email notification. Subject: {Subject}, Body: {Body}", message.Subject, message.Body);
+
             if (notifications == null || !notifications.Email.Enabled)
             {
-                logger.LogInformation("Skipping email sending. Notifications turned-off");
+                logger.LogDebug("Skipping email sending. Notifications turned-off");
                 return;
             }
 
@@ -57,8 +59,7 @@
 
                 if (context.MessageId == throttlingState.RetriedMessageId)
                 {
-                    message.Body +=
-                        "\n\nWARNING: Your SMTP server was temporarily unavailable. Make sure to check ServicePulse for a full list of health check notifications.";
+                    message.Body += "\n\nWARNING: Your SMTP server was temporarily unavailable. Make sure to check ServicePulse for a full list of health check notifications.";
                 }
 
                 await emailSender.Send(notifications.Email, message.Subject, message.Body, emailDropFolder);
