@@ -25,5 +25,6 @@ defineProps<Props>();
 
 .icon {
   margin-right: 0.25rem;
+  color: var(--reduced-emphasis);
 }
 </style>

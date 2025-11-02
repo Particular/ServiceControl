@@ -93,7 +93,7 @@ watch(
   },
   { immediate: true }
 );
-const endpointColor = hexToCSSFilter("#777F7F").filter;
+const endpointColor = hexToCSSFilter("#929E9E").filter;
 
 onMounted(() => {
   const { back, ...otherArgs } = route.query;
