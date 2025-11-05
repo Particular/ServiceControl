@@ -15,7 +15,6 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
 {
     public override Task Setup()
     {
-
         SetExtraDependencies = d => { };
         return base.Setup();
     }
@@ -159,15 +158,15 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         // Arrange
         await DataStore.CreateBuilder()
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker, ThroughputSource.Monitoring])
-                .WithThroughput(ThroughputSource.Broker, data: [50, 55])
-                .WithThroughput(ThroughputSource.Monitoring, data: [60, 65])
+            .WithThroughput(ThroughputSource.Broker, data: [50, 55])
+            .WithThroughput(ThroughputSource.Monitoring, data: [60, 65])
             .AddEndpoint("Endpoint2", sources: [ThroughputSource.Broker, ThroughputSource.Audit])
-                .WithThroughput(ThroughputSource.Broker, data: [60, 65])
-                .WithThroughput(ThroughputSource.Audit, data: [61, 64])
+            .WithThroughput(ThroughputSource.Broker, data: [60, 65])
+            .WithThroughput(ThroughputSource.Audit, data: [61, 64])
             .AddEndpoint("Endpoint3", sources: [ThroughputSource.Broker, ThroughputSource.Monitoring, ThroughputSource.Audit])
-                .WithThroughput(ThroughputSource.Broker, data: [50, 57])
-                .WithThroughput(ThroughputSource.Monitoring, data: [40, 45])
-                .WithThroughput(ThroughputSource.Audit, data: [42, 47])
+            .WithThroughput(ThroughputSource.Broker, data: [50, 57])
+            .WithThroughput(ThroughputSource.Monitoring, data: [40, 45])
+            .WithThroughput(ThroughputSource.Audit, data: [42, 47])
             .Build();
 
         // Act
@@ -218,10 +217,10 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         // Arrange
         await DataStore.CreateBuilder()
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker])
-                .WithThroughput(data: [50, 75])
+            .WithThroughput(data: [50, 75])
             .AddEndpoint("Endpoint1_", sources: [ThroughputSource.Audit])
             .ConfigureEndpoint(endpoint => endpoint.SanitizedName = "Endpoint1")
-                .WithThroughput(data: [60, 65])
+            .WithThroughput(data: [60, 65])
             .Build();
 
         // Act
@@ -244,27 +243,55 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         });
     }
 
+    [TestCase(ThroughputSource.Audit)]
+    [TestCase(ThroughputSource.Broker)]
+    [TestCase(ThroughputSource.Monitoring)]
+    public async Task Should_return_correct_throughput_in_report_when_data_from_multiple_sources_of_same_type_exist(ThroughputSource source)
+    {
+        // Arrange
+        await DataStore.CreateBuilder()
+            .AddEndpoint("Endpoint1", sources: [source])
+            .WithThroughput(data: [50, 75])
+            .AddEndpoint("Endpoint1_", sources: [source])
+            .ConfigureEndpoint(endpoint => endpoint.SanitizedName = "Endpoint1")
+            .WithThroughput(data: [60, 65])
+            .Build();
+
+        // Act
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+
+        // Assert
+        Assert.That(report, Is.Not.Null);
+        Assert.That(report.ReportData.Queues.Count, Is.EqualTo(1));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(140), $"Incorrect TotalThroughput recorded");
+            Assert.That(report.ReportData.TotalQueues, Is.EqualTo(1), $"Incorrect TotalQueues recorded");
+        });
+    }
+
     [Test]
     public async Task Should_generate_correct_report()
     {
         // Arrange
         await DataStore.CreateBuilder()
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker, ThroughputSource.Monitoring])
-                .WithThroughput(ThroughputSource.Broker, data: [50, 55], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
-                .WithThroughput(ThroughputSource.Monitoring, data: [60, 65], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
-                .ConfigureEndpoint(endpoint => endpoint.EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()])
+            .WithThroughput(ThroughputSource.Broker, data: [50, 55], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
+            .WithThroughput(ThroughputSource.Monitoring, data: [60, 65], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
+            .ConfigureEndpoint(endpoint => endpoint.EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()])
             .AddEndpoint("Endpoint2", sources: [ThroughputSource.Broker, ThroughputSource.Audit])
-                .WithThroughput(ThroughputSource.Broker, data: [60, 65], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
-                .WithThroughput(ThroughputSource.Audit, data: [61, 64], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
-                .ConfigureEndpoint(endpoint => endpoint.EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()])
+            .WithThroughput(ThroughputSource.Broker, data: [60, 65], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
+            .WithThroughput(ThroughputSource.Audit, data: [61, 64], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
+            .ConfigureEndpoint(endpoint => endpoint.EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()])
             .AddEndpoint("Endpoint3", sources: [ThroughputSource.Broker, ThroughputSource.Monitoring, ThroughputSource.Audit])
-                .WithThroughput(ThroughputSource.Broker, data: [50, 57], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
-                .WithThroughput(ThroughputSource.Monitoring, data: [40, 45], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
-                .WithThroughput(ThroughputSource.Audit, data: [42, 47], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
-                .ConfigureEndpoint(endpoint => endpoint.EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()])
+            .WithThroughput(ThroughputSource.Broker, data: [50, 57], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
+            .WithThroughput(ThroughputSource.Monitoring, data: [40, 45], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
+            .WithThroughput(ThroughputSource.Audit, data: [42, 47], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
+            .ConfigureEndpoint(endpoint => endpoint.EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()])
             .AddEndpoint("Endpoint4", sources: [ThroughputSource.Broker])
-                .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.PlannedToDecommission.ToString())
-                .WithThroughput(ThroughputSource.Broker, data: [42, 47], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
+            .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.PlannedToDecommission.ToString())
+            .WithThroughput(ThroughputSource.Broker, data: [42, 47], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
             .AddEndpoint("Endpoint5", sources: [ThroughputSource.Broker])
             .ConfigureEndpoint(endpoint => endpoint.UserIndicator = UserIndicator.NotNServiceBusEndpoint.ToString())
             .WithThroughput(ThroughputSource.Broker, data: [15, 4], startDate: DateOnly.FromDateTime(new DateTime(2024, 4, 24)))
