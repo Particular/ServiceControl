@@ -266,7 +266,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
 
         Assert.Multiple(() =>
         {
-            Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(140), $"Incorrect TotalThroughput recorded");
+            Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(75), $"Incorrect TotalThroughput recorded");
             Assert.That(report.ReportData.TotalQueues, Is.EqualTo(1), $"Incorrect TotalQueues recorded");
         });
     }
