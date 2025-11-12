@@ -5,8 +5,9 @@ using Contracts;
 static class ThroughputDataExtensions
 {
     public static IEnumerable<EndpointDailyThroughput> FromSource(this List<ThroughputData> throughputs, ThroughputSource source) => throughputs
-        .SingleOrDefault(td => td.ThroughputSource == source)?
-        .Select(kvp => new EndpointDailyThroughput(kvp.Key, kvp.Value)) ?? [];
+        .Where(td => td.ThroughputSource == source)
+        .SelectMany(td => td)
+        .Select(kvp => new EndpointDailyThroughput(kvp.Key, kvp.Value));
 
     public static long Sum(this List<ThroughputData> throughputs) => throughputs.SelectMany(t => t).Sum(kvp => kvp.Value);
 

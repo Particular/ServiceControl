@@ -69,7 +69,7 @@ class DataStoreBuilder(ILicensingDataStore store)
         }
 
         source ??= endpoint.Id.ThroughputSource;
-        if (endpoints.SingleOrDefault(e => e.Id.Name == endpoint.Id.Name && e.Id.ThroughputSource == source) == null)
+        if (endpoints.FirstOrDefault(e => e.Id.Name == endpoint.Id.Name && e.Id.ThroughputSource == source) == null)
         {
             throw new InvalidOperationException(
                 $"Need to add endpoint {endpoint.Id.Name}:{source} before calling {nameof(WithThroughput)}");
