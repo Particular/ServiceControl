@@ -1,0 +1,170 @@
+namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
+{
+    using System.Linq;
+    using System.Threading.Tasks;
+    using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
+    using Contracts;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
+    using NUnit.Framework;
+    using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
+    using JsonSerializer = System.Text.Json.JsonSerializer;
+
+    class When_a_failed_edit_is_resolved_by_retry : ExternalIntegrationAcceptanceTest
+    {
+        [Test]
+        public async Task Should_publish_notification()
+        {
+            CustomConfiguration = config => config.OnEndpointSubscribed<EditMessageResolutionContext>((s, ctx) =>
+            {
+                ctx.ExternalProcessorSubscribed = s.SubscriberReturnAddress.Contains(nameof(MessageReceiver));
+            });
+
+            var context = await Define<EditMessageResolutionContext>()
+                .WithEndpoint<MessageReceiver>(b => b.When(async (bus, c) =>
+                {
+                    await bus.Subscribe<MessageFailureResolvedByRetry>();
+
+                    if (c.HasNativePubSubSupport)
+                    {
+                        c.ExternalProcessorSubscribed = true;
+                    }
+                }).When(c => c.SendLocal(new EditResolutionMessage())).DoNotFailOnErrorMessages())
+                .Done(async ctx =>
+                {
+                    if (!ctx.ExternalProcessorSubscribed)
+                    {
+                        return false;
+                    }
+
+                    // second message - edit & retry
+                    if (ctx.MessageSentCount == 0 && ctx.MessageHandledCount == 1)
+                    {
+                        var failedMessagedId = await this.GetOnlyFailedUnresolvedMessageId();
+                        if (failedMessagedId == null)
+                        {
+                            return false;
+                        }
+
+                        ctx.OriginalMessageFailureId = failedMessagedId;
+                        ctx.MessageSentCount = 1;
+
+                        string editedMessage = JsonSerializer.Serialize(new EditResolutionMessage
+                        { });
+
+                        SingleResult<FailedMessage> failedMessage =
+                            await this.TryGet<FailedMessage>($"/api/errors/{ctx.OriginalMessageFailureId}");
+
+                        var editModel = new EditMessageModel
+                        {
+                            MessageBody = editedMessage,
+                            MessageHeaders = failedMessage.Item.ProcessingAttempts.Last().Headers
+                        };
+                        await this.Post($"/api/edit/{ctx.OriginalMessageFailureId}", editModel);
+                        return false;
+                    }
+
+                    // third message - retry
+                    if (ctx.MessageSentCount == 1 && ctx.MessageHandledCount == 2)
+                    {
+                        var failedMessageIdAfterId = await this.GetOnlyFailedUnresolvedMessageId();
+                        if (failedMessageIdAfterId == null)
+                        {
+                            return false;
+                        }
+
+                        ctx.EditedMessageFailureId = failedMessageIdAfterId;
+                        ctx.MessageSentCount = 2;
+
+                        await this.Post<object>($"/api/errors/{ctx.EditedMessageFailureId}/retry");
+                        return false;
+                    }
+
+                    if (ctx.MessageHandledCount != 3)
+                    {
+                        return false;
+                    }
+
+                    // if (ctx.EditedMessageEditOf == null)
+                    // {
+                    //     return false;
+                    // }
+
+                    if (!ctx.MessageResolved)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }).Run();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.ResolvedMessageId, Is.EqualTo(context.OriginalMessageFailureId));
+                Assert.That(context.EditedMessageEditOf, Is.EqualTo(context.OriginalMessageFailureId));
+            });
+        }
+
+
+        public class EditMessageResolutionContext : ScenarioContext
+        {
+            public string OriginalMessageFailureId { get; set; }
+            public int MessageSentCount { get; set; }
+            public int MessageHandledCount { get; set; }
+
+            public string ResolvedMessageId { get; set; }
+
+            public string EditedMessageFailureId { get; set; }
+
+            public string EditedMessageEditOf { get; set; }
+            public bool ExternalProcessorSubscribed { get; set; }
+            public bool MessageResolved { get; set; }
+        }
+
+        public class MessageReceiver : EndpointConfigurationBuilder
+        {
+            public MessageReceiver() => EndpointSetup<DefaultServerWithoutAudit>(c => c.NoRetries());
+
+
+            public class EditMessageResolutionHandler(EditMessageResolutionContext testContext)
+                : IHandleMessages<EditResolutionMessage>, IHandleMessages<MessageFailureResolvedByRetry>
+            {
+                public Task Handle(EditResolutionMessage message, IMessageHandlerContext context)
+                {
+                    // First run - supposed to fail
+                    if (testContext.MessageSentCount == 0)
+                    {
+                        testContext.MessageHandledCount = 1;
+                        throw new SimulatedException();
+                    }
+
+                    // Second run - edit retry - supposed to fail
+                    if (testContext.MessageSentCount == 1)
+                    {
+                        testContext.EditedMessageEditOf = context.MessageHeaders["ServiceControl.EditOf"];
+                        testContext.MessageHandledCount = 2;
+                        throw new SimulatedException();
+                    }
+
+                    // Last run - normal retry - supposed to succeed
+                    testContext.MessageHandledCount = 3;
+                    return Task.CompletedTask;
+                }
+
+                public Task Handle(MessageFailureResolvedByRetry message, IMessageHandlerContext context)
+                {
+                    testContext.ResolvedMessageId = message.FailedMessageId;
+                    testContext.MessageResolved = true;
+                    return Task.CompletedTask;
+                }
+            }
+        }
+
+        public class EditResolutionMessage : IMessage
+        {
+        }
+    }
+}
+

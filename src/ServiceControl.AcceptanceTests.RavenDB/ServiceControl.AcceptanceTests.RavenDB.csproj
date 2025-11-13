@@ -30,4 +30,8 @@
     <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\StopSharedDatabase.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Shared\Recoverability\ExternalIntegration\" />
+  </ItemGroup>
+
 </Project>

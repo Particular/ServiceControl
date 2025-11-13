@@ -20,6 +20,7 @@
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoDelayedRetries();
+                    //TODO: Get back to this to determine whether or not this duplication for simulating the production code is really needed
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
 
