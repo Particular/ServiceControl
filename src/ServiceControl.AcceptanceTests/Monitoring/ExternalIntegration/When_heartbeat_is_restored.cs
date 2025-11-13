@@ -64,8 +64,8 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
-                    routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_INSTANCE_NAME);
-                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<HeartbeatRestored>(Settings.DEFAULT_INSTANCE_NAME); });
+                    routing.RouteToEndpoint(typeof(MessageFailed).Assembly, PrimaryOptions.DEFAULT_INSTANCE_NAME);
+                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<HeartbeatRestored>(PrimaryOptions.DEFAULT_INSTANCE_NAME); });
 
             public class FailureHandler(MyContext testContext) : IHandleMessages<HeartbeatRestored>
             {

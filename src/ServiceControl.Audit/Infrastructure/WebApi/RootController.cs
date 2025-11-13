@@ -32,8 +32,8 @@
                 EndpointsMessageSearchUrl = baseUrl + "endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
                 EndpointsMessagesUrl = baseUrl + "endpoints/{name}/messages/{?page,per_page,direction,sort}",
                 AuditCountUrl = baseUrl + "endpoints/{name}/audit-count",
-                Name = SettingsReader.Read(Settings.SettingsRootNamespace, "Name", "ServiceControl.Audit"),
-                Description = SettingsReader.Read(Settings.SettingsRootNamespace, "Description", "The audit backend for the Particular Service Platform"),
+                Name = settings.Name,
+                Description = settings.Description,
                 Configuration = baseUrl + "configuration"
             };
 

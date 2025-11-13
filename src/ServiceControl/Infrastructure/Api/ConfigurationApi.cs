@@ -34,8 +34,8 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
             EndpointsMessageSearchUrl = baseUrl + "endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
             EndpointsMessagesUrl = baseUrl + "endpoints/{name}/messages/{?page,per_page,direction,sort}",
             AuditCountUrl = baseUrl + "endpoints/{name}/audit-count",
-            Name = SettingsReader.Read(Settings.SettingsRootNamespace, "Name", "ServiceControl"),
-            Description = SettingsReader.Read(Settings.SettingsRootNamespace, "Description", "The management backend for the Particular Service Platform"),
+            Name = settings.ServiceControl.Name,
+            Description = settings.ServiceControl.Description,
             LicenseStatus = license.IsValid ? "valid" : "invalid",
             LicenseDetails = baseUrl + "license",
             Configuration = baseUrl + "configuration",
@@ -55,33 +55,33 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
         {
             Host = new
             {
-                settings.InstanceName,
+                settings.ServiceControl.InstanceName,
                 Logging = new
                 {
-                    settings.LoggingSettings.LogPath,
-                    LoggingLevel = settings.LoggingSettings.LogLevel
+                    settings.Logging.LogPath,
+                    LoggingLevel = settings.Logging.LogLevel
                 }
             },
             DataRetention = new
             {
-                settings.AuditRetentionPeriod,
-                settings.ErrorRetentionPeriod
+                settings.ServiceControl.AuditRetentionPeriod,
+                settings.ServiceControl.ErrorRetentionPeriod
             },
             PerformanceTunning = new
             {
-                settings.ExternalIntegrationsDispatchingBatchSize
+                settings.ServiceControl.ExternalIntegrationsDispatchingBatchSize
             },
             PersistenceSettings = settings.PersisterSpecificSettings,
             Transport = new
             {
-                settings.TransportType,
-                settings.ErrorLogQueue,
-                settings.ErrorQueue,
-                settings.ForwardErrorMessages
+                settings.ServiceControl.TransportType,
+                settings.ServiceBus.ErrorLogQueue,
+                settings.ServiceBus.ErrorQueue,
+                settings.ServiceControl.ForwardErrorMessages
             },
             Plugins = new
             {
-                settings.HeartbeatGracePeriod
+                settings.ServiceControl.HeartbeatGracePeriod
             },
             MassTransitConnector = connectorHeartbeatStatus.LastHeartbeat
         };
@@ -91,7 +91,7 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
 
     public async Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default)
     {
-        var remotes = settings.RemoteInstances;
+        var remotes = settings.ServiceControl.RemoteInstanceSettings;
         var tasks = remotes
             .Select(async remote =>
             {

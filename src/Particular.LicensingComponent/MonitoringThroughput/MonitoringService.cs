@@ -8,7 +8,11 @@ using Persistence;
 using ServiceControl.Transports.BrokerThroughput;
 using Shared;
 
-public class MonitoringService(ILicensingDataStore dataStore, IBrokerThroughputQuery? brokerThroughputQuery = null)
+public class MonitoringService(
+    ILicensingDataStore dataStore,
+    ServiceControlSettings serviceControlSettings,
+    IBrokerThroughputQuery? brokerThroughputQuery = null
+)
 {
     public async Task RecordMonitoringThroughput(byte[] throughputMessage, CancellationToken cancellationToken)
     {
@@ -61,7 +65,7 @@ public class MonitoringService(ILicensingDataStore dataStore, IBrokerThroughputQ
             diagnostics.AppendLine("No throughput from Monitoring recorded in the last 30 days");
             connectionTestResult.ConnectionSuccessful = false;
         }
-        diagnostics.AppendLine($"Listening on queue {ServiceControlSettings.ServiceControlThroughputDataQueue}");
+        diagnostics.AppendLine($"Listening on queue {serviceControlSettings.ServiceControlThroughputDataQueue}");
 
         connectionTestResult.Diagnostics = diagnostics.ToString();
 

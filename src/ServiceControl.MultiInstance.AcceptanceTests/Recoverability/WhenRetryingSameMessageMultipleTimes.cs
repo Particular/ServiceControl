@@ -27,7 +27,7 @@
         [TestCase(new[] { RetryType.Edit, RetryType.Edit, RetryType.NoEdit })]
         public async Task WithMixOfRetryTypes(RetryType[] retryTypes)
         {
-            CustomServiceControlPrimarySettings = s => { s.AllowMessageEditing = true; };
+            CustomServiceControlPrimarySettings = s => { s.ServiceControl.AllowMessageEditing = true; };
 
             await Define<MyContext>(context => context.NumberOfRetriesToComplete = retryTypes.Length)
                 .WithEndpoint<FailureEndpoint>(b =>

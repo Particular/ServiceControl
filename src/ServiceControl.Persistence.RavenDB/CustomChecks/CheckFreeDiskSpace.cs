@@ -5,6 +5,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using NServiceBus.CustomChecks;
     using ServiceControl.Infrastructure;
     using ServiceControl.Persistence.RavenDB;
@@ -38,21 +39,23 @@
                 : CheckResult.Failed($"{percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'.");
         }
 
-        public static void Validate(RavenPersisterSettings settings)
+        public class Validation : IValidateOptions<RavenPersisterSettings> // TODO: Register!!
         {
-            var logger = LoggerUtil.CreateStaticLogger<CheckFreeDiskSpace>();
-            var threshold = settings.DataSpaceRemainingThreshold;
-
-            if (threshold < 0)
+            public ValidateOptionsResult Validate(string name, RavenPersisterSettings options)
             {
-                logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} is invalid, minimum value is 0", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
-                throw new Exception($"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, minimum value is 0.");
-            }
+                var threshold = options.DataSpaceRemainingThreshold;
 
-            if (threshold > 100)
-            {
-                logger.LogCritical("{RavenPersistenceConfigurationDataSpaceRemainingThresholdKey} is invalid, maximum value is 100", RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey);
-                throw new Exception($"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, maximum value is 100.");
+                if (threshold < 0)
+                {
+                    return ValidateOptionsResult.Fail($"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, minimum value is 0.");
+                }
+
+                if (threshold > 100)
+                {
+                    return ValidateOptionsResult.Fail($"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, maximum value is 100.");
+                }
+
+                return ValidateOptionsResult.Success;
             }
         }
 

@@ -70,7 +70,7 @@ namespace ServiceControl.AcceptanceTests
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter
-        protected void ExecuteWhen(Func<bool> execute, Func<IDomainEvents, Task> action, string instanceName = Settings.DEFAULT_INSTANCE_NAME)
+        protected void ExecuteWhen(Func<bool> execute, Func<IDomainEvents, Task> action, string instanceName = PrimaryOptions.DEFAULT_INSTANCE_NAME)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
             var timeout = TimeSpan.FromSeconds(1);

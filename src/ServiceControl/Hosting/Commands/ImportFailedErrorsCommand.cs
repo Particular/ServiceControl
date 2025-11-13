@@ -4,6 +4,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
@@ -16,15 +17,20 @@
 
     class ImportFailedErrorsCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings)
+        public override async Task Execute(HostArguments args)
         {
-            settings.IngestErrorMessages = false;
-            settings.RunRetryProcessor = false;
-            settings.DisableHealthChecks = true;
+            var hostBuilder = Host.CreateApplicationBuilder();
+            hostBuilder.SetupApplicationConfiguration();
+            hostBuilder.Services.Configure<PrimaryOptions>(s =>
+            {
+                s.IngestErrorMessages = false;
+                s.RunRetryProcessor = false;
+                s.DisableHealthChecks = true;
+            });
+
+            var settings = hostBuilder.Configuration.Get<Settings>(); // THIS WILL NOT RESOLVE SETTINGS WITH THE ABOVE VALUES !!!! TOOD: SHould really use a different type any settings used here.
 
             EndpointConfiguration endpointConfiguration = CreateEndpointConfiguration(settings);
-
-            var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
             hostBuilder.AddServiceControlApi();
 
@@ -52,7 +58,7 @@
 
         protected virtual EndpointConfiguration CreateEndpointConfiguration(Settings settings)
         {
-            var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
+            var endpointConfiguration = new EndpointConfiguration(settings.ServiceControl.InstanceName);
             var assemblyScanner = endpointConfiguration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 

@@ -14,7 +14,7 @@
     {
         public override Task Setup()
         {
-            SetSettings = s =>
+            SetSettings = (s,d) =>
             {
                 s.MaxBodySizeToStore = MAX_BODY_SIZE;
             };

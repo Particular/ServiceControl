@@ -9,11 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using BrokerThroughput;
 using Contracts;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 using Persistence.InMemory;
 using ServiceControl.Transports.BrokerThroughput;
+using Shared;
 
 [TestFixture]
 class BrokerThroughputCollectorHostedServiceTests
@@ -24,13 +26,21 @@ class BrokerThroughputCollectorHostedServiceTests
         var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
         CancellationToken token = tokenSource.Token;
 
+        var configuration = new ConfigurationBuilder().Build();
         var dataStore = new InMemoryLicensingDataStore();
+
         using var brokerThroughputCollectorHostedService = new BrokerThroughputCollectorHostedService(
             NullLogger<BrokerThroughputCollectorHostedService>.Instance,
             new MockedBrokerThroughputQuery(),
             new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
-            dataStore, TimeProvider.System)
-        { DelayStart = TimeSpan.Zero };
+            dataStore,
+            TimeProvider.System,
+            new PlatformEndpointHelper(new ServiceControlSettings(configuration)),
+            configuration
+        )
+        {
+            DelayStart = TimeSpan.Zero
+        };
         await brokerThroughputCollectorHostedService.StartAsync(token);
         await (brokerThroughputCollectorHostedService.ExecuteTask! ?? Task.CompletedTask);
 
@@ -38,8 +48,14 @@ class BrokerThroughputCollectorHostedServiceTests
         IEnumerable<string> sanitizedNames = endpoints.Select(endpoint => endpoint.SanitizedName);
         IEnumerable<string> queueNames = endpoints.Select(endpoint => endpoint.Id.Name);
 
-        Assert.That(sanitizedNames, Is.EquivalentTo(new[] { "sales", "sales1", "marketing", "customer" }));
-        Assert.That(queueNames, Is.EquivalentTo(new[] { "sales@one", "sales@two", "marketing", "customer" }));
+        Assert.That(sanitizedNames, Is.EquivalentTo(new[]
+        {
+            "sales", "sales1", "marketing", "customer"
+        }));
+        Assert.That(queueNames, Is.EquivalentTo(new[]
+        {
+            "sales@one", "sales@two", "marketing", "customer"
+        }));
     }
 
     [Test]
@@ -57,12 +73,20 @@ class BrokerThroughputCollectorHostedServiceTests
         await dataStore.RecordEndpointThroughput("customer", ThroughputSource.Broker,
             new List<EndpointDailyThroughput>([new EndpointDailyThroughput(lastCollectionDate, 100)]), token);
         var mockedBrokerThroughputQueryThatRecordsDate = new MockedBrokerThroughputQueryThatRecordsDate();
+        var emptyConfig = new ConfigurationBuilder().Build();
+
         using var brokerThroughputCollectorHostedService = new BrokerThroughputCollectorHostedService(
             NullLogger<BrokerThroughputCollectorHostedService>.Instance,
             mockedBrokerThroughputQueryThatRecordsDate,
             new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
-            dataStore, TimeProvider.System)
-        { DelayStart = TimeSpan.Zero };
+            dataStore,
+            TimeProvider.System,
+            new PlatformEndpointHelper(new ServiceControlSettings(emptyConfig)),
+            emptyConfig
+            )
+        {
+            DelayStart = TimeSpan.Zero
+        };
         await brokerThroughputCollectorHostedService.StartAsync(token);
         await (brokerThroughputCollectorHostedService.ExecuteTask! ?? Task.CompletedTask);
 
@@ -81,12 +105,20 @@ class BrokerThroughputCollectorHostedServiceTests
         var dataStore = new InMemoryLicensingDataStore();
         var fakeTimeProvider = new FakeTimeProvider();
         var mockedBrokerThroughputQueryThatThrowsExceptions = new MockedBrokerThroughputQueryThatThrowsExceptions();
+        var emptyConfig = new ConfigurationBuilder().Build();
+
         using var brokerThroughputCollectorHostedService = new BrokerThroughputCollectorHostedService(
             NullLogger<BrokerThroughputCollectorHostedService>.Instance,
             mockedBrokerThroughputQueryThatThrowsExceptions,
             new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
-            dataStore, fakeTimeProvider)
-        { DelayStart = TimeSpan.Zero };
+            dataStore,
+            fakeTimeProvider,
+            new PlatformEndpointHelper(new ServiceControlSettings(emptyConfig)),
+            emptyConfig
+            )
+        {
+            DelayStart = TimeSpan.Zero
+        };
         await brokerThroughputCollectorHostedService.StartAsync(token);
 
         await Task.Run(async () =>
@@ -112,12 +144,20 @@ class BrokerThroughputCollectorHostedServiceTests
         CancellationToken token = tokenSource.Token;
 
         var dataStore = new InMemoryLicensingDataStore();
+        var emptyConfig = new ConfigurationBuilder().Build();
+
         using var brokerThroughputCollectorHostedService = new BrokerThroughputCollectorHostedService(
             NullLogger<BrokerThroughputCollectorHostedService>.Instance,
             new MockedBrokerThroughputQuery(),
             new ThroughputSettings(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
-            dataStore, TimeProvider.System)
-        { DelayStart = TimeSpan.Zero };
+            dataStore,
+            TimeProvider.System,
+            new PlatformEndpointHelper(new ServiceControlSettings(emptyConfig)),
+            emptyConfig
+            )
+        {
+            DelayStart = TimeSpan.Zero
+        };
         await brokerThroughputCollectorHostedService.StartAsync(token);
         await Task.Delay(TimeSpan.FromSeconds(2), token);
         await brokerThroughputCollectorHostedService.StopAsync(token);
@@ -197,8 +237,14 @@ class BrokerThroughputCollectorHostedServiceTests
         public async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            yield return new DefaultBrokerQueue("sales@one") { SanitizedName = "sales" };
-            yield return new DefaultBrokerQueue("sales@two") { SanitizedName = "sales" };
+            yield return new DefaultBrokerQueue("sales@one")
+            {
+                SanitizedName = "sales"
+            };
+            yield return new DefaultBrokerQueue("sales@two")
+            {
+                SanitizedName = "sales"
+            };
             yield return new DefaultBrokerQueue("marketing");
             yield return new DefaultBrokerQueue("customer");
 

@@ -26,8 +26,16 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         var service = new HeartbeatEndpointSettingsSyncHostedService(
             new MockMonitoringDataStore([]),
             new MockEndpointSettingsStore([]),
-            new MockEndpointInstanceMonitoring([]), new Settings { TrackInstancesInitialValue = true },
-            fakeTimeProvider, NullLogger<HeartbeatEndpointSettingsSyncHostedService>.Instance)
+            new MockEndpointInstanceMonitoring([]), new Settings
+            {
+                ServiceControl =
+                {
+                    TrackInstancesInitialValue = true
+                }
+            },
+            fakeTimeProvider,
+            NullLogger<HeartbeatEndpointSettingsSyncHostedService>.Instance
+        )
         {
             DelayStart = TimeSpan.Zero
         };
@@ -46,13 +54,25 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         CancellationToken token = tokenSource.Token;
         var fakeTimeProvider = new FakeTimeProvider();
         var mockEndpointSettingsStore = new MockEndpointSettingsStore([
-            new EndpointSettings { Name = "Sales", TrackInstances = true },
-            new EndpointSettings { Name = "Orders", TrackInstances = false }
+            new EndpointSettings
+            {
+                Name = "Sales", TrackInstances = true
+            },
+            new EndpointSettings
+            {
+                Name = "Orders", TrackInstances = false
+            }
         ]);
         var service = new HeartbeatEndpointSettingsSyncHostedService(
             new MockMonitoringDataStore([]),
             mockEndpointSettingsStore,
-            new MockEndpointInstanceMonitoring([]), new Settings { TrackInstancesInitialValue = true },
+            new MockEndpointInstanceMonitoring([]), new Settings
+            {
+                ServiceControl =
+                {
+                    TrackInstancesInitialValue = true
+                }
+            },
             fakeTimeProvider, NullLogger<HeartbeatEndpointSettingsSyncHostedService>.Instance)
         {
             DelayStart = TimeSpan.Zero
@@ -79,7 +99,13 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
                 []),
             mockEndpointSettingsStore,
             new MockEndpointInstanceMonitoring([]),
-            new Settings { TrackInstancesInitialValue = expectedTrackInstancesInitialValue },
+            new Settings
+            {
+                ServiceControl =
+                {
+                    TrackInstancesInitialValue = expectedTrackInstancesInitialValue
+                }
+            },
             fakeTimeProvider, NullLogger<HeartbeatEndpointSettingsSyncHostedService>.Instance)
         {
             DelayStart = TimeSpan.Zero
@@ -104,14 +130,23 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         const bool expectedTrackInstancesInitialValue = false;
         var fakeTimeProvider = new FakeTimeProvider();
         var mockEndpointSettingsStore = new MockEndpointSettingsStore([
-            new EndpointSettings { Name = string.Empty, TrackInstances = expectedTrackInstancesInitialValue }
+            new EndpointSettings
+            {
+                Name = string.Empty, TrackInstances = expectedTrackInstancesInitialValue
+            }
         ]);
         var service = new HeartbeatEndpointSettingsSyncHostedService(
             new MockMonitoringDataStore(
                 []),
             mockEndpointSettingsStore,
             new MockEndpointInstanceMonitoring([]),
-            new Settings { TrackInstancesInitialValue = expectedTrackInstancesInitialValue },
+            new Settings
+            {
+                ServiceControl =
+                {
+                    TrackInstancesInitialValue = expectedTrackInstancesInitialValue
+                }
+            },
             fakeTimeProvider, NullLogger<HeartbeatEndpointSettingsSyncHostedService>.Instance)
         {
             DelayStart = TimeSpan.Zero
@@ -136,22 +171,48 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         Guid instanceB = DeterministicGuid.MakeId(endpointName1, "B");
         Guid instanceC = DeterministicGuid.MakeId(endpointName1, "C");
         var mockMonitoringDataStore = new MockMonitoringDataStore(
-            [new KnownEndpoint { EndpointDetails = new EndpointDetails { Name = endpointName1 } }]);
+        [
+            new KnownEndpoint
+            {
+                EndpointDetails = new EndpointDetails
+                {
+                    Name = endpointName1
+                }
+            }
+        ]);
         var mockEndpointInstanceMonitoring = new MockEndpointInstanceMonitoring([
-            new EndpointsView { IsSendingHeartbeats = false, Name = endpointName1, Id = instanceA },
-            new EndpointsView { IsSendingHeartbeats = false, Name = endpointName1, Id = instanceB },
-            new EndpointsView { IsSendingHeartbeats = false, Name = endpointName1, Id = instanceC },
             new EndpointsView
             {
-                IsSendingHeartbeats = true,
-                Name = endpointName1,
-                Id = DeterministicGuid.MakeId(endpointName1, "D")
+                IsSendingHeartbeats = false, Name = endpointName1, Id = instanceA
+            },
+            new EndpointsView
+            {
+                IsSendingHeartbeats = false, Name = endpointName1, Id = instanceB
+            },
+            new EndpointsView
+            {
+                IsSendingHeartbeats = false, Name = endpointName1, Id = instanceC
+            },
+            new EndpointsView
+            {
+                IsSendingHeartbeats = true, Name = endpointName1, Id = DeterministicGuid.MakeId(endpointName1, "D")
             }
         ]);
         var service = new HeartbeatEndpointSettingsSyncHostedService(
             mockMonitoringDataStore,
-            new MockEndpointSettingsStore([new EndpointSettings { Name = endpointName1, TrackInstances = false }]),
-            mockEndpointInstanceMonitoring, new Settings { TrackInstancesInitialValue = true },
+            new MockEndpointSettingsStore([
+                new EndpointSettings
+                {
+                    Name = endpointName1, TrackInstances = false
+                }
+            ]),
+            mockEndpointInstanceMonitoring, new Settings
+            {
+                ServiceControl =
+                {
+                    TrackInstancesInitialValue = true
+                }
+            },
             fakeTimeProvider, NullLogger<HeartbeatEndpointSettingsSyncHostedService>.Instance)
         {
             DelayStart = TimeSpan.Zero
@@ -177,20 +238,40 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         const string endpointName1 = "Sales";
         Guid instanceA = DeterministicGuid.MakeId(endpointName1, "A");
         var mockMonitoringDataStore = new MockMonitoringDataStore(
-            [new KnownEndpoint { EndpointDetails = new EndpointDetails { Name = endpointName1 } }]);
+        [
+            new KnownEndpoint
+            {
+                EndpointDetails = new EndpointDetails
+                {
+                    Name = endpointName1
+                }
+            }
+        ]);
         var mockEndpointInstanceMonitoring = new MockEndpointInstanceMonitoring([
-            new EndpointsView { IsSendingHeartbeats = false, Name = endpointName1, Id = instanceA },
             new EndpointsView
             {
-                IsSendingHeartbeats = true,
-                Name = endpointName1,
-                Id = DeterministicGuid.MakeId(endpointName1, "B")
+                IsSendingHeartbeats = false, Name = endpointName1, Id = instanceA
+            },
+            new EndpointsView
+            {
+                IsSendingHeartbeats = true, Name = endpointName1, Id = DeterministicGuid.MakeId(endpointName1, "B")
             }
         ]);
         var service = new HeartbeatEndpointSettingsSyncHostedService(
             mockMonitoringDataStore,
-            new MockEndpointSettingsStore([new EndpointSettings { Name = endpointName1, TrackInstances = true }]),
-            mockEndpointInstanceMonitoring, new Settings { TrackInstancesInitialValue = true },
+            new MockEndpointSettingsStore([
+                new EndpointSettings
+                {
+                    Name = endpointName1, TrackInstances = true
+                }
+            ]),
+            mockEndpointInstanceMonitoring, new Settings
+            {
+                ServiceControl =
+                {
+                    TrackInstancesInitialValue = true
+                }
+            },
             fakeTimeProvider, NullLogger<HeartbeatEndpointSettingsSyncHostedService>.Instance)
         {
             DelayStart = TimeSpan.Zero

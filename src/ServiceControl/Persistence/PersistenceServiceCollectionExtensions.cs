@@ -1,15 +1,15 @@
 namespace ServiceControl.Persistence
 {
-    using Microsoft.Extensions.DependencyInjection;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Microsoft.Extensions.Hosting;
 
     static class PersistenceServiceCollectionExtensions
     {
-        public static void AddPersistence(this IServiceCollection services, Settings settings,
-            bool maintenanceMode = false)
+        public static void AddPersistence(
+            this IHostApplicationBuilder hostBuilder
+        )
         {
-            var persistence = PersistenceFactory.Create(settings, maintenanceMode);
-            persistence.AddPersistence(services);
+            var persistence = PersistenceFactory.Create(hostBuilder.Configuration);
+            persistence.AddPersistence(hostBuilder.Services, hostBuilder.Configuration);
         }
     }
 }

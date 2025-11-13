@@ -41,8 +41,8 @@ namespace ServiceControl.CompositeViews.Messages
 
         public async Task<QueryResult<TOut>> Execute(TIn input, string pathAndQuery)
         {
-            var remotes = Settings.RemoteInstances;
-            var instanceId = Settings.InstanceId;
+            var remotes = Settings.ServiceControl.RemoteInstanceSettings;
+            var instanceId = Settings.ServiceControl.InstanceId;
             var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1)
             {
                 LocalCall(input, instanceId)

@@ -1,10 +1,9 @@
 ﻿namespace ServiceControl.Persistence
 {
-    using Configuration;
+    using Microsoft.Extensions.Configuration;
 
     public interface IPersistenceConfiguration
     {
-        PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace);
-        IPersistence Create(PersistenceSettings settings);
+        IPersistence Create(IConfiguration configuration);
     }
 }

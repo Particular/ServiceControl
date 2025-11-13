@@ -5,10 +5,12 @@
     using System.Reflection;
     using Configuration;
     using CustomChecks;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Options;
     using Particular.LicensingComponent.Contracts;
     using ServiceControl.Infrastructure;
 
-    class RavenPersistenceConfiguration : IPersistenceConfiguration
+    sealed class RavenPersistenceConfiguration(IConfiguration configuration) : IConfigureOptions<RavenPersisterSettings>
     {
         public const string DataSpaceRemainingThresholdKey = "DataSpaceRemainingThreshold";
         const string AuditRetentionPeriodKey = "AuditRetentionPeriod";
@@ -17,46 +19,54 @@
         const string ExternalIntegrationsDispatchingBatchSizeKey = "ExternalIntegrationsDispatchingBatchSize";
         const string MaintenanceModeKey = "MaintenanceMode";
 
-        public PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace)
+        const string DatabasePathKey = "DbPath";
+        const string HostNameKey = "HostName";
+        const string DatabaseMaintenancePortKey = "DatabaseMaintenancePort";
+        const string ExpirationProcessTimerInSecondsKey = "ExpirationProcessTimerInSeconds";
+        const string ConnectionStringKey = "RavenDB:ConnectionString";
+        const string ClientCertificatePathKey = "RavenDB:ClientCertificatePath";
+        const string ClientCertificateBase64Key = "RavenDB:ClientCertificateBase64";
+        const string ClientCertificatePasswordKey = "RavenDB:ClientCertificatePassword";
+        public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
+        const string DatabaseNameKey = "RavenDB:DatabaseName";
+        const string LogsPathKey = "LogPath";
+        const string RavenDbLogLevelKey = "RavenDBLogLevel";
+
+        public void Configure(RavenPersisterSettings options)
         {
-            static T GetRequiredSetting<T>(SettingsRootNamespace settingsRootNamespace, string key)
-            {
-                if (SettingsReader.TryRead<T>(settingsRootNamespace, key, out var value))
-                {
-                    return value;
-                }
+            IConfigurationSection s = configuration.GetSection("ServiceControl");
 
-                throw new Exception($"Setting {key} of type {typeof(T)} is required");
-            }
-
-            var ravenDbLogLevel = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.RavenDbLogLevelKey, "Warn");
+            var ravenDbLogLevel = s.GetValue(RavenDbLogLevelKey, "Warn");
             var logsMode = RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel, LoggerUtil.CreateStaticLogger<RavenPersistenceConfiguration>());
 
-            var settings = new RavenPersisterSettings
-            {
-                ConnectionString = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ConnectionStringKey),
-                ClientCertificatePath = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ClientCertificatePathKey),
-                ClientCertificateBase64 = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ClientCertificateBase64Key),
-                ClientCertificatePassword = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ClientCertificatePasswordKey),
-                DatabaseName = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabaseNameKey, RavenPersisterSettings.DatabaseNameDefault),
-                DatabasePath = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabasePathKey, DefaultDatabaseLocation()),
-                DatabaseMaintenancePort = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabaseMaintenancePortKey, RavenPersisterSettings.DatabaseMaintenancePortDefault),
-                ExpirationProcessTimerInSeconds = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.ExpirationProcessTimerInSecondsKey, 600),
-                MinimumStorageLeftRequiredForIngestion = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault),
-                DataSpaceRemainingThreshold = SettingsReader.Read(settingsRootNamespace, DataSpaceRemainingThresholdKey, CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault),
-                ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey),
-                EventsRetentionPeriod = SettingsReader.Read(settingsRootNamespace, EventsRetentionPeriodKey, TimeSpan.FromDays(14)),
-                AuditRetentionPeriod = SettingsReader.Read(settingsRootNamespace, AuditRetentionPeriodKey, TimeSpan.Zero),
-                ExternalIntegrationsDispatchingBatchSize = SettingsReader.Read(settingsRootNamespace, ExternalIntegrationsDispatchingBatchSizeKey, 100),
-                MaintenanceMode = SettingsReader.Read(settingsRootNamespace, MaintenanceModeKey, false),
-                LogPath = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.LogsPathKey, DefaultLogLocation()),
-                LogsMode = logsMode,
-                EnableFullTextSearchOnBodies = SettingsReader.Read(settingsRootNamespace, "EnableFullTextSearchOnBodies", true),
-                ThroughputDatabaseName = SettingsReader.Read(ThroughputSettings.SettingsNamespace, ThroughputSettings.DatabaseNameKey, ThroughputSettings.DefaultDatabaseName)
-            };
+            options.ConnectionString = s.GetValue<string>(ConnectionStringKey);
+            options.ClientCertificatePath = s.GetValue<string>(ClientCertificatePathKey);
+            options.ClientCertificateBase64 = s.GetValue<string>(ClientCertificateBase64Key);
+            options.ClientCertificatePassword = s.GetValue<string>(ClientCertificatePasswordKey);
+            options.DatabaseName = s.GetValue(DatabaseNameKey, RavenPersisterSettings.DatabaseNameDefault);
+            options.DatabasePath = s.GetValue(DatabasePathKey, DefaultDatabaseLocation());
+            options.DatabaseMaintenancePort = s.GetValue(DatabaseMaintenancePortKey, RavenPersisterSettings.DatabaseMaintenancePortDefault);
+            options.ExpirationProcessTimerInSeconds = s.GetValue(ExpirationProcessTimerInSecondsKey, RavenPersisterSettings.ExpirationProcessTimerInSecondsDefault);
+            options.MinimumStorageLeftRequiredForIngestion = s.GetValue(MinimumStorageLeftRequiredForIngestionKey, CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault);
+            options.DataSpaceRemainingThreshold = s.GetValue(DataSpaceRemainingThresholdKey, CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault);
+            options.ErrorRetentionPeriod = s.GetValue<TimeSpan>(ErrorRetentionPeriodKey);
+            options.EventsRetentionPeriod = s.GetValue(EventsRetentionPeriodKey, TimeSpan.FromDays(14));
+            options.AuditRetentionPeriod = s.GetValue(AuditRetentionPeriodKey, TimeSpan.Zero);
+            options.ExternalIntegrationsDispatchingBatchSize = s.GetValue(ExternalIntegrationsDispatchingBatchSizeKey, 100);
+            options.MaintenanceMode = s.GetValue(MaintenanceModeKey, false);
+            options.LogPath = s.GetValue(LogsPathKey, DefaultLogLocation());
+            options.LogsMode = logsMode;
+            options.EnableFullTextSearchOnBodies = s.GetValue("EnableFullTextSearchOnBodies", true);
 
-            CheckFreeDiskSpace.Validate(settings);
-            CheckMinimumStorageRequiredForIngestion.Validate(settings);
+            var licensingComponentSection = configuration.GetSection("LicensingComponent");
+
+            options.ThroughputDatabaseName = licensingComponentSection.GetValue(ThroughputSettings.DatabaseNameKey, ThroughputSettings.DefaultDatabaseName);
+        }
+
+        public PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace)
+        {
+            var settings = new RavenPersisterSettings();
+            Configure(settings);
             return settings;
         }
 
@@ -75,11 +85,15 @@
             var assemblyLocation = Assembly.GetExecutingAssembly().Location;
             return Path.Combine(Path.GetDirectoryName(assemblyLocation), ".logs");
         }
+    }
 
-        public IPersistence Create(PersistenceSettings settings)
+    class RavenPersisterSettingsValidation : IValidateOptions<RavenPersisterSettings>
+    {
+        public ValidateOptionsResult Validate(string name, RavenPersisterSettings options)
         {
-            var specificSettings = (RavenPersisterSettings)settings;
-            return new RavenPersistence(specificSettings);
+            return options.ErrorRetentionPeriod==TimeSpan.Zero
+                ? ValidateOptionsResult.Fail("ErrorRetentionPeriod must be set than 0")
+                : ValidateOptionsResult.Success;
         }
     }
 }

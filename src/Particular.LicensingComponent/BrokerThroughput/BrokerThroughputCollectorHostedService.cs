@@ -2,6 +2,7 @@ namespace Particular.LicensingComponent.BrokerThroughput;
 
 using System.Collections.ObjectModel;
 using Contracts;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Persistence;
@@ -9,22 +10,22 @@ using ServiceControl.Configuration;
 using ServiceControl.Transports.BrokerThroughput;
 using Shared;
 
+
+
 public class BrokerThroughputCollectorHostedService(
     ILogger<BrokerThroughputCollectorHostedService> logger,
     IBrokerThroughputQuery brokerThroughputQuery,
     ThroughputSettings throughputSettings,
     ILicensingDataStore dataStore,
-    TimeProvider timeProvider)
-    : BackgroundService
+    TimeProvider timeProvider,
+    PlatformEndpointHelper platformEndpointHelper,
+    IConfiguration configuration
+): BackgroundService
 {
     public TimeSpan DelayStart { get; set; } = TimeSpan.FromSeconds(40);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        static ReadOnlyDictionary<string, string> LoadBrokerSettingValues(IEnumerable<KeyDescriptionPair> brokerKeys)
-            => new(brokerKeys.Select(pair => KeyValuePair.Create(pair.Key, SettingsReader.Read<string>(ThroughputSettings.SettingsNamespace, pair.Key)))
-                .Where(pair => !string.IsNullOrEmpty(pair.Value)).ToDictionary());
-
         brokerThroughputQuery.Initialize(LoadBrokerSettingValues(brokerThroughputQuery.Settings));
 
         if (brokerThroughputQuery.HasInitialisationErrors(out var errorMessage))
@@ -59,6 +60,15 @@ public class BrokerThroughputCollectorHostedService(
         }
     }
 
+    ReadOnlyDictionary<string, string> LoadBrokerSettingValues(IEnumerable<KeyDescriptionPair> brokerKeys)
+    {
+        var section = configuration.GetSection(ThroughputSettings.SettingsNamespace.Root);
+
+        return new ReadOnlyDictionary<string, string>(brokerKeys.Select(pair => KeyValuePair.Create(pair.Key, section.GetValue<string>(pair.Key)))
+            .Where(pair => !string.IsNullOrEmpty(pair.Value))
+            .ToDictionary());
+    }
+
     async Task GatherThroughput(CancellationToken stoppingToken)
     {
         logger.LogInformation("Gathering throughput from broker");
@@ -68,7 +78,7 @@ public class BrokerThroughputCollectorHostedService(
 
         await foreach (var queueName in brokerThroughputQuery.GetQueueNames(stoppingToken))
         {
-            if (PlatformEndpointHelper.IsPlatformEndpoint(queueName.SanitizedName, throughputSettings))
+            if (platformEndpointHelper.IsPlatformEndpoint(queueName.SanitizedName, throughputSettings))
             {
                 continue;
             }

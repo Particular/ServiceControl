@@ -3,17 +3,13 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
+    using Microsoft.Extensions.Options;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
 
-    public class StoreHistoryHandler : IDomainHandler<RetryOperationCompleted>
+    public class StoreHistoryHandler(IRetryHistoryDataStore store, IOptions<PrimaryOptions> options)
+        : IDomainHandler<RetryOperationCompleted>
     {
-        public StoreHistoryHandler(IRetryHistoryDataStore store, Settings settings)
-        {
-            this.store = store;
-            this.settings = settings;
-        }
-
         public Task Handle(RetryOperationCompleted message, CancellationToken cancellationToken)
         {
             return store.RecordRetryOperationCompleted(
@@ -26,10 +22,8 @@
                 message.Failed,
                 message.NumberOfMessagesProcessed,
                 message.Last,
-                settings.RetryHistoryDepth);
+                options.Value.RetryHistoryDepth
+            );
         }
-
-        readonly IRetryHistoryDataStore store;
-        readonly Settings settings;
     }
 }

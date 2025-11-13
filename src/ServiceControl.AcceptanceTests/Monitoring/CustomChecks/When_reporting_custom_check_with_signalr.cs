@@ -93,7 +93,7 @@
 
         class EndpointWithCustomCheck : EndpointConfigurationBuilder
         {
-            public EndpointWithCustomCheck() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromSeconds(1)); });
+            public EndpointWithCustomCheck() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(PrimaryOptions.DEFAULT_INSTANCE_NAME, TimeSpan.FromSeconds(1)); });
 
             public class EventuallyFailingCustomCheck()
                 : CustomCheck("EventuallyFailingCustomCheck", "Testing", TimeSpan.FromSeconds(1))
