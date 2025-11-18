@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DateRange } from "@/types/date";
-import VueDatePicker from "@vuepic/vue-datepicker";
+import { VueDatePicker } from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { ref, useTemplateRef, watch } from "vue";
 import { useDateFormatter } from "@/composables/dateFormatter";
@@ -39,9 +39,9 @@ function clearCurrentDate() {
     ref="datePicker"
     class="dropdown"
     v-model="internalModel"
-    :format="(dates: Date[]) => formatDateRange(dates as DateRange)"
+    :formats="{ input: (dates: Date[]) => formatDateRange(dates as DateRange) }"
     :range="{ partialRange: false }"
-    :enable-seconds="true"
+    :time-config="{ enableSeconds: true }"
     :action-row="{ showNow: false, showCancel: false, showSelect: true }"
   >
     <template #trigger>
