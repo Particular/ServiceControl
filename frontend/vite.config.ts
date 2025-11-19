@@ -58,6 +58,7 @@ export default defineConfig({
   },
   base: "./",
   build: {
+    outDir: "../src/ServiceControl/wwwroot",
     emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {
