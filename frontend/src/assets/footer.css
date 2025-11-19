@@ -1,0 +1,107 @@
+footer {
+  color: #bcc6c2;
+  font-size: 14px;
+  font-weight: normal;
+  margin-top: 100px;
+  text-align: left;
+  text-align: center;
+  width: 100%;
+  background-color: #fff;
+  position: fixed;
+  bottom: 0;
+  border-top: 1px solid #ddd;
+  box-shadow: 0px -10px 16px #f2f6f7;
+  padding-top: 7px;
+  z-index: 999; /* this needs to fight with vue-highlight-code which forces z-index to 700 */
+}
+
+footer .row {
+  display: flex;
+  justify-content: space-between;
+}
+
+footer span {
+  padding-left: 0;
+  padding-right: 32px;
+}
+
+footer span.connected-status {
+  color: #000;
+  padding-right: 0;
+}
+
+footer span.newscversion {
+  padding-right: 0;
+}
+
+.versionnumber,
+footer span.monitoring-connected,
+footer span.monitoring-connected span {
+  padding-right: 0;
+}
+
+.footer .container {
+  width: 100%;
+}
+
+footer span {
+  color: #777f7f;
+  display: inline-block;
+  padding: 0 8px;
+}
+
+footer a {
+  font-weight: normal;
+}
+
+footer a:hover {
+  font-weight: normal;
+}
+
+@media (max-width: 1550px) {
+  footer {
+    font-size: 12px;
+  }
+}
+
+.connectivity-status div,
+.connectivity-status span,
+.connectivity-status span span {
+  display: inline-block;
+  color: #777f7f;
+}
+
+.connectivity-status i,
+.connectivity-status div.pa-connection-success,
+.connectivity-status div.pa-connection-failed {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.connectivity-status .connection-failed {
+  color: #ce4844;
+}
+
+.connectivity-status .pa-connection-failed {
+  background: #ce4844;
+}
+
+.connectivity-status .pa-connection-success {
+  background: #00c468;
+}
+
+.connectivity-status .secondary {
+  display: none;
+}
+
+@media (min-width: 960px) {
+  .connectivity-status .secondary {
+    display: inline-block;
+  }
+}
+
+.trialLicenseBar {
+  background-color: firebrick;
+  color: white;
+}

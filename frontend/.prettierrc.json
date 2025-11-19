@@ -1,0 +1,15 @@
+{
+  "printWidth": 250,
+  "singleQuote": false,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "endOfLine": "auto",
+  "overrides": [
+    {
+      "files": "public/js/app.constants.js",
+      "options": {
+        "singleQuote": true
+      }
+    }
+  ]
+}

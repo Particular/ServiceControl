@@ -1,0 +1,459 @@
+.endpoint-status {
+  display: flex;
+  top: 1px;
+  margin-left: 7px;
+  padding-left: 0;
+  align-items: baseline;
+}
+
+.endpoint-status .warning {
+  display: block;
+  position: relative;
+}
+
+.endpoint-status .endpoint-status-icon {
+  font-size: 20px;
+  color: #ce4844;
+}
+
+h1 .endpoint-status .endpoint-status-icon {
+  font-size: 24px;
+}
+
+.endpoint-status .endpoint-status-icon {
+  color: #777f7f;
+}
+
+.endpoint-status .endpoint-status-icon:hover {
+  color: #23527c;
+}
+
+.endpoint-status .badge {
+  position: relative;
+  top: 8px;
+  font-size: 10px;
+  margin-right: 0;
+  left: -10px;
+}
+
+.endpoint-status .endpoint-status-icon {
+  font-size: 20px;
+  margin-left: 6px;
+}
+
+.endpoint-status a {
+  position: relative;
+  top: -4px;
+  padding-left: 5px;
+}
+
+.endpoint-status a:hover {
+  text-decoration: none;
+}
+
+.endpoint-status a[ng-if="endpoint.errorCount"] {
+  top: -11px;
+}
+
+.endpoint-status .badge {
+  position: relative;
+  top: 2px;
+  left: -9px;
+  font-size: 10px;
+}
+
+.endpoint-status .pa-endpoint-lost.endpoint-details,
+.endpoint-status .pa-monitoring-lost.endpoint-details,
+.endpoint-status .pa-endpoint-lost.endpoints-overview,
+.endpoint-status .pa-monitoring-lost.endpoints-overview {
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  left: 6px;
+  position: relative;
+}
+
+.endpoint-status .pa-monitoring-lost.endpoints-overview,
+.endpoint-status .pa-monitoring-lost.endpoint-details {
+  top: 4px;
+}
+
+.pa-endpoint-lost.endpoints-overview {
+  background-image: url("@/assets/endpoint-lost.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.pa-monitoring-lost.endpoints-overview {
+  background-image: url("@/assets/monitoring-lost.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.pa-endpoint-lost.endpoint-details {
+  background-image: url("@/assets/endpoint-lost.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.pa-monitoring-lost.endpoint-details {
+  background-image: url("@/assets/monitoring-lost.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.pa-warning {
+  background-image: url("@/assets/warning.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-left: 4px;
+  padding-top: 31px;
+}
+
+.message-type-status .pa-warning {
+  margin-top: -3px;
+}
+
+.endpoint-message-types .endpoint-status {
+  margin-top: -8px;
+}
+
+.endpoint-name > div > div > a {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  color: #00729c;
+  border-bottom: 1px dotted lightgrey;
+}
+
+.endpoint-name > div > div > a:first-child:hover {
+  border-bottom: 1px solid #00729c;
+  text-decoration: none !important;
+}
+
+.endpoint-row {
+  display: flex;
+  position: relative;
+  padding: 2px 0 4px;
+  border-top: 1px solid #eee;
+  border-right: 1px solid #fff;
+  border-bottom: 1px solid #eee;
+  border-left: 1px solid #fff;
+  background-color: #fff;
+  margin: 0px;
+}
+
+.endpoint-name,
+.endpoint-name > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.endpoint-name {
+  gap: 0.25em;
+}
+
+.endpoint-name .box-header.with-status {
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  max-width: 100%;
+}
+
+.endpoint-name .box-header.with-status > *:not(:first-child) {
+  margin-left: 0.25em;
+}
+
+/* RESPONSIVE TWEAKS */
+
+@media only screen and (min-width: 993px) {
+  .filter-period-menu {
+    margin-right: 0px;
+  }
+}
+
+@media only screen and (max-width: 992px) {
+  .filter-period-menu,
+  .sort-menu {
+    float: left !important;
+  }
+
+  .sort-menu {
+    margin-top: 0;
+    padding-top: 0;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .filter-toolbar .input-group {
+    margin-bottom: 6px;
+  }
+
+  .msg-group-menu {
+    float: left !important;
+    margin-top: 0;
+    margin-left: 15px;
+  }
+
+  div.sp-pull-right {
+    display: inline-block;
+    float: none;
+    margin-top: 0px;
+  }
+
+  button.btn.btn-default {
+    margin-left: 0;
+    margin-right: 6px;
+    margin-bottom: 6px;
+  }
+
+  .input-group-btn button.btn.btn-default {
+    margin-right: 0;
+  }
+
+  .no-mobile-side-padding {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .tabs h5 {
+    padding-bottom: 4px;
+    margin-bottom: 10px;
+  }
+
+  .navbar-collapse.collapse.in {
+    padding: 0 0 0 16px !important;
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  .sidebar-label {
+    margin: 3px 0 14px;
+  }
+
+  .btn-toolbar .btn,
+  .btn-toolbar .btn-group,
+  .btn-toolbar .input-group {
+    float: left !important;
+  }
+
+  button.btn.btn-default.ng-binding.ng-isolate-scope {
+    margin-right: 4px !important;
+  }
+
+  div.btn-toolbar,
+  div.form-inliner {
+    margin-bottom: 12px;
+  }
+
+  .filter-toolbar,
+  .action-toolbar {
+    margin-top: 2px;
+  }
+
+  div.sp-pull-right {
+    display: inline-block;
+    float: none;
+    margin-top: 4px;
+  }
+
+  .progress.bulk-retry-progress {
+    margin-top: 6px;
+  }
+}
+
+@media only screen and (max-width: 320px) {
+  div.btn-toolbar,
+  div.form-inliner {
+    margin-bottom: 0px;
+  }
+}
+
+.table-head-row .col-xl-7,
+.endpoint-row .col-xl-7 {
+  width: 20%;
+}
+
+.table-head-row .col-xl-8,
+.endpoint-row .col-xl-8 {
+  width: 36%;
+}
+
+.table-head-row .col-xl-1,
+.endpoint-row .col-xl-1 {
+  width: 16%;
+}
+
+@media only screen and (min-width: 1730px) {
+  .table-head-row .col-xl-7,
+  .endpoint-row .col-xl-7 {
+    width: 30%;
+  }
+
+  .table-head-row .col-xl-8,
+  .endpoint-row .col-xl-8 {
+    width: 44%;
+  }
+
+  .table-head-row .col-xl-1,
+  .endpoint-row .col-xl-1 {
+    width: 14%;
+  }
+}
+
+.sparkline-value {
+  top: 16px;
+  left: -0.6em;
+  position: relative;
+  font-weight: normal;
+  float: right;
+  width: 25%;
+}
+
+.sparkline-value span {
+  color: #777f7f;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.sparkline-value.sec {
+  color: #0000ff;
+}
+
+.sparkline-value.sec span {
+  color: #007aff;
+}
+
+.sparkline-value.min {
+  color: #8b00d0;
+}
+
+.sparkline-value.min span {
+  color: #b14ae4;
+}
+
+.sparkline-value.hr {
+  color: #d601da;
+}
+
+.sparkline-value.hr span {
+  color: #d764d9;
+}
+
+.sparkline-value.d {
+  color: #ad0017;
+}
+
+.sparkline-value.d span {
+  color: #ff0004;
+}
+
+.graph-message-retries-throughputs,
+.graph-critical-processing-times {
+  margin-left: 0.5%;
+}
+
+.monitoring-no-data {
+  margin: 60px auto 120px;
+  max-width: 520px;
+  line-height: 26px;
+}
+
+.monitoring-no-data h1 {
+  font-size: 30px;
+}
+
+.monitoring-no-data-content {
+  width: 80%;
+  display: inline-block;
+  margin: 0 auto;
+  padding: 3px;
+}
+.monitoring-no-data-list {
+  text-align: left;
+  list-style-type: circle;
+}
+.monitoring-no-data p {
+  font-size: 16px;
+  margin-bottom: 20px;
+  margin-top: -18px;
+}
+
+.monitoring-no-data ul {
+  padding-left: 0;
+  text-align: left;
+  font-size: 16px;
+  margin-bottom: 30px;
+}
+
+.monitoring-no-data .btn {
+  font-size: 16px;
+}
+
+.monitoring-no-data a.btn.btn-default.btn-secondary {
+  margin-left: 10px;
+}
+
+:deep(span.table-header-unit) {
+  color: #777f7f;
+}
+
+.box-header {
+  padding-bottom: 3px;
+  padding-top: 2px;
+}
+
+.box-header ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.righ-side-ellipsis {
+  direction: rtl;
+  text-align: left;
+}
+
+@supports (-ms-ime-align: auto) {
+  .righ-side-ellipsis {
+    direction: ltr;
+  }
+}
+
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  .righ-side-ellipsis {
+    direction: ltr;
+  }
+}
+
+i.fa.pa-endpoint-lost.endpoints-overview,
+i.fa.pa-monitoring-lost.endpoints-overview,
+i.fa.pa-endpoint-lost.endpoint-details,
+i.fa.pa-monitoring-lost.endpoint-details {
+  position: relative;
+  margin-right: 4px;
+  top: 4px;
+}
+
+i.fa.pa-endpoint-lost.endpoints-overview {
+  top: 8px;
+}
+
+.endpoint-instances .fa.pa-endpoint-lost.endpoint-details {
+  top: 4px;
+}
+
+div[content="Unable to connect to instance"],
+div[content="Unable to connect to monitoring server"] {
+  z-index: 99999;
+}
+
+.pull-left {
+  float: left;
+}

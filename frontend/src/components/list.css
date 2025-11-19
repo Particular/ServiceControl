@@ -1,0 +1,15 @@
+.lead,
+.box p .lead {
+  word-wrap: break-word;
+  color: #181919;
+  font-size: 1em;
+  font-weight: bold;
+  margin-bottom: 0.2em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+a {
+  cursor: pointer;
+}

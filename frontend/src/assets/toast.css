@@ -1,0 +1,188 @@
+/* Vue-Toastification Globals */
+.Vue-Toastification__toast {
+  border-radius: 5px;
+  width: 100%;
+  height: 100%;
+  padding: 12px 12px 24px 15px;
+  color: white;
+}
+
+.Vue-Toastification__toast-component-body {
+  flex: 1;
+  margin-top: 15px;
+}
+
+.Vue-Toastification__toast p {
+  margin-bottom: 0;
+}
+
+.Vue-Toastification__toast--default.vue-toast {
+  background-color: #030303;
+}
+.Vue-Toastification__toast--success.vue-toast {
+  background-color: #00c468;
+}
+.Vue-Toastification__toast--error.vue-toast {
+  background-color: #ce4844;
+}
+.Vue-Toastification__toast--info.vue-toast {
+  background-color: #1b809e;
+}
+.Vue-Toastification__toast--warning.vue-toast {
+  background-color: #f3bc52;
+}
+
+.Vue-Toastification__fade-leave-active {
+  height: auto !important;
+}
+
+.Vue-Toastification__icon {
+  vertical-align: top;
+  align-items: top;
+  margin: 18px 10px auto 0px;
+  color: white;
+}
+
+.toast-close-button {
+  vertical-align: top;
+  height: 100%;
+  padding-left: 0;
+  color: white;
+}
+
+@keyframes fadeInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.toast-container {
+  width: 400px;
+  padding-bottom: 24px;
+  padding-right: 0px;
+  position: fixed;
+}
+
+.toast-container > :not(:last-child) {
+  margin-bottom: 1rem;
+}
+
+.toast-message a.btn:hover {
+  opacity: 0.85;
+  text-decoration: none;
+}
+
+.toast-message a {
+  color: #000080;
+}
+
+.toast-message a:hover {
+  color: #000080;
+  text-decoration: underline;
+}
+
+.toast-message a.btn.btn-light {
+  margin-top: 16px;
+  margin-left: 10px;
+  color: #000;
+  border: 1px solid #000;
+  background-color: rgba(0, 0, 0, 0);
+}
+
+.toast-message a.btn.btn-light:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+}
+
+/* Warning Toast */
+.toast-message a.btn.btn-warning {
+  margin-top: 16px;
+  color: #f3bc52;
+  border: 1px solid #000;
+  background-color: rgba(0, 0, 0, 1);
+}
+
+/* Error Toast */
+.toast-message a.btn.btn-error {
+  margin-top: 16px;
+  color: #ce4844;
+  border: 1px solid #000;
+  background-color: rgba(0, 0, 0, 1);
+}
+
+.toast-error a.btn.btn-default {
+  color: #bd362f;
+  padding-right: 20px;
+  padding-left: 20px;
+  border: none;
+  margin-top: 16px;
+}
+
+/* Info Toast */
+.toast-message a.btn.btn-info {
+  margin-top: 16px;
+  color: #1b809e;
+  border: 1px solid #000;
+  background-color: rgba(0, 0, 0, 1);
+}
+
+/* Success Toast */
+.toast-message a.btn.btn-success {
+  margin-top: 16px;
+  color: #00c468;
+  border: 1px solid #000;
+  background-color: rgba(0, 0, 0, 1);
+}
+
+/* Default Toast */
+.Vue-Toastification__toast--default {
+  color: #fff;
+}
+
+.toast-default a.btn.btn-default {
+  margin-top: 16px;
+  color: #000;
+  border: 1px solid #fff;
+  background-color: rgba(255, 255, 255, 1);
+}
+
+.toast-default a.btn.btn-light {
+  margin-top: 16px;
+  margin-left: 10px;
+  color: #fff;
+  border: 1px solid #fff;
+  background-color: rgba(255, 255, 255, 0);
+}
+
+.toast-default a.btn.btn-light:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+}
+
+.toast-default a {
+  color: var(--sp-blue);
+}
+
+.toast-default a:hover {
+  color: var(--sp-blue);
+  text-decoration: underline;
+}
+
+.Vue-Toastification__toast--default .toast-close-button {
+  color: #fff;
+  opacity: 0.5;
+}
+
+.Vue-Toastification__toast--default .toast-close-button:hover {
+  color: #fff;
+  opacity: 0.8;
+}
+
+.Vue-Toastification__toast--default .Vue-Toastification__icon {
+  color: #fff;
+}

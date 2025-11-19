@@ -1,0 +1,13 @@
+.nav {
+  --bs-link-color: #9d9d9d;
+  --bs-link-hover-color: #fff;
+}
+
+.navbar > .container-fluid > div {
+  margin: 0 1em;
+}
+
+#navbar .router-link-active {
+  background: transparent !important;
+  border-bottom: 5px solid var(--sp-blue);
+}

@@ -1,0 +1,104 @@
+.nav-item.active {
+  border-bottom: 3px solid #181919;
+  color: #181919;
+}
+
+.nav-item {
+  padding-bottom: 10px;
+  margin-bottom: 0;
+}
+
+.nav-item a {
+  color: var(--sp-blue);
+  cursor: pointer;
+  font-size: 16px;
+}
+
+h5.nav-item {
+  color: #929e9e;
+  display: inline-block !important;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 30px 14px 0;
+  margin-bottom: 0;
+  text-transform: uppercase;
+}
+
+.box {
+  box-shadow: none;
+  margin: 0;
+  padding-bottom: 10px;
+  background-color: #fff;
+  border-top: 1px solid #eee;
+  border-right: 1px solid #fff;
+  border-bottom: 1px solid #eee;
+  border-left: 1px solid #fff;
+  margin: 0.5rem 0 1rem;
+  margin-bottom: 5px;
+  padding: 20px;
+}
+
+.box-no-click {
+  background: none;
+  border-bottom: 1px solid #ced6d3;
+  border-left: none;
+  border-right: none;
+  cursor: default;
+}
+
+.no-side-padding {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.tabs {
+  border-bottom: 1px solid #e6e6e6;
+  padding: 0;
+  margin-bottom: -1px;
+}
+
+.tabs h5 {
+  display: inline;
+  padding-bottom: 10px;
+  margin-bottom: 0;
+}
+
+.tabs h5 a:hover {
+  text-decoration: none;
+}
+
+.tabs h5.active {
+  border-bottom: 3px solid #181919;
+  color: #181919;
+}
+
+.tabs h5.active a {
+  color: #181919;
+  text-decoration: none;
+}
+
+.tabs a {
+  color: var(--sp-blue);
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.tabs a:hover {
+  color: #00729c;
+}
+
+.tabs h5.active > a:hover {
+  color: #181919;
+  cursor: default;
+  text-decoration: none;
+}
+
+.tabs h5.disabled > a {
+  color: #aaa;
+  cursor: default;
+  text-decoration: none;
+}
+
+.tabs h5.disabled > a:hover {
+  cursor: not-allowed;
+}

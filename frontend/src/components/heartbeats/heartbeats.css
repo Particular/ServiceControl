@@ -1,0 +1,91 @@
+.lead.endpoint-details-link.righ-side-ellipsis a {
+  color: #00729c;
+  margin: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  border-bottom: 1px dotted lightgrey;
+}
+
+.lead.endpoint-details-link.righ-side-ellipsis a:hover {
+  border-bottom: 1px solid #00729c;
+  text-decoration: none !important;
+}
+
+.righ-side-ellipsis {
+  direction: rtl;
+  text-align: left;
+}
+
+.box-header {
+  display: flex;
+  gap: 0.5em;
+  max-width: 100%;
+}
+
+.endpoint-name > div > div > a {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  color: #00729c;
+  border-bottom: 1px dotted lightgrey;
+}
+
+.endpoint-name,
+.endpoint-name > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.endpoint-name {
+  gap: 0.25em;
+}
+
+.endpoint-name .box-header {
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  max-width: 100%;
+}
+
+.endpoint-name .box-header > *:not(:first-child) {
+  margin-left: 0.25em;
+}
+
+.endpoint-count {
+  font-weight: bold;
+}
+
+p:not(.lead) {
+  margin: 0 0 5px;
+}
+
+div[role="columnheader"] {
+  display: flex;
+}
+
+div[role="cell"] {
+  padding: 10px;
+  align-items: center;
+  display: flex;
+  gap: 0.25em;
+}
+
+div[role="cell"].centre,
+div[role="columnheader"].centre {
+  justify-content: center;
+}
+
+.grid-row {
+  display: flex;
+  position: relative;
+  border-top: 1px solid #eee;
+  border-right: 1px solid #fff;
+  border-bottom: 1px solid #eee;
+  border-left: 1px solid #fff;
+  background-color: #fff;
+  margin: 0;
+}
