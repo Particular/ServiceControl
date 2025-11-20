@@ -4,6 +4,7 @@ import "vue-toastification/dist/index.css";
 import "vue3-simple-typeahead/dist/vue3-simple-typeahead.css"; //Optional default CSS
 import "./assets/main.css";
 import "tippy.js/dist/tippy.css";
+import { setDefaultConfig } from "./defaultConfig";
 
 async function conditionallyEnableMocking() {
   if (process.env.NODE_ENV !== "dev-mocks") {
@@ -27,7 +28,7 @@ conditionallyEnableMocking()
     // eslint-disable-next-line promise/always-return
     if (response.ok) {
       const appConstants = await response.json();
-      window.defaultConfig = appConstants;
+      setDefaultConfig(appConstants);
     } else {
       console.error("Failed to load app constants");
     }

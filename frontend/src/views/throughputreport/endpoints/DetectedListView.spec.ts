@@ -13,6 +13,7 @@ import { serviceControlWithThroughput } from "@/views/throughputreport/serviceCo
 import { flushPromises } from "@vue/test-utils";
 import { useServiceControlStore } from "@/stores/ServiceControlStore";
 import { setActivePinia } from "pinia";
+import { getDefaultConfig } from "@/defaultConfig";
 import { createTestingPinia } from "@pinia/testing";
 
 describe("DetectedListView tests", () => {
@@ -283,7 +284,7 @@ describe("DetectedListView tests", () => {
         ]
       ) =>
       ({ driver }: SetupFactoryOptions) => {
-        driver.mockEndpoint(`${window.defaultConfig.service_control_url}licensing/endpoints/update`, {
+        driver.mockEndpoint(`${getDefaultConfig().service_control_url}licensing/endpoints/update`, {
           body,
           method: "post",
           status: 200,

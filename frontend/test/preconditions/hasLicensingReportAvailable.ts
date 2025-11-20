@@ -1,10 +1,11 @@
 import ReportGenerationState from "@/resources/ReportGenerationState";
 import { SetupFactoryOptions } from "../driver";
+import { getDefaultConfig } from "@/defaultConfig";
 
 export const hasLicensingReportAvailable =
   (body: Partial<ReportGenerationState> = {}) =>
   ({ driver }: SetupFactoryOptions) => {
-    driver.mockEndpoint(`${window.defaultConfig.service_control_url}licensing/report/available`, {
+    driver.mockEndpoint(`${getDefaultConfig().service_control_url}licensing/report/available`, {
       body: {
         ...(<ReportGenerationState>{
           transport: "LearningTransport",

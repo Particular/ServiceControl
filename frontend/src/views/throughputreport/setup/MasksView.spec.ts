@@ -9,6 +9,7 @@ import { flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import { useServiceControlStore } from "@/stores/ServiceControlStore";
 import { setActivePinia } from "pinia";
+import { getDefaultConfig } from "@/defaultConfig";
 
 describe("MaskView tests", () => {
   async function setup() {
@@ -26,7 +27,7 @@ describe("MaskView tests", () => {
 
   async function renderComponent(body: string[] = []) {
     const driver = await setup();
-    driver.mockEndpoint(`${window.defaultConfig.service_control_url}licensing/settings/masks`, { body });
+    driver.mockEndpoint(`${getDefaultConfig().service_control_url}licensing/settings/masks`, { body });
     setActivePinia(createTestingPinia({ stubActions: false }));
 
     useServiceControlStore();
@@ -68,7 +69,7 @@ describe("MaskView tests", () => {
     const use = userEvent.setup();
     await use.type(getTextAreaElement(), "\nthree\nfour\nfive");
 
-    driver.mockEndpoint(`${window.defaultConfig.service_control_url}licensing/settings/masks/update`, { body: undefined, method: "post" });
+    driver.mockEndpoint(`${getDefaultConfig().service_control_url}licensing/settings/masks/update`, { body: undefined, method: "post" });
     await use.click(screen.getByRole("button", { name: /Save/i }));
 
     expect(screen.queryAllByText(/Masks Saved/i).length).toBeGreaterThanOrEqual(1);

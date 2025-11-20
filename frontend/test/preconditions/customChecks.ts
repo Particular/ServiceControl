@@ -1,9 +1,10 @@
 import CustomCheck, { Status } from "@/resources/CustomCheck";
 import { SetupFactoryOptions } from "../driver";
+import { getDefaultConfig } from "@/defaultConfig";
 const emptyContent = JSON.stringify([]);
 
 export const hasCustomChecksEmpty = ({ driver }: SetupFactoryOptions) => {
-  const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
+  const serviceControlInstanceUrl = getDefaultConfig().service_control_url;
   driver.mockEndpoint(`${serviceControlInstanceUrl}customchecks`, {
     body: emptyContent,
     headers: {
@@ -81,7 +82,7 @@ export const generateCustomChecksData = (failingCount: number, passingCount: num
 export const getCustomChecks =
   (customChecks: CustomCheck[]) =>
   ({ driver }: SetupFactoryOptions) => {
-    const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
+    const serviceControlInstanceUrl = getDefaultConfig().service_control_url;
 
     const failedCustomChecks = customChecks.filter((check) => check.status === "Fail");
 

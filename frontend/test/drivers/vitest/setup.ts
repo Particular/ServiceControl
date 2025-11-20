@@ -1,21 +1,22 @@
-import { afterAll, beforeAll, beforeEach, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach } from "vitest";
 import { mockServer } from "../../mock-server";
 import "@testing-library/jest-dom/vitest";
+import { setDefaultConfig, type DefaultConfig } from "@/defaultConfig";
 
-const defaultConfig = {
+const defaultConfig: DefaultConfig = {
   default_route: "/dashboard",
   version: "1.2.0",
   service_control_url: "http://localhost:33333/api/",
-  monitoring_urls: ["http://localhost:33633/"],
+  monitoring_url: "http://localhost:33633/",
   showPendingRetry: false,
 };
 
 export function disableMonitoring() {
-  vi.stubGlobal("defaultConfig", { ...defaultConfig, ...{ monitoring_urls: ["!"] } });
+  setDefaultConfig({ ...defaultConfig, monitoring_url: "!" });
 }
 
 beforeEach(() => {
-  vi.stubGlobal("defaultConfig", defaultConfig);
+  setDefaultConfig(defaultConfig);
 });
 
 beforeAll(() => {

@@ -1,5 +1,6 @@
 import { SetupFactoryOptions } from "../driver";
 import LicenseInfo, { LicenseStatus, LicenseType } from "@/resources/LicenseInfo";
+import { getDefaultConfig } from "@/defaultConfig";
 
 const licenseResponseTemplate = <LicenseInfo>{
   registered_to: "ACME Software",
@@ -14,7 +15,7 @@ const licenseResponseTemplate = <LicenseInfo>{
   status: "valid",
 };
 export const hasActiveLicense = ({ driver }: SetupFactoryOptions) => {
-  const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
+  const serviceControlInstanceUrl = getDefaultConfig().service_control_url;
   driver.mockEndpoint(`${serviceControlInstanceUrl}license`, {
     body: licenseResponseTemplate,
   });
@@ -26,7 +27,7 @@ export const hasExpiringLicense = (licenseType: LicenseType, expiringInDays: num
 const getLicenseMockedResponse =
   (licenseType: LicenseType, expiringInDays: number, extensionUrl: string, isExpired: boolean) =>
   ({ driver }: SetupFactoryOptions) => {
-    const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
+    const serviceControlInstanceUrl = getDefaultConfig().service_control_url;
     const customISOString = getCustomDateISOString(expiringInDays, isExpired);
 
     let status: LicenseStatus;

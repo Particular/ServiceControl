@@ -5,6 +5,7 @@ import { useMemoize } from "@vueuse/core";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, reactive } from "vue";
 import { useServiceControlStore } from "./ServiceControlStore";
+import { getDefaultConfig } from "@/defaultConfig";
 
 export const useEnvironmentAndVersionsStore = defineStore("EnvironmentAndVersionsStore", () => {
   const serviceControlStore = useServiceControlStore();
@@ -14,7 +15,7 @@ export const useEnvironmentAndVersionsStore = defineStore("EnvironmentAndVersion
     sc_version: "",
     minimum_supported_sc_version: "6.6.0",
     is_compatible_with_sc: true,
-    sp_version: window.defaultConfig && window.defaultConfig.version ? window.defaultConfig.version : "1.2.0",
+    sp_version: getDefaultConfig().version,
     supportsArchiveGroups: false,
     endpoints_error_url: "",
     known_endpoints_url: "",

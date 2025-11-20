@@ -2,13 +2,14 @@ import { expect } from "vitest";
 import { test, describe } from "../../drivers/vitest/driver";
 import * as precondition from "../../preconditions";
 import { endpointsNames } from "../monitoring/questions/endpointsNames";
+import { getDefaultConfig, setDefaultConfig } from "@/defaultConfig";
 
 describe("FEATURE: app.constants.js", () => {
   describe("RULE: The system should automatically navigate to the specified path in default_route property", () => {
     test("EXAMPLE: default route is set to /dashboard", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
-      window.defaultConfig.default_route = "/dashboard";
+      setDefaultConfig({ ...getDefaultConfig(), default_route: "/dashboard" });
 
       //act
       await driver.goTo("/");
@@ -20,7 +21,7 @@ describe("FEATURE: app.constants.js", () => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
       await driver.setUp(precondition.monitoredEndpointsNamed(["Endpoint1"]));
-      window.defaultConfig.default_route = "/monitoring";
+      setDefaultConfig({ ...getDefaultConfig(), default_route: "/monitoring" });
 
       //act
       await driver.goTo("/");
@@ -35,7 +36,7 @@ describe("FEATURE: app.constants.js", () => {
     test("EXAMPLE: default route is set to a empty value", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
-      window.defaultConfig.default_route = "";
+      setDefaultConfig({ ...getDefaultConfig(), default_route: "" });
 
       //act
       await driver.goTo("");
@@ -46,7 +47,7 @@ describe("FEATURE: app.constants.js", () => {
     test("EXAMPLE: default route is set to /", async ({ driver }) => {
       //Arrange
       await driver.setUp(precondition.serviceControlWithMonitoring);
-      window.defaultConfig.default_route = "/";
+      setDefaultConfig({ ...getDefaultConfig(), default_route: "/" });
 
       //act
       await driver.goTo("");

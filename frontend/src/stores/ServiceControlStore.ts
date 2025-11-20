@@ -1,5 +1,6 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, ref } from "vue";
+import { getDefaultConfig } from "@/defaultConfig";
 
 export const useServiceControlStore = defineStore("ServiceControlStore", () => {
   const serviceControlUrl = ref<string | null>();
@@ -26,10 +27,11 @@ export const useServiceControlStore = defineStore("ServiceControlStore", () => {
   function refresh() {
     const params = new URLSearchParams(window.location.search);
     const mu = params.get("mu");
+    const config = getDefaultConfig();
 
-    if (window.defaultConfig && window.defaultConfig.service_control_url) {
-      serviceControlUrl.value = window.defaultConfig.service_control_url;
-      console.debug(`setting ServiceControl Url to its default value: ${window.defaultConfig.service_control_url}`);
+    if (config.service_control_url) {
+      serviceControlUrl.value = config.service_control_url;
+      console.debug(`setting ServiceControl Url to its default value: ${config.service_control_url}`);
     } else {
       console.warn("ServiceControl Url is not defined.");
     }
@@ -41,9 +43,9 @@ export const useServiceControlStore = defineStore("ServiceControlStore", () => {
     } else if (window.localStorage.getItem("mu")) {
       monitoringUrl.value = window.localStorage.getItem("mu");
       console.debug(`Monitoring Url, not in QS, found in local storage: ${monitoringUrl.value}`);
-    } else if (window.defaultConfig && window.defaultConfig.monitoring_urls && window.defaultConfig.monitoring_urls.length) {
-      monitoringUrl.value = window.defaultConfig.monitoring_urls[0];
-      console.debug(`setting Monitoring Url to its default value: ${window.defaultConfig.monitoring_urls[0]}`);
+    } else if (config.monitoring_url) {
+      monitoringUrl.value = config.monitoring_url;
+      console.debug(`setting Monitoring Url to its default value: ${config.monitoring_url}`);
     } else {
       console.warn("Monitoring Url is not defined.");
     }

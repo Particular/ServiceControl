@@ -2,9 +2,10 @@ import { monitoredEndpointTemplate, noMonitoredEndpoints } from "../mocks/monito
 
 import { SetupFactoryOptions } from "../driver";
 import { Endpoint } from "@/resources/MonitoringEndpoint";
+import { getDefaultConfig } from "@/defaultConfig";
 
 export const hasNoMonitoredEndpoints = ({ driver }: SetupFactoryOptions) => {
-  const monitoringInstanceUrl = window.defaultConfig.monitoring_urls[0];
+  const monitoringInstanceUrl = getDefaultConfig().monitoring_url;
   driver.mockEndpoint(`${monitoringInstanceUrl}monitored-endpoints`, {
     body: noMonitoredEndpoints,
   });
@@ -18,7 +19,7 @@ export const monitoredEndpointsNamed =
       return { ...monitoredEndpointTemplate, name: name };
     });
 
-    const monitoringInstanceUrl = window.defaultConfig.monitoring_urls[0];
+    const monitoringInstanceUrl = getDefaultConfig().monitoring_url;
     driver.mockEndpoint(`${monitoringInstanceUrl}monitored-endpoints`, {
       body: response,
     });
@@ -28,7 +29,7 @@ export const monitoredEndpointsNamed =
 export const hasMonitoredEndpointsList =
   (monitoringEndpointTemplates: Endpoint[]) =>
   ({ driver }: SetupFactoryOptions) => {
-    const monitoringInstanceUrl = window.defaultConfig.monitoring_urls[0];
+    const monitoringInstanceUrl = getDefaultConfig().monitoring_url;
     driver.mockEndpoint(`${monitoringInstanceUrl}monitored-endpoints`, {
       body: monitoringEndpointTemplates,
     });

@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory, type RouteRecordRaw, RouteRecordSingleViewWithChildren } from "vue-router";
 import config, { RouteItem } from "./config";
+import { getDefaultConfig } from "@/defaultConfig";
 
 function meta(item: { title: string }) {
   return { title: `${item.title} • ServicePulse` };
@@ -43,7 +44,7 @@ export default function makeRouter() {
     return result;
   });
 
-  const defaultRoute = window.defaultConfig.default_route;
+  const defaultRoute = getDefaultConfig().default_route;
   if (!!defaultRoute && defaultRoute !== "/") {
     routes.push({
       path: "/",

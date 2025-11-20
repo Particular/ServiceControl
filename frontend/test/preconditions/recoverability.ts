@@ -3,9 +3,10 @@ import { SetupFactoryOptions } from "../driver";
 import RecoverabilityHistoryResponse from "@/resources/RecoverabilityHistoryResponse";
 import { FailedMessage } from "@/resources/FailedMessage";
 import Message from "@/resources/Message";
+import { getDefaultConfig } from "@/defaultConfig";
 
 export const serviceControlConfigurationDefaultHandler = ({ driver }: SetupFactoryOptions) => {
-  const serviceControlUrl = window.defaultConfig.service_control_url;
+  const serviceControlUrl = getDefaultConfig().service_control_url;
   driver.mockEndpoint(`${serviceControlUrl}configuration`, {
     body: <Configuration>{
       host: {
@@ -40,28 +41,28 @@ export const serviceControlConfigurationDefaultHandler = ({ driver }: SetupFacto
 };
 
 export const archivedGroupsWithClassifierDefaulthandler = ({ driver }: SetupFactoryOptions) => {
-  const serviceControlUrl = window.defaultConfig.service_control_url;
+  const serviceControlUrl = getDefaultConfig().service_control_url;
   driver.mockEndpoint(`${serviceControlUrl}errors/groups{/:classifier}`, {
     body: [],
   });
 };
 
 export const recoverabilityGroupsWithClassifierDefaulthandler = ({ driver }: SetupFactoryOptions) => {
-  const serviceControlUrl = window.defaultConfig.service_control_url;
+  const serviceControlUrl = getDefaultConfig().service_control_url;
   driver.mockEndpoint(`${serviceControlUrl}recoverability/groups{/:classifier}`, {
     body: [],
   });
 };
 
 export const recoverabilityClassifiers = ({ driver }: SetupFactoryOptions) => {
-  const serviceControlUrl = window.defaultConfig.service_control_url;
+  const serviceControlUrl = getDefaultConfig().service_control_url;
   driver.mockEndpoint(`${serviceControlUrl}recoverability/classifiers`, {
     body: <string[]>["Exception Type and Stack Trace", "Message Type", "Endpoint Address", "Endpoint Instance", "Endpoint Name"],
   });
 };
 
 export const recoverabilityHistoryDefaultHandler = ({ driver }: SetupFactoryOptions) => {
-  const serviceControlUrl = window.defaultConfig.service_control_url;
+  const serviceControlUrl = getDefaultConfig().service_control_url;
   driver.mockEndpoint(`${serviceControlUrl}recoverability/history`, {
     body: <RecoverabilityHistoryResponse>{
       id: "RetryOperations/History",
@@ -112,14 +113,14 @@ const editConfig = <EditAndRetryConfig>{
   ],
 };
 export const recoverabilityEditConfigDefaultHandler = ({ driver }: SetupFactoryOptions) => {
-  const serviceControlUrl = window.defaultConfig.service_control_url;
+  const serviceControlUrl = getDefaultConfig().service_control_url;
   driver.mockEndpoint(`${serviceControlUrl}edit/config`, {
     body: editConfig,
   });
 };
 
 export const enableEditAndRetry = ({ driver }: SetupFactoryOptions) => {
-  const serviceControlUrl = window.defaultConfig.service_control_url;
+  const serviceControlUrl = getDefaultConfig().service_control_url;
   const config = structuredClone(editConfig);
   config.enabled = true;
   driver.mockEndpoint(`${serviceControlUrl}edit/config`, {
@@ -130,7 +131,7 @@ export const enableEditAndRetry = ({ driver }: SetupFactoryOptions) => {
 export const hasFailedMessage =
   ({ withGroupId, withMessageId, withContentType, withBody }: { withGroupId: string; withMessageId: string; withContentType: string; withBody: Record<string, string | number | boolean> | string | number | boolean | null | undefined }) =>
   ({ driver }: SetupFactoryOptions) => {
-    const serviceControlUrl = window.defaultConfig.service_control_url;
+    const serviceControlUrl = getDefaultConfig().service_control_url;
 
     const failedMessage = <FailedMessage>{
       id: withGroupId,

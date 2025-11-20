@@ -3,6 +3,7 @@ import { EndpointsView } from "@/resources/EndpointView";
 import { healthyEndpointTemplate, unHealthyEndpointTemplate } from "../mocks/heartbeat-endpoint-template";
 import { DefaultBodyType, PathParams, StrictRequest } from "msw";
 import { EndpointSettings } from "@/resources/EndpointSettings";
+import { getDefaultConfig } from "@/defaultConfig";
 
 interface ChangeTracking {
   track_instances: boolean;
@@ -26,20 +27,20 @@ export const hasHeartbeatsEndpoints = (
   const endpointsList = [...endpoints];
 
   return ({ driver }: SetupFactoryOptions) => {
-    driver.mockEndpointDynamic(`${window.defaultConfig.service_control_url}endpoints`, "get", () => {
+    driver.mockEndpointDynamic(`${getDefaultConfig().service_control_url}endpoints`, "get", () => {
       return Promise.resolve({
         body: endpointsList,
       });
     });
 
-    driver.mockEndpointDynamic(`${window.defaultConfig.service_control_url}endpointssettings`, "get", () => {
+    driver.mockEndpointDynamic(`${getDefaultConfig().service_control_url}endpointssettings`, "get", () => {
       return Promise.resolve({
         body: endpointSettingsList,
       });
     });
 
     endpointsList.forEach((e) => {
-      driver.mockEndpointDynamic(`${window.defaultConfig.service_control_url}endpoints/${e.id}`, "patch", async (_url: URL, _params: PathParams, request: StrictRequest<DefaultBodyType>) => {
+      driver.mockEndpointDynamic(`${getDefaultConfig().service_control_url}endpoints/${e.id}`, "patch", async (_url: URL, _params: PathParams, request: StrictRequest<DefaultBodyType>) => {
         const requestBody = <MonitorHeartbeat>await request.json();
 
         e.monitor_heartbeat = requestBody.monitor_heartbeat;
@@ -49,7 +50,7 @@ export const hasHeartbeatsEndpoints = (
         });
       });
 
-      driver.mockEndpointDynamic(`${window.defaultConfig.service_control_url}endpointssettings/${e.id}`, "patch", async (url: URL, params: PathParams, request: StrictRequest<DefaultBodyType>) => {
+      driver.mockEndpointDynamic(`${getDefaultConfig().service_control_url}endpointssettings/${e.id}`, "patch", async (url: URL, params: PathParams, request: StrictRequest<DefaultBodyType>) => {
         const requestBody = <ChangeTracking>await request.json();
 
         let endpointSettings = endpointSettingsList.find((setting) => setting.name === e.name);

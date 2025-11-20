@@ -1,11 +1,12 @@
 import { EndpointDetails } from "@/resources/MonitoringEndpoint";
 import { monitoredEndpointDetails, instanceForEndpoint, messageTypeForEndpoint } from "../mocks/monitored-endpoint-template";
 import { SetupFactoryOptions } from "../driver";
+import { getDefaultConfig } from "@/defaultConfig";
 
 export const hasMonitoredEndpointDetails =
   (endpointDetails: EndpointDetails) =>
   ({ driver }: SetupFactoryOptions) => {
-    const monitoringInstanceUrl = window.defaultConfig.monitoring_urls[0];
+    const monitoringInstanceUrl = getDefaultConfig().monitoring_url;
     driver.mockEndpoint(`${monitoringInstanceUrl}monitored-endpoints/${endpointDetails.instances[0].name}`, {
       body: endpointDetails,
     });
@@ -19,7 +20,7 @@ export const hasEndpointMessageTypesNamed =
     endpointDetails.messageTypes = [];
     endpointDetails.messageTypes.push(...messageNames.map((name) => ({ ...messageTypeForEndpoint, typeName: name })));
 
-    const monitoringInstanceUrl = window.defaultConfig.monitoring_urls[0];
+    const monitoringInstanceUrl = getDefaultConfig().monitoring_url;
     driver.mockEndpoint(`${monitoringInstanceUrl}monitored-endpoints/${endpointDetails.instances[0].name}`, {
       body: endpointDetails,
     });
@@ -34,7 +35,7 @@ export const hasEndpointInstancesNamed =
     endpointDetails.instances = [];
     endpointDetails.instances.push(...instanceNames.map((name) => ({ ...instanceForEndpoint, name: name })));
 
-    const monitoringInstanceUrl = window.defaultConfig.monitoring_urls[0];
+    const monitoringInstanceUrl = getDefaultConfig().monitoring_url;
 
     driver.mockEndpoint(`${monitoringInstanceUrl}monitored-endpoints/${endpointDetails.instances[0].name}`, {
       body: endpointDetails,
@@ -85,7 +86,7 @@ export const hasEndpointWithMetricValues =
     endpointDetails.digest.metrics.criticalTime.latest = criticalTimeLatest;
     endpointDetails.digest.metrics.criticalTime.average = criticalTimeAverage;
 
-    const monitoringInstanceUrl = window.defaultConfig.monitoring_urls[0];
+    const monitoringInstanceUrl = getDefaultConfig().monitoring_url;
     driver.mockEndpoint(`${monitoringInstanceUrl}monitored-endpoints/${endpointDetails.instances[0].name}`, {
       body: endpointDetails,
     });
@@ -94,7 +95,7 @@ export const hasEndpointWithMetricValues =
   };
 
 export const endpointRecoverabilityByInstanceDefaultHandler = ({ driver }: SetupFactoryOptions) => {
-  const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
+  const serviceControlInstanceUrl = getDefaultConfig().service_control_url;
   driver.mockEndpoint(`${serviceControlInstanceUrl}recoverability/groups/Endpoint%20Instance`, {
     body: [],
   });
@@ -102,7 +103,7 @@ export const endpointRecoverabilityByInstanceDefaultHandler = ({ driver }: Setup
 };
 
 export const endpointRecoverabilityByNameDefaultHandler = ({ driver }: SetupFactoryOptions) => {
-  const serviceControlInstanceUrl = window.defaultConfig.service_control_url;
+  const serviceControlInstanceUrl = getDefaultConfig().service_control_url;
   driver.mockEndpoint(`${serviceControlInstanceUrl}recoverability/groups/Endpoint%20Name`, {
     body: [],
   });
@@ -110,7 +111,7 @@ export const endpointRecoverabilityByNameDefaultHandler = ({ driver }: SetupFact
 };
 
 export const serviceControlMonitoringOptions = ({ driver }: SetupFactoryOptions) => {
-  const monitoringInstanceUrl = window.defaultConfig.monitoring_urls[0];
+  const monitoringInstanceUrl = getDefaultConfig().monitoring_url;
 
   driver.mockEndpoint(`${monitoringInstanceUrl}`, {
     body: [],

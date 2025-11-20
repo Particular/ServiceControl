@@ -1,5 +1,6 @@
 import { SetupFactoryOptions } from "../driver";
 import EndpointThroughputSummary from "@/resources/EndpointThroughputSummary";
+import { getDefaultConfig } from "@/defaultConfig";
 
 export const hasLicensingEndpoints =
   (
@@ -13,7 +14,7 @@ export const hasLicensingEndpoints =
     ]
   ) =>
   ({ driver }: SetupFactoryOptions) => {
-    driver.mockEndpoint(`${window.defaultConfig.service_control_url}licensing/endpoints`, {
+    driver.mockEndpoint(`${getDefaultConfig().service_control_url}licensing/endpoints`, {
       body,
       method: "get",
       status: 200,

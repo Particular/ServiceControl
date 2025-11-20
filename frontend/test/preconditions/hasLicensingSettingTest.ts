@@ -1,10 +1,11 @@
 import ConnectionTestResults, { ConnectionSettingsTestResult } from "@/resources/ConnectionTestResults";
 import { SetupFactoryOptions } from "../driver";
+import { getDefaultConfig } from "@/defaultConfig";
 
 export const hasLicensingSettingTest =
   (body: Partial<ConnectionTestResults> = {}) =>
   ({ driver }: SetupFactoryOptions) => {
-    driver.mockEndpoint(`${window.defaultConfig.service_control_url}licensing/settings/test`, {
+    driver.mockEndpoint(`${getDefaultConfig().service_control_url}licensing/settings/test`, {
       body: {
         ...(<ConnectionTestResults>{
           transport: "",

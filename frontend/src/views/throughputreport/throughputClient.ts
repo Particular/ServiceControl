@@ -6,6 +6,7 @@ import { downloadFileFromResponse } from "@/composables/fileDownloadCreator";
 import ReportGenerationState from "@/resources/ReportGenerationState";
 import { parse } from "@tinyhttp/content-disposition";
 import { ServiceControlStore, useServiceControlStore } from "@/stores/ServiceControlStore";
+import { getDefaultConfig } from "@/defaultConfig";
 
 class ThroughputClient {
   serviceControlStore: ServiceControlStore;
@@ -40,7 +41,7 @@ class ThroughputClient {
   }
 
   public async downloadReport() {
-    const response = await this.serviceControlStore.fetchFromServiceControl(`${this.basePath}/report/file?spVersion=${encodeURIComponent(window.defaultConfig.version)}`);
+    const response = await this.serviceControlStore.fetchFromServiceControl(`${this.basePath}/report/file?spVersion=${encodeURIComponent(getDefaultConfig().version)}`);
     if (response.ok) {
       let fileName = "throughput-report.json";
       const contentType = response.headers.get("Content-Type") ?? "application/json";

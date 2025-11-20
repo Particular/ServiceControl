@@ -5,8 +5,9 @@ import routeLinks from "@/router/routeLinks";
 import isRouteSelected from "@/composables/isRouteSelected";
 import { storeToRefs } from "pinia";
 import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
+import { getDefaultConfig } from "@/defaultConfig";
 
-const showPendingRetry = window.defaultConfig.showPendingRetry;
+const showPendingRetry = getDefaultConfig().showPendingRetry;
 const { store: connectionsAndStatsStore } = useConnectionsAndStatsAutoRefresh();
 connectionsAndStatsStore.requiresFullFailureDetails();
 const connectionState = connectionsAndStatsStore.connectionState;
