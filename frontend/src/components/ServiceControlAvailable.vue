@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import ConditionalRender from "@/components/ConditionalRender.vue";
-import routeLinks from "@/router/routeLinks";
 import useConnectionsAndStatsAutoRefresh from "@/composables/useConnectionsAndStatsAutoRefresh";
 import { useServiceControlStore } from "@/stores/ServiceControlStore";
 import { storeToRefs } from "pinia";
@@ -22,10 +21,6 @@ const { serviceControlUrl } = storeToRefs(serviceControlStore);
           <span id="serviceControlUrl">{{ serviceControlUrl }}</span
           >. Please ensure that ServiceControl is running and accessible from your machine.
         </p>
-        <div class="action-toolbar">
-          <RouterLink :to="routeLinks.configuration.connections.link"><span class="btn btn-default btn-primary whiteText">View Connection Details</span></RouterLink>
-          <a class="btn btn-default btn-secondary" href="https://docs.particular.net/monitoring/metrics/">Learn more</a>
-        </div>
       </div>
     </template>
     <slot />

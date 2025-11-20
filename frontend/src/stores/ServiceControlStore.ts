@@ -24,18 +24,10 @@ export const useServiceControlStore = defineStore("ServiceControlStore", () => {
   }
 
   function refresh() {
-    const params = getParams();
-    const scu = getParameter(params, "scu");
-    const mu = getParameter(params, "mu");
+    const params = new URLSearchParams(window.location.search);
+    const mu = params.get("mu");
 
-    if (scu) {
-      serviceControlUrl.value = scu.value;
-      window.localStorage.setItem("scu", serviceControlUrl.value);
-      console.debug(`ServiceControl Url found in QS and stored in local storage: ${serviceControlUrl.value}`);
-    } else if (window.localStorage.getItem("scu")) {
-      serviceControlUrl.value = window.localStorage.getItem("scu");
-      console.debug(`ServiceControl Url, not in QS, found in local storage: ${serviceControlUrl.value}`);
-    } else if (window.defaultConfig && window.defaultConfig.service_control_url) {
+    if (window.defaultConfig && window.defaultConfig.service_control_url) {
       serviceControlUrl.value = window.defaultConfig.service_control_url;
       console.debug(`setting ServiceControl Url to its default value: ${window.defaultConfig.service_control_url}`);
     } else {
@@ -43,7 +35,7 @@ export const useServiceControlStore = defineStore("ServiceControlStore", () => {
     }
 
     if (mu) {
-      monitoringUrl.value = mu.value;
+      monitoringUrl.value = mu;
       window.localStorage.setItem("mu", monitoringUrl.value);
       console.debug(`Monitoring Url found in QS and stored in local storage: ${monitoringUrl.value}`);
     } else if (window.localStorage.getItem("mu")) {
@@ -162,32 +154,6 @@ export const useServiceControlStore = defineStore("ServiceControlStore", () => {
     optionsFromMonitoring,
   };
 });
-
-interface Param {
-  name: string;
-  value: string;
-}
-
-function getParams() {
-  const params: Param[] = [];
-
-  if (!window.location.search) return params;
-
-  const searchParams = window.location.search.split("&");
-
-  searchParams.forEach((p) => {
-    p = p.startsWith("?") ? p.substring(1, p.length) : p;
-    const singleParam = p.split("=");
-    params.push({ name: singleParam[0], value: singleParam[1] });
-  });
-  return params;
-}
-
-function getParameter(params: Param[], key: string) {
-  return params.find((param) => {
-    return param.name === key;
-  });
-}
 
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useServiceControlStore, import.meta.hot));

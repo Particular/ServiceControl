@@ -7,36 +7,15 @@ import { useServiceControlStore } from "@/stores/ServiceControlStore";
 import { storeToRefs } from "pinia";
 
 const { store: connectionStore } = useConnectionsAndStatsAutoRefresh();
-const connectionState = connectionStore.connectionState;
 const monitoringConnectionState = connectionStore.monitoringConnectionState;
-
 const serviceControlStore = useServiceControlStore();
-serviceControlStore.refresh();
-const localServiceControlUrl = ref(serviceControlStore.serviceControlUrl);
 const localMonitoringUrl = ref(serviceControlStore.monitoringUrl);
 const { isMonitoringDisabled } = storeToRefs(serviceControlStore);
-
-const testingServiceControl = ref(false);
-const serviceControlValid = ref<boolean | null>(null);
-
 const testingMonitoring = ref(false);
 const monitoringValid = ref<boolean | null>(null);
-
 const connectionSaved = ref<boolean | null>(null);
 
-async function testServiceControlUrl() {
-  if (localServiceControlUrl.value) {
-    testingServiceControl.value = true;
-    try {
-      const response = await fetch(localServiceControlUrl.value);
-      serviceControlValid.value = response.ok && response.headers.has("X-Particular-Version");
-    } catch {
-      serviceControlValid.value = false;
-    } finally {
-      testingServiceControl.value = false;
-    }
-  }
-}
+serviceControlStore.refresh();
 
 async function testMonitoringUrl() {
   if (localMonitoringUrl.value) {
@@ -67,12 +46,6 @@ function saveConnections() {
 }
 
 function updateServiceControlUrls() {
-  if (!localServiceControlUrl.value) {
-    throw new Error("ServiceControl URL is mandatory");
-  } else if (!localServiceControlUrl.value.endsWith("/")) {
-    localServiceControlUrl.value += "/";
-  }
-
   if (!localMonitoringUrl.value) {
     localMonitoringUrl.value = "!"; //disabled
   } else if (!localMonitoringUrl.value.endsWith("/") && localMonitoringUrl.value !== "!") {
@@ -80,10 +53,9 @@ function updateServiceControlUrls() {
   }
 
   //values have changed. They'll be reset after page reloads
-  window.localStorage.removeItem("scu");
   window.localStorage.removeItem("mu");
 
-  const newSearch = `?scu=${localServiceControlUrl.value}&mu=${localMonitoringUrl.value}`;
+  const newSearch = `?mu=${localMonitoringUrl.value}`;
   console.debug("updateConnections - new query string: ", newSearch);
   window.location.search = newSearch;
 }
@@ -95,26 +67,6 @@ function updateServiceControlUrls() {
       <div class="row">
         <div class="col-12">
           <form novalidate>
-            <div class="row connection">
-              <h3>ServiceControl</h3>
-              <div class="col-7 form-group">
-                <label for="serviceControlUrl">
-                  CONNECTION URL
-                  <template v-if="connectionState.unableToConnect">
-                    <span class="failed-validation"><FAIcon :icon="faExclamationTriangle" /> Unable to connect </span>
-                  </template>
-                </label>
-                <input type="text" id="serviceControlUrl" name="serviceControlUrl" v-model="localServiceControlUrl" class="form-control" style="color: #000" required />
-              </div>
-
-              <div class="col-5 no-side-padding">
-                <button class="btn btn-default btn-secondary btn-connection-test" :class="{ disabled: !localServiceControlUrl }" type="button" @click="testServiceControlUrl">Test</button>
-                <span class="connection-test connection-testing" v-if="testingServiceControl"> <i class="glyphicon glyphicon-refresh rotate"></i>Testing </span>
-                <span class="connection-test connection-successful" v-if="serviceControlValid === true && !testingServiceControl"><FAIcon :icon="faCheck" /> Connection successful </span>
-                <span class="connection-test connection-failed" v-if="serviceControlValid === false && !testingServiceControl"><FAIcon :icon="faExclamationTriangle" /> Connection failed </span>
-              </div>
-            </div>
-
             <div class="row connection">
               <h3>ServiceControl Monitoring</h3>
               <div class="col-7 form-group">
