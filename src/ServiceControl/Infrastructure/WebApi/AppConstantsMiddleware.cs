@@ -25,7 +25,7 @@ namespace ServiceControl.Infrastructure.WebApi
                 {
                     default_route = "/dashboard",
                     service_control_url = "api/",
-                    monitoring_urls = new[] { "http://localhost:33633/" },
+                    monitoring_url = "http://localhost:33633/",
                     showPendingRetry = true,
                     version = FileVersion
                 };

@@ -29,16 +29,7 @@ conditionallyEnableMocking()
       const appConstants = await response.json();
       window.defaultConfig = appConstants;
     } else {
-      const devConstants = await fetch("js/app.constants.js", {
-        method: "GET",
-      });
-      if (devConstants.ok) {
-        const scriptText = await devConstants.text();
-        const script = document.createElement("script");
-        script.type = "text/javascript";
-        script.text = scriptText;
-        document.head.appendChild(script);
-      }
+      console.error("Failed to load app constants");
     }
   })
   // eslint-disable-next-line promise/always-return
