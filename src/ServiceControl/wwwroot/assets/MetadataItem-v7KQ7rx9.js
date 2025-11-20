@@ -1,2 +1,0 @@
-import{e as o,m as s,n as a,p as n,t as c,Z as r,_ as m,U as i}from"./index-Cy3_77ur.js";const _={class:"metadata"},d=o({__name:"MetadataItem",props:{icon:{}},setup(e){return(t,l)=>(a(),s("span",_,[e.icon?(a(),n(m,{key:0,icon:e.icon,class:"icon"},null,8,["icon"])):c("",!0),r(t.$slots,"default",{},void 0,!0)]))}}),u=i(d,[["__scopeId","data-v-2e0b1295"]]);export{u as M};
-//# sourceMappingURL=MetadataItem-v7KQ7rx9.js.map

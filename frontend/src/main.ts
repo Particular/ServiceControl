@@ -17,7 +17,31 @@ async function conditionallyEnableMocking() {
   return worker.start();
 }
 
-// eslint-disable-next-line promise/catch-or-return,promise/always-return
-conditionallyEnableMocking().then(() => {
-  mount({ router: makeRouter() });
-});
+// eslint-disable-next-line promise/catch-or-return
+conditionallyEnableMocking()
+  .then(async () => {
+    const response = await fetch("js/app.constants.json", {
+      method: "GET",
+    });
+
+    // eslint-disable-next-line promise/always-return
+    if (response.ok) {
+      const appConstants = await response.json();
+      window.defaultConfig = appConstants;
+    } else {
+      const devConstants = await fetch("js/app.constants.js", {
+        method: "GET",
+      });
+      if (devConstants.ok) {
+        const scriptText = await devConstants.text();
+        const script = document.createElement("script");
+        script.type = "text/javascript";
+        script.text = scriptText;
+        document.head.appendChild(script);
+      }
+    }
+  })
+  // eslint-disable-next-line promise/always-return
+  .then(() => {
+    mount({ router: makeRouter() });
+  });
