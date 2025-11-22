@@ -12,6 +12,7 @@
         public const string SuccessfulRetryHeader = "ServiceControl.Retry.Successful";
         const string RetryUniqueMessageIdHeader = "ServiceControl.Retry.UniqueMessageId";
 
+
         public RetryConfirmationProcessor(IDomainEvents domainEvents)
         {
             this.domainEvents = domainEvents;
@@ -26,11 +27,11 @@
             }
         }
 
-        public Task Announce(MessageContext messageContext)
+        public Task Announce(string failedMessageId)
         {
             return domainEvents.Raise(new MessageFailureResolvedByRetry
             {
-                FailedMessageId = messageContext.Headers[RetryUniqueMessageIdHeader],
+                FailedMessageId = failedMessageId
             });
         }
 
