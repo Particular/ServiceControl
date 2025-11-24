@@ -37,6 +37,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
             LoadErrorIngestionSettings();
 
+            OpenIdConnectSettings = new OpenIdConnectSettings(ValidateConfiguration);
+
             TransportConnectionString = GetConnectionString();
             TransportType = transportType ?? SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
             PersistenceType = persisterType ?? SettingsReader.Read<string>(SettingsRootNamespace, "PersistenceType");
@@ -179,6 +181,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         public bool DisableHealthChecks { get; set; }
+
+        public OpenIdConnectSettings OpenIdConnectSettings { get; }
 
         // The default value is set to the maximum allowed time by the most
         // restrictive hosting platform, which is Linux containers. Linux
