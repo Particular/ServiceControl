@@ -1,15 +1,19 @@
 ﻿namespace ServiceControl.Contracts.MessageFailures
 {
     using Infrastructure.DomainEvents;
-    using Infrastructure.SignalR;
-
-    public partial class MessageFailureResolvedByRetry : IDomainEvent, IUserInterfaceEvent
-    {
-        public string FailedMessageId { get; set; }
-        public string[] AlternativeFailedMessageIds { get; set; }
-    }
 
     public class MessageEditedAndRetried : IDomainEvent
+    {
+        public string FailedMessageId { get; set; }
+        public string RetriedMessageId { get; set; }
+        public string EditId { get; set; }
+    }
+}
+
+//TODO: Move this to ServiceControl.Contracts package
+namespace ServiceControl.Contracts
+{
+    public class MessageEditedAndRetried
     {
         public string FailedMessageId { get; set; }
         public string RetriedMessageId { get; set; }
