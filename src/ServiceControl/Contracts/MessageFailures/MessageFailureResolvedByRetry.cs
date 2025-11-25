@@ -8,11 +8,4 @@
         public string FailedMessageId { get; set; }
         public string[] AlternativeFailedMessageIds { get; set; }
     }
-
-    public class MessageEditedAndRetried : IDomainEvent
-    {
-        public string FailedMessageId { get; set; }
-        public string RetriedMessageId { get; set; }
-        public string EditId { get; set; }
-    }
 }
