@@ -3,6 +3,8 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using Contracts.MessageFailures;
+    using Infrastructure.DomainEvents;
     using MessageFailures;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
@@ -14,12 +16,13 @@
 
     class EditHandler : IHandleMessages<EditAndSend>
     {
-        public EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher, ErrorQueueNameCache errorQueueNameCache, ILogger<EditHandler> logger)
+        public EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher, ErrorQueueNameCache errorQueueNameCache, IDomainEvents domainEvents, ILogger<EditHandler> logger)
         {
             this.store = store;
             this.redirectsStore = redirectsStore;
             this.dispatcher = dispatcher;
             this.errorQueueNameCache = errorQueueNameCache;
+            this.domainEvents = domainEvents;
             this.logger = logger;
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName, logger);
 
@@ -29,6 +32,7 @@
         {
             string editRequestIdentifier = context.MessageId;
             FailedMessage failedMessage;
+            string editId;
             using (var session = await store.CreateEditFailedMessageManager())
             {
                 failedMessage = await session.GetFailedMessage(message.FailedMessageId);
@@ -39,7 +43,7 @@
                     return;
                 }
 
-                var editId = await session.GetCurrentEditingRequestId(message.FailedMessageId);
+                editId = await session.GetCurrentEditingRequestId(message.FailedMessageId);
                 if (editId == null)
                 {
                     if (failedMessage.Status != FailedMessageStatus.Unresolved)
@@ -64,6 +68,8 @@
                 await session.SaveChanges();
             }
 
+
+
             var redirects = await redirectsStore.GetOrCreate();
 
             var attempt = failedMessage.ProcessingAttempts.Last();
@@ -82,6 +88,13 @@
                 address = retryTo;
             }
             await DispatchEditedMessage(outgoingMessage, address, context);
+
+            await domainEvents.Raise(new MessageEditedAndRetried
+            {
+                EditId = editId,
+                FailedMessageId = message.FailedMessageId,
+                RetriedMessageId = outgoingMessage.MessageId
+            }, context.CancellationToken);
         }
 
         OutgoingMessage BuildMessage(EditAndSend message)
@@ -123,6 +136,7 @@
         readonly IMessageRedirectsDataStore redirectsStore;
         readonly IMessageDispatcher dispatcher;
         readonly ErrorQueueNameCache errorQueueNameCache;
+        readonly IDomainEvents domainEvents;
         readonly ILogger<EditHandler> logger;
     }
 }

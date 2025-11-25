@@ -13,7 +13,9 @@
 //TODO: Move this to ServiceControl.Contracts package
 namespace ServiceControl.Contracts
 {
-    public class MessageEditedAndRetried
+    using NServiceBus;
+
+    public class MessageEditedAndRetried : IEvent //TODO: Remove interface when moving to contracts package. Needed for conventions
     {
         public string FailedMessageId { get; set; }
         public string RetriedMessageId { get; set; }

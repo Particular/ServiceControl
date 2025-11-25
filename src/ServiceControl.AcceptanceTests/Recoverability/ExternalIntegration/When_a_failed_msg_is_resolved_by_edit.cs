@@ -26,6 +26,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                 .WithEndpoint<MessageReceiver>(b => b.When(async (bus, c) =>
                 {
                     await bus.Subscribe<MessageFailureResolvedByRetry>();
+                    await bus.Subscribe<MessageEditedAndRetried>();
 
                     if (c.HasNativePubSubSupport)
                     {
@@ -77,7 +78,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                         return false;
                     }
 
-                    if (!ctx.MessageResolved)
+                    if (!ctx.MessageResolved || !ctx.MessageEdited)
                     {
                         return false;
                     }
@@ -103,15 +104,17 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
             public bool MessageResolved { get; set; }
             public string EditedMessageEditOf { get; set; }
             public bool ExternalProcessorSubscribed { get; set; }
-
+            public string EditId { get; set; }
+            public bool MessageEdited { get; set; }
         }
 
         class MessageReceiver : EndpointConfigurationBuilder
         {
             public MessageReceiver() => EndpointSetup<DefaultServerWithoutAudit>(c => c.NoRetries());
 
-            class EditMessageResolutionHandler(EditMessageResolutionContext testContext)
-                : IHandleMessages<EditResolutionMessage>, IHandleMessages<MessageFailureResolvedByRetry>
+            class EditMessageResolutionHandler(EditMessageResolutionContext testContext) : IHandleMessages<EditResolutionMessage>,
+                    IHandleMessages<MessageFailureResolvedByRetry>,
+                    IHandleMessages<MessageEditedAndRetried>
             {
                 public Task Handle(EditResolutionMessage message, IMessageHandlerContext context)
                 {
@@ -130,6 +133,14 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                 {
                     testContext.ResolvedMessageId = message.FailedMessageId;
                     testContext.MessageResolved = true;
+                    return Task.CompletedTask;
+                }
+
+                public Task Handle(MessageEditedAndRetried message, IMessageHandlerContext context)
+                {
+                    testContext.ResolvedMessageId = message.FailedMessageId;
+                    testContext.EditId = message.EditId;
+                    testContext.MessageEdited = true;
                     return Task.CompletedTask;
                 }
             }
