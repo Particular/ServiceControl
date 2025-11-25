@@ -120,6 +120,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
             Assert.Multiple(() =>
             {
                 Assert.That(context.FirstMessageFailedFailedMessageId, Is.EqualTo(context.SecondMessageFailedEditOf));
+                Assert.That(context.EditedMessageEditOf1, Is.EqualTo(context.OriginalMessageFailureId));
+                Assert.That(context.FirstMessageFailedFailedMessageId, Is.EqualTo(context.OriginalMessageFailureId));
+                Assert.That(context.EditedMessageEditOf2, Is.EqualTo(context.SecondMessageFailureId));
                 //Assert.That(context.ResolvedMessageId, Is.EqualTo(context.SecondMessageFailureId));
                 //Assert.That(context.EditedMessageEditOf1, Is.EqualTo(context.OriginalMessageFailureId));
                 //Assert.That(context.EditedMessageEditOf2, Is.EqualTo(context.SecondMessageFailureId));
@@ -132,7 +135,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
             public bool OriginalMessageHandled { get; set; }
             public string OriginalMessageFailureId { get; set; }
             public bool SecondEditHandled { get; set; }
-            public string ResolvedMessageId { get; set; }
             public bool MessageResolved { get; set; }
             public bool FirstEditHandled { get; set; }
             public bool FirstEdit { get; set; }
@@ -151,7 +153,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 
 
             public class EditMessageResolutionHandler(EditMessageResolutionContext testContext)
-                : IHandleMessages<EditResolutionMessage>, IHandleMessages<MessageFailureResolvedByRetry>
+                : IHandleMessages<EditResolutionMessage>, IHandleMessages<MessageFailed>
             {
                 public Task Handle(EditResolutionMessage message, IMessageHandlerContext context)
                 {
@@ -173,13 +175,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                     }
                 }
 
-                public Task Handle(MessageFailureResolvedByRetry message, IMessageHandlerContext context)
-                {
-                    testContext.ResolvedMessageId = message.FailedMessageId;
-                    testContext.MessageResolved = true;
-                    return Task.CompletedTask;
-                }
-
                 public Task Handle(MessageFailed message, IMessageHandlerContext context)
                 {
                     if (testContext.FirstMessageFailedFailedMessageId == null)
@@ -193,7 +188,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                     }
                     return Task.CompletedTask;
                 }
-                
+
             }
         }
 
