@@ -24,7 +24,11 @@
             hostBuilder.AddServiceControlApi();
 
             var app = hostBuilder.Build();
-            app.UseServiceControl();
+            app.UseServiceControl()
+                .UseMiddleware<AppConstantsMiddleware>()
+                .UseDefaultFiles()
+                .UseStaticFiles();
+
             await app.RunAsync(settings.RootUrl);
         }
     }
