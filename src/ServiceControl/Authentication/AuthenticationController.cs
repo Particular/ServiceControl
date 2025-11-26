@@ -15,7 +15,7 @@
         {
             var info = new AuthConfig
             {
-                Enabled = settings.OpenIdConnectSettings.ServicePulseEnabled,
+                Enabled = settings.OpenIdConnectSettings.Enabled,
                 ClientId = settings.OpenIdConnectSettings.ServicePulseClientId,
                 Authority = settings.OpenIdConnectSettings.ServicePulseAuthority,
                 ApiScope = settings.OpenIdConnectSettings.ServicePulseApiScope
