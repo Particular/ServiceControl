@@ -40,5 +40,18 @@
   "RetryHistoryDepth": 10,
   "RemoteInstances": [],
   "DisableHealthChecks": false,
+  "OpenIdConnectSettings": {
+    "enabled": false,
+    "authority": null,
+    "audience": null,
+    "validateIssuer": false,
+    "validateAudience": false,
+    "validateLifetime": false,
+    "validateIssuerSigningKey": false,
+    "requireHttpsMetadata": false,
+    "servicePulseAuthority": null,
+    "servicePulseClientId": null,
+    "servicePulseApiScope": null
+  },
   "ShutdownTimeout": "00:00:05"
 }

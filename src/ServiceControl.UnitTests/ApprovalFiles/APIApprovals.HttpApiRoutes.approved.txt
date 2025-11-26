@@ -1,6 +1,7 @@
 GET / => ServiceControl.Infrastructure.WebApi.RootController:Urls()
 GET /archive/groups/id/{groupId:required:minlength(1)} => ServiceControl.MessageFailures.Api.ArchiveMessagesController:GetGroup(String groupId, String status, String modified)
 GET /configuration => ServiceControl.Infrastructure.WebApi.RootController:Config()
+GET /configuration => ServiceControl.Authentication.AuthenticationController:Configuration()
 GET /configuration/remotes => ServiceControl.Infrastructure.WebApi.RootController:RemoteConfig(CancellationToken cancellationToken)
 GET /connection => ServiceControl.Connection.ConnectionController:GetConnectionDetails()
 GET /conversations/{conversationId:required:minlength(1)} => ServiceControl.CompositeViews.Messages.GetMessagesByConversationController:Messages(PagingInfo pagingInfo, SortInfo sortInfo, Boolean includeSystemMessages, String conversationId)
