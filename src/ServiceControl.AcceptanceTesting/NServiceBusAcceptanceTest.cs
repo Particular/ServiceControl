@@ -1,10 +1,14 @@
 ﻿namespace ServiceControl.AcceptanceTesting
 {
+    using System;
     using System.Linq;
     using System.Threading;
+    using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Logging;
     using NUnit.Framework;
+    using NUnit.Framework.Interfaces;
+    using NUnit.Framework.Internal;
 
     /// <summary>
     /// Base class for all the NSB test that sets up our conventions
@@ -34,6 +38,35 @@
 
                 return testName + "." + endpointBuilder;
             };
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (!TestExecutionContext.CurrentContext.TryGetRunDescriptor(out var runDescriptor))
+            {
+                return;
+            }
+
+            var scenarioContext = runDescriptor.ScenarioContext;
+
+            TestContext.Out.WriteLine($@"Test settings:
+{string.Join(Environment.NewLine, runDescriptor.Settings.Select(setting => $"   {setting.Key}: {setting.Value}"))}");
+
+            TestContext.Out.WriteLine($@"Context:
+{string.Join(Environment.NewLine, scenarioContext.GetType().GetProperties().Select(p => $"{p.Name} = {p.GetValue(scenarioContext, null)}"))}");
+
+            if (TestExecutionContext.CurrentContext.CurrentResult.ResultState == ResultState.Failure || TestExecutionContext.CurrentContext.CurrentResult.ResultState == ResultState.Error)
+            {
+                TestContext.Out.WriteLine(string.Empty);
+                TestContext.Out.WriteLine($"Log entries (log level: {scenarioContext.LogLevel}):");
+                TestContext.Out.WriteLine("--- Start log entries ---------------------------------------------------");
+                foreach (var logEntry in scenarioContext.Logs)
+                {
+                    TestContext.Out.WriteLine($"{logEntry.Timestamp:T} {logEntry.Level} {logEntry.Endpoint ?? TestContext.CurrentContext.Test.Name}: {logEntry.Message}");
+                }
+                TestContext.Out.WriteLine("--- End log entries ---------------------------------------------------");
+            }
         }
     }
 }
