@@ -27,6 +27,15 @@ namespace ServiceBus.Management.Infrastructure.Settings
             ValidateIssuerSigningKey = SettingsReader.Read(Settings.SettingsRootNamespace, "Authentication.ValidateIssuerSigningKey", true);
             RequireHttpsMetadata = SettingsReader.Read(Settings.SettingsRootNamespace, "Authentication.RequireHttpsMetadata", true);
 
+            ServicePulseEnabled = SettingsReader.Read(Settings.SettingsRootNamespace, "Authentication.ServicePulse.Enabled", false);
+
+            if (ServicePulseEnabled)
+            {
+                ServicePulseClientId = SettingsReader.Read<string>(Settings.SettingsRootNamespace, "Authentication.ServicePulse.ClientId");
+                ServicePulseApiScope = SettingsReader.Read<string>(Settings.SettingsRootNamespace, "Authentication.ServicePulse.ApiScope");
+                ServicePulseAuthority = SettingsReader.Read<string>(Settings.SettingsRootNamespace, "Authentication.ServicePulse.Authority");
+            }
+
             if (validateConfiguration)
             {
                 Validate();
@@ -56,6 +65,18 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         [JsonPropertyName("requireHttpsMetadata")]
         public bool RequireHttpsMetadata { get; }
+
+        [JsonPropertyName("servicePulseEnabled")]
+        public bool ServicePulseEnabled { get; }
+
+        [JsonPropertyName("servicePulseAuthority")]
+        public string ServicePulseAuthority { get; }
+
+        [JsonPropertyName("servicePulseClientId")]
+        public string ServicePulseClientId { get; }
+
+        [JsonPropertyName("servicePulseApiScope")]
+        public string ServicePulseApiScope { get; }
 
         void Validate()
         {
@@ -112,6 +133,24 @@ namespace ServiceBus.Management.Infrastructure.Settings
                 logger.LogWarning("Authentication.ValidateIssuerSigningKey is set to false. This is a serious security risk and should only be used in development environments");
             }
 
+            if (ServicePulseEnabled)
+            {
+                if (string.IsNullOrWhiteSpace(ServicePulseClientId))
+                {
+                    throw new Exception("Authentication.ServicePulse.ClientId is required when Authentication.ServicePulse.Enabled is true.");
+                }
+
+                if (string.IsNullOrWhiteSpace(ServicePulseApiScope))
+                {
+                    throw new Exception("Authentication.ServicePulse.ApiScope is required when Authentication.ServicePulse.Enabled is true.");
+                }
+
+                if (ServicePulseAuthority != null && !Uri.TryCreate(ServicePulseAuthority, UriKind.Absolute, out _))
+                {
+                    throw new Exception("Authentication.ServicePulse.Authority must be a valid absolute URI if provided.");
+                }
+            }
+
             logger.LogInformation("Authentication configuration validated successfully");
             logger.LogInformation("  Authority: {Authority}", Authority);
             logger.LogInformation("  Audience: {Audience}", Audience);
@@ -120,6 +159,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
             logger.LogInformation("  ValidateLifetime: {ValidateLifetime}", ValidateLifetime);
             logger.LogInformation("  ValidateIssuerSigningKey: {ValidateIssuerSigningKey}", ValidateIssuerSigningKey);
             logger.LogInformation("  RequireHttpsMetadata: {RequireHttpsMetadata}", RequireHttpsMetadata);
+            logger.LogInformation("  ServicePulseEnabled: {ServicePulseEnabled}", ServicePulseEnabled);
+            logger.LogInformation("  ServicePulseClientId: {ServicePulseClientId}", ServicePulseClientId);
+            logger.LogInformation("  ServicePulseAuthority: {ServicePulseAuthority}", ServicePulseAuthority);
+            logger.LogInformation("  ServicePulseApiScope: {ServicePulseApiScope}", ServicePulseApiScope);
         }
     }
 }
