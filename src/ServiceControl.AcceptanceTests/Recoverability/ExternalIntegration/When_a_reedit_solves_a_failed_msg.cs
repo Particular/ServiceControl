@@ -1,6 +1,5 @@
 namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 {
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -28,6 +27,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                     {
                         await bus.Subscribe<MessageFailureResolvedByRetry>();
                         await bus.Subscribe<MessageFailed>();
+                        await bus.Subscribe<MessageEditedAndRetried>();
 
                         if (c.HasNativePubSubSupport)
                         {
@@ -73,7 +73,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                         return false;
                     }
 
-                    if (ctx.EditedMessageEditOf1 == null || !ctx.FirstEditHandled)
+                    if (!ctx.FirstEditHandled)
                     {
                         return false;
                     }
@@ -104,12 +104,12 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                         return false;
                     }
 
-                    if (!ctx.SecondEditHandled || ctx.EditedMessageEditOf2 == null)
+                    if (!ctx.SecondEditHandled)
                     {
                         return false;
                     }
 
-                    if (!ctx.MessageResolved)
+                    if (!ctx.MessageResolved || !ctx.EditAndRetryHandled)
                     {
                         return false;
                     }
@@ -119,13 +119,12 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 
             Assert.Multiple(() =>
             {
-                Assert.That(context.FirstMessageFailedFailedMessageId, Is.EqualTo(context.SecondMessageFailedEditOf));
-                Assert.That(context.EditedMessageEditOf1, Is.EqualTo(context.OriginalMessageFailureId));
                 Assert.That(context.FirstMessageFailedFailedMessageId, Is.EqualTo(context.OriginalMessageFailureId));
+                Assert.That(context.EditedMessageEditOf1, Is.EqualTo(context.OriginalMessageFailureId));
+                Assert.That(context.SecondMessageFailedEditOf, Is.EqualTo(context.OriginalMessageFailureId));
+                Assert.That(context.FirstRetryFailedMessageId, Is.EqualTo(context.OriginalMessageFailureId));
                 Assert.That(context.EditedMessageEditOf2, Is.EqualTo(context.SecondMessageFailureId));
-                //Assert.That(context.ResolvedMessageId, Is.EqualTo(context.SecondMessageFailureId));
-                //Assert.That(context.EditedMessageEditOf1, Is.EqualTo(context.OriginalMessageFailureId));
-                //Assert.That(context.EditedMessageEditOf2, Is.EqualTo(context.SecondMessageFailureId));
+                Assert.That(context.SecondRetryFailedMessageId, Is.EqualTo(context.SecondMessageFailureId));
             });
         }
 
@@ -145,6 +144,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
             public bool ExternalProcessorSubscribed { get; set; }
             public string FirstMessageFailedFailedMessageId { get; set; }
             public string SecondMessageFailedEditOf { get; set; }
+            public string FirstRetryFailedMessageId { get; set; }
+            public string SecondRetryFailedMessageId { get; set; }
+            public bool EditAndRetryHandled { get; set; }
         }
 
         public class MessageReceiver : EndpointConfigurationBuilder
@@ -153,7 +155,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 
 
             public class EditMessageResolutionHandler(EditMessageResolutionContext testContext)
-                : IHandleMessages<EditResolutionMessage>, IHandleMessages<MessageFailed>
+                : IHandleMessages<EditResolutionMessage>, IHandleMessages<MessageFailed>, IHandleMessages<MessageEditedAndRetried>
             {
                 public Task Handle(EditResolutionMessage message, IMessageHandlerContext context)
                 {
@@ -189,6 +191,19 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                     return Task.CompletedTask;
                 }
 
+                public Task Handle(MessageEditedAndRetried message, IMessageHandlerContext context)
+                {
+                    if (testContext.FirstRetryFailedMessageId == null)
+                    {
+                        testContext.FirstRetryFailedMessageId = message.FailedMessageId;
+                    }
+                    else
+                    {
+                        testContext.SecondRetryFailedMessageId = message.FailedMessageId;
+                        testContext.EditAndRetryHandled = true;
+                    }
+                    return Task.CompletedTask;
+                }
             }
         }
 
