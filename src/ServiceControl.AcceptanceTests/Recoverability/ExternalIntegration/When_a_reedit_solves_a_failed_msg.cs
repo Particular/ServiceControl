@@ -1,5 +1,6 @@
 namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 {
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -119,12 +120,16 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 
             Assert.Multiple(() =>
             {
-                Assert.That(context.FirstMessageFailedFailedMessageId, Is.EqualTo(context.OriginalMessageFailureId));
+                Assert.That(context.FailedMessageFailedMessageIds.Count, Is.EqualTo(2));
+                Assert.That(context.FailedMessageFailedMessageIds, Is.Unique);
+                Assert.That(context.FailedMessageFailedMessageIds, Has.Some.EqualTo(context.OriginalMessageFailureId));
                 Assert.That(context.EditedMessageEditOf1, Is.EqualTo(context.OriginalMessageFailureId));
-                Assert.That(context.SecondMessageFailedEditOf, Is.EqualTo(context.OriginalMessageFailureId));
-                Assert.That(context.FirstRetryFailedMessageId, Is.EqualTo(context.OriginalMessageFailureId));
+                Assert.That(context.FailedMessageFailedMessageIds, Has.Some.EqualTo(context.OriginalMessageFailureId));
+                Assert.That(context.RetryFailedMessageIds.Count, Is.EqualTo(2));
+                Assert.That(context.RetryFailedMessageIds, Is.Unique);
+                Assert.That(context.RetryFailedMessageIds, Has.Some.EqualTo(context.OriginalMessageFailureId));
                 Assert.That(context.EditedMessageEditOf2, Is.EqualTo(context.SecondMessageFailureId));
-                Assert.That(context.SecondRetryFailedMessageId, Is.EqualTo(context.SecondMessageFailureId));
+                Assert.That(context.RetryFailedMessageIds, Has.Some.EqualTo(context.SecondMessageFailureId));
             });
         }
 
@@ -142,11 +147,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
             public string EditedMessageEditOf2 { get; set; }
             public string EditedMessageEditOf1 { get; set; }
             public bool ExternalProcessorSubscribed { get; set; }
-            public string FirstMessageFailedFailedMessageId { get; set; }
-            public string SecondMessageFailedEditOf { get; set; }
-            public string FirstRetryFailedMessageId { get; set; }
-            public string SecondRetryFailedMessageId { get; set; }
             public bool EditAndRetryHandled { get; set; }
+            public List<string> RetryFailedMessageIds { get; } = [];
+            public List<string> FailedMessageFailedMessageIds { get; } = [];
         }
 
         public class MessageReceiver : EndpointConfigurationBuilder
@@ -179,13 +182,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 
                 public Task Handle(MessageFailed message, IMessageHandlerContext context)
                 {
-                    if (testContext.FirstMessageFailedFailedMessageId == null)
+                    testContext.FailedMessageFailedMessageIds.Add(message.FailedMessageId);
+                    if (testContext.FailedMessageFailedMessageIds.Count == 2)
                     {
-                        testContext.FirstMessageFailedFailedMessageId = message.FailedMessageId;
-                    }
-                    else
-                    {
-                        testContext.SecondMessageFailedEditOf = message.MessageDetails.Headers["ServiceControl.EditOf"];
                         testContext.MessageResolved = true;
                     }
                     return Task.CompletedTask;
@@ -193,13 +192,10 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 
                 public Task Handle(MessageEditedAndRetried message, IMessageHandlerContext context)
                 {
-                    if (testContext.FirstRetryFailedMessageId == null)
+
+                    testContext.RetryFailedMessageIds.Add(message.FailedMessageId);
+                    if (testContext.RetryFailedMessageIds.Count == 2)
                     {
-                        testContext.FirstRetryFailedMessageId = message.FailedMessageId;
-                    }
-                    else
-                    {
-                        testContext.SecondRetryFailedMessageId = message.FailedMessageId;
                         testContext.EditAndRetryHandled = true;
                     }
                     return Task.CompletedTask;

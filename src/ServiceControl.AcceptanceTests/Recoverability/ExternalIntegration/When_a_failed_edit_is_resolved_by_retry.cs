@@ -1,5 +1,6 @@
 namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 {
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -101,9 +102,11 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
             {
                 Assert.That(context.ResolvedMessageId, Is.EqualTo(context.OriginalMessageFailureId));
                 Assert.That(context.EditedMessageEditOf, Is.EqualTo(context.OriginalMessageFailureId));
-                Assert.That(context.FirstMessageFailedFailedMessageId, Is.EqualTo(context.OriginalMessageFailureId));
+                Assert.That(context.MessageFailedFailedMessageIds.Count, Is.EqualTo(2));
+                Assert.That(context.MessageFailedFailedMessageIds, Is.Unique);
+                Assert.That(context.MessageFailedFailedMessageIds, Has.Some.EqualTo(context.OriginalMessageFailureId));
                 Assert.That(context.RetryFailedMessageId, Is.EqualTo(context.OriginalMessageFailureId));
-                Assert.That(context.SecondMessageFailedFailedMessageId, Is.EqualTo(context.EditedMessageFailureId));
+                Assert.That(context.MessageFailedFailedMessageIds, Has.Some.EqualTo(context.EditedMessageFailureId));
             });
         }
 
@@ -118,11 +121,10 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
             public string EditedMessageEditOf { get; set; }
             public bool ExternalProcessorSubscribed { get; set; }
             public bool MessageResolved { get; set; }
-            public string FirstMessageFailedFailedMessageId { get; set; }
-            public string SecondMessageFailedFailedMessageId { get; set; }
             public bool MessageFailedResolved { get; set; }
             public string RetryFailedMessageId { get; set; }
             public bool EditAndRetryHandled { get; set; }
+            public List<string> MessageFailedFailedMessageIds { get; } = [];
         }
 
         public class MessageReceiver : EndpointConfigurationBuilder
@@ -164,13 +166,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 
                 public Task Handle(MessageFailed message, IMessageHandlerContext context)
                 {
-                    if (testContext.FirstMessageFailedFailedMessageId == null)
+                    testContext.MessageFailedFailedMessageIds.Add(message.FailedMessageId);
+                    if (testContext.MessageFailedFailedMessageIds.Count == 2)
                     {
-                        testContext.FirstMessageFailedFailedMessageId = message.FailedMessageId;
-                    }
-                    else
-                    {
-                        testContext.SecondMessageFailedFailedMessageId = message.FailedMessageId;
                         testContext.MessageFailedResolved = true;
                     }
                     return Task.CompletedTask;
