@@ -1,14 +1,13 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
     using AcceptanceTests;
-    using ExternalIntegration;
+    using Contracts.MessageFailures;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -20,9 +19,21 @@
         [Test]
         public async Task A_new_message_failure_is_created()
         {
+            CustomConfiguration = config => config.OnEndpointSubscribed<EditMessageFailureContext>((s, ctx) =>
+            {
+                ctx.ExternalProcessorSubscribed = s.SubscriberReturnAddress.Contains(nameof(FailingEditedMessageReceiver));
+            });
+
             var context = await Define<EditMessageFailureContext>()
-                .WithEndpoint<FailingEditedMessageReceiver>(e => e
-                    .When(c => c.SendLocal(new FailingMessage()))
+                .WithEndpoint<FailingEditedMessageReceiver>(b => b.When(async (bus, c) =>
+                    {
+                        await bus.Subscribe<MessageFailed>();
+
+                        if (c.HasNativePubSubSupport)
+                        {
+                            c.ExternalProcessorSubscribed = true;
+                        }
+                    }).When(c => c.SendLocal(new FailingMessage()))
                     .DoNotFailOnErrorMessages())
                 .Done(async ctx =>
                 {
@@ -62,7 +73,7 @@
                         return false;
                     }
 
-                    if (!ctx.EditedMessageHandled)
+                    if (!ctx.EditedMessageHandled || !ctx.MessageFailedHandled)
                     {
                         return false;
                     }
@@ -112,6 +123,10 @@
             public string OriginalMessageFailureId { get; set; }
             public string EditedMessageFailureId { get; set; }
             public string EditedMessageInternalId { get; set; }
+            public bool ExternalProcessorSubscribed { get; set; }
+            public string FirstMessageFailedId { get; set; }
+            public string SecondMessageFailedId { get; set; }
+            public bool MessageFailedHandled { get; set; }
         }
 
         class FailingEditedMessageReceiver : EndpointConfigurationBuilder
@@ -119,7 +134,7 @@
             public FailingEditedMessageReceiver() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
 
             class FailingMessageHandler(EditMessageFailureContext testContext)
-                : IHandleMessages<FailingMessage>
+                : IHandleMessages<FailingMessage>, IHandleMessages<MessageFailed>
             {
                 public Task Handle(FailingMessage message, IMessageHandlerContext context)
                 {
@@ -133,6 +148,20 @@
                     }
 
                     throw new SimulatedException();
+                }
+
+                public Task Handle(MessageFailed message, IMessageHandlerContext context)
+                {
+                    if (testContext.FirstMessageFailedId == null)
+                    {
+                        testContext.FirstMessageFailedId = message.FailedMessageId;
+                    }
+                    else
+                    {
+                        testContext.SecondMessageFailedId = message.FailedMessageId;
+                        testContext.MessageFailedHandled = true;
+                    }
+                    return Task.CompletedTask;
                 }
             }
         }
