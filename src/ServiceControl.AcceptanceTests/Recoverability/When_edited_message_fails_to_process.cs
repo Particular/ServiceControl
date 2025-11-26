@@ -1,15 +1,15 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability
 {
+    using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
     using AcceptanceTests;
-    using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
@@ -19,30 +19,55 @@
         [Test]
         public async Task A_new_message_failure_is_created()
         {
+            CustomConfiguration = config => config.OnEndpointSubscribed<EditMessageFailureContext>((s, ctx) =>
+            {
+                ctx.ExternalProcessorSubscribed = s.SubscriberReturnAddress.Contains(nameof(FailingEditedMessageReceiver));
+            });
+
             var context = await Define<EditMessageFailureContext>()
-                .WithEndpoint<FailingEditedMessageReceiver>(e => e
-                    .When(c => c.SendLocal(new FailingMessage()))
+                .WithEndpoint<FailingEditedMessageReceiver>(b => b.When(async (bus, c) =>
+                    {
+                        await bus.Subscribe<ServiceControl.Contracts.MessageFailed>();
+
+                        if (c.HasNativePubSubSupport)
+                        {
+                            c.ExternalProcessorSubscribed = true;
+                        }
+                    }).When(c => c.SendLocal(new FailingMessage()))
                     .DoNotFailOnErrorMessages())
                 .Done(async ctx =>
                 {
-                    if (ctx.OriginalMessageFailureId == null)
+                    if (!ctx.ExternalProcessorSubscribed)
+                    {
+                        return false;
+                    }
+
+                    if (!ctx.OriginalMessageHandled)
                     {
                         return false;
                     }
 
                     if (!ctx.EditedMessage)
                     {
-                        var failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{ctx.OriginalMessageFailureId}");
-                        if (!failedMessage.HasResult)
+                        var failedMessageId = await this.GetOnlyFailedUnresolvedMessageId();
+                        if (failedMessageId == null)
                         {
                             return false;
                         }
 
+                        ctx.OriginalMessageFailureId = failedMessageId;
+
                         ctx.EditedMessage = true;
+                        var editedMessageInternalId = Guid.NewGuid().ToString();
+                        ctx.EditedMessageInternalId = editedMessageInternalId;
                         var editedMessage = JsonSerializer.Serialize(new FailingMessage
                         {
-                            HasBeenEdited = true
+                            HasBeenEdited = true,
+                            MessageInternalId = editedMessageInternalId
                         });
+
+                        var failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{ctx.OriginalMessageFailureId}");
+
                         var editModel = new EditMessageModel
                         {
                             MessageBody = editedMessage,
@@ -53,22 +78,31 @@
                         return false;
                     }
 
-                    if (ctx.EditedMessageFailureId == null)
+                    if (!ctx.EditedMessageHandled || !ctx.MessageFailedHandled)
                     {
                         return false;
                     }
 
-                    var failedEditedMessage = await this.TryGet<FailedMessage>($"/api/errors/{ctx.EditedMessageFailureId}");
-                    if (!failedEditedMessage.HasResult)
+                    var failedMessageIdAfterEdit = await this.GetOnlyFailedUnresolvedMessageId();
+                    if (failedMessageIdAfterEdit == null)
                     {
                         return false;
                     }
+
+                    if (failedMessageIdAfterEdit == ctx.OriginalMessageFailureId)
+                    {
+                        return false;
+                    }
+
+                    ctx.EditedMessageFailureId = failedMessageIdAfterEdit;
 
                     ctx.OriginalMessageFailure = (await this.TryGet<FailedMessage>($"/api/errors/{ctx.OriginalMessageFailureId}")).Item;
                     ctx.EditedMessageFailure = (await this.TryGet<FailedMessage>($"/api/errors/{ctx.EditedMessageFailureId}")).Item;
                     return true;
                 })
                 .Run();
+
+            var editedMessageBody = JsonSerializer.Deserialize<FailingMessage>(context.EditedMessageFailure.ProcessingAttempts.Last().MessageMetadata["MsgFullText"].ToString());
 
             Assert.Multiple(() =>
             {
@@ -79,44 +113,66 @@
                 Assert.That(
                     "FailedMessages/" + context.EditedMessageFailure.ProcessingAttempts.Last().Headers["ServiceControl.EditOf"],
                     Is.EqualTo(context.OriginalMessageFailure.Id));
+                Assert.That(editedMessageBody.MessageInternalId, Is.EqualTo(context.EditedMessageInternalId));
+                Assert.That(context.MessageFailedIds, Has.Count.EqualTo(2));
+                Assert.That(context.MessageFailedIds, Is.Unique);
+                Assert.That(context.MessageFailedIds, Has.Some.EqualTo(context.OriginalMessageFailureId));
+                Assert.That(context.MessageFailedIds, Has.Some.EqualTo(context.EditedMessageFailureId));
             });
         }
 
         class EditMessageFailureContext : ScenarioContext
         {
-            public string OriginalMessageFailureId { get; set; }
+            public bool OriginalMessageHandled { get; set; }
             public bool EditedMessage { get; set; }
-            public string EditedMessageFailureId { get; set; }
+            public bool EditedMessageHandled { get; set; }
             public FailedMessage OriginalMessageFailure { get; set; }
             public FailedMessage EditedMessageFailure { get; set; }
+            public string OriginalMessageFailureId { get; set; }
+            public string EditedMessageFailureId { get; set; }
+            public string EditedMessageInternalId { get; set; }
+            public bool ExternalProcessorSubscribed { get; set; }
+            public bool MessageFailedHandled { get; set; }
+            public List<string> MessageFailedIds { get; } = [];
         }
 
         class FailingEditedMessageReceiver : EndpointConfigurationBuilder
         {
             public FailingEditedMessageReceiver() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
 
-            class FailingMessageHandler(EditMessageFailureContext testContext, IReadOnlySettings settings)
-                : IHandleMessages<FailingMessage>
+            class FailingMessageHandler(EditMessageFailureContext testContext)
+                : IHandleMessages<FailingMessage>, IHandleMessages<ServiceControl.Contracts.MessageFailed>
             {
                 public Task Handle(FailingMessage message, IMessageHandlerContext context)
                 {
                     if (message.HasBeenEdited)
                     {
-                        testContext.EditedMessageFailureId = DeterministicGuid.MakeId(context.MessageId, settings.EndpointName()).ToString();
+                        testContext.EditedMessageHandled = true;
                     }
                     else
                     {
-                        testContext.OriginalMessageFailureId = DeterministicGuid.MakeId(context.MessageId, settings.EndpointName()).ToString();
+                        testContext.OriginalMessageHandled = true;
                     }
 
                     throw new SimulatedException();
+                }
+
+                public Task Handle(ServiceControl.Contracts.MessageFailed message, IMessageHandlerContext context)
+                {
+                    testContext.MessageFailedIds.Add(message.FailedMessageId);
+                    if (testContext.MessageFailedIds.Count == 2)
+                    {
+                        testContext.MessageFailedHandled = true;
+                    }
+                    return Task.CompletedTask;
                 }
             }
         }
 
         class FailingMessage : IMessage
         {
-            public bool HasBeenEdited { get; set; }
+            public bool HasBeenEdited { get; init; }
+            public string MessageInternalId { get; init; }
         }
     }
 }

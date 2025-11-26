@@ -25,13 +25,13 @@
             return failedMessage;
         }
 
-        public async Task<string> GetCurrentEditingMessageId(string failedMessageId)
+        public async Task<string> GetCurrentEditingRequestId(string failedMessageId)
         {
             var edit = await session.LoadAsync<FailedMessageEdit>(FailedMessageEdit.MakeDocumentId(failedMessageId));
             return edit?.EditId;
         }
 
-        public Task SetCurrentEditingMessageId(string editingMessageId)
+        public Task SetCurrentEditingRequestId(string editingMessageId)
         {
             if (failedMessage == null)
             {
