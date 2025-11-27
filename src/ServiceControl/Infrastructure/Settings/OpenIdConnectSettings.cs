@@ -27,7 +27,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             ValidateIssuerSigningKey = SettingsReader.Read(Settings.SettingsRootNamespace, "Authentication.ValidateIssuerSigningKey", true);
             RequireHttpsMetadata = SettingsReader.Read(Settings.SettingsRootNamespace, "Authentication.RequireHttpsMetadata", true);
             ServicePulseClientId = SettingsReader.Read<string>(Settings.SettingsRootNamespace, "Authentication.ServicePulse.ClientId");
-            ServicePulseApiScope = SettingsReader.Read<string>(Settings.SettingsRootNamespace, "Authentication.ServicePulse.ApiScope");
+            ServicePulseApiScopes = SettingsReader.Read<string>(Settings.SettingsRootNamespace, "Authentication.ServicePulse.ApiScopes");
             ServicePulseAuthority = SettingsReader.Read<string>(Settings.SettingsRootNamespace, "Authentication.ServicePulse.Authority");
 
             if (validateConfiguration)
@@ -63,11 +63,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
         [JsonPropertyName("servicePulseAuthority")]
         public string ServicePulseAuthority { get; }
 
+        [JsonPropertyName("servicePulseAudience")]
+        public string ServicePulseAudience { get; }
+
         [JsonPropertyName("servicePulseClientId")]
         public string ServicePulseClientId { get; }
 
-        [JsonPropertyName("servicePulseApiScope")]
-        public string ServicePulseApiScope { get; }
+        [JsonPropertyName("servicePulseApiScopes")]
+        public string ServicePulseApiScopes { get; }
 
         void Validate()
         {
@@ -129,10 +132,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
                 throw new Exception("Authentication.ServicePulse.ClientId is required when Authentication.ServicePulse.Enabled is true.");
             }
 
-            if (string.IsNullOrWhiteSpace(ServicePulseApiScope))
-            {
-                throw new Exception("Authentication.ServicePulse.ApiScope is required when Authentication.ServicePulse.Enabled is true.");
-            }
+            //if (string.IsNullOrWhiteSpace(ServicePulseApiScope))
+            //{
+            //    throw new Exception("Authentication.ServicePulse.ApiScope is required when Authentication.ServicePulse.Enabled is true.");
+            //}
 
             if (ServicePulseAuthority != null && !Uri.TryCreate(ServicePulseAuthority, UriKind.Absolute, out _))
             {
@@ -149,7 +152,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
             logger.LogInformation("  RequireHttpsMetadata: {RequireHttpsMetadata}", RequireHttpsMetadata);
             logger.LogInformation("  ServicePulseClientId: {ServicePulseClientId}", ServicePulseClientId);
             logger.LogInformation("  ServicePulseAuthority: {ServicePulseAuthority}", ServicePulseAuthority);
-            logger.LogInformation("  ServicePulseApiScope: {ServicePulseApiScope}", ServicePulseApiScope);
+            logger.LogInformation("  ServicePulseAudience: {ServicePulseAudience}", ServicePulseAudience);
+            logger.LogInformation("  ServicePulseApiScopes: {ServicePulseApiScopes}", ServicePulseApiScopes);
         }
     }
 }

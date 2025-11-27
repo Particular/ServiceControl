@@ -18,7 +18,8 @@
                 Enabled = settings.OpenIdConnectSettings.Enabled,
                 ClientId = settings.OpenIdConnectSettings.ServicePulseClientId,
                 Authority = settings.OpenIdConnectSettings.ServicePulseAuthority,
-                ApiScope = settings.OpenIdConnectSettings.ServicePulseApiScope
+                Audience = settings.OpenIdConnectSettings.Audience,
+                ApiScopes = settings.OpenIdConnectSettings.ServicePulseApiScopes
             };
 
             return Ok(info);
@@ -30,6 +31,7 @@
         public bool Enabled { get; set; }
         public string ClientId { get; set; }
         public string Authority { get; set; }
-        public string ApiScope { get; set; }
+        public string Audience { get; set; }
+        public string ApiScopes { get; set; }
     }
 }
