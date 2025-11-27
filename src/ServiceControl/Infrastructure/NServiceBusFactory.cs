@@ -32,10 +32,10 @@ namespace ServiceBus.Management.Infrastructure
 
             transportCustomization.CustomizePrimaryEndpoint(configuration, transportSettings);
 
-            configuration.GetSettings().Set(settings.LoggingSettings);
-            configuration.SetDiagnosticsPath(settings.LoggingSettings.LogPath);
+            configuration.GetSettings().Set(settings.Logging);
+            configuration.SetDiagnosticsPath(settings.Logging.LogPath);
 
-            if (settings.DisableExternalIntegrationsPublishing)
+            if (settings.ServiceControl.DisableExternalIntegrationsPublishing)
             {
                 configuration.DisableFeature<ExternalIntegrationsFeature>();
             }

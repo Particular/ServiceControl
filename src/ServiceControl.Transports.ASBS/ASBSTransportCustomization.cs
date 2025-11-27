@@ -4,11 +4,12 @@
     using System.Text.Json;
     using BrokerThroughput;
     using Configuration;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Transport.AzureServiceBus;
 
-    public class ASBSTransportCustomization : TransportCustomization<AzureServiceBusTransport>
+    public class ASBSTransportCustomization(IConfiguration configuration) : TransportCustomization<AzureServiceBusTransport>
     {
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
@@ -56,7 +57,6 @@
             var connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
             TopicTopology selectedTopology;
 
-            var serviceBusRootNamespace = new SettingsRootNamespace("ServiceControl.Transport.ASBS");
             if (connectionSettings.TopicName != null)
             {
                 //Bundle name provided -> use migration topology
@@ -67,7 +67,8 @@
                 {
                     TopicToPublishTo = connectionSettings.TopicName,
                     TopicToSubscribeOn = connectionSettings.TopicName,
-                    EventsToMigrateMap = [
+                    EventsToMigrateMap =
+                    [
                         "ServiceControl.Contracts.CustomCheckFailed",
                         "ServiceControl.Contracts.CustomCheckSucceeded",
                         "ServiceControl.Contracts.HeartbeatRestored",
@@ -80,15 +81,13 @@
                     ]
                 });
             }
-            else if (SettingsReader.TryRead<string>(serviceBusRootNamespace, "Topology", out var topologyJson))
-            {
-                //Load topology from json
-                selectedTopology = TopicTopology.FromOptions(JsonSerializer.Deserialize(topologyJson, TopologyOptionsSerializationContext.Default.TopologyOptions));
-            }
             else
             {
-                //Default to topic-per-event topology
-                selectedTopology = TopicTopology.Default;
+                //Load topology from json
+                var topologyJson = configuration.GetSection(ServiceBusSectionName).GetValue<string>("Topology");
+                selectedTopology = string.IsNullOrWhiteSpace(topologyJson)
+                    ? TopicTopology.Default
+                    : TopicTopology.FromOptions(JsonSerializer.Deserialize(topologyJson, TopologyOptionsSerializationContext.Default.TopologyOptions));
             }
 
             transportSettings.Set(selectedTopology);
@@ -99,5 +98,7 @@
             services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
+
+        const string ServiceBusSectionName = "ServiceControl.Transport.ASBS";
     }
 }

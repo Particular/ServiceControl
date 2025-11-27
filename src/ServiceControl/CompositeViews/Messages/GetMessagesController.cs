@@ -79,7 +79,7 @@ namespace ServiceControl.CompositeViews.Messages
         [HttpGet]
         public async Task<IActionResult> Get(string id, [FromQuery(Name = "instance_id")] string instanceId)
         {
-            if (string.IsNullOrWhiteSpace(instanceId) || instanceId == settings.InstanceId)
+            if (string.IsNullOrWhiteSpace(instanceId) || instanceId == settings.ServiceControl.InstanceId)
             {
                 var result = await bodyStorage.TryFetch(id);
 
@@ -97,7 +97,7 @@ namespace ServiceControl.CompositeViews.Messages
                 return File(result.Stream, result.ContentType ?? "text/*");
             }
 
-            var remote = settings.RemoteInstances.SingleOrDefault(r => r.InstanceId == instanceId);
+            var remote = settings.ServiceControl.RemoteInstanceSettings.SingleOrDefault(r => r.InstanceId == instanceId);
 
             if (remote == null)
             {

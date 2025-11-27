@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.UnitTests
 {
     using System;
+    using System.Collections.Generic;
+    using Microsoft.Extensions.Configuration;
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence;
     using ServiceControl.Audit.Persistence.RavenDB;
@@ -12,9 +14,14 @@
         {
             var settings = BuildSettings();
 
-            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = "connection string";
+            var config = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    ["RavenPersistenceConfiguration.ConnectionStringKey"] = "connection string",
+                })
+                .Build();
 
-            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
+            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings, config);
 
             Assert.Multiple(() =>
             {
@@ -30,9 +37,14 @@
             var settings = BuildSettings();
             var connectionString = "http://someserver:44444";
 
-            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = connectionString;
+            var config = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    [RavenPersistenceConfiguration.ConnectionStringKey] = connectionString,
+                })
+                .Build();
 
-            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
+            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings,config);
 
             Assert.Multiple(() =>
             {
@@ -48,10 +60,16 @@
             var dpPath = "c://db-path";
             var logPath = "c://log-path";
 
-            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabasePathKey] = dpPath;
-            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabaseMaintenancePortKey] = "11111";
-            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.LogPathKey] = logPath;
-            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
+            var config = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    [RavenPersistenceConfiguration.DatabasePathKey] = dpPath,
+                    [RavenPersistenceConfiguration.DatabaseMaintenancePortKey] = "11111",
+                    [RavenPersistenceConfiguration.LogPathKey] = logPath,
+                })
+                .Build();
+
+            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings, config);
 
             Assert.Multiple(() =>
             {
@@ -68,9 +86,14 @@
             var settings = BuildSettings();
             var dpPath = "c://some-path";
 
-            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabasePathKey] = dpPath;
+            var config = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    [RavenPersistenceConfiguration.DatabasePathKey] = dpPath,
+                })
+                .Build();
 
-            Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings));
+            Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings, config));
         }
 
         [Test]
@@ -79,18 +102,25 @@
             var settings = BuildSettings();
             var dpPath = "c://some-path";
 
-            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabasePathKey] = dpPath;
-            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabaseMaintenancePortKey] = "not an int";
 
-            Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings));
+            var config = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    [RavenPersistenceConfiguration.DatabasePathKey] = dpPath,
+                    [RavenPersistenceConfiguration.DatabaseMaintenancePortKey] = "not an int",
+                })
+                .Build();
+
+            Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings, config));
         }
 
         [Test]
         public void Should_throw_if_no_path_or_connection_string_is_configured()
         {
             var settings = BuildSettings();
+            var config = new ConfigurationBuilder().Build();
 
-            Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings));
+            Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings, config));
         }
 
         [Test]
@@ -98,10 +128,16 @@
         {
             var settings = BuildSettings();
 
-            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabasePathKey] = "path";
-            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = "connection string";
+            var config = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    [RavenPersistenceConfiguration.DatabasePathKey] = "path",
+                    [RavenPersistenceConfiguration.ConnectionStringKey] = "connection string",
+                })
+                .Build();
 
-            Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings));
+
+            Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings, config));
         }
 
         PersistenceSettings BuildSettings()

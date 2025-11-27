@@ -29,7 +29,7 @@
                     var options = new SendOptions();
 
                     options.DoNotEnforceBestPractices();
-                    options.SetDestination(Settings.DEFAULT_INSTANCE_NAME);
+                    options.SetDestination(PrimaryOptions.DEFAULT_INSTANCE_NAME);
 
                     return bus.Send(new NewEndpointDetected
                     {
@@ -87,7 +87,7 @@
 
         public class WithHeartbeat : EndpointConfigurationBuilder
         {
-            public WithHeartbeat() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.SendHeartbeatTo(Settings.DEFAULT_INSTANCE_NAME); }).CustomEndpointName(EndpointName);
+            public WithHeartbeat() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.SendHeartbeatTo(PrimaryOptions.DEFAULT_INSTANCE_NAME); }).CustomEndpointName(EndpointName);
         }
     }
 }

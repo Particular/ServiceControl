@@ -6,6 +6,7 @@
 
     public class TransportSettings : SettingsHolder
     {
+        [Obsolete("",true)]
         public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
 
         public string TransportType { get; set; }

@@ -90,7 +90,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
     async Task InitialiseSettings(HashSet<string> monitorEndpoints, CancellationToken cancellationToken)
     {
         bool hasDefault = false;
-        bool userSetTrackInstances = settings.TrackInstancesInitialValue;
+        bool userSetTrackInstances = settings.ServiceControl.TrackInstancesInitialValue;
         HashSet<string> settingsNames = [];
 
         // Delete any endpoints data that no longer exists

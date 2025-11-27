@@ -26,7 +26,7 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 
         embeddedServer = await SharedEmbeddedServer.GetInstance();
 
-        PersistenceSettings = new RavenPersisterSettings
+        var settings = new RavenPersisterSettings
         {
             AuditRetentionPeriod = retentionPeriod,
             ErrorRetentionPeriod = retentionPeriod,
@@ -36,9 +36,11 @@ public class PersistenceTestsContext : IPersistenceTestsContext
             ThroughputDatabaseName = $"{databaseName}-throughput",
         };
 
-        var persistence = new RavenPersistenceConfiguration().Create(PersistenceSettings);
+        PersistenceSettings = settings;
 
-        persistence.AddPersistence(hostBuilder.Services);
+        var persistence = new RavenPersistence(settings);
+
+        persistence.AddPersistence(hostBuilder.Services, hostBuilder.Configuration);
         persistence.AddInstaller(hostBuilder.Services);
     }
 

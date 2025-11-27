@@ -24,7 +24,7 @@
         {
             var criticalErrorExecuted = false;
 
-            SetSettings = settings => { settings.MaximumConcurrencyLevel = 10; };
+            SetSettings = settings => { settings.ServiceControl.MaximumConcurrencyLevel = 10; };
             CustomConfiguration = config =>
             {
                 config.DefineCriticalErrorAction((_, __) =>

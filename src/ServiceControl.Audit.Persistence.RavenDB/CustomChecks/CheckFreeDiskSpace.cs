@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB.CustomChecks
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
     using RavenDB;
@@ -37,9 +37,10 @@
                 : CheckResult.Failed($"{percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'.");
         }
 
-        public static int Parse(IDictionary<string, string> settings, ILogger logger)
+        public static int Parse(IConfiguration configuration, ILogger logger)
         {
-            if (!settings.TryGetValue(RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey, out var thresholdValue))
+            var thresholdValue = configuration[RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey];
+            if (string.IsNullOrWhiteSpace(thresholdValue))
             {
                 thresholdValue = $"{DataSpaceRemainingThresholdDefault}";
             }

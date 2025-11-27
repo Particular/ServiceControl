@@ -13,7 +13,7 @@ static class HttpClientServiceCollectionExtensions
         services.AddKeyedSingleton<Func<HttpMessageHandler>>("Forwarding", (provider, _) => () => provider.GetRequiredService<TestServer>().CreateHandler());
         services.AddSingleton(p => new HttpMessageInvoker(p.GetRequiredKeyedService<Func<HttpMessageHandler>>("Forwarding")()));
 
-        foreach (var remoteInstance in settings.RemoteInstances)
+        foreach (var remoteInstance in settings.ServiceControl.RemoteInstanceSettings)
         {
             services.AddKeyedSingleton<Func<HttpMessageHandler>>(remoteInstance.InstanceId, (provider, _) => () => provider.GetRequiredService<TestServer>().CreateHandler());
             var remoteInstanceHttpClientBuilder = services.AddHttpClient(remoteInstance.InstanceId);

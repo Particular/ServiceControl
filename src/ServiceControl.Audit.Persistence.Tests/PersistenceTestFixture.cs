@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
@@ -13,7 +15,7 @@
     [TestFixture]
     abstract class PersistenceTestFixture
     {
-        public Action<PersistenceSettings> SetSettings = _ => { };
+        public Action<PersistenceSettings, IDictionary<string,string>> SetSettings = (_,_) => { };
 
         [SetUp]
         public virtual Task Setup()

@@ -2,17 +2,14 @@
 {
     using System.Threading.Tasks;
     using Connection;
+    using Microsoft.Extensions.Options;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class RecoverabilityPlatformConnectionDetailsProvider : IProvidePlatformConnectionDetails
+    class RecoverabilityPlatformConnectionDetailsProvider(IOptions<ServiceBusOptions> options) : IProvidePlatformConnectionDetails
     {
-        readonly Settings settings;
-
-        public RecoverabilityPlatformConnectionDetailsProvider(Settings settings) => this.settings = settings;
-
         public Task ProvideConnectionDetails(PlatformConnectionDetails connection)
         {
-            connection.Add("ErrorQueue", settings.ErrorQueue);
+            connection.Add("ErrorQueue", options.Value.ErrorQueue);
             return Task.CompletedTask;
         }
     }

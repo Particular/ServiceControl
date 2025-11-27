@@ -2,36 +2,39 @@ namespace ServiceControl.Persistence
 {
     using System;
     using System.IO;
+    using System.Runtime.Loader;
+    using Microsoft.Extensions.Configuration;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
 
     static class PersistenceFactory
     {
-        public static IPersistence Create(Settings settings, bool maintenanceMode = false)
+        internal static Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; } = static (assemblyPath) => new PluginAssemblyLoadContext(assemblyPath);
+
+        public static IPersistence Create(IConfiguration configuration)
         {
-            var persistenceConfiguration = CreatePersistenceConfiguration(settings);
-
-            //HINT: This is false when executed from acceptance tests
-            settings.PersisterSpecificSettings ??= persistenceConfiguration.CreateSettings(Settings.SettingsRootNamespace);
-            settings.PersisterSpecificSettings.MaintenanceMode = maintenanceMode;
-
-            var persistence = persistenceConfiguration.Create(settings.PersisterSpecificSettings);
+            var persistenceConfiguration = CreatePersistenceConfiguration(configuration);
+            var section = configuration.GetSection(PrimaryOptions.SectionName);
+            var persistence = persistenceConfiguration.Create(section);
             return persistence;
         }
 
-        static IPersistenceConfiguration CreatePersistenceConfiguration(Settings settings)
+        static IPersistenceConfiguration CreatePersistenceConfiguration(IConfiguration configuration)
         {
+            var persistenceType = configuration.GetValue<string>("PersistenceType");
             try
             {
-                var persistenceManifest = PersistenceManifestLibrary.Find(settings.PersistenceType);
+                var persistenceManifest = PersistenceManifestLibrary.Find(persistenceType);
                 var assemblyPath = Path.Combine(persistenceManifest.Location, $"{persistenceManifest.AssemblyName}.dll");
-                var loadContext = settings.AssemblyLoadContextResolver(assemblyPath);
+
+                var loadContext = AssemblyLoadContextResolver(assemblyPath);
                 var customizationType = Type.GetType(persistenceManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
 
                 return (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load persistence customization type {settings.PersistenceType}.", e);
+                throw new Exception($"Could not load persistence customization type {persistenceType}.", e);
             }
         }
     }

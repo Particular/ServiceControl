@@ -5,6 +5,7 @@
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
     using RavenDB;
@@ -44,18 +45,9 @@
             return CheckResult.Failed($"Audit message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} configuration setting.");
         }
 
-        public static int Parse(IDictionary<string, string> settings)
+        public static int Parse(IConfiguration configuration)
         {
-            if (!settings.TryGetValue(RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey, out var thresholdValue))
-            {
-                thresholdValue = $"{MinimumStorageLeftRequiredForIngestionDefault}";
-            }
-
-            if (!int.TryParse(thresholdValue, out var threshold))
-            {
-                Logger.LogCritical("{RavenPersistenceConfigurationMinimumStorageLeftRequiredForIngestionKey} must be an integer", RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
-                throw new Exception($"{RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} must be an integer.");
-            }
+            int threshold = configuration.GetValue(RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey,MinimumStorageLeftRequiredForIngestionDefault);
 
             if (threshold < 0)
             {

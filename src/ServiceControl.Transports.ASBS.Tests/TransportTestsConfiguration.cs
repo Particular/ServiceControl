@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Configuration;
     using Transports;
     using Transports.ASBS;
 
@@ -13,7 +14,8 @@
 
         public Task Configure()
         {
-            TransportCustomization = new ASBSTransportCustomization();
+            var emptyConfig = new ConfigurationBuilder().Build();
+            TransportCustomization = new ASBSTransportCustomization(emptyConfig);
             ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
 
             if (string.IsNullOrEmpty(ConnectionString))
