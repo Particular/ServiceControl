@@ -27,7 +27,7 @@
             var context = await Define<EditMessageFailureContext>()
                 .WithEndpoint<FailingEditedMessageReceiver>(b => b.When(async (bus, c) =>
                     {
-                        await bus.Subscribe<MessageFailed>();
+                        await bus.Subscribe<ServiceControl.Contracts.MessageFailed>();
 
                         if (c.HasNativePubSubSupport)
                         {
@@ -134,7 +134,7 @@
             public FailingEditedMessageReceiver() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
 
             class FailingMessageHandler(EditMessageFailureContext testContext)
-                : IHandleMessages<FailingMessage>, IHandleMessages<MessageFailed>
+                : IHandleMessages<FailingMessage>, IHandleMessages<ServiceControl.Contracts.MessageFailed>
             {
                 public Task Handle(FailingMessage message, IMessageHandlerContext context)
                 {
@@ -150,7 +150,7 @@
                     throw new SimulatedException();
                 }
 
-                public Task Handle(MessageFailed message, IMessageHandlerContext context)
+                public Task Handle(ServiceControl.Contracts.MessageFailed message, IMessageHandlerContext context)
                 {
                     if (testContext.FirstMessageFailedId == null)
                     {
