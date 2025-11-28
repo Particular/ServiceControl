@@ -29,6 +29,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
+            OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration);
+
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
             InstanceName = SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", InstanceName);
 
@@ -73,6 +75,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
 
         public LoggingSettings LoggingSettings { get; }
+
+        public OpenIdConnectSettings OpenIdConnectSettings { get; }
 
         public string NotificationsFilter { get; set; }
 

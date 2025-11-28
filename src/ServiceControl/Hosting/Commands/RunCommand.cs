@@ -8,6 +8,7 @@
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl;
+    using ServiceControl.Hosting.Auth;
 
     class RunCommand : AbstractCommand
     {
@@ -20,11 +21,15 @@
             settings.RunCleanupBundle = true;
 
             var hostBuilder = WebApplication.CreateBuilder();
+
+            hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
             hostBuilder.AddServiceControlApi();
 
             var app = hostBuilder.Build();
             app.UseServiceControl();
+            app.UseServiceControlAuthentication(authenticationEnabled: settings.OpenIdConnectSettings.Enabled);
+
             await app.RunAsync(settings.RootUrl);
         }
     }

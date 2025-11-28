@@ -15,6 +15,5 @@ public static class WebApplicationExtensions
         app.UseHttpLogging();
         app.MapHub<MessageStreamerHub>("/api/messagestream");
         app.UseCors();
-        app.MapControllers();
     }
 }
