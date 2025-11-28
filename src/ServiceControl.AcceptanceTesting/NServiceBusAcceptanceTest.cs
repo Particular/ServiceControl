@@ -58,18 +58,6 @@
             TestContext.Out.WriteLine($@"Context:
 {string.Join(Environment.NewLine, scenarioContext.GetType().GetProperties().Select(p => $"{p.Name} = {p.GetValue(scenarioContext, null)}"))}");
             // }
-
-            if (TestExecutionContext.CurrentContext.CurrentResult.ResultState == ResultState.Failure || TestExecutionContext.CurrentContext.CurrentResult.ResultState == ResultState.Error)
-            {
-                TestContext.Out.WriteLine(string.Empty);
-                TestContext.Out.WriteLine($"Log entries (log level: {scenarioContext.LogLevel}):");
-                TestContext.Out.WriteLine("--- Start log entries ---------------------------------------------------");
-                foreach (var logEntry in scenarioContext.Logs)
-                {
-                    TestContext.Out.WriteLine($"{logEntry.Timestamp:T} {logEntry.Level} {logEntry.Endpoint ?? TestContext.CurrentContext.Test.Name}: {logEntry.Message}");
-                }
-                TestContext.Out.WriteLine("--- End log entries ---------------------------------------------------");
-            }
         }
     }
 }
