@@ -26,7 +26,7 @@ public class OpenIdConnectSettings
         ValidateIssuerSigningKey = SettingsReader.Read(rootNamespace, "Authentication.ValidateIssuerSigningKey", true);
         RequireHttpsMetadata = SettingsReader.Read(rootNamespace, "Authentication.RequireHttpsMetadata", true);
         ServicePulseClientId = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.ClientId");
-        ServicePulseApiScope = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.ApiScope");
+        ServicePulseApiScopes = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.ApiScopes");
         ServicePulseAuthority = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.Authority");
 
         if (validateConfiguration)
@@ -65,8 +65,8 @@ public class OpenIdConnectSettings
     [JsonPropertyName("servicePulseClientId")]
     public string ServicePulseClientId { get; }
 
-    [JsonPropertyName("servicePulseApiScope")]
-    public string ServicePulseApiScope { get; }
+    [JsonPropertyName("servicePulseApiScopes")]
+    public string ServicePulseApiScopes { get; }
 
     void Validate()
     {
@@ -128,9 +128,9 @@ public class OpenIdConnectSettings
             throw new Exception("Authentication.ServicePulse.ClientId is required when Authentication.ServicePulse.Enabled is true.");
         }
 
-        if (string.IsNullOrWhiteSpace(ServicePulseApiScope))
+        if (string.IsNullOrWhiteSpace(ServicePulseApiScopes))
         {
-            throw new Exception("Authentication.ServicePulse.ApiScope is required when Authentication.ServicePulse.Enabled is true.");
+            throw new Exception("Authentication.ServicePulse.ApiScopes is required when Authentication.ServicePulse.Enabled is true.");
         }
 
         if (ServicePulseAuthority != null && !Uri.TryCreate(ServicePulseAuthority, UriKind.Absolute, out _))
@@ -148,6 +148,6 @@ public class OpenIdConnectSettings
         logger.LogInformation("  RequireHttpsMetadata: {RequireHttpsMetadata}", RequireHttpsMetadata);
         logger.LogInformation("  ServicePulseClientId: {ServicePulseClientId}", ServicePulseClientId);
         logger.LogInformation("  ServicePulseAuthority: {ServicePulseAuthority}", ServicePulseAuthority);
-        logger.LogInformation("  ServicePulseApiScope: {ServicePulseApiScope}", ServicePulseApiScope);
+        logger.LogInformation("  ServicePulseApiScopes: {ServicePulseApiScopes}", ServicePulseApiScopes);
     }
 }
