@@ -17,6 +17,8 @@
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
+            OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration);
+
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
             InstanceName = SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", InstanceName);
 
@@ -91,6 +93,8 @@
         public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
 
         public LoggingSettings LoggingSettings { get; }
+
+        public OpenIdConnectSettings OpenIdConnectSettings { get; }
 
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }

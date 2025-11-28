@@ -16,6 +16,8 @@ namespace ServiceControl.Monitoring
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
+            OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, false);
+
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file
             InstanceName = SettingsReader.Read(SettingsRootNamespace, "InstanceName", InstanceName);
 
@@ -48,6 +50,8 @@ namespace ServiceControl.Monitoring
         public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
 
         public LoggingSettings LoggingSettings { get; }
+
+        public OpenIdConnectSettings OpenIdConnectSettings { get; }
 
         public string InstanceName { get; init; } = DEFAULT_INSTANCE_NAME;
 

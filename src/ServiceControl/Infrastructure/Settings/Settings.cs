@@ -29,6 +29,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
+            OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration);
+
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
             InstanceName = SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", InstanceName);
 
@@ -36,8 +38,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             InstanceName = SettingsReader.Read(SettingsRootNamespace, "InstanceName", InstanceName);
 
             LoadErrorIngestionSettings();
-
-            OpenIdConnectSettings = new OpenIdConnectSettings(ValidateConfiguration);
 
             TransportConnectionString = GetConnectionString();
             TransportType = transportType ?? SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
@@ -75,6 +75,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public Func<string, AssemblyLoadContext> AssemblyLoadContextResolver { get; set; }
 
         public LoggingSettings LoggingSettings { get; }
+
+        public OpenIdConnectSettings OpenIdConnectSettings { get; }
 
         public string NotificationsFilter { get; set; }
 
@@ -181,8 +183,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         public bool DisableHealthChecks { get; set; }
-
-        public OpenIdConnectSettings OpenIdConnectSettings { get; }
 
         // The default value is set to the maximum allowed time by the most
         // restrictive hosting platform, which is Linux containers. Linux
