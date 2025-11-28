@@ -1,10 +1,13 @@
 ﻿namespace ServiceControl.AcceptanceTesting
 {
+    using System;
     using System.Linq;
     using System.Threading;
+    using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Logging;
     using NUnit.Framework;
+    using NUnit.Framework.Internal;
 
     /// <summary>
     /// Base class for all the NSB test that sets up our conventions
@@ -34,6 +37,23 @@
 
                 return testName + "." + endpointBuilder;
             };
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (!TestExecutionContext.CurrentContext.TryGetRunDescriptor(out var runDescriptor))
+            {
+                return;
+            }
+
+            var scenarioContext = runDescriptor.ScenarioContext;
+
+            TestContext.Out.WriteLine($@"Test settings:
+{string.Join(Environment.NewLine, runDescriptor.Settings.Select(setting => $"   {setting.Key}: {setting.Value}"))}");
+
+            TestContext.Out.WriteLine($@"Context:
+{string.Join(Environment.NewLine, scenarioContext.GetType().GetProperties().Select(p => $"{p.Name} = {p.GetValue(scenarioContext, null)}"))}");
         }
     }
 }

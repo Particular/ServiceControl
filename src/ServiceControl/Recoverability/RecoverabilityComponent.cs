@@ -87,6 +87,7 @@
             services.AddIntegrationEventPublisher<MessageFailedPublisher>();
             services.AddIntegrationEventPublisher<MessageFailureResolvedByRetryPublisher>();
             services.AddIntegrationEventPublisher<MessageFailureResolvedManuallyPublisher>();
+            services.AddIntegrationEventPublisher<MessageEditedAndRetriedPublisher>();
 
             //Event log
             services.AddEventLogMapping<FailedMessageArchivedDefinition>();

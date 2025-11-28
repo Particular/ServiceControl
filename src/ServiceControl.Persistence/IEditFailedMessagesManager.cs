@@ -6,8 +6,8 @@
     public interface IEditFailedMessagesManager : IDataSessionManager
     {
         Task<FailedMessage> GetFailedMessage(string failedMessageId);
-        Task<string> GetCurrentEditingMessageId(string failedMessageId);
-        Task SetCurrentEditingMessageId(string editingMessageId);
+        Task<string> GetCurrentEditingRequestId(string failedMessageId);
+        Task SetCurrentEditingRequestId(string editingMessageId);
         Task SetFailedMessageAsResolved();
     }
 }
