@@ -50,14 +50,11 @@
 
             var scenarioContext = runDescriptor.ScenarioContext;
 
-            // if (Environment.GetEnvironmentVariable("CI") != "true" || Environment.GetEnvironmentVariable("VERBOSE_TEST_LOGGING")?.ToLower() == "true")
-            // {
             TestContext.Out.WriteLine($@"Test settings:
 {string.Join(Environment.NewLine, runDescriptor.Settings.Select(setting => $"   {setting.Key}: {setting.Value}"))}");
 
             TestContext.Out.WriteLine($@"Context:
 {string.Join(Environment.NewLine, scenarioContext.GetType().GetProperties().Select(p => $"{p.Name} = {p.GetValue(scenarioContext, null)}"))}");
-            // }
         }
     }
 }
