@@ -3,6 +3,7 @@
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Builder;
     using NServiceBus;
+    using ServiceControl.Hosting.Auth;
     using Settings;
     using WebApi;
 
@@ -15,6 +16,8 @@
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 
             var hostBuilder = WebApplication.CreateBuilder();
+
+            hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
             hostBuilder.AddServiceControlAudit((_, __) =>
             {
                 //Do nothing. The transports in NSB 8 are designed to handle broker outages. Audit ingestion will be paused when broker is unavailable.
@@ -24,6 +27,8 @@
 
             var app = hostBuilder.Build();
             app.UseServiceControlAudit();
+            app.UseServiceControlAuthentication(authenticationEnabled: settings.OpenIdConnectSettings.Enabled);
+
             await app.RunAsync(settings.RootUrl);
         }
     }
