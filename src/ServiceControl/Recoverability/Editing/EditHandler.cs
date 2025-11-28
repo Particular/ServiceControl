@@ -87,9 +87,7 @@
 
             await domainEvents.Raise(new MessageEditedAndRetried
             {
-                EditId = editId,
-                FailedMessageId = message.FailedMessageId,
-                RetriedMessageId = outgoingMessage.MessageId
+                FailedMessageId = message.FailedMessageId
             }, context.CancellationToken);
         }
 
