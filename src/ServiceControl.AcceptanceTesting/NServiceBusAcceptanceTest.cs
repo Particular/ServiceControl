@@ -7,7 +7,6 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Logging;
     using NUnit.Framework;
-    using NUnit.Framework.Interfaces;
     using NUnit.Framework.Internal;
 
     /// <summary>
