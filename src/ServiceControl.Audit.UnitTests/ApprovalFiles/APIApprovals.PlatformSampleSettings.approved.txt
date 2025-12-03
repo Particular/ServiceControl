@@ -3,6 +3,38 @@
     "LogLevel": "Information",
     "LogPath": "C:\\Logs"
   },
+  "OpenIdConnectSettings": {
+    "enabled": false,
+    "authority": null,
+    "audience": null,
+    "validateIssuer": false,
+    "validateAudience": false,
+    "validateLifetime": false,
+    "validateIssuerSigningKey": false,
+    "requireHttpsMetadata": false,
+    "servicePulseAuthority": null,
+    "servicePulseClientId": null,
+    "servicePulseApiScopes": null
+  },
+  "ForwardedHeadersSettings": {
+    "Enabled": true,
+    "TrustAllProxies": true,
+    "KnownProxiesRaw": [],
+    "KnownNetworks": []
+  },
+  "HttpsSettings": {
+    "Enabled": false,
+    "CertificatePath": null,
+    "CertificatePassword": null,
+    "RedirectHttpToHttps": false,
+    "EnableHsts": false,
+    "HstsMaxAgeSeconds": 31536000,
+    "HstsIncludeSubDomains": false
+  },
+  "CorsSettings": {
+    "AllowAnyOrigin": true,
+    "AllowedOrigins": []
+  },
   "MessageFilter": null,
   "ValidateConfiguration": true,
   "RootUrl": "http://localhost:8888/",

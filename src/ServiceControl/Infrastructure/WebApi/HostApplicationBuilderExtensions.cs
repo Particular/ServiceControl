@@ -1,9 +1,12 @@
 ﻿namespace ServiceControl.Infrastructure.WebApi
 {
+    using System;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.RateLimiting;
     using CompositeViews.Messages;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
@@ -12,7 +15,9 @@
 
     static class HostApplicationBuilderExtensions
     {
-        public static void AddServiceControlApi(this IHostApplicationBuilder builder)
+        public const string AuthConfigRateLimitPolicy = "AuthConfigRateLimit";
+
+        public static void AddServiceControlApi(this IHostApplicationBuilder builder, CorsSettings corsSettings)
         {
             // This registers concrete classes that implement IApi. Currently it is hard to find out to what
             // component those APIs should belong to so we leave it here for now.
@@ -20,7 +25,20 @@
 
             builder.AddServiceControlApis();
 
-            builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
+            builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy(corsSettings)));
+
+            // Rate limiting for sensitive endpoints to prevent enumeration attacks
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.AddFixedWindowLimiter(AuthConfigRateLimitPolicy, limiterOptions =>
+                {
+                    limiterOptions.PermitLimit = 10;
+                    limiterOptions.Window = TimeSpan.FromMinutes(1);
+                    limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                    limiterOptions.QueueLimit = 2;
+                });
+                options.RejectionStatusCode = 429;
+            });
 
             // We're not explicitly adding Gzip here because it's already in the default list of supported compressors
             builder.Services.AddResponseCompression();
