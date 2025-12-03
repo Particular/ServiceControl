@@ -2,7 +2,9 @@
 {
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.RateLimiting;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.WebApi;
 
     [ApiController]
     [Route("api/authentication")]
@@ -10,6 +12,7 @@
     {
         [HttpGet]
         [AllowAnonymous]
+        [EnableRateLimiting(HostApplicationBuilderExtensions.AuthConfigRateLimitPolicy)]
         [Route("configuration")]
         public ActionResult<AuthConfig> Configuration()
         {

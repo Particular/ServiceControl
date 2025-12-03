@@ -17,7 +17,10 @@
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
-            OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration);
+            OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration, requireServicePulseSettings: false);
+            ForwardedHeadersSettings = new ForwardedHeadersSettings(SettingsRootNamespace);
+            HttpsSettings = new HttpsSettings(SettingsRootNamespace);
+            CorsSettings = new CorsSettings(SettingsRootNamespace);
 
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
             InstanceName = SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", InstanceName);
@@ -96,6 +99,12 @@
 
         public OpenIdConnectSettings OpenIdConnectSettings { get; }
 
+        public ForwardedHeadersSettings ForwardedHeadersSettings { get; }
+
+        public HttpsSettings HttpsSettings { get; }
+
+        public CorsSettings CorsSettings { get; }
+
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }
 
@@ -112,7 +121,8 @@
                     suffix = $"{VirtualDirectory}/";
                 }
 
-                return $"http://{Hostname}:{Port}/{suffix}";
+                var scheme = HttpsSettings.Enabled ? "https" : "http";
+                return $"{scheme}://{Hostname}:{Port}/{suffix}";
             }
         }
 

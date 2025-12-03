@@ -9,7 +9,7 @@ public class OpenIdConnectSettings
 {
     readonly ILogger logger = LoggerUtil.CreateStaticLogger<OpenIdConnectSettings>();
 
-    public OpenIdConnectSettings(SettingsRootNamespace rootNamespace, bool validateConfiguration)
+    public OpenIdConnectSettings(SettingsRootNamespace rootNamespace, bool validateConfiguration, bool requireServicePulseSettings = true)
     {
         Enabled = SettingsReader.Read(rootNamespace, "Authentication.Enabled", false);
 
@@ -25,13 +25,18 @@ public class OpenIdConnectSettings
         ValidateLifetime = SettingsReader.Read(rootNamespace, "Authentication.ValidateLifetime", true);
         ValidateIssuerSigningKey = SettingsReader.Read(rootNamespace, "Authentication.ValidateIssuerSigningKey", true);
         RequireHttpsMetadata = SettingsReader.Read(rootNamespace, "Authentication.RequireHttpsMetadata", true);
-        ServicePulseClientId = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.ClientId");
-        ServicePulseApiScopes = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.ApiScopes");
-        ServicePulseAuthority = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.Authority");
+
+        // ServicePulse settings are only needed for the primary ServiceControl instance
+        if (requireServicePulseSettings)
+        {
+            ServicePulseClientId = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.ClientId");
+            ServicePulseApiScopes = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.ApiScopes");
+            ServicePulseAuthority = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.Authority");
+        }
 
         if (validateConfiguration)
         {
-            Validate();
+            Validate(requireServicePulseSettings);
         }
     }
 
@@ -68,7 +73,7 @@ public class OpenIdConnectSettings
     [JsonPropertyName("servicePulseApiScopes")]
     public string ServicePulseApiScopes { get; }
 
-    void Validate()
+    void Validate(bool requireServicePulseSettings)
     {
         if (!Enabled)
         {
@@ -123,19 +128,23 @@ public class OpenIdConnectSettings
             logger.LogWarning("Authentication.ValidateIssuerSigningKey is set to false. This is a serious security risk and should only be used in development environments");
         }
 
-        if (string.IsNullOrWhiteSpace(ServicePulseClientId))
+        // ServicePulse settings are only required for the primary ServiceControl instance
+        if (requireServicePulseSettings)
         {
-            throw new Exception("Authentication.ServicePulse.ClientId is required when Authentication.ServicePulse.Enabled is true.");
-        }
+            if (string.IsNullOrWhiteSpace(ServicePulseClientId))
+            {
+                throw new Exception("Authentication.ServicePulse.ClientId is required when authentication is enabled on the primary ServiceControl instance.");
+            }
 
-        if (string.IsNullOrWhiteSpace(ServicePulseApiScopes))
-        {
-            throw new Exception("Authentication.ServicePulse.ApiScopes is required when Authentication.ServicePulse.Enabled is true.");
-        }
+            if (string.IsNullOrWhiteSpace(ServicePulseApiScopes))
+            {
+                throw new Exception("Authentication.ServicePulse.ApiScopes is required when authentication is enabled on the primary ServiceControl instance.");
+            }
 
-        if (ServicePulseAuthority != null && !Uri.TryCreate(ServicePulseAuthority, UriKind.Absolute, out _))
-        {
-            throw new Exception("Authentication.ServicePulse.Authority must be a valid absolute URI if provided.");
+            if (ServicePulseAuthority != null && !Uri.TryCreate(ServicePulseAuthority, UriKind.Absolute, out _))
+            {
+                throw new Exception("Authentication.ServicePulse.Authority must be a valid absolute URI if provided.");
+            }
         }
 
         logger.LogInformation("Authentication configuration validated successfully");
@@ -146,8 +155,12 @@ public class OpenIdConnectSettings
         logger.LogInformation("  ValidateLifetime: {ValidateLifetime}", ValidateLifetime);
         logger.LogInformation("  ValidateIssuerSigningKey: {ValidateIssuerSigningKey}", ValidateIssuerSigningKey);
         logger.LogInformation("  RequireHttpsMetadata: {RequireHttpsMetadata}", RequireHttpsMetadata);
-        logger.LogInformation("  ServicePulseClientId: {ServicePulseClientId}", ServicePulseClientId);
-        logger.LogInformation("  ServicePulseAuthority: {ServicePulseAuthority}", ServicePulseAuthority);
-        logger.LogInformation("  ServicePulseApiScopes: {ServicePulseApiScopes}", ServicePulseApiScopes);
+
+        if (requireServicePulseSettings)
+        {
+            logger.LogInformation("  ServicePulseClientId: {ServicePulseClientId}", ServicePulseClientId);
+            logger.LogInformation("  ServicePulseAuthority: {ServicePulseAuthority}", ServicePulseAuthority);
+            logger.LogInformation("  ServicePulseApiScopes: {ServicePulseApiScopes}", ServicePulseApiScopes);
+        }
     }
 }

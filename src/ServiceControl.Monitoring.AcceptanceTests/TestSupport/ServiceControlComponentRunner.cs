@@ -113,7 +113,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 hostBuilder.AddServiceControlMonitoringTesting(settings);
 
                 host = hostBuilder.Build();
-                host.UseServiceControlMonitoring();
+                host.UseServiceControlMonitoring(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings.CorsSettings);
                 await host.StartAsync();
 
                 HttpClient = host.Services.GetRequiredKeyedService<TestServer>(settings.InstanceName).CreateClient();
