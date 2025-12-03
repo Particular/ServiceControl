@@ -16,7 +16,10 @@ namespace ServiceControl.Monitoring
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
-            OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, false);
+            OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration, requireServicePulseSettings: false);
+            ForwardedHeadersSettings = new ForwardedHeadersSettings(SettingsRootNamespace);
+            HttpsSettings = new HttpsSettings(SettingsRootNamespace);
+            CorsSettings = new CorsSettings(SettingsRootNamespace);
 
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file
             InstanceName = SettingsReader.Read(SettingsRootNamespace, "InstanceName", InstanceName);
@@ -53,6 +56,12 @@ namespace ServiceControl.Monitoring
 
         public OpenIdConnectSettings OpenIdConnectSettings { get; }
 
+        public ForwardedHeadersSettings ForwardedHeadersSettings { get; }
+
+        public HttpsSettings HttpsSettings { get; }
+
+        public CorsSettings CorsSettings { get; }
+
         public string InstanceName { get; init; } = DEFAULT_INSTANCE_NAME;
 
         public string TransportType { get; set; }
@@ -67,11 +76,13 @@ namespace ServiceControl.Monitoring
 
         public TimeSpan EndpointUptimeGracePeriod { get; set; }
 
-        public string RootUrl => $"http://{HttpHostName}:{HttpPort}/";
+        public string RootUrl => $"{(HttpsSettings.Enabled ? "https" : "http")}://{HttpHostName}:{HttpPort}/";
 
         public int? MaximumConcurrencyLevel { get; set; }
 
         public string ServiceControlThroughputDataQueue { get; set; }
+
+        public bool ValidateConfiguration => SettingsReader.Read(SettingsRootNamespace, "ValidateConfig", true);
 
         // The default value is set to the maximum allowed time by the most
         // restrictive hosting platform, which is Linux containers. Linux

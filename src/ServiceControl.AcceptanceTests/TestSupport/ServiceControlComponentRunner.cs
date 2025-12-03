@@ -120,14 +120,14 @@
                     EnvironmentName = Environments.Development
                 });
                 hostBuilder.AddServiceControl(settings, configuration);
-                hostBuilder.AddServiceControlApi();
+                hostBuilder.AddServiceControlApi(settings.CorsSettings);
 
                 hostBuilder.AddServiceControlTesting(settings);
 
                 hostBuilderCustomization(hostBuilder);
 
                 host = hostBuilder.Build();
-                host.UseServiceControl();
+                host.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings);
                 await host.StartAsync();
                 DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
                 // Bring this back and look into the base address of the client
