@@ -156,10 +156,11 @@
             // First run will still the check
             AddFlagFiles();
 
+            throw new Exception("A bad thing happened, so sad for you");
             // Copy the binaries from a zip
-            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath);
-            FileUtils.UnzipToSubdirectory("InstanceShared.zip", InstallPath);
-            FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(InstallPath, "Persisters", "RavenDB", "RavenDBServer"));
+            // FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath);
+            // FileUtils.UnzipToSubdirectory("InstanceShared.zip", InstallPath);
+            // FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(InstallPath, "Persisters", "RavenDB", "RavenDBServer"));
         }
 
         public virtual void WriteConfigurationFile()
