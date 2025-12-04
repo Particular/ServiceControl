@@ -20,7 +20,6 @@
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="Particular.Approvals" />
     <PackageReference Include="PublicApiGenerator" />
-    <PackageReference Include="System.Linq.Async" />
   </ItemGroup>
 
 </Project>
