@@ -7,4 +7,31 @@ if [[ -d "$LEGACY_PATH" ]]; then
   exit 1
 fi
 
-source /usr/lib/ravendb/scripts/run-raven.sh
+source /usr/lib/ravendb/scripts/run-raven.sh &
+RAVEN_PID=$!
+
+# Wait for RavenDB to be ready (with retries)
+echo "Waiting for RavenDB to start..."
+for i in {1..30}; do
+  if curl -s http://localhost:8080/admin/stats > /dev/null 2>&1; then
+    echo "RavenDB is ready!"
+    break
+  fi
+  sleep 1
+done
+
+# Register license
+echo "Registering license..."
+LICENSE_JSON=$(cat /usr/lib/ravendb/servicecontrol-license.json)
+RESPONSE=$(curl -s -w "\n%{http_code}" -X POST http://localhost:8080/admin/license/activate \
+  -H "Content-Type: application/json" \
+  -d "$LICENSE_JSON")
+
+HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 204 ]; then
+  echo "License registered successfully!"
+else
+  echo "Warning: License registration returned HTTP $HTTP_CODE"
+fi
+
+wait $RAVEN_PID
