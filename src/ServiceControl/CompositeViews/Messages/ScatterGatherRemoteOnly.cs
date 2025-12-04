@@ -16,8 +16,6 @@ namespace ServiceControl.CompositeViews.Messages
 
     public sealed class NoOpStore
     {
-        public static NoOpStore Instance => instance ??= new NoOpStore();
-
-        static NoOpStore instance;
+        public static NoOpStore Instance => field ??= new NoOpStore();
     }
 }
