@@ -15,7 +15,7 @@ public static class RavenClientCertificate
             try
             {
                 var bytes = Convert.FromBase64String(certInfo.ClientCertificateBase64);
-                return new X509Certificate2(bytes, certInfo.ClientCertificatePassword);
+                return X509CertificateLoader.LoadPkcs12(bytes, certInfo.ClientCertificatePassword);
             }
             catch (Exception x) when (x is FormatException or CryptographicException)
             {
@@ -29,7 +29,7 @@ public static class RavenClientCertificate
             {
                 throw new Exception("Could not read the RavenDB client certificate from the supplied path because no file was found.");
             }
-            return new X509Certificate2(certInfo.ClientCertificatePath, certInfo.ClientCertificatePassword);
+            return X509CertificateLoader.LoadPkcs12FromFile(certInfo.ClientCertificatePath, certInfo.ClientCertificatePassword);
         }
 
         var applicationDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty;
@@ -37,7 +37,7 @@ public static class RavenClientCertificate
 
         if (File.Exists(certificatePath))
         {
-            return new X509Certificate2(certificatePath, certInfo.ClientCertificatePassword);
+            return X509CertificateLoader.LoadPkcs12FromFile(certificatePath, certInfo.ClientCertificatePassword);
         }
         return null;
     }
