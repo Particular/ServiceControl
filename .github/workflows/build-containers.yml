@@ -39,7 +39,6 @@ jobs:
         uses: actions/setup-dotnet@v5.1.0
         with:
           global-json-file: global.json
-          dotnet-version: 8.0.x
       - name: Run MinVer
         uses: Particular/run-minver-action@v1.0.0
       - name: Validate build version
