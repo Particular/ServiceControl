@@ -3,10 +3,12 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting.EndpointTemplates;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.AcceptanceTesting;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_querying_disconnected_count : AcceptanceTest
     {
@@ -22,21 +24,16 @@
 
             await Define<TestContext>(ctx => context = ctx)
                 .WithEndpoint<MonitoredEndpoint>(b =>
-                b.CustomConfig(endpointConfig => endpointConfig.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "First"))
-                .ToCreateInstance(endpointConfig => Endpoint.Create(endpointConfig), async (startableEndpoint, cancellationToken) =>
-                {
-                    context.FirstInstance = await startableEndpoint.Start(cancellationToken);
-
-                    return context.FirstInstance;
-                }))
+                    b.CustomConfig(c => c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "First")))
                 .WithEndpoint<MonitoredEndpoint>(b =>
-                b.CustomConfig(endpointConfig => endpointConfig.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "Second"))
-                .ToCreateInstance(endpointConfig => Endpoint.Create(endpointConfig), async (startableEndpoint, cancellationToken) =>
+                    b.CustomConfig(c => c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "Second")))
+                .WithServiceResolve((provider, _) =>
                 {
-                    context.SecondInstance = await startableEndpoint.Start(cancellationToken);
-
-                    return context.SecondInstance;
-                }))
+                    var endpointName = Conventions.EndpointNamingConvention(typeof(MonitoredEndpoint));
+                    context.FirstInstance = provider.GetRequiredKeyedService<IEndpointInstance>($"{endpointName}0");
+                    context.SecondInstance = provider.GetRequiredKeyedService<IEndpointInstance>($"{endpointName}0");
+                    return Task.CompletedTask;
+                })
                 .Done(async c =>
                 {
                     if (!c.WaitedInitial2Seconds)

@@ -71,6 +71,7 @@
             public FailureEndpoint() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
+                    c.EnableFeature<SendControlMessage>();
                     c.NoDelayedRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                     c.Pipeline.Register(services => new LookForControlMessage(services.GetRequiredService<MyContext>()), "Look for control messages");

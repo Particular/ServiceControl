@@ -81,6 +81,7 @@
             public FailureEndpoint() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
+                    c.EnableFeature<SendFailedMessage>();
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });

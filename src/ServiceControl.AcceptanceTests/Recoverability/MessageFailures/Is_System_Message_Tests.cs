@@ -130,9 +130,9 @@
 
         public class ServerEndpoint : EndpointConfigurationBuilder
         {
-            public ServerEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
+            public ServerEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => c.EnableFeature<SendMessage>());
 
-            class Foo : DispatchRawMessages<SystemMessageTestContext>
+            class SendMessage : DispatchRawMessages<SystemMessageTestContext>
             {
                 protected override TransportOperations CreateMessage(SystemMessageTestContext context)
                 {
@@ -164,7 +164,7 @@
                         headers[Headers.ControlMessageHeader] = context.ControlMessageHeaderValue != null && (bool)context.ControlMessageHeaderValue ? context.ControlMessageHeaderValue.ToString() : null;
                     }
 
-                    return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("error")));
+                    return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, Array.Empty<byte>()), new UnicastAddressTag("error")));
                 }
             }
         }

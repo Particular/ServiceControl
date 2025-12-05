@@ -51,7 +51,7 @@
 
         class AnEndpoint : EndpointConfigurationBuilder
         {
-            public AnEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
+            public AnEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => c.EnableFeature<FailedMessagesSender>());
 
             class FailedMessagesSender : DispatchRawMessages<TestContext>
             {
