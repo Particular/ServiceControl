@@ -10,7 +10,6 @@ RUN chown 999:999 /var/lib/ravendb/data
 USER ravendb
 
 ENV RAVEN_License_Eula_Accepted=true \
-    RAVEN_License_Path=/usr/lib/ravendb/servicecontrol-license.json \
     RAVEN_Setup_Mode=None
 
 LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceControl \
