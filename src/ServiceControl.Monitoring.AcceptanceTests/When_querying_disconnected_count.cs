@@ -3,12 +3,10 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting.EndpointTemplates;
-    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.AcceptanceTesting;
-    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_querying_disconnected_count : AcceptanceTest
     {
@@ -24,16 +22,19 @@
 
             await Define<TestContext>(ctx => context = ctx)
                 .WithEndpoint<MonitoredEndpoint>(b =>
-                    b.CustomConfig(c => c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "First")))
+                    b.CustomConfig(c => c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "First"))
+                    .ToCreateInstance((services, configuration) => EndpointWithExternallyManagedContainer.Create(configuration, services), async (startableEndpoint, provider, ct) =>
+                    {
+                        context.FirstInstance = await startableEndpoint.Start(provider, ct);
+                        return context.FirstInstance;
+                    }))
                 .WithEndpoint<MonitoredEndpoint>(b =>
-                    b.CustomConfig(c => c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "Second")))
-                .WithServiceResolve((provider, _) =>
-                {
-                    var endpointName = Conventions.EndpointNamingConvention(typeof(MonitoredEndpoint));
-                    context.FirstInstance = provider.GetRequiredKeyedService<IEndpointInstance>($"{endpointName}1");
-                    context.SecondInstance = provider.GetRequiredKeyedService<IEndpointInstance>($"{endpointName}2");
-                    return Task.CompletedTask;
-                })
+                    b.CustomConfig(c => c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "Second"))
+                    .ToCreateInstance((services, configuration) => EndpointWithExternallyManagedContainer.Create(configuration, services), async (startableEndpoint, provider, ct) =>
+                    {
+                        context.SecondInstance = await startableEndpoint.Start(provider, ct);
+                        return context.SecondInstance;
+                    }))
                 .Done(async c =>
                 {
                     if (!c.WaitedInitial2Seconds)
