@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using Api.Contracts;
     using Messages;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
     using Persistence;
     using Persistence.Infrastructure;
@@ -21,8 +22,9 @@
         IErrorMessageDataStore dataStore,
         Settings settings,
         IHttpClientFactory httpClientFactory,
+        IHttpContextAccessor httpContextAccessor,
         ILogger<GetAuditCountsForEndpointApi> logger)
-        : ScatterGatherApi<IErrorMessageDataStore, AuditCountsForEndpointContext, IList<AuditCount>>(dataStore, settings, httpClientFactory, logger)
+        : ScatterGatherApi<IErrorMessageDataStore, AuditCountsForEndpointContext, IList<AuditCount>>(dataStore, settings, httpClientFactory, httpContextAccessor, logger)
     {
         static readonly IList<AuditCount> Empty = new List<AuditCount>(0).AsReadOnly();
 
