@@ -93,6 +93,11 @@
                     }
                 };
             });
+
+            hostBuilder.Services.AddAuthorization(configure =>
+                configure.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build());
         }
 
         static string GetErrorMessage(JwtBearerChallengeContext context)
