@@ -30,8 +30,8 @@
                 .WithServiceResolve((provider, _) =>
                 {
                     var endpointName = Conventions.EndpointNamingConvention(typeof(MonitoredEndpoint));
-                    context.FirstInstance = provider.GetRequiredKeyedService<IEndpointInstance>($"{endpointName}0");
-                    context.SecondInstance = provider.GetRequiredKeyedService<IEndpointInstance>($"{endpointName}0");
+                    context.FirstInstance = provider.GetRequiredKeyedService<IEndpointInstance>($"{endpointName}1");
+                    context.SecondInstance = provider.GetRequiredKeyedService<IEndpointInstance>($"{endpointName}2");
                     return Task.CompletedTask;
                 })
                 .Done(async c =>
