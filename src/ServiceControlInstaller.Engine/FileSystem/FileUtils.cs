@@ -1,6 +1,7 @@
 namespace ServiceControlInstaller.Engine.FileSystem
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.IO.Compression;
@@ -147,7 +148,25 @@ namespace ServiceControlInstaller.Engine.FileSystem
 
         internal static void UnzipToSubdirectory(Stream zipStream, string targetPath)
         {
-            ZipFile.ExtractToDirectory(zipStream, targetPath, overwriteFiles: true);
+            using var archive = new ZipArchive(zipStream, ZipArchiveMode.Read, leaveOpen: true, entryNameEncoding: null);
+            archive.ExtractToDirectory(targetPath, overwriteFiles: true);
+
+            // Validate 3rd-party security software didn't delete any of the files, but first, a small delay
+            // so that any tool out there has a chance to remove the file before prematurely declaring victory
+            Thread.Sleep(500);
+            foreach (var entry in archive.Entries)
+            {
+                var pathParts = entry.FullName.Split('/', '\\');
+                var allParts = new string[pathParts.Length + 1];
+                allParts[0] = targetPath;
+                Array.Copy(pathParts, 0, allParts, 1, pathParts.Length);
+                var destinationPath = Path.Combine(allParts);
+                var fileInfo = new FileInfo(destinationPath);
+                if (!fileInfo.Exists || fileInfo.Length != entry.Length)
+                {
+                    throw new Exception($"The following file was removed after install, perhaps due to a false positive in a 3rd-party security tool. Add an exception for the path in the tool's configuration and try again: " + destinationPath);
+                }
+            }
         }
 
         static void RunWithRetries(Action action)
