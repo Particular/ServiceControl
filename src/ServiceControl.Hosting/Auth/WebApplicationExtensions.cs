@@ -6,16 +6,13 @@
     {
         public static void UseServiceControlAuthentication(this WebApplication app, bool authenticationEnabled = false)
         {
-            if (authenticationEnabled)
+            if (!authenticationEnabled)
             {
-                app.UseAuthentication();
-                app.UseAuthorization();
-                app.MapControllers().RequireAuthorization();
+                return;
             }
-            else
-            {
-                app.MapControllers();
-            }
+
+            app.UseAuthentication();
+            app.UseAuthorization();
         }
     }
 }
