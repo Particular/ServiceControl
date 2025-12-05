@@ -19,6 +19,7 @@
             public ErrorSender() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
+                    c.EnableFeature<SendFailedMessages>();
                     c.NoDelayedRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });

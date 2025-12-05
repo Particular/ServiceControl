@@ -31,7 +31,6 @@
                     .SelectMany(a => a.GetTypes())
                     .Union(GetNestedTypeRecursive(customizationConfiguration.BuilderType.DeclaringType, customizationConfiguration.BuilderType))
                     .Union(customizationConfiguration.TypesToInclude)
-                    .Except(customizationConfiguration.TypesToExclude)
                     .ToList());
             return;
 
