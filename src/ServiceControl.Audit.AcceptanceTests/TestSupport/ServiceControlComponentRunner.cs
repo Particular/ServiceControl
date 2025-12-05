@@ -129,14 +129,14 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     return criticalErrorContext.Stop(cancellationToken);
                 }, settings, configuration);
 
-                hostBuilder.AddServiceControlAuditApi();
+                hostBuilder.AddServiceControlAuditApi(settings.CorsSettings);
 
                 hostBuilder.AddServiceControlAuditTesting(settings);
 
                 hostBuilderCustomization(hostBuilder);
 
                 host = hostBuilder.Build();
-                host.UseServiceControlAudit();
+                host.UseServiceControlAudit(settings.ForwardedHeadersSettings, settings.HttpsSettings);
                 await host.StartAsync();
                 ServiceProvider = host.Services;
                 InstanceTestServer = host.GetTestServer();

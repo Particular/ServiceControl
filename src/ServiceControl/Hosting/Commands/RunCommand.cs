@@ -8,6 +8,8 @@
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl;
+    using ServiceControl.Hosting.Auth;
+    using ServiceControl.Hosting.Https;
 
     class RunCommand : AbstractCommand
     {
@@ -20,11 +22,16 @@
             settings.RunCleanupBundle = true;
 
             var hostBuilder = WebApplication.CreateBuilder();
+
+            hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
+            hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
-            hostBuilder.AddServiceControlApi();
+            hostBuilder.AddServiceControlApi(settings.CorsSettings);
 
             var app = hostBuilder.Build();
-            app.UseServiceControl();
+            app.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings);
+            app.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
+
             await app.RunAsync(settings.RootUrl);
         }
     }

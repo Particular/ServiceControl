@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using Api.Contracts;
     using Messages;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
     using Persistence;
     using Persistence.Infrastructure;
@@ -21,13 +22,14 @@
         IErrorMessageDataStore dataStore,
         Settings settings,
         IHttpClientFactory httpClientFactory,
+        IHttpContextAccessor httpContextAccessor,
         ILogger<GetAuditCountsForEndpointApi> logger)
-        : ScatterGatherApi<IErrorMessageDataStore, AuditCountsForEndpointContext, IList<AuditCount>>(dataStore, settings, httpClientFactory, logger)
+        : ScatterGatherApi<IErrorMessageDataStore, AuditCountsForEndpointContext, IList<AuditCount>>(dataStore, settings, httpClientFactory, httpContextAccessor, logger)
     {
         static readonly IList<AuditCount> Empty = new List<AuditCount>(0).AsReadOnly();
 
+        // Will never be implemented on the primary instance
         protected override Task<QueryResult<IList<AuditCount>>> LocalQuery(AuditCountsForEndpointContext input) =>
-            // Will never be implemented on the primary instance
             Task.FromResult(new QueryResult<IList<AuditCount>>(Empty, QueryStatsInfo.Zero));
 
         protected override IList<AuditCount> ProcessResults(AuditCountsForEndpointContext input, QueryResult<IList<AuditCount>>[] results) =>
