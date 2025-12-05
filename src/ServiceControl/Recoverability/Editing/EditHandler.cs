@@ -3,6 +3,8 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using Contracts.MessageFailures;
+    using Infrastructure.DomainEvents;
     using MessageFailures;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
@@ -14,12 +16,13 @@
 
     class EditHandler : IHandleMessages<EditAndSend>
     {
-        public EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher, ErrorQueueNameCache errorQueueNameCache, ILogger<EditHandler> logger)
+        public EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher, ErrorQueueNameCache errorQueueNameCache, IDomainEvents domainEvents, ILogger<EditHandler> logger)
         {
             this.store = store;
             this.redirectsStore = redirectsStore;
             this.dispatcher = dispatcher;
             this.errorQueueNameCache = errorQueueNameCache;
+            this.domainEvents = domainEvents;
             this.logger = logger;
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName, logger);
 
@@ -28,6 +31,7 @@
         public async Task Handle(EditAndSend message, IMessageHandlerContext context)
         {
             FailedMessage failedMessage;
+            string editId;
             using (var session = await store.CreateEditFailedMessageManager())
             {
                 failedMessage = await session.GetFailedMessage(message.FailedMessageId);
@@ -38,7 +42,7 @@
                     return;
                 }
 
-                var editId = await session.GetCurrentEditingMessageId(message.FailedMessageId);
+                editId = await session.GetCurrentEditingRequestId(message.FailedMessageId);
                 if (editId == null)
                 {
                     if (failedMessage.Status != FailedMessageStatus.Unresolved)
@@ -48,7 +52,7 @@
                     }
 
                     // create a retries document to prevent concurrent edits
-                    await session.SetCurrentEditingMessageId(context.MessageId);
+                    await session.SetCurrentEditingRequestId(context.MessageId);
                 }
                 else if (editId != context.MessageId)
                 {
@@ -80,6 +84,11 @@
                 address = retryTo;
             }
             await DispatchEditedMessage(outgoingMessage, address, context);
+
+            await domainEvents.Raise(new MessageEditedAndRetried
+            {
+                FailedMessageId = message.FailedMessageId
+            }, context.CancellationToken);
         }
 
         OutgoingMessage BuildMessage(EditAndSend message)
@@ -122,5 +131,6 @@
         readonly IMessageDispatcher dispatcher;
         readonly ErrorQueueNameCache errorQueueNameCache;
         readonly ILogger<EditHandler> logger;
+        readonly IDomainEvents domainEvents;
     }
 }

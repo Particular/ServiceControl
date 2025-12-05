@@ -37,7 +37,7 @@
 
             //HINT: This validation is the first one because we want to minimize the chance of two users concurrently execute an edit-retry.
             var editManager = await store.CreateEditFailedMessageManager();
-            var editId = await editManager.GetCurrentEditingMessageId(failedMessageId);
+            var editId = await editManager.GetCurrentEditingRequestId(failedMessageId);
             if (editId != null)
             {
                 logger.LogWarning("Cannot edit message {FailedMessageId} because it has already been edited", failedMessageId);
