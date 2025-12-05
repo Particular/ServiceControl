@@ -5,6 +5,7 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
     using Persistence;
     using Persistence.Infrastructure;
@@ -14,8 +15,9 @@
         IEndpointInstanceMonitoring store,
         Settings settings,
         IHttpClientFactory httpClientFactory,
+        IHttpContextAccessor httpContextAccessor,
         ILogger<GetKnownEndpointsApi> logger)
-        : ScatterGatherApi<IEndpointInstanceMonitoring, ScatterGatherContext, IList<KnownEndpointsView>>(store, settings, httpClientFactory, logger)
+        : ScatterGatherApi<IEndpointInstanceMonitoring, ScatterGatherContext, IList<KnownEndpointsView>>(store, settings, httpClientFactory, httpContextAccessor, logger)
     {
         protected override Task<QueryResult<IList<KnownEndpointsView>>> LocalQuery(ScatterGatherContext input)
         {

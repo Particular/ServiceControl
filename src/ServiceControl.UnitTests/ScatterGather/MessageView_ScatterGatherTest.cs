@@ -6,6 +6,7 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Abstractions;
     using NUnit.Framework;
@@ -17,7 +18,7 @@
         [SetUp]
         public void SetUp()
         {
-            var api = new TestApi(null, null, null, NullLogger<TestApi>.Instance);
+            var api = new TestApi(null, null, null, null, NullLogger<TestApi>.Instance);
 
             Results = api.AggregateResults(new ScatterGatherApiMessageViewContext(new PagingInfo(), new SortInfo()), GetData());
         }
@@ -68,8 +69,8 @@
 
         class TestApi : ScatterGatherApiMessageView<object, ScatterGatherApiMessageViewContext>
         {
-            public TestApi(object dataStore, Settings settings, IHttpClientFactory httpClientFactory, ILogger<TestApi> logger)
-                : base(dataStore, settings, httpClientFactory, logger)
+            public TestApi(object dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<TestApi> logger)
+                : base(dataStore, settings, httpClientFactory, httpContextAccessor, logger)
             {
             }
 
