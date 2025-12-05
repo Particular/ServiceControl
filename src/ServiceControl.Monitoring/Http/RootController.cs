@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Monitoring.Http
 {
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Primitives;
 
@@ -8,6 +9,7 @@
     {
         [Route("")]
         [HttpGet]
+        [AllowAnonymous]
         public ActionResult<MonitoringInstanceModel> Get()
         {
             var model = new MonitoringInstanceModel

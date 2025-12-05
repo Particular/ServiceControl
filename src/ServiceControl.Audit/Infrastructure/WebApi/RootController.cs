@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
     using Configuration;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using Settings;
@@ -16,6 +17,7 @@
 
         [Route("")]
         [HttpGet]
+        [AllowAnonymous]
         public OkObjectResult Urls()
         {
             var baseUrl = Request.GetDisplayUrl();
