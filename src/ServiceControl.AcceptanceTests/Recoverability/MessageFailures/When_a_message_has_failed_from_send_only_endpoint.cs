@@ -58,9 +58,9 @@
 
         public class SendOnlyEndpoint : EndpointConfigurationBuilder
         {
-            public SendOnlyEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
+            public SendOnlyEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => c.EnableFeature<SendMessage>());
 
-            class Foo : DispatchRawMessages<MyContext>
+            class SendMessage : DispatchRawMessages<MyContext>
             {
                 protected override TransportOperations CreateMessage(MyContext context)
                 {

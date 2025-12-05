@@ -61,24 +61,18 @@
                     c.GetSettings().Get<TransportDefinition>().TransportTransactionMode =
                         TransportTransactionMode.ReceiveOnly;
                     c.EnableFeature<Outbox>();
+                    c.RegisterStartupTask(new SendMessageAtStart());
                     c.DisableFeature<PlatformRetryNotifications>();
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(s => s.NumberOfRetries(1));
                     recoverability.Delayed(s => s.NumberOfRetries(0));
                 });
 
-            class StartFeature : Feature
+            class SendMessageAtStart : FeatureStartupTask
             {
-                public StartFeature() => EnableByDefault();
+                protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default) => session.SendLocal(new MyMessage(), cancellationToken);
 
-                protected override void Setup(FeatureConfigurationContext context) => context.RegisterStartupTask(new SendMessageAtStart());
-
-                class SendMessageAtStart : FeatureStartupTask
-                {
-                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default) => session.SendLocal(new MyMessage(), cancellationToken);
-
-                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default) => Task.CompletedTask;
-                }
+                protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default) => Task.CompletedTask;
             }
 
             public class MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)

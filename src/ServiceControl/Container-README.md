@@ -47,7 +47,7 @@ The latest release within a minor version will be tagged with `{major}.{minor}` 
 
 ## Image architecture
 
-This image is a multi-arch image based on the [`mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled-composite-extra`](https://mcr.microsoft.com/en-us/product/dotnet/aspnet/about) base image supporting `linux/arm64` and `linux/amd64`.
+This image is a multi-arch image based on the [`mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-composite-extra`](https://mcr.microsoft.com/en-us/product/dotnet/aspnet/about) base image supporting `linux/arm64` and `linux/amd64`.
 
 ## Authors
 

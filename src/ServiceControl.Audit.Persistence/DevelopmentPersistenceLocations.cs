@@ -30,8 +30,8 @@
         const string configuration = "Release";
 #endif
 
-#if NET8_0
-        const string framework = "net8.0";
+#if NET10_0
+        const string framework = "net10.0";
 #endif
     }
 }

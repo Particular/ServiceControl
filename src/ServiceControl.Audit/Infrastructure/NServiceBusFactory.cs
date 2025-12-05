@@ -7,6 +7,7 @@ namespace ServiceControl.Audit.Infrastructure
     using Contracts.MessageFailures;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
+    using Plugins;
     using ServiceControl.Configuration;
     using ServiceControl.Infrastructure;
     using Transports;
@@ -24,6 +25,8 @@ namespace ServiceControl.Audit.Infrastructure
                 var assemblyScanner = configuration.AssemblyScanner();
                 assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
             }
+
+            configuration.EnableFeature<RegisterPluginMessagesFeature>();
 
             configuration.Pipeline.Register(typeof(FullTypeNameOnlyBehavior), "Remove asm qualified name from the message type header");
 
