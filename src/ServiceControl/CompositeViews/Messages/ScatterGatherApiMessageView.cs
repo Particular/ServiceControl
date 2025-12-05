@@ -3,6 +3,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -18,8 +19,8 @@ namespace ServiceControl.CompositeViews.Messages
     public abstract class ScatterGatherApiMessageView<TDataStore, TInput> : ScatterGatherApi<TDataStore, TInput, IList<MessagesView>>
         where TInput : ScatterGatherApiMessageViewContext
     {
-        protected ScatterGatherApiMessageView(TDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, ILogger logger)
-            : base(dataStore, settings, httpClientFactory, logger)
+        protected ScatterGatherApiMessageView(TDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger logger)
+            : base(dataStore, settings, httpClientFactory, httpContextAccessor, logger)
         {
         }
 
