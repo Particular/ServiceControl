@@ -75,7 +75,7 @@ jobs:
             org.opencontainers.image.created=${{ steps.date.outputs.date }}
             org.opencontainers.image.title=${{ matrix.title }}
             org.opencontainers.image.description=${{ matrix.description }}
-            org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:10.0-jammy-noble-composite-extra
+            org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-composite-extra
           annotations: |
             index:org.opencontainers.image.source=https://github.com/Particular/ServiceControl/tree/${{ github.sha }}
             index:org.opencontainers.image.authors="Particular Software"
