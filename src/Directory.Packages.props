@@ -6,6 +6,7 @@
   <ItemGroup Label="Versions for direct package references">
     <PackageVersion Include="Autofac" Version="8.2.0" />
     <PackageVersion Include="AWSSDK.CloudWatch" Version="4.0.6.1" />
+    <PackageVersion Include="AWSSDK.SecurityToken" Version="4.0.0.4" />
     <PackageVersion Include="Azure.Identity" Version="1.17.1" />
     <PackageVersion Include="Azure.Monitor.Query.Metrics" Version="1.0.0" />
     <PackageVersion Include="Azure.ResourceManager.ServiceBus" Version="1.1.0" />
@@ -87,6 +88,7 @@
   <ItemGroup Label="Versions to pin transitive references">
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.15.0" />
     <PackageVersion Include="System.IO.Hashing" Version="10.0.2" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
