@@ -1,0 +1,7 @@
+{
+  "Name": "Sql",
+  "DisplayName": "Sql",
+  "Description": "Sql ServiceControl persister",
+  "AssemblyName": "ServiceControl.Persistence.Sql",
+  "TypeName": "ServiceControl.Persistence.Sql.RavenPersistenceConfiguration, ServiceControl.Persistence.Sql"
+}
