@@ -19,6 +19,10 @@
     <PackageVersion Include="HdrHistogram" Version="2.5.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.21" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.21" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="8.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
@@ -50,6 +54,7 @@
     <PackageVersion Include="NServiceBus.Transport.Msmq.Sources" Version="3.0.2" />
     <PackageVersion Include="NServiceBus.Transport.SqlServer" Version="8.1.9" />
     <PackageVersion Include="NServiceBus.Transport.PostgreSql" Version="8.1.9" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.10" />
     <PackageVersion Include="NuGet.Versioning" Version="6.14.0" />
     <PackageVersion Include="NUnit" Version="4.4.0" />
     <PackageVersion Include="NUnit.Analyzers" Version="4.11.2" />
@@ -62,6 +67,7 @@
     <PackageVersion Include="Particular.LicensingComponent.Report" Version="1.0.0" />
     <PackageVersion Include="Particular.Obsoletes" Version="1.0.0" />
     <PackageVersion Include="Polly.Core" Version="8.5.2" />
+    <PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
     <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
     <PackageVersion Include="PropertyChanging.Fody" Version="1.30.3" />
     <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
@@ -78,6 +84,9 @@
     <PackageVersion Include="System.Reactive.Linq" Version="6.0.1" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="8.0.1" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="8.0.1" />
+    <PackageVersion Include="Testcontainers.MsSql" Version="4.2.0" />
+    <PackageVersion Include="Testcontainers.MySql" Version="4.2.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.2.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
