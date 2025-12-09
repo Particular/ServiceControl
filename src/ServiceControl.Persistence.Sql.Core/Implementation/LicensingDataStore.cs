@@ -13,15 +13,140 @@ using ServiceControl.Persistence.Sql.Core.Entities;
 
 public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDataStore
 {
-    public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken) => throw new NotImplementedException();
-    public Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-    public Task<IEnumerable<(EndpointIdentifier Id, Endpoint? Endpoint)>> GetEndpoints(IList<EndpointIdentifier> endpointIds, CancellationToken cancellationToken) => throw new NotImplementedException();
     public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken) => throw new NotImplementedException();
     public Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken) => throw new NotImplementedException();
     public Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, bool includeToday, CancellationToken cancellationToken) => throw new NotImplementedException();
     public Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken) => throw new NotImplementedException();
-    public Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken) => throw new NotImplementedException();
-    public Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken) => throw new NotImplementedException();
+
+    #region Endpoints
+    public async Task<IEnumerable<(EndpointIdentifier Id, Endpoint? Endpoint)>> GetEndpoints(IList<EndpointIdentifier> endpointIds, CancellationToken cancellationToken)
+    {
+        using var scope = serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
+
+        var fromDatabase = await dbContext.Endpoints
+            .Where(e => endpointIds.Any(id => id.Name == e.EndpointName && Enum.GetName(id.ThroughputSource) == e.ThroughputSource))
+            .ToListAsync(cancellationToken);
+
+        var lookup = fromDatabase.Select(MapEndpointEntityToContract).ToLookup(e => e.Id);
+
+        return endpointIds.Select(id => (id, lookup[id].FirstOrDefault()));
+    }
+
+    public async Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken = default)
+    {
+        using var scope = serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
+
+        var fromDatabase = await dbContext.Endpoints.SingleOrDefaultAsync(e => e.EndpointName == id.Name && e.ThroughputSource == Enum.GetName(id.ThroughputSource), cancellationToken);
+        if (fromDatabase is null)
+        {
+            return null;
+        }
+
+        return MapEndpointEntityToContract(fromDatabase);
+    }
+
+    public async Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken)
+    {
+        using var scope = serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
+        var endpoints = dbContext.Endpoints;
+        if (!includePlatformEndpoints)
+        {
+            //endpoints = endpoints.Where(x => x.UserIndicator != UserIndicator.)
+        }
+
+        var fromDatabase = await endpoints.ToListAsync(cancellationToken);
+
+        return fromDatabase.Select(MapEndpointEntityToContract);
+    }
+
+    public async Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken)
+    {
+        using var scope = serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
+        var existing = await dbContext.Endpoints.SingleOrDefaultAsync(e => e.EndpointName == endpoint.Id.Name && e.ThroughputSource == Enum.GetName(endpoint.Id.ThroughputSource), cancellationToken);
+        if (existing is null)
+        {
+            var entity = MapEndpointContractToEntity(endpoint);
+            _ = await dbContext.Endpoints.AddAsync(entity, cancellationToken);
+        }
+        else
+        {
+            existing.SanitizedEndpointName = endpoint.SanitizedName;
+            existing.EndpointIndicators = endpoint.EndpointIndicators is null ? null : string.Join("|", endpoint.EndpointIndicators);
+            existing.UserIndicator = endpoint.UserIndicator;
+            existing.Scope = endpoint.Scope;
+            existing.LastCollectedData = endpoint.LastCollectedDate;
+            _ = dbContext.Endpoints.Update(existing);
+        }
+
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken)
+    {
+        var updates = userIndicatorUpdates.ToDictionary(u => u.Name, u => u.UserIndicator);
+        using var scope = serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
+
+        var endpoints = await dbContext.Endpoints
+                .Where(e => updates.Keys.Contains(e.EndpointName) || updates.Keys.Contains(e.SanitizedEndpointName))
+                .ToListAsync(cancellationToken) ?? [];
+
+        foreach (var endpoint in endpoints)
+        {
+            if (updates.TryGetValue(endpoint.SanitizedEndpointName, out var newValueFromSanitizedName))
+            {
+                endpoint.UserIndicator = newValueFromSanitizedName;
+            }
+            else if (updates.TryGetValue(endpoint.EndpointName, out var newValueFromEndpoint))
+            {
+                endpoint.UserIndicator = newValueFromEndpoint;
+                //update all that match this sanitized name
+                var sanitizedMatchingEndpoints = await dbContext.Endpoints
+                    .Where(e => e.SanitizedEndpointName == endpoint.SanitizedEndpointName && e.EndpointName != endpoint.EndpointName)
+                    .ToListAsync(cancellationToken) ?? [];
+
+                foreach (var matchingEndpointOnSanitizedName in sanitizedMatchingEndpoints)
+                {
+                    matchingEndpointOnSanitizedName.UserIndicator = newValueFromEndpoint;
+                    _ = dbContext.Endpoints.Update(matchingEndpointOnSanitizedName);
+                }
+            }
+            _ = dbContext.Endpoints.Update(endpoint);
+        }
+
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+
+    Endpoint MapEndpointEntityToContract(ThroughputEndpointEntity entity)
+    => new(entity.EndpointName, Enum.Parse<ThroughputSource>(entity.ThroughputSource))
+    {
+        SanitizedName = entity.SanitizedEndpointName,
+        EndpointIndicators = entity.EndpointIndicators?.Split("|"),
+        UserIndicator = entity.UserIndicator,
+        Scope = entity.Scope,
+        LastCollectedDate = entity.LastCollectedData
+    };
+
+    ThroughputEndpointEntity MapEndpointContractToEntity(Endpoint endpoint)
+        => new()
+        {
+            EndpointName = endpoint.Id.Name,
+            ThroughputSource = Enum.GetName(endpoint.Id.ThroughputSource)!,
+            SanitizedEndpointName = endpoint.SanitizedName,
+            EndpointIndicators = endpoint.EndpointIndicators is null ? null : string.Join("|", endpoint.EndpointIndicators),
+            UserIndicator = endpoint.UserIndicator,
+            Scope = endpoint.Scope,
+            LastCollectedData = endpoint.LastCollectedDate
+        };
+
+
+    #endregion
+
 
     #region AuditServiceMetadata
 

@@ -2,6 +2,7 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations;
 
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.SqlServer.Migrations;
 
 #nullable disable
 
@@ -38,6 +39,31 @@ public partial class InitialCreate : Migration
                 table.PrimaryKey("PK_LicensingMetadata", x => x.Id);
                 table.UniqueConstraint("UC_LicensingMetadata_Key", t => t.Key);
             });
+
+        migrationBuilder.CreateTable(
+            name: "ThroughputEndpoint",
+            columns: table => new
+            {
+                Id = table.Column<int>(type: "int", nullable: false).Annotation("SqlServer:Identity", "1, 1"),
+                EndpointName = table.Column<string>(type: "nvarchar(200)", nullable: false),
+                ThroughputSource = table.Column<string>(type: "nvarchar(50)", nullable: false),
+                SanitizedEndpointName = table.Column<string>(type: "nvarchar(200)", nullable: true),
+                EndpointIndicators = table.Column<string>(type: "nvarchar(MAX)", nullable: true),
+                UserIndicator = table.Column<string>(type: "nvarchar(50)", nullable: true),
+                Scope = table.Column<string>(type: "nvarchar(MAX)", nullable: true),
+                LastCollectedData = table.Column<DateOnly>(type: "date", nullable: true)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_ThrouhgputEndpoint", x => x.Id);
+                table.UniqueConstraint("UC_ThroughputEndpoint_EndpointName_ThroughputSource", t => new
+                {
+                    t.EndpointName,
+                    t.ThroughputSource
+                });
+            }
+        );
+
     }
 
     /// <inheritdoc />
@@ -47,5 +73,7 @@ public partial class InitialCreate : Migration
             name: "TrialLicense");
         migrationBuilder.DropTable(
             name: "LicensingMetadata");
+        migrationBuilder.DropTable(
+            name: "ThroughputEndpoint");
     }
 }
