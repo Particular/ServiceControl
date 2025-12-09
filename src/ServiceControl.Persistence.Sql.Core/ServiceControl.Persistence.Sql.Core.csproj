@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Particular.LicensingComponent.Persistence\Particular.LicensingComponent.Persistence.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" />
   </ItemGroup>
 

@@ -25,7 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\ServiceControl.Persistence.Tests\IPersistenceTestsContext.cs" Link="IPersistenceTestsContext.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests\IPersistenceTestsContext.cs" LinkBase="Shared" />
+    <Compile Include="..\ServiceControl.Persistence.Tests\PersistenceTestBase.cs" LinkBase="Shared" />
+    <Compile Include="..\ServiceControl.Persistence.Tests\FakeDomainEvents.cs" LinkBase="Shared" />
+    <Compile Include="..\ServiceControl.Persistence.Tests\Throughput\**\*.cs" LinkBase="Shared\Throughput" />
   </ItemGroup>
 
 </Project>

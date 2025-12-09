@@ -5,6 +5,7 @@ using Core.DbContexts;
 using Core.Implementation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Particular.LicensingComponent.Persistence;
 using ServiceControl.Persistence;
 
 class SqlServerPersistence : IPersistence
@@ -26,6 +27,7 @@ class SqlServerPersistence : IPersistence
         }
 
         services.AddSingleton<ITrialLicenseDataProvider, TrialLicenseDataProvider>();
+        services.AddSingleton<ILicensingDataStore, LicensingDataStore>();
     }
 
     public void AddInstaller(IServiceCollection services)
