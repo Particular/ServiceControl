@@ -13,10 +13,87 @@ using ServiceControl.Persistence.Sql.Core.Entities;
 
 public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDataStore
 {
-    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken) => throw new NotImplementedException();
-    public Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken) => throw new NotImplementedException();
-    public Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, bool includeToday, CancellationToken cancellationToken) => throw new NotImplementedException();
-    public Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken) => throw new NotImplementedException();
+    static DateOnly DefaultCutOff()
+        => DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-400));
+
+    public async Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken)
+    {
+        using var scope = serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
+
+        var cutOff = DefaultCutOff();
+
+        var data = await dbContext.Throughput.Where(x => queueNames.Contains(x.EndpointName) && x.Date >= cutOff)
+            .ToListAsync(cancellationToken);
+
+        var lookup = data.ToLookup(x => x.EndpointName);
+
+        Dictionary<string, IEnumerable<ThroughputData>> result = [];
+
+        foreach (var queueName in queueNames)
+        {
+            result[queueName] = [.. lookup[queueName].GroupBy(x => x.ThroughputSource)
+                .Select(x => new ThroughputData([.. from t in x select new EndpointDailyThroughput(t.Date, t.MessageCount)])
+                {
+                    ThroughputSource = Enum.Parse<ThroughputSource>(x.Key)
+                })];
+        }
+
+        return result;
+    }
+
+    public async Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken)
+    {
+        using var scope = serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
+        var cutoffDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-days + 1));
+        return await dbContext.Throughput.AnyAsync(t => t.Date >= cutoffDate, cancellationToken);
+    }
+
+    public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, bool includeToday, CancellationToken cancellationToken)
+    {
+        using var scope = serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
+        var cutoffDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-days + 1));
+        var endDate = DateOnly.FromDateTime(includeToday ? DateTime.UtcNow : DateTime.UtcNow.AddDays(-1));
+        var source = Enum.GetName(throughputSource)!;
+        return await dbContext.Throughput.AnyAsync(t => t.Date >= cutoffDate && t.Date < endDate && t.ThroughputSource == source, cancellationToken);
+    }
+
+    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken)
+    {
+        using var scope = serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
+
+        var source = Enum.GetName(throughputSource)!;
+        var cutOff = DefaultCutOff();
+        var existing = await dbContext.Throughput.Where(t => t.EndpointName == endpointName && t.ThroughputSource == source && t.Date >= cutOff)
+            .ToListAsync(cancellationToken);
+
+        var lookup = existing.ToLookup(t => t.Date);
+
+        foreach (var t in throughput)
+        {
+            var existingEntry = lookup[t.DateUTC].FirstOrDefault();
+            if (existingEntry is not null)
+            {
+                existingEntry.MessageCount = t.MessageCount;
+            }
+            else
+            {
+                var newEntry = new DailyThroughputEntity
+                {
+                    EndpointName = endpointName,
+                    ThroughputSource = source,
+                    Date = t.DateUTC,
+                    MessageCount = t.MessageCount,
+                };
+                _ = await dbContext.Throughput.AddAsync(newEntry, cancellationToken);
+            }
+        }
+
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
+    }
 
     #region Endpoints
     public async Task<IEnumerable<(EndpointIdentifier Id, Endpoint? Endpoint)>> GetEndpoints(IList<EndpointIdentifier> endpointIds, CancellationToken cancellationToken)

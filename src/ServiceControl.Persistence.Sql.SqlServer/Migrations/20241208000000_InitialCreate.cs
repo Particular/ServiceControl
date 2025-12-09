@@ -2,7 +2,6 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations;
 
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.EntityFrameworkCore.SqlServer.Migrations;
 
 #nullable disable
 
@@ -64,6 +63,28 @@ public partial class InitialCreate : Migration
             }
         );
 
+        migrationBuilder.CreateTable(
+            name: "DailyThroughput",
+            columns: table => new
+            {
+                Id = table.Column<int>(type: "int", nullable: false).Annotation("SqlServer:Identity", "1, 1"),
+                EndpointName = table.Column<string>(type: "nvarchar(200)", nullable: false),
+                ThroughputSource = table.Column<string>(type: "nvarchar(50)", nullable: false),
+                Date = table.Column<DateOnly>(type: "date", nullable: false),
+                MessageCount = table.Column<long>(type: "bigint", nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_DailyThroughput", x => x.Id);
+                table.UniqueConstraint("UC_DailyThroughput_EndpointName_ThroughputSource_Date", e => new
+                {
+                    e.EndpointName,
+                    e.ThroughputSource,
+                    e.Date
+                });
+            }
+        );
+
     }
 
     /// <inheritdoc />
@@ -75,5 +96,7 @@ public partial class InitialCreate : Migration
             name: "LicensingMetadata");
         migrationBuilder.DropTable(
             name: "ThroughputEndpoint");
+        migrationBuilder.DropTable(
+            name: "DailyThroughput");
     }
 }
