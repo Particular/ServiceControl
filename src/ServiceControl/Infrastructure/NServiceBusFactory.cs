@@ -9,6 +9,7 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceControl.Configuration;
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.Plugins;
     using ServiceControl.Infrastructure.Subscriptions;
     using ServiceControl.Monitoring.HeartbeatMonitoring;
     using ServiceControl.Notifications.Email;
@@ -28,6 +29,8 @@ namespace ServiceBus.Management.Infrastructure
                 assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
             }
 
+            configuration.EnableFeature<RegisterPluginMessagesFeature>();
+
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
 
             transportCustomization.CustomizePrimaryEndpoint(configuration, transportSettings);
@@ -35,9 +38,9 @@ namespace ServiceBus.Management.Infrastructure
             configuration.GetSettings().Set(settings.LoggingSettings);
             configuration.SetDiagnosticsPath(settings.LoggingSettings.LogPath);
 
-            if (settings.DisableExternalIntegrationsPublishing)
+            if (!settings.DisableExternalIntegrationsPublishing)
             {
-                configuration.DisableFeature<ExternalIntegrationsFeature>();
+                configuration.EnableFeature<ExternalIntegrationsFeature>();
             }
 
             var recoverability = configuration.Recoverability();

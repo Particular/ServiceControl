@@ -285,14 +285,14 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             public EndpointThatUsesSignalR() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
+                    c.EnableFeature<SignalRStarterFeature>();
+
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
 
             class SignalRStarterFeature : Feature
             {
-                public SignalRStarterFeature() => EnableByDefault();
-
                 protected override void Setup(FeatureConfigurationContext context)
                 {
                     context.Services.AddSingleton<SignalRStarter>();

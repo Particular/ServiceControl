@@ -20,10 +20,8 @@
 
         public string ErrorQueue
         {
-            set => customErrorQueue = value;
-            get => string.IsNullOrEmpty(customErrorQueue) ? $"{EndpointName}.Errors" : customErrorQueue;
+            set;
+            get => string.IsNullOrEmpty(field) ? $"{EndpointName}.Errors" : field;
         }
-
-        string customErrorQueue;
     }
 }
