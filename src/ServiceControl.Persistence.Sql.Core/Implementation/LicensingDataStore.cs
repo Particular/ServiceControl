@@ -13,6 +13,7 @@ using ServiceControl.Persistence.Sql.Core.Entities;
 
 public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDataStore
 {
+    #region Throughput
     static DateOnly DefaultCutOff()
         => DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-400));
 
@@ -94,6 +95,7 @@ public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDa
 
         _ = await dbContext.SaveChangesAsync(cancellationToken);
     }
+    #endregion
 
     #region Endpoints
     public async Task<IEnumerable<(EndpointIdentifier Id, Endpoint? Endpoint)>> GetEndpoints(IList<EndpointIdentifier> endpointIds, CancellationToken cancellationToken)
