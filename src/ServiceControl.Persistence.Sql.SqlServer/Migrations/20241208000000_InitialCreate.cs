@@ -1,10 +1,13 @@
 namespace ServiceControl.Persistence.Sql.SqlServer.Migrations;
 
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 /// <inheritdoc />
+[DbContext(typeof(SqlServerDbContext))]
+[Migration("20241208000000_InitialCreate")]
 public partial class InitialCreate : Migration
 {
     /// <inheritdoc />
