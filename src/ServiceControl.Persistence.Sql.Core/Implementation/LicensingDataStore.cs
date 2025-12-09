@@ -24,7 +24,7 @@ public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDa
         using var scope = serviceProvider.CreateScope();
         using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
 
-        var fromDatabase = await dbContext.Endpoints
+        var fromDatabase = await dbContext.Endpoints.AsNoTracking()
             .Where(e => endpointIds.Any(id => id.Name == e.EndpointName && Enum.GetName(id.ThroughputSource) == e.ThroughputSource))
             .ToListAsync(cancellationToken);
 
@@ -38,7 +38,7 @@ public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDa
         using var scope = serviceProvider.CreateScope();
         using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
 
-        var fromDatabase = await dbContext.Endpoints.SingleOrDefaultAsync(e => e.EndpointName == id.Name && e.ThroughputSource == Enum.GetName(id.ThroughputSource), cancellationToken);
+        var fromDatabase = await dbContext.Endpoints.AsNoTracking().SingleOrDefaultAsync(e => e.EndpointName == id.Name && e.ThroughputSource == Enum.GetName(id.ThroughputSource), cancellationToken);
         if (fromDatabase is null)
         {
             return null;
@@ -51,10 +51,10 @@ public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDa
     {
         using var scope = serviceProvider.CreateScope();
         using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
-        var endpoints = dbContext.Endpoints;
+        var endpoints = dbContext.Endpoints.AsNoTracking();
         if (!includePlatformEndpoints)
         {
-            //endpoints = endpoints.Where(x => x.UserIndicator != UserIndicator.)
+            endpoints = endpoints.Where(x => x.EndpointIndicators == null || !x.EndpointIndicators.Contains(Enum.GetName(EndpointIndicator.PlatformEndpoint)!));
         }
 
         var fromDatabase = await endpoints.ToListAsync(cancellationToken);
@@ -92,12 +92,12 @@ public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDa
         using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
 
         var endpoints = await dbContext.Endpoints
-                .Where(e => updates.Keys.Contains(e.EndpointName) || updates.Keys.Contains(e.SanitizedEndpointName))
+                .Where(e => updates.Keys.Contains(e.EndpointName) || (e.SanitizedEndpointName != null && updates.Keys.Contains(e.SanitizedEndpointName)))
                 .ToListAsync(cancellationToken) ?? [];
 
         foreach (var endpoint in endpoints)
         {
-            if (updates.TryGetValue(endpoint.SanitizedEndpointName, out var newValueFromSanitizedName))
+            if (endpoint.SanitizedEndpointName is not null && updates.TryGetValue(endpoint.SanitizedEndpointName, out var newValueFromSanitizedName))
             {
                 endpoint.UserIndicator = newValueFromSanitizedName;
             }
@@ -122,17 +122,19 @@ public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDa
     }
 
 
-    Endpoint MapEndpointEntityToContract(ThroughputEndpointEntity entity)
+    static Endpoint MapEndpointEntityToContract(ThroughputEndpointEntity entity)
     => new(entity.EndpointName, Enum.Parse<ThroughputSource>(entity.ThroughputSource))
     {
+#pragma warning disable CS8601 // Possible null reference assignment.
         SanitizedName = entity.SanitizedEndpointName,
         EndpointIndicators = entity.EndpointIndicators?.Split("|"),
         UserIndicator = entity.UserIndicator,
         Scope = entity.Scope,
         LastCollectedDate = entity.LastCollectedData
+#pragma warning restore CS8601 // Possible null reference assignment.
     };
 
-    ThroughputEndpointEntity MapEndpointContractToEntity(Endpoint endpoint)
+    static ThroughputEndpointEntity MapEndpointContractToEntity(Endpoint endpoint)
         => new()
         {
             EndpointName = endpoint.Id.Name,
@@ -146,7 +148,6 @@ public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDa
 
 
     #endregion
-
 
     #region AuditServiceMetadata
 
