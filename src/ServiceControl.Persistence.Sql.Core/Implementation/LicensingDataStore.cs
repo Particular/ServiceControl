@@ -58,7 +58,7 @@ public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDa
         var cutoffDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-days + 1));
         var endDate = DateOnly.FromDateTime(includeToday ? DateTime.UtcNow : DateTime.UtcNow.AddDays(-1));
         var source = Enum.GetName(throughputSource)!;
-        return await dbContext.Throughput.AnyAsync(t => t.Date >= cutoffDate && t.Date < endDate && t.ThroughputSource == source, cancellationToken);
+        return await dbContext.Throughput.AnyAsync(t => t.Date >= cutoffDate && t.Date <= endDate && t.ThroughputSource == source, cancellationToken);
     }
 
     public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken)
