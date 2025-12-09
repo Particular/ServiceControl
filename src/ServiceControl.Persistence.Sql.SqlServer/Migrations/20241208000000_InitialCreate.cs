@@ -24,6 +24,20 @@ public partial class InitialCreate : Migration
             {
                 table.PrimaryKey("PK_TrialLicense", x => x.Id);
             });
+
+        migrationBuilder.CreateTable(
+            name: "LicensingMetadata",
+            columns: table => new
+            {
+                Id = table.Column<int>(type: "int", nullable: false).Annotation("SqlServer:Identity", "1, 1"),
+                Key = table.Column<string>(type: "nvarchar(200)", nullable: false),
+                Data = table.Column<string>(type: "nvarchar(2000)", nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_LicensingMetadata", x => x.Id);
+                table.UniqueConstraint("UC_LicensingMetadata_Key", t => t.Key);
+            });
     }
 
     /// <inheritdoc />
@@ -31,5 +45,7 @@ public partial class InitialCreate : Migration
     {
         migrationBuilder.DropTable(
             name: "TrialLicense");
+        migrationBuilder.DropTable(
+            name: "LicensingMetadata");
     }
 }

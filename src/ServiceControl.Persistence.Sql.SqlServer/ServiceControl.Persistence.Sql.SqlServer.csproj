@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Particular.LicensingComponent.Persistence\Particular.LicensingComponent.Persistence.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence.Sql.Core\ServiceControl.Persistence.Sql.Core.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" Private="false" ExcludeAssets="runtime" />
     <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" Private="false" ExcludeAssets="runtime" />

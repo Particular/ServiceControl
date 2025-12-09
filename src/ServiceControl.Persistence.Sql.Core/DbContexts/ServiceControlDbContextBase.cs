@@ -11,12 +11,14 @@ public abstract class ServiceControlDbContextBase : DbContext
     }
 
     public DbSet<TrialLicenseEntity> TrialLicenses { get; set; }
+    public DbSet<ThroughputEndpointEntity> Endpoints { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfiguration(new TrialLicenseConfiguration());
+        modelBuilder.ApplyConfiguration(new ThroughputEndpointConfiguration());
 
         OnModelCreatingProvider(modelBuilder);
     }
