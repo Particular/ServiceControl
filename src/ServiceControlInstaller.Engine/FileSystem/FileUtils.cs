@@ -153,7 +153,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
 
             // Validate 3rd-party security software didn't delete any of the files, but first, a small delay
             // so that any tool out there has a chance to remove the file before prematurely declaring victory
-            Thread.Sleep(500);
+            Thread.Sleep(1000);
             foreach (var entry in archive.Entries)
             {
                 var pathParts = entry.FullName.Split('/', '\\');
