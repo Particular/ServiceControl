@@ -232,7 +232,7 @@ public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDa
 
     static readonly AuditServiceMetadata EmptyAuditServiceMetadata = new([], []);
     public Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken)
-        => SaveMetdata("AuditServiceMetadata", auditServiceMetadata, cancellationToken);
+        => SaveMetadata("AuditServiceMetadata", auditServiceMetadata, cancellationToken);
     public async Task<AuditServiceMetadata> GetAuditServiceMetadata(CancellationToken cancellationToken = default)
         => await LoadMetadata<AuditServiceMetadata>("AuditServiceMetadata", cancellationToken)
            ?? EmptyAuditServiceMetadata;
@@ -242,7 +242,7 @@ public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDa
     #region ReportMasks
     static readonly List<string> EmptyReportMasks = [];
     public Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken)
-        => SaveMetdata("ReportMasks", reportMasks, cancellationToken);
+        => SaveMetadata("ReportMasks", reportMasks, cancellationToken);
     public async Task<List<string>> GetReportMasks(CancellationToken cancellationToken)
         => await LoadMetadata<List<string>>("ReportMasks", cancellationToken) ?? EmptyReportMasks;
 
@@ -252,7 +252,7 @@ public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDa
     static readonly BrokerMetadata EmptyBrokerMetada = new(ScopeType: null, []);
 
     public Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken)
-        => SaveMetdata("BrokerMetadata", brokerMetadata, cancellationToken);
+        => SaveMetadata("BrokerMetadata", brokerMetadata, cancellationToken);
 
     public async Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken)
         => await LoadMetadata<BrokerMetadata>("BrokerMetadata", cancellationToken) ?? EmptyBrokerMetada;
@@ -272,7 +272,7 @@ public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDa
 
     }
 
-    async Task SaveMetdata<T>(string key, T data, CancellationToken cancellationToken)
+    async Task SaveMetadata<T>(string key, T data, CancellationToken cancellationToken)
     {
         using var scope = serviceProvider.CreateScope();
         await using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
