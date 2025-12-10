@@ -11,18 +11,53 @@ class PostgreSqlDbContext : ServiceControlDbContextBase
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Apply lowercase naming convention for PostgreSQL
+        // Apply snake_case naming convention for PostgreSQL
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
-            entity.SetTableName(entity.GetTableName()?.ToLowerInvariant());
+            entity.SetTableName(ToSnakeCase(entity.GetTableName()));
 
             foreach (var property in entity.GetProperties())
             {
-                property.SetColumnName(property.GetColumnName().ToLowerInvariant());
+                property.SetColumnName(ToSnakeCase(property.GetColumnName()));
+            }
+
+            foreach (var key in entity.GetKeys())
+            {
+                key.SetName(ToSnakeCase(key.GetName()));
+            }
+
+            foreach (var foreignKey in entity.GetForeignKeys())
+            {
+                foreignKey.SetConstraintName(ToSnakeCase(foreignKey.GetConstraintName()));
+            }
+
+            foreach (var index in entity.GetIndexes())
+            {
+                index.SetDatabaseName(ToSnakeCase(index.GetDatabaseName()));
             }
         }
 
         base.OnModelCreating(modelBuilder);
+    }
+
+    static string? ToSnakeCase(string? name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return name;
+        }
+
+        var builder = new System.Text.StringBuilder();
+        for (var i = 0; i < name.Length; i++)
+        {
+            var c = name[i];
+            if (char.IsUpper(c) && i > 0)
+            {
+                builder.Append('_');
+            }
+            builder.Append(char.ToLowerInvariant(c));
+        }
+        return builder.ToString();
     }
 
     protected override void OnModelCreatingProvider(ModelBuilder modelBuilder)

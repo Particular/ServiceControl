@@ -2,51 +2,60 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using ServiceControl.Persistence.Sql.SqlServer;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using ServiceControl.Persistence.Sql.PostgreSQL;
 
 #nullable disable
 
-namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
+namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
 {
-    [DbContext(typeof(SqlServerDbContext))]
-    partial class SqlServerDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(PostgreSqlDbContext))]
+    [Migration("20251210071033_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.11")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.DailyThroughputEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateOnly>("Date")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("date");
 
                     b.Property<string>("EndpointName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("endpoint_name");
 
                     b.Property<long>("MessageCount")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("message_count");
 
                     b.Property<string>("ThroughputSource")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("throughput_source");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_throughput");
 
                     b.HasIndex(new[] { "EndpointName", "ThroughputSource", "Date" }, "UC_DailyThroughput_EndpointName_ThroughputSource_Date")
                         .IsUnique();
@@ -58,21 +67,25 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Data")
                         .IsRequired()
                         .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("data");
 
                     b.Property<string>("Key")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("key");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_licensing_metadata");
 
                     b.HasIndex("Key")
                         .IsUnique();
@@ -84,36 +97,45 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("EndpointIndicators")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text")
+                        .HasColumnName("endpoint_indicators");
 
                     b.Property<string>("EndpointName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("endpoint_name");
 
                     b.Property<DateOnly>("LastCollectedData")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("last_collected_data");
 
                     b.Property<string>("SanitizedEndpointName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text")
+                        .HasColumnName("sanitized_endpoint_name");
 
                     b.Property<string>("Scope")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text")
+                        .HasColumnName("scope");
 
                     b.Property<string>("ThroughputSource")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("throughput_source");
 
                     b.Property<string>("UserIndicator")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text")
+                        .HasColumnName("user_indicator");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_endpoints");
 
                     b.HasIndex(new[] { "EndpointName", "ThroughputSource" }, "UC_ThroughputEndpoint_EndpointName_ThroughputSource")
                         .IsUnique();
@@ -124,13 +146,16 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
             modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.TrialLicenseEntity", b =>
                 {
                     b.Property<int>("Id")
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("id");
 
                     b.Property<DateOnly>("TrialEndDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("trial_end_date");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_trial_licenses");
 
                     b.ToTable("TrialLicense", (string)null);
                 });
