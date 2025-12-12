@@ -25,6 +25,9 @@ using Microsoft.Extensions.Logging;
 public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings)
     : BrokerThroughputQuery(logger, "AzureServiceBus")
 {
+    const string CompleteMessageMetricName = "CompleteMessage";
+    const string MicrosoftServicebusNamespacesMetricsNamespace = "Microsoft.ServiceBus/Namespaces";
+
     string serviceBusName = string.Empty;
     ArmClient? armClient;
     TokenCredential? credential;
@@ -135,10 +138,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             {
                 Environment = armEnvironment,
                 Transport = new HttpClientTransport(
-                    new HttpClient(new SocketsHttpHandler
-                    {
-                        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
-                    }))
+                    new HttpClient(new SocketsHttpHandler { PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2) }))
             });
 
         return;
@@ -166,11 +166,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             }
 
             string options = string.Join(", ",
-                new[]
-                {
-                    ArmEnvironment.AzurePublicCloud, ArmEnvironment.AzureGermany, ArmEnvironment.AzureGovernment,
-                    ArmEnvironment.AzureChina
-                }.Select(environment => $"\"{environment.Endpoint}\""));
+                new[] { ArmEnvironment.AzurePublicCloud, ArmEnvironment.AzureGermany, ArmEnvironment.AzureGovernment, ArmEnvironment.AzureChina }.Select(environment => $"\"{environment.Endpoint}\""));
             InitialiseErrors.Add($"Management url configuration is invalid, available options are {options}");
 
             return (ArmEnvironment.AzurePublicCloud, MetricsClientAudience.AzurePublicCloud);
@@ -214,7 +210,11 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         var data = new Dictionary<DateOnly, QueueThroughput>();
         while (currentDate <= endDate)
         {
-            data.Add(currentDate, new QueueThroughput { TotalThroughput = 0, DateUTC = currentDate });
+            data.Add(currentDate, new QueueThroughput
+            {
+                TotalThroughput = 0,
+                DateUTC = currentDate
+            });
             currentDate = currentDate.AddDays(1);
         }
 
@@ -237,8 +237,8 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         }
 
         var serviceBusNamespaceResource = await armClient
-            .GetServiceBusNamespaceResource(resourceId).GetAsync(cancellationToken)
-                ?? throw new Exception($"Could not find an Azure Service Bus namespace with resource Id: \"{resourceId}\"");
+                                              .GetServiceBusNamespaceResource(resourceId).GetAsync(cancellationToken)
+                                          ?? throw new Exception($"Could not find an Azure Service Bus namespace with resource Id: \"{resourceId}\"");
 
         // Determine the region of the namespace
         var regionName = serviceBusNamespaceResource.Value.Data.Location.Name;
@@ -254,10 +254,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             {
                 Audience = metricsClientAudience,
                 Transport = new HttpClientTransport(
-                    new HttpClient(new SocketsHttpHandler
-                    {
-                        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
-                    }))
+                    new HttpClient(new SocketsHttpHandler { PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2) }))
             });
     }
 
@@ -276,8 +273,8 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
         var response = await metricsClient.QueryResourcesAsync(
             [resourceId!],
-            ["CompleteMessage"],
-            "Microsoft.ServiceBus/namespaces",
+            [CompleteMessageMetricName],
+            MicrosoftServicebusNamespacesMetricsNamespace,
             new MetricsQueryResourcesOptions
             {
                 Filter = $"EntityName eq '{queueName}'",
@@ -286,10 +283,28 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             },
             cancellationToken);
 
-        var metricValues =
-            response.Value.Values.FirstOrDefault()?.Metrics.FirstOrDefault()?.TimeSeries.FirstOrDefault()?.Values ?? [];
+        var metricQueryResult = response.Value.Values.SingleOrDefault(mr => mr.Namespace == MicrosoftServicebusNamespacesMetricsNamespace);
 
-        return metricValues.AsReadOnly();
+        if (metricQueryResult is null)
+        {
+            throw new Exception($"No metrics query results returned for {MicrosoftServicebusNamespacesMetricsNamespace}");
+        }
+
+        var metricResult = metricQueryResult.GetMetricByName(CompleteMessageMetricName);
+
+        if (metricResult.Error.Message is not null)
+        {
+            throw new Exception($"Metrics query result for '{metricResult.Name}' failed: {metricResult.Error.Message}");
+        }
+
+        var timeSeries = metricResult.TimeSeries.SingleOrDefault();
+
+        if (timeSeries is null)
+        {
+            throw new Exception($"Metrics query result for '{metricResult.Name}' contained no time series");
+        }
+
+        return timeSeries.Values.AsReadOnly();
     }
 
     public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
