@@ -15,11 +15,6 @@ public class ForwardedHeadersSettings
     {
         Enabled = SettingsReader.Read(rootNamespace, "ForwardedHeaders.Enabled", true);
 
-        if (!Enabled)
-        {
-            return;
-        }
-
         // Default to trusting all proxies for backwards compatibility
         // Customers can set this to false and configure KnownProxies/KnownNetworks for better security
         TrustAllProxies = SettingsReader.Read(rootNamespace, "ForwardedHeaders.TrustAllProxies", true);
@@ -114,12 +109,6 @@ public class ForwardedHeadersSettings
 
     void LogConfiguration()
     {
-        if (!Enabled)
-        {
-            logger.LogInformation("Forwarded headers processing is disabled");
-            return;
-        }
-
         logger.LogInformation("Forwarded headers configuration:");
         logger.LogInformation("  Enabled: {Enabled}", Enabled);
         logger.LogInformation("  TrustAllProxies: {TrustAllProxies}", TrustAllProxies);

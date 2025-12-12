@@ -79,10 +79,8 @@ mkcert -cert-file local-platform.pem -key-file local-platform-key.pem \
 Create `.local/compose.yml`:
 
 ```yaml
-name: service-platform
-
 services:
-  reverse-proxy:
+  reverse-proxy-servicecontrol:
     image: nginx:alpine
     ports:
       - "80:80"
@@ -92,6 +90,8 @@ services:
       - ./certs/local-platform.pem:/etc/nginx/certs/local.pem:ro
       - ./certs/local-platform-key.pem:/etc/nginx/certs/local-key.pem:ro
 ```
+
+Ensure no other NGINX containers are running.
 
 ## Step 4: Create NGINX Configuration
 
@@ -113,13 +113,36 @@ http {
     ssl_protocols       TLSv1.2 TLSv1.3;
     ssl_ciphers         HIGH:!aNULL:!MD5;
 
-    # ServiceControl (Primary)
+    # ServiceControl (Primary) - 443
     server {
         listen 443 ssl;
         server_name servicecontrol.localhost;
 
         location / {
-            proxy_pass http://host.docker.internal:33333;
+            # REPLACE: with local machine IP address running service control
+            proxy_pass http://IPADDRESS:33333;
+
+            # WebSocket Support
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+
+            # Forwarded Headers
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+
+    # ServiceControl (Primary) - 80 - Used to test HTTP-HTTPS redirection
+    server {
+        listen 80;
+        server_name servicecontrol.localhost;
+
+        location / {
+            # REPLACE: with local machine IP address running service control
+            proxy_pass http://IPADDRESS:33333;
 
             # WebSocket Support
             proxy_http_version 1.1;
@@ -239,9 +262,12 @@ Start the ServiceControl instances locally using your preferred method:
 
 ### **Option B: Command Line**
 
+Navigate to the project folder.
+
 ```bash
 # Run ServiceControl (Primary)
-dotnet run --project src/ServiceControl/ServiceControl.csproj
+dotnet build
+dotnet run
 
 # Run ServiceControl.Audit
 dotnet run --project src/ServiceControl.Audit/ServiceControl.Audit.csproj
@@ -254,18 +280,52 @@ dotnet run --project src/ServiceControl.Monitoring/ServiceControl.Monitoring.csp
 
 Test that the reverse proxy is working correctly:
 
-```bash
-# Test ServiceControl (Primary)
-curl -k https://servicecontrol.localhost/api
+When running in the Development environment, a `/debug/request-info` endpoint is available to diagnose forwarded headers configuration:
 
-# Test ServiceControl.Audit
-curl -k https://servicecontrol-audit.localhost/api
+```powershell
+# Direct to ServiceControl (bypassing proxy)
+Invoke-RestMethod http://localhost:33333/debug/request-info | ConvertTo-Json -Depth 5
 
-# Test ServiceControl.Monitoring
-curl -k https://servicecontrol-monitor.localhost/api
+# Through the reverse proxy (skip certificate check for self-signed certs)
+Invoke-RestMethod https://servicecontrol.localhost/debug/request-info -SkipCertificateCheck | ConvertTo-Json -Depth 5
 ```
 
-The `-k` flag is used to accept the self-signed certificate. If you've installed mkcert's root CA, you can omit it.
+This endpoint returns detailed information including:
+
+- **processed**: Request values after forwarded headers processing
+- **rawHeaders**: Raw `X-Forwarded-*` header values (empty if consumed by middleware)
+- **configuration**: Current forwarded headers configuration
+
+Example response:
+
+```json
+{
+  "processed": {
+    "scheme": "https",
+    "host": "servicecontrol.localhost",
+    "remoteIpAddress": "172.17.0.1"
+  },
+  "rawHeaders": {
+    "xForwardedFor": "",
+    "xForwardedProto": "",
+    "xForwardedHost": ""
+  },
+  "configuration": {
+    "enabled": true,
+    "trustAllProxies": false,
+    "knownProxies": ["127.0.0.1"],
+    "knownNetworks": []
+  }
+}
+```
+
+### Key Diagnostic Questions
+
+1. **Were headers applied?** - If `rawHeaders` are empty but `processed` values changed, the middleware consumed and applied them
+2. **Why weren't headers applied?** - If `rawHeaders` still contain values, the middleware didn't trust the caller. Check `knownProxies` and `knownNetworks` in `configuration`
+3. **Is forwarded headers enabled?** - Check `configuration.enabled`
+
+> **Note:** This endpoint is only available when `ASPNETCORE_ENVIRONMENT` is set to `Development`.
 
 ## Final Directory Structure
 
@@ -309,6 +369,80 @@ When the proxy is **not** trusted (incorrect `KnownProxies`):
 - `Request.Scheme` remains `http`
 - `Request.Host` remains the internal hostname
 - The request is still processed (not blocked)
+
+## Testing HTTP to HTTPS Redirection
+
+The `RedirectHttpToHttps` setting enables ASP.NET Core's HTTPS redirection middleware. This is designed for reverse proxy scenarios where:
+
+1. The proxy forwards HTTP requests to ServiceControl
+2. The proxy sends `X-Forwarded-Proto: http` to indicate the original protocol
+3. ServiceControl responds with a 307 redirect to the HTTPS URL
+
+### Configure ServiceControl for Redirection
+
+Add the following to your `App.config`:
+
+```xml
+<appSettings>
+  <add key="ServiceControl/ForwardedHeaders.Enabled" value="true" />
+  <add key="ServiceControl/ForwardedHeaders.KnownProxies" value="127.0.0.1" />
+  <add key="ServiceControl/Https.RedirectHttpToHttps" value="true" />
+</appSettings>
+```
+
+Or use environment variables:
+
+```cmd
+set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=true
+set SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES=127.0.0.1
+set SERVICECONTROL_HTTPS_REDIRECTHTTPTOHTTPS=true
+
+dotnet run
+```
+
+### Test the Redirection
+
+The NGINX configuration includes an HTTP server on port 80 that forwards `X-Forwarded-Proto: http`. Test with curl:
+
+```bash
+# Request via HTTP - should receive a 307 redirect to HTTPS
+curl -v http://servicecontrol.localhost/api 2>&1 | grep -E "< HTTP|< Location"
+```
+
+**Expected output:**
+
+```text
+< HTTP/1.1 307 Temporary Redirect
+< Location: https://servicecontrol.localhost/api
+```
+
+The middleware detects `X-Forwarded-Proto: http` and redirects the client to the HTTPS URL.
+
+### Verify Without Redirection
+
+With `RedirectHttpToHttps` disabled (or not set), HTTP requests are processed normally:
+
+```bash
+# Request via HTTP - should receive 200 OK (no redirect)
+curl -v http://servicecontrol.localhost/api 2>&1 | grep "< HTTP"
+```
+
+**Expected output:**
+
+```text
+< HTTP/1.1 200 OK
+```
+
+### How It Works
+
+1. Client sends HTTP request to `http://servicecontrol.localhost/api`
+2. NGINX receives on port 80 and forwards to ServiceControl with `X-Forwarded-Proto: http`
+3. ServiceControl's forwarded headers middleware processes the header (from trusted proxy)
+4. `Request.Scheme` is set to `http` based on `X-Forwarded-Proto`
+5. HTTPS redirection middleware sees `Request.Scheme == "http"` and issues a 307 redirect
+6. Client follows redirect to `https://servicecontrol.localhost/api`
+
+> **Note:** This redirection only works with a reverse proxy because ServiceControl needs to receive the `X-Forwarded-Proto` header to know the original protocol. Without a proxy, ServiceControl only binds to a single port and cannot perform HTTP to HTTPS redirection. See [Local HTTPS Testing](local-https-testing.md) for direct HTTPS scenarios.
 
 ## Troubleshooting
 
