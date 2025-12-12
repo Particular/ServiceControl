@@ -32,6 +32,7 @@
     <PackageReference Include="NServiceBus.CustomChecks" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" />
     <PackageReference Include="NServiceBus.Extensions.Logging" />
+    <PackageReference Include="Particular.PlatformSample.ServicePulse"/>
     <PackageReference Include="ServiceControl.Contracts" />
     <PackageReference Include="System.Reactive.Linq" />
     <PackageReference Include="Yarp.ReverseProxy" />

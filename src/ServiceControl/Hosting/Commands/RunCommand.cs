@@ -1,8 +1,12 @@
 ﻿namespace ServiceControl.Hosting.Commands
 {
+    using System;
+    using System.IO;
+    using System.Reflection;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.Extensions.FileProviders;
     using NServiceBus;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
@@ -23,8 +27,18 @@
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
             hostBuilder.AddServiceControlApi();
 
+            var servicePulsePath = Path.Combine(AppContext.BaseDirectory, "platform", "servicepulse", "ServicePulse.dll");
+            var manifestEmbeddedFileProvider = new ManifestEmbeddedFileProvider(Assembly.LoadFrom(servicePulsePath), "wwwroot");
+            var fileProvider = new CompositeFileProvider(hostBuilder.Environment.WebRootFileProvider, manifestEmbeddedFileProvider);
+            var defaultFilesOptions = new DefaultFilesOptions { FileProvider = fileProvider };
+            var staticFileOptions = new StaticFileOptions { FileProvider = fileProvider };
+
             var app = hostBuilder.Build();
-            app.UseServiceControl();
+            app.UseServiceControl()
+                .UseMiddleware<AppConstantsMiddleware>()
+                .UseDefaultFiles(defaultFilesOptions)
+                .UseStaticFiles(staticFileOptions);
+
             await app.RunAsync(settings.RootUrl);
         }
     }
