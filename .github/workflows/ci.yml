@@ -51,7 +51,7 @@ jobs:
           New-Item assets\PowerShellModules -ItemType Directory
           Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
       - name: Upload assets
-        uses: actions/upload-artifact@v5.0.0
+        uses: actions/upload-artifact@v6.0.0
         if: matrix.test-category == 'Default'
         with:
           name: ${{ matrix.os-name }}-assets
