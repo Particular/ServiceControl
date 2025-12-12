@@ -119,8 +119,7 @@ http {
         server_name servicecontrol.localhost;
 
         location / {
-            # REPLACE: with local machine IP address running service control
-            proxy_pass http://IPADDRESS:33333;
+            proxy_pass http://host.docker.internal:44444;
 
             # WebSocket Support
             proxy_http_version 1.1;
@@ -141,8 +140,7 @@ http {
         server_name servicecontrol.localhost;
 
         location / {
-            # REPLACE: with local machine IP address running service control
-            proxy_pass http://IPADDRESS:33333;
+            proxy_pass http://host.docker.internal:44444;
 
             # WebSocket Support
             proxy_http_version 1.1;
