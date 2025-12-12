@@ -1,16 +1,24 @@
 # Local Testing with Direct HTTPS
 
-This guide explains how to test ServiceControl with direct HTTPS enabled on Kestrel, without using a reverse proxy. This is useful for testing scenarios like:
+This guide provides scenario-based tests for ServiceControl's direct HTTPS features. Use this to verify Kestrel HTTPS behavior without a reverse proxy.
 
-- Direct TLS termination at ServiceControl
-- HTTPS redirection
-- HSTS (HTTP Strict Transport Security)
-- End-to-end encryption testing
+> **Note:** HTTP to HTTPS redirection (`RedirectHttpToHttps`) is designed for reverse proxy scenarios where the proxy forwards HTTP requests to ServiceControl. When running with direct HTTPS, ServiceControl only binds to a single port (HTTPS). To test HTTP to HTTPS redirection, see [Local Reverse Proxy Testing](local-reverseproxy-testing.md).
+
+## Instance Reference
+
+| Instance | Project Directory | Default Port | Environment Variable Prefix | App.config Key Prefix |
+|----------|-------------------|--------------|-----------------------------|-----------------------|
+| ServiceControl (Primary) | `src\ServiceControl` | 33333 | `SERVICECONTROL_` | `ServiceControl/` |
+| ServiceControl.Audit | `src\ServiceControl.Audit` | 44444 | `SERVICECONTROL_AUDIT_` | `ServiceControl.Audit/` |
+| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633 | `MONITORING_` | `Monitoring/` |
+
+> **Note:** Environment variables must include the instance prefix (e.g., `SERVICECONTROL_HTTPS_ENABLED` for the primary instance).
 
 ## Prerequisites
 
 - [mkcert](https://github.com/FiloSottile/mkcert) for generating local development certificates
 - ServiceControl built locally (see main README for build instructions)
+- curl (included with Windows 10/11, Git Bash, or WSL)
 
 ### Installing mkcert
 
@@ -45,7 +53,9 @@ sudo pacman -S mkcert
 
 After installing, run `mkcert -install` to install the local CA in your system trust store.
 
-## Step 1: Create the Local Development Folder
+## Setup
+
+### Step 1: Create the Local Development Folder
 
 Create a `.local` folder in the repository root (this folder is gitignored):
 
@@ -54,7 +64,7 @@ mkdir .local
 mkdir .local/certs
 ```
 
-## Step 2: Generate PFX Certificates
+### Step 2: Generate PFX Certificates
 
 Kestrel requires certificates in PFX format. Use mkcert to generate them:
 
@@ -69,107 +79,124 @@ cd .local/certs
 mkcert -p12-file localhost.pfx -pkcs12 localhost 127.0.0.1 ::1
 ```
 
-When prompted for a password, you can use an empty password by pressing Enter, or set a password and note it for the configuration step.
+When prompted for a password, you can use an empty password by pressing Enter, or set a password (e.g., `changeit`) and note it for the configuration step.
 
-## Step 3: Configure ServiceControl Instances
+## Test Scenarios
 
-Configure HTTPS in the `App.config` file for each ServiceControl instance. See [HTTPS Settings](hosting-guide.md#https-settings) in the Hosting Guide for all available options.
+All scenarios use environment variables for configuration. Run each scenario from the `src/ServiceControl` directory.
 
-| Instance | Config Key Prefix | App.config Location |
-|----------|-------------------|---------------------|
-| ServiceControl (Primary) | `ServiceControl/` | `src/ServiceControl/App.config` |
-| ServiceControl.Audit | `ServiceControl.Audit/` | `src/ServiceControl.Audit/App.config` |
-| ServiceControl.Monitoring | `Monitoring/` | `src/ServiceControl.Monitoring/App.config` |
+### Scenario 1: Basic HTTPS Connectivity
 
-Example for ServiceControl (Primary):
+Verify that HTTPS is working with a valid certificate.
 
-```xml
-<appSettings>
-  <!-- Enable Kestrel HTTPS -->
-  <add key="ServiceControl/Https.Enabled" value="true" />
-  <add key="ServiceControl/Https.CertificatePath" value="C:\path\to\repo\.local\certs\localhost.pfx" />
-  <add key="ServiceControl/Https.CertificatePassword" value="" />
+**Cleanup and start ServiceControl:**
 
-  <!-- Optional: Enable HSTS -->
-  <add key="ServiceControl/Https.EnableHsts" value="true" />
+```cmd
+set SERVICECONTROL_HTTPS_ENABLED=true
+set SERVICECONTROL_HTTPS_CERTIFICATEPATH=C:\path\to\ServiceControl\.local\certs\localhost.pfx
+set SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD=changeit
+set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=false
 
-  <!-- Optional: Redirect HTTP to HTTPS -->
-  <add key="ServiceControl/Https.RedirectHttpToHttps" value="true" />
-
-  <!-- Disable forwarded headers (no reverse proxy) -->
-  <add key="ServiceControl/ForwardedHeaders.Enabled" value="false" />
-</appSettings>
+dotnet run
 ```
 
-> **Note:** Replace `C:\path\to\repo` with the actual path to your ServiceControl repository. Use the full absolute path to the PFX file.
+**Test with curl:**
 
-## Step 4: Start ServiceControl Instances
-
-Start the ServiceControl instances locally using your preferred method:
-
-### **Option A: Visual Studio**
-
-1. Open `src/ServiceControl.sln`
-2. Run the desired project(s) with the appropriate launch profile
-
-### **Option B: Command Line**
-
-```bash
-# Run ServiceControl (Primary)
-dotnet run --project src/ServiceControl/ServiceControl.csproj
-
-# Run ServiceControl.Audit
-dotnet run --project src/ServiceControl.Audit/ServiceControl.Audit.csproj
-
-# Run ServiceControl.Monitoring
-dotnet run --project src/ServiceControl.Monitoring/ServiceControl.Monitoring.csproj
+```cmd
+curl --ssl-no-revoke -v https://localhost:33333/api 2>&1 | findstr /C:"HTTP/" /C:"SSL"
 ```
 
-## Step 5: Verify the Setup
+> **Note:** The `--ssl-no-revoke` flag is required on Windows because mkcert certificates don't have CRL distribution points, causing `CRYPT_E_NO_REVOCATION_CHECK` errors.
 
-Test that HTTPS is working correctly:
+**Expected output:**
 
-```bash
-# Test ServiceControl (Primary)
-curl https://localhost:33333/api
-
-# Test ServiceControl.Audit
-curl https://localhost:44444/api
-
-# Test ServiceControl.Monitoring
-curl https://localhost:33633/api
+```text
+* schannel: SSL/TLS connection renegotiated
+< HTTP/1.1 200 OK
 ```
 
-If you've installed mkcert's root CA, the requests should succeed without certificate warnings.
+The request succeeds over HTTPS. The exact SSL output varies by curl version and platform, but you should see `HTTP/1.1 200 OK` confirming success.
 
-### Testing HTTPS Redirection
+### Scenario 2: HTTP Disabled (HTTPS Only)
 
-If `RedirectHttpToHttps` is enabled, HTTP requests should redirect to HTTPS:
+Verify that HTTP requests fail when only HTTPS is enabled.
 
-```bash
-# This should redirect to https://localhost:33333/api
-curl -v http://localhost:33333/api
+**Cleanup and start ServiceControl:**
+
+```cmd
+set SERVICECONTROL_HTTPS_ENABLED=true
+set SERVICECONTROL_HTTPS_CERTIFICATEPATH=C:\path\to\ServiceControl\.local\certs\localhost.pfx
+set SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD=changeit
+set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=false
+
+dotnet run
 ```
 
-### Testing HSTS
+**Test with curl (HTTP):**
 
-If `EnableHsts` is enabled, the response should include the `Strict-Transport-Security` header:
-
-```bash
-curl -v https://localhost:33333/api 2>&1 | grep -i strict-transport-security
+```cmd
+curl http://localhost:33333/api
 ```
+
+**Expected output:**
+
+```text
+curl: (52) Empty reply from server
+```
+
+HTTP requests fail because Kestrel is listening for HTTPS but receives plaintext HTTP, which it cannot process. The server closes the connection without responding.
 
 ## HTTPS Configuration Reference
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `Https.Enabled` | `false` | Enable Kestrel HTTPS |
-| `Https.CertificatePath` | - | Path to PFX certificate file |
-| `Https.CertificatePassword` | - | Certificate password (empty string for no password) |
-| `Https.RedirectHttpToHttps` | `false` | Redirect HTTP requests to HTTPS |
-| `Https.EnableHsts` | `false` | Enable HTTP Strict Transport Security |
-| `Https.HstsMaxAgeSeconds` | `31536000` | HSTS max-age (1 year) |
-| `Https.HstsIncludeSubDomains` | `false` | Include subdomains in HSTS |
+| App.config Key | Environment Variable (Primary) | Default | Description |
+|----------------|-------------------------------|---------|-------------|
+| `Https.Enabled` | `SERVICECONTROL_HTTPS_ENABLED` | `false` | Enable Kestrel HTTPS |
+| `Https.CertificatePath` | `SERVICECONTROL_HTTPS_CERTIFICATEPATH` | - | Path to PFX certificate file |
+| `Https.CertificatePassword` | `SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD` | - | Certificate password (empty string for no password) |
+| `Https.RedirectHttpToHttps` | `SERVICECONTROL_HTTPS_REDIRECTHTTPTOHTTPS` | `false` | Redirect HTTP requests to HTTPS (reverse proxy only) |
+| `Https.EnableHsts` | `SERVICECONTROL_HTTPS_ENABLEHSTS` | `false` | Enable HTTP Strict Transport Security |
+| `Https.HstsMaxAgeSeconds` | `SERVICECONTROL_HTTPS_HSTSMAXAGESECONDS` | `31536000` | HSTS max-age (1 year) |
+| `Https.HstsIncludeSubDomains` | `SERVICECONTROL_HTTPS_HSTSINCLUDESUBDOMAINS` | `false` | Include subdomains in HSTS |
+
+> **Note:** For other instances, replace the `SERVICECONTROL_` prefix with the appropriate instance prefix (see Instance Reference table).
+>
+> **Note:** HSTS is not tested locally because ASP.NET Core excludes localhost from HSTS by default (to prevent accidentally caching HSTS during development). HSTS will work correctly in production with non-localhost hostnames.
+
+## Testing Other Instances
+
+The same scenarios can be run against ServiceControl.Audit and ServiceControl.Monitoring by:
+
+1. Using the appropriate environment variable prefix
+2. Running from the correct project directory
+3. Using the correct port
+
+**ServiceControl.Audit:**
+
+```cmd
+set SERVICECONTROL_AUDIT_HTTPS_ENABLED=true
+set SERVICECONTROL_AUDIT_HTTPS_CERTIFICATEPATH=C:\path\to\ServiceControl\.local\certs\localhost.pfx
+set SERVICECONTROL_AUDIT_HTTPS_CERTIFICATEPASSWORD=changeit
+
+dotnet run --project src/ServiceControl.Audit/ServiceControl.Audit.csproj
+```
+
+```cmd
+curl --ssl-no-revoke https://localhost:44444/api
+```
+
+**ServiceControl.Monitoring:**
+
+```cmd
+set MONITORING_HTTPS_ENABLED=true
+set MONITORING_HTTPS_CERTIFICATEPATH=C:\path\to\ServiceControl\.local\certs\localhost.pfx
+set MONITORING_HTTPS_CERTIFICATEPASSWORD=changeit
+
+dotnet run --project src/ServiceControl.Monitoring/ServiceControl.Monitoring.csproj
+```
+
+```cmd
+curl --ssl-no-revoke https://localhost:33633/api
+```
 
 ## Troubleshooting
 
@@ -181,16 +208,65 @@ Ensure the `CertificatePath` is an absolute path and the file exists.
 
 If you set a password when generating the PFX, ensure it matches `CertificatePassword` in the config.
 
-### Certificate errors in browser
+### Certificate errors in browser/curl
 
 1. Ensure mkcert's root CA is installed: `mkcert -install`
 2. Restart your browser after installing the root CA
+
+### CRYPT_E_NO_REVOCATION_CHECK error in curl
+
+Windows curl fails to check certificate revocation for mkcert certificates because they don't have CRL distribution points. Use the `--ssl-no-revoke` flag:
+
+```cmd
+curl --ssl-no-revoke https://localhost:33333/api
+```
 
 ### Port already in use
 
 Ensure no other process is using the ServiceControl ports (33333, 44444, 33633).
 
+## Cleanup
+
+After testing, clear the environment variables:
+
+**Command Prompt (cmd):**
+
+```cmd
+set SERVICECONTROL_HTTPS_ENABLED=
+set SERVICECONTROL_HTTPS_CERTIFICATEPATH=
+set SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD=
+set SERVICECONTROL_HTTPS_ENABLEHSTS=
+set SERVICECONTROL_HTTPS_HSTSMAXAGESECONDS=
+set SERVICECONTROL_HTTPS_HSTSINCLUDESUBDOMAINS=
+set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=
+```
+
+**PowerShell:**
+
+```powershell
+$env:SERVICECONTROL_HTTPS_ENABLED = $null
+$env:SERVICECONTROL_HTTPS_CERTIFICATEPATH = $null
+$env:SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD = $null
+$env:SERVICECONTROL_HTTPS_ENABLEHSTS = $null
+$env:SERVICECONTROL_HTTPS_HSTSMAXAGESECONDS = $null
+$env:SERVICECONTROL_HTTPS_HSTSINCLUDESUBDOMAINS = $null
+$env:SERVICECONTROL_FORWARDEDHEADERS_ENABLED = $null
+```
+
+**Bash (Git Bash, WSL, Linux, macOS):**
+
+```bash
+unset SERVICECONTROL_HTTPS_ENABLED
+unset SERVICECONTROL_HTTPS_CERTIFICATEPATH
+unset SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD
+unset SERVICECONTROL_HTTPS_ENABLEHSTS
+unset SERVICECONTROL_HTTPS_HSTSMAXAGESECONDS
+unset SERVICECONTROL_HTTPS_HSTSINCLUDESUBDOMAINS
+unset SERVICECONTROL_FORWARDEDHEADERS_ENABLED
+```
+
 ## See Also
 
 - [Hosting Guide](hosting-guide.md) - Detailed configuration reference for all deployment scenarios
-- [Local NGINX Testing](local-nginx-testing.md) - Testing with a reverse proxy
+- [Local Reverse Proxy Testing](local-reverseproxy-testing.md) - Testing with a reverse proxy (NGINX)
+- [Local Forwarded Headers Testing](local-forward-headers-testing.md) - Testing forwarded headers without a reverse proxy
