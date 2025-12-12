@@ -238,7 +238,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
         var serviceBusNamespaceResource = await armClient
             .GetServiceBusNamespaceResource(resourceId).GetAsync(cancellationToken)
-                ?? throw new Exception($"Could not find ServiceBus with resource Id: \"{resourceId}\"");
+                ?? throw new Exception($"Could not find an Azure Service Bus namespace with resource Id: \"{resourceId}\"");
 
         // Determine the region of the namespace
         var regionName = serviceBusNamespaceResource.Value.Data.Location.Name;
