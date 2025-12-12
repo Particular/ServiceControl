@@ -19,7 +19,7 @@ namespace ServiceControl.Infrastructure.WebApi
             var settings = ServicePulseSettings.GetFromEnvironmentVariables();
             var constants = new
             {
-                default_route = "/dashboard",
+                default_route = settings.DefaultRoute,
                 service_control_url = "api/",
                 monitoring_urls = new[] { settings.MonitoringUri.ToString() },
                 showPendingRetry = settings.ShowPendingRetry,
