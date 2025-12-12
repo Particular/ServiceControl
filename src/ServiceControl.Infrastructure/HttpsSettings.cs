@@ -77,30 +77,14 @@ public class HttpsSettings
 
     void LogConfiguration()
     {
-        if (!Enabled && !RedirectHttpToHttps && !EnableHsts)
-        {
-            return;
-        }
-
         logger.LogInformation("HTTPS configuration:");
 
-        if (Enabled)
-        {
-            logger.LogInformation("  Enabled: {Enabled}", Enabled);
-            logger.LogInformation("  CertificatePath: {CertificatePath}", CertificatePath);
-            logger.LogInformation("  CertificatePassword: {CertificatePassword}", string.IsNullOrEmpty(CertificatePassword) ? "(not set)" : "(set)");
-        }
-
-        if (RedirectHttpToHttps)
-        {
-            logger.LogInformation("  RedirectHttpToHttps: {RedirectHttpToHttps}", RedirectHttpToHttps);
-        }
-
-        if (EnableHsts)
-        {
-            logger.LogInformation("  EnableHsts: {EnableHsts}", EnableHsts);
-            logger.LogInformation("  HstsMaxAgeSeconds: {HstsMaxAgeSeconds}", HstsMaxAgeSeconds);
-            logger.LogInformation("  HstsIncludeSubDomains: {HstsIncludeSubDomains}", HstsIncludeSubDomains);
-        }
+        logger.LogInformation("  Enabled: {Enabled}", Enabled);
+        logger.LogInformation("  CertificatePath: {CertificatePath}", CertificatePath);
+        logger.LogInformation("  CertificatePassword: {CertificatePassword}", string.IsNullOrEmpty(CertificatePassword) ? "(not set)" : "(set)");
+        logger.LogInformation("  RedirectHttpToHttps: {RedirectHttpToHttps}", RedirectHttpToHttps);
+        logger.LogInformation("  EnableHsts: {EnableHsts}", EnableHsts);
+        logger.LogInformation("  HstsMaxAgeSeconds: {HstsMaxAgeSeconds}", HstsMaxAgeSeconds);
+        logger.LogInformation("  HstsIncludeSubDomains: {HstsIncludeSubDomains}", HstsIncludeSubDomains);
     }
 }
