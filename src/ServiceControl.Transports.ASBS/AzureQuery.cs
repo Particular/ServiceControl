@@ -56,12 +56,12 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         {
             // Extract ServiceBus name from connection string
             serviceBusName = ExtractServiceBusName();
-            logger.LogInformation("ServiceBus name extracted from connection string");
-            Diagnostics.AppendLine($"ServiceBus name not set, defaulted to \"{serviceBusName}\"");
+            logger.LogInformation("Azure Service Bus namespace name extracted from connection string");
+            Diagnostics.AppendLine($"Azure Service Bus namespace not set, defaulted to \"{serviceBusName}\"");
         }
         else
         {
-            Diagnostics.AppendLine($"ServiceBus name set to \"{serviceBusName}\"");
+            Diagnostics.AppendLine($"Azure Service Bus namespace set to \"{serviceBusName}\"");
         }
 
         if (!settings.TryGetValue(AzureServiceBusSettings.SubscriptionId, out string? subscriptionId))
