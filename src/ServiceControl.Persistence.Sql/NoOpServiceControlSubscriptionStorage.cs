@@ -3,7 +3,6 @@ namespace ServiceControl.Persistence.Sql;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using NServiceBus;
 using NServiceBus.Extensibility;
 using NServiceBus.Unicast.Subscriptions;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;

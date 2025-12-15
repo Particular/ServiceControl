@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ServiceControl.Contracts.CustomChecks;
-using ServiceControl.CustomChecks;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.Infrastructure;
 

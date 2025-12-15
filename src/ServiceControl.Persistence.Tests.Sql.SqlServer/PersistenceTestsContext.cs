@@ -1,8 +1,6 @@
 namespace ServiceControl.Persistence.Tests;
 
-using System;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ServiceControl.Persistence;
