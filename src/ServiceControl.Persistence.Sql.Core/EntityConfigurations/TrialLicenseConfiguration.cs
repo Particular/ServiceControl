@@ -14,7 +14,6 @@ class TrialLicenseConfiguration : IEntityTypeConfiguration<TrialLicenseEntity>
 
         // Ensure only one row exists by using a fixed primary key
         builder.Property(e => e.Id)
-            .HasDefaultValue(1)
             .ValueGeneratedNever();
 
         builder.Property(e => e.TrialEndDate)

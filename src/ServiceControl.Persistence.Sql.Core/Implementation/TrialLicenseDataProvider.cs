@@ -1,56 +1,51 @@
 namespace ServiceControl.Persistence.Sql.Core.Implementation;
 
-using DbContexts;
+using Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence;
 
-public class TrialLicenseDataProvider : ITrialLicenseDataProvider
+public class TrialLicenseDataProvider : DataStoreBase, ITrialLicenseDataProvider
 {
-    readonly IServiceProvider serviceProvider;
     const int SingletonId = 1;
 
-    public TrialLicenseDataProvider(IServiceProvider serviceProvider)
+    public TrialLicenseDataProvider(IServiceProvider serviceProvider) : base(serviceProvider)
     {
-        this.serviceProvider = serviceProvider;
     }
 
-    public async Task<DateOnly?> GetTrialEndDate(CancellationToken cancellationToken)
+    public Task<DateOnly?> GetTrialEndDate(CancellationToken cancellationToken)
     {
-        using var scope = serviceProvider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
+        return ExecuteWithDbContext(async dbContext =>
+        {
+            var entity = await dbContext.TrialLicenses
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == SingletonId, cancellationToken);
 
-        var entity = await dbContext.TrialLicenses
-            .AsNoTracking()
-            .FirstOrDefaultAsync(t => t.Id == SingletonId, cancellationToken);
-
-        return entity?.TrialEndDate;
+            return entity?.TrialEndDate;
+        });
     }
 
-    public async Task StoreTrialEndDate(DateOnly trialEndDate, CancellationToken cancellationToken)
+    public Task StoreTrialEndDate(DateOnly trialEndDate, CancellationToken cancellationToken)
     {
-        using var scope = serviceProvider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
-
-        var existingEntity = await dbContext.TrialLicenses
-            .FirstOrDefaultAsync(t => t.Id == SingletonId, cancellationToken);
-
-        if (existingEntity != null)
+        return ExecuteWithDbContext(async dbContext =>
         {
-            // Update existing
-            existingEntity.TrialEndDate = trialEndDate;
-        }
-        else
-        {
-            // Insert new
-            var newEntity = new Entities.TrialLicenseEntity
+            var entity = new TrialLicenseEntity
             {
                 Id = SingletonId,
                 TrialEndDate = trialEndDate
             };
-            await dbContext.TrialLicenses.AddAsync(newEntity, cancellationToken);
-        }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+            // Use EF's change tracking for upsert
+            var existing = await dbContext.TrialLicenses.FindAsync([SingletonId], cancellationToken);
+            if (existing == null)
+            {
+                dbContext.TrialLicenses.Add(entity);
+            }
+            else
+            {
+                dbContext.TrialLicenses.Update(entity);
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+        });
     }
 }

@@ -2,12 +2,11 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL;
 
 using Core.Abstractions;
 using Core.DbContexts;
-using Core.Implementation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence;
 
-class PostgreSqlPersistence : IPersistence
+class PostgreSqlPersistence : BasePersistence, IPersistence
 {
     readonly PostgreSqlPersisterSettings settings;
 
@@ -19,13 +18,7 @@ class PostgreSqlPersistence : IPersistence
     public void AddPersistence(IServiceCollection services)
     {
         ConfigureDbContext(services);
-
-        if (settings.MaintenanceMode)
-        {
-            return;
-        }
-
-        services.AddSingleton<ITrialLicenseDataProvider, TrialLicenseDataProvider>();
+        RegisterDataStores(services, settings.MaintenanceMode);
     }
 
     public void AddInstaller(IServiceCollection services)

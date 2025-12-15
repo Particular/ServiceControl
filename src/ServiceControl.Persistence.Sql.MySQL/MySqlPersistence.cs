@@ -2,12 +2,11 @@ namespace ServiceControl.Persistence.Sql.MySQL;
 
 using Core.Abstractions;
 using Core.DbContexts;
-using Core.Implementation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence;
 
-class MySqlPersistence : IPersistence
+class MySqlPersistence : BasePersistence, IPersistence
 {
     readonly MySqlPersisterSettings settings;
 
@@ -19,13 +18,7 @@ class MySqlPersistence : IPersistence
     public void AddPersistence(IServiceCollection services)
     {
         ConfigureDbContext(services);
-
-        if (settings.MaintenanceMode)
-        {
-            return;
-        }
-
-        services.AddSingleton<ITrialLicenseDataProvider, TrialLicenseDataProvider>();
+        RegisterDataStores(services, settings.MaintenanceMode);
     }
 
     public void AddInstaller(IServiceCollection services)
