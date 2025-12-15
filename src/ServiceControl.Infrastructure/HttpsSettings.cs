@@ -24,6 +24,7 @@ public class HttpsSettings
 
         // HTTPS redirection - disabled by default for backwards compatibility
         RedirectHttpToHttps = SettingsReader.Read(rootNamespace, "Https.RedirectHttpToHttps", false);
+        HttpsPort = SettingsReader.Read<int?>(rootNamespace, "Https.Port", null);
 
         // HSTS - disabled by default, only applies in non-development environments
         EnableHsts = SettingsReader.Read(rootNamespace, "Https.EnableHsts", false);
@@ -51,6 +52,8 @@ public class HttpsSettings
     public string CertificatePassword { get; }
 
     public bool RedirectHttpToHttps { get; }
+
+    public int? HttpsPort { get; }
 
     public bool EnableHsts { get; }
 
@@ -83,6 +86,7 @@ public class HttpsSettings
         logger.LogInformation("  CertificatePath: {CertificatePath}", CertificatePath);
         logger.LogInformation("  CertificatePassword: {CertificatePassword}", string.IsNullOrEmpty(CertificatePassword) ? "(not set)" : "(set)");
         logger.LogInformation("  RedirectHttpToHttps: {RedirectHttpToHttps}", RedirectHttpToHttps);
+        logger.LogInformation("  HttpsPort: {HttpsPort}", HttpsPort?.ToString() ?? "(not set)");
         logger.LogInformation("  EnableHsts: {EnableHsts}", EnableHsts);
         logger.LogInformation("  HstsMaxAgeSeconds: {HstsMaxAgeSeconds}", HstsMaxAgeSeconds);
         logger.LogInformation("  HstsIncludeSubDomains: {HstsIncludeSubDomains}", HstsIncludeSubDomains);

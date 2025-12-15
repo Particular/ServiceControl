@@ -207,6 +207,7 @@ Only accept forwarded headers from specific IP addresses.
 
 ```cmd
 set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=true
+set SERVICECONTROL_FORWARDEDHEADERS_TRUSTALLPROXIES=
 set SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES=127.0.0.1,::1
 set SERVICECONTROL_FORWARDEDHEADERS_KNOWNNETWORKS=
 
@@ -254,8 +255,9 @@ Trust all proxies within a network range.
 
 ```cmd
 set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=true
-set SERVICECONTROL_FORWARDEDHEADERS_KNOWNNETWORKS=127.0.0.0/8,::1/128
+set SERVICECONTROL_FORWARDEDHEADERS_TRUSTALLPROXIES=
 set SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES=
+set SERVICECONTROL_FORWARDEDHEADERS_KNOWNNETWORKS=127.0.0.0/8,::1/128
 
 dotnet run
 ```
@@ -459,7 +461,7 @@ curl -H "X-Forwarded-Proto: https" -H "X-Forwarded-Host: example.com" -H "X-Forw
   "processed": {
     "scheme": "https",
     "host": "example.com",
-    "remoteIpAddress": "192.168.1.1"
+    "remoteIpAddress": "203.0.113.50"
   },
   "rawHeaders": {
     "xForwardedFor": "",
@@ -475,9 +477,55 @@ curl -H "X-Forwarded-Proto: https" -H "X-Forwarded-Host: example.com" -H "X-Forw
 }
 ```
 
-The `X-Forwarded-For` header contains multiple IPs representing the proxy chain. By default, ASP.NET Core's `ForwardLimit` is `1`, so only the last proxy IP is used.
+The `X-Forwarded-For` header contains multiple IPs representing the proxy chain. When `TrustAllProxies` is `true`, `ForwardLimit` is set to `null` (no limit), so the middleware processes all IPs and returns the original client IP (`203.0.113.50`).
 
-### Scenario 9: Combined Known Proxies and Networks
+### Scenario 9: Proxy Chain with Known Proxies (ForwardLimit = 1)
+
+Test how ServiceControl handles multiple proxies when `TrustAllProxies` is `false`. In this case, `ForwardLimit` remains at its default of `1`, so only the last proxy IP is processed.
+
+**Cleanup and start ServiceControl:**
+
+```cmd
+set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=true
+set SERVICECONTROL_FORWARDEDHEADERS_TRUSTALLPROXIES=
+set SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES=127.0.0.1,::1
+set SERVICECONTROL_FORWARDEDHEADERS_KNOWNNETWORKS=
+
+dotnet run
+```
+
+**Test with curl (simulating a proxy chain):**
+
+```cmd
+curl -H "X-Forwarded-Proto: https" -H "X-Forwarded-Host: example.com" -H "X-Forwarded-For: 203.0.113.50, 10.0.0.1, 192.168.1.1" http://localhost:33333/debug/request-info | json
+```
+
+**Expected output:**
+
+```json
+{
+  "processed": {
+    "scheme": "https",
+    "host": "example.com",
+    "remoteIpAddress": "192.168.1.1"
+  },
+  "rawHeaders": {
+    "xForwardedFor": "203.0.113.50, 10.0.0.1",
+    "xForwardedProto": "",
+    "xForwardedHost": ""
+  },
+  "configuration": {
+    "enabled": true,
+    "trustAllProxies": false,
+    "knownProxies": ["127.0.0.1", "::1"],
+    "knownNetworks": []
+  }
+}
+```
+
+When `TrustAllProxies` is `false`, `ForwardLimit` remains at its default of `1`. The middleware only processes the rightmost IP from the chain (`192.168.1.1`). The remaining IPs (`203.0.113.50, 10.0.0.1`) stay in the `X-Forwarded-For` header. Compare this to Scenario 8 where `TrustAllProxies = true` returns the original client IP.
+
+### Scenario 10: Combined Known Proxies and Networks
 
 Test using both `KnownProxies` and `KnownNetworks` together.
 
@@ -523,7 +571,7 @@ curl -H "X-Forwarded-Proto: https" -H "X-Forwarded-Host: example.com" -H "X-Forw
 
 Headers are applied because the request comes from localhost (`::1`), which falls within the `::1/128` network even though it's not in the `knownProxies` list.
 
-### Scenario 10: Partial Headers (Proto Only)
+### Scenario 11: Partial Headers (Proto Only)
 
 Test that each forwarded header is processed independently. Only sending `X-Forwarded-Proto` should update the scheme while leaving host and remoteIpAddress unchanged.
 
@@ -569,7 +617,7 @@ curl -H "X-Forwarded-Proto: https" http://localhost:33333/debug/request-info | j
 
 Only the `scheme` changed to `https`. The `host` remains `localhost:33333` and `remoteIpAddress` remains `::1` because those headers weren't sent. Each header is processed independently.
 
-### Scenario 11: IPv4/IPv6 Mismatch
+### Scenario 12: IPv4/IPv6 Mismatch
 
 Demonstrates a common misconfiguration where only IPv4 localhost is configured but curl uses IPv6. This scenario shows why you should include both `127.0.0.1` and `::1` in your configuration.
 
@@ -683,15 +731,6 @@ $env:SERVICECONTROL_FORWARDEDHEADERS_ENABLED = $null
 $env:SERVICECONTROL_FORWARDEDHEADERS_TRUSTALLPROXIES = $null
 $env:SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES = $null
 $env:SERVICECONTROL_FORWARDEDHEADERS_KNOWNNETWORKS = $null
-```
-
-**Bash (Git Bash, WSL, Linux, macOS):**
-
-```bash
-unset SERVICECONTROL_FORWARDEDHEADERS_ENABLED
-unset SERVICECONTROL_FORWARDEDHEADERS_TRUSTALLPROXIES
-unset SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES
-unset SERVICECONTROL_FORWARDEDHEADERS_KNOWNNETWORKS
 ```
 
 ## Quick Reference: Testing Other Instances

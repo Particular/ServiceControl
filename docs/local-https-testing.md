@@ -95,6 +95,9 @@ Verify that HTTPS is working with a valid certificate.
 set SERVICECONTROL_HTTPS_ENABLED=true
 set SERVICECONTROL_HTTPS_CERTIFICATEPATH=C:\path\to\ServiceControl\.local\certs\localhost.pfx
 set SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD=changeit
+set SERVICECONTROL_HTTPS_REDIRECTHTTPTOHTTPS=
+set SERVICECONTROL_HTTPS_PORT=
+set SERVICECONTROL_HTTPS_ENABLEHSTS=
 set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=false
 
 dotnet run
@@ -127,6 +130,9 @@ Verify that HTTP requests fail when only HTTPS is enabled.
 set SERVICECONTROL_HTTPS_ENABLED=true
 set SERVICECONTROL_HTTPS_CERTIFICATEPATH=C:\path\to\ServiceControl\.local\certs\localhost.pfx
 set SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD=changeit
+set SERVICECONTROL_HTTPS_REDIRECTHTTPTOHTTPS=
+set SERVICECONTROL_HTTPS_PORT=
+set SERVICECONTROL_HTTPS_ENABLEHSTS=
 set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=false
 
 dotnet run
@@ -164,39 +170,16 @@ HTTP requests fail because Kestrel is listening for HTTPS but receives plaintext
 
 ## Testing Other Instances
 
-The same scenarios can be run against ServiceControl.Audit and ServiceControl.Monitoring by:
+The scenarios above use ServiceControl (Primary). To test ServiceControl.Audit or ServiceControl.Monitoring:
 
-1. Using the appropriate environment variable prefix
-2. Running from the correct project directory
-3. Using the correct port
+1. Use the appropriate environment variable prefix (see Instance Reference above)
+2. Use the corresponding project directory and port
 
-**ServiceControl.Audit:**
-
-```cmd
-set SERVICECONTROL_AUDIT_HTTPS_ENABLED=true
-set SERVICECONTROL_AUDIT_HTTPS_CERTIFICATEPATH=C:\path\to\ServiceControl\.local\certs\localhost.pfx
-set SERVICECONTROL_AUDIT_HTTPS_CERTIFICATEPASSWORD=changeit
-
-dotnet run --project src/ServiceControl.Audit/ServiceControl.Audit.csproj
-```
-
-```cmd
-curl --ssl-no-revoke https://localhost:44444/api
-```
-
-**ServiceControl.Monitoring:**
-
-```cmd
-set MONITORING_HTTPS_ENABLED=true
-set MONITORING_HTTPS_CERTIFICATEPATH=C:\path\to\ServiceControl\.local\certs\localhost.pfx
-set MONITORING_HTTPS_CERTIFICATEPASSWORD=changeit
-
-dotnet run --project src/ServiceControl.Monitoring/ServiceControl.Monitoring.csproj
-```
-
-```cmd
-curl --ssl-no-revoke https://localhost:33633/api
-```
+| Instance | Project Directory | Port | Env Var Prefix |
+|----------|-------------------|------|----------------|
+| ServiceControl (Primary) | `src\ServiceControl` | 33333 | `SERVICECONTROL_` |
+| ServiceControl.Audit | `src\ServiceControl.Audit` | 44444 | `SERVICECONTROL_AUDIT_` |
+| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633 | `MONITORING_` |
 
 ## Troubleshooting
 
@@ -251,18 +234,6 @@ $env:SERVICECONTROL_HTTPS_ENABLEHSTS = $null
 $env:SERVICECONTROL_HTTPS_HSTSMAXAGESECONDS = $null
 $env:SERVICECONTROL_HTTPS_HSTSINCLUDESUBDOMAINS = $null
 $env:SERVICECONTROL_FORWARDEDHEADERS_ENABLED = $null
-```
-
-**Bash (Git Bash, WSL, Linux, macOS):**
-
-```bash
-unset SERVICECONTROL_HTTPS_ENABLED
-unset SERVICECONTROL_HTTPS_CERTIFICATEPATH
-unset SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD
-unset SERVICECONTROL_HTTPS_ENABLEHSTS
-unset SERVICECONTROL_HTTPS_HSTSMAXAGESECONDS
-unset SERVICECONTROL_HTTPS_HSTSINCLUDESUBDOMAINS
-unset SERVICECONTROL_FORWARDEDHEADERS_ENABLED
 ```
 
 ## See Also
