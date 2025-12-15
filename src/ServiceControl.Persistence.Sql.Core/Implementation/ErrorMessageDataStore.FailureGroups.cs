@@ -199,22 +199,23 @@ partial class ErrorMessageDataStore
     {
         return ExecuteWithDbContext(async dbContext =>
         {
-            var commentEntity = new GroupCommentEntity
-            {
-                Id = Guid.Parse(groupId),
-                GroupId = groupId,
-                Comment = comment
-            };
+            var id = Guid.Parse(groupId);
 
             // Use EF's change tracking for upsert
-            var existing = await dbContext.GroupComments.FindAsync(commentEntity.Id);
+            var existing = await dbContext.GroupComments.FindAsync(id);
             if (existing == null)
             {
+                var commentEntity = new GroupCommentEntity
+                {
+                    Id = id,
+                    GroupId = groupId,
+                    Comment = comment
+                };
                 dbContext.GroupComments.Add(commentEntity);
             }
             else
             {
-                dbContext.GroupComments.Update(commentEntity);
+                existing.Comment = comment;
             }
 
             await dbContext.SaveChangesAsync();

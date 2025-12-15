@@ -28,21 +28,20 @@ public class TrialLicenseDataProvider : DataStoreBase, ITrialLicenseDataProvider
     {
         return ExecuteWithDbContext(async dbContext =>
         {
-            var entity = new TrialLicenseEntity
-            {
-                Id = SingletonId,
-                TrialEndDate = trialEndDate
-            };
-
             // Use EF's change tracking for upsert
             var existing = await dbContext.TrialLicenses.FindAsync([SingletonId], cancellationToken);
             if (existing == null)
             {
+                var entity = new TrialLicenseEntity
+                {
+                    Id = SingletonId,
+                    TrialEndDate = trialEndDate
+                };
                 dbContext.TrialLicenses.Add(entity);
             }
             else
             {
-                dbContext.TrialLicenses.Update(entity);
+                existing.TrialEndDate = trialEndDate;
             }
 
             await dbContext.SaveChangesAsync(cancellationToken);

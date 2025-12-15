@@ -50,23 +50,26 @@ public class MessageRedirectsDataStore : DataStoreBase, IMessageRedirectsDataSto
             var newETag = Guid.NewGuid().ToString();
             var newLastModified = DateTime.UtcNow;
 
-            var entity = new MessageRedirectsEntity
-            {
-                Id = Guid.Parse(MessageRedirectsCollection.DefaultId),
-                ETag = newETag,
-                LastModified = newLastModified,
-                RedirectsJson = redirectsJson
-            };
+            var id = Guid.Parse(MessageRedirectsCollection.DefaultId);
 
             // Use EF's change tracking for upsert
-            var existing = await dbContext.MessageRedirects.FindAsync(entity.Id);
+            var existing = await dbContext.MessageRedirects.FindAsync(id);
             if (existing == null)
             {
+                var entity = new MessageRedirectsEntity
+                {
+                    Id = id,
+                    ETag = newETag,
+                    LastModified = newLastModified,
+                    RedirectsJson = redirectsJson
+                };
                 dbContext.MessageRedirects.Add(entity);
             }
             else
             {
-                dbContext.MessageRedirects.Update(entity);
+                existing.ETag = newETag;
+                existing.LastModified = newLastModified;
+                existing.RedirectsJson = redirectsJson;
             }
 
             await dbContext.SaveChangesAsync();

@@ -37,21 +37,20 @@ public class EndpointSettingsStore : DataStoreBase, IEndpointSettingsStore
     {
         return ExecuteWithDbContext(async dbContext =>
         {
-            var entity = new EndpointSettingsEntity
-            {
-                Name = settings.Name,
-                TrackInstances = settings.TrackInstances
-            };
-
             // Use EF's change tracking for upsert
-            var existing = await dbContext.EndpointSettings.FindAsync([entity.Name], cancellationToken);
+            var existing = await dbContext.EndpointSettings.FindAsync([settings.Name], cancellationToken);
             if (existing == null)
             {
+                var entity = new EndpointSettingsEntity
+                {
+                    Name = settings.Name,
+                    TrackInstances = settings.TrackInstances
+                };
                 dbContext.EndpointSettings.Add(entity);
             }
             else
             {
-                dbContext.EndpointSettings.Update(entity);
+                existing.TrackInstances = settings.TrackInstances;
             }
 
             await dbContext.SaveChangesAsync(cancellationToken);

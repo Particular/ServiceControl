@@ -57,7 +57,6 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
 
         // Load existing message to merge attempts list
         var existingMessage = await parent.DbContext.FailedMessages
-            .AsNoTracking()
             .FirstOrDefaultAsync(fm => fm.UniqueMessageId == uniqueMessageId);
 
         List<FailedMessage.ProcessingAttempt> attempts;
@@ -77,45 +76,56 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
             attempts = [.. attempts
                 .OrderBy(a => a.AttemptedAt)
                 .TakeLast(MaxProcessingAttempts)];
+
+            // Update the tracked entity
+            existingMessage.Status = FailedMessageStatus.Unresolved;
+            existingMessage.ProcessingAttemptsJson = JsonSerializer.Serialize(attempts);
+            existingMessage.FailureGroupsJson = JsonSerializer.Serialize(groups);
+            existingMessage.PrimaryFailureGroupId = groups.Count > 0 ? groups[0].Id : null;
+            existingMessage.MessageId = processingAttempt.MessageId;
+            existingMessage.MessageType = messageType;
+            existingMessage.TimeSent = timeSent;
+            existingMessage.SendingEndpointName = sendingEndpoint?.Name;
+            existingMessage.ReceivingEndpointName = receivingEndpoint?.Name;
+            existingMessage.ExceptionType = processingAttempt.FailureDetails?.Exception?.ExceptionType;
+            existingMessage.ExceptionMessage = processingAttempt.FailureDetails?.Exception?.Message;
+            existingMessage.QueueAddress = queueAddress;
+            existingMessage.NumberOfProcessingAttempts = attempts.Count;
+            existingMessage.LastProcessedAt = processingAttempt.AttemptedAt;
+            existingMessage.ConversationId = conversationId;
+            existingMessage.CriticalTime = criticalTime;
+            existingMessage.ProcessingTime = processingTime;
+            existingMessage.DeliveryTime = deliveryTime;
         }
         else
         {
             // First attempt for this message
             attempts = [processingAttempt];
-        }
 
-        // Build the complete entity with all fields
-        var failedMessageEntity = new FailedMessageEntity
-        {
-            Id = SequentialGuidGenerator.NewSequentialGuid(),
-            UniqueMessageId = uniqueMessageId,
-            Status = FailedMessageStatus.Unresolved,
-            ProcessingAttemptsJson = JsonSerializer.Serialize(attempts),
-            FailureGroupsJson = JsonSerializer.Serialize(groups),
-            PrimaryFailureGroupId = groups.Count > 0 ? groups[0].Id : null,
-            MessageId = processingAttempt.MessageId,
-            MessageType = messageType,
-            TimeSent = timeSent,
-            SendingEndpointName = sendingEndpoint?.Name,
-            ReceivingEndpointName = receivingEndpoint?.Name,
-            ExceptionType = processingAttempt.FailureDetails?.Exception?.ExceptionType,
-            ExceptionMessage = processingAttempt.FailureDetails?.Exception?.Message,
-            QueueAddress = queueAddress,
-            NumberOfProcessingAttempts = attempts.Count,
-            LastProcessedAt = processingAttempt.AttemptedAt,
-            ConversationId = conversationId,
-            CriticalTime = criticalTime,
-            ProcessingTime = processingTime,
-            DeliveryTime = deliveryTime
-        };
-
-        // Use EF's change tracking for upsert
-        if (existingMessage != null)
-        {
-            parent.DbContext.FailedMessages.Update(failedMessageEntity);
-        }
-        else
-        {
+            // Build the complete entity with all fields
+            var failedMessageEntity = new FailedMessageEntity
+            {
+                Id = SequentialGuidGenerator.NewSequentialGuid(),
+                UniqueMessageId = uniqueMessageId,
+                Status = FailedMessageStatus.Unresolved,
+                ProcessingAttemptsJson = JsonSerializer.Serialize(attempts),
+                FailureGroupsJson = JsonSerializer.Serialize(groups),
+                PrimaryFailureGroupId = groups.Count > 0 ? groups[0].Id : null,
+                MessageId = processingAttempt.MessageId,
+                MessageType = messageType,
+                TimeSent = timeSent,
+                SendingEndpointName = sendingEndpoint?.Name,
+                ReceivingEndpointName = receivingEndpoint?.Name,
+                ExceptionType = processingAttempt.FailureDetails?.Exception?.ExceptionType,
+                ExceptionMessage = processingAttempt.FailureDetails?.Exception?.Message,
+                QueueAddress = queueAddress,
+                NumberOfProcessingAttempts = attempts.Count,
+                LastProcessedAt = processingAttempt.AttemptedAt,
+                ConversationId = conversationId,
+                CriticalTime = criticalTime,
+                ProcessingTime = processingTime,
+                DeliveryTime = deliveryTime
+            };
             parent.DbContext.FailedMessages.Add(failedMessageEntity);
         }
 
