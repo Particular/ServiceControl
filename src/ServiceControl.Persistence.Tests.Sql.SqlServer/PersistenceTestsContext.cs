@@ -15,7 +15,7 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 {
     IHost host;
 
-    public async Task Setup(IHostApplicationBuilder hostBuilder)
+    public Task Setup(IHostApplicationBuilder hostBuilder)
     {
         PersistenceSettings = new SqlServerPersisterSettings
         {
@@ -27,6 +27,8 @@ public class PersistenceTestsContext : IPersistenceTestsContext
         var persistence = new SqlServerPersistenceConfiguration().Create(PersistenceSettings);
         persistence.AddPersistence(hostBuilder.Services);
         persistence.AddInstaller(hostBuilder.Services);
+
+        return Task.CompletedTask;
     }
 
     public async Task PostSetup(IHost host)
