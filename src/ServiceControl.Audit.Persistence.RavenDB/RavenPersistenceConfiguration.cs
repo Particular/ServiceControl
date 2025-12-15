@@ -100,7 +100,7 @@
                     throw new InvalidOperationException($"{DatabaseMaintenancePortKey} must be an integer.");
                 }
 
-                var serverUrl = $"http://localhost:{databaseMaintenancePort}";
+                var serverUrl = $"http://{settings.Hostname}:{databaseMaintenancePort}";
 
                 var logPath = GetLogPath(settings);
 

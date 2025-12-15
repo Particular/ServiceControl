@@ -35,6 +35,7 @@ static class HostApplicationBuilderExtensions
     {
         var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings);
         var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
+        persistenceSettings.Hostname = settings.Hostname;
 
         RecordStartup(settings, configuration, persistenceConfiguration);
 

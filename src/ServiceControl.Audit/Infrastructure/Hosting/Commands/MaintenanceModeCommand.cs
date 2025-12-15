@@ -15,6 +15,7 @@
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
 
             persistenceSettings.MaintenanceMode = true;
+            persistenceSettings.Hostname = settings.Hostname;
 
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.Services.AddPersistence(persistenceSettings, persistenceConfiguration);

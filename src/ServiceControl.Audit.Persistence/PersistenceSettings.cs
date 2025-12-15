@@ -26,5 +26,7 @@
         public int MaxBodySizeToStore { get; set; }
 
         public IDictionary<string, string> PersisterSpecificSettings { get; }
+
+        public string Hostname { get; set; }
     }
 }
