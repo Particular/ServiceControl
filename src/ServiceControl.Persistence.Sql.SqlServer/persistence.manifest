@@ -1,0 +1,13 @@
+{
+  "Name": "SqlServer",
+  "DisplayName": "SQL Server",
+  "Description": "SQL Server ServiceControl persister",
+  "AssemblyName": "ServiceControl.Persistence.Sql.SqlServer",
+  "TypeName": "ServiceControl.Persistence.Sql.SqlServer.SqlServerPersistenceConfiguration, ServiceControl.Persistence.Sql.SqlServer",
+  "Settings": [
+    {
+      "Name": "ServiceControl/Database/ConnectionString",
+      "Mandatory": true
+    }
+  ]
+}

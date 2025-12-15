@@ -1,0 +1,33 @@
+namespace ServiceControl.Persistence.Sql.Core.DbContexts;
+
+using Entities;
+using EntityConfigurations;
+using Microsoft.EntityFrameworkCore;
+
+public abstract class ServiceControlDbContextBase : DbContext
+{
+    protected ServiceControlDbContextBase(DbContextOptions options) : base(options)
+    {
+    }
+
+    public DbSet<TrialLicenseEntity> TrialLicenses { get; set; }
+    public DbSet<LicensingMetadataEntity> LicensingMetadata { get; set; }
+    public DbSet<ThroughputEndpointEntity> Endpoints { get; set; }
+    public DbSet<DailyThroughputEntity> Throughput { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.ApplyConfiguration(new TrialLicenseConfiguration());
+        modelBuilder.ApplyConfiguration(new LicensingMetadataEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new ThroughputEndpointConfiguration());
+        modelBuilder.ApplyConfiguration(new DailyThroughputConfiguration());
+
+        OnModelCreatingProvider(modelBuilder);
+    }
+
+    protected virtual void OnModelCreatingProvider(ModelBuilder modelBuilder)
+    {
+    }
+}
