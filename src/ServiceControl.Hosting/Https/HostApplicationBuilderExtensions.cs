@@ -21,6 +21,14 @@ public static class HostApplicationBuilderExtensions
             });
         }
 
+        if (settings.RedirectHttpToHttps && settings.HttpsPort.HasValue)
+        {
+            hostBuilder.Services.AddHttpsRedirection(options =>
+            {
+                options.HttpsPort = settings.HttpsPort.Value;
+            });
+        }
+
         if (settings.Enabled)
         {
             hostBuilder.WebHost.ConfigureKestrel(kestrel =>

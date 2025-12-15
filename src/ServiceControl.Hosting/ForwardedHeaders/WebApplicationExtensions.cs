@@ -59,11 +59,18 @@ public static class WebApplicationExtensions
             ForwardedHeaders = ForwardedHeaders.All
         };
 
-        if (!settings.TrustAllProxies)
-        {
-            options.KnownProxies.Clear();
-            options.KnownNetworks.Clear();
+        // Clear default loopback-only restrictions
+        options.KnownProxies.Clear();
+        options.KnownNetworks.Clear();
 
+        if (settings.TrustAllProxies)
+        {
+            // Trust all proxies: remove hop limit
+            options.ForwardLimit = null;
+        }
+        else
+        {
+            // Only trust explicitly configured proxies and networks
             foreach (var proxy in settings.KnownProxies)
             {
                 options.KnownProxies.Add(proxy);
