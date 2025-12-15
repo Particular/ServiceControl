@@ -1,0 +1,106 @@
+# HTTPS Configuration
+
+ServiceControl instances can be configured to use HTTPS directly, enabling encrypted connections without relying on a reverse proxy for SSL termination.
+
+## Configuration
+
+ServiceControl instances can be configured via environment variables or App.config. Each instance type uses a different prefix.
+
+### Environment Variables
+
+| Instance | Prefix |
+|----------|--------|
+| ServiceControl (Primary) | `SERVICECONTROL_` |
+| ServiceControl.Audit | `SERVICECONTROL_AUDIT_` |
+| ServiceControl.Monitoring | `MONITORING_` |
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `{PREFIX}HTTPS_ENABLED` | `false` | Enable HTTPS with Kestrel |
+| `{PREFIX}HTTPS_CERTIFICATEPATH` | (none) | Path to the certificate file (.pfx) |
+| `{PREFIX}HTTPS_CERTIFICATEPASSWORD` | (none) | Password for the certificate file |
+| `{PREFIX}HTTPS_REDIRECTHTTPTOHTTPS` | `false` | Redirect HTTP requests to HTTPS |
+| `{PREFIX}HTTPS_PORT` | (none) | HTTPS port for redirect (required for reverse proxy scenarios) |
+| `{PREFIX}HTTPS_ENABLEHSTS` | `false` | Enable HTTP Strict Transport Security |
+| `{PREFIX}HTTPS_HSTSMAXAGESECONDS` | `31536000` | HSTS max-age in seconds (default: 1 year) |
+| `{PREFIX}HTTPS_HSTSINCLUDESUBDOMAINS` | `false` | Include subdomains in HSTS policy |
+
+### App.config
+
+| Instance | Key Prefix |
+|----------|------------|
+| ServiceControl (Primary) | `ServiceControl/` |
+| ServiceControl.Audit | `ServiceControl.Audit/` |
+| ServiceControl.Monitoring | `Monitoring/` |
+
+```xml
+<appSettings>
+  <add key="ServiceControl/Https.Enabled" value="true" />
+  <add key="ServiceControl/Https.CertificatePath" value="C:\certs\servicecontrol.pfx" />
+  <add key="ServiceControl/Https.CertificatePassword" value="mycertpassword" />
+  <add key="ServiceControl/Https.EnableHsts" value="true" />
+</appSettings>
+```
+
+## Examples
+
+### Direct HTTPS with certificate
+
+```cmd
+set SERVICECONTROL_HTTPS_ENABLED=true
+set SERVICECONTROL_HTTPS_CERTIFICATEPATH=C:\certs\servicecontrol.pfx
+set SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD=mycertpassword
+```
+
+### Docker Example
+
+```cmd
+docker run -p 33333:33333 -e SERVICECONTROL_HTTPS_ENABLED=true -e SERVICECONTROL_HTTPS_CERTIFICATEPATH=/certs/servicecontrol.pfx -e SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD=mycertpassword -v C:\certs:/certs:ro particular/servicecontrol:latest
+```
+
+### Reverse proxy with HTTP to HTTPS redirect
+
+When using a reverse proxy that terminates SSL:
+
+```cmd
+set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=true
+set SERVICECONTROL_FORWARDEDHEADERS_TRUSTALLPROXIES=true
+set SERVICECONTROL_HTTPS_REDIRECTHTTPTOHTTPS=true
+set SERVICECONTROL_HTTPS_PORT=443
+```
+
+## Security Considerations
+
+### Certificate Security
+
+- Store certificate files securely with appropriate file permissions
+- Use strong passwords for certificate files
+- Rotate certificates before expiration
+- Use certificates from a trusted Certificate Authority for production
+
+### HSTS Considerations
+
+- HSTS should not be tested on localhost because browsers cache the policy, which could break other local development
+- HSTS is disabled in Development environment (ASP.NET Core excludes localhost by default)
+- HSTS can be configured at either the reverse proxy level or in ServiceControl (but not both)
+- HSTS is cached by browsers, so test carefully before enabling in production
+- Start with a short max-age during initial deployment
+- Consider the impact on subdomains before enabling `includeSubDomains`
+- To test HSTS locally, use the [NGINX reverse proxy setup](local-reverseproxy-testing.md) with a custom hostname
+
+### HTTP to HTTPS Redirect
+
+The `HTTPS_REDIRECTHTTPTOHTTPS` setting is intended for use with a reverse proxy that handles both HTTP and HTTPS traffic. When enabled:
+
+- The redirect uses HTTP 307 (Temporary Redirect) to preserve the request method
+- The reverse proxy must forward both HTTP and HTTPS requests to ServiceControl
+- ServiceControl will redirect HTTP requests to HTTPS based on the `X-Forwarded-Proto` header
+- **Important:** You must also set `HTTPS_PORT` to specify the HTTPS port for the redirect URL
+
+> **Note:** When running ServiceControl directly without a reverse proxy, the application only listens on a single protocol (HTTP or HTTPS). To test HTTP-to-HTTPS redirection locally, use the [NGINX reverse proxy setup](local-reverseproxy-testing.md).
+
+## See Also
+
+- [Local HTTPS Testing](local-https-testing.md) - Guide for testing HTTPS locally during development
+- [Local Reverse Proxy Testing](local-reverseproxy-testing.md) - Testing with NGINX reverse proxy (HSTS, HTTP to HTTPS redirect)
+- [Forwarded Headers Configuration](forwarded-headers.md) - Configure forwarded headers when behind a reverse proxy
