@@ -24,7 +24,9 @@ public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDa
 
         var cutOff = DefaultCutOff();
 
-        var data = await dbContext.Throughput.Where(x => queueNames.Contains(x.EndpointName) && x.Date >= cutOff)
+        var data = await dbContext.Throughput
+            .AsNoTracking()
+            .Where(x => queueNames.Contains(x.EndpointName) && x.Date >= cutOff)
             .ToListAsync(cancellationToken);
 
         var lookup = data.ToLookup(x => x.EndpointName);
@@ -170,28 +172,43 @@ public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDa
         using var scope = serviceProvider.CreateScope();
         using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
 
+        // Get all relevant sanitized names from endpoints matched by name
+        var sanitizedNames = await dbContext.Endpoints
+            .Where(e => updates.Keys.Contains(e.EndpointName) && e.SanitizedEndpointName != null)
+            .Select(e => e.SanitizedEndpointName)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        // Get all endpoints that match either by name or sanitized name in a single query
         var endpoints = await dbContext.Endpoints
-                .Where(e => updates.Keys.Contains(e.EndpointName) || (e.SanitizedEndpointName != null && updates.Keys.Contains(e.SanitizedEndpointName)))
+                .Where(e => updates.Keys.Contains(e.EndpointName)
+                    || (e.SanitizedEndpointName != null && updates.Keys.Contains(e.SanitizedEndpointName))
+                    || (e.SanitizedEndpointName != null && sanitizedNames.Contains(e.SanitizedEndpointName)))
                 .ToListAsync(cancellationToken) ?? [];
 
         foreach (var endpoint in endpoints)
         {
             if (endpoint.SanitizedEndpointName is not null && updates.TryGetValue(endpoint.SanitizedEndpointName, out var newValueFromSanitizedName))
             {
+                // Direct match by sanitized name
                 endpoint.UserIndicator = newValueFromSanitizedName;
             }
             else if (updates.TryGetValue(endpoint.EndpointName, out var newValueFromEndpoint))
             {
+                // Direct match by endpoint name - this should also update all endpoints with the same sanitized name
                 endpoint.UserIndicator = newValueFromEndpoint;
-                //update all that match this sanitized name
-                var sanitizedMatchingEndpoints = await dbContext.Endpoints
-                    .Where(e => e.SanitizedEndpointName == endpoint.SanitizedEndpointName && e.EndpointName != endpoint.EndpointName)
-                    .ToListAsync(cancellationToken) ?? [];
+            }
+            else if (endpoint.SanitizedEndpointName != null && sanitizedNames.Contains(endpoint.SanitizedEndpointName))
+            {
+                // This endpoint shares a sanitized name with an endpoint that was matched by name
+                // Find the update value from the endpoint that has this sanitized name
+                var matchingEndpoint = endpoints.FirstOrDefault(e =>
+                    e.SanitizedEndpointName == endpoint.SanitizedEndpointName &&
+                    updates.ContainsKey(e.EndpointName));
 
-                foreach (var matchingEndpointOnSanitizedName in sanitizedMatchingEndpoints)
+                if (matchingEndpoint != null && updates.TryGetValue(matchingEndpoint.EndpointName, out var cascadedValue))
                 {
-                    matchingEndpointOnSanitizedName.UserIndicator = newValueFromEndpoint;
-                    _ = dbContext.Endpoints.Update(matchingEndpointOnSanitizedName);
+                    endpoint.UserIndicator = cascadedValue;
                 }
             }
             _ = dbContext.Endpoints.Update(endpoint);
@@ -263,7 +280,9 @@ public class LicensingDataStore(IServiceProvider serviceProvider) : ILicensingDa
     {
         using var scope = serviceProvider.CreateScope();
         await using var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
-        var existing = await dbContext.LicensingMetadata.SingleOrDefaultAsync(m => m.Key == key, cancellationToken);
+        var existing = await dbContext.LicensingMetadata
+            .AsNoTracking()
+            .SingleOrDefaultAsync(m => m.Key == key, cancellationToken);
         if (existing is null)
         {
             return default;
