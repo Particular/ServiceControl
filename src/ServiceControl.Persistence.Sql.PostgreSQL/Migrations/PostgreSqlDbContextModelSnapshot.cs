@@ -144,6 +144,44 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                     b.ToTable("CustomChecks", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.DailyThroughputEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<string>("EndpointName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("endpoint_name");
+
+                    b.Property<long>("MessageCount")
+                        .HasColumnType("bigint")
+                        .HasColumnName("message_count");
+
+                    b.Property<string>("ThroughputSource")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("throughput_source");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_throughput");
+
+                    b.HasIndex(new[] { "EndpointName", "ThroughputSource", "Date" }, "UC_DailyThroughput_EndpointName_ThroughputSource_Date")
+                        .IsUnique();
+
+                    b.ToTable("DailyThroughput", (string)null);
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.EndpointSettingsEntity", b =>
                 {
                     b.Property<string>("Name")
@@ -476,6 +514,36 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                     b.ToTable("KnownEndpoints", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.LicensingMetadataEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Data")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("data");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("key");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_licensing_metadata");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("LicensingMetadata", (string)null);
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.MessageBodyEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -719,6 +787,56 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                         .IsUnique();
 
                     b.ToTable("Subscriptions", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.ThroughputEndpointEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("EndpointIndicators")
+                        .HasColumnType("text")
+                        .HasColumnName("endpoint_indicators");
+
+                    b.Property<string>("EndpointName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("endpoint_name");
+
+                    b.Property<DateOnly>("LastCollectedData")
+                        .HasColumnType("date")
+                        .HasColumnName("last_collected_data");
+
+                    b.Property<string>("SanitizedEndpointName")
+                        .HasColumnType("text")
+                        .HasColumnName("sanitized_endpoint_name");
+
+                    b.Property<string>("Scope")
+                        .HasColumnType("text")
+                        .HasColumnName("scope");
+
+                    b.Property<string>("ThroughputSource")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("throughput_source");
+
+                    b.Property<string>("UserIndicator")
+                        .HasColumnType("text")
+                        .HasColumnName("user_indicator");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_endpoints");
+
+                    b.HasIndex(new[] { "EndpointName", "ThroughputSource" }, "UC_ThroughputEndpoint_EndpointName_ThroughputSource")
+                        .IsUnique();
+
+                    b.ToTable("ThroughputEndpoint", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.TrialLicenseEntity", b =>

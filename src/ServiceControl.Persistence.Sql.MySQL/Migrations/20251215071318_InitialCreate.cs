@@ -66,6 +66,25 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "DailyThroughput",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    EndpointName = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ThroughputSource = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Date = table.Column<DateOnly>(type: "date", nullable: false),
+                    MessageCount = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DailyThroughput", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "EndpointSettings",
                 columns: table => new
                 {
@@ -230,6 +249,23 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "LicensingMetadata",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Key = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Data = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LicensingMetadata", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "MessageBodies",
                 columns: table => new
                 {
@@ -373,6 +409,32 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "ThroughputEndpoint",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    EndpointName = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ThroughputSource = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SanitizedEndpointName = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EndpointIndicators = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UserIndicator = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Scope = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LastCollectedData = table.Column<DateOnly>(type: "date", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ThroughputEndpoint", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "TrialLicense",
                 columns: table => new
                 {
@@ -405,6 +467,12 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                 name: "IX_CustomChecks_Status",
                 table: "CustomChecks",
                 column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "UC_DailyThroughput_EndpointName_ThroughputSource_Date",
+                table: "DailyThroughput",
+                columns: new[] { "EndpointName", "ThroughputSource", "Date" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_EventLogItems_RaisedAt",
@@ -498,6 +566,12 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                 column: "GroupId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_LicensingMetadata_Key",
+                table: "LicensingMetadata",
+                column: "Key",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RetryBatches_RetrySessionId",
                 table: "RetryBatches",
                 column: "RetrySessionId");
@@ -522,6 +596,12 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                 table: "Subscriptions",
                 columns: new[] { "MessageTypeTypeName", "MessageTypeVersion" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "UC_ThroughputEndpoint_EndpointName_ThroughputSource",
+                table: "ThroughputEndpoint",
+                columns: new[] { "EndpointName", "ThroughputSource" },
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -532,6 +612,9 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
 
             migrationBuilder.DropTable(
                 name: "CustomChecks");
+
+            migrationBuilder.DropTable(
+                name: "DailyThroughput");
 
             migrationBuilder.DropTable(
                 name: "EndpointSettings");
@@ -558,6 +641,9 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                 name: "KnownEndpoints");
 
             migrationBuilder.DropTable(
+                name: "LicensingMetadata");
+
+            migrationBuilder.DropTable(
                 name: "MessageBodies");
 
             migrationBuilder.DropTable(
@@ -580,6 +666,9 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
 
             migrationBuilder.DropTable(
                 name: "Subscriptions");
+
+            migrationBuilder.DropTable(
+                name: "ThroughputEndpoint");
 
             migrationBuilder.DropTable(
                 name: "TrialLicense");

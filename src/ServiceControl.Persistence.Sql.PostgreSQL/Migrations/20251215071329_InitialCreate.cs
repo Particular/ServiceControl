@@ -54,6 +54,22 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DailyThroughput",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    endpoint_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    throughput_source = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    date = table.Column<DateOnly>(type: "date", nullable: false),
+                    message_count = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("p_k_throughput", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "EndpointSettings",
                 columns: table => new
                 {
@@ -183,6 +199,20 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "LicensingMetadata",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    key = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    data = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("p_k_licensing_metadata", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "MessageBodies",
                 columns: table => new
                 {
@@ -299,6 +329,25 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ThroughputEndpoint",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    endpoint_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    throughput_source = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    sanitized_endpoint_name = table.Column<string>(type: "text", nullable: true),
+                    endpoint_indicators = table.Column<string>(type: "text", nullable: true),
+                    user_indicator = table.Column<string>(type: "text", nullable: true),
+                    scope = table.Column<string>(type: "text", nullable: true),
+                    last_collected_data = table.Column<DateOnly>(type: "date", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("p_k_endpoints", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TrialLicense",
                 columns: table => new
                 {
@@ -330,6 +379,12 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 name: "IX_CustomChecks_status",
                 table: "CustomChecks",
                 column: "status");
+
+            migrationBuilder.CreateIndex(
+                name: "UC_DailyThroughput_EndpointName_ThroughputSource_Date",
+                table: "DailyThroughput",
+                columns: new[] { "endpoint_name", "throughput_source", "date" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_EventLogItems_raised_at",
@@ -423,6 +478,12 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 column: "group_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_LicensingMetadata_key",
+                table: "LicensingMetadata",
+                column: "key",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RetryBatches_retry_session_id",
                 table: "RetryBatches",
                 column: "retry_session_id");
@@ -447,6 +508,12 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 table: "Subscriptions",
                 columns: new[] { "message_type_type_name", "message_type_version" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "UC_ThroughputEndpoint_EndpointName_ThroughputSource",
+                table: "ThroughputEndpoint",
+                columns: new[] { "endpoint_name", "throughput_source" },
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -457,6 +524,9 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
 
             migrationBuilder.DropTable(
                 name: "CustomChecks");
+
+            migrationBuilder.DropTable(
+                name: "DailyThroughput");
 
             migrationBuilder.DropTable(
                 name: "EndpointSettings");
@@ -483,6 +553,9 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 name: "KnownEndpoints");
 
             migrationBuilder.DropTable(
+                name: "LicensingMetadata");
+
+            migrationBuilder.DropTable(
                 name: "MessageBodies");
 
             migrationBuilder.DropTable(
@@ -505,6 +578,9 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
 
             migrationBuilder.DropTable(
                 name: "Subscriptions");
+
+            migrationBuilder.DropTable(
+                name: "ThroughputEndpoint");
 
             migrationBuilder.DropTable(
                 name: "TrialLicense");

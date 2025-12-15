@@ -29,6 +29,9 @@ public abstract class ServiceControlDbContextBase : DbContext
     public DbSet<GroupCommentEntity> GroupComments { get; set; }
     public DbSet<RetryBatchNowForwardingEntity> RetryBatchNowForwarding { get; set; }
     public DbSet<NotificationsSettingsEntity> NotificationsSettings { get; set; }
+    public DbSet<LicensingMetadataEntity> LicensingMetadata { get; set; }
+    public DbSet<ThroughputEndpointEntity> Endpoints { get; set; }
+    public DbSet<DailyThroughputEntity> Throughput { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,6 +56,9 @@ public abstract class ServiceControlDbContextBase : DbContext
         modelBuilder.ApplyConfiguration(new GroupCommentConfiguration());
         modelBuilder.ApplyConfiguration(new RetryBatchNowForwardingConfiguration());
         modelBuilder.ApplyConfiguration(new NotificationsSettingsConfiguration());
+        modelBuilder.ApplyConfiguration(new LicensingMetadataEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new ThroughputEndpointConfiguration());
+        modelBuilder.ApplyConfiguration(new DailyThroughputConfiguration());
 
         OnModelCreatingProvider(modelBuilder);
     }

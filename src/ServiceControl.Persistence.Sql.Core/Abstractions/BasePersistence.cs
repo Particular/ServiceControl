@@ -6,6 +6,7 @@ using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.UnitOfWork;
 using Implementation;
 using Implementation.UnitOfWork;
+using Particular.LicensingComponent.Persistence;
 
 public abstract class BasePersistence
 {
@@ -37,5 +38,6 @@ public abstract class BasePersistence
         services.AddSingleton<INotificationsManager, NotificationsManager>();
         services.AddSingleton<IIngestionUnitOfWorkFactory, IngestionUnitOfWorkFactory>();
         services.AddSingleton<IErrorMessageDataStore, ErrorMessageDataStore>();
+        services.AddSingleton<ILicensingDataStore, LicensingDataStore>();
     }
 }

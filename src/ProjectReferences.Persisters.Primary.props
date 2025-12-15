@@ -2,7 +2,9 @@
 
   <ItemGroup Label="Persisters">
     <ProjectReference Include="..\ServiceControl.Persistence.RavenDB\ServiceControl.Persistence.RavenDB.csproj" ReferenceOutputAssembly="false" Private="false" />
-    <ProjectReference Include="..\ServiceControl.Persistence.Sql\ServiceControl.Persistence.Sql.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="..\ServiceControl.Persistence.Sql\ServiceControl.Persistence.Sql.SqlServer.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="..\ServiceControl.Persistence.Sql\ServiceControl.Persistence.Sql.PostgreSQL.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="..\ServiceControl.Persistence.Sql\ServiceControl.Persistence.Sql.MySQL.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
 </Project>

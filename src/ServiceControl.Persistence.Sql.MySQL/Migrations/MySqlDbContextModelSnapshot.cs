@@ -121,6 +121,38 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                     b.ToTable("CustomChecks", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.DailyThroughputEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("EndpointName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<long>("MessageCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ThroughputSource")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "EndpointName", "ThroughputSource", "Date" }, "UC_DailyThroughput_EndpointName_ThroughputSource_Date")
+                        .IsUnique();
+
+                    b.ToTable("DailyThroughput", (string)null);
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.EndpointSettingsEntity", b =>
                 {
                     b.Property<string>("Name")
@@ -398,6 +430,32 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                     b.ToTable("KnownEndpoints", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.LicensingMetadataEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Data")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("LicensingMetadata", (string)null);
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.MessageBodyEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -599,6 +657,47 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                         .IsUnique();
 
                     b.ToTable("Subscriptions", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.ThroughputEndpointEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("EndpointIndicators")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("EndpointName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateOnly>("LastCollectedData")
+                        .HasColumnType("date");
+
+                    b.Property<string>("SanitizedEndpointName")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Scope")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ThroughputSource")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("UserIndicator")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "EndpointName", "ThroughputSource" }, "UC_ThroughputEndpoint_EndpointName_ThroughputSource")
+                        .IsUnique();
+
+                    b.ToTable("ThroughputEndpoint", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.TrialLicenseEntity", b =>
