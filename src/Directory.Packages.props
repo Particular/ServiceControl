@@ -49,7 +49,7 @@
     <PackageVersion Include="NServiceBus.Transport.AzureStorageQueues" Version="13.0.3" />
     <PackageVersion Include="NServiceBus.Transport.Msmq.Sources" Version="3.0.2" />
     <PackageVersion Include="NServiceBus.Transport.SqlServer" Version="8.1.9" />
-    <PackageVersion Include="NServiceBus.Transport.PostgreSql" Version="8.1.9" />
+    <PackageVersion Include="NServiceBus.Transport.PostgreSql" Version="8.1.11" />
     <PackageVersion Include="NuGet.Versioning" Version="6.14.0" />
     <PackageVersion Include="NUnit" Version="4.4.0" />
     <PackageVersion Include="NUnit.Analyzers" Version="4.11.2" />
