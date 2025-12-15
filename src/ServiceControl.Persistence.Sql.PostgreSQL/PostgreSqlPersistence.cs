@@ -33,6 +33,7 @@ class PostgreSqlPersistence : BasePersistence, IPersistence
         services.AddSingleton<PersistenceSettings>(settings);
         services.AddSingleton(settings);
 
+
         services.AddDbContext<PostgreSqlDbContext>((serviceProvider, options) =>
         {
             options.UseNpgsql(settings.ConnectionString, npgsqlOptions =>
