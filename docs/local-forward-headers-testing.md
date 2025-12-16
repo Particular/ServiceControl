@@ -759,7 +759,82 @@ dotnet run
 curl -H "X-Forwarded-Proto: https" http://localhost:33633/debug/request-info | json
 ```
 
+## Unit Tests
+
+Unit tests for the `ForwardedHeadersSettings` configuration class are located at:
+
+```text
+src/ServiceControl.UnitTests/Infrastructure/Settings/ForwardedHeadersSettingsTests.cs
+```
+
+### Running the Tests
+
+```bash
+dotnet test src/ServiceControl.UnitTests/ServiceControl.UnitTests.csproj --filter "FullyQualifiedName~ForwardedHeadersSettingsTests"
+```
+
+### What the Tests Cover
+
+| Test | Purpose |
+|------|---------|
+| `Should_parse_known_proxies_from_comma_separated_list` | Verifies parsing of multiple proxy IPs |
+| `Should_parse_known_proxies_to_ip_addresses` | Verifies `KnownProxies` property returns valid `IPAddress` objects |
+| `Should_ignore_invalid_ip_addresses` | Verifies invalid IPs are filtered out gracefully |
+| `Should_parse_known_networks_from_comma_separated_cidr` | Verifies CIDR notation parsing |
+| `Should_ignore_invalid_network_cidr` | Verifies invalid CIDR entries are filtered |
+| `Should_disable_trust_all_proxies_when_known_proxies_configured` | Verifies auto-disable behavior |
+| `Should_disable_trust_all_proxies_when_known_networks_configured` | Verifies auto-disable behavior |
+| `Should_default_to_enabled` | Verifies default value |
+| `Should_default_to_trust_all_proxies` | Verifies default value |
+| `Should_respect_explicit_disabled_setting` | Verifies explicit configuration |
+| `Should_handle_semicolon_separator_in_proxies` | Tests alternate separator |
+| `Should_trim_whitespace_from_proxy_entries` | Tests whitespace handling |
+
+## Acceptance Tests
+
+Acceptance tests for end-to-end forwarded headers behavior are located at:
+
+```text
+src/ServiceControl.AcceptanceTests/Security/ForwardedHeaders/
+src/ServiceControl.Audit.AcceptanceTests/Security/ForwardedHeaders/
+src/ServiceControl.Monitoring.AcceptanceTests/Security/ForwardedHeaders/
+```
+
+Each instance type has identical tests covering all scenarios.
+
+### Running the Tests
+
+```bash
+# ServiceControl (Primary)
+dotnet test src/ServiceControl.AcceptanceTests.RavenDB/ServiceControl.AcceptanceTests.RavenDB.csproj --filter "FullyQualifiedName~ForwardedHeaders"
+
+# ServiceControl.Audit
+dotnet test src/ServiceControl.Audit.AcceptanceTests/ServiceControl.Audit.AcceptanceTests.csproj --filter "FullyQualifiedName~ForwardedHeaders"
+
+# ServiceControl.Monitoring
+dotnet test src/ServiceControl.Monitoring.AcceptanceTests/ServiceControl.Monitoring.AcceptanceTests.csproj --filter "FullyQualifiedName~ForwardedHeaders"
+```
+
+### Scenarios Covered
+
+| Scenario | Test |
+|----------|------|
+| 0 | `When_request_has_no_forwarded_headers` |
+| 1/2 | `When_forwarded_headers_are_sent` |
+| 3 | `When_known_proxies_are_configured` |
+| 4 | `When_known_networks_are_configured` |
+| 5 | `When_unknown_proxy_sends_headers` |
+| 6 | `When_unknown_network_sends_headers` |
+| 7 | `When_forwarded_headers_are_disabled` |
+| 8 | `When_proxy_chain_headers_are_sent` |
+| 9 | `When_proxy_chain_headers_are_sent_with_known_proxies` |
+| 10 | `When_combined_proxies_and_networks_are_configured` |
+| 11 | `When_only_proto_header_is_sent` |
+
+> **Note:** Scenario 12 (IPv4/IPv6 Mismatch) is not covered by acceptance tests because the test server's IP address (IPv4 vs IPv6) cannot be controlled reliably. The "untrusted proxy" behavior is already validated by Scenarios 5 and 6.
+
 ## See Also
 
 - [Hosting Guide](hosting-guide.md) - Configuration reference for forwarded headers
 - [Local Reverse Proxy Testing](local-reverseproxy-testing.md) - Testing with a real reverse proxy (NGINX)
+- [Testing Architecture](testing-architecture.md) - Overview of testing patterns in this repository
