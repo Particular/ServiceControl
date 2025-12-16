@@ -4,7 +4,7 @@ ClientId is a required setting
 ClientSecret is a required setting
 
 Connection attempted with the following settings:
-ServiceBus name not set, defaulted to "testmenow"
+Azure Service Bus namespace not set, defaulted to "testmenow"
 SubscriptionId not set, using the first found subscription
 TenantId not set
 ClientId not set
