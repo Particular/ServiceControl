@@ -27,6 +27,7 @@
     "CertificatePath": null,
     "CertificatePassword": null,
     "RedirectHttpToHttps": false,
+    "HttpsPort": null,
     "EnableHsts": false,
     "HstsMaxAgeSeconds": 31536000,
     "HstsIncludeSubDomains": false

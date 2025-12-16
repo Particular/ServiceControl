@@ -31,7 +31,7 @@ It's also possible to [locally test containers built from PRs in GitHub Containe
 ### Infrastructure setup
 
 If the instance is executed for the first time, it must set up the required infrastructure. To do so, once the instance is configured to use the selected transport and persister, run it in setup mode. This can be done by using the `Setup {instance name}` launch profile that is defined in 
-the `launchSettings.json` file of each instance. When started in setup mode, the instance will start as usual, execute the setup process, and exit. At this point the instance can be run normally by using the non-setup launch profile. 
+the `launchSettings.json` file of each instance. When started in setup mode, the instance will start as usual, execute the setup process, and exit. At this point the instance can be run normally by using the non-setup launch profile.
 
 ## Secrets
 
@@ -55,6 +55,21 @@ Running all tests all the times takes a lot of resources. Tests are filtered bas
 - `SQS`
 
 NOTE: If no variable is defined all tests will be executed.
+
+## Security Configuration
+
+Documentation for configuring security features:
+
+- [HTTPS Configuration](docs/https-configuration.md) - Configure HTTPS/TLS for secure connections
+- [Forwarded Headers](docs/forwarded-headers.md) - Configure X-Forwarded-* header handling for reverse proxy scenarios
+- [Authentication](docs/authentication.md) - Configure authentication for the HTTP API
+
+Local testing guides:
+
+- [Local HTTPS Testing](docs/local-https-testing.md)
+- [Local Reverse Proxy Testing](docs/local-reverseproxy-testing.md)
+- [Local Forward Headers Testing](docs/local-forward-headers-testing.md)
+- [Local Authentication Testing](docs/local-authentication-testing.md)
 
 ## How to developer test the PowerShell Module
 
