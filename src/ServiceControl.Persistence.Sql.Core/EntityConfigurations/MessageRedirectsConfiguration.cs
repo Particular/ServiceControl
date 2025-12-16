@@ -23,6 +23,7 @@ class MessageRedirectsConfiguration : IEntityTypeConfiguration<MessageRedirectsE
             .IsRequired();
 
         builder.Property(e => e.RedirectsJson)
+            .HasColumnType("jsonb")
             .IsRequired();
     }
 }

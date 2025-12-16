@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Entities;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ServiceControl.MessageFailures;
@@ -16,12 +17,6 @@ using ServiceControl.Recoverability;
 public class RetryDocumentDataStore : DataStoreBase, IRetryDocumentDataStore
 {
     readonly ILogger<RetryDocumentDataStore> logger;
-
-    static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
 
     public RetryDocumentDataStore(
         IServiceProvider serviceProvider,
@@ -110,7 +105,7 @@ public class RetryDocumentDataStore : DataStoreBase, IRetryDocumentDataStore
                 Last = last,
                 InitialBatchSize = failedMessageRetryIds.Length,
                 RetrySessionId = retrySessionId,
-                FailureRetriesJson = JsonSerializer.Serialize(failedMessageRetryIds, JsonOptions),
+                FailureRetriesJson = JsonSerializer.Serialize(failedMessageRetryIds, JsonSerializationOptions.Default),
                 Status = RetryBatchStatus.MarkingDocuments
             };
 
@@ -144,7 +139,7 @@ public class RetryDocumentDataStore : DataStoreBase, IRetryDocumentDataStore
                 InitialBatchSize = entity.InitialBatchSize,
                 Status = entity.Status,
                 RetryType = entity.RetryType,
-                FailureRetries = JsonSerializer.Deserialize<List<string>>(entity.FailureRetriesJson, JsonOptions) ?? []
+                FailureRetries = JsonSerializer.Deserialize<List<string>>(entity.FailureRetriesJson, JsonSerializationOptions.Default) ?? []
             }).ToList();
 
             return new QueryResult<IList<RetryBatch>>(result, new QueryStatsInfo(string.Empty, result.Count, false));
@@ -262,7 +257,7 @@ public class RetryDocumentDataStore : DataStoreBase, IRetryDocumentDataStore
 
             foreach (var message in messages)
             {
-                var groups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(message.FailureGroupsJson, JsonOptions) ?? [];
+                var groups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(message.FailureGroupsJson, JsonSerializationOptions.Default) ?? [];
                 if (groups.Any(g => g.Id == groupId))
                 {
                     var timeOfFailure = message.LastProcessedAt ?? DateTime.UtcNow;
@@ -292,7 +287,7 @@ public class RetryDocumentDataStore : DataStoreBase, IRetryDocumentDataStore
 
             foreach (var message in messages)
             {
-                var groups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(message.FailureGroupsJson, JsonOptions) ?? [];
+                var groups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(message.FailureGroupsJson, JsonSerializationOptions.Default) ?? [];
                 var group = groups.FirstOrDefault(g => g.Id == groupId);
                 if (group != null)
                 {

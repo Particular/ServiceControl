@@ -4,6 +4,7 @@ using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using DbContexts;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Notifications;
@@ -12,12 +13,6 @@ using ServiceControl.Persistence;
 class NotificationsManager(IServiceScope scope) : INotificationsManager
 {
     readonly ServiceControlDbContextBase dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
-
-    static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
 
     public async Task<NotificationsSettings> LoadSettings(TimeSpan? cacheTimeout = null)
     {
@@ -35,7 +30,7 @@ class NotificationsManager(IServiceScope scope) : INotificationsManager
             };
         }
 
-        var emailSettings = JsonSerializer.Deserialize<EmailNotifications>(entity.EmailSettingsJson, JsonOptions) ?? new EmailNotifications();
+        var emailSettings = JsonSerializer.Deserialize<EmailNotifications>(entity.EmailSettingsJson, JsonSerializationOptions.Default) ?? new EmailNotifications();
 
         return new NotificationsSettings
         {

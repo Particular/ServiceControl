@@ -11,6 +11,17 @@ class SqlServerDbContext : ServiceControlDbContextBase
 
     protected override void OnModelCreatingProvider(ModelBuilder modelBuilder)
     {
-        // SQL Server-specific configurations if needed
+        // SQL Server stores JSON as nvarchar(max), not jsonb (PostgreSQL-specific)
+        // Override all jsonb column types to use 'nvarchar(max)'
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.GetColumnType() == "jsonb")
+                {
+                    property.SetColumnType("nvarchar(max)");
+                }
+            }
+        }
     }
 }

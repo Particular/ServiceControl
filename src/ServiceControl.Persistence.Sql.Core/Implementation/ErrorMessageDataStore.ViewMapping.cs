@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using CompositeViews.Messages;
 using Entities;
+using Infrastructure;
 using MessageFailures.Api;
 using NServiceBus;
 using ServiceControl.MessageFailures;
@@ -47,7 +48,7 @@ partial class ErrorMessageDataStore
 
     internal static FailedMessageView CreateFailedMessageView(FailedMessageEntity entity)
     {
-        var processingAttempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(entity.ProcessingAttemptsJson) ?? [];
+        var processingAttempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(entity.ProcessingAttemptsJson, JsonSerializationOptions.Default) ?? [];
         var lastAttempt = processingAttempts.LastOrDefault();
 
         // Extract endpoint details from metadata (stored during ingestion)
@@ -58,12 +59,12 @@ partial class ErrorMessageDataStore
         {
             if (lastAttempt.MessageMetadata.TryGetValue("SendingEndpoint", out var sendingObj) && sendingObj is JsonElement sendingJson)
             {
-                sendingEndpoint = JsonSerializer.Deserialize<EndpointDetails>(sendingJson.GetRawText());
+                sendingEndpoint = JsonSerializer.Deserialize<EndpointDetails>(sendingJson.GetRawText(), JsonSerializationOptions.Default);
             }
 
             if (lastAttempt.MessageMetadata.TryGetValue("ReceivingEndpoint", out var receivingObj) && receivingObj is JsonElement receivingJson)
             {
-                receivingEndpoint = JsonSerializer.Deserialize<EndpointDetails>(receivingJson.GetRawText());
+                receivingEndpoint = JsonSerializer.Deserialize<EndpointDetails>(receivingJson.GetRawText(), JsonSerializationOptions.Default);
             }
         }
 
@@ -89,9 +90,9 @@ partial class ErrorMessageDataStore
 
     internal static MessagesView CreateMessagesView(FailedMessageEntity entity)
     {
-        var processingAttempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(entity.ProcessingAttemptsJson) ?? [];
+        var processingAttempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(entity.ProcessingAttemptsJson, JsonSerializationOptions.Default) ?? [];
         var lastAttempt = processingAttempts.LastOrDefault();
-        var headers = JsonSerializer.Deserialize<Dictionary<string, string>>(entity.HeadersJson) ?? [];
+        var headers = JsonSerializer.Deserialize<Dictionary<string, string>>(entity.HeadersJson, JsonSerializationOptions.Default) ?? [];
 
         // Extract metadata from the last processing attempt (matching RavenDB implementation)
         var metadata = lastAttempt?.MessageMetadata;
@@ -110,22 +111,22 @@ partial class ErrorMessageDataStore
         {
             if (metadata.TryGetValue("SendingEndpoint", out var sendingObj) && sendingObj is JsonElement sendingJson)
             {
-                sendingEndpoint = JsonSerializer.Deserialize<EndpointDetails>(sendingJson.GetRawText());
+                sendingEndpoint = JsonSerializer.Deserialize<EndpointDetails>(sendingJson.GetRawText(), JsonSerializationOptions.Default);
             }
 
             if (metadata.TryGetValue("ReceivingEndpoint", out var receivingObj) && receivingObj is JsonElement receivingJson)
             {
-                receivingEndpoint = JsonSerializer.Deserialize<EndpointDetails>(receivingJson.GetRawText());
+                receivingEndpoint = JsonSerializer.Deserialize<EndpointDetails>(receivingJson.GetRawText(), JsonSerializationOptions.Default);
             }
 
             if (metadata.TryGetValue("OriginatesFromSaga", out var sagaObj) && sagaObj is JsonElement sagaJson)
             {
-                originatesFromSaga = JsonSerializer.Deserialize<SagaInfo>(sagaJson.GetRawText());
+                originatesFromSaga = JsonSerializer.Deserialize<SagaInfo>(sagaJson.GetRawText(), JsonSerializationOptions.Default);
             }
 
             if (metadata.TryGetValue("InvokedSagas", out var sagasObj) && sagasObj is JsonElement sagasJson)
             {
-                invokedSagas = JsonSerializer.Deserialize<List<SagaInfo>>(sagasJson.GetRawText());
+                invokedSagas = JsonSerializer.Deserialize<List<SagaInfo>>(sagasJson.GetRawText(), JsonSerializationOptions.Default);
             }
         }
 

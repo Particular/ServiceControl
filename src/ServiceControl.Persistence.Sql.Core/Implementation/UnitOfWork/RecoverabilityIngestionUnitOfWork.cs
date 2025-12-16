@@ -60,7 +60,7 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
         if (existingMessage != null)
         {
             // Merge with existing attempts
-            attempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(existingMessage.ProcessingAttemptsJson) ?? [];
+            attempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(existingMessage.ProcessingAttemptsJson, JsonSerializationOptions.Default) ?? [];
 
             // De-duplicate attempts by AttemptedAt value
             var duplicateIndex = attempts.FindIndex(a => a.AttemptedAt == processingAttempt.AttemptedAt);
@@ -76,9 +76,9 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
 
             // Update the tracked entity
             existingMessage.Status = FailedMessageStatus.Unresolved;
-            existingMessage.ProcessingAttemptsJson = JsonSerializer.Serialize(attempts);
-            existingMessage.FailureGroupsJson = JsonSerializer.Serialize(groups);
-            existingMessage.HeadersJson = JsonSerializer.Serialize(processingAttempt.Headers);
+            existingMessage.ProcessingAttemptsJson = JsonSerializer.Serialize(attempts, JsonSerializationOptions.Default);
+            existingMessage.FailureGroupsJson = JsonSerializer.Serialize(groups, JsonSerializationOptions.Default);
+            existingMessage.HeadersJson = JsonSerializer.Serialize(processingAttempt.Headers, JsonSerializationOptions.Default);
             existingMessage.PrimaryFailureGroupId = groups.Count > 0 ? groups[0].Id : null;
             existingMessage.MessageId = processingAttempt.MessageId;
             existingMessage.MessageType = messageType;
@@ -103,9 +103,9 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
                 Id = SequentialGuidGenerator.NewSequentialGuid(),
                 UniqueMessageId = uniqueMessageId,
                 Status = FailedMessageStatus.Unresolved,
-                ProcessingAttemptsJson = JsonSerializer.Serialize(attempts),
-                FailureGroupsJson = JsonSerializer.Serialize(groups),
-                HeadersJson = JsonSerializer.Serialize(processingAttempt.Headers),
+                ProcessingAttemptsJson = JsonSerializer.Serialize(attempts, JsonSerializationOptions.Default),
+                FailureGroupsJson = JsonSerializer.Serialize(groups, JsonSerializationOptions.Default),
+                HeadersJson = JsonSerializer.Serialize(processingAttempt.Headers, JsonSerializationOptions.Default),
                 PrimaryFailureGroupId = groups.Count > 0 ? groups[0].Id : null,
                 MessageId = processingAttempt.MessageId,
                 MessageType = messageType,

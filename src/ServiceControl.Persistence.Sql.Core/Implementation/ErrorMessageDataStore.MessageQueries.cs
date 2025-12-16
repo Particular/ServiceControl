@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using CompositeViews.Messages;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using ServiceControl.MessageFailures;
 using ServiceControl.MessageFailures.Api;
@@ -367,7 +368,7 @@ partial class ErrorMessageDataStore
                 return null!;
             }
 
-            var processingAttempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(entity.ProcessingAttemptsJson) ?? [];
+            var processingAttempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(entity.ProcessingAttemptsJson, JsonSerializationOptions.Default) ?? [];
             var lastAttempt = processingAttempts.LastOrDefault();
 
             if (lastAttempt == null)
@@ -414,8 +415,8 @@ partial class ErrorMessageDataStore
                 Id = entity.Id.ToString(),
                 UniqueMessageId = entity.UniqueMessageId,
                 Status = entity.Status,
-                ProcessingAttempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(entity.ProcessingAttemptsJson) ?? [],
-                FailureGroups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(entity.FailureGroupsJson) ?? []
+                ProcessingAttempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(entity.ProcessingAttemptsJson, JsonSerializationOptions.Default) ?? [],
+                FailureGroups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(entity.FailureGroupsJson, JsonSerializationOptions.Default) ?? []
             };
         });
     }

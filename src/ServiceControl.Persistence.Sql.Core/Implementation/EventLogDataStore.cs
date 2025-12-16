@@ -30,7 +30,7 @@ public class EventLogDataStore : DataStoreBase, IEventLogDataStore
                 RaisedAt = logItem.RaisedAt,
                 Category = logItem.Category,
                 EventType = logItem.EventType,
-                RelatedTo = logItem.RelatedTo != null ? JsonSerializer.Serialize(logItem.RelatedTo) : null
+                RelatedToJson = logItem.RelatedTo != null ? JsonSerializer.Serialize(logItem.RelatedTo, JsonSerializationOptions.Default) : null
             };
 
             await dbContext.EventLogItems.AddAsync(entity);
@@ -61,7 +61,7 @@ public class EventLogDataStore : DataStoreBase, IEventLogDataStore
                 RaisedAt = entity.RaisedAt,
                 Category = entity.Category,
                 EventType = entity.EventType,
-                RelatedTo = entity.RelatedTo != null ? JsonSerializer.Deserialize<List<string>>(entity.RelatedTo) : null
+                RelatedTo = entity.RelatedToJson != null ? JsonSerializer.Deserialize<List<string>>(entity.RelatedToJson, JsonSerializationOptions.Default) : null
             }).ToList();
 
             // Version could be based on the latest RaisedAt timestamp but the paging can affect this result, given that the latest may not be retrieved

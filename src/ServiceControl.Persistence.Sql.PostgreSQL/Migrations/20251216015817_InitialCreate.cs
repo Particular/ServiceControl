@@ -89,7 +89,7 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                     description = table.Column<string>(type: "text", nullable: false),
                     severity = table.Column<int>(type: "integer", nullable: false),
                     raised_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    related_to = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true),
+                    related_to_json = table.Column<string>(type: "jsonb", maxLength: 4000, nullable: true),
                     category = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     event_type = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true)
                 },
@@ -104,7 +104,7 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    dispatch_context_json = table.Column<string>(type: "text", nullable: false),
+                    dispatch_context_json = table.Column<string>(type: "jsonb", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -117,7 +117,7 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    message_json = table.Column<string>(type: "text", nullable: false),
+                    message_json = table.Column<string>(type: "jsonb", nullable: false),
                     exception_info = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -146,8 +146,9 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     unique_message_id = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     status = table.Column<int>(type: "integer", nullable: false),
-                    processing_attempts_json = table.Column<string>(type: "text", nullable: false),
-                    failure_groups_json = table.Column<string>(type: "text", nullable: false),
+                    processing_attempts_json = table.Column<string>(type: "jsonb", nullable: false),
+                    failure_groups_json = table.Column<string>(type: "jsonb", nullable: false),
+                    headers_json = table.Column<string>(type: "jsonb", nullable: false),
                     primary_failure_group_id = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     message_id = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     message_type = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
@@ -159,10 +160,7 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                     queue_address = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     number_of_processing_attempts = table.Column<int>(type: "integer", nullable: true),
                     last_processed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    conversation_id = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    critical_time = table.Column<TimeSpan>(type: "interval", nullable: true),
-                    processing_time = table.Column<TimeSpan>(type: "interval", nullable: true),
-                    delivery_time = table.Column<TimeSpan>(type: "interval", nullable: true)
+                    conversation_id = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -234,7 +232,7 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     e_tag = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     last_modified = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    redirects_json = table.Column<string>(type: "text", nullable: false)
+                    redirects_json = table.Column<string>(type: "jsonb", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -246,7 +244,7 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    email_settings_json = table.Column<string>(type: "text", nullable: false)
+                    email_settings_json = table.Column<string>(type: "jsonb", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -281,7 +279,7 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                     initial_batch_size = table.Column<int>(type: "integer", nullable: false),
                     retry_type = table.Column<int>(type: "integer", nullable: false),
                     status = table.Column<int>(type: "integer", nullable: false),
-                    failure_retries_json = table.Column<string>(type: "text", nullable: false)
+                    failure_retries_json = table.Column<string>(type: "jsonb", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -306,8 +304,8 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
-                    historic_operations_json = table.Column<string>(type: "text", nullable: true),
-                    unacknowledged_operations_json = table.Column<string>(type: "text", nullable: true)
+                    historic_operations_json = table.Column<string>(type: "jsonb", nullable: true),
+                    unacknowledged_operations_json = table.Column<string>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -321,7 +319,7 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                     id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     message_type_type_name = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     message_type_version = table.Column<int>(type: "integer", nullable: false),
-                    subscribers_json = table.Column<string>(type: "text", nullable: false)
+                    subscribers_json = table.Column<string>(type: "jsonb", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -412,16 +410,6 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 columns: new[] { "conversation_id", "last_processed_at" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_FailedMessages_critical_time",
-                table: "FailedMessages",
-                column: "critical_time");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_FailedMessages_delivery_time",
-                table: "FailedMessages",
-                column: "delivery_time");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_FailedMessages_message_id",
                 table: "FailedMessages",
                 column: "message_id");
@@ -435,11 +423,6 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 name: "IX_FailedMessages_primary_failure_group_id_status_last_process~",
                 table: "FailedMessages",
                 columns: new[] { "primary_failure_group_id", "status", "last_processed_at" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_FailedMessages_processing_time",
-                table: "FailedMessages",
-                column: "processing_time");
 
             migrationBuilder.CreateIndex(
                 name: "IX_FailedMessages_queue_address_status_last_processed_at",

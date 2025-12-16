@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Operations;
@@ -13,12 +14,6 @@ using ServiceControl.Persistence;
 public class FailedErrorImportDataStore : DataStoreBase, IFailedErrorImportDataStore
 {
     readonly ILogger<FailedErrorImportDataStore> logger;
-
-    static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
 
     public FailedErrorImportDataStore(IServiceProvider serviceProvider, ILogger<FailedErrorImportDataStore> logger) : base(serviceProvider)
     {
@@ -44,7 +39,7 @@ public class FailedErrorImportDataStore : DataStoreBase, IFailedErrorImportDataS
                 FailedTransportMessage? transportMessage = null;
                 try
                 {
-                    transportMessage = JsonSerializer.Deserialize<FailedTransportMessage>(import.MessageJson, JsonOptions);
+                    transportMessage = JsonSerializer.Deserialize<FailedTransportMessage>(import.MessageJson, JsonSerializationOptions.Default);
 
                     Debug.Assert(transportMessage != null, "Deserialized transport message should not be null");
 

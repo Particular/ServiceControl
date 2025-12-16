@@ -188,9 +188,9 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                     b.Property<DateTime>("RaisedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("RelatedTo")
+                    b.Property<string>("RelatedToJson")
                         .HasMaxLength(4000)
-                        .HasColumnType("varchar(4000)");
+                        .HasColumnType("json");
 
                     b.Property<int>("Severity")
                         .HasColumnType("int");
@@ -215,7 +215,7 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
 
                     b.Property<string>("DispatchContextJson")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("json");
 
                     b.HasKey("Id");
 
@@ -235,7 +235,7 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
 
                     b.Property<string>("MessageJson")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("json");
 
                     b.HasKey("Id");
 
@@ -252,12 +252,6 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
 
-                    b.Property<TimeSpan?>("CriticalTime")
-                        .HasColumnType("time(6)");
-
-                    b.Property<TimeSpan?>("DeliveryTime")
-                        .HasColumnType("time(6)");
-
                     b.Property<string>("ExceptionMessage")
                         .HasColumnType("longtext");
 
@@ -267,7 +261,11 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
 
                     b.Property<string>("FailureGroupsJson")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("json");
+
+                    b.Property<string>("HeadersJson")
+                        .IsRequired()
+                        .HasColumnType("json");
 
                     b.Property<DateTime?>("LastProcessedAt")
                         .HasColumnType("datetime(6)");
@@ -289,10 +287,7 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
 
                     b.Property<string>("ProcessingAttemptsJson")
                         .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<TimeSpan?>("ProcessingTime")
-                        .HasColumnType("time(6)");
+                        .HasColumnType("json");
 
                     b.Property<string>("QueueAddress")
                         .HasMaxLength(500)
@@ -319,13 +314,7 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CriticalTime");
-
-                    b.HasIndex("DeliveryTime");
-
                     b.HasIndex("MessageId");
-
-                    b.HasIndex("ProcessingTime");
 
                     b.HasIndex("UniqueMessageId")
                         .IsUnique();
@@ -499,7 +488,7 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
 
                     b.Property<string>("RedirectsJson")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("json");
 
                     b.HasKey("Id");
 
@@ -514,7 +503,7 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
 
                     b.Property<string>("EmailSettingsJson")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("json");
 
                     b.HasKey("Id");
 
@@ -550,7 +539,7 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
 
                     b.Property<string>("FailureRetriesJson")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("json");
 
                     b.Property<int>("InitialBatchSize")
                         .HasColumnType("int");
@@ -623,10 +612,10 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                         .HasDefaultValue(1);
 
                     b.Property<string>("HistoricOperationsJson")
-                        .HasColumnType("longtext");
+                        .HasColumnType("json");
 
                     b.Property<string>("UnacknowledgedOperationsJson")
-                        .HasColumnType("longtext");
+                        .HasColumnType("json");
 
                     b.HasKey("Id");
 
@@ -649,7 +638,7 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
 
                     b.Property<string>("SubscribersJson")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("json");
 
                     b.HasKey("Id");
 

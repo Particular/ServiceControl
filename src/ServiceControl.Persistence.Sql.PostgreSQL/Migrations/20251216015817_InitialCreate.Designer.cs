@@ -12,7 +12,7 @@ using ServiceControl.Persistence.Sql.PostgreSQL;
 namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
 {
     [DbContext(typeof(PostgreSqlDbContext))]
-    [Migration("20251215071329_InitialCreate")]
+    [Migration("20251216015817_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -227,10 +227,10 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("raised_at");
 
-                    b.Property<string>("RelatedTo")
+                    b.Property<string>("RelatedToJson")
                         .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)")
-                        .HasColumnName("related_to");
+                        .HasColumnType("jsonb")
+                        .HasColumnName("related_to_json");
 
                     b.Property<int>("Severity")
                         .HasColumnType("integer")
@@ -259,7 +259,7 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
 
                     b.Property<string>("DispatchContextJson")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasColumnType("jsonb")
                         .HasColumnName("dispatch_context_json");
 
                     b.HasKey("Id")
@@ -283,7 +283,7 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
 
                     b.Property<string>("MessageJson")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasColumnType("jsonb")
                         .HasColumnName("message_json");
 
                     b.HasKey("Id")
@@ -304,14 +304,6 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("conversation_id");
 
-                    b.Property<TimeSpan?>("CriticalTime")
-                        .HasColumnType("interval")
-                        .HasColumnName("critical_time");
-
-                    b.Property<TimeSpan?>("DeliveryTime")
-                        .HasColumnType("interval")
-                        .HasColumnName("delivery_time");
-
                     b.Property<string>("ExceptionMessage")
                         .HasColumnType("text")
                         .HasColumnName("exception_message");
@@ -323,8 +315,13 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
 
                     b.Property<string>("FailureGroupsJson")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasColumnType("jsonb")
                         .HasColumnName("failure_groups_json");
+
+                    b.Property<string>("HeadersJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("headers_json");
 
                     b.Property<DateTime?>("LastProcessedAt")
                         .HasColumnType("timestamp with time zone")
@@ -351,12 +348,8 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
 
                     b.Property<string>("ProcessingAttemptsJson")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasColumnType("jsonb")
                         .HasColumnName("processing_attempts_json");
-
-                    b.Property<TimeSpan?>("ProcessingTime")
-                        .HasColumnType("interval")
-                        .HasColumnName("processing_time");
 
                     b.Property<string>("QueueAddress")
                         .HasMaxLength(500)
@@ -390,13 +383,7 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                     b.HasKey("Id")
                         .HasName("p_k_failed_messages");
 
-                    b.HasIndex("CriticalTime");
-
-                    b.HasIndex("DeliveryTime");
-
                     b.HasIndex("MessageId");
-
-                    b.HasIndex("ProcessingTime");
 
                     b.HasIndex("UniqueMessageId")
                         .IsUnique();
@@ -599,7 +586,7 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
 
                     b.Property<string>("RedirectsJson")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasColumnType("jsonb")
                         .HasColumnName("redirects_json");
 
                     b.HasKey("Id")
@@ -617,7 +604,7 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
 
                     b.Property<string>("EmailSettingsJson")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasColumnType("jsonb")
                         .HasColumnName("email_settings_json");
 
                     b.HasKey("Id")
@@ -660,7 +647,7 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
 
                     b.Property<string>("FailureRetriesJson")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasColumnType("jsonb")
                         .HasColumnName("failure_retries_json");
 
                     b.Property<int>("InitialBatchSize")
@@ -748,11 +735,11 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                         .HasColumnName("id");
 
                     b.Property<string>("HistoricOperationsJson")
-                        .HasColumnType("text")
+                        .HasColumnType("jsonb")
                         .HasColumnName("historic_operations_json");
 
                     b.Property<string>("UnacknowledgedOperationsJson")
-                        .HasColumnType("text")
+                        .HasColumnType("jsonb")
                         .HasColumnName("unacknowledged_operations_json");
 
                     b.HasKey("Id")
@@ -780,7 +767,7 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
 
                     b.Property<string>("SubscribersJson")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasColumnType("jsonb")
                         .HasColumnName("subscribers_json");
 
                     b.HasKey("Id")

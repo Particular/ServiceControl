@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using DbContexts;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.MessageFailures;
@@ -19,12 +20,6 @@ class EditFailedMessagesManager(
     string? currentEditingRequestId;
     FailedMessage? currentMessage;
 
-    static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
-
     public async Task<FailedMessage?> GetFailedMessage(string uniqueMessageId)
     {
         var entity = await dbContext.FailedMessages
@@ -35,8 +30,8 @@ class EditFailedMessagesManager(
             return null;
         }
 
-        var processingAttempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(entity.ProcessingAttemptsJson, JsonOptions) ?? [];
-        var failureGroups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(entity.FailureGroupsJson, JsonOptions) ?? [];
+        var processingAttempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(entity.ProcessingAttemptsJson, JsonSerializationOptions.Default) ?? [];
+        var failureGroups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(entity.FailureGroupsJson, JsonSerializationOptions.Default) ?? [];
 
         currentMessage = new FailedMessage
         {
@@ -70,15 +65,15 @@ class EditFailedMessagesManager(
         if (entity != null)
         {
             entity.Status = failedMessage.Status;
-            entity.ProcessingAttemptsJson = JsonSerializer.Serialize(failedMessage.ProcessingAttempts, JsonOptions);
-            entity.FailureGroupsJson = JsonSerializer.Serialize(failedMessage.FailureGroups, JsonOptions);
+            entity.ProcessingAttemptsJson = JsonSerializer.Serialize(failedMessage.ProcessingAttempts, JsonSerializationOptions.Default);
+            entity.FailureGroupsJson = JsonSerializer.Serialize(failedMessage.FailureGroups, JsonSerializationOptions.Default);
             entity.PrimaryFailureGroupId = failedMessage.FailureGroups.Count > 0 ? failedMessage.FailureGroups[0].Id : null;
 
             // Update denormalized fields from last attempt
             var lastAttempt = failedMessage.ProcessingAttempts.LastOrDefault();
             if (lastAttempt != null)
             {
-                entity.HeadersJson = JsonSerializer.Serialize(lastAttempt.Headers, JsonOptions);
+                entity.HeadersJson = JsonSerializer.Serialize(lastAttempt.Headers, JsonSerializationOptions.Default);
                 var messageType = GetMetadata<string>(lastAttempt, "MessageType");
                 var sendingEndpoint = GetMetadata<EndpointDetails>(lastAttempt, "SendingEndpoint");
                 var receivingEndpoint = GetMetadata<EndpointDetails>(lastAttempt, "ReceivingEndpoint");

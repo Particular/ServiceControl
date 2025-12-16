@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Particular.LicensingComponent.Contracts;
 using Particular.LicensingComponent.Persistence;
@@ -293,7 +294,7 @@ public class LicensingDataStore : DataStoreBase, ILicensingDataStore
             {
                 return default;
             }
-            return JsonSerializer.Deserialize<T>(existing.Data);
+            return JsonSerializer.Deserialize<T>(existing.Data, JsonSerializationOptions.Default);
         });
     }
 
@@ -303,7 +304,7 @@ public class LicensingDataStore : DataStoreBase, ILicensingDataStore
         {
             var existing = await dbContext.LicensingMetadata.SingleOrDefaultAsync(m => m.Key == key, cancellationToken);
 
-            var serialized = JsonSerializer.Serialize(data);
+            var serialized = JsonSerializer.Serialize(data, JsonSerializationOptions.Default);
 
             if (existing is null)
             {

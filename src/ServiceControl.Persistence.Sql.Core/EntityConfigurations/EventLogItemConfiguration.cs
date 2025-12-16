@@ -30,7 +30,8 @@ class EventLogItemConfiguration : IEntityTypeConfiguration<EventLogItemEntity>
         builder.Property(e => e.EventType)
             .HasMaxLength(200);
 
-        builder.Property(e => e.RelatedTo)
+        builder.Property(e => e.RelatedToJson)
+            .HasColumnType("jsonb")
             .HasMaxLength(4000);
 
         // Index for querying by RaisedAt

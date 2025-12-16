@@ -15,7 +15,7 @@ class ExternalIntegrationDispatchRequestConfiguration : IEntityTypeConfiguration
             .HasColumnType("bigint")
             .IsRequired();
 
-        builder.Property(e => e.DispatchContextJson).IsRequired();
+        builder.Property(e => e.DispatchContextJson).HasColumnType("jsonb").IsRequired();
         builder.Property(e => e.CreatedAt).IsRequired();
 
         builder.HasIndex(e => e.CreatedAt);

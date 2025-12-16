@@ -13,9 +13,9 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
         builder.Property(e => e.Id).IsRequired();
         builder.Property(e => e.UniqueMessageId).HasMaxLength(200).IsRequired();
         builder.Property(e => e.Status).IsRequired();
-        builder.Property(e => e.ProcessingAttemptsJson).IsRequired();
-        builder.Property(e => e.FailureGroupsJson).IsRequired();
-        builder.Property(e => e.HeadersJson).IsRequired();
+        builder.Property(e => e.ProcessingAttemptsJson).HasColumnType("jsonb").IsRequired();
+        builder.Property(e => e.FailureGroupsJson).HasColumnType("jsonb").IsRequired();
+        builder.Property(e => e.HeadersJson).HasColumnType("jsonb").IsRequired();
 
         // Denormalized query fields from FailureGroups
         builder.Property(e => e.PrimaryFailureGroupId).HasMaxLength(200);

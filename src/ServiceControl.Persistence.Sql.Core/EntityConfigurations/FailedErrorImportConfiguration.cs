@@ -11,7 +11,7 @@ class FailedErrorImportConfiguration : IEntityTypeConfiguration<FailedErrorImpor
         builder.ToTable("FailedErrorImports");
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).IsRequired();
-        builder.Property(e => e.MessageJson).IsRequired();
+        builder.Property(e => e.MessageJson).HasColumnType("jsonb").IsRequired();
         builder.Property(e => e.ExceptionInfo);
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Entities;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence;
@@ -13,12 +14,6 @@ using ServiceControl.Recoverability;
 
 public class GroupsDataStore : DataStoreBase, IGroupsDataStore
 {
-    static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
-
     public GroupsDataStore(IServiceProvider serviceProvider) : base(serviceProvider)
     {
     }
@@ -42,7 +37,7 @@ public class GroupsDataStore : DataStoreBase, IGroupsDataStore
             var allGroups = failedMessages
                 .SelectMany(m =>
                 {
-                    var groups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(m.FailureGroupsJson, JsonOptions) ?? [];
+                    var groups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(m.FailureGroupsJson, JsonSerializationOptions.Default) ?? [];
                     return groups.Select(g => new { Group = g, ProcessedAt = m.LastProcessedAt });
                 })
                 .Where(x => x.Group.Type == classifier)
@@ -127,7 +122,7 @@ public class GroupsDataStore : DataStoreBase, IGroupsDataStore
                 InitialBatchSize = batchEntity.InitialBatchSize,
                 Status = batchEntity.Status,
                 RetryType = batchEntity.RetryType,
-                FailureRetries = JsonSerializer.Deserialize<List<string>>(batchEntity.FailureRetriesJson, JsonOptions) ?? []
+                FailureRetries = JsonSerializer.Deserialize<List<string>>(batchEntity.FailureRetriesJson, JsonSerializationOptions.Default) ?? []
             };
         });
     }

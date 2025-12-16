@@ -11,6 +11,6 @@ class NotificationsSettingsConfiguration : IEntityTypeConfiguration<Notification
         builder.ToTable("NotificationsSettings");
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).IsRequired();
-        builder.Property(e => e.EmailSettingsJson).IsRequired();
+        builder.Property(e => e.EmailSettingsJson).HasColumnType("jsonb").IsRequired();
     }
 }

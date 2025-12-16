@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DbContexts;
 using Entities;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -22,12 +23,6 @@ class RetryBatchesManager(
 {
     readonly ServiceControlDbContextBase dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
     readonly List<Action> deferredActions = [];
-
-    static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
 
     public void Delete(RetryBatch retryBatch)
     {
@@ -130,7 +125,7 @@ class RetryBatchesManager(
         }
 
         // Pre-load the related failure retries for the "Include" pattern
-        var failureRetries = JsonSerializer.Deserialize<List<string>>(entity.FailureRetriesJson, JsonOptions) ?? [];
+        var failureRetries = JsonSerializer.Deserialize<List<string>>(entity.FailureRetriesJson, JsonSerializationOptions.Default) ?? [];
         if (failureRetries.Count > 0)
         {
             var retryGuids = failureRetries.Select(Guid.Parse).ToList();
@@ -170,7 +165,7 @@ class RetryBatchesManager(
 
         if (entity != null)
         {
-            var collection = JsonSerializer.Deserialize<MessageRedirectsCollection>(entity.RedirectsJson, JsonOptions)
+            var collection = JsonSerializer.Deserialize<MessageRedirectsCollection>(entity.RedirectsJson, JsonSerializationOptions.Default)
                 ?? new MessageRedirectsCollection();
 
             // Set metadata properties (ETag and LastModified are not available in EF Core the same way as RavenDB)
@@ -224,7 +219,7 @@ class RetryBatchesManager(
             InitialBatchSize = entity.InitialBatchSize,
             Status = entity.Status,
             RetryType = entity.RetryType,
-            FailureRetries = JsonSerializer.Deserialize<List<string>>(entity.FailureRetriesJson, JsonOptions) ?? []
+            FailureRetries = JsonSerializer.Deserialize<List<string>>(entity.FailureRetriesJson, JsonSerializationOptions.Default) ?? []
         };
     }
 
@@ -242,8 +237,8 @@ class RetryBatchesManager(
     static FailedMessage ToFailedMessage(FailedMessageEntity entity)
     {
         // This is a simplified conversion - we'll need to expand this when implementing IErrorMessageDataStore
-        var processingAttempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(entity.ProcessingAttemptsJson, JsonOptions) ?? [];
-        var failureGroups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(entity.FailureGroupsJson, JsonOptions) ?? [];
+        var processingAttempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(entity.ProcessingAttemptsJson, JsonSerializationOptions.Default) ?? [];
+        var failureGroups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(entity.FailureGroupsJson, JsonSerializationOptions.Default) ?? [];
 
         return new FailedMessage
         {

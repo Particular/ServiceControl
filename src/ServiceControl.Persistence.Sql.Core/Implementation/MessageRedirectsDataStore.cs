@@ -4,6 +4,7 @@ using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Entities;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using ServiceControl.Persistence.MessageRedirects;
 
@@ -31,7 +32,7 @@ public class MessageRedirectsDataStore : DataStoreBase, IMessageRedirectsDataSto
                 };
             }
 
-            var redirects = JsonSerializer.Deserialize<List<MessageRedirect>>(entity.RedirectsJson) ?? [];
+            var redirects = JsonSerializer.Deserialize<List<MessageRedirect>>(entity.RedirectsJson, JsonSerializationOptions.Default) ?? [];
 
             return new MessageRedirectsCollection
             {
@@ -46,7 +47,7 @@ public class MessageRedirectsDataStore : DataStoreBase, IMessageRedirectsDataSto
     {
         return ExecuteWithDbContext(async dbContext =>
         {
-            var redirectsJson = JsonSerializer.Serialize(redirects.Redirects);
+            var redirectsJson = JsonSerializer.Serialize(redirects.Redirects, JsonSerializationOptions.Default);
             var newETag = Guid.NewGuid().ToString();
             var newLastModified = DateTime.UtcNow;
 

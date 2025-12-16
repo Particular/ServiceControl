@@ -13,7 +13,7 @@ class SubscriptionConfiguration : IEntityTypeConfiguration<SubscriptionEntity>
         builder.Property(e => e.Id).HasMaxLength(100);
         builder.Property(e => e.MessageTypeTypeName).IsRequired().HasMaxLength(500);
         builder.Property(e => e.MessageTypeVersion).IsRequired();
-        builder.Property(e => e.SubscribersJson).IsRequired();
+        builder.Property(e => e.SubscribersJson).HasColumnType("jsonb").IsRequired();
 
         // Unique composite index to enforce one subscription per message type/version
         builder.HasIndex(e => new { e.MessageTypeTypeName, e.MessageTypeVersion }).IsUnique();

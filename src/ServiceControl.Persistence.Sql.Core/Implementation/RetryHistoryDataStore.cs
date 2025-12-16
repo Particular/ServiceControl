@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Entities;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using ServiceControl.Persistence;
 using ServiceControl.Recoverability;
@@ -13,12 +14,6 @@ using ServiceControl.Recoverability;
 public class RetryHistoryDataStore : DataStoreBase, IRetryHistoryDataStore
 {
     const int SingletonId = 1;
-
-    static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
 
     public RetryHistoryDataStore(IServiceProvider serviceProvider) : base(serviceProvider)
     {
@@ -39,11 +34,11 @@ public class RetryHistoryDataStore : DataStoreBase, IRetryHistoryDataStore
 
             var historicOperations = string.IsNullOrEmpty(entity.HistoricOperationsJson)
                 ? []
-                : JsonSerializer.Deserialize<List<HistoricRetryOperation>>(entity.HistoricOperationsJson, JsonOptions) ?? [];
+                : JsonSerializer.Deserialize<List<HistoricRetryOperation>>(entity.HistoricOperationsJson, JsonSerializationOptions.Default) ?? [];
 
             var unacknowledgedOperations = string.IsNullOrEmpty(entity.UnacknowledgedOperationsJson)
                 ? []
-                : JsonSerializer.Deserialize<List<UnacknowledgedRetryOperation>>(entity.UnacknowledgedOperationsJson, JsonOptions) ?? [];
+                : JsonSerializer.Deserialize<List<UnacknowledgedRetryOperation>>(entity.UnacknowledgedOperationsJson, JsonSerializationOptions.Default) ?? [];
 
             return new RetryHistory
             {
@@ -71,11 +66,11 @@ public class RetryHistoryDataStore : DataStoreBase, IRetryHistoryDataStore
             // Deserialize existing data
             var historicOperations = string.IsNullOrEmpty(entity.HistoricOperationsJson)
                 ? []
-                : JsonSerializer.Deserialize<List<HistoricRetryOperation>>(entity.HistoricOperationsJson, JsonOptions) ?? [];
+                : JsonSerializer.Deserialize<List<HistoricRetryOperation>>(entity.HistoricOperationsJson, JsonSerializationOptions.Default) ?? [];
 
             var unacknowledgedOperations = string.IsNullOrEmpty(entity.UnacknowledgedOperationsJson)
                 ? []
-                : JsonSerializer.Deserialize<List<UnacknowledgedRetryOperation>>(entity.UnacknowledgedOperationsJson, JsonOptions) ?? [];
+                : JsonSerializer.Deserialize<List<UnacknowledgedRetryOperation>>(entity.UnacknowledgedOperationsJson, JsonSerializationOptions.Default) ?? [];
 
             // Add to history (mimicking RetryHistory.AddToHistory)
             var historicOperation = new HistoricRetryOperation
@@ -115,8 +110,8 @@ public class RetryHistoryDataStore : DataStoreBase, IRetryHistoryDataStore
             }
 
             // Serialize and save
-            entity.HistoricOperationsJson = JsonSerializer.Serialize(historicOperations, JsonOptions);
-            entity.UnacknowledgedOperationsJson = JsonSerializer.Serialize(unacknowledgedOperations, JsonOptions);
+            entity.HistoricOperationsJson = JsonSerializer.Serialize(historicOperations, JsonSerializationOptions.Default);
+            entity.UnacknowledgedOperationsJson = JsonSerializer.Serialize(unacknowledgedOperations, JsonSerializationOptions.Default);
 
             await dbContext.SaveChangesAsync();
         });
@@ -133,7 +128,7 @@ public class RetryHistoryDataStore : DataStoreBase, IRetryHistoryDataStore
                 return false;
             }
 
-            var unacknowledgedOperations = JsonSerializer.Deserialize<List<UnacknowledgedRetryOperation>>(entity.UnacknowledgedOperationsJson, JsonOptions) ?? [];
+            var unacknowledgedOperations = JsonSerializer.Deserialize<List<UnacknowledgedRetryOperation>>(entity.UnacknowledgedOperationsJson, JsonSerializationOptions.Default) ?? [];
 
             // Find and remove matching operations
             var removed = unacknowledgedOperations.RemoveAll(x =>
@@ -141,7 +136,7 @@ public class RetryHistoryDataStore : DataStoreBase, IRetryHistoryDataStore
 
             if (removed > 0)
             {
-                entity.UnacknowledgedOperationsJson = JsonSerializer.Serialize(unacknowledgedOperations, JsonOptions);
+                entity.UnacknowledgedOperationsJson = JsonSerializer.Serialize(unacknowledgedOperations, JsonSerializationOptions.Default);
                 await dbContext.SaveChangesAsync();
                 return true;
             }

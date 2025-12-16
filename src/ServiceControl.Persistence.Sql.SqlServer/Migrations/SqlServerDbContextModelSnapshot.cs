@@ -188,9 +188,9 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
                     b.Property<DateTime>("RaisedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("RelatedTo")
+                    b.Property<string>("RelatedToJson")
                         .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Severity")
                         .HasColumnType("int");
@@ -252,12 +252,6 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<TimeSpan?>("CriticalTime")
-                        .HasColumnType("time");
-
-                    b.Property<TimeSpan?>("DeliveryTime")
-                        .HasColumnType("time");
-
                     b.Property<string>("ExceptionMessage")
                         .HasColumnType("nvarchar(max)");
 
@@ -266,6 +260,10 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("FailureGroupsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("HeadersJson")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -290,9 +288,6 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
                     b.Property<string>("ProcessingAttemptsJson")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<TimeSpan?>("ProcessingTime")
-                        .HasColumnType("time");
 
                     b.Property<string>("QueueAddress")
                         .HasMaxLength(500)
@@ -319,13 +314,7 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CriticalTime");
-
-                    b.HasIndex("DeliveryTime");
-
                     b.HasIndex("MessageId");
-
-                    b.HasIndex("ProcessingTime");
 
                     b.HasIndex("UniqueMessageId")
                         .IsUnique();

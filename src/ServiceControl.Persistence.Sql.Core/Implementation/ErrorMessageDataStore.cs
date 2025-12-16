@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Entities;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.EventLog;
@@ -33,8 +34,8 @@ partial class ErrorMessageDataStore : DataStoreBase, IErrorMessageDataStore
                 Id = entity.Id.ToString(),
                 UniqueMessageId = entity.UniqueMessageId,
                 Status = entity.Status,
-                ProcessingAttempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(entity.ProcessingAttemptsJson) ?? [],
-                FailureGroups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(entity.FailureGroupsJson) ?? []
+                ProcessingAttempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(entity.ProcessingAttemptsJson, JsonSerializationOptions.Default) ?? [],
+                FailureGroups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(entity.FailureGroupsJson, JsonSerializationOptions.Default) ?? []
             }).ToArray();
         });
     }
@@ -46,7 +47,7 @@ partial class ErrorMessageDataStore : DataStoreBase, IErrorMessageDataStore
             var entity = new FailedErrorImportEntity
             {
                 Id = Guid.Parse(failure.Id),
-                MessageJson = JsonSerializer.Serialize(failure.Message),
+                MessageJson = JsonSerializer.Serialize(failure.Message, JsonSerializationOptions.Default),
                 ExceptionInfo = failure.ExceptionInfo
             };
 
@@ -88,9 +89,9 @@ partial class ErrorMessageDataStore : DataStoreBase, IErrorMessageDataStore
                     Id = Guid.Parse(failedMessage.Id),
                     UniqueMessageId = failedMessage.UniqueMessageId,
                     Status = failedMessage.Status,
-                    ProcessingAttemptsJson = JsonSerializer.Serialize(failedMessage.ProcessingAttempts),
-                    FailureGroupsJson = JsonSerializer.Serialize(failedMessage.FailureGroups),
-                    HeadersJson = JsonSerializer.Serialize(lastAttempt?.Headers ?? []),
+                    ProcessingAttemptsJson = JsonSerializer.Serialize(failedMessage.ProcessingAttempts, JsonSerializationOptions.Default),
+                    FailureGroupsJson = JsonSerializer.Serialize(failedMessage.FailureGroups, JsonSerializationOptions.Default),
+                    HeadersJson = JsonSerializer.Serialize(lastAttempt?.Headers ?? [], JsonSerializationOptions.Default),
                     PrimaryFailureGroupId = failedMessage.FailureGroups.Count > 0 ? failedMessage.FailureGroups[0].Id : null,
 
                     // Extract denormalized fields from last processing attempt if available

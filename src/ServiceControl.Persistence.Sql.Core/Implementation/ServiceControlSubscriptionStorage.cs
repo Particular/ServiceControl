@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Entities;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using NServiceBus.Extensibility;
 using NServiceBus.Settings;
@@ -88,17 +89,17 @@ public class ServiceControlSubscriptionStorage : DataStoreBase, IServiceControlS
                         Id = subscriptionId,
                         MessageTypeTypeName = messageType.TypeName,
                         MessageTypeVersion = messageType.Version.Major,
-                        SubscribersJson = JsonSerializer.Serialize(new List<SubscriptionClient> { subscriptionClient })
+                        SubscribersJson = JsonSerializer.Serialize(new List<SubscriptionClient> { subscriptionClient }, JsonSerializationOptions.Default)
                     };
                     await dbContext.Subscriptions.AddAsync(subscription, cancellationToken);
                 }
                 else
                 {
-                    var subscribers = JsonSerializer.Deserialize<List<SubscriptionClient>>(subscription.SubscribersJson) ?? [];
+                    var subscribers = JsonSerializer.Deserialize<List<SubscriptionClient>>(subscription.SubscribersJson, JsonSerializationOptions.Default) ?? [];
                     if (!subscribers.Contains(subscriptionClient))
                     {
                         subscribers.Add(subscriptionClient);
-                        subscription.SubscribersJson = JsonSerializer.Serialize(subscribers);
+                        subscription.SubscribersJson = JsonSerializer.Serialize(subscribers, JsonSerializationOptions.Default);
                     }
                     else
                     {
@@ -135,11 +136,11 @@ public class ServiceControlSubscriptionStorage : DataStoreBase, IServiceControlS
                 if (subscription != null)
                 {
                     var subscriptionClient = CreateSubscriptionClient(subscriber);
-                    var subscribers = JsonSerializer.Deserialize<List<SubscriptionClient>>(subscription.SubscribersJson) ?? [];
+                    var subscribers = JsonSerializer.Deserialize<List<SubscriptionClient>>(subscription.SubscribersJson, JsonSerializationOptions.Default) ?? [];
 
                     if (subscribers.Remove(subscriptionClient))
                     {
-                        subscription.SubscribersJson = JsonSerializer.Serialize(subscribers);
+                        subscription.SubscribersJson = JsonSerializer.Serialize(subscribers, JsonSerializationOptions.Default);
                         await dbContext.SaveChangesAsync(cancellationToken);
 
                         // Refresh lookup
@@ -163,7 +164,7 @@ public class ServiceControlSubscriptionStorage : DataStoreBase, IServiceControlS
     void UpdateLookup(List<SubscriptionEntity> subscriptions)
     {
         subscriptionsLookup = (from subscription in subscriptions
-                               let subscribers = JsonSerializer.Deserialize<List<SubscriptionClient>>(subscription.SubscribersJson) ?? []
+                               let subscribers = JsonSerializer.Deserialize<List<SubscriptionClient>>(subscription.SubscribersJson, JsonSerializationOptions.Default) ?? []
                                from client in subscribers
                                select new
                                {

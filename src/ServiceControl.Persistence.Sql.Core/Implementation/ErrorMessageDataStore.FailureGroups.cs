@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Entities;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using ServiceControl.MessageFailures;
 using ServiceControl.MessageFailures.Api;
@@ -28,7 +29,7 @@ partial class ErrorMessageDataStore
             var allGroups = messages
                 .Select(fm =>
                 {
-                    var groups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(fm.FailureGroupsJson) ?? [];
+                    var groups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(fm.FailureGroupsJson, JsonSerializationOptions.Default) ?? [];
                     // Take the first group (which matches PrimaryFailureGroupId == groupId)
                     var primaryGroup = groups.FirstOrDefault();
                     return new
@@ -84,7 +85,7 @@ partial class ErrorMessageDataStore
             var groupedData = messages
                 .SelectMany(fm =>
                 {
-                    var groups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(fm.FailureGroupsJson) ?? [];
+                    var groups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(fm.FailureGroupsJson, JsonSerializationOptions.Default) ?? [];
                     return groups.Select(g => new
                     {
                         Group = g,
@@ -123,7 +124,7 @@ partial class ErrorMessageDataStore
             var matchingMessages = allMessages
                 .Where(fm =>
                 {
-                    var groups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(fm.FailureGroupsJson) ?? [];
+                    var groups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(fm.FailureGroupsJson, JsonSerializationOptions.Default) ?? [];
                     return groups.Any(g => g.Id == groupId);
                 })
                 .ToList();
@@ -161,7 +162,7 @@ partial class ErrorMessageDataStore
             var count = allMessages
                 .Count(fm =>
                 {
-                    var groups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(fm.FailureGroupsJson) ?? [];
+                    var groups = JsonSerializer.Deserialize<List<FailedMessage.FailureGroup>>(fm.FailureGroupsJson, JsonSerializationOptions.Default) ?? [];
                     var hasGroup = groups.Any(g => g.Id == groupId);
 
                     if (!hasGroup)

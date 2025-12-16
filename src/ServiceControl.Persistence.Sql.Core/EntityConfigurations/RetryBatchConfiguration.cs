@@ -19,7 +19,7 @@ class RetryBatchConfiguration : IEntityTypeConfiguration<RetryBatchEntity>
         builder.Property(e => e.StartTime).IsRequired();
         builder.Property(e => e.Status).IsRequired();
         builder.Property(e => e.RetryType).IsRequired();
-        builder.Property(e => e.FailureRetriesJson).IsRequired();
+        builder.Property(e => e.FailureRetriesJson).HasColumnType("jsonb").IsRequired();
 
         // Indexes
         builder.HasIndex(e => e.RetrySessionId);

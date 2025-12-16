@@ -8,7 +8,7 @@ public class EventLogItemEntity
     public required string Description { get; set; }
     public int Severity { get; set; }
     public DateTime RaisedAt { get; set; }
-    public string? RelatedTo { get; set; } // Stored as JSON array
+    public string? RelatedToJson { get; set; } // Stored as JSON array
     public string? Category { get; set; }
     public string? EventType { get; set; }
 }

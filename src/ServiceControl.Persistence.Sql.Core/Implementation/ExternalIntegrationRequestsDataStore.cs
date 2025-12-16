@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Entities;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ServiceControl.ExternalIntegrations;
@@ -16,12 +17,6 @@ public class ExternalIntegrationRequestsDataStore : DataStoreBase, IExternalInte
 {
     readonly ILogger<ExternalIntegrationRequestsDataStore> logger;
     readonly CancellationTokenSource tokenSource = new();
-
-    static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
 
     Func<object[], Task>? callback;
     Task? dispatcherTask;
@@ -47,7 +42,7 @@ public class ExternalIntegrationRequestsDataStore : DataStoreBase, IExternalInte
 
                 var entity = new ExternalIntegrationDispatchRequestEntity
                 {
-                    DispatchContextJson = JsonSerializer.Serialize(dispatchRequest.DispatchContext, JsonOptions),
+                    DispatchContextJson = JsonSerializer.Serialize(dispatchRequest.DispatchContext, JsonSerializationOptions.Default),
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -117,7 +112,7 @@ public class ExternalIntegrationRequestsDataStore : DataStoreBase, IExternalInte
             }
 
             var contexts = requests
-                .Select(r => JsonSerializer.Deserialize<object>(r.DispatchContextJson, JsonOptions)!)
+                .Select(r => JsonSerializer.Deserialize<object>(r.DispatchContextJson, JsonSerializationOptions.Default)!)
                 .ToArray();
 
             logger.LogDebug("Dispatching {EventCount} events", contexts.Length);
