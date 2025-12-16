@@ -25,12 +25,13 @@ class AmazonSQSQueryTests : TransportTestFixture
     public void Initialise()
     {
         provider = new();
-        provider.SetUtcNow(DateTimeOffset.UtcNow);
+
+        var kiribati = TimeZoneInfo.FindSystemTimeZoneById("Pacific/Kiritimati");
+        var furthestAhead = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, kiribati);
+        provider.SetUtcNow(furthestAhead);
         transportSettings = new TransportSettings
         {
-            ConnectionString = configuration.ConnectionString,
-            MaxConcurrency = 1,
-            EndpointName = Guid.NewGuid().ToString("N")
+            ConnectionString = configuration.ConnectionString, MaxConcurrency = 1, EndpointName = Guid.NewGuid().ToString("N")
         };
         query = new AmazonSQSQuery(NullLogger<AmazonSQSQuery>.Instance, provider, transportSettings);
     }
@@ -94,11 +95,9 @@ class AmazonSQSQueryTests : TransportTestFixture
     }
 
     [Test]
+    [CancelAfter(6 * 60 * 1000)]
     public async Task RunScenario()
     {
-        // We need to wait a bit of time, to ensure AWS metrics are retrievable
-        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(6));
-        CancellationToken token = cancellationTokenSource.Token;
         const int numMessagesToIngest = 15;
 
         await CreateTestQueue(transportSettings.EndpointName);
@@ -120,12 +119,13 @@ class AmazonSQSQueryTests : TransportTestFixture
             dictionary.Add(AmazonSQSQuery.AmazonSQSSettings.Region, connectionString.Region);
         }
 
-        query.Initialize(new ReadOnlyDictionary<string, string>(dictionary));
+        query.Initialize(dictionary.AsReadOnly());
 
-        await Task.Delay(TimeSpan.FromMinutes(2), token);
+        // Wait for metrics to become visible, usually takes 20-30 seconds
+        await Task.Delay(TimeSpan.FromMinutes(1), TestContext.CurrentContext.CancellationToken);
 
         var queueNames = new List<IBrokerQueue>();
-        await foreach (IBrokerQueue queueName in query.GetQueueNames(token))
+        await foreach (IBrokerQueue queueName in query.GetQueueNames(TestContext.CurrentContext.CancellationToken))
         {
             queueNames.Add(queueName);
         }
@@ -137,7 +137,7 @@ class AmazonSQSQueryTests : TransportTestFixture
 
         DateTime startDate = provider.GetUtcNow().DateTime;
         provider.Advance(TimeSpan.FromDays(1));
-        await foreach (QueueThroughput queueThroughput in query.GetThroughputPerDay(queue, DateOnly.FromDateTime(startDate), token))
+        await foreach (QueueThroughput queueThroughput in query.GetThroughputPerDay(queue, DateOnly.FromDateTime(startDate), TestContext.CurrentContext.CancellationToken))
         {
             total += queueThroughput.TotalThroughput;
         }

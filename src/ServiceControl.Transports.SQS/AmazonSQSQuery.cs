@@ -197,24 +197,30 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         DateOnly startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var endDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
+        var utcNow = timeProvider.GetUtcNow();
+        var endDate = DateOnly.FromDateTime(utcNow.DateTime).AddDays(-1); // Query date up to but not including today
 
         if (endDate < startDate)
         {
             yield break;
         }
 
+        var startUtc = startDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var endUtc = endDate.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+
+        const int SecondsInDay = 24 * 60 * 60;;
+
         var req = new GetMetricStatisticsRequest
         {
             Namespace = "AWS/SQS",
             MetricName = "NumberOfMessagesDeleted",
-            StartTime = startDate.ToDateTime(TimeOnly.MinValue),
-            EndTime = endDate.ToDateTime(TimeOnly.MaxValue),
-            Period = 24 * 60 * 60, // 1 day
+            StartTime = startUtc,
+            EndTime = endUtc,  // exclusive
+            Period = SecondsInDay,
             Statistics = ["Sum"],
             Dimensions = [
                 new Dimension { Name = "QueueName", Value = brokerQueue.QueueName }
-            ]
+            ],
         };
 
         var resp = await cloudWatch!.GetMetricStatisticsAsync(req, cancellationToken);
@@ -228,11 +234,10 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
             currentDate = currentDate.AddDays(1);
         }
 
+        // Cloudwatch returns data points per 5 minutes in UTC
         foreach (var datapoint in resp.Datapoints ?? [])
         {
-            // There is a bug in the AWS SDK. The timestamp is actually UTC time, eventhough the DateTime returned type says Local
-            // See https://github.com/aws/aws-sdk-net/issues/167
-            // So do not convert the timestamp to UTC time!
+            logger.LogInformation("\tDatapoint {Timestamp:O} {Sum} {Unit}", datapoint.Timestamp, datapoint.Sum, datapoint.Unit);
             if (datapoint.Timestamp.HasValue)
             {
                 data[DateOnly.FromDateTime(datapoint.Timestamp.Value)].TotalThroughput = (long)datapoint.Sum.GetValueOrDefault(0);
