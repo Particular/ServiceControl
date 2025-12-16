@@ -90,6 +90,7 @@ partial class ErrorMessageDataStore : DataStoreBase, IErrorMessageDataStore
                     Status = failedMessage.Status,
                     ProcessingAttemptsJson = JsonSerializer.Serialize(failedMessage.ProcessingAttempts),
                     FailureGroupsJson = JsonSerializer.Serialize(failedMessage.FailureGroups),
+                    HeadersJson = JsonSerializer.Serialize(lastAttempt?.Headers ?? []),
                     PrimaryFailureGroupId = failedMessage.FailureGroups.Count > 0 ? failedMessage.FailureGroups[0].Id : null,
 
                     // Extract denormalized fields from last processing attempt if available
@@ -104,9 +105,6 @@ partial class ErrorMessageDataStore : DataStoreBase, IErrorMessageDataStore
                     NumberOfProcessingAttempts = failedMessage.ProcessingAttempts.Count,
                     LastProcessedAt = lastAttempt?.AttemptedAt,
                     ConversationId = lastAttempt?.Headers?.GetValueOrDefault("NServiceBus.ConversationId"),
-                    CriticalTime = lastAttempt?.MessageMetadata?.TryGetValue("CriticalTime", out var ct) == true && ct is TimeSpan ctSpan ? ctSpan : null,
-                    ProcessingTime = lastAttempt?.MessageMetadata?.TryGetValue("ProcessingTime", out var pt) == true && pt is TimeSpan ptSpan ? ptSpan : null,
-                    DeliveryTime = lastAttempt?.MessageMetadata?.TryGetValue("DeliveryTime", out var dt) == true && dt is TimeSpan dtSpan ? dtSpan : null
                 };
 
                 dbContext.FailedMessages.Add(entity);

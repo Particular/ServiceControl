@@ -9,6 +9,7 @@ using DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.MessageFailures;
+using ServiceControl.Operations;
 using ServiceControl.Persistence;
 
 class EditFailedMessagesManager(
@@ -51,6 +52,18 @@ class EditFailedMessagesManager(
 
     public async Task UpdateFailedMessage(FailedMessage failedMessage)
     {
+        T? GetMetadata<T>(FailedMessage.ProcessingAttempt lastAttempt, string key)
+        {
+            if (lastAttempt.MessageMetadata.TryGetValue(key, out var value))
+            {
+                return (T?)value;
+            }
+            else
+            {
+                return default;
+            }
+        }
+
         var entity = await dbContext.FailedMessages
             .FirstOrDefaultAsync(m => m.Id == Guid.Parse(failedMessage.Id));
 
@@ -65,20 +78,20 @@ class EditFailedMessagesManager(
             var lastAttempt = failedMessage.ProcessingAttempts.LastOrDefault();
             if (lastAttempt != null)
             {
+                entity.HeadersJson = JsonSerializer.Serialize(lastAttempt.Headers, JsonOptions);
+                var messageType = GetMetadata<string>(lastAttempt, "MessageType");
+                var sendingEndpoint = GetMetadata<EndpointDetails>(lastAttempt, "SendingEndpoint");
+                var receivingEndpoint = GetMetadata<EndpointDetails>(lastAttempt, "ReceivingEndpoint");
+
                 entity.MessageId = lastAttempt.MessageId;
-                entity.MessageType = lastAttempt.Headers?.GetValueOrDefault("NServiceBus.EnclosedMessageTypes");
+                entity.MessageType = messageType;
                 entity.TimeSent = lastAttempt.AttemptedAt;
-                entity.SendingEndpointName = lastAttempt.Headers?.GetValueOrDefault("NServiceBus.OriginatingEndpoint");
-                entity.ReceivingEndpointName = lastAttempt.Headers?.GetValueOrDefault("NServiceBus.ProcessingEndpoint");
+                entity.SendingEndpointName = sendingEndpoint?.Name;
+                entity.ReceivingEndpointName = receivingEndpoint?.Name;
                 entity.ExceptionType = lastAttempt.FailureDetails?.Exception?.ExceptionType;
                 entity.ExceptionMessage = lastAttempt.FailureDetails?.Exception?.Message;
                 entity.QueueAddress = lastAttempt.Headers?.GetValueOrDefault("NServiceBus.FailedQ");
                 entity.LastProcessedAt = lastAttempt.AttemptedAt;
-
-                // Extract performance metrics from metadata
-                entity.CriticalTime = lastAttempt.MessageMetadata?.TryGetValue("CriticalTime", out var ct) == true && ct is TimeSpan ctSpan ? ctSpan : null;
-                entity.ProcessingTime = lastAttempt.MessageMetadata?.TryGetValue("ProcessingTime", out var pt) == true && pt is TimeSpan ptSpan ? ptSpan : null;
-                entity.DeliveryTime = lastAttempt.MessageMetadata?.TryGetValue("DeliveryTime", out var dt) == true && dt is TimeSpan dtSpan ? dtSpan : null;
             }
 
             entity.NumberOfProcessingAttempts = failedMessage.ProcessingAttempts.Count;

@@ -33,15 +33,6 @@ partial class ErrorMessageDataStore
             "message_type" => isDescending
                 ? query.OrderByDescending(fm => fm.MessageType)
                 : query.OrderBy(fm => fm.MessageType),
-            "critical_time" => isDescending
-                ? query.OrderByDescending(fm => fm.CriticalTime)
-                : query.OrderBy(fm => fm.CriticalTime),
-            "delivery_time" => isDescending
-                ? query.OrderByDescending(fm => fm.DeliveryTime)
-                : query.OrderBy(fm => fm.DeliveryTime),
-            "processing_time" => isDescending
-                ? query.OrderByDescending(fm => fm.ProcessingTime)
-                : query.OrderBy(fm => fm.ProcessingTime),
             "processed_at" => isDescending
                 ? query.OrderByDescending(fm => fm.LastProcessedAt)
                 : query.OrderBy(fm => fm.LastProcessedAt),
@@ -100,15 +91,13 @@ partial class ErrorMessageDataStore
     {
         var processingAttempts = JsonSerializer.Deserialize<List<FailedMessage.ProcessingAttempt>>(entity.ProcessingAttemptsJson) ?? [];
         var lastAttempt = processingAttempts.LastOrDefault();
+        var headers = JsonSerializer.Deserialize<Dictionary<string, string>>(entity.HeadersJson) ?? [];
 
         // Extract metadata from the last processing attempt (matching RavenDB implementation)
         var metadata = lastAttempt?.MessageMetadata;
 
         var isSystemMessage = metadata?.TryGetValue("IsSystemMessage", out var isSystem) == true && isSystem is bool b && b;
         var bodySize = metadata?.TryGetValue("ContentLength", out var size) == true && size is int contentLength ? contentLength : 0;
-        var criticalTime = metadata?.TryGetValue("CriticalTime", out var ct) == true && ct is JsonElement ctJson && TimeSpan.TryParse(ctJson.GetString(), out var parsedCt) ? parsedCt : TimeSpan.Zero;
-        var processingTime = metadata?.TryGetValue("ProcessingTime", out var pt) == true && pt is JsonElement ptJson && TimeSpan.TryParse(ptJson.GetString(), out var parsedPt) ? parsedPt : TimeSpan.Zero;
-        var deliveryTime = metadata?.TryGetValue("DeliveryTime", out var dt) == true && dt is JsonElement dtJson && TimeSpan.TryParse(dtJson.GetString(), out var parsedDt) ? parsedDt : TimeSpan.Zero;
         var messageIntent = metadata?.TryGetValue("MessageIntent", out var mi) == true && mi is JsonElement miJson && Enum.TryParse<MessageIntent>(miJson.GetString(), out var parsedMi) ? parsedMi : MessageIntent.Send;
 
         // Extract endpoint details from metadata (stored during ingestion)
@@ -160,12 +149,9 @@ partial class ErrorMessageDataStore
             ReceivingEndpoint = receivingEndpoint,
             TimeSent = entity.TimeSent,
             ProcessedAt = entity.LastProcessedAt ?? DateTime.MinValue,
-            CriticalTime = criticalTime,
-            ProcessingTime = processingTime,
-            DeliveryTime = deliveryTime,
             IsSystemMessage = isSystemMessage,
             ConversationId = entity.ConversationId,
-            Headers = lastAttempt?.Headers?.Select(h => new KeyValuePair<string, object>(h.Key, h.Value)) ?? [],
+            Headers = headers.Select(h => new KeyValuePair<string, object>(h.Key, h.Value)),
             Status = status,
             MessageIntent = messageIntent,
             BodyUrl = $"/api/errors/{entity.UniqueMessageId}/body",

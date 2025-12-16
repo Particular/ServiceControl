@@ -3,6 +3,7 @@ namespace ServiceControl.Persistence.Sql.Core.Implementation.UnitOfWork;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mime;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Entities;
@@ -21,8 +22,20 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
 
     public async Task RecordFailedProcessingAttempt(MessageContext context, FailedMessage.ProcessingAttempt processingAttempt, List<FailedMessage.FailureGroup> groups)
     {
+        T? GetMetadata<T>(string key)
+        {
+            if (processingAttempt.MessageMetadata.TryGetValue(key, out var value))
+            {
+                return (T?)value;
+            }
+            else
+            {
+                return default;
+            }
+        }
+
         var uniqueMessageId = context.Headers.UniqueId();
-        var contentType = GetContentType(context.Headers, "text/plain");
+        var contentType = GetContentType(context.Headers, MediaTypeNames.Text.Plain);
         var bodySize = context.Body.Length;
 
         // Add metadata to the processing attempt
@@ -30,30 +43,14 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
         processingAttempt.MessageMetadata.Add("ContentLength", bodySize);
         processingAttempt.MessageMetadata.Add("BodyUrl", $"/messages/{uniqueMessageId}/body");
 
-        // Store endpoint details in metadata for efficient retrieval
-        var sendingEndpoint = ExtractSendingEndpoint(context.Headers);
-        var receivingEndpoint = ExtractReceivingEndpoint(context.Headers);
-
-        if (sendingEndpoint != null)
-        {
-            processingAttempt.MessageMetadata.Add("SendingEndpoint", sendingEndpoint);
-        }
-
-        if (receivingEndpoint != null)
-        {
-            processingAttempt.MessageMetadata.Add("ReceivingEndpoint", receivingEndpoint);
-        }
 
         // Extract denormalized fields from headers for efficient querying
-        var messageType = context.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var mt) ? mt?.Split(',').FirstOrDefault()?.Trim() : null;
-        var timeSent = context.Headers.TryGetValue(Headers.TimeSent, out var ts) && DateTimeOffset.TryParse(ts, out var parsedTime) ? parsedTime.UtcDateTime : (DateTime?)null;
-        var queueAddress = context.Headers.TryGetValue("NServiceBus.FailedQ", out var qa) ? qa : null;
-        var conversationId = context.Headers.TryGetValue(Headers.ConversationId, out var cid) ? cid : null;
-
-        // Extract performance metrics from metadata for efficient sorting
-        var criticalTime = processingAttempt.MessageMetadata.TryGetValue("CriticalTime", out var ct) && ct is TimeSpan ctSpan ? (TimeSpan?)ctSpan : null;
-        var processingTime = processingAttempt.MessageMetadata.TryGetValue("ProcessingTime", out var pt) && pt is TimeSpan ptSpan ? (TimeSpan?)ptSpan : null;
-        var deliveryTime = processingAttempt.MessageMetadata.TryGetValue("DeliveryTime", out var dt) && dt is TimeSpan dtSpan ? (TimeSpan?)dtSpan : null;
+        var messageType = GetMetadata<string>("MessageType");
+        var timeSent = GetMetadata<DateTime>("TimeSent");
+        var queueAddress = context.Headers.GetValueOrDefault("NServiceBus.FailedQ");
+        var conversationId = GetMetadata<string>("ConversationId");
+        var sendingEndpoint = GetMetadata<EndpointDetails>("SendingEndpoint");
+        var receivingEndpoint = GetMetadata<EndpointDetails>("ReceivingEndpoint");
 
         // Load existing message to merge attempts list
         var existingMessage = await parent.DbContext.FailedMessages
@@ -81,6 +78,7 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
             existingMessage.Status = FailedMessageStatus.Unresolved;
             existingMessage.ProcessingAttemptsJson = JsonSerializer.Serialize(attempts);
             existingMessage.FailureGroupsJson = JsonSerializer.Serialize(groups);
+            existingMessage.HeadersJson = JsonSerializer.Serialize(processingAttempt.Headers);
             existingMessage.PrimaryFailureGroupId = groups.Count > 0 ? groups[0].Id : null;
             existingMessage.MessageId = processingAttempt.MessageId;
             existingMessage.MessageType = messageType;
@@ -93,9 +91,6 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
             existingMessage.NumberOfProcessingAttempts = attempts.Count;
             existingMessage.LastProcessedAt = processingAttempt.AttemptedAt;
             existingMessage.ConversationId = conversationId;
-            existingMessage.CriticalTime = criticalTime;
-            existingMessage.ProcessingTime = processingTime;
-            existingMessage.DeliveryTime = deliveryTime;
         }
         else
         {
@@ -110,6 +105,7 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
                 Status = FailedMessageStatus.Unresolved,
                 ProcessingAttemptsJson = JsonSerializer.Serialize(attempts),
                 FailureGroupsJson = JsonSerializer.Serialize(groups),
+                HeadersJson = JsonSerializer.Serialize(processingAttempt.Headers),
                 PrimaryFailureGroupId = groups.Count > 0 ? groups[0].Id : null,
                 MessageId = processingAttempt.MessageId,
                 MessageType = messageType,
@@ -122,9 +118,6 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
                 NumberOfProcessingAttempts = attempts.Count,
                 LastProcessedAt = processingAttempt.AttemptedAt,
                 ConversationId = conversationId,
-                CriticalTime = criticalTime,
-                ProcessingTime = processingTime,
-                DeliveryTime = deliveryTime
             };
             parent.DbContext.FailedMessages.Add(failedMessageEntity);
         }
@@ -193,52 +186,4 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
 
     static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
         => headers.TryGetValue(Headers.ContentType, out var contentType) ? contentType : defaultContentType;
-
-    static EndpointDetails? ExtractSendingEndpoint(IReadOnlyDictionary<string, string> headers)
-    {
-        var endpoint = new EndpointDetails();
-
-        if (headers.TryGetValue("NServiceBus.OriginatingEndpoint", out var name))
-        {
-            endpoint.Name = name;
-        }
-
-        if (headers.TryGetValue("NServiceBus.OriginatingMachine", out var host))
-        {
-            endpoint.Host = host;
-        }
-
-        if (headers.TryGetValue("NServiceBus.OriginatingHostId", out var hostId) && Guid.TryParse(hostId, out var parsedHostId))
-        {
-            endpoint.HostId = parsedHostId;
-        }
-
-        return !string.IsNullOrEmpty(endpoint.Name) ? endpoint : null;
-    }
-
-    static EndpointDetails? ExtractReceivingEndpoint(IReadOnlyDictionary<string, string> headers)
-    {
-        var endpoint = new EndpointDetails();
-
-        if (headers.TryGetValue("NServiceBus.ProcessingEndpoint", out var name))
-        {
-            endpoint.Name = name;
-        }
-
-        if (headers.TryGetValue("NServiceBus.HostDisplayName", out var host))
-        {
-            endpoint.Host = host;
-        }
-        else if (headers.TryGetValue("NServiceBus.ProcessingMachine", out var machine))
-        {
-            endpoint.Host = machine;
-        }
-
-        if (headers.TryGetValue("NServiceBus.HostId", out var hostId) && Guid.TryParse(hostId, out var parsedHostId))
-        {
-            endpoint.HostId = parsedHostId;
-        }
-
-        return !string.IsNullOrEmpty(endpoint.Name) ? endpoint : null;
-    }
 }

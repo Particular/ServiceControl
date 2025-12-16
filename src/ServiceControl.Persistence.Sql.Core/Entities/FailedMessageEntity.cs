@@ -12,6 +12,7 @@ public class FailedMessageEntity
     // JSON columns for complex nested data
     public string ProcessingAttemptsJson { get; set; } = null!;
     public string FailureGroupsJson { get; set; } = null!;
+    public string HeadersJson { get; set; } = null!;
 
     // Denormalized fields from FailureGroups for efficient filtering
     // PrimaryFailureGroupId is the first group ID from FailureGroupsJson array
@@ -29,9 +30,4 @@ public class FailedMessageEntity
     public int? NumberOfProcessingAttempts { get; set; }
     public DateTime? LastProcessedAt { get; set; }
     public string? ConversationId { get; set; }
-
-    // Performance metrics for sorting and filtering
-    public TimeSpan? CriticalTime { get; set; }
-    public TimeSpan? ProcessingTime { get; set; }
-    public TimeSpan? DeliveryTime { get; set; }
 }

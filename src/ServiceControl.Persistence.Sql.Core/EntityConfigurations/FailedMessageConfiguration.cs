@@ -15,6 +15,7 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
         builder.Property(e => e.Status).IsRequired();
         builder.Property(e => e.ProcessingAttemptsJson).IsRequired();
         builder.Property(e => e.FailureGroupsJson).IsRequired();
+        builder.Property(e => e.HeadersJson).IsRequired();
 
         // Denormalized query fields from FailureGroups
         builder.Property(e => e.PrimaryFailureGroupId).HasMaxLength(200);
@@ -61,10 +62,5 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
 
         // SINGLE-COLUMN INDEXES: Keep for specific lookup cases
         builder.HasIndex(e => e.MessageId);
-
-        // PERFORMANCE METRICS INDEXES: For sorting operations
-        builder.HasIndex(e => e.CriticalTime);
-        builder.HasIndex(e => e.ProcessingTime);
-        builder.HasIndex(e => e.DeliveryTime);
     }
 }
