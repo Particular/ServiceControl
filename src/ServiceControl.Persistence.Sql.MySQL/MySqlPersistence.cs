@@ -18,13 +18,13 @@ class MySqlPersistence : BasePersistence, IPersistence
     public void AddPersistence(IServiceCollection services)
     {
         ConfigureDbContext(services);
-        RegisterDataStores(services, settings.MaintenanceMode);
+        RegisterDataStores(services);
     }
 
     public void AddInstaller(IServiceCollection services)
     {
         ConfigureDbContext(services);
-
+        RegisterDataStores(services);
         services.AddSingleton<IDatabaseMigrator, MySqlDatabaseMigrator>();
     }
 

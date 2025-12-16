@@ -4,7 +4,6 @@ using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using DbContexts;
-using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Notifications;
@@ -30,7 +29,7 @@ class NotificationsManager(IServiceScope scope) : INotificationsManager
             };
         }
 
-        var emailSettings = JsonSerializer.Deserialize<EmailNotifications>(entity.EmailSettingsJson, JsonSerializationOptions.Default) ?? new EmailNotifications();
+        var emailSettings = JsonSerializer.Deserialize<EmailNotifications>(entity.EmailSettingsJson, JsonSerializerOptions.Default) ?? new EmailNotifications();
 
         return new NotificationsSettings
         {
@@ -43,7 +42,7 @@ class NotificationsManager(IServiceScope scope) : INotificationsManager
     {
         return await dbContext.FailedMessages
             .AsNoTracking()
-            .Where(m => m.Status == ServiceControl.MessageFailures.FailedMessageStatus.Unresolved)
+            .Where(m => m.Status == MessageFailures.FailedMessageStatus.Unresolved)
             .CountAsync();
     }
 

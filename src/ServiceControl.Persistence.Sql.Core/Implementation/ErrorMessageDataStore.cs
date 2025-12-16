@@ -65,8 +65,9 @@ partial class ErrorMessageDataStore : DataStoreBase, IErrorMessageDataStore
 
     public Task<INotificationsManager> CreateNotificationsManager()
     {
-        var notificationsManager = serviceProvider.GetRequiredService<INotificationsManager>();
-        return Task.FromResult(notificationsManager);
+        var scope = serviceProvider.CreateScope();
+        var manager = new NotificationsManager(scope);
+        return Task.FromResult<INotificationsManager>(manager);
     }
 
     public async Task StoreEventLogItem(EventLogItem logItem)

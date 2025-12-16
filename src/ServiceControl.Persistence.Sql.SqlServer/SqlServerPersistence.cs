@@ -18,12 +18,13 @@ class SqlServerPersistence : BasePersistence, IPersistence
     public void AddPersistence(IServiceCollection services)
     {
         ConfigureDbContext(services);
-        RegisterDataStores(services, settings.MaintenanceMode);
+        RegisterDataStores(services);
     }
 
     public void AddInstaller(IServiceCollection services)
     {
         ConfigureDbContext(services);
+        RegisterDataStores(services);
 
         // Register the database migrator - this runs during installation/setup
         services.AddSingleton<IDatabaseMigrator, SqlServerDatabaseMigrator>();

@@ -10,13 +10,8 @@ using Particular.LicensingComponent.Persistence;
 
 public abstract class BasePersistence
 {
-    protected static void RegisterDataStores(IServiceCollection services, bool maintenanceMode)
+    protected static void RegisterDataStores(IServiceCollection services)
     {
-        if (maintenanceMode)
-        {
-            return;
-        }
-
         services.AddSingleton<MinimumRequiredStorageState>();
         services.AddSingleton<ITrialLicenseDataProvider, TrialLicenseDataProvider>();
         services.AddSingleton<IEndpointSettingsStore, EndpointSettingsStore>();
@@ -35,7 +30,6 @@ public abstract class BasePersistence
         services.AddSingleton<IGroupsDataStore, GroupsDataStore>();
         services.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
         services.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
-        services.AddSingleton<INotificationsManager, NotificationsManager>();
         services.AddSingleton<IIngestionUnitOfWorkFactory, IngestionUnitOfWorkFactory>();
         services.AddSingleton<IErrorMessageDataStore, ErrorMessageDataStore>();
         services.AddSingleton<ILicensingDataStore, LicensingDataStore>();
