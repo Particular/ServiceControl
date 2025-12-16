@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Entities;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ServiceControl.ExternalIntegrations;
 using ServiceControl.Persistence;
@@ -23,8 +24,8 @@ public class ExternalIntegrationRequestsDataStore : DataStoreBase, IExternalInte
     bool isDisposed;
 
     public ExternalIntegrationRequestsDataStore(
-        IServiceProvider serviceProvider,
-        ILogger<ExternalIntegrationRequestsDataStore> logger) : base(serviceProvider)
+        IServiceScopeFactory scopeFactory,
+        ILogger<ExternalIntegrationRequestsDataStore> logger) : base(scopeFactory)
     {
         this.logger = logger;
     }

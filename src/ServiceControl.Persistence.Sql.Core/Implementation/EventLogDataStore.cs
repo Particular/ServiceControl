@@ -8,13 +8,14 @@ using System.Threading.Tasks;
 using Entities;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.EventLog;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.Infrastructure;
 
 public class EventLogDataStore : DataStoreBase, IEventLogDataStore
 {
-    public EventLogDataStore(IServiceProvider serviceProvider) : base(serviceProvider)
+    public EventLogDataStore(IServiceScopeFactory scopeFactory) : base(scopeFactory)
     {
     }
 

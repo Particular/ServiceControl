@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Entities;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence;
@@ -19,8 +20,8 @@ public class RetryDocumentDataStore : DataStoreBase, IRetryDocumentDataStore
     readonly ILogger<RetryDocumentDataStore> logger;
 
     public RetryDocumentDataStore(
-        IServiceProvider serviceProvider,
-        ILogger<RetryDocumentDataStore> logger) : base(serviceProvider)
+        IServiceScopeFactory scopeFactory,
+        ILogger<RetryDocumentDataStore> logger) : base(scopeFactory)
     {
         this.logger = logger;
     }

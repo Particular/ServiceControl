@@ -4,11 +4,12 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Operations.BodyStorage;
 
 public class BodyStorage : DataStoreBase, IBodyStorage
 {
-    public BodyStorage(IServiceProvider serviceProvider) : base(serviceProvider)
+    public BodyStorage(IServiceScopeFactory scopeFactory) : base(scopeFactory)
     {
     }
 

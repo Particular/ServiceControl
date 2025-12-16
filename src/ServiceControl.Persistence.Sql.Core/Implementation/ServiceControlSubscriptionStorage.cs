@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Entities;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using NServiceBus.Extensibility;
 using NServiceBus.Settings;
 using NServiceBus.Unicast.Subscriptions;
@@ -26,11 +27,11 @@ public class ServiceControlSubscriptionStorage : DataStoreBase, IServiceControlS
     readonly SemaphoreSlim subscriptionsLock = new SemaphoreSlim(1);
 
     public ServiceControlSubscriptionStorage(
-        IServiceProvider serviceProvider,
+        IServiceScopeFactory scopeFactory,
         IReadOnlySettings settings,
         ReceiveAddresses receiveAddresses)
         : this(
-            serviceProvider,
+            scopeFactory,
             settings.EndpointName(),
             receiveAddresses.MainReceiveAddress,
             settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())
@@ -38,10 +39,10 @@ public class ServiceControlSubscriptionStorage : DataStoreBase, IServiceControlS
     }
 
     public ServiceControlSubscriptionStorage(
-        IServiceProvider serviceProvider,
+        IServiceScopeFactory scopeFactory,
         string endpointName,
         string localAddress,
-        MessageType[] locallyHandledEventTypes) : base(serviceProvider)
+        MessageType[] locallyHandledEventTypes) : base(scopeFactory)
     {
         localClient = new SubscriptionClient
         {

@@ -7,13 +7,14 @@ using System.Threading.Tasks;
 using Contracts.CustomChecks;
 using Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Operations;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.Infrastructure;
 
 public class CustomChecksDataStore : DataStoreBase, ICustomChecksDataStore
 {
-    public CustomChecksDataStore(IServiceProvider serviceProvider) : base(serviceProvider)
+    public CustomChecksDataStore(IServiceScopeFactory scopeFactory) : base(scopeFactory)
     {
     }
 

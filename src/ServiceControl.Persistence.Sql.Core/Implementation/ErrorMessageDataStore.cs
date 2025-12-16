@@ -16,7 +16,7 @@ using ServiceControl.Persistence;
 
 partial class ErrorMessageDataStore : DataStoreBase, IErrorMessageDataStore
 {
-    public ErrorMessageDataStore(IServiceProvider serviceProvider) : base(serviceProvider)
+    public ErrorMessageDataStore(IServiceScopeFactory scopeFactory) : base(scopeFactory)
     {
     }
 
@@ -58,21 +58,21 @@ partial class ErrorMessageDataStore : DataStoreBase, IErrorMessageDataStore
 
     public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager()
     {
-        var scope = serviceProvider.CreateScope();
+        var scope = scopeFactory.CreateScope();
         var manager = new EditFailedMessagesManager(scope);
         return Task.FromResult<IEditFailedMessagesManager>(manager);
     }
 
     public Task<INotificationsManager> CreateNotificationsManager()
     {
-        var scope = serviceProvider.CreateScope();
+        var scope = scopeFactory.CreateScope();
         var manager = new NotificationsManager(scope);
         return Task.FromResult<INotificationsManager>(manager);
     }
 
     public async Task StoreEventLogItem(EventLogItem logItem)
     {
-        using var scope = serviceProvider.CreateScope();
+        await using var scope = scopeFactory.CreateAsyncScope();
         var eventLogDataStore = scope.ServiceProvider.GetRequiredService<IEventLogDataStore>();
         await eventLogDataStore.Add(logItem);
     }

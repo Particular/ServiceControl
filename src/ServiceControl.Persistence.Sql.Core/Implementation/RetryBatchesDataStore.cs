@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence;
@@ -15,8 +16,8 @@ public class RetryBatchesDataStore : DataStoreBase, IRetryBatchesDataStore
     readonly ILogger<RetryBatchesDataStore> logger;
 
     public RetryBatchesDataStore(
-        IServiceProvider serviceProvider,
-        ILogger<RetryBatchesDataStore> logger) : base(serviceProvider)
+        IServiceScopeFactory scopeFactory,
+        ILogger<RetryBatchesDataStore> logger) : base(scopeFactory)
     {
         this.logger = logger;
     }

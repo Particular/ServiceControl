@@ -8,13 +8,14 @@ using System.Threading.Tasks;
 using Entities;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence;
 using ServiceControl.Recoverability;
 
 public class GroupsDataStore : DataStoreBase, IGroupsDataStore
 {
-    public GroupsDataStore(IServiceProvider serviceProvider) : base(serviceProvider)
+    public GroupsDataStore(IServiceScopeFactory scopeFactory) : base(scopeFactory)
     {
     }
 

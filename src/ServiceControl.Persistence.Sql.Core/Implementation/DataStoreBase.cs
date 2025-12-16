@@ -10,11 +10,11 @@ using Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public abstract class DataStoreBase
 {
-    protected readonly IServiceProvider serviceProvider;
+    protected readonly IServiceScopeFactory scopeFactory;
 
-    protected DataStoreBase(IServiceProvider serviceProvider)
+    protected DataStoreBase(IServiceScopeFactory scopeFactory)
     {
-        this.serviceProvider = serviceProvider;
+        this.scopeFactory = scopeFactory;
     }
 
     /// <summary>
@@ -22,7 +22,7 @@ public abstract class DataStoreBase
     /// </summary>
     protected async Task<T> ExecuteWithDbContext<T>(Func<ServiceControlDbContextBase, Task<T>> operation)
     {
-        using var scope = serviceProvider.CreateScope();
+        await using var scope = scopeFactory.CreateAsyncScope();// Use CreateAsyncScope for async disposal
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
         return await operation(dbContext);
     }
@@ -32,7 +32,7 @@ public abstract class DataStoreBase
     /// </summary>
     protected async Task ExecuteWithDbContext(Func<ServiceControlDbContextBase, Task> operation)
     {
-        using var scope = serviceProvider.CreateScope();
+        await using var scope = scopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
         await operation(dbContext);
     }
@@ -40,5 +40,5 @@ public abstract class DataStoreBase
     /// <summary>
     /// Creates a scope for operations that need to manage their own scope lifecycle (e.g., managers)
     /// </summary>
-    protected IServiceScope CreateScope() => serviceProvider.CreateScope();
+    protected IServiceScope CreateScope() => scopeFactory.CreateAsyncScope();
 }

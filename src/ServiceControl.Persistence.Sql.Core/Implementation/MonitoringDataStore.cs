@@ -6,12 +6,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Operations;
 using ServiceControl.Persistence;
 
 public class MonitoringDataStore : DataStoreBase, IMonitoringDataStore
 {
-    public MonitoringDataStore(IServiceProvider serviceProvider) : base(serviceProvider)
+    public MonitoringDataStore(IServiceScopeFactory scopeFactory) : base(scopeFactory)
     {
     }
 

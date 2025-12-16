@@ -2,13 +2,14 @@ namespace ServiceControl.Persistence.Sql.Core.Implementation;
 
 using Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence;
 
 public class TrialLicenseDataProvider : DataStoreBase, ITrialLicenseDataProvider
 {
     const int SingletonId = 1;
 
-    public TrialLicenseDataProvider(IServiceProvider serviceProvider) : base(serviceProvider)
+    public TrialLicenseDataProvider(IServiceScopeFactory scopeFactory) : base(scopeFactory)
     {
     }
 

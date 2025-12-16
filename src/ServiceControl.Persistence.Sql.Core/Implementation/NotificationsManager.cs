@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Notifications;
 using ServiceControl.Persistence;
+using ServiceControl.Persistence.Infrastructure;
 
 class NotificationsManager(IServiceScope scope) : INotificationsManager
 {
@@ -17,7 +18,7 @@ class NotificationsManager(IServiceScope scope) : INotificationsManager
     {
         var entity = await dbContext.NotificationsSettings
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Id == Guid.Parse(NotificationsSettings.SingleDocumentId));
+            .FirstOrDefaultAsync(s => s.Id == DeterministicGuid.MakeId(NotificationsSettings.SingleDocumentId));
 
         if (entity == null)
         {
@@ -33,17 +34,9 @@ class NotificationsManager(IServiceScope scope) : INotificationsManager
 
         return new NotificationsSettings
         {
-            Id = entity.Id.ToString(),
+            Id = NotificationsSettings.SingleDocumentId,
             Email = emailSettings
         };
-    }
-
-    public async Task<int> GetUnresolvedCount()
-    {
-        return await dbContext.FailedMessages
-            .AsNoTracking()
-            .Where(m => m.Status == MessageFailures.FailedMessageStatus.Unresolved)
-            .CountAsync();
     }
 
     public async Task SaveChanges()

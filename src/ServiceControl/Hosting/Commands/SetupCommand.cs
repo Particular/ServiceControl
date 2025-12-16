@@ -2,6 +2,7 @@
 {
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Particular.ServiceControl;
@@ -9,6 +10,7 @@
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Persistence;
     using Transports;
 
     class SetupCommand : AbstractCommand
@@ -45,6 +47,8 @@
                 var transportCustomization = TransportFactory.Create(transportSettings);
 
                 await transportCustomization.ProvisionQueues(transportSettings, componentSetupContext.Queues);
+
+                await host.Services.GetRequiredService<IDatabaseMigrator>().ApplyMigrations();
             }
 
             await host.StopAsync();

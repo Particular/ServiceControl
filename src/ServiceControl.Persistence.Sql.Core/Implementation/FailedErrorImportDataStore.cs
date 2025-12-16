@@ -10,12 +10,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Operations;
 using ServiceControl.Persistence;
+using Microsoft.Extensions.DependencyInjection;
 
 public class FailedErrorImportDataStore : DataStoreBase, IFailedErrorImportDataStore
 {
     readonly ILogger<FailedErrorImportDataStore> logger;
 
-    public FailedErrorImportDataStore(IServiceProvider serviceProvider, ILogger<FailedErrorImportDataStore> logger) : base(serviceProvider)
+    public FailedErrorImportDataStore(IServiceScopeFactory scopeFactory, ILogger<FailedErrorImportDataStore> logger) : base(scopeFactory)
     {
         this.logger = logger;
     }

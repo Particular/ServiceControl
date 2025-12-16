@@ -6,13 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Particular.LicensingComponent.Contracts;
 using Particular.LicensingComponent.Persistence;
 using ServiceControl.Persistence.Sql.Core.Entities;
 
 public class LicensingDataStore : DataStoreBase, ILicensingDataStore
 {
-    public LicensingDataStore(IServiceProvider serviceProvider) : base(serviceProvider)
+    public LicensingDataStore(IServiceScopeFactory scopeFactory) : base(scopeFactory)
     {
     }
     #region Throughput

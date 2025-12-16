@@ -1,4 +1,7 @@
-namespace ServiceControl.Persistence.Sql.Core.Abstractions;
+namespace ServiceControl.Persistence;
+
+using System.Threading;
+using System.Threading.Tasks;
 
 public interface IDatabaseMigrator
 {

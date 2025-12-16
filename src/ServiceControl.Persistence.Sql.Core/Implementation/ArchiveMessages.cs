@@ -19,9 +19,9 @@ public class ArchiveMessages : DataStoreBase, IArchiveMessages
     readonly ILogger<ArchiveMessages> logger;
 
     public ArchiveMessages(
-        IServiceProvider serviceProvider,
+        IServiceScopeFactory scopeFactory,
         IDomainEvents domainEvents,
-        ILogger<ArchiveMessages> logger) : base(serviceProvider)
+        ILogger<ArchiveMessages> logger) : base(scopeFactory)
     {
         this.domainEvents = domainEvents;
         this.logger = logger;
@@ -129,7 +129,7 @@ public class ArchiveMessages : DataStoreBase, IArchiveMessages
     public IEnumerable<InMemoryArchive> GetArchivalOperations()
     {
         // Note: IEnumerable methods need direct scope management as they yield results
-        using var scope = serviceProvider.CreateScope();
+        using var scope = scopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
 
         var operations = dbContext.ArchiveOperations

@@ -11,14 +11,14 @@ using ServiceControl.Persistence;
 
 public class EndpointSettingsStore : DataStoreBase, IEndpointSettingsStore
 {
-    public EndpointSettingsStore(IServiceProvider serviceProvider) : base(serviceProvider)
+    public EndpointSettingsStore(IServiceScopeFactory scopeFactory) : base(scopeFactory)
     {
     }
 
     public async IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings()
     {
         // Note: IAsyncEnumerable methods need direct scope management as they yield results
-        using var scope = serviceProvider.CreateScope();
+        await using var scope = scopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
 
         var entities = dbContext.EndpointSettings.AsNoTracking().AsAsyncEnumerable();

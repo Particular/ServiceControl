@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 using Entities;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence.MessageRedirects;
 
 public class MessageRedirectsDataStore : DataStoreBase, IMessageRedirectsDataStore
 {
-    public MessageRedirectsDataStore(IServiceProvider serviceProvider) : base(serviceProvider)
+    public MessageRedirectsDataStore(IServiceScopeFactory scopeFactory) : base(scopeFactory)
     {
     }
 

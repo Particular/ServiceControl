@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Entities;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence;
 using ServiceControl.Recoverability;
 
@@ -15,7 +16,7 @@ public class RetryHistoryDataStore : DataStoreBase, IRetryHistoryDataStore
 {
     const int SingletonId = 1;
 
-    public RetryHistoryDataStore(IServiceProvider serviceProvider) : base(serviceProvider)
+    public RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : base(scopeFactory)
     {
     }
 

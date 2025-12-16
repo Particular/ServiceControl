@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.Infrastructure;
 
 public class QueueAddressStore : DataStoreBase, IQueueAddressStore
 {
-    public QueueAddressStore(IServiceProvider serviceProvider) : base(serviceProvider)
+    public QueueAddressStore(IServiceScopeFactory scopeFactory) : base(scopeFactory)
     {
     }
 
