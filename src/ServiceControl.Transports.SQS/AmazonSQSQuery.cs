@@ -208,7 +208,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         var startUtc = startDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
         var endUtc = endDate.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
 
-        const int SecondsInDay = 24 * 60 * 60;;
+        const int SecondsInDay = 24 * 60 * 60;
 
         var req = new GetMetricStatisticsRequest
         {
