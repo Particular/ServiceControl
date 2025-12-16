@@ -100,7 +100,21 @@
                     throw new InvalidOperationException($"{DatabaseMaintenancePortKey} must be an integer.");
                 }
 
-                var serverUrl = $"http://{settings.Hostname}:{databaseMaintenancePort}";
+                // Determine host for embedded RavenDB from persister-specific settings
+                string host = "localhost";
+
+                if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/HostName", out var configuredHost) ||
+                    settings.PersisterSpecificSettings.TryGetValue("ServiceControl/HostName", out configuredHost))
+                {
+                    configuredHost = configuredHost?.Trim();
+                    if (!string.IsNullOrWhiteSpace(configuredHost))
+                    {
+                        // Map '*' to '+' for Raven wildcard (bind all interfaces). Accept '+' as-is.
+                        host = configuredHost == "*" ? "+" : configuredHost;
+                    }
+                }
+
+                var serverUrl = $"http://{host}:{databaseMaintenancePort}";
 
                 var logPath = GetLogPath(settings);
 
