@@ -31,7 +31,9 @@ class AmazonSQSQueryTests : TransportTestFixture
         provider.SetUtcNow(furthestAhead);
         transportSettings = new TransportSettings
         {
-            ConnectionString = configuration.ConnectionString, MaxConcurrency = 1, EndpointName = Guid.NewGuid().ToString("N")
+            ConnectionString = configuration.ConnectionString,
+            MaxConcurrency = 1,
+            EndpointName = Guid.NewGuid().ToString("N")
         };
         query = new AmazonSQSQuery(NullLogger<AmazonSQSQuery>.Instance, provider, transportSettings);
     }
