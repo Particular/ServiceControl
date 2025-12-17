@@ -2,7 +2,7 @@ Connection test to AzureServiceBus failed:
 The GUID for subscription is invalid not valid.
 
 Connection attempted with the following settings:
-ServiceBus name not set, defaulted to "testmenow"
+Azure Service Bus namespace not set, defaulted to "testmenow"
 SubscriptionId set
 TenantId set
 ClientId set

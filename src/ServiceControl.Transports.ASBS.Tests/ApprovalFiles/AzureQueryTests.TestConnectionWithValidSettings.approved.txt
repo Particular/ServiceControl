@@ -1,7 +1,7 @@
 Connection test to AzureServiceBus was successful
 
 Connection settings used:
-ServiceBus name not set, defaulted to "xxxxx"
+Azure Service Bus namespace not set, defaulted to "xxxxx"
 SubscriptionId set
 TenantId set
 ClientId set
