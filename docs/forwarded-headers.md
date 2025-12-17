@@ -2,32 +2,34 @@
 
 When ServiceControl instances are deployed behind a reverse proxy (like NGINX, Traefik, or a cloud load balancer) that terminates SSL/TLS, you need to configure forwarded headers so ServiceControl correctly understands the original client request.
 
+> **⚠️ Security Warning:** The default configuration (`TrustAllProxies = true`) is suitable for development and trusted container environments only. For production deployments accessible from untrusted networks, always configure `KnownProxies` or `KnownNetworks` to restrict which sources can set forwarded headers. Failing to do so can allow attackers to spoof client IP addresses.
+
 ## Configuration
 
 ServiceControl instances can be configured via environment variables or App.config. Each instance type uses a different prefix.
 
 ### Environment Variables
 
-| Instance | Prefix |
-|----------|--------|
-| ServiceControl (Primary) | `SERVICECONTROL_` |
-| ServiceControl.Audit | `SERVICECONTROL_AUDIT_` |
-| ServiceControl.Monitoring | `MONITORING_` |
+| Instance                  | Prefix                  |
+|---------------------------|-------------------------|
+| ServiceControl (Primary)  | `SERVICECONTROL_`       |
+| ServiceControl.Audit      | `SERVICECONTROL_AUDIT_` |
+| ServiceControl.Monitoring | `MONITORING_`           |
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `{PREFIX}FORWARDEDHEADERS_ENABLED` | `true` | Enable forwarded headers processing |
-| `{PREFIX}FORWARDEDHEADERS_TRUSTALLPROXIES` | `true` | Trust all proxies (auto-disabled if known proxies/networks set) |
-| `{PREFIX}FORWARDEDHEADERS_KNOWNPROXIES` | (none) | Comma-separated IP addresses of trusted proxies |
-| `{PREFIX}FORWARDEDHEADERS_KNOWNNETWORKS` | (none) | Comma-separated CIDR networks (e.g., `10.0.0.0/8,172.16.0.0/12`) |
+| Setting                                    | Default | Description                                                      |
+|--------------------------------------------|---------|------------------------------------------------------------------|
+| `{PREFIX}FORWARDEDHEADERS_ENABLED`         | `true`  | Enable forwarded headers processing                              |
+| `{PREFIX}FORWARDEDHEADERS_TRUSTALLPROXIES` | `true`  | Trust all proxies (auto-disabled if known proxies/networks set)  |
+| `{PREFIX}FORWARDEDHEADERS_KNOWNPROXIES`    | (none)  | Comma-separated IP addresses of trusted proxies                  |
+| `{PREFIX}FORWARDEDHEADERS_KNOWNNETWORKS`   | (none)  | Comma-separated CIDR networks (e.g., `10.0.0.0/8,172.16.0.0/12`) |
 
 ### App.config
 
-| Instance | Key Prefix |
-|----------|------------|
-| ServiceControl (Primary) | `ServiceControl/` |
-| ServiceControl.Audit | `ServiceControl.Audit/` |
-| ServiceControl.Monitoring | `Monitoring/` |
+| Instance                  | Key Prefix              |
+|---------------------------|-------------------------|
+| ServiceControl (Primary)  | `ServiceControl/`       |
+| ServiceControl.Audit      | `ServiceControl.Audit/` |
+| ServiceControl.Monitoring | `Monitoring/`           |
 
 ```xml
 <appSettings>
@@ -97,10 +99,10 @@ Or in App.config:
 
 When processing `X-Forwarded-For` headers with multiple IPs (proxy chains), the behavior depends on trust configuration:
 
-| Configuration | ForwardLimit | Behavior |
-|---------------|--------------|----------|
-| `TrustAllProxies = true` | `null` (no limit) | Processes all IPs, returns original client IP |
-| `TrustAllProxies = false` | `1` (default) | Processes only the last proxy IP |
+| Configuration             | ForwardLimit      | Behavior                                      |
+|---------------------------|-------------------|-----------------------------------------------|
+| `TrustAllProxies = true`  | `null` (no limit) | Processes all IPs, returns original client IP |
+| `TrustAllProxies = false` | `1` (default)     | Processes only the last proxy IP              |
 
 For example, with `X-Forwarded-For: 203.0.113.50, 10.0.0.1, 192.168.1.1`:
 

@@ -12,11 +12,11 @@ This guide explains how to test authentication configuration for ServiceControl 
 
 ## Instance Reference
 
-| Instance | Project Directory | Default Port | Environment Variable Prefix |
-|----------|-------------------|--------------|----------------------------|
-| ServiceControl (Primary) | `src\ServiceControl` | 33333 | `SERVICECONTROL_` |
-| ServiceControl.Audit | `src\ServiceControl.Audit` | 44444 | `SERVICECONTROL_AUDIT_` |
-| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633 | `MONITORING_` |
+| Instance                  | Project Directory               | Default Port | Environment Variable Prefix |
+|---------------------------|---------------------------------|--------------|-----------------------------|
+| ServiceControl (Primary)  | `src\ServiceControl`            | 33333        | `SERVICECONTROL_`           |
+| ServiceControl.Audit      | `src\ServiceControl.Audit`      | 44444        | `SERVICECONTROL_AUDIT_`     |
+| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633        | `MONITORING_`               |
 
 ## How Authentication Works
 
@@ -224,9 +224,9 @@ curl http://localhost:33333/api/authentication/configuration | json
 
 The following endpoints are marked as anonymous and accessible without authentication:
 
-| Endpoint | Purpose |
-|----------|---------|
-| `/api` | API root/discovery - returns available endpoints |
+| Endpoint                            | Purpose                                           |
+|-------------------------------------|---------------------------------------------------|
+| `/api`                              | API root/discovery - returns available endpoints  |
 | `/api/authentication/configuration` | Returns auth config for clients like ServicePulse |
 
 ### Scenario 5: Validation Settings Warnings
@@ -747,12 +747,12 @@ The primary instance rejects the expired token before any remote requests are ma
 
 The following internal API calls from the primary instance to remote instances do **not** forward authentication headers:
 
-| Internal Call | Endpoint | Purpose |
-|---------------|----------|---------|
-| Health Check | `GET /api` | Verify remote instance availability |
-| Configuration | `GET /api/configuration` | Retrieve remote instance configuration |
-| Platform Connection | `GET /api/connection` | Aggregate platform connection details |
-| License Throughput | `GET /api/endpoints`, `GET /api/endpoints/{name}/audit-count` | Collect audit throughput for licensing |
+| Internal Call       | Endpoint                                                      | Purpose                                |
+|---------------------|---------------------------------------------------------------|----------------------------------------|
+| Health Check        | `GET /api`                                                    | Verify remote instance availability    |
+| Configuration       | `GET /api/configuration`                                      | Retrieve remote instance configuration |
+| Platform Connection | `GET /api/connection`                                         | Aggregate platform connection details  |
+| License Throughput  | `GET /api/endpoints`, `GET /api/endpoints/{name}/audit-count` | Collect audit throughput for licensing |
 
 **Implications:**
 
@@ -782,11 +782,11 @@ The scenarios above use ServiceControl (Primary). To test ServiceControl.Audit o
 2. Use the corresponding project directory and port
 3. Note: Audit and Monitoring instances don't require ServicePulse settings
 
-| Instance | Project Directory | Port | Env Var Prefix |
-|----------|-------------------|------|----------------|
-| ServiceControl (Primary) | `src\ServiceControl` | 33333 | `SERVICECONTROL_` |
-| ServiceControl.Audit | `src\ServiceControl.Audit` | 44444 | `SERVICECONTROL_AUDIT_` |
-| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633 | `MONITORING_` |
+| Instance                  | Project Directory               | Port  | Env Var Prefix          |
+|---------------------------|---------------------------------|-------|-------------------------|
+| ServiceControl (Primary)  | `src\ServiceControl`            | 33333 | `SERVICECONTROL_`       |
+| ServiceControl.Audit      | `src\ServiceControl.Audit`      | 44444 | `SERVICECONTROL_AUDIT_` |
+| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633 | `MONITORING_`           |
 
 ## Cleanup
 
