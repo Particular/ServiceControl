@@ -260,7 +260,10 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             {
                 Audience = metricsClientAudience,
                 Transport = new HttpClientTransport(
-                    new HttpClient(new SocketsHttpHandler { PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2) }))
+                    new HttpClient(new SocketsHttpHandler
+                    {
+                        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
+                    }))
             });
     }
 
