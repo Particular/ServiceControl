@@ -10,11 +10,11 @@ This guide provides scenario-based tests for ServiceControl instances behind an 
 
 ## Instance Reference
 
-| Instance | Project Directory | Default Port | Hostname | Environment Variable Prefix |
-|----------|-------------------|--------------|----------|----------------------------|
-| ServiceControl (Primary) | `src\ServiceControl` | 33333 | `servicecontrol.localhost` | `SERVICECONTROL_` |
-| ServiceControl.Audit | `src\ServiceControl.Audit` | 44444 | `servicecontrol-audit.localhost` | `SERVICECONTROL_AUDIT_` |
-| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633 | `servicecontrol-monitor.localhost` | `MONITORING_` |
+| Instance                  | Project Directory               | Default Port | Hostname                           | Environment Variable Prefix |
+|---------------------------|---------------------------------|--------------|------------------------------------|-----------------------------|
+| ServiceControl (Primary)  | `src\ServiceControl`            | 33333        | `servicecontrol.localhost`         | `SERVICECONTROL_`           |
+| ServiceControl.Audit      | `src\ServiceControl.Audit`      | 44444        | `servicecontrol-audit.localhost`   | `SERVICECONTROL_AUDIT_`     |
+| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633        | `servicecontrol-monitor.localhost` | `MONITORING_`               |
 
 ## Prerequisites
 
@@ -421,25 +421,25 @@ The scenarios above use ServiceControl (Primary). To test ServiceControl.Audit o
 1. Use the appropriate environment variable prefix (see Configuration Reference below)
 2. Use the corresponding project directory and hostname
 
-| Instance | Project Directory | Hostname | Env Var Prefix |
-|----------|-------------------|----------|----------------|
-| ServiceControl (Primary) | `src\ServiceControl` | `servicecontrol.localhost` | `SERVICECONTROL_` |
-| ServiceControl.Audit | `src\ServiceControl.Audit` | `servicecontrol-audit.localhost` | `SERVICECONTROL_AUDIT_` |
-| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | `servicecontrol-monitor.localhost` | `MONITORING_` |
+| Instance                  | Project Directory               | Hostname                           | Env Var Prefix          |
+|---------------------------|---------------------------------|------------------------------------|-------------------------|
+| ServiceControl (Primary)  | `src\ServiceControl`            | `servicecontrol.localhost`         | `SERVICECONTROL_`       |
+| ServiceControl.Audit      | `src\ServiceControl.Audit`      | `servicecontrol-audit.localhost`   | `SERVICECONTROL_AUDIT_` |
+| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | `servicecontrol-monitor.localhost` | `MONITORING_`           |
 
 ## Configuration Reference
 
-| Environment Variable | Default | Description |
-|---------------------|---------|-------------|
-| `{PREFIX}_FORWARDEDHEADERS_ENABLED` | `true` | Enable forwarded headers processing |
-| `{PREFIX}_FORWARDEDHEADERS_TRUSTALLPROXIES` | `true` | Trust all proxies |
-| `{PREFIX}_FORWARDEDHEADERS_KNOWNPROXIES` | - | Comma-separated list of trusted proxy IPs |
-| `{PREFIX}_FORWARDEDHEADERS_KNOWNNETWORKS` | - | Comma-separated list of trusted CIDR ranges |
-| `{PREFIX}_HTTPS_REDIRECTHTTPTOHTTPS` | `false` | Redirect HTTP to HTTPS |
-| `{PREFIX}_HTTPS_PORT` | - | HTTPS port for redirect |
-| `{PREFIX}_HTTPS_ENABLEHSTS` | `false` | Enable HSTS |
-| `{PREFIX}_HTTPS_HSTSMAXAGESECONDS` | `31536000` | HSTS max-age (1 year) |
-| `{PREFIX}_HTTPS_HSTSINCLUDESUBDOMAINS` | `false` | Include subdomains in HSTS |
+| Environment Variable                        | Default    | Description                                 |
+|---------------------------------------------|------------|---------------------------------------------|
+| `{PREFIX}_FORWARDEDHEADERS_ENABLED`         | `true`     | Enable forwarded headers processing         |
+| `{PREFIX}_FORWARDEDHEADERS_TRUSTALLPROXIES` | `true`     | Trust all proxies                           |
+| `{PREFIX}_FORWARDEDHEADERS_KNOWNPROXIES`    | -          | Comma-separated list of trusted proxy IPs   |
+| `{PREFIX}_FORWARDEDHEADERS_KNOWNNETWORKS`   | -          | Comma-separated list of trusted CIDR ranges |
+| `{PREFIX}_HTTPS_REDIRECTHTTPTOHTTPS`        | `false`    | Redirect HTTP to HTTPS                      |
+| `{PREFIX}_HTTPS_PORT`                       | -          | HTTPS port for redirect                     |
+| `{PREFIX}_HTTPS_ENABLEHSTS`                 | `false`    | Enable HSTS                                 |
+| `{PREFIX}_HTTPS_HSTSMAXAGESECONDS`          | `31536000` | HSTS max-age (1 year)                       |
+| `{PREFIX}_HTTPS_HSTSINCLUDESUBDOMAINS`      | `false`    | Include subdomains in HSTS                  |
 
 Where `{PREFIX}` is:
 

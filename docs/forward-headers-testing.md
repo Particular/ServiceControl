@@ -11,11 +11,11 @@ This guide explains how to test forwarded headers configuration for ServiceContr
 
 ## Instance Reference
 
-| Instance | Project Directory | Default Port | Environment Variable Prefix |
-|----------|-------------------|--------------|----------------------------|
-| ServiceControl (Primary) | `src\ServiceControl` | 33333 | `SERVICECONTROL_` |
-| ServiceControl.Audit | `src\ServiceControl.Audit` | 44444 | `SERVICECONTROL_AUDIT_` |
-| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633 | `MONITORING_` |
+| Instance                  | Project Directory               | Default Port | Environment Variable Prefix |
+|---------------------------|---------------------------------|--------------|-----------------------------|
+| ServiceControl (Primary)  | `src\ServiceControl`            | 33333        | `SERVICECONTROL_`           |
+| ServiceControl.Audit      | `src\ServiceControl.Audit`      | 44444        | `SERVICECONTROL_AUDIT_`     |
+| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633        | `MONITORING_`               |
 
 > **Note:** Environment variables must include the instance prefix (e.g., `SERVICECONTROL_FORWARDEDHEADERS_ENABLED` for the primary instance).
 
@@ -692,18 +692,18 @@ The `/debug/request-info` endpoint is only available in Development environment.
 }
 ```
 
-| Section | Field | Description |
-|---------|-------|-------------|
-| `processed` | `scheme` | The request scheme after forwarded headers processing |
-| `processed` | `host` | The request host after forwarded headers processing |
-| `processed` | `remoteIpAddress` | The client IP after forwarded headers processing |
-| `rawHeaders` | `xForwardedFor` | Raw `X-Forwarded-For` header (empty if consumed by middleware) |
-| `rawHeaders` | `xForwardedProto` | Raw `X-Forwarded-Proto` header (empty if consumed by middleware) |
-| `rawHeaders` | `xForwardedHost` | Raw `X-Forwarded-Host` header (empty if consumed by middleware) |
-| `configuration` | `enabled` | Whether forwarded headers middleware is enabled |
-| `configuration` | `trustAllProxies` | Whether all proxies are trusted (security warning if true) |
-| `configuration` | `knownProxies` | List of trusted proxy IP addresses |
-| `configuration` | `knownNetworks` | List of trusted CIDR network ranges |
+| Section         | Field             | Description                                                      |
+|-----------------|-------------------|------------------------------------------------------------------|
+| `processed`     | `scheme`          | The request scheme after forwarded headers processing            |
+| `processed`     | `host`            | The request host after forwarded headers processing              |
+| `processed`     | `remoteIpAddress` | The client IP after forwarded headers processing                 |
+| `rawHeaders`    | `xForwardedFor`   | Raw `X-Forwarded-For` header (empty if consumed by middleware)   |
+| `rawHeaders`    | `xForwardedProto` | Raw `X-Forwarded-Proto` header (empty if consumed by middleware) |
+| `rawHeaders`    | `xForwardedHost`  | Raw `X-Forwarded-Host` header (empty if consumed by middleware)  |
+| `configuration` | `enabled`         | Whether forwarded headers middleware is enabled                  |
+| `configuration` | `trustAllProxies` | Whether all proxies are trusted (security warning if true)       |
+| `configuration` | `knownProxies`    | List of trusted proxy IP addresses                               |
+| `configuration` | `knownNetworks`   | List of trusted CIDR network ranges                              |
 
 ### Key Diagnostic Questions
 
@@ -775,20 +775,20 @@ dotnet test src/ServiceControl.UnitTests/ServiceControl.UnitTests.csproj --filte
 
 ### What the Tests Cover
 
-| Test | Purpose |
-|------|---------|
-| `Should_parse_known_proxies_from_comma_separated_list` | Verifies parsing of multiple proxy IPs |
-| `Should_parse_known_proxies_to_ip_addresses` | Verifies `KnownProxies` property returns valid `IPAddress` objects |
-| `Should_ignore_invalid_ip_addresses` | Verifies invalid IPs are filtered out gracefully |
-| `Should_parse_known_networks_from_comma_separated_cidr` | Verifies CIDR notation parsing |
-| `Should_ignore_invalid_network_cidr` | Verifies invalid CIDR entries are filtered |
-| `Should_disable_trust_all_proxies_when_known_proxies_configured` | Verifies auto-disable behavior |
-| `Should_disable_trust_all_proxies_when_known_networks_configured` | Verifies auto-disable behavior |
-| `Should_default_to_enabled` | Verifies default value |
-| `Should_default_to_trust_all_proxies` | Verifies default value |
-| `Should_respect_explicit_disabled_setting` | Verifies explicit configuration |
-| `Should_handle_semicolon_separator_in_proxies` | Tests alternate separator |
-| `Should_trim_whitespace_from_proxy_entries` | Tests whitespace handling |
+| Test                                                              | Purpose                                                            |
+|-------------------------------------------------------------------|--------------------------------------------------------------------|
+| `Should_parse_known_proxies_from_comma_separated_list`            | Verifies parsing of multiple proxy IPs                             |
+| `Should_parse_known_proxies_to_ip_addresses`                      | Verifies `KnownProxies` property returns valid `IPAddress` objects |
+| `Should_ignore_invalid_ip_addresses`                              | Verifies invalid IPs are filtered out gracefully                   |
+| `Should_parse_known_networks_from_comma_separated_cidr`           | Verifies CIDR notation parsing                                     |
+| `Should_ignore_invalid_network_cidr`                              | Verifies invalid CIDR entries are filtered                         |
+| `Should_disable_trust_all_proxies_when_known_proxies_configured`  | Verifies auto-disable behavior                                     |
+| `Should_disable_trust_all_proxies_when_known_networks_configured` | Verifies auto-disable behavior                                     |
+| `Should_default_to_enabled`                                       | Verifies default value                                             |
+| `Should_default_to_trust_all_proxies`                             | Verifies default value                                             |
+| `Should_respect_explicit_disabled_setting`                        | Verifies explicit configuration                                    |
+| `Should_handle_semicolon_separator_in_proxies`                    | Tests alternate separator                                          |
+| `Should_trim_whitespace_from_proxy_entries`                       | Tests whitespace handling                                          |
 
 ## Acceptance Tests
 
@@ -817,19 +817,19 @@ dotnet test src/ServiceControl.Monitoring.AcceptanceTests/ServiceControl.Monitor
 
 ### Scenarios Covered
 
-| Scenario | Test |
-|----------|------|
-| 0 | `When_request_has_no_forwarded_headers` |
-| 1/2 | `When_forwarded_headers_are_sent` |
-| 3 | `When_known_proxies_are_configured` |
-| 4 | `When_known_networks_are_configured` |
-| 5 | `When_unknown_proxy_sends_headers` |
-| 6 | `When_unknown_network_sends_headers` |
-| 7 | `When_forwarded_headers_are_disabled` |
-| 8 | `When_proxy_chain_headers_are_sent` |
-| 9 | `When_proxy_chain_headers_are_sent_with_known_proxies` |
-| 10 | `When_combined_proxies_and_networks_are_configured` |
-| 11 | `When_only_proto_header_is_sent` |
+| Scenario | Test                                                   |
+|----------|--------------------------------------------------------|
+| 0        | `When_request_has_no_forwarded_headers`                |
+| 1/2      | `When_forwarded_headers_are_sent`                      |
+| 3        | `When_known_proxies_are_configured`                    |
+| 4        | `When_known_networks_are_configured`                   |
+| 5        | `When_unknown_proxy_sends_headers`                     |
+| 6        | `When_unknown_network_sends_headers`                   |
+| 7        | `When_forwarded_headers_are_disabled`                  |
+| 8        | `When_proxy_chain_headers_are_sent`                    |
+| 9        | `When_proxy_chain_headers_are_sent_with_known_proxies` |
+| 10       | `When_combined_proxies_and_networks_are_configured`    |
+| 11       | `When_only_proto_header_is_sent`                       |
 
 > **Note:** Scenario 12 (IPv4/IPv6 Mismatch) is not covered by acceptance tests because the test server's IP address (IPv4 vs IPv6) cannot be controlled reliably. The "untrusted proxy" behavior is already validated by Scenarios 5 and 6.
 

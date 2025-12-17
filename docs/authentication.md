@@ -8,47 +8,47 @@ ServiceControl instances can be configured via environment variables or App.conf
 
 ### Environment Variables
 
-| Instance | Prefix |
-|----------|--------|
-| ServiceControl (Primary) | `SERVICECONTROL_` |
-| ServiceControl.Audit | `SERVICECONTROL_AUDIT_` |
-| ServiceControl.Monitoring | `MONITORING_` |
+| Instance                  | Prefix                  |
+|---------------------------|-------------------------|
+| ServiceControl (Primary)  | `SERVICECONTROL_`       |
+| ServiceControl.Audit      | `SERVICECONTROL_AUDIT_` |
+| ServiceControl.Monitoring | `MONITORING_`           |
 
 #### Core Settings
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `{PREFIX}AUTHENTICATION_ENABLED` | `false` | Enable JWT authentication |
-| `{PREFIX}AUTHENTICATION_AUTHORITY` | (none) | OpenID Connect authority URL (e.g., `https://login.microsoftonline.com/{tenant-id}/v2.0`) |
-| `{PREFIX}AUTHENTICATION_AUDIENCE` | (none) | The audience identifier (typically your API identifier or client ID) |
+| Setting                            | Default | Description                                                                               |
+|------------------------------------|---------|-------------------------------------------------------------------------------------------|
+| `{PREFIX}AUTHENTICATION_ENABLED`   | `false` | Enable JWT authentication                                                                 |
+| `{PREFIX}AUTHENTICATION_AUTHORITY` | (none)  | OpenID Connect authority URL (e.g., `https://login.microsoftonline.com/{tenant-id}/v2.0`) |
+| `{PREFIX}AUTHENTICATION_AUDIENCE`  | (none)  | The audience identifier (typically your API identifier or client ID)                      |
 
 #### Validation Settings
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `{PREFIX}AUTHENTICATION_VALIDATEISSUER` | `true` | Validate the token issuer |
-| `{PREFIX}AUTHENTICATION_VALIDATEAUDIENCE` | `true` | Validate the token audience |
-| `{PREFIX}AUTHENTICATION_VALIDATELIFETIME` | `true` | Validate token expiration |
-| `{PREFIX}AUTHENTICATION_VALIDATEISSUERSIGNINGKEY` | `true` | Validate the signing key |
-| `{PREFIX}AUTHENTICATION_REQUIREHTTPSMETADATA` | `true` | Require HTTPS for OIDC metadata endpoint |
+| Setting                                           | Default | Description                              |
+|---------------------------------------------------|---------|------------------------------------------|
+| `{PREFIX}AUTHENTICATION_VALIDATEISSUER`           | `true`  | Validate the token issuer                |
+| `{PREFIX}AUTHENTICATION_VALIDATEAUDIENCE`         | `true`  | Validate the token audience              |
+| `{PREFIX}AUTHENTICATION_VALIDATELIFETIME`         | `true`  | Validate token expiration                |
+| `{PREFIX}AUTHENTICATION_VALIDATEISSUERSIGNINGKEY` | `true`  | Validate the signing key                 |
+| `{PREFIX}AUTHENTICATION_REQUIREHTTPSMETADATA`     | `true`  | Require HTTPS for OIDC metadata endpoint |
 
 #### ServicePulse Settings (Primary Instance Only)
 
 These settings are required on the primary ServiceControl instance to provide authentication configuration to ServicePulse clients.
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `{PREFIX}AUTHENTICATION_SERVICEPULSE_CLIENTID` | (none) | Client ID for ServicePulse application |
-| `{PREFIX}AUTHENTICATION_SERVICEPULSE_AUTHORITY` | (none) | Authority URL for ServicePulse (defaults to main Authority if not set) |
-| `{PREFIX}AUTHENTICATION_SERVICEPULSE_APISCOPES` | (none) | JSON array of API scopes (e.g., `["api://servicecontrol/access_as_user"]`) |
+| Setting                                         | Default | Description                                                                                            |
+|-------------------------------------------------|---------|--------------------------------------------------------------------------------------------------------|
+| `{PREFIX}AUTHENTICATION_SERVICEPULSE_CLIENTID`  | (none)  | Client ID for ServicePulse application                                                                 |
+| `{PREFIX}AUTHENTICATION_SERVICEPULSE_AUTHORITY` | (none)  | Authority URL for ServicePulse (defaults to main Authority if not set)                                 |
+| `{PREFIX}AUTHENTICATION_SERVICEPULSE_APISCOPES` | (none)  | JSON array of API scopes for ServicePulse to request (e.g., `["api://servicecontrol/access_as_user"]`) |
 
 ### App.config
 
-| Instance | Key Prefix |
-|----------|------------|
-| ServiceControl (Primary) | `ServiceControl/` |
-| ServiceControl.Audit | `ServiceControl.Audit/` |
-| ServiceControl.Monitoring | `Monitoring/` |
+| Instance                  | Key Prefix              |
+|---------------------------|-------------------------|
+| ServiceControl (Primary)  | `ServiceControl/`       |
+| ServiceControl.Audit      | `ServiceControl.Audit/` |
+| ServiceControl.Monitoring | `Monitoring/`           |
 
 ```xml
 <appSettings>
@@ -66,7 +66,7 @@ These settings are required on the primary ServiceControl instance to provide au
 
   <!-- ServicePulse Settings (Primary Instance Only) -->
   <add key="ServiceControl/Authentication.ServicePulse.ClientId" value="{servicepulse-client-id}" />
-  <add key="ServiceControl/Authentication.ServicePulse.ApiScopes" value="[&quot;api://servicecontrol/access_as_user&quot;]" />
+  <add key="ServiceControl/Authentication.ServicePulse.ApiScopes" value="["api://servicecontrol/access_as_user"]" />
 </appSettings>
 ```
 
@@ -85,7 +85,7 @@ set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol/
 ### Docker Example
 
 ```cmd
-docker run -p 33333:33333 -e SERVICECONTROL_AUTHENTICATION_ENABLED=true -e SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0 -e SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol -e SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID={servicepulse-client-id} -e "SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=[\"api://servicecontrol/.default\"]" particular/servicecontrol:latest
+docker run -p 33333:33333 -e SERVICECONTROL_AUTHENTICATION_ENABLED=true -e SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0 -e SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol -e SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID={servicepulse-client-id} -e SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol/access_as_user"] particular/servicecontrol:latest
 ```
 
 ### Audit and Monitoring Instances
@@ -117,10 +117,10 @@ When authentication is enabled:
 
 The following endpoints are accessible without authentication, even when authentication is enabled:
 
-| Endpoint | Purpose |
-|----------|---------|
-| `/api` | API root/discovery - returns available endpoints and API information |
-| `/api/authentication/configuration` | Returns authentication configuration for clients like ServicePulse |
+| Endpoint                            | Purpose                                                              |
+|-------------------------------------|----------------------------------------------------------------------|
+| `/api`                              | API root/discovery - returns available endpoints and API information |
+| `/api/authentication/configuration` | Returns authentication configuration for clients like ServicePulse   |
 
 These endpoints must remain accessible so clients can discover API capabilities and obtain the authentication configuration needed to acquire tokens.
 
@@ -157,13 +157,13 @@ When authentication is enabled, HTTPS is strongly recommended for production dep
 
 The default validation settings are recommended for production:
 
-| Setting | Recommendation |
-|---------|----------------|
-| `ValidateIssuer` | `true` - Prevents tokens from untrusted issuers |
-| `ValidateAudience` | `true` - Prevents tokens intended for other applications |
-| `ValidateLifetime` | `true` - Prevents expired tokens |
-| `ValidateIssuerSigningKey` | `true` - Ensures token signature is valid |
-| `RequireHttpsMetadata` | `true` - Ensures OIDC metadata is fetched securely |
+| Setting                    | Recommendation                                           |
+|----------------------------|----------------------------------------------------------|
+| `ValidateIssuer`           | `true` - Prevents tokens from untrusted issuers          |
+| `ValidateAudience`         | `true` - Prevents tokens intended for other applications |
+| `ValidateLifetime`         | `true` - Prevents expired tokens                         |
+| `ValidateIssuerSigningKey` | `true` - Ensures token signature is valid                |
+| `RequireHttpsMetadata`     | `true` - Ensures OIDC metadata is fetched securely       |
 
 ### Development Settings
 
@@ -181,7 +181,7 @@ When `RequireHttpsMetadata` is `true` (the default), the Authority URL must use 
 
 ## Configuring Identity Providers
 
-### Microsoft Entra ID (Azure AD)
+### Microsoft Entra ID Setup
 
 1. Register an application in Azure AD for ServiceControl API
 2. Register a separate application for ServicePulse (SPA)
@@ -200,11 +200,11 @@ ServiceControl works with any OIDC-compliant provider. Configure:
 
 The primary ServiceControl instance requires ServicePulse settings because it serves the `/api/auth/config` endpoint that ServicePulse uses to configure its authentication. Audit and Monitoring instances only need the core authentication settings.
 
-| Instance | Requires ServicePulse Settings |
-|----------|-------------------------------|
-| ServiceControl (Primary) | Yes |
-| ServiceControl.Audit | No |
-| ServiceControl.Monitoring | No |
+| Instance                  | Requires ServicePulse Settings |
+|---------------------------|--------------------------------|
+| ServiceControl (Primary)  | Yes                            |
+| ServiceControl.Audit      | No                             |
+| ServiceControl.Monitoring | No                             |
 
 ## See Also
 

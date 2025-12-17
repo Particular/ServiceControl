@@ -8,30 +8,30 @@ ServiceControl instances can be configured via environment variables or App.conf
 
 ### Environment Variables
 
-| Instance | Prefix |
-|----------|--------|
-| ServiceControl (Primary) | `SERVICECONTROL_` |
-| ServiceControl.Audit | `SERVICECONTROL_AUDIT_` |
-| ServiceControl.Monitoring | `MONITORING_` |
+| Instance                  | Prefix                  |
+|---------------------------|-------------------------|
+| ServiceControl (Primary)  | `SERVICECONTROL_`       |
+| ServiceControl.Audit      | `SERVICECONTROL_AUDIT_` |
+| ServiceControl.Monitoring | `MONITORING_`           |
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `{PREFIX}HTTPS_ENABLED` | `false` | Enable HTTPS with Kestrel |
-| `{PREFIX}HTTPS_CERTIFICATEPATH` | (none) | Path to the certificate file (.pfx) |
-| `{PREFIX}HTTPS_CERTIFICATEPASSWORD` | (none) | Password for the certificate file |
-| `{PREFIX}HTTPS_REDIRECTHTTPTOHTTPS` | `false` | Redirect HTTP requests to HTTPS |
-| `{PREFIX}HTTPS_PORT` | (none) | HTTPS port for redirect (required for reverse proxy scenarios) |
-| `{PREFIX}HTTPS_ENABLEHSTS` | `false` | Enable HTTP Strict Transport Security |
-| `{PREFIX}HTTPS_HSTSMAXAGESECONDS` | `31536000` | HSTS max-age in seconds (default: 1 year) |
-| `{PREFIX}HTTPS_HSTSINCLUDESUBDOMAINS` | `false` | Include subdomains in HSTS policy |
+| Setting                               | Default    | Description                                                    |
+|---------------------------------------|------------|----------------------------------------------------------------|
+| `{PREFIX}HTTPS_ENABLED`               | `false`    | Enable HTTPS with Kestrel                                      |
+| `{PREFIX}HTTPS_CERTIFICATEPATH`       | (none)     | Path to the certificate file (.pfx)                            |
+| `{PREFIX}HTTPS_CERTIFICATEPASSWORD`   | (none)     | Password for the certificate file                              |
+| `{PREFIX}HTTPS_REDIRECTHTTPTOHTTPS`   | `false`    | Redirect HTTP requests to HTTPS                                |
+| `{PREFIX}HTTPS_PORT`                  | (none)     | HTTPS port for redirect (required for reverse proxy scenarios) |
+| `{PREFIX}HTTPS_ENABLEHSTS`            | `false`    | Enable HTTP Strict Transport Security                          |
+| `{PREFIX}HTTPS_HSTSMAXAGESECONDS`     | `31536000` | HSTS max-age in seconds (default: 1 year)                      |
+| `{PREFIX}HTTPS_HSTSINCLUDESUBDOMAINS` | `false`    | Include subdomains in HSTS policy                              |
 
 ### App.config
 
-| Instance | Key Prefix |
-|----------|------------|
-| ServiceControl (Primary) | `ServiceControl/` |
-| ServiceControl.Audit | `ServiceControl.Audit/` |
-| ServiceControl.Monitoring | `Monitoring/` |
+| Instance                  | Key Prefix              |
+|---------------------------|-------------------------|
+| ServiceControl (Primary)  | `ServiceControl/`       |
+| ServiceControl.Audit      | `ServiceControl.Audit/` |
+| ServiceControl.Monitoring | `Monitoring/`           |
 
 ```xml
 <appSettings>
@@ -71,12 +71,50 @@ set SERVICECONTROL_HTTPS_PORT=443
 
 ## Security Considerations
 
-### Certificate Security
+### Certificate Password Security
+
+The certificate password is read as plain text from configuration. To minimize security risks:
+
+#### Option 1: Use a certificate without a password (Recommended)
+
+If the certificate file is protected with proper file system permissions, a password may not be necessary:
+
+```bash
+# Export certificate without password protection
+openssl pkcs12 -in cert-with-password.pfx -out cert-no-password.pfx -nodes
+```
+
+Then restrict file access:
+
+- **Windows:** Grant read access only to the service account running ServiceControl
+- **Linux/Container:** Set file permissions to `400` (owner read only)
+
+#### Option 2: Use platform secrets management
+
+For container and cloud deployments, use the platform's secrets management instead of plain environment variables:
+
+| Platform | Secrets Solution |
+|----------|------------------|
+| Kubernetes | [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) mounted as environment variables |
+| Docker Swarm | [Docker Secrets](https://docs.docker.com/engine/swarm/secrets/) |
+| Azure | [Azure Key Vault](https://learn.microsoft.com/en-us/azure/key-vault/) with managed identity |
+| AWS | [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) or [SSM Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html) |
+
+#### Option 3: Restrict file system access
+
+If you must use a password-protected certificate:
+
+- Never commit certificates or passwords to source control
+- Restrict read access to the certificate file to only the ServiceControl service account
+- Use environment variables rather than App.config (environment variables are not persisted to disk)
+- Consider using Windows DPAPI or similar platform-specific encryption for config files
+
+### Certificate File Security
 
 - Store certificate files securely with appropriate file permissions
-- Use strong passwords for certificate files
 - Rotate certificates before expiration
 - Use certificates from a trusted Certificate Authority for production
+- Never commit certificate files to source control
 
 ### HSTS Considerations
 
