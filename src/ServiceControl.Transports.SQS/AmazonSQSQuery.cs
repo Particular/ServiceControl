@@ -244,7 +244,14 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
             logger.LogInformation("\tDatapoint {Timestamp:O} {Sum} {Unit}", datapoint.Timestamp, datapoint.Sum, datapoint.Unit);
             if (datapoint.Timestamp.HasValue)
             {
-                data[DateOnly.FromDateTime(datapoint.Timestamp.Value)].TotalThroughput = (long)datapoint.Sum.GetValueOrDefault(0);
+                if (data.TryGetValue(DateOnly.FromDateTime(datapoint.Timestamp.Value), out var queueThroughput))
+                {
+                    queueThroughput.TotalThroughput = (long)datapoint.Sum.GetValueOrDefault(0);
+                }
+                else
+                {
+                    logger.LogWarning("Datapoint for unknown date {Timestamp:O}", datapoint.Timestamp);
+                }
             }
         }
 
