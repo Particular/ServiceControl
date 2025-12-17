@@ -6,11 +6,11 @@ This guide provides scenario-based tests for ServiceControl's direct HTTPS featu
 
 ## Instance Reference
 
-| Instance | Project Directory | Default Port | Environment Variable Prefix | App.config Key Prefix |
-|----------|-------------------|--------------|-----------------------------|-----------------------|
-| ServiceControl (Primary) | `src\ServiceControl` | 33333 | `SERVICECONTROL_` | `ServiceControl/` |
-| ServiceControl.Audit | `src\ServiceControl.Audit` | 44444 | `SERVICECONTROL_AUDIT_` | `ServiceControl.Audit/` |
-| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633 | `MONITORING_` | `Monitoring/` |
+| Instance                  | Project Directory               | Default Port | Environment Variable Prefix | App.config Key Prefix   |
+|---------------------------|---------------------------------|--------------|-----------------------------|-------------------------|
+| ServiceControl (Primary)  | `src\ServiceControl`            | 33333        | `SERVICECONTROL_`           | `ServiceControl/`       |
+| ServiceControl.Audit      | `src\ServiceControl.Audit`      | 44444        | `SERVICECONTROL_AUDIT_`     | `ServiceControl.Audit/` |
+| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633        | `MONITORING_`               | `Monitoring/`           |
 
 > **Note:** Environment variables must include the instance prefix (e.g., `SERVICECONTROL_HTTPS_ENABLED` for the primary instance).
 
@@ -154,15 +154,15 @@ HTTP requests fail because Kestrel is listening for HTTPS but receives plaintext
 
 ## HTTPS Configuration Reference
 
-| App.config Key | Environment Variable (Primary) | Default | Description |
-|----------------|-------------------------------|---------|-------------|
-| `Https.Enabled` | `SERVICECONTROL_HTTPS_ENABLED` | `false` | Enable Kestrel HTTPS |
-| `Https.CertificatePath` | `SERVICECONTROL_HTTPS_CERTIFICATEPATH` | - | Path to PFX certificate file |
-| `Https.CertificatePassword` | `SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD` | - | Certificate password (empty string for no password) |
-| `Https.RedirectHttpToHttps` | `SERVICECONTROL_HTTPS_REDIRECTHTTPTOHTTPS` | `false` | Redirect HTTP requests to HTTPS (reverse proxy only) |
-| `Https.EnableHsts` | `SERVICECONTROL_HTTPS_ENABLEHSTS` | `false` | Enable HTTP Strict Transport Security |
-| `Https.HstsMaxAgeSeconds` | `SERVICECONTROL_HTTPS_HSTSMAXAGESECONDS` | `31536000` | HSTS max-age (1 year) |
-| `Https.HstsIncludeSubDomains` | `SERVICECONTROL_HTTPS_HSTSINCLUDESUBDOMAINS` | `false` | Include subdomains in HSTS |
+| App.config Key                | Environment Variable (Primary)               | Default    | Description                                          |
+|-------------------------------|----------------------------------------------|------------|------------------------------------------------------|
+| `Https.Enabled`               | `SERVICECONTROL_HTTPS_ENABLED`               | `false`    | Enable Kestrel HTTPS                                 |
+| `Https.CertificatePath`       | `SERVICECONTROL_HTTPS_CERTIFICATEPATH`       | -          | Path to PFX certificate file                         |
+| `Https.CertificatePassword`   | `SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD`   | -          | Certificate password (empty string for no password)  |
+| `Https.RedirectHttpToHttps`   | `SERVICECONTROL_HTTPS_REDIRECTHTTPTOHTTPS`   | `false`    | Redirect HTTP requests to HTTPS (reverse proxy only) |
+| `Https.EnableHsts`            | `SERVICECONTROL_HTTPS_ENABLEHSTS`            | `false`    | Enable HTTP Strict Transport Security                |
+| `Https.HstsMaxAgeSeconds`     | `SERVICECONTROL_HTTPS_HSTSMAXAGESECONDS`     | `31536000` | HSTS max-age (1 year)                                |
+| `Https.HstsIncludeSubDomains` | `SERVICECONTROL_HTTPS_HSTSINCLUDESUBDOMAINS` | `false`    | Include subdomains in HSTS                           |
 
 > **Note:** For other instances, replace the `SERVICECONTROL_` prefix with the appropriate instance prefix (see Instance Reference table).
 >
@@ -175,11 +175,11 @@ The scenarios above use ServiceControl (Primary). To test ServiceControl.Audit o
 1. Use the appropriate environment variable prefix (see Instance Reference above)
 2. Use the corresponding project directory and port
 
-| Instance | Project Directory | Port | Env Var Prefix |
-|----------|-------------------|------|----------------|
-| ServiceControl (Primary) | `src\ServiceControl` | 33333 | `SERVICECONTROL_` |
-| ServiceControl.Audit | `src\ServiceControl.Audit` | 44444 | `SERVICECONTROL_AUDIT_` |
-| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633 | `MONITORING_` |
+| Instance                  | Project Directory               | Port  | Env Var Prefix          |
+|---------------------------|---------------------------------|-------|-------------------------|
+| ServiceControl (Primary)  | `src\ServiceControl`            | 33333 | `SERVICECONTROL_`       |
+| ServiceControl.Audit      | `src\ServiceControl.Audit`      | 44444 | `SERVICECONTROL_AUDIT_` |
+| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633 | `MONITORING_`           |
 
 ## Troubleshooting
 

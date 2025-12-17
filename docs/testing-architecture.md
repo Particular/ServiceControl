@@ -10,53 +10,53 @@ The repository contains 28 test projects organized into several categories:
 
 ### Unit Test Projects
 
-| Project | Purpose |
-|---------|---------|
-| `ServiceControl.UnitTests` | Primary instance unit tests |
-| `ServiceControl.Audit.UnitTests` | Audit instance unit tests |
-| `ServiceControl.Monitoring.UnitTests` | Monitoring instance unit tests |
-| `ServiceControl.Infrastructure.Tests` | Shared infrastructure tests |
-| `ServiceControl.Config.Tests` | WPF configuration UI tests |
-| `ServiceControlInstaller.Engine.UnitTests` | Windows service installer tests |
-| `ServiceControlInstaller.Packaging.UnitTests` | Packaging utilities tests |
-| `Particular.LicensingComponent.UnitTests` | Licensing component tests |
+| Project                                       | Purpose                         |
+|-----------------------------------------------|---------------------------------|
+| `ServiceControl.UnitTests`                    | Primary instance unit tests     |
+| `ServiceControl.Audit.UnitTests`              | Audit instance unit tests       |
+| `ServiceControl.Monitoring.UnitTests`         | Monitoring instance unit tests  |
+| `ServiceControl.Infrastructure.Tests`         | Shared infrastructure tests     |
+| `ServiceControl.Config.Tests`                 | WPF configuration UI tests      |
+| `ServiceControlInstaller.Engine.UnitTests`    | Windows service installer tests |
+| `ServiceControlInstaller.Packaging.UnitTests` | Packaging utilities tests       |
+| `Particular.LicensingComponent.UnitTests`     | Licensing component tests       |
 
 ### Persistence Test Projects
 
-| Project | Purpose |
-|---------|---------|
-| `ServiceControl.Persistence.Tests` | Abstract persistence layer tests |
-| `ServiceControl.Persistence.Tests.RavenDB` | RavenDB persistence implementation |
-| `ServiceControl.Persistence.Tests.InMemory` | In-memory persistence tests |
-| `ServiceControl.Audit.Persistence.Tests` | Audit persistence abstractions |
-| `ServiceControl.Audit.Persistence.Tests.RavenDB` | Audit RavenDB tests |
+| Project                                          | Purpose                            |
+|--------------------------------------------------|------------------------------------|
+| `ServiceControl.Persistence.Tests`               | Abstract persistence layer tests   |
+| `ServiceControl.Persistence.Tests.RavenDB`       | RavenDB persistence implementation |
+| `ServiceControl.Persistence.Tests.InMemory`      | In-memory persistence tests        |
+| `ServiceControl.Audit.Persistence.Tests`         | Audit persistence abstractions     |
+| `ServiceControl.Audit.Persistence.Tests.RavenDB` | Audit RavenDB tests                |
 
 ### Acceptance Test Projects
 
-| Project | Purpose |
-|---------|---------|
-| `ServiceControl.AcceptanceTests` | Primary instance shared acceptance test code |
-| `ServiceControl.AcceptanceTests.RavenDB` | Primary instance with RavenDB |
-| `ServiceControl.Audit.AcceptanceTests` | Audit instance shared acceptance test code |
-| `ServiceControl.Audit.AcceptanceTests.RavenDB` | Audit with RavenDB |
-| `ServiceControl.Monitoring.AcceptanceTests` | Monitoring instance acceptance tests |
-| `ServiceControl.MultiInstance.AcceptanceTests` | Multi-instance integration tests |
+| Project                                        | Purpose                                      |
+|------------------------------------------------|----------------------------------------------|
+| `ServiceControl.AcceptanceTests`               | Primary instance shared acceptance test code |
+| `ServiceControl.AcceptanceTests.RavenDB`       | Primary instance with RavenDB                |
+| `ServiceControl.Audit.AcceptanceTests`         | Audit instance shared acceptance test code   |
+| `ServiceControl.Audit.AcceptanceTests.RavenDB` | Audit with RavenDB                           |
+| `ServiceControl.Monitoring.AcceptanceTests`    | Monitoring instance acceptance tests         |
+| `ServiceControl.MultiInstance.AcceptanceTests` | Multi-instance integration tests             |
 
 ### Transport Test Projects
 
-| Project | Filter Value |
-|---------|--------------|
-| `ServiceControl.Transports.Tests` | Default (Learning Transport) |
-| `ServiceControl.Transports.ASBS.Tests` | AzureServiceBus |
-| `ServiceControl.Transports.ASQ.Tests` | AzureStorageQueues |
-| `ServiceControl.Transports.Msmq.Tests` | MSMQ |
-| `ServiceControl.Transports.PostgreSql.Tests` | PostgreSql |
-| `ServiceControl.Transports.RabbitMQClassicConventionalRouting.Tests` | RabbitMQ |
-| `ServiceControl.Transports.RabbitMQClassicDirectRouting.Tests` | RabbitMQ |
-| `ServiceControl.Transports.RabbitMQQuorumConventionalRouting.Tests` | RabbitMQ |
-| `ServiceControl.Transports.RabbitMQQuorumDirectRouting.Tests` | RabbitMQ |
-| `ServiceControl.Transports.SqlServer.Tests` | SqlServer |
-| `ServiceControl.Transports.SQS.Tests` | SQS |
+| Project                                                              | Filter Value                 |
+|----------------------------------------------------------------------|------------------------------|
+| `ServiceControl.Transports.Tests`                                    | Default (Learning Transport) |
+| `ServiceControl.Transports.ASBS.Tests`                               | AzureServiceBus              |
+| `ServiceControl.Transports.ASQ.Tests`                                | AzureStorageQueues           |
+| `ServiceControl.Transports.Msmq.Tests`                               | MSMQ                         |
+| `ServiceControl.Transports.PostgreSql.Tests`                         | PostgreSql                   |
+| `ServiceControl.Transports.RabbitMQClassicConventionalRouting.Tests` | RabbitMQ                     |
+| `ServiceControl.Transports.RabbitMQClassicDirectRouting.Tests`       | RabbitMQ                     |
+| `ServiceControl.Transports.RabbitMQQuorumConventionalRouting.Tests`  | RabbitMQ                     |
+| `ServiceControl.Transports.RabbitMQQuorumDirectRouting.Tests`        | RabbitMQ                     |
+| `ServiceControl.Transports.SqlServer.Tests`                          | SqlServer                    |
+| `ServiceControl.Transports.SQS.Tests`                                | SQS                          |
 
 ## Testing Framework and Conventions
 
@@ -117,16 +117,16 @@ Tests can be filtered by transport using the `ServiceControl_TESTS_FILTER` envir
 
 Located in `src/TestHelper/IncludeInTestsAttribute.cs`:
 
-| Attribute | Filter Value |
-|-----------|--------------|
-| `[IncludeInDefaultTests]` | Default |
-| `[IncludeInAzureServiceBusTests]` | AzureServiceBus |
+| Attribute                            | Filter Value       |
+|--------------------------------------|--------------------|
+| `[IncludeInDefaultTests]`            | Default            |
+| `[IncludeInAzureServiceBusTests]`    | AzureServiceBus    |
 | `[IncludeInAzureStorageQueuesTests]` | AzureStorageQueues |
-| `[IncludeInMsmqTests]` | MSMQ |
-| `[IncludeInPostgreSqlTests]` | PostgreSql |
-| `[IncludeInRabbitMQTests]` | RabbitMQ |
-| `[IncludeInSqlServerTests]` | SqlServer |
-| `[IncludeInAmazonSqsTests]` | SQS |
+| `[IncludeInMsmqTests]`               | MSMQ               |
+| `[IncludeInPostgreSqlTests]`         | PostgreSql         |
+| `[IncludeInRabbitMQTests]`           | RabbitMQ           |
+| `[IncludeInSqlServerTests]`          | SqlServer          |
+| `[IncludeInAmazonSqsTests]`          | SQS                |
 
 ### Usage
 
@@ -505,14 +505,14 @@ dotnet test src/ServiceControl.sln --logger "console;verbosity=detailed"
 
 ## Environment Variables for Transport Tests
 
-| Transport | Environment Variable |
-|-----------|---------------------|
-| SQL Server | `ServiceControl_TransportTests_SQL_ConnectionString` |
-| Azure Service Bus | `ServiceControl_TransportTests_ASBS_ConnectionString` |
-| Azure Storage Queues | `ServiceControl_TransportTests_ASQ_ConnectionString` |
-| RabbitMQ | `ServiceControl_TransportTests_RabbitMQ_ConnectionString` |
-| AWS SQS | `ServiceControl_TransportTests_SQS_*` |
-| PostgreSQL | `ServiceControl_TransportTests_PostgreSql_ConnectionString` |
+| Transport            | Environment Variable                                        |
+|----------------------|-------------------------------------------------------------|
+| SQL Server           | `ServiceControl_TransportTests_SQL_ConnectionString`        |
+| Azure Service Bus    | `ServiceControl_TransportTests_ASBS_ConnectionString`       |
+| Azure Storage Queues | `ServiceControl_TransportTests_ASQ_ConnectionString`        |
+| RabbitMQ             | `ServiceControl_TransportTests_RabbitMQ_ConnectionString`   |
+| AWS SQS              | `ServiceControl_TransportTests_SQS_*`                       |
+| PostgreSQL           | `ServiceControl_TransportTests_PostgreSql_ConnectionString` |
 
 ## Summary
 
