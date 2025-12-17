@@ -2,7 +2,7 @@
 
 This guide provides scenario-based tests for ServiceControl's direct HTTPS features. Use this to verify Kestrel HTTPS behavior without a reverse proxy.
 
-> **Note:** HTTP to HTTPS redirection (`RedirectHttpToHttps`) is designed for reverse proxy scenarios where the proxy forwards HTTP requests to ServiceControl. When running with direct HTTPS, ServiceControl only binds to a single port (HTTPS). To test HTTP to HTTPS redirection, see [Local Reverse Proxy Testing](local-reverseproxy-testing.md).
+> **Note:** HTTP to HTTPS redirection (`RedirectHttpToHttps`) is designed for reverse proxy scenarios where the proxy forwards HTTP requests to ServiceControl. When running with direct HTTPS, ServiceControl only binds to a single port (HTTPS). To test HTTP to HTTPS redirection, see [Reverse Proxy Testing](reverseproxy-testing.md).
 
 ## Instance Reference
 
@@ -239,5 +239,5 @@ $env:SERVICECONTROL_FORWARDEDHEADERS_ENABLED = $null
 ## See Also
 
 - [Hosting Guide](hosting-guide.md) - Detailed configuration reference for all deployment scenarios
-- [Local Reverse Proxy Testing](local-reverseproxy-testing.md) - Testing with a reverse proxy (NGINX)
-- [Local Forwarded Headers Testing](local-forward-headers-testing.md) - Testing forwarded headers without a reverse proxy
+- [Reverse Proxy Testing](reverseproxy-testing.md) - Testing with a reverse proxy (NGINX)
+- [Forwarded Headers Testing](forward-headers-testing.md) - Testing forwarded headers without a reverse proxy

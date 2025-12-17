@@ -128,5 +128,5 @@ When the proxy is **not** trusted (incorrect `KnownProxies`):
 
 ## See Also
 
-- [Local Forwarded Headers Testing](local-forward-headers-testing.md) - Test forwarded headers configuration with curl
-- [Local Reverse Proxy Testing](local-reverseproxy-testing.md) - Guide for testing with NGINX reverse proxy locally
+- [Forwarded Headers Testing](forward-headers-testing.md) - Test forwarded headers configuration with curl
+- [Reverse Proxy Testing](reverseproxy-testing.md) - Guide for testing with NGINX reverse proxy locally

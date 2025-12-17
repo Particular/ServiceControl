@@ -532,4 +532,4 @@ The `/debug/request-info` endpoint is only available when running in Development
 ## See Also
 
 - [Hosting Guide](hosting-guide.md) - Configuration reference for all deployment scenarios
-- [Local Forwarded Headers Testing](local-forward-headers-testing.md) - Testing forwarded headers without a reverse proxy
+- [Forwarded Headers Testing](forward-headers-testing.md) - Testing forwarded headers without a reverse proxy

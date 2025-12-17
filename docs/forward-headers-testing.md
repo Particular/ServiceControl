@@ -836,5 +836,5 @@ dotnet test src/ServiceControl.Monitoring.AcceptanceTests/ServiceControl.Monitor
 ## See Also
 
 - [Hosting Guide](hosting-guide.md) - Configuration reference for forwarded headers
-- [Local Reverse Proxy Testing](local-reverseproxy-testing.md) - Testing with a real reverse proxy (NGINX)
+- [Reverse Proxy Testing](reverseproxy-testing.md) - Testing with a real reverse proxy (NGINX)
 - [Testing Architecture](testing-architecture.md) - Overview of testing patterns in this repository
