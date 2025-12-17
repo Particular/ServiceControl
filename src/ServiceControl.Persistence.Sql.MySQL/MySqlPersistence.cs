@@ -2,6 +2,7 @@ namespace ServiceControl.Persistence.Sql.MySQL;
 
 using Core.Abstractions;
 using Core.DbContexts;
+using Core.FullTextSearch;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence;
@@ -19,12 +20,14 @@ class MySqlPersistence : BasePersistence, IPersistence
     {
         ConfigureDbContext(services);
         RegisterDataStores(services);
+        services.AddSingleton<IFullTextSearchProvider, MySqlFullTextSearchProvider>();
     }
 
     public void AddInstaller(IServiceCollection services)
     {
         ConfigureDbContext(services);
         RegisterDataStores(services);
+        services.AddSingleton<IFullTextSearchProvider, MySqlFullTextSearchProvider>();
         services.AddSingleton<IDatabaseMigrator, MySqlDatabaseMigrator>();
     }
 

@@ -13,6 +13,8 @@
 
         public bool EnableFullTextSearchOnBodies { get; set; } = true;
 
+        public int MaxBodySizeToStore { get; set; } = 102400; // 100KB default (matches Audit)
+
         public TimeSpan? OverrideCustomCheckRepeatTime { get; set; }
     }
 }

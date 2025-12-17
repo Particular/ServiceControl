@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Entities;
+using FullTextSearch;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,8 +17,11 @@ using ServiceControl.Persistence;
 
 partial class ErrorMessageDataStore : DataStoreBase, IErrorMessageDataStore
 {
-    public ErrorMessageDataStore(IServiceScopeFactory scopeFactory) : base(scopeFactory)
+    readonly IFullTextSearchProvider fullTextSearchProvider;
+
+    public ErrorMessageDataStore(IServiceScopeFactory scopeFactory, IFullTextSearchProvider fullTextSearchProvider) : base(scopeFactory)
     {
+        this.fullTextSearchProvider = fullTextSearchProvider;
     }
 
     public Task<FailedMessage[]> FailedMessagesFetch(Guid[] ids)
@@ -93,6 +97,8 @@ partial class ErrorMessageDataStore : DataStoreBase, IErrorMessageDataStore
                     ProcessingAttemptsJson = JsonSerializer.Serialize(failedMessage.ProcessingAttempts, JsonSerializationOptions.Default),
                     FailureGroupsJson = JsonSerializer.Serialize(failedMessage.FailureGroups, JsonSerializationOptions.Default),
                     HeadersJson = JsonSerializer.Serialize(lastAttempt?.Headers ?? [], JsonSerializationOptions.Default),
+                    Body = null, // Test data doesn't include inline bodies
+                    Query = null, // Test data doesn't populate search text
                     PrimaryFailureGroupId = failedMessage.FailureGroups.Count > 0 ? failedMessage.FailureGroups[0].Id : null,
 
                     // Extract denormalized fields from last processing attempt if available

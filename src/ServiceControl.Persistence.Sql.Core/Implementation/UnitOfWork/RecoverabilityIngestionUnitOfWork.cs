@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mime;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Entities;
@@ -37,6 +38,15 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
         var uniqueMessageId = context.Headers.UniqueId();
         var contentType = GetContentType(context.Headers, MediaTypeNames.Text.Plain);
         var bodySize = context.Body.Length;
+
+        // Determine if body should be stored inline based on size threshold
+        byte[]? inlineBody = null;
+        bool storeBodySeparately = bodySize > parent.Settings.MaxBodySizeToStore;
+
+        if (!storeBodySeparately && !context.Body.IsEmpty)
+        {
+            inlineBody = context.Body.ToArray(); // Store inline
+        }
 
         // Add metadata to the processing attempt
         processingAttempt.MessageMetadata.Add("ContentType", contentType);
@@ -79,6 +89,8 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
             existingMessage.ProcessingAttemptsJson = JsonSerializer.Serialize(attempts, JsonSerializationOptions.Default);
             existingMessage.FailureGroupsJson = JsonSerializer.Serialize(groups, JsonSerializationOptions.Default);
             existingMessage.HeadersJson = JsonSerializer.Serialize(processingAttempt.Headers, JsonSerializationOptions.Default);
+            existingMessage.Body = inlineBody; // Update inline body
+            existingMessage.Query = BuildSearchableText(processingAttempt.Headers, inlineBody); // Populate Query for all databases
             existingMessage.PrimaryFailureGroupId = groups.Count > 0 ? groups[0].Id : null;
             existingMessage.MessageId = processingAttempt.MessageId;
             existingMessage.MessageType = messageType;
@@ -106,6 +118,8 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
                 ProcessingAttemptsJson = JsonSerializer.Serialize(attempts, JsonSerializationOptions.Default),
                 FailureGroupsJson = JsonSerializer.Serialize(groups, JsonSerializationOptions.Default),
                 HeadersJson = JsonSerializer.Serialize(processingAttempt.Headers, JsonSerializationOptions.Default),
+                Body = inlineBody, // Store inline body
+                Query = BuildSearchableText(processingAttempt.Headers, inlineBody), // Populate Query for all databases
                 PrimaryFailureGroupId = groups.Count > 0 ? groups[0].Id : null,
                 MessageId = processingAttempt.MessageId,
                 MessageType = messageType,
@@ -122,8 +136,11 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
             parent.DbContext.FailedMessages.Add(failedMessageEntity);
         }
 
-        // Store the message body (avoid allocation if body already exists)
-        await StoreMessageBody(uniqueMessageId, context.Body, contentType, bodySize);
+        // Store body separately only if it exceeds threshold
+        if (storeBodySeparately)
+        {
+            await StoreMessageBody(uniqueMessageId, context.Body, contentType, bodySize);
+        }
     }
 
     public async Task RecordSuccessfulRetry(string retriedMessageUniqueId)
@@ -186,4 +203,28 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
 
     static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
         => headers.TryGetValue(Headers.ContentType, out var contentType) ? contentType : defaultContentType;
+
+    static string BuildSearchableText(Dictionary<string, string> headers, byte[]? body)
+    {
+        var parts = new List<string>
+        {
+            string.Join(" ", headers.Values) // All header values
+        };
+
+        // Add body content if present and can be decoded as text
+        if (body != null && body.Length > 0)
+        {
+            try
+            {
+                var bodyText = Encoding.UTF8.GetString(body);
+                parts.Add(bodyText);
+            }
+            catch
+            {
+                // Skip non-text bodies
+            }
+        }
+
+        return string.Join(" ", parts.Where(p => !string.IsNullOrWhiteSpace(p)));
+    }
 }

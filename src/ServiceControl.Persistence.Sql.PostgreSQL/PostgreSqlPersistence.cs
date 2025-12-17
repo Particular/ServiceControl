@@ -2,8 +2,10 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL;
 
 using Core.Abstractions;
 using Core.DbContexts;
+using Core.FullTextSearch;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using ServiceControl.Persistence;
 
 class PostgreSqlPersistence : BasePersistence, IPersistence
@@ -19,12 +21,14 @@ class PostgreSqlPersistence : BasePersistence, IPersistence
     {
         ConfigureDbContext(services);
         RegisterDataStores(services);
+        services.AddSingleton<IFullTextSearchProvider, PostgreSqlFullTextSearchProvider>();
     }
 
     public void AddInstaller(IServiceCollection services)
     {
         ConfigureDbContext(services);
         RegisterDataStores(services);
+        services.AddSingleton<IFullTextSearchProvider, PostgreSqlFullTextSearchProvider>();
 
         services.AddSingleton<IDatabaseMigrator, PostgreSqlDatabaseMigrator>();
     }
@@ -53,6 +57,8 @@ class PostgreSqlPersistence : BasePersistence, IPersistence
             {
                 options.EnableSensitiveDataLogging();
             }
+
+            options.LogTo(Console.WriteLine, LogLevel.Warning).EnableDetailedErrors();
         }, ServiceLifetime.Scoped);
 
         services.AddScoped<ServiceControlDbContextBase>(sp => sp.GetRequiredService<PostgreSqlDbContext>());

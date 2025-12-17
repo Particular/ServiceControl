@@ -3,6 +3,7 @@ namespace ServiceControl.Persistence.Sql.Core.DbContexts;
 using Entities;
 using EntityConfigurations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 public abstract class ServiceControlDbContextBase : DbContext
 {
@@ -32,6 +33,12 @@ public abstract class ServiceControlDbContextBase : DbContext
     public DbSet<LicensingMetadataEntity> LicensingMetadata { get; set; }
     public DbSet<ThroughputEndpointEntity> Endpoints { get; set; }
     public DbSet<DailyThroughputEntity> Throughput { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.LogTo(Console.WriteLine, LogLevel.Warning)
+            .EnableDetailedErrors();
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

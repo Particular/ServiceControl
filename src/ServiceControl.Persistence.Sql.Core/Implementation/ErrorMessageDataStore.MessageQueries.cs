@@ -113,13 +113,10 @@ partial class ErrorMessageDataStore
         {
             var query = dbContext.FailedMessages.AsQueryable();
 
-            // Apply search filter
+            // Apply full-text search
             if (!string.IsNullOrWhiteSpace(searchTerms))
             {
-                query = query.Where(fm =>
-                    fm.MessageType!.Contains(searchTerms) ||
-                    fm.ExceptionMessage!.Contains(searchTerms) ||
-                    fm.UniqueMessageId.Contains(searchTerms));
+                query = fullTextSearchProvider.ApplyFullTextSearch(query, searchTerms);
             }
 
             // Apply time range filter
@@ -158,13 +155,10 @@ partial class ErrorMessageDataStore
             var query = dbContext.FailedMessages
                 .Where(fm => fm.ReceivingEndpointName == endpointName);
 
-            // Apply search filter
+            // Apply full-text search
             if (!string.IsNullOrWhiteSpace(searchKeyword))
             {
-                query = query.Where(fm =>
-                    fm.MessageType!.Contains(searchKeyword) ||
-                    fm.ExceptionMessage!.Contains(searchKeyword) ||
-                    fm.UniqueMessageId.Contains(searchKeyword));
+                query = fullTextSearchProvider.ApplyFullTextSearch(query, searchKeyword);
             }
 
             // Apply time range filter
