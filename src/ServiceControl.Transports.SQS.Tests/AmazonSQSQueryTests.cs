@@ -95,7 +95,7 @@ class AmazonSQSQueryTests : TransportTestFixture
     }
 
     [Test]
-    [CancelAfter(6 * 60 * 1000)]
+    [CancelAfter(2 * 60 * 1000)]
     public async Task RunScenario()
     {
         const int numMessagesToIngest = 15;
@@ -110,10 +110,12 @@ class AmazonSQSQueryTests : TransportTestFixture
         {
             dictionary.Add(AmazonSQSQuery.AmazonSQSSettings.AccessKey, connectionString.AccessKey);
         }
+
         if (!string.IsNullOrEmpty(connectionString.SecretKey))
         {
             dictionary.Add(AmazonSQSQuery.AmazonSQSSettings.SecretKey, connectionString.SecretKey);
         }
+
         if (!string.IsNullOrEmpty(connectionString.Region))
         {
             dictionary.Add(AmazonSQSQuery.AmazonSQSSettings.Region, connectionString.Region);
@@ -121,27 +123,39 @@ class AmazonSQSQueryTests : TransportTestFixture
 
         query.Initialize(dictionary.AsReadOnly());
 
-        // Wait for metrics to become visible, usually takes 20-30 seconds
-        await Task.Delay(TimeSpan.FromMinutes(1), TestContext.CurrentContext.CancellationToken);
-
-        var queueNames = new List<IBrokerQueue>();
-        await foreach (IBrokerQueue queueName in query.GetQueueNames(TestContext.CurrentContext.CancellationToken))
-        {
-            queueNames.Add(queueName);
-        }
-
-        IBrokerQueue queue = queueNames.Find(name => name.QueueName == $"{connectionString.QueueNamePrefix}{transportSettings.EndpointName}");
-        Assert.That(queue, Is.Not.Null);
-
-        long total = 0L;
-
         DateTime startDate = provider.GetUtcNow().DateTime;
         provider.Advance(TimeSpan.FromDays(1));
-        await foreach (QueueThroughput queueThroughput in query.GetThroughputPerDay(queue, DateOnly.FromDateTime(startDate), TestContext.CurrentContext.CancellationToken))
+
+        while (!TestContext.CurrentContext.CancellationToken.IsCancellationRequested)
         {
-            total += queueThroughput.TotalThroughput;
+            await Task.Delay(TimeSpan.FromSeconds(5), TestContext.CurrentContext.CancellationToken);
+
+            var queueNames = new List<IBrokerQueue>();
+            await foreach (IBrokerQueue queueName in query.GetQueueNames(TestContext.CurrentContext.CancellationToken))
+            {
+                queueNames.Add(queueName);
+            }
+
+            IBrokerQueue queue = queueNames.Find(name => name.QueueName == $"{connectionString.QueueNamePrefix}{transportSettings.EndpointName}");
+
+            if (queue == null)
+            {
+                continue;
+            }
+
+            long total = 0L;
+
+            await foreach (QueueThroughput queueThroughput in query.GetThroughputPerDay(queue, DateOnly.FromDateTime(startDate), TestContext.CurrentContext.CancellationToken))
+            {
+                total += queueThroughput.TotalThroughput;
+            }
+
+            if (total == numMessagesToIngest)
+            {
+                return;
+            }
         }
 
-        Assert.That(total, Is.EqualTo(numMessagesToIngest));
+        Assert.Fail("Timeout waiting for expected throughput to be report");
     }
 }
