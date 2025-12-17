@@ -66,10 +66,10 @@ Documentation for configuring security features:
 
 Local testing guides:
 
-- [Local HTTPS Testing](docs/local-https-testing.md)
-- [Local Reverse Proxy Testing](docs/local-reverseproxy-testing.md)
-- [Local Forward Headers Testing](docs/local-forward-headers-testing.md)
-- [Local Authentication Testing](docs/local-authentication-testing.md)
+- [HTTPS Testing](docs/https-testing.md)
+- [Reverse Proxy Testing](docs/reverseproxy-testing.md)
+- [Forward Headers Testing](docs/forward-headers-testing.md)
+- [Authentication Testing](docs/authentication-testing.md)
 
 ## How to developer test the PowerShell Module
 

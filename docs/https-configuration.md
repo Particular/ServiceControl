@@ -86,7 +86,7 @@ set SERVICECONTROL_HTTPS_PORT=443
 - HSTS is cached by browsers, so test carefully before enabling in production
 - Start with a short max-age during initial deployment
 - Consider the impact on subdomains before enabling `includeSubDomains`
-- To test HSTS locally, use the [NGINX reverse proxy setup](local-reverseproxy-testing.md) with a custom hostname
+- To test HSTS locally, use the [NGINX reverse proxy setup](reverseproxy-testing.md) with a custom hostname
 
 ### HTTP to HTTPS Redirect
 
@@ -97,10 +97,10 @@ The `HTTPS_REDIRECTHTTPTOHTTPS` setting is intended for use with a reverse proxy
 - ServiceControl will redirect HTTP requests to HTTPS based on the `X-Forwarded-Proto` header
 - **Important:** You must also set `HTTPS_PORT` to specify the HTTPS port for the redirect URL
 
-> **Note:** When running ServiceControl directly without a reverse proxy, the application only listens on a single protocol (HTTP or HTTPS). To test HTTP-to-HTTPS redirection locally, use the [NGINX reverse proxy setup](local-reverseproxy-testing.md).
+> **Note:** When running ServiceControl directly without a reverse proxy, the application only listens on a single protocol (HTTP or HTTPS). To test HTTP-to-HTTPS redirection locally, use the [NGINX reverse proxy setup](reverseproxy-testing.md).
 
 ## See Also
 
-- [Local HTTPS Testing](local-https-testing.md) - Guide for testing HTTPS locally during development
-- [Local Reverse Proxy Testing](local-reverseproxy-testing.md) - Testing with NGINX reverse proxy (HSTS, HTTP to HTTPS redirect)
+- [HTTPS Testing](https-testing.md) - Guide for testing HTTPS locally during development
+- [Reverse Proxy Testing](reverseproxy-testing.md) - Testing with NGINX reverse proxy (HSTS, HTTP to HTTPS redirect)
 - [Forwarded Headers Configuration](forwarded-headers.md) - Configure forwarded headers when behind a reverse proxy

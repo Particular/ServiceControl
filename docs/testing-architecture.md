@@ -349,7 +349,7 @@ public class ForwardedHeadersSettingsTests
 
 For middleware configuration like forward headers, end-to-end behavior is best verified through:
 
-1. **Manual testing** with curl - documented in [local-forward-headers-testing.md](local-forward-headers-testing.md)
+1. **Manual testing** with curl - documented in [forward-headers-testing.md](forward-headers-testing.md)
 2. **Acceptance tests** (optional) - only if automated verification is needed
 
 The middleware extension (`UseServiceControlForwardedHeaders`) is configuration wiring that delegates to ASP.NET Core's built-in middleware. Unit testing it would require mocking `WebApplication` and would essentially test ASP.NET Core rather than our code.
