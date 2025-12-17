@@ -215,12 +215,16 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
             Namespace = "AWS/SQS",
             MetricName = "NumberOfMessagesDeleted",
             StartTime = startUtc,
-            EndTime = endUtc,  // exclusive
+            EndTime = endUtc, // exclusive
             Period = SecondsInDay,
             Statistics = ["Sum"],
-            Dimensions = [
-                new Dimension { Name = "QueueName", Value = brokerQueue.QueueName }
-            ],
+            Dimensions =
+            [
+                new Dimension
+                {
+                    Name = "QueueName", Value = brokerQueue.QueueName
+                }
+            ]
         };
 
         var resp = await cloudWatch!.GetMetricStatisticsAsync(req, cancellationToken);
