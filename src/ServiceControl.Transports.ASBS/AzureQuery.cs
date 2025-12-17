@@ -138,7 +138,10 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             {
                 Environment = armEnvironment,
                 Transport = new HttpClientTransport(
-                    new HttpClient(new SocketsHttpHandler { PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2) }))
+                    new HttpClient(new SocketsHttpHandler
+                    {
+                        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
+                    }))
             });
 
         return;
@@ -166,7 +169,10 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             }
 
             string options = string.Join(", ",
-                new[] { ArmEnvironment.AzurePublicCloud, ArmEnvironment.AzureGermany, ArmEnvironment.AzureGovernment, ArmEnvironment.AzureChina }.Select(environment => $"\"{environment.Endpoint}\""));
+                new[]
+                {
+                    ArmEnvironment.AzurePublicCloud, ArmEnvironment.AzureGermany, ArmEnvironment.AzureGovernment, ArmEnvironment.AzureChina
+                }.Select(environment => $"\"{environment.Endpoint}\""));
             InitialiseErrors.Add($"Management url configuration is invalid, available options are {options}");
 
             return (ArmEnvironment.AzurePublicCloud, MetricsClientAudience.AzurePublicCloud);
