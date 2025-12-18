@@ -51,18 +51,18 @@ Configure the hostname and port that each instance listens on:
 
 **Environment variables:**
 
-```bash
-# ServiceControl Primary
-SERVICECONTROL_HOSTNAME=localhost
-SERVICECONTROL_PORT=33333
+```cmd
+rem ServiceControl Primary
+set SERVICECONTROL_HOSTNAME=localhost
+set SERVICECONTROL_PORT=33333
 
-# ServiceControl.Audit
-SERVICECONTROL_AUDIT_HOSTNAME=localhost
-SERVICECONTROL_AUDIT_PORT=44444
+rem ServiceControl.Audit
+set SERVICECONTROL_AUDIT_HOSTNAME=localhost
+set SERVICECONTROL_AUDIT_PORT=44444
 
-# ServiceControl.Monitoring
-MONITORING_HOSTNAME=localhost
-MONITORING_PORT=33633
+rem ServiceControl.Monitoring
+set MONITORING_HOSTNAME=localhost
+set MONITORING_PORT=33633
 ```
 
 > **Note:** Use `localhost` or `+` (all interfaces) for the hostname. When behind a reverse proxy, use `localhost` and configure the proxy to forward to the appropriate port.
@@ -82,9 +82,9 @@ The Primary instance must be configured to communicate with Audit instances for 
 
 **Environment variables:**
 
-```bash
-# Single Audit instance
-SERVICECONTROL_REMOTEINSTANCES=[{"api_uri":"https://servicecontrol-audit:44444/api"}]
+```cmd
+rem Single Audit instance
+set SERVICECONTROL_REMOTEINSTANCES=[{"api_uri":"https://servicecontrol-audit:44444/api"}]
 ```
 
 For multiple Audit instances:
@@ -97,8 +97,8 @@ For multiple Audit instances:
 
 **Environment variables:**
 
-```bash
-SERVICECONTROL_REMOTEINSTANCES=[{"api_uri":"https://servicecontrol-audit1:44444/api"},{"api_uri":"https://servicecontrol-audit2:44444/api"}]
+```cmd
+set SERVICECONTROL_REMOTEINSTANCES=[{"api_uri":"https://servicecontrol-audit1:44444/api"},{"api_uri":"https://servicecontrol-audit2:44444/api"}]
 ```
 
 > **Important:** When authentication is enabled, all instances (Primary, Audit, Monitoring) must use the **same** Identity Provider (IdP) Authority and Audience settings. Client tokens are forwarded to remote instances during scatter-gather operations.
@@ -152,6 +152,7 @@ Client → HTTPS → Reverse Proxy → HTTP → ServiceControl
 
   <!-- ServicePulse client configuration (Primary instance only) -->
   <add key="ServiceControl/Authentication.ServicePulse.ClientId" value="{servicepulse-client-id}" />
+  <add key="ServiceControl/Authentication.ServicePulse.Authority" value="https://login.microsoftonline.com/{tenant-id}/v2.0" />
   <add key="ServiceControl/Authentication.ServicePulse.ApiScopes" value="[&quot;api://servicecontrol/access_as_user&quot;]" />
 
   <!-- Forwarded headers - trust only your reverse proxy -->
@@ -172,36 +173,37 @@ Client → HTTPS → Reverse Proxy → HTTP → ServiceControl
 
 **Environment variables:**
 
-```bash
-# Host and Port
-SERVICECONTROL_HOSTNAME=localhost
-SERVICECONTROL_PORT=33333
+```cmd
+rem Host and Port
+set SERVICECONTROL_HOSTNAME=localhost
+set SERVICECONTROL_PORT=33333
 
-# Remote Audit Instance(s)
-SERVICECONTROL_REMOTEINSTANCES=[{"api_uri":"https://servicecontrol-audit/api"}]
+rem Remote Audit Instance(s)
+set SERVICECONTROL_REMOTEINSTANCES=[{"api_uri":"https://servicecontrol-audit/api"}]
 
-# Authentication
-SERVICECONTROL_AUTHENTICATION_ENABLED=true
-SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
-SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol
+rem Authentication
+set SERVICECONTROL_AUTHENTICATION_ENABLED=true
+set SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
+set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol
 
-# ServicePulse client configuration (Primary instance only)
-SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID={servicepulse-client-id}
-SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol/access_as_user"]
+rem ServicePulse client configuration (Primary instance only)
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID={servicepulse-client-id}
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol/access_as_user"]
 
-# Forwarded headers - trust only your reverse proxy
-SERVICECONTROL_FORWARDEDHEADERS_ENABLED=true
-SERVICECONTROL_FORWARDEDHEADERS_TRUSTALLPROXIES=false
-SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES=10.0.0.5
-# Or use CIDR notation:
-# SERVICECONTROL_FORWARDEDHEADERS_KNOWNNETWORKS=10.0.0.0/24
+rem Forwarded headers - trust only your reverse proxy
+set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=true
+set SERVICECONTROL_FORWARDEDHEADERS_TRUSTALLPROXIES=false
+set SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES=10.0.0.5
+rem Or use CIDR notation:
+rem set SERVICECONTROL_FORWARDEDHEADERS_KNOWNNETWORKS=10.0.0.0/24
 
-# HTTP to HTTPS redirect (optional)
-SERVICECONTROL_HTTPS_REDIRECTHTTPTOHTTPS=true
-SERVICECONTROL_HTTPS_PORT=443
+rem HTTP to HTTPS redirect (optional)
+set SERVICECONTROL_HTTPS_REDIRECTHTTPTOHTTPS=true
+set SERVICECONTROL_HTTPS_PORT=443
 
-# Restrict CORS
-SERVICECONTROL_CORS_ALLOWEDORIGINS=https://servicepulse
+rem Restrict CORS
+set SERVICECONTROL_CORS_ALLOWEDORIGINS=https://servicepulse
 ```
 
 #### ServiceControl.Audit Configuration
@@ -231,23 +233,23 @@ SERVICECONTROL_CORS_ALLOWEDORIGINS=https://servicepulse
 
 **Environment variables:**
 
-```bash
-# Host and Port
-SERVICECONTROL_AUDIT_HOSTNAME=localhost
-SERVICECONTROL_AUDIT_PORT=44444
+```cmd
+rem Host and Port
+set SERVICECONTROL_AUDIT_HOSTNAME=localhost
+set SERVICECONTROL_AUDIT_PORT=44444
 
-# Authentication (same Authority and Audience as Primary)
-SERVICECONTROL_AUDIT_AUTHENTICATION_ENABLED=true
-SERVICECONTROL_AUDIT_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
-SERVICECONTROL_AUDIT_AUTHENTICATION_AUDIENCE=api://servicecontrol
+rem Authentication (same Authority and Audience as Primary)
+set SERVICECONTROL_AUDIT_AUTHENTICATION_ENABLED=true
+set SERVICECONTROL_AUDIT_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
+set SERVICECONTROL_AUDIT_AUTHENTICATION_AUDIENCE=api://servicecontrol
 
-# Forwarded headers
-SERVICECONTROL_AUDIT_FORWARDEDHEADERS_ENABLED=true
-SERVICECONTROL_AUDIT_FORWARDEDHEADERS_TRUSTALLPROXIES=false
-SERVICECONTROL_AUDIT_FORWARDEDHEADERS_KNOWNPROXIES=10.0.0.5
+rem Forwarded headers
+set SERVICECONTROL_AUDIT_FORWARDEDHEADERS_ENABLED=true
+set SERVICECONTROL_AUDIT_FORWARDEDHEADERS_TRUSTALLPROXIES=false
+set SERVICECONTROL_AUDIT_FORWARDEDHEADERS_KNOWNPROXIES=10.0.0.5
 
-# Restrict CORS
-SERVICECONTROL_AUDIT_CORS_ALLOWEDORIGINS=https://servicepulse
+rem Restrict CORS
+set SERVICECONTROL_AUDIT_CORS_ALLOWEDORIGINS=https://servicepulse
 ```
 
 #### ServiceControl.Monitoring Configuration
@@ -277,23 +279,23 @@ SERVICECONTROL_AUDIT_CORS_ALLOWEDORIGINS=https://servicepulse
 
 **Environment variables:**
 
-```bash
-# Host and Port
-MONITORING_HOSTNAME=localhost
-MONITORING_PORT=33633
+```cmd
+rem Host and Port
+set MONITORING_HOSTNAME=localhost
+set MONITORING_PORT=33633
 
-# Authentication (same Authority and Audience as Primary)
-MONITORING_AUTHENTICATION_ENABLED=true
-MONITORING_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
-MONITORING_AUTHENTICATION_AUDIENCE=api://servicecontrol
+rem Authentication (same Authority and Audience as Primary)
+set MONITORING_AUTHENTICATION_ENABLED=true
+set MONITORING_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
+set MONITORING_AUTHENTICATION_AUDIENCE=api://servicecontrol
 
-# Forwarded headers
-MONITORING_FORWARDEDHEADERS_ENABLED=true
-MONITORING_FORWARDEDHEADERS_TRUSTALLPROXIES=false
-MONITORING_FORWARDEDHEADERS_KNOWNPROXIES=10.0.0.5
+rem Forwarded headers
+set MONITORING_FORWARDEDHEADERS_ENABLED=true
+set MONITORING_FORWARDEDHEADERS_TRUSTALLPROXIES=false
+set MONITORING_FORWARDEDHEADERS_KNOWNPROXIES=10.0.0.5
 
-# Restrict CORS
-MONITORING_CORS_ALLOWEDORIGINS=https://servicepulse
+rem Restrict CORS
+set MONITORING_CORS_ALLOWEDORIGINS=https://servicepulse
 ```
 
 ---
@@ -349,6 +351,7 @@ Client → HTTPS → ServiceControl (Kestrel)
 
   <!-- ServicePulse client configuration -->
   <add key="ServiceControl/Authentication.ServicePulse.ClientId" value="{servicepulse-client-id}" />
+  <add key="ServiceControl/Authentication.ServicePulse.Authority" value="https://login.microsoftonline.com/{tenant-id}/v2.0" />
   <add key="ServiceControl/Authentication.ServicePulse.ApiScopes" value="[&quot;api://servicecontrol/access_as_user&quot;]" />
 
   <!-- Restrict CORS -->
@@ -361,35 +364,36 @@ Client → HTTPS → ServiceControl (Kestrel)
 
 **Environment variables:**
 
-```bash
-# Host and Port
-SERVICECONTROL_HOSTNAME=servicecontrol
-SERVICECONTROL_PORT=33333
+```cmd
+rem Host and Port
+set SERVICECONTROL_HOSTNAME=servicecontrol
+set SERVICECONTROL_PORT=33333
 
-# Remote Audit Instance(s)
-SERVICECONTROL_REMOTEINSTANCES=[{"api_uri":"https://servicecontrol-audit:44444/api"}]
+rem Remote Audit Instance(s)
+set SERVICECONTROL_REMOTEINSTANCES=[{"api_uri":"https://servicecontrol-audit:44444/api"}]
 
-# Kestrel HTTPS
-SERVICECONTROL_HTTPS_ENABLED=true
-SERVICECONTROL_HTTPS_CERTIFICATEPATH=/certs/servicecontrol.pfx
-SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD=your-certificate-password
-SERVICECONTROL_HTTPS_ENABLEHSTS=true
-SERVICECONTROL_HTTPS_HSTSMAXAGESECONDS=31536000
+rem Kestrel HTTPS
+set SERVICECONTROL_HTTPS_ENABLED=true
+set SERVICECONTROL_HTTPS_CERTIFICATEPATH=C:\certs\servicecontrol.pfx
+set SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD=your-certificate-password
+set SERVICECONTROL_HTTPS_ENABLEHSTS=true
+set SERVICECONTROL_HTTPS_HSTSMAXAGESECONDS=31536000
 
-# Authentication
-SERVICECONTROL_AUTHENTICATION_ENABLED=true
-SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
-SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol
+rem Authentication
+set SERVICECONTROL_AUTHENTICATION_ENABLED=true
+set SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
+set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol
 
-# ServicePulse client configuration
-SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID={servicepulse-client-id}
-SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol/access_as_user"]
+rem ServicePulse client configuration
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID={servicepulse-client-id}
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol/access_as_user"]
 
-# Restrict CORS
-SERVICECONTROL_CORS_ALLOWEDORIGINS=https://servicepulse
+rem Restrict CORS
+set SERVICECONTROL_CORS_ALLOWEDORIGINS=https://servicepulse
 
-# No forwarded headers (no proxy)
-SERVICECONTROL_FORWARDEDHEADERS_ENABLED=false
+rem No forwarded headers (no proxy)
+set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=false
 ```
 
 #### Audit Instance Configuration (Direct HTTPS)
@@ -423,27 +427,27 @@ SERVICECONTROL_FORWARDEDHEADERS_ENABLED=false
 
 **Environment variables:**
 
-```bash
-# Host and Port
-SERVICECONTROL_AUDIT_HOSTNAME=servicecontrol-audit
-SERVICECONTROL_AUDIT_PORT=44444
+```cmd
+rem Host and Port
+set SERVICECONTROL_AUDIT_HOSTNAME=servicecontrol-audit
+set SERVICECONTROL_AUDIT_PORT=44444
 
-# Kestrel HTTPS
-SERVICECONTROL_AUDIT_HTTPS_ENABLED=true
-SERVICECONTROL_AUDIT_HTTPS_CERTIFICATEPATH=/certs/servicecontrol-audit.pfx
-SERVICECONTROL_AUDIT_HTTPS_CERTIFICATEPASSWORD=your-certificate-password
-SERVICECONTROL_AUDIT_HTTPS_ENABLEHSTS=true
+rem Kestrel HTTPS
+set SERVICECONTROL_AUDIT_HTTPS_ENABLED=true
+set SERVICECONTROL_AUDIT_HTTPS_CERTIFICATEPATH=C:\certs\servicecontrol-audit.pfx
+set SERVICECONTROL_AUDIT_HTTPS_CERTIFICATEPASSWORD=your-certificate-password
+set SERVICECONTROL_AUDIT_HTTPS_ENABLEHSTS=true
 
-# Authentication
-SERVICECONTROL_AUDIT_AUTHENTICATION_ENABLED=true
-SERVICECONTROL_AUDIT_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
-SERVICECONTROL_AUDIT_AUTHENTICATION_AUDIENCE=api://servicecontrol
+rem Authentication
+set SERVICECONTROL_AUDIT_AUTHENTICATION_ENABLED=true
+set SERVICECONTROL_AUDIT_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
+set SERVICECONTROL_AUDIT_AUTHENTICATION_AUDIENCE=api://servicecontrol
 
-# Restrict CORS
-SERVICECONTROL_AUDIT_CORS_ALLOWEDORIGINS=https://servicepulse
+rem Restrict CORS
+set SERVICECONTROL_AUDIT_CORS_ALLOWEDORIGINS=https://servicepulse
 
-# No forwarded headers
-SERVICECONTROL_AUDIT_FORWARDEDHEADERS_ENABLED=false
+rem No forwarded headers
+set SERVICECONTROL_AUDIT_FORWARDEDHEADERS_ENABLED=false
 ```
 
 #### Monitoring Instance Configuration (Direct HTTPS)
@@ -477,27 +481,27 @@ SERVICECONTROL_AUDIT_FORWARDEDHEADERS_ENABLED=false
 
 **Environment variables:**
 
-```bash
-# Host and Port
-MONITORING_HOSTNAME=servicecontrol-monitoring
-MONITORING_PORT=33633
+```cmd
+rem Host and Port
+set MONITORING_HOSTNAME=servicecontrol-monitoring
+set MONITORING_PORT=33633
 
-# Kestrel HTTPS
-MONITORING_HTTPS_ENABLED=true
-MONITORING_HTTPS_CERTIFICATEPATH=/certs/servicecontrol-monitoring.pfx
-MONITORING_HTTPS_CERTIFICATEPASSWORD=your-certificate-password
-MONITORING_HTTPS_ENABLEHSTS=true
+rem Kestrel HTTPS
+set MONITORING_HTTPS_ENABLED=true
+set MONITORING_HTTPS_CERTIFICATEPATH=C:\certs\servicecontrol-monitoring.pfx
+set MONITORING_HTTPS_CERTIFICATEPASSWORD=your-certificate-password
+set MONITORING_HTTPS_ENABLEHSTS=true
 
-# Authentication
-MONITORING_AUTHENTICATION_ENABLED=true
-MONITORING_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
-MONITORING_AUTHENTICATION_AUDIENCE=api://servicecontrol
+rem Authentication
+set MONITORING_AUTHENTICATION_ENABLED=true
+set MONITORING_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
+set MONITORING_AUTHENTICATION_AUDIENCE=api://servicecontrol
 
-# Restrict CORS
-MONITORING_CORS_ALLOWEDORIGINS=https://servicepulse
+rem Restrict CORS
+set MONITORING_CORS_ALLOWEDORIGINS=https://servicepulse
 
-# No forwarded headers
-MONITORING_FORWARDEDHEADERS_ENABLED=false
+rem No forwarded headers
+set MONITORING_FORWARDEDHEADERS_ENABLED=false
 ```
 
 ---
@@ -553,6 +557,7 @@ Client → HTTPS → Reverse Proxy → HTTPS → ServiceControl (Kestrel)
 
   <!-- ServicePulse client configuration -->
   <add key="ServiceControl/Authentication.ServicePulse.ClientId" value="{servicepulse-client-id}" />
+  <add key="ServiceControl/Authentication.ServicePulse.Authority" value="https://login.microsoftonline.com/{tenant-id}/v2.0" />
   <add key="ServiceControl/Authentication.ServicePulse.ApiScopes" value="[&quot;api://servicecontrol/access_as_user&quot;]" />
 
   <!-- Forwarded headers - trust only your reverse proxy -->
@@ -567,35 +572,36 @@ Client → HTTPS → Reverse Proxy → HTTPS → ServiceControl (Kestrel)
 
 **Environment variables:**
 
-```bash
-# Host and Port
-SERVICECONTROL_HOSTNAME=localhost
-SERVICECONTROL_PORT=33333
+```cmd
+rem Host and Port
+set SERVICECONTROL_HOSTNAME=localhost
+set SERVICECONTROL_PORT=33333
 
-# Remote Audit Instance(s)
-SERVICECONTROL_REMOTEINSTANCES=[{"api_uri":"https://servicecontrol-audit/api"}]
+rem Remote Audit Instance(s)
+set SERVICECONTROL_REMOTEINSTANCES=[{"api_uri":"https://servicecontrol-audit/api"}]
 
-# Kestrel HTTPS for internal encryption
-SERVICECONTROL_HTTPS_ENABLED=true
-SERVICECONTROL_HTTPS_CERTIFICATEPATH=/certs/servicecontrol-internal.pfx
-SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD=your-certificate-password
+rem Kestrel HTTPS for internal encryption
+set SERVICECONTROL_HTTPS_ENABLED=true
+set SERVICECONTROL_HTTPS_CERTIFICATEPATH=C:\certs\servicecontrol-internal.pfx
+set SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD=your-certificate-password
 
-# Authentication
-SERVICECONTROL_AUTHENTICATION_ENABLED=true
-SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
-SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol
+rem Authentication
+set SERVICECONTROL_AUTHENTICATION_ENABLED=true
+set SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
+set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol
 
-# ServicePulse client configuration
-SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID={servicepulse-client-id}
-SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol/access_as_user"]
+rem ServicePulse client configuration
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID={servicepulse-client-id}
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol/access_as_user"]
 
-# Forwarded headers - trust only your reverse proxy
-SERVICECONTROL_FORWARDEDHEADERS_ENABLED=true
-SERVICECONTROL_FORWARDEDHEADERS_TRUSTALLPROXIES=false
-SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES=10.0.0.5
+rem Forwarded headers - trust only your reverse proxy
+set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=true
+set SERVICECONTROL_FORWARDEDHEADERS_TRUSTALLPROXIES=false
+set SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES=10.0.0.5
 
-# Restrict CORS
-SERVICECONTROL_CORS_ALLOWEDORIGINS=https://servicepulse
+rem Restrict CORS
+set SERVICECONTROL_CORS_ALLOWEDORIGINS=https://servicepulse
 ```
 
 > **Note:** Audit and Monitoring instances follow the same pattern. See Scenario 1 for the authentication and forwarded headers configuration, and add the HTTPS settings as shown above.

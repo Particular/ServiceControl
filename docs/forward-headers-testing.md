@@ -9,6 +9,25 @@ This guide explains how to test forwarded headers configuration for ServiceContr
 - (Optional) For formatted JSON output: `npm install -g json` then pipe curl output through `| json`
 - All commands assume you are in the respective project directory
 
+## Enabling Debug Logs
+
+To enable detailed logging for troubleshooting, set the `LogLevel` environment variable before starting each instance:
+
+```cmd
+rem ServiceControl Primary
+set SERVICECONTROL_LOGLEVEL=Debug
+
+rem ServiceControl.Audit
+set SERVICECONTROL_AUDIT_LOGLEVEL=Debug
+
+rem ServiceControl.Monitoring
+set MONITORING_LOGLEVEL=Debug
+```
+
+**Valid log levels:** `Trace`, `Debug`, `Information` (or `Info`), `Warning` (or `Warn`), `Error`, `Critical` (or `Fatal`), `None` (or `Off`)
+
+Debug logs will show detailed forwarded headers processing and trust evaluation information.
+
 ## Instance Reference
 
 | Instance                  | Project Directory               | Default Port | Environment Variable Prefix |
