@@ -238,36 +238,19 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         };
 
         var resp = await cloudWatch!.GetMetricStatisticsAsync(req, cancellationToken);
+        var dataPoints = resp.Datapoints.ToDictionary(x => DateOnly.FromDateTime(x.Timestamp!.Value.Date), x => (long)(x.Sum ?? 0));
 
-        DateOnly currentDate = startDate;
-        var data = new Dictionary<DateOnly, QueueThroughput>();
-        while (currentDate <= endDate)
+        for (DateOnly currentDate = startDate; currentDate <= endDate; currentDate = currentDate.AddDays(1))
         {
-            data.Add(currentDate, new QueueThroughput { TotalThroughput = 0, DateUTC = currentDate });
+            dataPoints.TryGetValue(currentDate, out var sum);
 
-            currentDate = currentDate.AddDays(1);
-        }
+            logger.LogTrace("Queue throughput {QueueName} {Date} {Total}", brokerQueue.QueueName, currentDate, sum);
 
-        // Cloudwatch returns data points per 5 minutes in UTC
-        foreach (var datapoint in resp.Datapoints ?? [])
-        {
-            logger.LogTrace("Datapoint {Timestamp:O} {Sum:N0}", datapoint.Timestamp, datapoint.Sum);
-            if (datapoint.Timestamp.HasValue)
+            yield return new QueueThroughput
             {
-                if (data.TryGetValue(DateOnly.FromDateTime(datapoint.Timestamp.Value), out var queueThroughput))
-                {
-                    queueThroughput.TotalThroughput = (long)datapoint.Sum.GetValueOrDefault(0);
-                }
-                else
-                {
-                    logger.LogWarning("Datapoint for unknown date {Timestamp:O}", datapoint.Timestamp);
-                }
-            }
-        }
-
-        foreach (QueueThroughput queueThroughput in data.Values)
-        {
-            yield return queueThroughput;
+                TotalThroughput = sum,
+                DateUTC = currentDate
+            };
         }
     }
 
