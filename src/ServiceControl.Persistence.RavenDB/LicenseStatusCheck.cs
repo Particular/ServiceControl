@@ -13,7 +13,7 @@ static class LicenseStatusCheck
 
     public static async Task WaitForLicenseOrThrow(RavenPersisterSettings configuration, CancellationToken cancellationToken)
     {
-        var client = new HttpClient() { BaseAddress = new Uri(configuration.ConnectionString ?? configuration.ServerUrl) };
+        using var client = new HttpClient() { BaseAddress = new Uri(configuration.ConnectionString ?? configuration.ServerUrl) };
         var licenseCorrectlySetup = false;
         var attempts = 0;
         while (!licenseCorrectlySetup)
