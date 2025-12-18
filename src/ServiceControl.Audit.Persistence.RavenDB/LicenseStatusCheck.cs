@@ -8,13 +8,7 @@ using System.Threading.Tasks;
 
 static class LicenseStatusCheck
 {
-    class LicenseStatusFragment
-    {
-        public string Id { get; set; }
-        public string LicensedTo { get; set; }
-        public string Status { get; set; }
-        public bool Expired { get; set; }
-    }
+    record LicenseStatusFragment(string Id, string LicensedTo, string Status, bool Expired);
 
     public static async Task WaitForLicenseOrThrow(DatabaseConfiguration configuration, CancellationToken cancellationToken)
     {
