@@ -195,18 +195,23 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
 
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,
         DateOnly startDate,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var utcNow = timeProvider.GetUtcNow();
         var endDate = DateOnly.FromDateTime(utcNow.DateTime).AddDays(-1); // Query date up to but not including today
 
-        if (endDate < startDate)
+        var isBeforeStartDate = endDate < startDate;
+
+        if (isBeforeStartDate)
         {
+            logger.LogTrace("Skipping {Start} {End} {UtcNow}, ", startDate, endDate, utcNow);
             yield break;
         }
 
-        var startUtc = startDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        var endUtc = endDate.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var queryStartUtc = startDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var queryendUtc = endDate.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+
+        logger.LogDebug("GetThroughputPerDay {QueueName} {UtcNow} {StartDate} {EndDate} {QueryStart} {QueryEnd}", brokerQueue.QueueName, utcNow, startDate, endDate, queryStartUtc, queryendUtc);
 
         const int SecondsInDay = 24 * 60 * 60;
 
@@ -214,8 +219,8 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         {
             Namespace = "AWS/SQS",
             MetricName = "NumberOfMessagesDeleted",
-            StartTime = startUtc,
-            EndTime = endUtc, // exclusive
+            StartTime = queryStartUtc,
+            EndTime = queryendUtc, // exclusive
             Period = SecondsInDay,
             Statistics = ["Sum"],
             Dimensions =
@@ -241,7 +246,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         // Cloudwatch returns data points per 5 minutes in UTC
         foreach (var datapoint in resp.Datapoints ?? [])
         {
-            logger.LogInformation("\tDatapoint {Timestamp:O} {Sum} {Unit}", datapoint.Timestamp, datapoint.Sum, datapoint.Unit);
+            logger.LogTrace("Datapoint {Timestamp:O} {Sum:N0}", datapoint.Timestamp, datapoint.Sum);
             if (datapoint.Timestamp.HasValue)
             {
                 if (data.TryGetValue(DateOnly.FromDateTime(datapoint.Timestamp.Value), out var queueThroughput))
