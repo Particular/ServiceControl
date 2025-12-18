@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 using Particular.Approvals;
@@ -35,7 +35,9 @@ class AmazonSQSQueryTests : TransportTestFixture
             MaxConcurrency = 1,
             EndpointName = Guid.NewGuid().ToString("N")
         };
-        query = new AmazonSQSQuery(NullLogger<AmazonSQSQuery>.Instance, provider, transportSettings);
+        var loggerFactory = LoggerFactory.Create(builder => builder.AddSimpleConsole().SetMinimumLevel(LogLevel.Trace));
+        var logger = loggerFactory.CreateLogger<AmazonSQSQuery>();
+        query = new AmazonSQSQuery(logger, provider, transportSettings);
     }
 
     [Test]
@@ -125,7 +127,7 @@ class AmazonSQSQueryTests : TransportTestFixture
 
         query.Initialize(dictionary.AsReadOnly());
 
-        DateTime startDate = provider.GetUtcNow().DateTime;
+        var startDate = DateOnly.FromDateTime(provider.GetUtcNow().DateTime);
         provider.Advance(TimeSpan.FromDays(1));
 
         while (!TestContext.CurrentContext.CancellationToken.IsCancellationRequested)
@@ -147,7 +149,7 @@ class AmazonSQSQueryTests : TransportTestFixture
 
             long total = 0L;
 
-            await foreach (QueueThroughput queueThroughput in query.GetThroughputPerDay(queue, DateOnly.FromDateTime(startDate), TestContext.CurrentContext.CancellationToken))
+            await foreach (QueueThroughput queueThroughput in query.GetThroughputPerDay(queue, startDate, TestContext.CurrentContext.CancellationToken))
             {
                 total += queueThroughput.TotalThroughput;
             }
