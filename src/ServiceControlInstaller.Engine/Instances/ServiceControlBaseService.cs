@@ -28,20 +28,16 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public bool InMaintenanceMode { get; set; }
         public ReportCard ReportCard { get; set; }
-
+        
         /// <summary>
         /// Raven management URL
         /// </summary>
-        public string StorageUrl
+        public string RavenDbStudioUrl
         {
             get
             {
-                string host = HostName switch
-                {
-                    "*" or "+" => "localhost",
-                    _ => HostName,
-                };
-                return $"http://{host}:{DatabaseMaintenancePort}/studio/index.html#databases";
+                var port = DatabaseMaintenancePort ?? 33334;
+                return $"http://localhost:{port}/studio/index.html#databases";
             }
         }
 
