@@ -8,13 +8,14 @@
     using ServiceControl.Api;
     using ServiceControl.Api.Contracts;
 
+    // Anonymous access is required for server-to-server remote configuration fetching
+    [AllowAnonymous]
     [ApiController]
     [Route("api")]
     public class RootController(IConfigurationApi configurationApi) : ControllerBase
     {
         [Route("")]
         [HttpGet]
-        [AllowAnonymous]
         public Task<RootUrls> Urls() => configurationApi.GetUrls(Request.GetDisplayUrl(), default);
 
         [Route("instance-info")]

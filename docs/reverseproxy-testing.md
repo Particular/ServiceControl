@@ -23,6 +23,25 @@ This guide provides scenario-based tests for ServiceControl instances behind an 
 - ServiceControl built locally (see main README for build instructions)
 - curl (included with Windows 10/11, Git Bash, or WSL)
 
+## Enabling Debug Logs
+
+To enable detailed logging for troubleshooting, set the `LogLevel` environment variable before starting each instance:
+
+```cmd
+rem ServiceControl Primary
+set SERVICECONTROL_LOGLEVEL=Debug
+
+rem ServiceControl.Audit
+set SERVICECONTROL_AUDIT_LOGLEVEL=Debug
+
+rem ServiceControl.Monitoring
+set MONITORING_LOGLEVEL=Debug
+```
+
+**Valid log levels:** `Trace`, `Debug`, `Information` (or `Info`), `Warning` (or `Warn`), `Error`, `Critical` (or `Fatal`), `None` (or `Off`)
+
+Debug logs will show detailed request processing information including forwarded headers handling and HTTPS redirection.
+
 ### Installing mkcert
 
 **Windows (using Chocolatey):**
