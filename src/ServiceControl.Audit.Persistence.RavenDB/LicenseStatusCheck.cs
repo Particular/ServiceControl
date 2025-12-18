@@ -2,6 +2,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB;
 
 using System;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,8 +19,7 @@ static class LicenseStatusCheck
         while (!licenseCorrectlySetup)
         {
             var httpResponse = await client.GetAsync("license/status", cancellationToken);
-            var responseJsonString = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
-            var licenseStatus = JsonSerializer.Deserialize<LicenseStatusFragment>(responseJsonString);
+            var licenseStatus = await httpResponse.Content.ReadFromJsonAsync<LicenseStatusFragment>
             if (licenseStatus.Expired)
             {
                 throw new NotSupportedException("The current RavenDB license is expired. Please, contact support");
