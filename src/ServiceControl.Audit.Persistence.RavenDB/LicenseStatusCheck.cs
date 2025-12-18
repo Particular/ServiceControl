@@ -17,7 +17,7 @@ static class LicenseStatusCheck
         var attempts = 0;
         while (!licenseCorrectlySetup)
         {
-            var httpResponse = await client.GetAsync("/license/status", cancellationToken);
+            var httpResponse = await client.GetAsync("license/status", cancellationToken);
             var responseJsonString = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
             var licenseStatus = JsonSerializer.Deserialize<LicenseStatusFragment>(responseJsonString);
             if (licenseStatus.Expired)
