@@ -3,7 +3,6 @@ namespace ServiceControl.Persistence.RavenDB;
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,29 +12,29 @@ static class LicenseStatusCheck
 
     public static async Task WaitForLicenseOrThrow(RavenPersisterSettings configuration, CancellationToken cancellationToken)
     {
-        using var client = new HttpClient() { BaseAddress = new Uri(configuration.ConnectionString ?? configuration.ServerUrl) };
-        var licenseCorrectlySetup = false;
-        var attempts = 0;
-        while (!licenseCorrectlySetup)
+        using var client = new HttpClient
+        {
+            BaseAddress = new Uri(configuration.ConnectionString ?? configuration.ServerUrl)
+        };
+        using var cts = new CancellationTokenSource(30_000);
+
+        while (!cts.IsCancellationRequested)
         {
             var httpResponse = await client.GetAsync("license/status", cancellationToken);
             var licenseStatus = await httpResponse.Content.ReadFromJsonAsync<LicenseStatusFragment>(cancellationToken);
             if (licenseStatus.Expired)
             {
-                throw new NotSupportedException("The current RavenDB license is expired. Please, contact support");
+                throw new InvalidOperationException("The current RavenDB license is expired. Please, contact support");
             }
 
             if (licenseStatus.LicensedTo != null && licenseStatus.Id != null)
             {
-                licenseCorrectlySetup = true;
+                return;
             }
 
-            if (++attempts > 10)
-            {
-                throw new NotSupportedException("Cannot validate the current RavenDB license. Please, contact support");
-            }
-
-            await Task.Delay(500, cancellationToken);
+            await Task.Delay(200, cancellationToken);
         }
+
+        throw new InvalidOperationException("Cannot validate the current RavenDB license. Please, contact support");
     }
 }
