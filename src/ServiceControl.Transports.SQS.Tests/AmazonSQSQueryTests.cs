@@ -25,10 +25,7 @@ class AmazonSQSQueryTests : TransportTestFixture
     public void Initialise()
     {
         provider = new();
-
-        var kiribati = TimeZoneInfo.FindSystemTimeZoneById("Pacific/Kiritimati");
-        var furthestAhead = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, kiribati);
-        provider.SetUtcNow(furthestAhead);
+        provider.SetUtcNow(DateTimeOffset.UtcNow);
         transportSettings = new TransportSettings
         {
             ConnectionString = configuration.ConnectionString,
