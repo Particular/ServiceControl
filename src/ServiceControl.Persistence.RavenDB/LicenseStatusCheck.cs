@@ -19,7 +19,7 @@ static class LicenseStatusCheck
         while (!licenseCorrectlySetup)
         {
             var httpResponse = await client.GetAsync("license/status", cancellationToken);
-            var licenseStatus = await httpResponse.Content.ReadFromJsonAsync<LicenseStatusFragment>
+            var licenseStatus = await httpResponse.Content.ReadFromJsonAsync<LicenseStatusFragment>();
             if (licenseStatus.Expired)
             {
                 throw new NotSupportedException("The current RavenDB license is expired. Please, contact support");
