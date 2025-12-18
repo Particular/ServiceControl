@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clean up images
-        uses: snok/container-retention-policy@v3.0.0
+        uses: snok/container-retention-policy@v3.0.1
         with:
           image-names: servicecontrol servicecontrol-audit servicecontrol-monitoring servicecontrol-ravendb
           image-tags: pr-*, *-alpha.*
