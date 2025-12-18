@@ -20,6 +20,25 @@ This guide provides scenario-based tests for ServiceControl's direct HTTPS featu
 - ServiceControl built locally (see main README for build instructions)
 - curl (included with Windows 10/11, Git Bash, or WSL)
 
+## Enabling Debug Logs
+
+To enable detailed logging for troubleshooting, set the `LogLevel` environment variable before starting each instance:
+
+```cmd
+rem ServiceControl Primary
+set SERVICECONTROL_LOGLEVEL=Debug
+
+rem ServiceControl.Audit
+set SERVICECONTROL_AUDIT_LOGLEVEL=Debug
+
+rem ServiceControl.Monitoring
+set MONITORING_LOGLEVEL=Debug
+```
+
+**Valid log levels:** `Trace`, `Debug`, `Information` (or `Info`), `Warning` (or `Warn`), `Error`, `Critical` (or `Fatal`), `None` (or `Off`)
+
+Debug logs will show detailed HTTPS configuration and certificate loading information.
+
 ### Installing mkcert
 
 **Windows (using Chocolatey):**
@@ -76,7 +95,7 @@ mkcert -install
 cd .local/certs
 
 # Generate PFX certificate for localhost
-mkcert -p12-file localhost.pfx -pkcs12 localhost 127.0.0.1 ::1
+mkcert -p12-file localhost.pfx -pkcs12 localhost 127.0.0.1 ::1 servicecontrol servicecontrol-audit servicecontrol-monitor
 ```
 
 When prompted for a password, you can use an empty password by pressing Enter, or set a password (e.g., `changeit`) and note it for the configuration step.

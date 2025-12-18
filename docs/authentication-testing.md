@@ -6,9 +6,32 @@ This guide explains how to test authentication configuration for ServiceControl 
 
 - ServiceControl built locally (see main README for build instructions)
 - **HTTPS configured** - Authentication should only be used over HTTPS. Configure HTTPS using one of the methods described in [HTTPS Configuration](https-configuration.md) before testing authentication scenarios.
+- **Identity Provider (IdP) configured** - For real authentication testing (Scenarios 7+), you need an OIDC provider configured with:
+  - An API application registration (for ServiceControl)
+  - A client application registration (for ServicePulse)
+  - API scopes configured and permissions granted
+  - See [Authentication Configuration](authentication.md#configuring-identity-providers) for setup instructions
 - curl (included with Windows 10/11, Git Bash, or WSL)
 - (Optional) For formatted JSON output: `npm install -g json` then pipe curl output through `| json`
-- (Optional) An OIDC provider for full end-to-end testing (e.g., Microsoft Entra ID, Auth0, Okta)
+
+## Enabling Debug Logs
+
+To enable detailed logging for troubleshooting, set the `LogLevel` environment variable before starting each instance:
+
+```cmd
+rem ServiceControl Primary
+set SERVICECONTROL_LOGLEVEL=Debug
+
+rem ServiceControl.Audit
+set SERVICECONTROL_AUDIT_LOGLEVEL=Debug
+
+rem ServiceControl.Monitoring
+set MONITORING_LOGLEVEL=Debug
+```
+
+**Valid log levels:** `Trace`, `Debug`, `Information` (or `Info`), `Warning` (or `Warn`), `Error`, `Critical` (or `Fatal`), `None` (or `Off`)
+
+Debug logs will show detailed authentication flow information including token validation, claims processing, and authorization decisions.
 
 ## Instance Reference
 
@@ -55,6 +78,7 @@ set SERVICECONTROL_AUTHENTICATION_ENABLED=
 set SERVICECONTROL_AUTHENTICATION_AUTHORITY=
 set SERVICECONTROL_AUTHENTICATION_AUDIENCE=
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID=
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=
 set SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEISSUER=
@@ -110,6 +134,7 @@ set SERVICECONTROL_AUTHENTICATION_ENABLED=true
 set SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/common/v2.0
 set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol-test
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID=test-client-id
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/common/v2.0
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol-test/.default"]
 set SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEISSUER=
@@ -165,6 +190,7 @@ set SERVICECONTROL_AUTHENTICATION_ENABLED=true
 set SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/common/v2.0
 set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol-test
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID=test-client-id
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/common/v2.0
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol-test/.default"]
 set SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEISSUER=
@@ -240,6 +266,7 @@ set SERVICECONTROL_AUTHENTICATION_ENABLED=true
 set SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/common/v2.0
 set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol-test
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID=test-client-id
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/common/v2.0
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol-test/.default"]
 set SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEISSUER=false
@@ -269,6 +296,7 @@ set SERVICECONTROL_AUTHENTICATION_ENABLED=true
 set SERVICECONTROL_AUTHENTICATION_AUTHORITY=
 set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol-test
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID=test-client-id
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol-test/.default"]
 set SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEISSUER=
@@ -312,6 +340,7 @@ set SERVICECONTROL_AUTHENTICATION_ENABLED=true
 set SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
 set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID={servicepulse-client-id}
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol/access_as_user"]
 set SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEISSUER=
@@ -375,6 +404,7 @@ set SERVICECONTROL_AUTHENTICATION_ENABLED=true
 set SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
 set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID={servicepulse-client-id}
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol/access_as_user"]
 set SERVICECONTROL_REMOTEINSTANCES=[{"api_uri":"https://localhost:44444"}]
 
@@ -456,6 +486,7 @@ set SERVICECONTROL_AUTHENTICATION_ENABLED=true
 set SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
 set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID={servicepulse-client-id}
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol/access_as_user"]
 set SERVICECONTROL_REMOTEINSTANCES=[{"api_uri":"https://localhost:44444"}]
 
@@ -574,6 +605,7 @@ set SERVICECONTROL_AUTHENTICATION_ENABLED=true
 set SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
 set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID={servicepulse-client-id}
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol/access_as_user"]
 set SERVICECONTROL_REMOTEINSTANCES=[{"api_uri":"https://localhost:44444"}]
 
@@ -799,6 +831,7 @@ set SERVICECONTROL_AUTHENTICATION_ENABLED=
 set SERVICECONTROL_AUTHENTICATION_AUTHORITY=
 set SERVICECONTROL_AUTHENTICATION_AUDIENCE=
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID=
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEISSUER=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEAUDIENCE=
@@ -814,6 +847,7 @@ $env:SERVICECONTROL_AUTHENTICATION_ENABLED = $null
 $env:SERVICECONTROL_AUTHENTICATION_AUTHORITY = $null
 $env:SERVICECONTROL_AUTHENTICATION_AUDIENCE = $null
 $env:SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID = $null
+$env:SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY = $null
 $env:SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES = $null
 $env:SERVICECONTROL_AUTHENTICATION_VALIDATEISSUER = $null
 $env:SERVICECONTROL_AUTHENTICATION_VALIDATEAUDIENCE = $null

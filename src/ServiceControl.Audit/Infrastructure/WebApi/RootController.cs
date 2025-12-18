@@ -45,6 +45,7 @@
         [Route("instance-info")]
         [Route("configuration")]
         [HttpGet]
+        [AllowAnonymous]
         public OkObjectResult Config()
         {
             object content = new

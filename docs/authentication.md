@@ -66,9 +66,12 @@ These settings are required on the primary ServiceControl instance to provide au
 
   <!-- ServicePulse Settings (Primary Instance Only) -->
   <add key="ServiceControl/Authentication.ServicePulse.ClientId" value="{servicepulse-client-id}" />
+  <add key="ServiceControl/Authentication.ServicePulse.Authority" value="https://login.microsoftonline.com/{tenant-id}/v2.0" />
   <add key="ServiceControl/Authentication.ServicePulse.ApiScopes" value="["api://servicecontrol/access_as_user"]" />
 </appSettings>
 ```
+
+> **Note:** The `ServicePulse.Authority` must be set explicitly. The `Audience` for ServicePulse is reused from the main `Authentication.Audience` setting.
 
 ## Examples
 
@@ -79,13 +82,14 @@ set SERVICECONTROL_AUTHENTICATION_ENABLED=true
 set SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
 set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID={servicepulse-client-id}
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol/access_as_user"]
 ```
 
 ### Docker Example
 
 ```cmd
-docker run -p 33333:33333 -e SERVICECONTROL_AUTHENTICATION_ENABLED=true -e SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0 -e SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol -e SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID={servicepulse-client-id} -e SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol/access_as_user"] particular/servicecontrol:latest
+docker run -p 33333:33333 -e SERVICECONTROL_AUTHENTICATION_ENABLED=true -e SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0 -e SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol -e SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID={servicepulse-client-id} -e SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/{tenant-id}/v2.0 -e SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol/access_as_user"] particular/servicecontrol:latest
 ```
 
 ### Audit and Monitoring Instances
@@ -120,6 +124,9 @@ The following endpoints are accessible without authentication, even when authent
 | Endpoint                            | Purpose                                                              |
 |-------------------------------------|----------------------------------------------------------------------|
 | `/api`                              | API root/discovery - returns available endpoints and API information |
+| `/api/instance-info`                | Returns instance configuration information                           |
+| `/api/configuration`                | Returns instance configuration information (alias)                   |
+| `/api/configuration/remotes`        | Returns remote instance configurations for server-to-server fetching |
 | `/api/authentication/configuration` | Returns authentication configuration for clients like ServicePulse   |
 
 These endpoints must remain accessible so clients can discover API capabilities and obtain the authentication configuration needed to acquire tokens.
