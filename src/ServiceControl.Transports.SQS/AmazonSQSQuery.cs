@@ -208,10 +208,15 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
             yield break;
         }
 
-        var queryStartUtc = startDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        var queryendUtc = endDate.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        // Convert DATES that state up to but INCLUDING the TO value to a timestamp from X to Y EXCLUDING
+        // Example: 2025-01-01 to 2025-01-10 => 2025-01-01T00:00:00 to 2025-01-11T00:00:00
 
-        logger.LogDebug("GetThroughputPerDay {QueueName} {UtcNow} {StartDate} {EndDate} {QueryStart} {QueryEnd}", brokerQueue.QueueName, utcNow, startDate, endDate, queryStartUtc, queryendUtc);
+        var queryStartUtc = startDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var queryEndUtc = endDate
+            .AddDays(1) // Convert from INCLUDING to EXCLUDING, thus need to bump one day, using ToDateTime(TimeOnly.MaxValue) would be wrong
+            .ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+
+        logger.LogDebug("GetThroughputPerDay {QueueName} {UtcNow} {StartDate} {EndDate} {QueryStart} {QueryEnd}", brokerQueue.QueueName, utcNow, startDate, endDate, queryStartUtc, queryEndUtc);
 
         const int SecondsInDay = 24 * 60 * 60;
 
@@ -220,7 +225,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
             Namespace = "AWS/SQS",
             MetricName = "NumberOfMessagesDeleted",
             StartTime = queryStartUtc,
-            EndTime = queryendUtc, // exclusive
+            EndTime = queryEndUtc, // The value specified is exclusive; results include data points up to the specified time stamp.
             Period = SecondsInDay,
             Statistics = ["Sum"],
             Dimensions =
