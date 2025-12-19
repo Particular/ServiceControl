@@ -28,7 +28,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public bool InMaintenanceMode { get; set; }
         public ReportCard ReportCard { get; set; }
-        
+
         /// <summary>
         /// Raven management URL
         /// </summary>
