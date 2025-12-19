@@ -16,8 +16,9 @@ static class LicenseStatusCheck
         {
             BaseAddress = new Uri(configuration.ConnectionString ?? configuration.ServerUrl)
         };
-        using var cts = new CancellationTokenSource(30_000);
 
+        // Not linking to the incoming cancellationToken to ensure no OperationCancelledException prevents the last InvalidOperationException to be thrown
+        using var cts = new CancellationTokenSource(30_000);
         while (!cts.IsCancellationRequested)
         {
             var httpResponse = await client.GetAsync("license/status", cancellationToken);
