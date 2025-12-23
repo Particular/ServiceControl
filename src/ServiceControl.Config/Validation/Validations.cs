@@ -205,9 +205,16 @@
         public static IRuleBuilderOptions<T, string> ValidHostname<T>(this IRuleBuilder<T, string> ruleBuilder)
         {
             return ruleBuilder.Must((t, hostname) =>
-                    !string.IsNullOrWhiteSpace(hostname) &&
-                    Uri.CheckHostName(hostname) == UriHostNameType.Dns)
-                .WithMessage(MSG_INVALID_HOSTNAME);
+            {
+                if (string.IsNullOrWhiteSpace(hostname))
+                {
+                    return false;
+                }
+
+                var hostNameType = Uri.CheckHostName(hostname);
+                return hostNameType is UriHostNameType.Dns or UriHostNameType.IPv4 or UriHostNameType.IPv6;
+            })
+            .WithMessage(MSG_INVALID_HOSTNAME);
         }
 
         public const string MSG_EMAIL_NOT_VALID = "Not Valid.";
