@@ -81,7 +81,7 @@ namespace ServiceControl.Config.UI.AdvancedOptions
 
         public bool InMaintenanceMode => ServiceControlInstance.InMaintenanceMode;
 
-        public string RavenStudioUrl => ServiceControlInstance.RavenDbStudioUrl;
+        public string RavenDbStudioUrl => ServiceControlInstance.RavenDbStudioUrl;
 
         public bool IsRunning
         {
