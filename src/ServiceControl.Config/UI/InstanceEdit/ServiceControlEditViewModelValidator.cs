@@ -14,6 +14,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
             RuleFor(x => x.HostName)
                 .NotEmpty()
+                .ValidHostname()
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.PortNumber)
