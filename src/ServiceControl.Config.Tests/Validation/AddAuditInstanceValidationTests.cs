@@ -339,6 +339,33 @@
             Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)), Is.Empty);
         }
 
+        [TestCase("hostname with spaces")]
+        [TestCase("bad@hostname")]
+        [TestCase("bad#hostname")]
+        [TestCase("badhostname...")]
+        [TestCase("badhostname[/")]
+        public void Audit_hostname_cannot_contain_invalid_characters_when_adding_audit_instance(string invalidHostname)
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallAuditInstance = true,
+                SubmitAttempted = true,
+                AuditHostName = invalidHostname
+            };
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditHostName));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(errors, Is.Not.Empty, "Hostname validation should exist and trigger for invalid hostnames");
+                Assert.That(errors.Cast<string>().Any(error => error.Contains("Hostname is not valid")), Is.True,
+                    "Hostname validation should display the exact error message 'Hostname is not valid'");
+            });
+        }
+
         #endregion
 
         #region Portnumber
