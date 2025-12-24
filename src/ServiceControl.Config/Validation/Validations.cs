@@ -202,6 +202,21 @@
             });
         }
 
+        public static IRuleBuilderOptions<T, string> ValidHostname<T>(this IRuleBuilder<T, string> ruleBuilder)
+        {
+            return ruleBuilder.Must((t, hostname) =>
+            {
+                if (string.IsNullOrWhiteSpace(hostname))
+                {
+                    return false;
+                }
+
+                var hostNameType = Uri.CheckHostName(hostname);
+                return hostNameType is UriHostNameType.Dns or UriHostNameType.IPv4 or UriHostNameType.IPv6;
+            })
+            .WithMessage(MSG_INVALID_HOSTNAME);
+        }
+
         public const string MSG_EMAIL_NOT_VALID = "Not Valid.";
 
         public const string MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING = "This transport requires a connection string.";
@@ -233,6 +248,8 @@
         public const string WRN_HOSTNAME_SHOULD_BE_LOCALHOST = "Not using localhost can expose ServiceControl to anonymous access.";
 
         public const string MSG_ILLEGAL_PATH_CHAR = "Paths cannot contain characters {0}";
+
+        public const string MSG_INVALID_HOSTNAME = "Hostname is not valid.";
 
         static char[] ILLEGAL_PATH_CHARS =
         {

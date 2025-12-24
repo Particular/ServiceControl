@@ -52,6 +52,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             RuleFor(viewModel => viewModel.ErrorHostName)
                 .NotEmpty()
+                .ValidHostname()
                 .When(viewModel => viewModel.InstallErrorInstance);
 
             RuleFor(x => x.ErrorPortNumber)
@@ -155,6 +156,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             RuleFor(viewModel => viewModel.AuditHostName)
                 .NotEmpty()
+                .ValidHostname()
                 .When(viewModel => viewModel.InstallAuditInstance);
 
             RuleFor(x => x.AuditPortNumber)
