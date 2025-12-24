@@ -2,11 +2,14 @@
 {
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using ServiceControl.Api;
     using ServiceControl.Api.Contracts;
 
+    // Anonymous access is required for server-to-server remote configuration fetching
+    [AllowAnonymous]
     [ApiController]
     [Route("api")]
     public class RootController(IConfigurationApi configurationApi) : ControllerBase
