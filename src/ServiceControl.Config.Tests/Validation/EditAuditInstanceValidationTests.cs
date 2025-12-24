@@ -130,7 +130,7 @@
         [TestCase("256.0.0.0")]
         [TestCase("::1")]
         [TestCase("2001:0db8:85a3:0000:0000:8a2e:0370:7334")]
-        public void Audi_hostname_can_be_an_ip_address_when_editing_an_audit_instance(string ipAddress)
+        public void Audit_hostname_can_be_an_ip_address_when_editing_an_audit_instance(string ipAddress)
         {
             var viewModel = new ServiceControlAuditEditViewModel
             {
