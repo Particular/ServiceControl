@@ -320,6 +320,8 @@
 
         [TestCase("192.168.1.1")]
         [TestCase("256.0.0.0")]
+        [TestCase("::1")]
+        [TestCase("2001:0db8:85a3:0000:0000:8a2e:0370:7334")]
         public void Error_hostname_can_be_an_ip_address_when_adding_error_instance(string ipAddress)
         {
             var viewModel = new ServiceControlAddViewModel
@@ -334,6 +336,33 @@
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
             Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)), Is.Empty);
+        }
+
+        [TestCase("hostname with spaces")]
+        [TestCase("bad@hostname")]
+        [TestCase("bad#hostname")]
+        [TestCase("badhostname...")]
+        [TestCase("badhostname[/")]
+        public void Error_hostname_cannot_contain_invalid_characters_when_adding_error_instance(string invalidHostname)
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ErrorHostName = invalidHostname
+            };
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.ErrorHostName));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(errors, Is.Not.Empty, "Hostname validation should exist and trigger for invalid hostnames");
+                Assert.That(errors.Cast<string>().Any(error => error.Contains("Hostname is not valid")), Is.True,
+                    "Hostname validation should display the exact error message 'Hostname is not valid'");
+            });
         }
 
         #endregion

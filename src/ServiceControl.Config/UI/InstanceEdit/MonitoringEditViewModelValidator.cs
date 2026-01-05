@@ -12,10 +12,6 @@ namespace ServiceControl.Config.UI.InstanceEdit
                 .NotEmpty()
                 .When(x => x.SubmitAttempted);
 
-            RuleFor(x => x.HostName)
-                .NotEmpty()
-                .When(x => x.SubmitAttempted);
-
             RuleFor(x => x.PortNumber)
                 .NotEmpty()
                 .ValidPort()

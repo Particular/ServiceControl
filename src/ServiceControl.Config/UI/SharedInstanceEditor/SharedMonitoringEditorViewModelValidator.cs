@@ -9,7 +9,7 @@ namespace ServiceControl.Config.UI.SharedInstanceEditor
         {
             RuleFor(x => x.HostName)
                 .NotEmpty()
-                .When(x => x.SubmitAttempted);
+                .ValidHostname();
 
             RuleFor(x => x.LogPath)
                 .NotEmpty()
