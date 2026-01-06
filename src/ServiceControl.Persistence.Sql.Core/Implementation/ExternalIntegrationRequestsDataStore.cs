@@ -18,6 +18,7 @@ public class ExternalIntegrationRequestsDataStore : DataStoreBase, IExternalInte
 {
     readonly ILogger<ExternalIntegrationRequestsDataStore> logger;
     readonly CancellationTokenSource tokenSource = new();
+    readonly SemaphoreSlim workSignal = new(0);
 
     Func<object[], Task>? callback;
     Task? dispatcherTask;
@@ -30,9 +31,9 @@ public class ExternalIntegrationRequestsDataStore : DataStoreBase, IExternalInte
         this.logger = logger;
     }
 
-    public Task StoreDispatchRequest(IEnumerable<ExternalIntegrationDispatchRequest> dispatchRequests)
+    public async Task StoreDispatchRequest(IEnumerable<ExternalIntegrationDispatchRequest> dispatchRequests)
     {
-        return ExecuteWithDbContext(async dbContext =>
+        await ExecuteWithDbContext(async dbContext =>
         {
             foreach (var dispatchRequest in dispatchRequests)
             {
@@ -52,6 +53,9 @@ public class ExternalIntegrationRequestsDataStore : DataStoreBase, IExternalInte
 
             await dbContext.SaveChangesAsync();
         });
+
+        // Signal that work is available
+        _ = workSignal.Release();
     }
 
     public void Subscribe(Func<object[], Task> callback)
@@ -75,10 +79,18 @@ public class ExternalIntegrationRequestsDataStore : DataStoreBase, IExternalInte
             {
                 try
                 {
-                    await DispatchBatch(cancellationToken);
+                    // Wait for signal that work is available
+                    await workSignal.WaitAsync(cancellationToken);
 
-                    // Wait before checking for more events
-                    await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+                    // Process all available batches until queue is drained
+                    while (!cancellationToken.IsCancellationRequested)
+                    {
+                        var hasMoreWork = await DispatchBatch(cancellationToken);
+                        if (!hasMoreWork)
+                        {
+                            break;
+                        }
+                    }
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
@@ -97,9 +109,9 @@ public class ExternalIntegrationRequestsDataStore : DataStoreBase, IExternalInte
         }
     }
 
-    async Task DispatchBatch(CancellationToken cancellationToken)
+    async Task<bool> DispatchBatch(CancellationToken cancellationToken)
     {
-        await ExecuteWithDbContext(async dbContext =>
+        return await ExecuteWithDbContext(async dbContext =>
         {
             var batchSize = 100; // Default batch size
             var requests = await dbContext.ExternalIntegrationDispatchRequests
@@ -109,7 +121,7 @@ public class ExternalIntegrationRequestsDataStore : DataStoreBase, IExternalInte
 
             if (requests.Count == 0)
             {
-                return;
+                return false;
             }
 
             var contexts = requests
@@ -126,6 +138,9 @@ public class ExternalIntegrationRequestsDataStore : DataStoreBase, IExternalInte
             // Remove dispatched requests
             dbContext.ExternalIntegrationDispatchRequests.RemoveRange(requests);
             await dbContext.SaveChangesAsync(cancellationToken);
+
+            // Return true if we processed a full batch (might be more work available)
+            return requests.Count == batchSize;
         });
     }
 
@@ -147,5 +162,6 @@ public class ExternalIntegrationRequestsDataStore : DataStoreBase, IExternalInte
         }
 
         tokenSource?.Dispose();
+        workSignal?.Dispose();
     }
 }
