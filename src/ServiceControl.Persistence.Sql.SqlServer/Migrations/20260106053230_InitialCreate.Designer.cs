@@ -12,7 +12,7 @@ using ServiceControl.Persistence.Sql.SqlServer;
 namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerDbContext))]
-    [Migration("20251216020009_InitialCreate")]
+    [Migration("20260106053230_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -251,6 +251,9 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<byte[]>("Body")
+                        .HasColumnType("varbinary(max)");
+
                     b.Property<string>("ConversationId")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -290,6 +293,9 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
 
                     b.Property<string>("ProcessingAttemptsJson")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Query")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("QueueAddress")

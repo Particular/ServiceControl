@@ -15,10 +15,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Persistence.Sql.Core\ServiceControl.Persistence.Sql.Core.csproj" />
-    <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" Private="false" ExcludeAssets="runtime" />
-    <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" Private="false" ExcludeAssets="runtime" />
-    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" Private="false" ExcludeAssets="runtime" />
-    <ProjectReference Include="..\ServiceControl.DomainEvents\ServiceControl.DomainEvents.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" />
+    <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
+    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
+    <ProjectReference Include="..\ServiceControl.DomainEvents\ServiceControl.DomainEvents.csproj" />
   </ItemGroup>
 
   <ItemGroup>

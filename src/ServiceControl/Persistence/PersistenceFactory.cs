@@ -1,8 +1,10 @@
 namespace ServiceControl.Persistence
 {
     using System;
-    using System.IO;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence.Sql.MySQL;
+    using ServiceControl.Persistence.Sql.PostgreSQL;
+    using ServiceControl.Persistence.Sql.SqlServer;
 
     static class PersistenceFactory
     {
@@ -20,19 +22,14 @@ namespace ServiceControl.Persistence
 
         static IPersistenceConfiguration CreatePersistenceConfiguration(Settings settings)
         {
-            try
+            return settings.PersistenceType switch
             {
-                var persistenceManifest = PersistenceManifestLibrary.Find(settings.PersistenceType);
-                var assemblyPath = Path.Combine(persistenceManifest.Location, $"{persistenceManifest.AssemblyName}.dll");
-                var loadContext = settings.AssemblyLoadContextResolver(assemblyPath);
-                var customizationType = Type.GetType(persistenceManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
-
-                return (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Could not load persistence customization type {settings.PersistenceType}.", e);
-            }
+                "PostgreSQL" => new PostgreSqlPersistenceConfiguration(),
+                "MySQL" => new MySqlPersistenceConfiguration(),
+                "SqlServer" => new SqlServerPersistenceConfiguration(),
+                _ => throw new Exception($"Unsupported persistence type {settings.PersistenceType}."),
+            };
         }
+
     }
 }

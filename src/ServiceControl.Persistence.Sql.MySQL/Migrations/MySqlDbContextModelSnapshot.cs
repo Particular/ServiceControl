@@ -248,6 +248,9 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<byte[]>("Body")
+                        .HasColumnType("longblob");
+
                     b.Property<string>("ConversationId")
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
@@ -288,6 +291,9 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                     b.Property<string>("ProcessingAttemptsJson")
                         .IsRequired()
                         .HasColumnType("json");
+
+                    b.Property<string>("Query")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("QueueAddress")
                         .HasMaxLength(500)
