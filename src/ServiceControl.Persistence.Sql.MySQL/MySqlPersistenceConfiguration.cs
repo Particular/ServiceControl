@@ -7,6 +7,8 @@ public class MySqlPersistenceConfiguration : IPersistenceConfiguration
 {
     const string DatabaseConnectionStringKey = "Database/ConnectionString";
     const string CommandTimeoutKey = "Database/CommandTimeout";
+    const string MessageBodyStoragePathKey = "MessageBody/StoragePath";
+    const string MinBodySizeForCompressionKey = "MessageBody/MinCompressionSize";
 
     public PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace)
     {
@@ -18,10 +20,18 @@ public class MySqlPersistenceConfiguration : IPersistenceConfiguration
                 $"Set environment variable: SERVICECONTROL_DATABASE_CONNECTIONSTRING");
         }
 
+        // Initialize message body storage path
+        var messageBodyStoragePath = SettingsReader.Read(
+            settingsRootNamespace, MessageBodyStoragePathKey, Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                "Particular", "ServiceControl", "bodies"));
+
         var settings = new MySqlPersisterSettings
         {
             ConnectionString = connectionString,
             CommandTimeout = SettingsReader.Read(settingsRootNamespace, CommandTimeoutKey, 30),
+            MessageBodyStoragePath = messageBodyStoragePath,
+            MinBodySizeForCompression = SettingsReader.Read(settingsRootNamespace, MinBodySizeForCompressionKey, 4096)
         };
 
         return settings;
