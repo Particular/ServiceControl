@@ -36,11 +36,11 @@ A long (though not exhaustive) list, although not every change will merit runnin
       - Go to [Service Pulse->Configuration->Create redirect] and add `Endpoint1` to `Endpoint2` redirect
       - Retry the failed message
 - [ ] Audits
-   - [ ] Generate messages e.g. `send 1 10` and check if these are accessible in ServiceInsight
-   - [ ] Generate message messages with non-trivial content using `send-fulltext 1 10`. Open ServiceInsight and check if a message can be found in the search box using one of the strings from the `LongString` property
-   - [ ] Generate messages using `fanout` and check in the [Sequence Diagram] view in ServiceInsight that the graph is properly visualized
+   - [ ] Generate messages e.g. `send 1 10` and check if these are accessible in ServicePulse
+   - [ ] Generate message messages with non-trivial content using `send-fulltext 1 10`. Open ServicePulse and check if a message can be found in the search box using one of the strings from the `LongString` property
+   - [ ] Generate messages using `fanout` and check in the [Sequence Diagram] view in ServicePulse that the graph is properly visualized
 - [ ] Saga Auditing
-   - [ ] Generate messages using `saga-audits 1` and check in the [Saga] view in ServieInsight that the graph is properly visualized
+   - [ ] Generate messages using `saga-audits 1` and check in the [Saga] view in ServiePulse that the graph is properly visualized
 - [ ] Integration Events
    - [ ] Download [integration events sample](https://docs.particular.net/samples/servicecontrol/events-subscription/). Switch the sample to the appropriate transport. 
    - [ ] Generate a failing message in the `NServiceBusEndptoin` and validate that an integration event `MessageFailed` is received by the `EndpointsMonitor` 
