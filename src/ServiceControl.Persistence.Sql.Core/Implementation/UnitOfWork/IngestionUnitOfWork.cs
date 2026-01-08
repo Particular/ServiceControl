@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.Sql.Core.Implementation.UnitOfWork;
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using DbContexts;
@@ -8,12 +9,12 @@ using ServiceControl.Persistence.UnitOfWork;
 
 class IngestionUnitOfWork : IngestionUnitOfWorkBase
 {
-    public IngestionUnitOfWork(ServiceControlDbContextBase dbContext, FileSystemBodyStorageHelper storageHelper, PersistenceSettings settings)
+    public IngestionUnitOfWork(ServiceControlDbContextBase dbContext, FileSystemBodyStorageHelper storageHelper, PersistenceSettings settings, IServiceProvider serviceProvider)
     {
         DbContext = dbContext;
         Settings = settings;
         Monitoring = new MonitoringIngestionUnitOfWork(this);
-        Recoverability = new RecoverabilityIngestionUnitOfWork(this, storageHelper);
+        Recoverability = new RecoverabilityIngestionUnitOfWork(this, storageHelper, serviceProvider);
     }
 
     internal ServiceControlDbContextBase DbContext { get; }

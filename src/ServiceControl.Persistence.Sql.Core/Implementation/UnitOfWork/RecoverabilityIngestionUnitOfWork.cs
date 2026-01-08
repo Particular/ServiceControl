@@ -7,9 +7,11 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using DbContexts;
 using Entities;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using NServiceBus;
 using NServiceBus.Transport;
 using ServiceControl.MessageFailures;
@@ -17,7 +19,7 @@ using ServiceControl.Operations;
 using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Persistence.UnitOfWork;
 
-class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent, FileSystemBodyStorageHelper storageHelper) : IRecoverabilityIngestionUnitOfWork
+class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent, FileSystemBodyStorageHelper storageHelper, IServiceProvider serviceProvider) : IRecoverabilityIngestionUnitOfWork
 {
     const int MaxProcessingAttempts = 10;
     // large object heap starts above 85000 bytes and not above 85 KB!
@@ -55,9 +57,27 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent, FileSystemBo
         var sendingEndpoint = GetMetadata<EndpointDetails>("SendingEndpoint");
         var receivingEndpoint = GetMetadata<EndpointDetails>("ReceivingEndpoint");
 
-        // Load existing message to merge attempts list
-        var existingMessage = await parent.DbContext.FailedMessages
-            .FirstOrDefaultAsync(fm => fm.UniqueMessageId == uniqueMessageId);
+        // Check local cache first to avoid database queries when processing in parallel
+        var existingMessage = parent.DbContext.FailedMessages.Local
+            .FirstOrDefault(fm => fm.UniqueMessageId == uniqueMessageId);
+
+        // If not in local cache, use a separate DbContext to query database
+        // This avoids EF Core concurrency detector issues when processing messages in parallel
+        if (existingMessage == null)
+        {
+            using var scope = serviceProvider.CreateScope();
+            var readDbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
+
+            var existing = await readDbContext.FailedMessages
+                .AsNoTracking()
+                .FirstOrDefaultAsync(fm => fm.UniqueMessageId == uniqueMessageId);
+
+            if (existing != null)
+            {
+                // Attach to the parent context for change tracking
+                existingMessage = parent.DbContext.FailedMessages.Attach(existing).Entity;
+            }
+        }
 
         List<FailedMessage.ProcessingAttempt> attempts;
         if (existingMessage != null)
