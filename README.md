@@ -1,6 +1,6 @@
 # ServiceControl ![Current Version](https://img.shields.io/github/release/particular/servicecontrol.svg?style=flat&label=current%20version)
 
-ServiceControl is the monitoring brain in the [Particular Service Platform](https://particular.net/service-platform), which includes [NServiceBus](https://particular.net/nservicebus) and tools to build, monitor, and debug distributed systems. ServiceControl collects data on every single message flowing through the system (Audit Queue), errors (Error Queue), as well as additional information regarding sagas, endpoints heartbeats, and custom checks (Control Queue). The information is then exposed to [ServicePulse](https://particular.net/servicepulse) and [ServiceInsight](https://particular.net/serviceinsight) via an HTTP API and SignalR notifications.
+ServiceControl is the monitoring brain in the [Particular Service Platform](https://particular.net/service-platform), which includes [NServiceBus](https://particular.net/nservicebus) and tools to build, monitor, and debug distributed systems. ServiceControl collects data on every single message flowing through the system (Audit Queue), errors (Error Queue), as well as additional information regarding sagas, endpoints heartbeats, and custom checks (Control Queue). The information is then exposed to [ServicePulse](https://particular.net/servicepulse) via an HTTP API and SignalR notifications.
 
 See the [ServiceControl documentation](https://docs.particular.net/servicecontrol/) for more information.
 
