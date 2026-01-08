@@ -8,12 +8,12 @@ using ServiceControl.Persistence.UnitOfWork;
 
 class IngestionUnitOfWork : IngestionUnitOfWorkBase
 {
-    public IngestionUnitOfWork(ServiceControlDbContextBase dbContext, PersistenceSettings settings)
+    public IngestionUnitOfWork(ServiceControlDbContextBase dbContext, FileSystemBodyStorageHelper storageHelper, PersistenceSettings settings)
     {
         DbContext = dbContext;
         Settings = settings;
         Monitoring = new MonitoringIngestionUnitOfWork(this);
-        Recoverability = new RecoverabilityIngestionUnitOfWork(this);
+        Recoverability = new RecoverabilityIngestionUnitOfWork(this, storageHelper);
     }
 
     internal ServiceControlDbContextBase DbContext { get; }

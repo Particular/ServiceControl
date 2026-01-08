@@ -1,9 +1,9 @@
 namespace ServiceControl.Persistence.Sql.SqlServer;
 
-using Core.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ServiceControl.Persistence;
 
 class SqlServerDatabaseMigrator : IDatabaseMigrator
 {

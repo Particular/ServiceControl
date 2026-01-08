@@ -14,10 +14,7 @@ public class FailedMessageEntity
     public string FailureGroupsJson { get; set; } = null!;
     public string HeadersJson { get; set; } = null!;
 
-    // Inline body storage for small messages (below MaxBodySizeToStore threshold)
-    public byte[]? Body { get; set; }
-
-    // Full-text search column (populated from headers + inline body)
+    // Full-text search column (populated from headers and body)
     public string? Query { get; set; }
 
     // Denormalized fields from FailureGroups for efficient filtering

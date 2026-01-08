@@ -1,28 +1,24 @@
 namespace ServiceControl.Persistence.Sql.Core.Implementation;
 
-using System;
-using System.IO;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Operations.BodyStorage;
 
 public class BodyStorage : DataStoreBase, IBodyStorage
 {
-    public BodyStorage(IServiceScopeFactory scopeFactory) : base(scopeFactory)
+    readonly FileSystemBodyStorageHelper storageHelper;
+
+    public BodyStorage(IServiceScopeFactory scopeFactory, FileSystemBodyStorageHelper storageHelper) : base(scopeFactory)
     {
+        this.storageHelper = storageHelper;
     }
-
-    public Task<MessageBodyStreamResult> TryFetch(string bodyId)
+    public async Task<MessageBodyStreamResult> TryFetch(string bodyId)
     {
-        return ExecuteWithDbContext(async dbContext =>
+        try
         {
-            // Try to fetch the body directly by ID
-            var messageBody = await dbContext.MessageBodies
-                .AsNoTracking()
-                .FirstOrDefaultAsync(mb => mb.Id == Guid.Parse(bodyId));
+            var result = await storageHelper.ReadBodyAsync(bodyId);
 
-            if (messageBody == null)
+            if (result == null)
             {
                 return new MessageBodyStreamResult { HasResult = false };
             }
@@ -30,11 +26,15 @@ public class BodyStorage : DataStoreBase, IBodyStorage
             return new MessageBodyStreamResult
             {
                 HasResult = true,
-                Stream = new MemoryStream(messageBody.Body),
-                ContentType = messageBody.ContentType,
-                BodySize = messageBody.BodySize,
-                Etag = messageBody.Etag
+                Stream = result.Stream, // Already positioned, decompression handled
+                ContentType = result.ContentType,
+                BodySize = result.BodySize,
+                Etag = result.Etag
             };
-        });
+        }
+        catch
+        {
+            return new MessageBodyStreamResult { HasResult = false };
+        }
     }
 }

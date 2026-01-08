@@ -33,5 +33,6 @@ public abstract class BasePersistence
         services.AddSingleton<IIngestionUnitOfWorkFactory, IngestionUnitOfWorkFactory>();
         services.AddSingleton<IErrorMessageDataStore, ErrorMessageDataStore>();
         services.AddSingleton<ILicensingDataStore, LicensingDataStore>();
+        services.AddSingleton<FileSystemBodyStorageHelper>();
     }
 }

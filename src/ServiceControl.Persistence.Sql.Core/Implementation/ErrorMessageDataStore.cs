@@ -18,10 +18,12 @@ using ServiceControl.Persistence;
 partial class ErrorMessageDataStore : DataStoreBase, IErrorMessageDataStore
 {
     readonly IFullTextSearchProvider fullTextSearchProvider;
+    readonly FileSystemBodyStorageHelper storageHelper;
 
-    public ErrorMessageDataStore(IServiceScopeFactory scopeFactory, IFullTextSearchProvider fullTextSearchProvider) : base(scopeFactory)
+    public ErrorMessageDataStore(IServiceScopeFactory scopeFactory, IFullTextSearchProvider fullTextSearchProvider, FileSystemBodyStorageHelper storageHelper) : base(scopeFactory)
     {
         this.fullTextSearchProvider = fullTextSearchProvider;
+        this.storageHelper = storageHelper;
     }
 
     public Task<FailedMessage[]> FailedMessagesFetch(Guid[] ids)
@@ -97,7 +99,6 @@ partial class ErrorMessageDataStore : DataStoreBase, IErrorMessageDataStore
                     ProcessingAttemptsJson = JsonSerializer.Serialize(failedMessage.ProcessingAttempts, JsonSerializationOptions.Default),
                     FailureGroupsJson = JsonSerializer.Serialize(failedMessage.FailureGroups, JsonSerializationOptions.Default),
                     HeadersJson = JsonSerializer.Serialize(lastAttempt?.Headers ?? [], JsonSerializationOptions.Default),
-                    Body = null, // Test data doesn't include inline bodies
                     Query = null, // Test data doesn't populate search text
                     PrimaryFailureGroupId = failedMessage.FailureGroups.Count > 0 ? failedMessage.FailureGroups[0].Id : null,
 
@@ -122,15 +123,18 @@ partial class ErrorMessageDataStore : DataStoreBase, IErrorMessageDataStore
         });
     }
 
-    public Task<byte[]> FetchFromFailedMessage(string uniqueMessageId)
+    public async Task<byte[]> FetchFromFailedMessage(string uniqueMessageId)
     {
-        return ExecuteWithDbContext(async dbContext =>
+        var result = await storageHelper.ReadBodyAsync(uniqueMessageId);
+        if (result != null)
         {
-            var messageBody = await dbContext.MessageBodies
-                .AsNoTracking()
-                .FirstOrDefaultAsync(mb => mb.Id == Guid.Parse(uniqueMessageId));
+            // Allocate exact size needed and read directly into it
+            var buffer = new byte[result.BodySize];
+            await result.Stream.ReadExactlyAsync(buffer);
+            result.Stream.Dispose();
+            return buffer;
+        }
 
-            return messageBody?.Body!;
-        });
+        return Array.Empty<byte>();
     }
 }

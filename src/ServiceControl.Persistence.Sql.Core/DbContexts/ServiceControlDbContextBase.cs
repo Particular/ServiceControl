@@ -19,7 +19,6 @@ public abstract class ServiceControlDbContextBase : DbContext
     public DbSet<QueueAddressEntity> QueueAddresses { get; set; }
     public DbSet<KnownEndpointEntity> KnownEndpoints { get; set; }
     public DbSet<CustomCheckEntity> CustomChecks { get; set; }
-    public DbSet<MessageBodyEntity> MessageBodies { get; set; }
     public DbSet<RetryHistoryEntity> RetryHistory { get; set; }
     public DbSet<FailedErrorImportEntity> FailedErrorImports { get; set; }
     public DbSet<ExternalIntegrationDispatchRequestEntity> ExternalIntegrationDispatchRequests { get; set; }
@@ -52,7 +51,6 @@ public abstract class ServiceControlDbContextBase : DbContext
         modelBuilder.ApplyConfiguration(new QueueAddressConfiguration());
         modelBuilder.ApplyConfiguration(new KnownEndpointConfiguration());
         modelBuilder.ApplyConfiguration(new CustomCheckConfiguration());
-        modelBuilder.ApplyConfiguration(new MessageBodyConfiguration());
         modelBuilder.ApplyConfiguration(new RetryHistoryConfiguration());
         modelBuilder.ApplyConfiguration(new FailedErrorImportConfiguration());
         modelBuilder.ApplyConfiguration(new ExternalIntegrationDispatchRequestConfiguration());

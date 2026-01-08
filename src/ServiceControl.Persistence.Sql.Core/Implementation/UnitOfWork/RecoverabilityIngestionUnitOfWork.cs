@@ -17,9 +17,12 @@ using ServiceControl.Operations;
 using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Persistence.UnitOfWork;
 
-class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverabilityIngestionUnitOfWork
+class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent, FileSystemBodyStorageHelper storageHelper) : IRecoverabilityIngestionUnitOfWork
 {
     const int MaxProcessingAttempts = 10;
+    // large object heap starts above 85000 bytes and not above 85 KB!
+    const int LargeObjectHeapThreshold = 85_000;
+    static readonly Encoding utf8 = new UTF8Encoding(true, true);
 
     public async Task RecordFailedProcessingAttempt(MessageContext context, FailedMessage.ProcessingAttempt processingAttempt, List<FailedMessage.FailureGroup> groups)
     {
@@ -37,20 +40,10 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
 
         var uniqueMessageId = context.Headers.UniqueId();
         var contentType = GetContentType(context.Headers, MediaTypeNames.Text.Plain);
-        var bodySize = context.Body.Length;
-
-        // Determine if body should be stored inline based on size threshold
-        byte[]? inlineBody = null;
-        bool storeBodySeparately = bodySize > parent.Settings.MaxBodySizeToStore;
-
-        if (!storeBodySeparately && !context.Body.IsEmpty)
-        {
-            inlineBody = context.Body.ToArray(); // Store inline
-        }
 
         // Add metadata to the processing attempt
         processingAttempt.MessageMetadata.Add("ContentType", contentType);
-        processingAttempt.MessageMetadata.Add("ContentLength", bodySize);
+        processingAttempt.MessageMetadata.Add("ContentLength", context.Body.Length);
         processingAttempt.MessageMetadata.Add("BodyUrl", $"/messages/{uniqueMessageId}/body");
 
 
@@ -89,8 +82,7 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
             existingMessage.ProcessingAttemptsJson = JsonSerializer.Serialize(attempts, JsonSerializationOptions.Default);
             existingMessage.FailureGroupsJson = JsonSerializer.Serialize(groups, JsonSerializationOptions.Default);
             existingMessage.HeadersJson = JsonSerializer.Serialize(processingAttempt.Headers, JsonSerializationOptions.Default);
-            existingMessage.Body = inlineBody; // Update inline body
-            existingMessage.Query = BuildSearchableText(processingAttempt.Headers, inlineBody); // Populate Query for all databases
+            existingMessage.Query = BuildSearchableText(processingAttempt.Headers, context.Body); // Populate Query for all databases
             existingMessage.PrimaryFailureGroupId = groups.Count > 0 ? groups[0].Id : null;
             existingMessage.MessageId = processingAttempt.MessageId;
             existingMessage.MessageType = messageType;
@@ -118,8 +110,7 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
                 ProcessingAttemptsJson = JsonSerializer.Serialize(attempts, JsonSerializationOptions.Default),
                 FailureGroupsJson = JsonSerializer.Serialize(groups, JsonSerializationOptions.Default),
                 HeadersJson = JsonSerializer.Serialize(processingAttempt.Headers, JsonSerializationOptions.Default),
-                Body = inlineBody, // Store inline body
-                Query = BuildSearchableText(processingAttempt.Headers, inlineBody), // Populate Query for all databases
+                Query = BuildSearchableText(processingAttempt.Headers, context.Body), // Populate Query for all databases
                 PrimaryFailureGroupId = groups.Count > 0 ? groups[0].Id : null,
                 MessageId = processingAttempt.MessageId,
                 MessageType = messageType,
@@ -136,11 +127,9 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
             parent.DbContext.FailedMessages.Add(failedMessageEntity);
         }
 
-        // Store body separately only if it exceeds threshold
-        if (storeBodySeparately)
-        {
-            await StoreMessageBody(uniqueMessageId, context.Body, contentType, bodySize);
-        }
+        // ALWAYS store to filesystem (regardless of size)
+        var shouldCompress = context.Body.Length >= parent.Settings.MinBodySizeForCompression;
+        await storageHelper.WriteBodyAsync(uniqueMessageId, context.Body, contentType);
     }
 
     public async Task RecordSuccessfulRetry(string retriedMessageUniqueId)
@@ -173,55 +162,29 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent) : IRecoverab
         }
     }
 
-    async Task StoreMessageBody(string uniqueMessageId, ReadOnlyMemory<byte> body, string contentType, int bodySize)
-    {
-        // Parse the uniqueMessageId to Guid for querying
-        var bodyId = Guid.Parse(uniqueMessageId);
-
-        // Check if body already exists (bodies are immutable)
-        var exists = await parent.DbContext.MessageBodies
-            .AsNoTracking()
-            .AnyAsync(mb => mb.Id == bodyId);
-
-        if (!exists)
-        {
-            // Only allocate the array if we need to store it
-            var bodyEntity = new MessageBodyEntity
-            {
-                Id = bodyId,
-                Body = body.ToArray(), // Allocation happens here, but only when needed
-                ContentType = contentType,
-                BodySize = bodySize,
-                Etag = Guid.NewGuid().ToString() // Generate a simple etag
-            };
-
-            // Add new message body
-            parent.DbContext.MessageBodies.Add(bodyEntity);
-        }
-        // If body already exists, we don't update it (it's immutable) - no allocation!
-    }
 
     static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
         => headers.TryGetValue(Headers.ContentType, out var contentType) ? contentType : defaultContentType;
 
-    static string BuildSearchableText(Dictionary<string, string> headers, byte[]? body)
+    static string BuildSearchableText(Dictionary<string, string> headers, ReadOnlyMemory<byte> body)
     {
         var parts = new List<string>
         {
             string.Join(" ", headers.Values) // All header values
         };
 
-        // Add body content if present and can be decoded as text
-        if (body != null && body.Length > 0)
+        var avoidsLargeObjectHeap = body.Length < LargeObjectHeapThreshold;
+        var isBinary = headers.IsBinary();
+        if (avoidsLargeObjectHeap && !isBinary)
         {
             try
             {
-                var bodyText = Encoding.UTF8.GetString(body);
-                parts.Add(bodyText);
+                var bodyString = utf8.GetString(body.Span);
+                parts.Add(bodyString);
             }
             catch
             {
-                // Skip non-text bodies
+                // If it won't decode to text, don't index it
             }
         }
 

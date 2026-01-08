@@ -12,7 +12,7 @@ using ServiceControl.Persistence.Sql.MySQL;
 namespace ServiceControl.Persistence.Sql.MySQL.Migrations
 {
     [DbContext(typeof(MySqlDbContext))]
-    [Migration("20260106053129_InitialCreate")]
+    [Migration("20260107065436_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -251,9 +251,6 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<byte[]>("Body")
-                        .HasColumnType("longblob");
-
                     b.Property<string>("ConversationId")
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
@@ -452,33 +449,6 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                         .IsUnique();
 
                     b.ToTable("LicensingMetadata", (string)null);
-                });
-
-            modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.MessageBodyEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<byte[]>("Body")
-                        .IsRequired()
-                        .HasColumnType("longblob");
-
-                    b.Property<int>("BodySize")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<string>("Etag")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("MessageBodies", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.MessageRedirectsEntity", b =>

@@ -12,7 +12,7 @@ using ServiceControl.Persistence.Sql.SqlServer;
 namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerDbContext))]
-    [Migration("20260106053230_InitialCreate")]
+    [Migration("20260107065422_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -251,9 +251,6 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<byte[]>("Body")
-                        .HasColumnType("varbinary(max)");
-
                     b.Property<string>("ConversationId")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -452,33 +449,6 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
                         .IsUnique();
 
                     b.ToTable("LicensingMetadata", (string)null);
-                });
-
-            modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.MessageBodyEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<byte[]>("Body")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<int>("BodySize")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Etag")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("MessageBodies", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.MessageRedirectsEntity", b =>

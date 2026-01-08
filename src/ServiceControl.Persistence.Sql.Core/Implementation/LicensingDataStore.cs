@@ -107,10 +107,15 @@ public class LicensingDataStore : DataStoreBase, ILicensingDataStore
     #region Endpoints
     public Task<IEnumerable<(EndpointIdentifier Id, Endpoint? Endpoint)>> GetEndpoints(IList<EndpointIdentifier> endpointIds, CancellationToken cancellationToken)
     {
+        var mapped = endpointIds.Select(id => new
+        {
+            id.Name,
+            Source = Enum.GetName(id.ThroughputSource)
+        });
         return ExecuteWithDbContext(async dbContext =>
         {
             var fromDatabase = await dbContext.Endpoints.AsNoTracking()
-                .Where(e => endpointIds.Any(id => id.Name == e.EndpointName && Enum.GetName(id.ThroughputSource) == e.ThroughputSource))
+                .Where(e => mapped.Any(id => id.Name == e.EndpointName && id.Source == e.ThroughputSource))
                 .ToListAsync(cancellationToken);
 
             var lookup = fromDatabase.Select(MapEndpointEntityToContract).ToLookup(e => e.Id);
@@ -121,9 +126,10 @@ public class LicensingDataStore : DataStoreBase, ILicensingDataStore
 
     public Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken = default)
     {
+        var throughputSource = Enum.GetName(id.ThroughputSource);
         return ExecuteWithDbContext(async dbContext =>
         {
-            var fromDatabase = await dbContext.Endpoints.AsNoTracking().SingleOrDefaultAsync(e => e.EndpointName == id.Name && e.ThroughputSource == Enum.GetName(id.ThroughputSource), cancellationToken);
+            var fromDatabase = await dbContext.Endpoints.AsNoTracking().SingleOrDefaultAsync(e => e.EndpointName == id.Name && e.ThroughputSource == throughputSource, cancellationToken);
             if (fromDatabase is null)
             {
                 return null;
@@ -140,7 +146,8 @@ public class LicensingDataStore : DataStoreBase, ILicensingDataStore
             var endpoints = dbContext.Endpoints.AsNoTracking();
             if (!includePlatformEndpoints)
             {
-                endpoints = endpoints.Where(x => x.EndpointIndicators == null || !x.EndpointIndicators.Contains(Enum.GetName(EndpointIndicator.PlatformEndpoint)!));
+                var source = Enum.GetName(EndpointIndicator.PlatformEndpoint);
+                endpoints = endpoints.Where(x => x.EndpointIndicators == null || !x.EndpointIndicators.Contains(source!));
             }
 
             var fromDatabase = await endpoints.ToListAsync(cancellationToken);
@@ -151,9 +158,10 @@ public class LicensingDataStore : DataStoreBase, ILicensingDataStore
 
     public Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken)
     {
+        var source = Enum.GetName(endpoint.Id.ThroughputSource);
         return ExecuteWithDbContext(async dbContext =>
         {
-            var existing = await dbContext.Endpoints.SingleOrDefaultAsync(e => e.EndpointName == endpoint.Id.Name && e.ThroughputSource == Enum.GetName(endpoint.Id.ThroughputSource), cancellationToken);
+            var existing = await dbContext.Endpoints.SingleOrDefaultAsync(e => e.EndpointName == endpoint.Id.Name && e.ThroughputSource == source, cancellationToken);
             if (existing is null)
             {
                 var entity = MapEndpointContractToEntity(endpoint);
