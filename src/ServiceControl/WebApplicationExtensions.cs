@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 public static class WebApplicationExtensions
 {
-    public static void UseServiceControl(this WebApplication app)
+    public static IApplicationBuilder UseServiceControl(this WebApplication app)
     {
         app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.All });
         app.UseResponseCompression();
@@ -16,5 +16,7 @@ public static class WebApplicationExtensions
         app.MapHub<MessageStreamerHub>("/api/messagestream");
         app.UseCors();
         app.MapControllers();
+
+        return app;
     }
 }

@@ -1,0 +1,90 @@
+.panel-retry {
+  background-color: #1a1a1a;
+  border: none;
+  color: #fff;
+}
+
+.panel-retry p.lead {
+  color: #fff;
+}
+
+.panel-retry span.metadata,
+.panel-retry sp-moment {
+  color: #b0b5b5 !important;
+}
+
+div.retry-completed.bulk-retry-progress-status {
+  color: #fff;
+  font-weight: bold;
+}
+
+.progress.bulk-retry-progress {
+  margin-bottom: 0;
+  background-color: #333333;
+}
+
+.retry-completed,
+ul.retry-request-progress button {
+  display: inline-block;
+}
+
+ul.retry-request-progress button {
+  background-color: var(--sp-blue);
+}
+
+ul.retry-request-progress li > div {
+  margin-bottom: 6px;
+}
+
+.btn.btn-sm {
+  color: var(--sp-blue);
+  font-size: 14px;
+  font-weight: bold;
+  padding: 0 36px 10px 0;
+}
+
+.panel {
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.panel-body {
+  padding: 15px;
+}
+
+.panel-body ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.panel-body ul {
+  list-style: none;
+}
+
+.op-metadata {
+  border-top: 1px solid #414242;
+  padding-top: 15px;
+}
+
+.note {
+  margin-bottom: 10px;
+  background-color: #fcf8e3;
+  border: 1px solid #faebcc;
+  padding: 10px 15px;
+}
+
+.metadata.danger,
+.metadata.danger > .danger {
+  font-weight: normal !important;
+}
+
+.icon {
+  color: var(--reduced-emphasis);
+}
+
+button .icon {
+  margin-right: 2px;
+}
