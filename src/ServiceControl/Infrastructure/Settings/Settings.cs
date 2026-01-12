@@ -29,6 +29,11 @@ namespace ServiceBus.Management.Infrastructure.Settings
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
+            OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration);
+            ForwardedHeadersSettings = new ForwardedHeadersSettings(SettingsRootNamespace);
+            HttpsSettings = new HttpsSettings(SettingsRootNamespace);
+            CorsSettings = new CorsSettings(SettingsRootNamespace);
+
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
             InstanceName = SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", InstanceName);
 
@@ -74,6 +79,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public LoggingSettings LoggingSettings { get; }
 
+        public OpenIdConnectSettings OpenIdConnectSettings { get; }
+
+        public ForwardedHeadersSettings ForwardedHeadersSettings { get; }
+
+        public HttpsSettings HttpsSettings { get; }
+
+        public CorsSettings CorsSettings { get; }
+
         public string NotificationsFilter { get; set; }
 
         public bool AllowMessageEditing { get; set; }
@@ -103,7 +116,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
                     suffix = $"{VirtualDirectory}/";
                 }
 
-                return $"http://{Hostname}:{Port}/{suffix}";
+                var scheme = HttpsSettings.Enabled ? "https" : "http";
+                return $"{scheme}://{Hostname}:{Port}/{suffix}";
             }
         }
 

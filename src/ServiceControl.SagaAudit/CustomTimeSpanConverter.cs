@@ -57,9 +57,9 @@ namespace ServiceControl.SagaAudit
             }
 
             // Ut8Parser.TryParse also handles some short format "g" cases which has a minimum of 1 chars independent of the format identifier
-            if ((!Utf8Parser.TryParse(source, out TimeSpan parsedTimeSpan, out int bytesConsumed, 'c') || source.Length != bytesConsumed) &&
-                // Otherwise we fall back to read with the short format "g" directly since that is what the SagaAudit plugin used to stay backward compatible
-                (!Utf8Parser.TryParse(source, out parsedTimeSpan, out bytesConsumed, 'g') || source.Length != bytesConsumed))
+            // Otherwise we fall back to read with the short format "g" directly since that is what the SagaAudit plugin used to stay backward compatible
+            if ((!Utf8Parser.TryParse(source, out TimeSpan parsedTimeSpan, out int bytesConsumed, 'c') || source.Length != bytesConsumed)
+                && (!Utf8Parser.TryParse(source, out parsedTimeSpan, out bytesConsumed, 'g') || source.Length != bytesConsumed))
             {
                 ThrowFormatException();
             }
