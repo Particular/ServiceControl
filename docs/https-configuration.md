@@ -1,6 +1,6 @@
-# HTTPS Configuration
+# HTTPS
 
-See [ServiceControl HTTPS Configuration](https://docs.particular.net/servicecontrol/security/configuration/https) on the public docs site.
+See [ServiceControl HTTPS Configuration](https://docs.particular.net/servicecontrol/security/configuration/tls) on the public docs site.
 
 ## See Also
 
