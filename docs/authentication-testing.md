@@ -1,16 +1,15 @@
-# Local Testing Authentication
+# Local Authentication Testing
 
 This guide explains how to test authentication configuration for ServiceControl instances. This approach uses curl to test authentication enforcement and configuration endpoints.
 
 ## Prerequisites
 
 - ServiceControl built locally (see main README for build instructions)
-- **HTTPS configured** - Authentication should only be used over HTTPS. Configure HTTPS using one of the methods described in [HTTPS Configuration](https-configuration.md) before testing authentication scenarios.
 - **Identity Provider (IdP) configured** - For real authentication testing (Scenarios 7+), you need an OIDC provider configured with:
   - An API application registration (for ServiceControl)
   - A client application registration (for ServicePulse)
   - API scopes configured and permissions granted
-  - See [Authentication Configuration](authentication.md#configuring-identity-providers) for setup instructions
+  - See [ServiceControl Authentication](https://docs.particular.net/servicecontrol/security/configuration/authentication) for example setups
 - curl (included with Windows 10/11, Git Bash, or WSL)
 - (Optional) For formatted JSON output: `npm install -g json` then pipe curl output through `| json`
 
@@ -19,13 +18,8 @@ This guide explains how to test authentication configuration for ServiceControl 
 To enable detailed logging for troubleshooting, set the `LogLevel` environment variable before starting each instance:
 
 ```cmd
-rem ServiceControl Primary
 set SERVICECONTROL_LOGLEVEL=Debug
-
-rem ServiceControl.Audit
 set SERVICECONTROL_AUDIT_LOGLEVEL=Debug
-
-rem ServiceControl.Monitoring
 set MONITORING_LOGLEVEL=Debug
 ```
 
@@ -63,15 +57,15 @@ Both methods work identically. This guide uses environment variables for conveni
 
 The following scenarios use ServiceControl (Primary) as an example. To test other instances, use the appropriate environment variable prefix and port.
 
-> **Important:** Set environment variables in the same terminal where you run `dotnet run`. Environment variables are scoped to the terminal session.
->
+> [!IMPORTANT]
+> Set environment variables in the same terminal where you run `dotnet run`. Environment variables are scoped to the terminal session.
 > **Tip:** Check the application startup logs to verify which settings were applied. The authentication configuration is logged at startup.
 
 ### Scenario 1: Authentication Disabled (Default)
 
 Test the default behavior where authentication is disabled and all requests are allowed.
 
-**Clear environment variables and start ServiceControl:**
+#### Clear environment variables and start ServiceControl
 
 ```cmd
 set SERVICECONTROL_AUTHENTICATION_ENABLED=
@@ -88,7 +82,7 @@ cd src\ServiceControl
 dotnet run
 ```
 
-**Test with curl (no authorization header):**
+#### Test with curl (no authorization header)
 
 ```cmd
 curl http://localhost:33333/api | json
@@ -105,7 +99,7 @@ curl http://localhost:33333/api | json
 
 Requests succeed without authentication because `Authentication.Enabled` defaults to `false`.
 
-**Check authentication configuration endpoint:**
+#### Check authentication configuration endpoint
 
 ```cmd
 curl http://localhost:33333/api/authentication/configuration | json
@@ -125,9 +119,10 @@ The configuration indicates authentication is disabled. Other fields are omitted
 
 Test that requests without a token are rejected when authentication is enabled.
 
-> **Note:** This scenario requires a valid OIDC authority URL. For testing authentication enforcement without a real provider, you can use any HTTP URL - the request will fail before token validation because no token is provided.
+> [!NOTE]
+> This scenario requires a valid OIDC authority URL. For testing authentication enforcement without a real provider, you can use any HTTP URL - the request will fail before token validation because no token is provided.
 
-**Clear environment variables and start ServiceControl:**
+#### Clear/Set environment variables and start ServiceControl
 
 ```cmd
 set SERVICECONTROL_AUTHENTICATION_ENABLED=true
@@ -135,7 +130,7 @@ set SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/co
 set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol-test
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID=test-client-id
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/common/v2.0
-set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol-test/.default"]
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol-test/access_as_user"]
 set SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEISSUER=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEAUDIENCE=
@@ -144,7 +139,7 @@ cd src\ServiceControl
 dotnet run
 ```
 
-**Test with curl (no authorization header):**
+#### Test with curl (no authorization header)
 
 ```cmd
 curl -v http://localhost:33333/api/endpoints 2>&1 | findstr /C:"HTTP/"
@@ -158,9 +153,10 @@ curl -v http://localhost:33333/api/endpoints 2>&1 | findstr /C:"HTTP/"
 
 Requests without a token are rejected with `401 Unauthorized`.
 
-> **Note:** The `/api` root endpoint and `/api/authentication/configuration` are marked as anonymous and will return 200 OK even with authentication enabled. Test protected endpoints like `/api/endpoints` to verify authentication enforcement.
+> [!NOTE]
+> The `/api` root endpoint and `/api/authentication/configuration` are marked as anonymous and will return 200 OK even with authentication enabled. Test protected endpoints like `/api/endpoints` to verify authentication enforcement.
 
-**Check authentication configuration endpoint (no auth required):**
+#### Check authentication configuration endpoint (no auth required)
 
 ```cmd
 curl http://localhost:33333/api/authentication/configuration | json
@@ -173,7 +169,7 @@ curl http://localhost:33333/api/authentication/configuration | json
   "enabled": true,
   "clientId": "test-client-id",
   "audience": "api://servicecontrol-test",
-  "apiScopes": "[\"api://servicecontrol-test/.default\"]"
+  "apiScopes": "[\"api://servicecontrol-test/access_as_user\"]"
 }
 ```
 
@@ -183,7 +179,7 @@ The authentication configuration endpoint is accessible without authentication a
 
 Test that requests with an invalid token are rejected.
 
-**Start ServiceControl with authentication enabled (same as Scenario 2):**
+#### Clear/Set environment variables and start ServiceControl
 
 ```cmd
 set SERVICECONTROL_AUTHENTICATION_ENABLED=true
@@ -191,7 +187,7 @@ set SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/co
 set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol-test
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID=test-client-id
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/common/v2.0
-set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol-test/.default"]
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol-test/access_as_user"]
 set SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEISSUER=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEAUDIENCE=
@@ -200,7 +196,7 @@ cd src\ServiceControl
 dotnet run
 ```
 
-**Test with curl (invalid token):**
+#### Test with curl (invalid token)
 
 ```cmd
 curl -v -H "Authorization: Bearer invalid-token-here" http://localhost:33333/api/endpoints 2>&1 | findstr /C:"HTTP/"
@@ -218,7 +214,7 @@ Invalid tokens are rejected with `401 Unauthorized`.
 
 Test that anonymous endpoints remain accessible when authentication is enabled.
 
-**With ServiceControl still running from Scenario 2 or 3, test anonymous endpoints:**
+#### With ServiceControl still running from Scenario 2 or 3, test anonymous endpoints
 
 ```cmd
 curl http://localhost:33333/api | json
@@ -248,18 +244,13 @@ curl http://localhost:33333/api/authentication/configuration | json
 }
 ```
 
-The following endpoints are marked as anonymous and accessible without authentication:
-
-| Endpoint                            | Purpose                                           |
-|-------------------------------------|---------------------------------------------------|
-| `/api`                              | API root/discovery - returns available endpoints  |
-| `/api/authentication/configuration` | Returns auth config for clients like ServicePulse |
+See [Authentication](authentication.md) for all anonymous endpoints.
 
 ### Scenario 5: Validation Settings Warnings
 
 Test that disabling validation settings produces warnings in the logs.
 
-**Start ServiceControl with relaxed validation:**
+#### Start ServiceControl with relaxed validation
 
 ```cmd
 set SERVICECONTROL_AUTHENTICATION_ENABLED=true
@@ -267,7 +258,7 @@ set SERVICECONTROL_AUTHENTICATION_AUTHORITY=https://login.microsoftonline.com/co
 set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol-test
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID=test-client-id
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/common/v2.0
-set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol-test/.default"]
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol-test/access_as_user"]
 set SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEISSUER=false
 set SERVICECONTROL_AUTHENTICATION_VALIDATEAUDIENCE=false
@@ -289,7 +280,7 @@ The application warns about insecure validation settings.
 
 Test that missing required settings prevent startup.
 
-**Start ServiceControl with missing authority:**
+#### Start ServiceControl with missing authority
 
 ```cmd
 set SERVICECONTROL_AUTHENTICATION_ENABLED=true
@@ -297,7 +288,7 @@ set SERVICECONTROL_AUTHENTICATION_AUTHORITY=
 set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol-test
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID=test-client-id
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=
-set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol-test/.default"]
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol-test/access_as_user"]
 set SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEISSUER=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEAUDIENCE=
@@ -318,22 +309,11 @@ Authentication.Authority is required when authentication is enabled. Please prov
 
 Test end-to-end authentication with a valid token from a real OIDC provider.
 
+> [!IMPORTANT]
 > **Prerequisites:** This scenario requires a configured OIDC provider (e.g., Microsoft Entra ID, Auth0, Okta).
+> See [ServiceControl Authentication](https://docs.particular.net/servicecontrol/security/configuration/authentication) for setup examples.
 
-**Microsoft Entra ID Setup (one-time):**
-
-1. **Create an App Registration** for ServiceControl API:
-   - Go to Azure Portal > Microsoft Entra ID > App registrations
-   - Create a new registration (e.g., "ServiceControl API")
-   - Note the Application (client) ID and Directory (tenant) ID
-   - Under "Expose an API", add a scope (e.g., `access_as_user`)
-
-2. **Create an App Registration** for testing (or use ServicePulse's):
-   - Create another registration for the client application
-   - Under "API permissions", add permission to your ServiceControl API scope
-   - Under "Authentication", enable "Allow public client flows" for testing
-
-**Start ServiceControl with your Entra ID configuration:**
+#### Start ServiceControl with your Entra ID configuration
 
 ```cmd
 set SERVICECONTROL_AUTHENTICATION_ENABLED=true
@@ -350,14 +330,14 @@ cd src\ServiceControl
 dotnet run
 ```
 
-**Get a test token using Azure CLI:**
+#### Get a test token using Azure CLI
 
 ```cmd
 az login
 az account get-access-token --resource api://servicecontrol --query accessToken -o tsv
 ```
 
-**Test with the token:**
+#### Test with the token
 
 ```cmd
 curl -H "Authorization: Bearer {token}" http://localhost:33333/api/endpoints | json
@@ -371,22 +351,19 @@ curl -H "Authorization: Bearer {token}" http://localhost:33333/api/endpoints | j
 
 Requests with a valid token are processed successfully. The response will be an empty array if no endpoints are registered, or a list of endpoints if data exists.
 
-## Multi-Instance Scenarios
-
-The following scenarios test authentication behavior when the primary instance communicates with remote Audit and Monitoring instances.
-
 ### Scenario 8: Scatter-Gather with Authentication (Token Forwarding)
 
 Test that the primary instance forwards authentication tokens to remote instances during scatter-gather operations.
 
-> **Background:** When a client queries endpoints like `/api/messages`, the primary instance may query remote Audit instances to aggregate results. The client's authorization token is forwarded to these remote instances.
+> [!NOTE]
+> When a client queries endpoints like `/api/messages`, the primary instance may query remote Audit instances to aggregate results. The client's authorization token is forwarded to these remote instances.
 
 **Prerequisites:**
 
 - A configured OIDC provider with valid tokens
 - All instances configured with the **same** Authority and Audience settings
 
-**Terminal 1 - Start ServiceControl.Audit with authentication:**
+#### Terminal 1 - Start ServiceControl.Audit with authentication
 
 ```cmd
 set SERVICECONTROL_AUDIT_AUTHENTICATION_ENABLED=true
@@ -397,7 +374,7 @@ cd src\ServiceControl.Audit
 dotnet run
 ```
 
-**Terminal 2 - Start ServiceControl (Primary) with authentication and remote instance configured:**
+#### Terminal 2 - Start ServiceControl (Primary) with authentication and remote instance configured
 
 ```cmd
 set SERVICECONTROL_AUTHENTICATION_ENABLED=true
@@ -412,15 +389,16 @@ cd src\ServiceControl
 dotnet run
 ```
 
-**Get a test token and query the primary instance:**
+#### Get a test token and query the primary instance
 
 ```cmd
 az login
 set TOKEN=$(az account get-access-token --resource api://servicecontrol --query accessToken -o tsv)
+
 curl -H "Authorization: Bearer %TOKEN%" https://localhost:33333/api/messages | json
 ```
 
-**How to verify token forwarding is working:**
+#### How to verify token forwarding is working
 
 1. **Check the Audit instance logs (Terminal 1)** - When the request succeeds, you should see log entries showing the authenticated request was processed. Look for request logging that shows the `/api/messages` endpoint was called.
 
@@ -452,7 +430,7 @@ curl -H "Authorization: Bearer %TOKEN%" https://localhost:33333/api/messages | j
    - Request through Primary with token: succeeds and includes Audit data
    - Request through Primary without token: fails with 401
 
-**Test with no token (should fail):**
+#### Test with no token (should fail)
 
 ```cmd
 curl -v https://localhost:33333/api/messages 2>&1 | findstr /C:"HTTP/"
@@ -468,7 +446,7 @@ curl -v https://localhost:33333/api/messages 2>&1 | findstr /C:"HTTP/"
 
 Test that scatter-gather fails gracefully when remote instances have different authentication settings.
 
-**Terminal 1 - Start ServiceControl.Audit with DIFFERENT audience:**
+#### Terminal 1 - Start ServiceControl.Audit with DIFFERENT audience
 
 ```cmd
 set SERVICECONTROL_AUDIT_AUTHENTICATION_ENABLED=true
@@ -479,7 +457,7 @@ cd src\ServiceControl.Audit
 dotnet run
 ```
 
-**Terminal 2 - Start ServiceControl (Primary):**
+#### Terminal 2 - Start ServiceControl (Primary)
 
 ```cmd
 set SERVICECONTROL_AUTHENTICATION_ENABLED=true
@@ -494,13 +472,13 @@ cd src\ServiceControl
 dotnet run
 ```
 
-**Query with a valid token for the primary instance:**
+#### Query with a valid token for the primary instance
 
 ```cmd
 curl -H "Authorization: Bearer %TOKEN%" https://localhost:33333/api/messages | json
 ```
 
-**How to verify the mismatch is detected:**
+#### How to verify the mismatch is detected
 
 1. **Check the Audit instance logs (Terminal 1)** - You should see a 401 Unauthorized response logged, with details about the token validation failure (audience mismatch):
 
@@ -544,11 +522,12 @@ curl -H "Authorization: Bearer %TOKEN%" https://localhost:33333/api/messages | j
 
 Test that the primary instance can check remote instance health when authentication is enabled.
 
-> **Note:** The health check queries the `/api` endpoint on remote instances. This endpoint is marked as anonymous and should be accessible without authentication.
+> [!NOTE]
+> The health check queries the `/api` endpoint on remote instances. This endpoint is marked as anonymous and should be accessible without authentication.
 
-**Start both instances with authentication enabled (same configuration as Scenario 8).**
+Start both instances with authentication enabled (same configuration as Scenario 8).
 
-**Check the remote instances configuration endpoint:**
+#### Check the remote instances configuration endpoint
 
 ```cmd
 curl -H "Authorization: Bearer %TOKEN%" https://localhost:33333/api/configuration/remotes | json
@@ -572,9 +551,10 @@ The health check should succeed because `/api` is an anonymous endpoint.
 
 Test that platform connection details can be retrieved when authentication is enabled on remote instances.
 
-> **Note:** The primary instance queries `/api/connection` on remote instances to aggregate platform connection details. This endpoint may require authentication.
+> [!NOTE]
+> The primary instance queries `/api/connection` on remote instances to aggregate platform connection details. This endpoint may require authentication.
 
-**With both instances running (same as Scenario 8):**
+#### With both instances running (same as Scenario 8)
 
 ```cmd
 curl -H "Authorization: Bearer %TOKEN%" https://localhost:33333/api/connection | json
@@ -588,7 +568,7 @@ The platform connection response includes connection details from both the prima
 
 Test behavior when only the primary instance has authentication enabled, but remote instances do not.
 
-**Terminal 1 - Start ServiceControl.Audit WITHOUT authentication:**
+#### Terminal 1 - Start ServiceControl.Audit WITHOUT authentication
 
 ```cmd
 set SERVICECONTROL_AUDIT_AUTHENTICATION_ENABLED=
@@ -598,7 +578,7 @@ cd src\ServiceControl.Audit
 dotnet run
 ```
 
-**Terminal 2 - Start ServiceControl (Primary) WITH authentication:**
+#### Terminal 2 - Start ServiceControl (Primary) WITH authentication
 
 ```cmd
 set SERVICECONTROL_AUTHENTICATION_ENABLED=true
@@ -613,13 +593,13 @@ cd src\ServiceControl
 dotnet run
 ```
 
-**Query with a valid token:**
+#### Query with a valid token
 
 ```cmd
 curl -H "Authorization: Bearer %TOKEN%" https://localhost:33333/api/messages | json
 ```
 
-**How to verify this mixed configuration works:**
+#### How to verify this mixed configuration works
 
 1. **Verify the Audit instance has no authentication** - Direct requests without a token should succeed:
 
@@ -667,13 +647,14 @@ curl -H "Authorization: Bearer %TOKEN%" https://localhost:33333/api/messages | j
    ]
    ```
 
-> **Security Note:** This mixed configuration is not recommended for production. If the primary requires authentication, remote instances should also require authentication to maintain consistent security.
+> [!WARNING]
+> This mixed configuration is not recommended for production. If the primary requires authentication, remote instances should also require authentication to maintain consistent security.
 
 ### Scenario 13: Mixed Authentication Configuration (Remotes Only)
 
 Test behavior when remote instances have authentication enabled, but the primary does not.
 
-**Terminal 1 - Start ServiceControl.Audit WITH authentication:**
+#### Terminal 1 - Start ServiceControl.Audit WITH authentication
 
 ```cmd
 set SERVICECONTROL_AUDIT_AUTHENTICATION_ENABLED=true
@@ -684,7 +665,7 @@ cd src\ServiceControl.Audit
 dotnet run
 ```
 
-**Terminal 2 - Start ServiceControl (Primary) WITHOUT authentication:**
+#### Terminal 2 - Start ServiceControl (Primary) WITHOUT authentication
 
 ```cmd
 set SERVICECONTROL_AUTHENTICATION_ENABLED=
@@ -695,13 +676,13 @@ cd src\ServiceControl
 dotnet run
 ```
 
-**Query without a token:**
+#### Query without a token
 
 ```cmd
 curl https://localhost:33333/api/messages | json
 ```
 
-**How to verify the degraded functionality:**
+#### How to verify the degraded functionality
 
 1. **Verify the Primary instance has no authentication** - Direct requests without a token should succeed:
 
@@ -751,15 +732,16 @@ curl https://localhost:33333/api/messages | json
 
 6. **Confirm scatter-gather returns partial results** - The response only contains local Primary data, not aggregated Audit data. Any endpoints or messages stored in the Audit instance will be missing from the response.
 
-> **Warning:** This configuration results in degraded functionality. Remote instances will be inaccessible for scatter-gather operations.
+> [!WARNING]
+> This configuration results in degraded functionality. Remote instances will be inaccessible for scatter-gather operations.
 
 ### Scenario 14: Expired Token Forwarding
 
 Test how scatter-gather handles expired tokens being forwarded to remote instances.
 
-**With both instances running with authentication (same as Scenario 8):**
+With both instances running with authentication (same as Scenario 8).
 
-**Use an expired token:**
+#### Use an expired token
 
 ```cmd
 curl -v -H "Authorization: Bearer {expired-token}" https://localhost:33333/api/messages 2>&1 | findstr /C:"HTTP/"
@@ -772,89 +754,6 @@ curl -v -H "Authorization: Bearer {expired-token}" https://localhost:33333/api/m
 ```
 
 The primary instance rejects the expired token before any remote requests are made.
-
-## Known Limitations
-
-### Internal Service-to-Service Communication
-
-The following internal API calls from the primary instance to remote instances do **not** forward authentication headers:
-
-| Internal Call       | Endpoint                                                      | Purpose                                |
-|---------------------|---------------------------------------------------------------|----------------------------------------|
-| Health Check        | `GET /api`                                                    | Verify remote instance availability    |
-| Configuration       | `GET /api/configuration`                                      | Retrieve remote instance configuration |
-| Platform Connection | `GET /api/connection`                                         | Aggregate platform connection details  |
-| License Throughput  | `GET /api/endpoints`, `GET /api/endpoints/{name}/audit-count` | Collect audit throughput for licensing |
-
-**Implications:**
-
-- These endpoints must be accessible without authentication for multi-instance deployments to work
-- The `/api` endpoint is already marked as anonymous on all instances
-- The `/api/configuration` endpoint on Audit and Monitoring instances should allow anonymous access for inter-instance communication
-
-### Same Authentication Configuration Required
-
-When using scatter-gather with authentication enabled:
-
-- All instances (Primary, Audit, Monitoring) must use the **same** Authority and Audience
-- Client tokens must be valid for all instances
-- There is no service-to-service authentication mechanism; client tokens are forwarded directly
-
-### Token Forwarding Security Considerations
-
-- Client tokens are forwarded to remote instances in their entirety
-- Remote instances see the same token as the primary instance
-- Token scope/claims are not modified during forwarding
-
-## Testing Other Instances
-
-The scenarios above use ServiceControl (Primary). To test ServiceControl.Audit or ServiceControl.Monitoring:
-
-1. Use the appropriate environment variable prefix (see Instance Reference above)
-2. Use the corresponding project directory and port
-3. Note: Audit and Monitoring instances don't require ServicePulse settings
-
-| Instance                  | Project Directory               | Port  | Env Var Prefix          |
-|---------------------------|---------------------------------|-------|-------------------------|
-| ServiceControl (Primary)  | `src\ServiceControl`            | 33333 | `SERVICECONTROL_`       |
-| ServiceControl.Audit      | `src\ServiceControl.Audit`      | 44444 | `SERVICECONTROL_AUDIT_` |
-| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633 | `MONITORING_`           |
-
-## Cleanup
-
-After testing, clear the environment variables:
-
-**Command Prompt (cmd):**
-
-```cmd
-set SERVICECONTROL_AUTHENTICATION_ENABLED=
-set SERVICECONTROL_AUTHENTICATION_AUTHORITY=
-set SERVICECONTROL_AUTHENTICATION_AUDIENCE=
-set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID=
-set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=
-set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=
-set SERVICECONTROL_AUTHENTICATION_VALIDATEISSUER=
-set SERVICECONTROL_AUTHENTICATION_VALIDATEAUDIENCE=
-set SERVICECONTROL_AUTHENTICATION_VALIDATELIFETIME=
-set SERVICECONTROL_AUTHENTICATION_VALIDATEISSUERSIGNINGKEY=
-set SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA=
-```
-
-**PowerShell:**
-
-```powershell
-$env:SERVICECONTROL_AUTHENTICATION_ENABLED = $null
-$env:SERVICECONTROL_AUTHENTICATION_AUTHORITY = $null
-$env:SERVICECONTROL_AUTHENTICATION_AUDIENCE = $null
-$env:SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID = $null
-$env:SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY = $null
-$env:SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES = $null
-$env:SERVICECONTROL_AUTHENTICATION_VALIDATEISSUER = $null
-$env:SERVICECONTROL_AUTHENTICATION_VALIDATEAUDIENCE = $null
-$env:SERVICECONTROL_AUTHENTICATION_VALIDATELIFETIME = $null
-$env:SERVICECONTROL_AUTHENTICATION_VALIDATEISSUERSIGNINGKEY = $null
-$env:SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA = $null
-```
 
 ## See Also
 

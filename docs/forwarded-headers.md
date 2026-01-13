@@ -1,4 +1,4 @@
-# Forwarded Headers Configuration
+# Forwarded Headers
 
 See [Forward Headers](https://docs.particular.net/servicecontrol/security/configuration/forward-headers) on the public docs site.
 
