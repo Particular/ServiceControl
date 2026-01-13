@@ -59,7 +59,7 @@ public class PopulateAppSettingsTests
             }
         });
 
-        if(!p.WaitForExit(5000))
+        if (!p.WaitForExit(5000))
         {
             p.Kill(true);
         }
