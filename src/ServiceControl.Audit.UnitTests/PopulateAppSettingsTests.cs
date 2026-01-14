@@ -3,6 +3,7 @@ namespace ServiceControl.UnitTests;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
@@ -25,16 +26,13 @@ public class PopulateAppSettingsTests
 
         await File.WriteAllTextAsync("ServiceControl.Audit.exe.config", config);
 
-#if WINDOWS
-        const string fileName = "ServiceControl.Audit.exe";
-#else
-        const string fileName = "ServiceControl.Audit";
-#endif
-        var startInfo = new ProcessStartInfo(fileName)
+        var fileName = "ServiceControl.Audit";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            RedirectStandardOutput = true,
-            UseShellExecute = false
-        };
+            fileName = "ServiceControl.Audit.exe";
+        }
+
+        var startInfo = new ProcessStartInfo(fileName) { RedirectStandardOutput = true, UseShellExecute = false };
 
         var p = Process.Start(startInfo);
 
