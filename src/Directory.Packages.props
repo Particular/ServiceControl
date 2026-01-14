@@ -75,7 +75,7 @@
     <PackageVersion Include="System.Linq.Async" Version="6.0.1" />
     <PackageVersion Include="System.Management" Version="8.0.0" />
     <PackageVersion Include="System.Management.Automation" Version="7.4.7" />
-    <PackageVersion Include="System.Reactive.Linq" Version="6.0.1" />
+    <PackageVersion Include="System.Reactive.Linq" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="8.0.1" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="8.0.1" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
