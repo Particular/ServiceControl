@@ -10,6 +10,8 @@ using NUnit.Framework;
 [TestFixture]
 public class PopulateAppSettingsTests
 {
+    const string ConfigFileName = "ServiceControl.Audit.exe.config";
+
     [Test]
     public async Task Should_populate_appSettings_from_exe_config_file()
     {
@@ -24,7 +26,7 @@ public class PopulateAppSettingsTests
                       </configuration>
                       """;
 
-        await File.WriteAllTextAsync("ServiceControl.Audit.exe.config", config);
+        await File.WriteAllTextAsync(ConfigFileName, config);
 
         var fileName = "ServiceControl.Audit";
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -70,5 +72,5 @@ public class PopulateAppSettingsTests
     }
 
     [TearDown]
-    public void TearDown() => File.Delete("ServiceControl.exe.config");
+    public void TearDown() => File.Delete(ConfigFileName);
 }
