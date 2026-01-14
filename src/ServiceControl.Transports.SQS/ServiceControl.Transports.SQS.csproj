@@ -13,7 +13,6 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.CloudWatch" />
     <!-- Required for IAM Roles for Service Accounts even though no API is added -->
-    <PackageReference Include="AWSSDK.SecurityToken" />
     <PackageReference Include="NServiceBus.AmazonSQS" />
   </ItemGroup>
 
