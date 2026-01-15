@@ -1,13 +1,13 @@
 ﻿namespace ServiceControl.Hosting.Commands
 {
     using System.Threading.Tasks;
-    using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
     using NServiceBus;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl;
+    using ServiceControl.Infrastructure.WebApi;
 
     class RunCommand : AbstractCommand
     {
@@ -25,6 +25,8 @@
 
             var app = hostBuilder.Build();
             app.UseServiceControl();
+            app.UseServicePulse();
+
             await app.RunAsync(settings.RootUrl);
         }
     }
