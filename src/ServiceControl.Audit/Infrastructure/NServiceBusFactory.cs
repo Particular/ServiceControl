@@ -43,7 +43,7 @@ namespace ServiceControl.Audit.Infrastructure
                 routing.RouteToEndpoint(typeof(RegisterNewEndpoint), serviceControlLogicalQueue);
                 routing.RouteToEndpoint(typeof(MarkMessageFailureResolvedByRetry), serviceControlLogicalQueue);
 
-                configuration.ReportCustomChecksTo(transportCustomization.ToTransportQualifiedQueueName(settings.ServiceControlQueueAddress));
+                configuration.ReportCustomChecksTo(transportCustomization.ToTransportQualifiedQueueName(settings.ServiceControlQueueAddress), TimeSpan.FromMinutes(1));
             }
 
             configuration.GetSettings().Set(settings.LoggingSettings);
