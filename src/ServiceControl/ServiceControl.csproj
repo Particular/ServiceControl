@@ -16,12 +16,16 @@
   <Import Project="..\ProjectReferences.Transports.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\Particular.LicensingComponent\Particular.LicensingComponent.csproj" />
+    <ProjectReference
+      Include="..\Particular.LicensingComponent\Particular.LicensingComponent.csproj" />
     <ProjectReference Include="..\ServiceControl.Api\ServiceControl.Api.csproj" />
     <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
-    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
-    <ProjectReference Include="..\ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj" />
-    <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
+    <ProjectReference
+      Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
+    <ProjectReference
+      Include="..\ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj" />
+    <ProjectReference
+      Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
     <ProjectReference Include="..\ServiceControl.Hosting\ServiceControl.Hosting.csproj" />
@@ -37,6 +41,8 @@
     <PackageReference Include="NServiceBus.Extensions.Hosting" />
     <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="ServiceControl.Contracts" />
+    <PackageReference Include="ServicePulse.Core" />
+    <PackageReference Include="System.Reactive.Linq" />
     <PackageReference Include="Yarp.ReverseProxy" />
   </ItemGroup>
 
@@ -51,7 +57,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.dll.config;nsb*.txt" DirExclude=".db;.logs" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl" />
+    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.dll.config;nsb*.txt"
+      DirExclude=".db;.logs" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl" />
   </ItemGroup>
 
   <ItemGroup>
