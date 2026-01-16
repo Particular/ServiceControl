@@ -65,6 +65,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
             RetryHistoryDepth = SettingsReader.Read(SettingsRootNamespace, "RetryHistoryDepth", 10);
             AllowMessageEditing = SettingsReader.Read<bool>(SettingsRootNamespace, "AllowMessageEditing");
+            EnableEmbeddedServicePulse = SettingsReader.Read(SettingsRootNamespace, "EnableEmbeddedServicePulse", true);
             NotificationsFilter = SettingsReader.Read<string>(SettingsRootNamespace, "NotificationsFilter");
             RemoteInstances = GetRemoteInstances().ToArray();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
@@ -102,6 +103,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string NotificationsFilter { get; set; }
 
         public bool AllowMessageEditing { get; set; }
+
+        public bool EnableEmbeddedServicePulse { get; set; }
 
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }
