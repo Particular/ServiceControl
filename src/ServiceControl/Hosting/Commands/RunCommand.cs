@@ -10,7 +10,6 @@
     using ServiceControl;
     using ServiceControl.Hosting.Auth;
     using ServiceControl.Hosting.Https;
-    using ServicePulse;
 
     class RunCommand : AbstractCommand
     {
@@ -33,10 +32,7 @@
             app.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings);
             if (settings.EnableEmbeddedServicePulse)
             {
-                app.UseServicePulse(ServicePulseSettings.GetFromEnvironmentVariables() with
-                {
-                    ServiceControlUrl = settings.ApiUrl
-                });
+                app.UseServicePulse(settings.ServicePulseSettings);
             }
             app.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
 
