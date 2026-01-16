@@ -69,7 +69,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
             EnableEmbeddedServicePulse = SettingsReader.Read(SettingsRootNamespace, "EnableEmbeddedServicePulse", true);
             ServicePulseSettings = ServicePulseSettings.GetFromEnvironmentVariables() with
             {
-                ServiceControlUrl = ApiUrl
+                ServiceControlUrl = ApiUrl,
+                IsEmbedded = true
             };
             NotificationsFilter = SettingsReader.Read<string>(SettingsRootNamespace, "NotificationsFilter");
             RemoteInstances = GetRemoteInstances().ToArray();
