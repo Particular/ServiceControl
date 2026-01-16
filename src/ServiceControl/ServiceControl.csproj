@@ -37,6 +37,7 @@
     <PackageReference Include="NServiceBus.Extensions.Hosting" />
     <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="ServiceControl.Contracts" />
+    <PackageReference Include="ServicePulse.Core" />
     <PackageReference Include="System.Reactive.Linq" />
     <PackageReference Include="Yarp.ReverseProxy" />
   </ItemGroup>
