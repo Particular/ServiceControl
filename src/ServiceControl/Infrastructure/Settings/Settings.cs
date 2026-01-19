@@ -29,6 +29,15 @@ namespace ServiceBus.Management.Infrastructure.Settings
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
+            // OIDC authentication for API access via ServicePulse
+            OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration);
+            // X-Forwarded-* header processing for reverse proxy scenarios
+            ForwardedHeadersSettings = new ForwardedHeadersSettings(SettingsRootNamespace);
+            // HTTPS/TLS and HSTS configuration
+            HttpsSettings = new HttpsSettings(SettingsRootNamespace);
+            // Cross-origin resource sharing policy
+            CorsSettings = new CorsSettings(SettingsRootNamespace);
+
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
             InstanceName = SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", InstanceName);
 
@@ -74,6 +83,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public LoggingSettings LoggingSettings { get; }
 
+        public OpenIdConnectSettings OpenIdConnectSettings { get; }
+
+        public ForwardedHeadersSettings ForwardedHeadersSettings { get; }
+
+        public HttpsSettings HttpsSettings { get; }
+
+        public CorsSettings CorsSettings { get; }
+
         public string NotificationsFilter { get; set; }
 
         public bool AllowMessageEditing { get; set; }
@@ -103,7 +120,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
                     suffix = $"{VirtualDirectory}/";
                 }
 
-                return $"http://{Hostname}:{Port}/{suffix}";
+                var scheme = HttpsSettings.Enabled ? "https" : "http";
+                return $"{scheme}://{Hostname}:{Port}/{suffix}";
             }
         }
 

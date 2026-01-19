@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
     using Configuration;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using Settings;
@@ -16,6 +17,8 @@
 
         [Route("")]
         [HttpGet]
+        // This endpoint must be accessible without authentication for instance discovery.
+        [AllowAnonymous]
         public OkObjectResult Urls()
         {
             var baseUrl = Request.GetDisplayUrl();
@@ -43,6 +46,8 @@
         [Route("instance-info")]
         [Route("configuration")]
         [HttpGet]
+        // This endpoint must be accessible without authentication for scatter-gather and discovery operations.
+        [AllowAnonymous]
         public OkObjectResult Config()
         {
             object content = new

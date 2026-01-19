@@ -16,6 +16,15 @@ namespace ServiceControl.Monitoring
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
+            // OIDC authentication (ServicePulse URLs not required for monitoring)
+            OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration, requireServicePulseSettings: false);
+            // X-Forwarded-* header processing for reverse proxy scenarios
+            ForwardedHeadersSettings = new ForwardedHeadersSettings(SettingsRootNamespace);
+            // HTTPS/TLS and HSTS configuration
+            HttpsSettings = new HttpsSettings(SettingsRootNamespace);
+            // Cross-origin resource sharing policy
+            CorsSettings = new CorsSettings(SettingsRootNamespace);
+
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file
             InstanceName = SettingsReader.Read(SettingsRootNamespace, "InstanceName", InstanceName);
 
@@ -49,6 +58,14 @@ namespace ServiceControl.Monitoring
 
         public LoggingSettings LoggingSettings { get; }
 
+        public OpenIdConnectSettings OpenIdConnectSettings { get; }
+
+        public ForwardedHeadersSettings ForwardedHeadersSettings { get; }
+
+        public HttpsSettings HttpsSettings { get; }
+
+        public CorsSettings CorsSettings { get; }
+
         public string InstanceName { get; init; } = DEFAULT_INSTANCE_NAME;
 
         public string TransportType { get; set; }
@@ -63,11 +80,13 @@ namespace ServiceControl.Monitoring
 
         public TimeSpan EndpointUptimeGracePeriod { get; set; }
 
-        public string RootUrl => $"http://{HttpHostName}:{HttpPort}/";
+        public string RootUrl => $"{(HttpsSettings.Enabled ? "https" : "http")}://{HttpHostName}:{HttpPort}/";
 
         public int? MaximumConcurrencyLevel { get; set; }
 
         public string ServiceControlThroughputDataQueue { get; set; }
+
+        public bool ValidateConfiguration => SettingsReader.Read(SettingsRootNamespace, "ValidateConfig", true);
 
         // The default value is set to the maximum allowed time by the most
         // restrictive hosting platform, which is Linux containers. Linux
