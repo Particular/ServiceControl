@@ -17,6 +17,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using Microsoft.Extensions.Logging;
     using Monitoring;
     using NServiceBus;
+    using ServiceControl.Hosting.Https;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceControl.Infrastructure;
@@ -110,6 +111,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                     return criticalErrorContext.Stop(cancellationToken);
                 }, settings, configuration);
                 hostBuilder.AddServiceControlMonitoringApi();
+                hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
 
                 hostBuilder.AddServiceControlMonitoringTesting(settings);
 

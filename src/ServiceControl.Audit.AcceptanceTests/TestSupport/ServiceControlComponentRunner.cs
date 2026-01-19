@@ -20,6 +20,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
+    using ServiceControl.Hosting.Https;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceControl.Infrastructure;
@@ -131,6 +132,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 }, settings, configuration);
 
                 hostBuilder.AddServiceControlAuditApi(settings.CorsSettings);
+                hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
 
                 hostBuilder.AddServiceControlAuditTesting(settings);
 
