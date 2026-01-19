@@ -9,7 +9,9 @@
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using Hosting.Auth;
     using Hosting.Commands;
+    using Hosting.Https;
     using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
@@ -120,7 +122,9 @@
                     // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
                     EnvironmentName = Environments.Development
                 });
+                hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControl(settings, configuration);
+                hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
                 hostBuilder.AddServiceControlApi(settings.CorsSettings);
 
                 hostBuilder.AddServiceControlTesting(settings);
@@ -145,6 +149,7 @@
                     await next();
                 });
 
+                host.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
                 host.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings);
                 await host.StartAsync();
                 DomainEvents = host.Services.GetRequiredService<IDomainEvents>();

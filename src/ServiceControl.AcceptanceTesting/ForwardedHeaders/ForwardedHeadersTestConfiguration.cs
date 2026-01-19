@@ -12,13 +12,7 @@ namespace ServiceControl.AcceptanceTesting.ForwardedHeaders
     /// <param name="instanceType">The instance type (determines environment variable prefix)</param>
     public class ForwardedHeadersTestConfiguration(ServiceControlInstanceType instanceType) : IDisposable
     {
-        readonly string envVarPrefix = instanceType switch
-        {
-            ServiceControlInstanceType.Primary => "SERVICECONTROL_",
-            ServiceControlInstanceType.Audit => "SERVICECONTROL_AUDIT_",
-            ServiceControlInstanceType.Monitoring => "MONITORING_",
-            _ => throw new ArgumentOutOfRangeException(nameof(instanceType))
-        };
+        readonly string envVarPrefix = EnvironmentVariablePrefixes.GetPrefix(instanceType);
         bool disposed;
 
         /// <summary>
@@ -111,15 +105,5 @@ namespace ServiceControl.AcceptanceTesting.ForwardedHeaders
                 disposed = true;
             }
         }
-    }
-
-    /// <summary>
-    /// Identifies the ServiceControl instance type for environment variable prefix selection.
-    /// </summary>
-    public enum ServiceControlInstanceType
-    {
-        Primary,
-        Audit,
-        Monitoring
     }
 }
