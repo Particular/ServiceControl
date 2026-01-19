@@ -6,25 +6,20 @@ namespace ServiceControl.AcceptanceTesting.ForwardedHeaders
     /// Helper class to configure ForwardedHeaders environment variables for acceptance tests.
     /// Environment variables must be set before the ServiceControl instance starts.
     /// </summary>
-    public class ForwardedHeadersTestConfiguration : IDisposable
+    /// <remarks>
+    /// Creates a new forwarded headers test configuration.
+    /// </remarks>
+    /// <param name="instanceType">The instance type (determines environment variable prefix)</param>
+    public class ForwardedHeadersTestConfiguration(ServiceControlInstanceType instanceType) : IDisposable
     {
-        readonly string envVarPrefix;
-        bool disposed;
-
-        /// <summary>
-        /// Creates a new forwarded headers test configuration.
-        /// </summary>
-        /// <param name="instanceType">The instance type (determines environment variable prefix)</param>
-        public ForwardedHeadersTestConfiguration(ServiceControlInstanceType instanceType)
+        readonly string envVarPrefix = instanceType switch
         {
-            envVarPrefix = instanceType switch
-            {
-                ServiceControlInstanceType.Primary => "SERVICECONTROL_",
-                ServiceControlInstanceType.Audit => "SERVICECONTROL_AUDIT_",
-                ServiceControlInstanceType.Monitoring => "MONITORING_",
-                _ => throw new ArgumentOutOfRangeException(nameof(instanceType))
-            };
-        }
+            ServiceControlInstanceType.Primary => "SERVICECONTROL_",
+            ServiceControlInstanceType.Audit => "SERVICECONTROL_AUDIT_",
+            ServiceControlInstanceType.Monitoring => "MONITORING_",
+            _ => throw new ArgumentOutOfRangeException(nameof(instanceType))
+        };
+        bool disposed;
 
         /// <summary>
         /// Configures forwarded headers to be disabled.
@@ -104,15 +99,9 @@ namespace ServiceControl.AcceptanceTesting.ForwardedHeaders
             ClearEnvironmentVariable("FORWARDEDHEADERS_KNOWNNETWORKS");
         }
 
-        void SetEnvironmentVariable(string name, string value)
-        {
-            Environment.SetEnvironmentVariable(envVarPrefix + name, value);
-        }
+        void SetEnvironmentVariable(string name, string value) => Environment.SetEnvironmentVariable(envVarPrefix + name, value);
 
-        void ClearEnvironmentVariable(string name)
-        {
-            Environment.SetEnvironmentVariable(envVarPrefix + name, null);
-        }
+        void ClearEnvironmentVariable(string name) => Environment.SetEnvironmentVariable(envVarPrefix + name, null);
 
         public void Dispose()
         {

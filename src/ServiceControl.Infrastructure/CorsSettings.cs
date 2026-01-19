@@ -64,17 +64,29 @@ public class CorsSettings
 
     void LogConfiguration()
     {
-        logger.LogInformation("CORS configuration:");
-        logger.LogInformation("  AllowAnyOrigin: {AllowAnyOrigin}", AllowAnyOrigin);
-
-        if (AllowedOrigins.Count > 0)
-        {
-            logger.LogInformation("  AllowedOrigins: {AllowedOrigins}", string.Join(", ", AllowedOrigins));
-        }
-
         if (AllowAnyOrigin)
         {
-            logger.LogWarning("Cors.AllowAnyOrigin is true. Any website can make requests to this API. Consider configuring Cors.AllowedOrigins for production environments.");
+            if (AllowedOrigins.Count > 0)
+            {
+                // This shouldn't happen due to the logic in the constructor, but log if it does
+                logger.LogWarning("CORS is configured to allow any origin. AllowedOrigins setting will be ignored: {@Settings}",
+                    new { AllowAnyOrigin, AllowedOrigins });
+            }
+            else
+            {
+                logger.LogWarning("CORS is configured to allow any origin. Consider configuring Cors.AllowedOrigins for production environments: {@Settings}",
+                    new { AllowAnyOrigin });
+            }
+        }
+        else if (AllowedOrigins.Count > 0)
+        {
+            logger.LogInformation("CORS is configured with specific allowed origins: {@Settings}",
+                new { AllowAnyOrigin, AllowedOrigins });
+        }
+        else
+        {
+            logger.LogWarning("CORS is disabled. No origins are allowed and AllowAnyOrigin is false: {@Settings}",
+                new { AllowAnyOrigin, AllowedOrigins });
         }
     }
 }

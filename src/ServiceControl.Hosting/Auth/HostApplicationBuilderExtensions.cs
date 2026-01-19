@@ -19,7 +19,7 @@
                 return;
             }
 
-            hostBuilder.Services.AddAuthentication(options =>
+            _ = hostBuilder.Services.AddAuthentication(options =>
             {
                 options.DefaultScheme = "Bearer";
                 options.DefaultChallengeScheme = "Bearer";
@@ -94,7 +94,7 @@
                 };
             });
 
-            hostBuilder.Services.AddAuthorization(configure =>
+            _ = hostBuilder.Services.AddAuthorization(configure =>
                 configure.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
                     .Build());

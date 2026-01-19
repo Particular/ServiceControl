@@ -14,7 +14,7 @@ public static class WebApplicationExtensions
         // Register debug endpoint first (before early return) so it's always available in Development
         if (app.Environment.IsDevelopment())
         {
-            app.MapGet("/debug/request-info", (HttpContext context) =>
+            _ = app.MapGet("/debug/request-info", (HttpContext context) =>
             {
                 var remoteIp = context.Connection.RemoteIpAddress;
 

@@ -7,7 +7,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests Scenario 9: Proxy Chain with Known Proxies (ForwardLimit=1) from local-forward-headers-testing.md
     /// When TrustAllProxies=false (known proxies configured), ForwardLimit=1, so only the last proxy IP is processed.
     /// </summary>
     class When_proxy_chain_headers_are_sent_with_known_proxies : AcceptanceTest
@@ -15,25 +14,20 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
         ForwardedHeadersTestConfiguration configuration;
 
         [SetUp]
-        public void ConfigureForwardedHeaders()
-        {
+        public void ConfigureForwardedHeaders() =>
             // Configure known proxies to include localhost (test server uses localhost)
             configuration = new ForwardedHeadersTestConfiguration(ServiceControlInstanceType.Monitoring)
                 .WithKnownProxies("127.0.0.1,::1");
-        }
 
         [TearDown]
-        public void CleanupForwardedHeaders()
-        {
-            configuration?.Dispose();
-        }
+        public void CleanupForwardedHeaders() => configuration?.Dispose();
 
         [Test]
         public async Task Only_last_proxy_ip_should_be_processed_when_forward_limit_is_one()
         {
             RequestInfoResponse requestInfo = null;
 
-            await Define<Context>()
+            _ = await Define<Context>()
                 .Done(async ctx =>
                 {
                     // Simulate a proxy chain: client -> proxy1 -> proxy2 -> ServiceControl.Monitoring

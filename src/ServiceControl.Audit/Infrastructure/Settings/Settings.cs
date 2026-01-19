@@ -17,9 +17,13 @@
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
+            // Security settings for API authentication and authorization
             OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration, requireServicePulseSettings: false);
+            // Settings for handling X-Forwarded-* headers from reverse proxies
             ForwardedHeadersSettings = new ForwardedHeadersSettings(SettingsRootNamespace);
+            // Settings for enabling HTTPS/TLS on the API
             HttpsSettings = new HttpsSettings(SettingsRootNamespace);
+            // Settings for Cross-Origin Resource Sharing (CORS) policy
             CorsSettings = new CorsSettings(SettingsRootNamespace);
 
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
@@ -121,6 +125,7 @@
                     suffix = $"{VirtualDirectory}/";
                 }
 
+                // Use HTTPS scheme if TLS is enabled, otherwise HTTP
                 var scheme = HttpsSettings.Enabled ? "https" : "http";
                 return $"{scheme}://{Hostname}:{Port}/{suffix}";
             }

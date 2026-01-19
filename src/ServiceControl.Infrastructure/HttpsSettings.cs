@@ -51,44 +51,99 @@ public class HttpsSettings
     /// </summary>
     public string CertificatePassword { get; }
 
+    /// <summary>
+    /// When true, HTTP requests will be redirected to HTTPS.
+    /// Requires HTTPS to be properly configured. Default is false.
+    /// </summary>
     public bool RedirectHttpToHttps { get; }
 
+    /// <summary>
+    /// The port to redirect HTTPS requests to. If not specified, uses the default HTTPS port (443).
+    /// Only used when RedirectHttpToHttps is true.
+    /// </summary>
     public int? HttpsPort { get; }
 
+    /// <summary>
+    /// When true, enables HTTP Strict Transport Security (HSTS) headers.
+    /// HSTS instructs browsers to only access the site via HTTPS. Default is false.
+    /// Only applies in non-development environments.
+    /// </summary>
     public bool EnableHsts { get; }
 
+    /// <summary>
+    /// The max-age value for the HSTS header in seconds. Default is 31536000 (1 year).
+    /// Only used when EnableHsts is true.
+    /// </summary>
     public int HstsMaxAgeSeconds { get; }
 
+    /// <summary>
+    /// When true, includes subdomains in the HSTS policy. Default is false.
+    /// Only used when EnableHsts is true.
+    /// </summary>
     public bool HstsIncludeSubDomains { get; }
 
     void ValidateCertificateConfiguration()
     {
         if (string.IsNullOrWhiteSpace(CertificatePath))
         {
-            throw new InvalidOperationException(
-                "Https.Enabled is true but Https.CertificatePath is not configured. " +
-                "Please specify the path to a valid HTTPS certificate file (.pfx or .pem).");
+            var message = "Https.CertificatePath is required when HTTPS is enabled. Please specify the path to a valid HTTPS certificate file (.pfx or .pem)";
+            logger.LogCritical(message);
+            throw new InvalidOperationException(message);
         }
 
         if (!File.Exists(CertificatePath))
         {
-            throw new InvalidOperationException(
-                $"Https.CertificatePath '{CertificatePath}' does not exist. " +
-                "Please specify a valid path to an HTTPS certificate file.");
+            var message = $"Https.CertificatePath does not exist. Current value: '{CertificatePath}'";
+            logger.LogCritical(message);
+            throw new InvalidOperationException(message);
         }
     }
 
     void LogConfiguration()
     {
-        logger.LogInformation("HTTPS configuration:");
+        var hasRedirectConfig = RedirectHttpToHttps || HttpsPort.HasValue;
+        var hasHstsConfig = EnableHsts || HstsMaxAgeSeconds != 31536000 || HstsIncludeSubDomains;
 
-        logger.LogInformation("  Enabled: {Enabled}", Enabled);
-        logger.LogInformation("  CertificatePath: {CertificatePath}", CertificatePath);
-        logger.LogInformation("  CertificatePassword: {CertificatePassword}", string.IsNullOrEmpty(CertificatePassword) ? "(not set)" : "(set)");
-        logger.LogInformation("  RedirectHttpToHttps: {RedirectHttpToHttps}", RedirectHttpToHttps);
-        logger.LogInformation("  HttpsPort: {HttpsPort}", HttpsPort?.ToString() ?? "(not set)");
-        logger.LogInformation("  EnableHsts: {EnableHsts}", EnableHsts);
-        logger.LogInformation("  HstsMaxAgeSeconds: {HstsMaxAgeSeconds}", HstsMaxAgeSeconds);
-        logger.LogInformation("  HstsIncludeSubDomains: {HstsIncludeSubDomains}", HstsIncludeSubDomains);
+        if (!Enabled)
+        {
+            if (hasRedirectConfig || hasHstsConfig)
+            {
+                logger.LogWarning("HTTPS is disabled. Redirect and HSTS settings will be ignored: {@Settings}",
+                    new
+                    {
+                        Enabled,
+                        RedirectHttpToHttps,
+                        HttpsPort,
+                        EnableHsts,
+                        HstsMaxAgeSeconds,
+                        HstsIncludeSubDomains
+                    });
+            }
+            else
+            {
+                logger.LogInformation("HTTPS is disabled");
+            }
+            return;
+        }
+
+        // HTTPS is enabled - log all settings
+        logger.LogInformation("HTTPS is enabled: {@Settings}",
+            new
+            {
+                Enabled,
+                CertificatePath,
+                HasCertificatePassword = !string.IsNullOrEmpty(CertificatePassword),
+                RedirectHttpToHttps,
+                HttpsPort,
+                EnableHsts,
+                HstsMaxAgeSeconds,
+                HstsIncludeSubDomains
+            });
+
+        // Warn about potential misconfigurations
+        if (RedirectHttpToHttps && !EnableHsts)
+        {
+            logger.LogWarning("HTTPS redirect is enabled but HSTS is disabled. Consider enabling Https.EnableHsts for better security");
+        }
     }
 }

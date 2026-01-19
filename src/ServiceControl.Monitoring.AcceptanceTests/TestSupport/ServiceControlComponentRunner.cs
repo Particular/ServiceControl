@@ -118,7 +118,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 // Test middleware: Set RemoteIpAddress from X-Test-Remote-IP header
                 // This must run BEFORE UseServiceControlMonitoring (which adds ForwardedHeaders middleware)
                 // so that the ForwardedHeaders middleware can properly check KnownProxies/KnownNetworks
-                host.Use(async (context, next) =>
+                _ = host.Use(async (context, next) =>
                 {
                     if (context.Request.Headers.TryGetValue("X-Test-Remote-IP", out var testIpHeader))
                     {

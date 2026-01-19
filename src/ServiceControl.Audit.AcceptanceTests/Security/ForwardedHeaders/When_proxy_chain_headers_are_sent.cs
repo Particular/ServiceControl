@@ -7,7 +7,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests Scenario 8: Proxy Chain (Multiple X-Forwarded-For Values) from local-forward-headers-testing.md
+    /// Proxy Chain (Multiple X-Forwarded-For Values)
     /// When TrustAllProxies is true and X-Forwarded-For contains multiple IPs (proxy chain),
     /// the original client IP (first in the chain) should be returned.
     /// </summary>
@@ -18,7 +18,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
         {
             RequestInfoResponse requestInfo = null;
 
-            await Define<Context>()
+            _ = await Define<Context>()
                 .Done(async ctx =>
                 {
                     // Simulate a proxy chain: client -> proxy1 -> proxy2 -> ServiceControl.Audit

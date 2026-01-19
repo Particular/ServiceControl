@@ -28,8 +28,8 @@
     {
         static readonly IList<AuditCount> Empty = new List<AuditCount>(0).AsReadOnly();
 
-        // Will never be implemented on the primary instance
         protected override Task<QueryResult<IList<AuditCount>>> LocalQuery(AuditCountsForEndpointContext input) =>
+            // Will never be implemented on the primary instance
             Task.FromResult(new QueryResult<IList<AuditCount>>(Empty, QueryStatsInfo.Zero));
 
         protected override IList<AuditCount> ProcessResults(AuditCountsForEndpointContext input, QueryResult<IList<AuditCount>>[] results) =>

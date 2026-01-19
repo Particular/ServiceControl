@@ -17,6 +17,7 @@
 
         [Route("")]
         [HttpGet]
+        // This endpoint must be accessible without authentication for instance discovery.
         [AllowAnonymous]
         public OkObjectResult Urls()
         {
@@ -45,6 +46,7 @@
         [Route("instance-info")]
         [Route("configuration")]
         [HttpGet]
+        // This endpoint must be accessible without authentication for scatter-gather and discovery operations.
         [AllowAnonymous]
         public OkObjectResult Config()
         {

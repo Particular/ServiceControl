@@ -7,7 +7,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests Scenario 4: Known Networks (CIDR) from local-forward-headers-testing.md
     /// When KnownNetworks are configured and the caller IP falls within, headers should be applied.
     /// </summary>
     class When_known_networks_are_configured : AcceptanceTest
@@ -15,25 +14,20 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
         ForwardedHeadersTestConfiguration configuration;
 
         [SetUp]
-        public void ConfigureForwardedHeaders()
-        {
+        public void ConfigureForwardedHeaders() =>
             // Configure known networks to include localhost CIDR ranges (test server uses localhost)
             configuration = new ForwardedHeadersTestConfiguration(ServiceControlInstanceType.Monitoring)
                 .WithKnownNetworks("127.0.0.0/8,::1/128");
-        }
 
         [TearDown]
-        public void CleanupForwardedHeaders()
-        {
-            configuration?.Dispose();
-        }
+        public void CleanupForwardedHeaders() => configuration?.Dispose();
 
         [Test]
         public async Task Headers_should_be_applied_when_caller_matches_known_network()
         {
             RequestInfoResponse requestInfo = null;
 
-            await Define<Context>()
+            _ = await Define<Context>()
                 .Done(async ctx =>
                 {
                     requestInfo = await ForwardedHeadersAssertions.GetRequestInfo(

@@ -177,8 +177,8 @@
             await session.SaveChangesAsync();
         }
 
-        // the edit failed message manager manages the lifetime of the session
         public async Task<IEditFailedMessagesManager> CreateEditFailedMessageManager() =>
+            // the edit failed message manager manages the lifetime of the session
             new EditFailedMessageManager(await sessionProvider.OpenSession(), expirationManager);
 
         public async Task<QueryResult<FailureGroupView>> GetFailureGroupView(string groupId, string status, string modified)
@@ -323,8 +323,8 @@
             return message;
         }
 
-        // the notifications manager manages the lifetime of the session
         public async Task<INotificationsManager> CreateNotificationsManager() =>
+            // the notifications manager manages the lifetime of the session
             new NotificationsManager(await sessionProvider.OpenSession());
 
         public async Task<FailedMessageView> ErrorLastBy(string failedMessageId)

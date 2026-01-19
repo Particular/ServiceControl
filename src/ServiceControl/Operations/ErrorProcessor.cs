@@ -45,8 +45,8 @@
             var knownEndpoints = new Dictionary<string, KnownEndpoint>();
             foreach (var context in contexts)
             {
-                // Any message context that failed during processing will have a faulted task and should be skipped
                 if (!context.Extensions.TryGet<FailureDetails>(out _) ||
+                    // Any message context that failed during processing will have a faulted task and should be skipped
                     context.GetTaskCompletionSource().Task.IsFaulted)
                 {
                     continue;

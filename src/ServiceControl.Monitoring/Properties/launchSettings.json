@@ -3,7 +3,6 @@
     "ServiceControl.Monitoring": {
       "commandName": "Project",
       "launchBrowser": false,
-      "applicationUrl": "http://0.0.0.0:33633",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
