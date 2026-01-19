@@ -17,6 +17,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using Microsoft.Extensions.Logging;
     using Monitoring;
     using NServiceBus;
+    using ServiceControl.Hosting.Auth;
     using ServiceControl.Hosting.Https;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
@@ -98,6 +99,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 hostBuilder.Logging.ClearProviders();
                 hostBuilder.Logging.ConfigureLogging(LogLevel.Information);
 
+                hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControlMonitoring((criticalErrorContext, cancellationToken) =>
                 {
                     var logitem = new ScenarioContext.LogItem
@@ -133,6 +135,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                     await next();
                 });
 
+                host.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
                 host.UseServiceControlMonitoring(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings.CorsSettings);
                 await host.StartAsync();
 
