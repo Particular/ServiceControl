@@ -11,6 +11,8 @@ ILogger logger = null;
 
 try
 {
+    ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
+
     var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
     LoggingConfigurator.ConfigureLogging(loggingSettings);
     logger = LoggerUtil.CreateStaticLogger(typeof(Program));
@@ -24,8 +26,6 @@ try
     {
         return exitCode;
     }
-
-    ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
     var arguments = new HostArguments(args);
 

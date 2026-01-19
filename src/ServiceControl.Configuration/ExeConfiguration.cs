@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Configuration
 {
+    using System;
     using System.Configuration;
     using System.IO;
     using System.Linq;
@@ -12,27 +13,37 @@
         // This code reads in the exe.config files and adds all the values into the ConfigurationManager's collections.
         public static void PopulateAppSettings(Assembly assembly)
         {
-            var location = Path.GetDirectoryName(assembly.Location);
-            var assemblyName = Path.GetFileNameWithoutExtension(assembly.Location);
-            var exeConfigPath = Path.Combine(location, $"{assemblyName}.exe.config");
-            var fileMap = new ExeConfigurationFileMap { ExeConfigFilename = exeConfigPath };
-            var configuration = ConfigurationManager.OpenMappedExeConfiguration(fileMap, ConfigurationUserLevel.None);
-
-            foreach (var key in configuration.AppSettings.Settings.AllKeys)
+            try
             {
-                ConfigurationManager.AppSettings.Set(key, configuration.AppSettings.Settings[key].Value);
+                var location = Path.GetDirectoryName(assembly.Location);
+                var assemblyName = Path.GetFileNameWithoutExtension(assembly.Location);
+                var exeConfigPath = Path.Combine(location, $"{assemblyName}.exe.config");
+                var fileMap = new ExeConfigurationFileMap
+                {
+                    ExeConfigFilename = exeConfigPath
+                };
+                var configuration = ConfigurationManager.OpenMappedExeConfiguration(fileMap, ConfigurationUserLevel.None);
+
+                foreach (var key in configuration.AppSettings.Settings.AllKeys)
+                {
+                    ConfigurationManager.AppSettings.Set(key, configuration.AppSettings.Settings[key].Value);
+                }
+
+                // The connection strings collection has had its read only flag set, so we need to clear it before we can add items to it
+                UnsetCollectionReadonly(ConfigurationManager.ConnectionStrings);
+
+                foreach (var connectionStringSetting in configuration.ConnectionStrings.ConnectionStrings.Cast<ConnectionStringSettings>())
+                {
+                    ConfigurationManager.ConnectionStrings.Add(connectionStringSetting);
+                }
+
+                // Put the collection back into its previous state after we're done adding items to it
+                SetCollectionReadOnly(ConfigurationManager.ConnectionStrings);
             }
-
-            // The connection strings collection has had its read only flag set, so we need to clear it before we can add items to it
-            UnsetCollectionReadonly(ConfigurationManager.ConnectionStrings);
-
-            foreach (var connectionStringSetting in configuration.ConnectionStrings.ConnectionStrings.Cast<ConnectionStringSettings>())
+            catch (Exception e)
             {
-                ConfigurationManager.ConnectionStrings.Add(connectionStringSetting);
+                throw new Exception("Failed to populate app settings.", e);
             }
-
-            // Put the collection back into its previous state after we're done adding items to it
-            SetCollectionReadOnly(ConfigurationManager.ConnectionStrings);
         }
 
         static void UnsetCollectionReadonly(ConfigurationElementCollection collection)
