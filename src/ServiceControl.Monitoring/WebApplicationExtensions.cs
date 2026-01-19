@@ -28,7 +28,7 @@ public static class WebApplicationExtensions
 
             policyBuilder.WithExposedHeaders(["ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version"]);
             policyBuilder.WithHeaders(["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"]);
-            policyBuilder.WithMethods(["POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH"]);
+            policyBuilder.WithMethods(["POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"]);
         });
 
         appBuilder.MapControllers();

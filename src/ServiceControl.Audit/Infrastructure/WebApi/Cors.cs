@@ -35,7 +35,7 @@
             // Headers allowed in the request from the client
             builder.WithHeaders(["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"]);
             // HTTP methods allowed for cross-origin requests
-            builder.WithMethods(["POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH"]);
+            builder.WithMethods(["POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"]);
 
             return builder.Build();
         }
