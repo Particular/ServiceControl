@@ -7,7 +7,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests Scenario 11: Partial Headers (Proto Only) from local-forward-headers-testing.md
     /// When only X-Forwarded-Proto is sent, only scheme should change.
     /// </summary>
     class When_only_proto_header_is_sent : AcceptanceTest
@@ -17,7 +16,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
         {
             RequestInfoResponse requestInfo = null;
 
-            await Define<Context>()
+            _ = await Define<Context>()
                 .Done(async ctx =>
                 {
                     requestInfo = await ForwardedHeadersAssertions.GetRequestInfo(

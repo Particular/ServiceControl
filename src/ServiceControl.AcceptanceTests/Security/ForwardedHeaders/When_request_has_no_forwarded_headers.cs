@@ -7,7 +7,7 @@ namespace ServiceControl.AcceptanceTests.Security.ForwardedHeaders
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests Scenario 0: Direct Access (No Proxy) from local-forward-headers-testing.md
+    /// Direct Access (No Proxy)
     /// When no forwarded headers are sent, the request values should remain unchanged.
     /// </summary>
     class When_request_has_no_forwarded_headers : AcceptanceTest
@@ -17,7 +17,7 @@ namespace ServiceControl.AcceptanceTests.Security.ForwardedHeaders
         {
             RequestInfoResponse requestInfo = null;
 
-            await Define<Context>()
+            _ = await Define<Context>()
                 .Done(async ctx =>
                 {
                     var result = await this.TryGet<RequestInfoResponse>("/debug/request-info");

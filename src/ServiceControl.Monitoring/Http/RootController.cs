@@ -9,7 +9,7 @@
     {
         [Route("")]
         [HttpGet]
-        [AllowAnonymous]
+        [AllowAnonymous] // Root endpoint returns instance metadata and must remain accessible for discovery
         public ActionResult<MonitoringInstanceModel> Get()
         {
             var model = new MonitoringInstanceModel

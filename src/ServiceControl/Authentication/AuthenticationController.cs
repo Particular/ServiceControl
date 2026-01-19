@@ -9,6 +9,7 @@
     public class AuthenticationController(Settings settings) : ControllerBase
     {
         [HttpGet]
+        // Must be anonymous so unauthenticated clients can discover auth configuration before authenticating
         [AllowAnonymous]
         [Route("configuration")]
         public ActionResult<AuthConfig> Configuration()

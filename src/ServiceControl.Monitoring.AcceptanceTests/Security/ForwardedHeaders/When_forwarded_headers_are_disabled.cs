@@ -7,7 +7,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests Scenario 7: Forwarded Headers Disabled from local-forward-headers-testing.md
     /// When forwarded headers processing is disabled, headers should be ignored regardless of trust.
     /// </summary>
     class When_forwarded_headers_are_disabled : AcceptanceTest
@@ -15,25 +14,20 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
         ForwardedHeadersTestConfiguration configuration;
 
         [SetUp]
-        public void ConfigureForwardedHeaders()
-        {
+        public void ConfigureForwardedHeaders() =>
             // Disable forwarded headers processing entirely
             configuration = new ForwardedHeadersTestConfiguration(ServiceControlInstanceType.Monitoring)
                 .WithForwardedHeadersDisabled();
-        }
 
         [TearDown]
-        public void CleanupForwardedHeaders()
-        {
-            configuration?.Dispose();
-        }
+        public void CleanupForwardedHeaders() => configuration?.Dispose();
 
         [Test]
         public async Task Headers_should_be_ignored_when_disabled()
         {
             RequestInfoResponse requestInfo = null;
 
-            await Define<Context>()
+            _ = await Define<Context>()
                 .Done(async ctx =>
                 {
                     requestInfo = await ForwardedHeadersAssertions.GetRequestInfo(

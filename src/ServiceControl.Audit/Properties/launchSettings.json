@@ -3,7 +3,6 @@
     "ServiceControl.Audit": {
       "commandName": "Project",
       "launchBrowser": false,
-      "applicationUrl": "http://0.0.0.0:44444",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

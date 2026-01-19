@@ -50,8 +50,11 @@ public class ForwardedHeadersSettingsTests
         var ipAddresses = settings.KnownProxies.ToList();
 
         Assert.That(ipAddresses, Has.Count.EqualTo(2));
-        Assert.That(ipAddresses[0].ToString(), Is.EqualTo("127.0.0.1"));
-        Assert.That(ipAddresses[1].ToString(), Is.EqualTo("10.0.0.5"));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ipAddresses[0].ToString(), Is.EqualTo("127.0.0.1"));
+            Assert.That(ipAddresses[1].ToString(), Is.EqualTo("10.0.0.5"));
+        }
     }
 
     [Test]

@@ -7,7 +7,7 @@ namespace ServiceControl.AcceptanceTests.Security.ForwardedHeaders
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests Scenario 6: Unknown Network Rejected from local-forward-headers-testing.md
+    /// Unknown Network Rejected
     /// When KnownNetworks are configured but the caller IP does NOT fall within, headers should be ignored.
     /// </summary>
     class When_unknown_network_sends_headers : AcceptanceTest
@@ -15,26 +15,21 @@ namespace ServiceControl.AcceptanceTests.Security.ForwardedHeaders
         ForwardedHeadersTestConfiguration configuration;
 
         [SetUp]
-        public void ConfigureForwardedHeaders()
-        {
+        public void ConfigureForwardedHeaders() =>
             // Configure known networks that do NOT include localhost (test server uses localhost)
             // This should cause headers to be ignored
             configuration = new ForwardedHeadersTestConfiguration(ServiceControlInstanceType.Primary)
                 .WithKnownNetworks("10.0.0.0/8,192.168.0.0/16");
-        }
 
         [TearDown]
-        public void CleanupForwardedHeaders()
-        {
-            configuration?.Dispose();
-        }
+        public void CleanupForwardedHeaders() => configuration?.Dispose();
 
         [Test]
         public async Task Headers_should_be_ignored_when_caller_not_in_known_networks()
         {
             RequestInfoResponse requestInfo = null;
 
-            await Define<Context>()
+            _ = await Define<Context>()
                 .Done(async ctx =>
                 {
                     // Simulate request from IP 203.0.113.1 (not in known networks)

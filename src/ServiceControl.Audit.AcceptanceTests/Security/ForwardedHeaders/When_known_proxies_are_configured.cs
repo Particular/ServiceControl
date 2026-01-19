@@ -7,7 +7,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests Scenario 3: Known Proxies Only from local-forward-headers-testing.md
+    /// Known Proxies Only
     /// When KnownProxies are configured and the caller IP matches, headers should be applied.
     /// </summary>
     class When_known_proxies_are_configured : AcceptanceTest
@@ -15,25 +15,20 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
         ForwardedHeadersTestConfiguration configuration;
 
         [SetUp]
-        public void ConfigureForwardedHeaders()
-        {
+        public void ConfigureForwardedHeaders() =>
             // Configure known proxies to include localhost addresses (test server uses localhost)
             configuration = new ForwardedHeadersTestConfiguration(ServiceControlInstanceType.Audit)
                 .WithKnownProxies("127.0.0.1,::1");
-        }
 
         [TearDown]
-        public void CleanupForwardedHeaders()
-        {
-            configuration?.Dispose();
-        }
+        public void CleanupForwardedHeaders() => configuration?.Dispose();
 
         [Test]
         public async Task Headers_should_be_applied_when_caller_matches_known_proxy()
         {
             RequestInfoResponse requestInfo = null;
 
-            await Define<Context>()
+            _ = await Define<Context>()
                 .Done(async ctx =>
                 {
                     requestInfo = await ForwardedHeadersAssertions.GetRequestInfo(

@@ -16,9 +16,13 @@ namespace ServiceControl.Monitoring
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
+            // OIDC authentication (ServicePulse URLs not required for monitoring)
             OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration, requireServicePulseSettings: false);
+            // X-Forwarded-* header processing for reverse proxy scenarios
             ForwardedHeadersSettings = new ForwardedHeadersSettings(SettingsRootNamespace);
+            // HTTPS/TLS and HSTS configuration
             HttpsSettings = new HttpsSettings(SettingsRootNamespace);
+            // Cross-origin resource sharing policy
             CorsSettings = new CorsSettings(SettingsRootNamespace);
 
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file

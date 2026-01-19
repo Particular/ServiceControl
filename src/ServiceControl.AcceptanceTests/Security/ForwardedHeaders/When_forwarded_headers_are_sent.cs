@@ -7,7 +7,7 @@ namespace ServiceControl.AcceptanceTests.Security.ForwardedHeaders
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests Scenario 1/2: Default Behavior with Headers from local-forward-headers-testing.md
+    /// Default Behavior with Headers
     /// When forwarded headers are sent and TrustAllProxies is true (default), headers should be applied.
     /// </summary>
     class When_forwarded_headers_are_sent : AcceptanceTest
@@ -17,7 +17,7 @@ namespace ServiceControl.AcceptanceTests.Security.ForwardedHeaders
         {
             RequestInfoResponse requestInfo = null;
 
-            await Define<Context>()
+            _ = await Define<Context>()
                 .Done(async ctx =>
                 {
                     requestInfo = await ForwardedHeadersAssertions.GetRequestInfo(

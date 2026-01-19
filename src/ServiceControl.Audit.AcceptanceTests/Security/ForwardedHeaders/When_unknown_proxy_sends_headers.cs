@@ -7,7 +7,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests Scenario 5: Unknown Proxy Rejected from local-forward-headers-testing.md
+    /// Unknown Proxy Rejected
     /// When KnownProxies are configured but the caller IP does NOT match, headers should be ignored.
     /// </summary>
     class When_unknown_proxy_sends_headers : AcceptanceTest
@@ -15,26 +15,21 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
         ForwardedHeadersTestConfiguration configuration;
 
         [SetUp]
-        public void ConfigureForwardedHeaders()
-        {
+        public void ConfigureForwardedHeaders() =>
             // Configure a known proxy that does NOT match localhost (test server uses localhost)
             // This should cause headers to be ignored
             configuration = new ForwardedHeadersTestConfiguration(ServiceControlInstanceType.Audit)
                 .WithKnownProxies("192.168.1.100");
-        }
 
         [TearDown]
-        public void CleanupForwardedHeaders()
-        {
-            configuration?.Dispose();
-        }
+        public void CleanupForwardedHeaders() => configuration?.Dispose();
 
         [Test]
         public async Task Headers_should_be_ignored_when_caller_not_in_known_proxies()
         {
             RequestInfoResponse requestInfo = null;
 
-            await Define<Context>()
+            _ = await Define<Context>()
                 .Done(async ctx =>
                 {
                     // Simulate request from IP 203.0.113.1 (TEST-NET-3, not in known proxies)

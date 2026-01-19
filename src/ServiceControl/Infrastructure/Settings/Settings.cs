@@ -29,9 +29,13 @@ namespace ServiceBus.Management.Infrastructure.Settings
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
+            // OIDC authentication for API access via ServicePulse
             OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration);
+            // X-Forwarded-* header processing for reverse proxy scenarios
             ForwardedHeadersSettings = new ForwardedHeadersSettings(SettingsRootNamespace);
+            // HTTPS/TLS and HSTS configuration
             HttpsSettings = new HttpsSettings(SettingsRootNamespace);
+            // Cross-origin resource sharing policy
             CorsSettings = new CorsSettings(SettingsRootNamespace);
 
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
