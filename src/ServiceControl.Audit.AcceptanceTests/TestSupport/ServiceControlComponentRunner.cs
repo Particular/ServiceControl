@@ -20,6 +20,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
+    using ServiceControl.Hosting.Auth;
     using ServiceControl.Hosting.Https;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
@@ -118,6 +119,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
                     EnvironmentName = Environments.Development
                 });
+                hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControlAudit((criticalErrorContext, cancellationToken) =>
                 {
                     var logitem = new ScenarioContext.LogItem
@@ -156,6 +158,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     await next();
                 });
 
+                host.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
                 host.UseServiceControlAudit(settings.ForwardedHeadersSettings, settings.HttpsSettings);
                 await host.StartAsync();
                 ServiceProvider = host.Services;
