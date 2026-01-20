@@ -76,8 +76,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 serviceControlNewInstance.ServiceAccount = viewModel.ServiceControl.ServiceAccount;
                 serviceControlNewInstance.ServiceAccountPwd = viewModel.ServiceControl.Password;
                 serviceControlNewInstance.EnableFullTextSearchOnBodies = viewModel.ServiceControl.EnableFullTextSearchOnBodies.Value;
-                // TODO: Make this configurable
-                serviceControlNewInstance.EnableEmbeddedServicePulse = true;
+                serviceControlNewInstance.EnableEmbeddedServicePulse = viewModel.ServiceControl.EnableEmbeddedServicePulse.Value;
             }
 
             var auditNewInstance = viewModel.InstallAuditInstance ? ServiceControlAuditNewInstance.CreateWithDefaultPersistence() : null;

@@ -220,6 +220,15 @@
             set => ServiceControl.EnableFullTextSearchOnBodies = value;
         }
 
+        public IEnumerable<EnableEmbeddedServicePulseOption> ErrorEnableEmbeddedServicePulseOptions =>
+            ServiceControl.EnableEmbeddedServicePulseOptions;
+        
+        public EnableEmbeddedServicePulseOption ErrorEnableEmbeddedServicePulse
+        {
+            get => ServiceControl.EnableEmbeddedServicePulse;
+            set => ServiceControl.EnableEmbeddedServicePulse = value;
+        }
+
         /* Add Audit Instance */
 
         public string AuditInstanceName
