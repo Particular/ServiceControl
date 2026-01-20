@@ -222,7 +222,7 @@
 
         public IEnumerable<EnableEmbeddedServicePulseOption> ErrorEnableEmbeddedServicePulseOptions =>
             ServiceControl.EnableEmbeddedServicePulseOptions;
-        
+
         public EnableEmbeddedServicePulseOption ErrorEnableEmbeddedServicePulse
         {
             get => ServiceControl.EnableEmbeddedServicePulse;

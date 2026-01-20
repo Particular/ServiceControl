@@ -140,6 +140,7 @@ public class ServiceControlInformation : SharedServiceControlEditorViewModel
         ErrorForwardingQueueName = instance.ErrorLogQueue;
         UpdateErrorRetention(instance.ErrorRetentionPeriod);
         EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.FirstOrDefault(p => p.Value == instance.EnableFullTextSearchOnBodies);
+        EnableEmbeddedServicePulse = EnableEmbeddedServicePulseOptions.FirstOrDefault(p => p.Value == instance.EnableEmbeddedServicePulse);
     }
 
     ForwardingOption errorForwarding;
