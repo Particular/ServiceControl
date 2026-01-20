@@ -85,6 +85,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public TimeSpan ErrorRetentionPeriod { get; set; }
         public bool SkipQueueCreation { get; set; }
         public bool EnableFullTextSearchOnBodies { get; set; }
+        public bool EnableEmbeddedServicePulse { get; set; }
 
         protected abstract string BaseServiceName { get; }
 
@@ -92,12 +93,13 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
+                var suffix = EnableEmbeddedServicePulse ? "" : "api/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{HostName}:{Port}/api/";
+                    return $"http://{HostName}:{Port}/{suffix}";
                 }
 
-                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}api/";
+                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}{suffix}";
             }
         }
 
@@ -105,6 +107,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
+                var suffix = EnableEmbeddedServicePulse ? "" : "api/";
                 string host = HostName switch
                 {
                     "*" => "localhost",
@@ -113,10 +116,10 @@ namespace ServiceControlInstaller.Engine.Instances
                 };
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{host}:{Port}/api/";
+                    return $"http://{host}:{Port}/{suffix}";
                 }
 
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}api/";
+                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}{suffix}/";
             }
         }
 

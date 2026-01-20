@@ -135,6 +135,8 @@ namespace ServiceControlInstaller.Engine.Instances
                 AuditLogQueue = AppConfig.Read(ServiceControlSettings.AuditLogQueue, string.IsNullOrEmpty(AuditQueue) ? null : $"{AuditQueue}.log");
             }
 
+            EnableEmbeddedServicePulse = AppConfig.Read(ServiceControlSettings.EnableEmbeddedServicePulse, false);
+
             if (TimeSpan.TryParse(AppConfig.Read(ServiceControlSettings.ErrorRetentionPeriod, (string)null), out var errorRetentionPeriod))
             {
                 ErrorRetentionPeriod = errorRetentionPeriod;
@@ -181,6 +183,7 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(ServiceControlSettings.ErrorLogQueue, ErrorLogQueue, Version);
             settings.Set(ServiceControlSettings.EnableFullTextSearchOnBodies, EnableFullTextSearchOnBodies.ToString(), Version);
             settings.Set(ServiceControlSettings.PersistenceType, PersistenceManifest.Name);
+            settings.Set(ServiceControlSettings.EnableEmbeddedServicePulse, EnableEmbeddedServicePulse.ToString(), Version);
 
             if (RemoteInstances != null)
             {

@@ -66,7 +66,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
             RetryHistoryDepth = SettingsReader.Read(SettingsRootNamespace, "RetryHistoryDepth", 10);
             AllowMessageEditing = SettingsReader.Read<bool>(SettingsRootNamespace, "AllowMessageEditing");
-            EnableEmbeddedServicePulse = SettingsReader.Read(SettingsRootNamespace, "EnableEmbeddedServicePulse", true);
+            EnableEmbeddedServicePulse = SettingsReader.Read(SettingsRootNamespace, "EnableEmbeddedServicePulse", false);
             ServicePulseSettings = ServicePulseSettings.GetFromEnvironmentVariables() with
             {
                 ServiceControlUrl = ApiUrl,
