@@ -38,6 +38,19 @@ public class ServiceControlInformation : SharedServiceControlEditorViewModel
                 Value = false
             }
         };
+        EnableEmbeddedServicePulseOptions = new[]
+        {
+            new EnableEmbeddedServicePulseOption
+            {
+                Name = "On",
+                Value = true
+            },
+            new EnableEmbeddedServicePulseOption
+            {
+                Name = "Off",
+                Value = false
+            }
+        };
         ErrorRetention = SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI;
         Description = "ServiceControl Service";
         HostName = "localhost";
@@ -48,6 +61,7 @@ public class ServiceControlInformation : SharedServiceControlEditorViewModel
         PortNumber = "33333";
         DatabaseMaintenancePortNumber = "33334";
         EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.First(p => p.Value); //Default to On.
+        EnableEmbeddedServicePulse = EnableEmbeddedServicePulseOptions.First(p => p.Value); //Default to On.
         ViewModelParent = viewModelParent;
     }
 
@@ -91,6 +105,10 @@ public class ServiceControlInformation : SharedServiceControlEditorViewModel
     public IEnumerable<EnableFullTextSearchOnBodiesOption> EnableFullTextSearchOnBodiesOptions { get; }
 
     public EnableFullTextSearchOnBodiesOption EnableFullTextSearchOnBodies { get; set; }
+
+    public IEnumerable<EnableEmbeddedServicePulseOption> EnableEmbeddedServicePulseOptions { get; }
+
+    public EnableEmbeddedServicePulseOption EnableEmbeddedServicePulse { get; set; }
 
     protected void UpdateErrorRetention(TimeSpan value)
     {
