@@ -63,6 +63,7 @@ Documentation for configuring security features:
 - [HTTPS Configuration](docs/https-configuration.md) - Configure HTTPS/TLS for secure connections
 - [Forwarded Headers](docs/forwarded-headers.md) - Configure X-Forwarded-* header handling for reverse proxy scenarios
 - [Authentication](docs/authentication.md) - Configure authentication for the HTTP API
+- [Hosting Guide](docs/hosting-guide.md) - Scenario based hosting options for ServiceControl
 
 Local testing guides:
 

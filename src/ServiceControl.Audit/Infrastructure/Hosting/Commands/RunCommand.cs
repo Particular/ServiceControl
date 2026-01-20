@@ -29,7 +29,7 @@
 
             var app = hostBuilder.Build();
             app.UseServiceControlAudit(settings.ForwardedHeadersSettings, settings.HttpsSettings);
-            app.UseServiceControlAuthentication(authenticationEnabled: settings.OpenIdConnectSettings.Enabled);
+            app.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
 
             await app.RunAsync(settings.RootUrl);
         }

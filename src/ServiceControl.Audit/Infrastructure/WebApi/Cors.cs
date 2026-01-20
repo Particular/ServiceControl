@@ -16,7 +16,7 @@
         {
             var builder = new CorsPolicyBuilder();
 
-            // Configure allowed origins based on settings
+            // Configure allowed origins based on settings (defaults to true).
             if (settings.AllowAnyOrigin)
             {
                 // Allow requests from any origin (less secure, useful for development)
