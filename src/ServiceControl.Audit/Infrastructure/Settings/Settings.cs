@@ -17,13 +17,9 @@
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
-            // Security settings for API authentication and authorization
             OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration, requireServicePulseSettings: false);
-            // Settings for handling X-Forwarded-* headers from reverse proxies
             ForwardedHeadersSettings = new ForwardedHeadersSettings(SettingsRootNamespace);
-            // Settings for enabling HTTPS/TLS on the API
             HttpsSettings = new HttpsSettings(SettingsRootNamespace);
-            // Settings for Cross-Origin Resource Sharing (CORS) policy
             CorsSettings = new CorsSettings(SettingsRootNamespace);
 
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
@@ -101,12 +97,24 @@
 
         public LoggingSettings LoggingSettings { get; }
 
+        /// <summary>
+        /// Security settings for API authentication and authorization
+        /// </summary>
         public OpenIdConnectSettings OpenIdConnectSettings { get; }
 
+        /// <summary>
+        /// Settings for handling X-Forwarded-* headers from reverse proxies
+        /// </summary>
         public ForwardedHeadersSettings ForwardedHeadersSettings { get; }
 
+        /// <summary>
+        /// Settings for enabling HTTPS/TLS on the API
+        /// </summary>
         public HttpsSettings HttpsSettings { get; }
 
+        /// <summary>
+        /// Settings for Cross-Origin Resource Sharing (CORS) policy
+        /// </summary>
         public CorsSettings CorsSettings { get; }
 
         //HINT: acceptance tests only

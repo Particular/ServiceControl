@@ -14,6 +14,7 @@
     {
         public static void AddServiceControlAuthentication(this IHostApplicationBuilder hostBuilder, OpenIdConnectSettings oidcSettings)
         {
+            // Authentication is disabled by default
             if (!oidcSettings.Enabled)
             {
                 return;

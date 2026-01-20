@@ -29,13 +29,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
-            // OIDC authentication for API access via ServicePulse
             OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration);
-            // X-Forwarded-* header processing for reverse proxy scenarios
             ForwardedHeadersSettings = new ForwardedHeadersSettings(SettingsRootNamespace);
-            // HTTPS/TLS and HSTS configuration
             HttpsSettings = new HttpsSettings(SettingsRootNamespace);
-            // Cross-origin resource sharing policy
             CorsSettings = new CorsSettings(SettingsRootNamespace);
 
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
@@ -83,12 +79,24 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public LoggingSettings LoggingSettings { get; }
 
+        /// <summary>
+        /// OIDC authentication for API access via ServicePulse
+        /// </summary>
         public OpenIdConnectSettings OpenIdConnectSettings { get; }
 
+        /// <summary>
+        /// X-Forwarded-* header processing for reverse proxy scenarios
+        /// </summary>
         public ForwardedHeadersSettings ForwardedHeadersSettings { get; }
 
+        /// <summary>
+        /// HTTPS/TLS and HSTS configuration
+        /// </summary>
         public HttpsSettings HttpsSettings { get; }
 
+        /// <summary>
+        /// Cross-origin resource sharing policy
+        /// </summary>
         public CorsSettings CorsSettings { get; }
 
         public string NotificationsFilter { get; set; }
@@ -120,6 +128,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
                     suffix = $"{VirtualDirectory}/";
                 }
 
+                // Use HTTPS scheme if TLS is enabled, otherwise HTTP
                 var scheme = HttpsSettings.Enabled ? "https" : "http";
                 return $"{scheme}://{Hostname}:{Port}/{suffix}";
             }
