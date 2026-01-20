@@ -231,6 +231,12 @@
                                            Header="FULL TEXT SEARCH ON MESSAGE BODIES"
                                            ItemsSource="{Binding EnableFullTextSearchOnBodiesOptions}"
                                            SelectedValue="{Binding EnableFullTextSearchOnBodies}" />
+                <controls:FormComboBox HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Top"
+                                           DisplayMemberPath="Name"
+                                           Header="ENABLE EMBEDDED SERVICEPULSE"
+                                           ItemsSource="{Binding EnableEmbeddedServicePulseOptions}"
+                                           SelectedValue="{Binding EnableEmbeddedServicePulse}" />
             </StackPanel>
         </sie:SharedServiceControlEditorView.SharedContent>
     </sie:SharedServiceControlEditorView>
