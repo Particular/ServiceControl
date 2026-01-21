@@ -8,18 +8,11 @@
     /// </summary>
     static class Cors
     {
-        /// <summary>
-        /// Creates the default CORS policy based on the provided settings.
-        /// </summary>
-        /// <param name="settings">The CORS configuration settings.</param>
-        /// <returns>A configured <see cref="CorsPolicy"/> instance.</returns>
         public static CorsPolicy GetDefaultPolicy(CorsSettings settings)
         {
             var builder = new CorsPolicyBuilder();
 
-            // Configure origin restrictions based on settings.
             // When AllowAnyOrigin is true (the default), any origin can access the API.
-            // When specific origins are configured, only those origins are allowed and credentials are permitted.
             if (settings.AllowAnyOrigin)
             {
                 builder.AllowAnyOrigin();

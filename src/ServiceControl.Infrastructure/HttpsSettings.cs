@@ -9,6 +9,10 @@ public class HttpsSettings
 {
     readonly ILogger logger = LoggerUtil.CreateStaticLogger<HttpsSettings>();
 
+    /// <summary>
+    /// Initializes HTTPS settings from the given configuration root namespace.
+    /// </summary>
+    /// <param name="rootNamespace"></param>
     public HttpsSettings(SettingsRootNamespace rootNamespace)
     {
         // Kestrel HTTPS - disabled by default for backwards compatibility
@@ -101,49 +105,54 @@ public class HttpsSettings
 
     void LogConfiguration()
     {
-        var hasRedirectConfig = RedirectHttpToHttps || HttpsPort.HasValue;
-        var hasHstsConfig = EnableHsts || HstsMaxAgeSeconds != 31536000 || HstsIncludeSubDomains;
-
         if (!Enabled)
         {
-            if (hasRedirectConfig || hasHstsConfig)
-            {
-                logger.LogWarning("HTTPS is disabled. Redirect and HSTS settings will be ignored: {@Settings}",
-                    new
-                    {
-                        Enabled,
-                        RedirectHttpToHttps,
-                        HttpsPort,
-                        EnableHsts,
-                        HstsMaxAgeSeconds,
-                        HstsIncludeSubDomains
-                    });
-            }
-            else
-            {
-                logger.LogInformation("HTTPS is disabled");
-            }
-            return;
+            logger.LogInformation("HTTPS is disabled: {@Settings}",
+                new
+                {
+                    Enabled,
+                    RedirectHttpToHttps,
+                    HttpsPort,
+                    EnableHsts,
+                    HstsMaxAgeSeconds,
+                    HstsIncludeSubDomains
+                });
         }
-
-        // HTTPS is enabled - log all settings
-        logger.LogInformation("HTTPS is enabled: {@Settings}",
-            new
-            {
-                Enabled,
-                CertificatePath,
-                HasCertificatePassword = !string.IsNullOrEmpty(CertificatePassword),
-                RedirectHttpToHttps,
-                HttpsPort,
-                EnableHsts,
-                HstsMaxAgeSeconds,
-                HstsIncludeSubDomains
-            });
+        else
+        {
+            logger.LogInformation("HTTPS is enabled: {@Settings}",
+                new
+                {
+                    Enabled,
+                    CertificatePath,
+                    HasCertificatePassword = !string.IsNullOrEmpty(CertificatePassword),
+                    RedirectHttpToHttps,
+                    HttpsPort,
+                    EnableHsts,
+                    HstsMaxAgeSeconds,
+                    HstsIncludeSubDomains
+                });
+        }
 
         // Warn about potential misconfigurations
         if (RedirectHttpToHttps && !EnableHsts)
         {
             logger.LogWarning("HTTPS redirect is enabled but HSTS is disabled. Consider enabling Https.EnableHsts for better security");
+        }
+
+        if (!Enabled && EnableHsts)
+        {
+            logger.LogWarning("HSTS is enabled but Kestrel HTTPS is disabled. HSTS headers will only be effective if TLS is terminated by a reverse proxy");
+        }
+
+        if (!Enabled && RedirectHttpToHttps)
+        {
+            logger.LogWarning("HTTPS redirect is enabled but Kestrel HTTPS is disabled. Redirect will only work if TLS is terminated by a reverse proxy");
+        }
+
+        if (HttpsPort.HasValue && !RedirectHttpToHttps)
+        {
+            logger.LogWarning("Https.Port is configured but HTTPS redirect is disabled. The port setting will be ignored");
         }
     }
 }

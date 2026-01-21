@@ -1,7 +1,6 @@
 namespace ServiceControl.Infrastructure;
 
 using System;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Configuration;
 
@@ -14,17 +13,11 @@ public class OpenIdConnectSettings
     readonly ILogger logger = LoggerUtil.CreateStaticLogger<OpenIdConnectSettings>();
 
     /// <summary>
-    /// Initializes OpenID Connect settings by reading configuration values from the SettingsReader.
+    /// Initializes OpenID Connect settings from the given configuration root namespace.
     /// </summary>
-    /// <param name="rootNamespace">The settings root namespace (e.g., "ServiceControl", "ServiceControl.Audit").</param>
-    /// <param name="validateConfiguration">
-    /// When true, validates that all required settings are present and logs security warnings
-    /// for any disabled validation flags. Throws an exception if required settings are missing.
-    /// </param>
-    /// <param name="requireServicePulseSettings">
-    /// When true (default), requires ServicePulse-specific settings (ClientId, ApiScopes).
-    /// Set to false for Audit and Monitoring instances which don't serve the ServicePulse UI.
-    /// </param>
+    /// <param name="rootNamespace"></param>
+    /// <param name="validateConfiguration"></param>
+    /// <param name="requireServicePulseSettings"></param>
     public OpenIdConnectSettings(SettingsRootNamespace rootNamespace, bool validateConfiguration, bool requireServicePulseSettings = true)
     {
         // Master switch - if disabled, all other authentication settings are ignored
@@ -58,7 +51,6 @@ public class OpenIdConnectSettings
     /// Master switch for authentication. When false, all other authentication settings are ignored
     /// and all API endpoints are accessible without authentication.
     /// </summary>
-    [JsonPropertyName("enabled")]
     public bool Enabled { get; }
 
     /// <summary>
@@ -66,145 +58,73 @@ public class OpenIdConnectSettings
     /// that issues tokens (e.g., "https://login.microsoftonline.com/{tenant-id}/v2.0" for Azure AD).
     /// The OIDC discovery document is fetched from {Authority}/.well-known/openid-configuration.
     /// </summary>
-    [JsonPropertyName("authority")]
     public string Authority { get; }
 
     /// <summary>
     /// The expected audience claim in the JWT token. Tokens must contain this value in their "aud" claim
     /// to be considered valid. Typically set to the API identifier or application ID.
     /// </summary>
-    [JsonPropertyName("audience")]
     public string Audience { get; }
 
     /// <summary>
     /// When true, validates that the token's issuer matches the configured authority.
     /// Disabling this allows tokens from any issuer (security warning logged).
     /// </summary>
-    [JsonPropertyName("validateIssuer")]
     public bool ValidateIssuer { get; }
 
     /// <summary>
     /// When true, validates that the token's audience matches the configured audience.
     /// Disabling this allows tokens intended for other applications (security warning logged).
     /// </summary>
-    [JsonPropertyName("validateAudience")]
     public bool ValidateAudience { get; }
 
     /// <summary>
     /// When true, validates that the token has not expired based on the "exp" claim.
     /// Disabling this allows expired tokens to be accepted (security warning logged).
     /// </summary>
-    [JsonPropertyName("validateLifetime")]
     public bool ValidateLifetime { get; }
 
     /// <summary>
     /// When true, validates the token's cryptographic signature using keys from the authority's JWKS endpoint.
     /// Disabling this is a serious security risk as it allows forged tokens (security warning logged).
     /// </summary>
-    [JsonPropertyName("validateIssuerSigningKey")]
     public bool ValidateIssuerSigningKey { get; }
 
     /// <summary>
     /// When true, requires the authority URL to use HTTPS. Set to false only for local development
     /// with HTTP identity providers (not recommended for production).
     /// </summary>
-    [JsonPropertyName("requireHttpsMetadata")]
     public bool RequireHttpsMetadata { get; }
 
     /// <summary>
     /// Optional override for the authority URL that ServicePulse should use for authentication.
     /// If not specified, ServicePulse uses the main Authority value.
     /// </summary>
-    [JsonPropertyName("servicePulseAuthority")]
     public string ServicePulseAuthority { get; }
 
     /// <summary>
     /// The OAuth client ID that ServicePulse should use when initiating the authentication flow.
     /// Required on the primary ServiceControl instance when authentication is enabled.
     /// </summary>
-    [JsonPropertyName("servicePulseClientId")]
     public string ServicePulseClientId { get; }
 
     /// <summary>
     /// Space-separated list of API scopes that ServicePulse should request during authentication.
     /// Required on the primary ServiceControl instance when authentication is enabled.
     /// </summary>
-    [JsonPropertyName("servicePulseApiScopes")]
     public string ServicePulseApiScopes { get; }
 
-    /// <summary>
-    /// Validates the authentication configuration, ensuring required settings are present
-    /// and logging warnings for any security-related settings that are disabled.
-    /// </summary>
-    /// <param name="requireServicePulseSettings">
-    /// When true, also validates that ServicePulse settings (ClientId, ApiScopes) are provided.
-    /// </param>
-    /// <exception cref="Exception">Thrown when required settings are missing or invalid.</exception>
     void Validate(bool requireServicePulseSettings)
     {
-        if (!Enabled)
+        if (Enabled)
         {
-            LogDisabledConfiguration(requireServicePulseSettings);
-            return;
+            ValidateRequiredSettings(requireServicePulseSettings);
         }
 
-        ValidateEnabledConfiguration(requireServicePulseSettings);
-
-        logger.LogInformation("Authentication is enabled: {@Settings}",
-            new
-            {
-                Authority,
-                Audience,
-                ValidateIssuer,
-                ValidateAudience,
-                ValidateLifetime,
-                ValidateIssuerSigningKey,
-                RequireHttpsMetadata,
-                ServicePulseClientId = requireServicePulseSettings ? ServicePulseClientId : null,
-                ServicePulseAuthority = requireServicePulseSettings ? ServicePulseAuthority : null,
-                ServicePulseApiScopes = requireServicePulseSettings ? ServicePulseApiScopes : null
-            });
+        LogConfiguration(requireServicePulseSettings);
     }
 
-    void LogDisabledConfiguration(bool requireServicePulseSettings)
-    {
-        // Check if any settings are configured but will be ignored because auth is disabled
-        var hasIgnoredSettings =
-            !string.IsNullOrWhiteSpace(Authority) ||
-            !string.IsNullOrWhiteSpace(Audience) ||
-            !ValidateIssuer ||
-            !ValidateAudience ||
-            !ValidateLifetime ||
-            !ValidateIssuerSigningKey ||
-            !RequireHttpsMetadata ||
-            (requireServicePulseSettings && !string.IsNullOrWhiteSpace(ServicePulseClientId)) ||
-            (requireServicePulseSettings && !string.IsNullOrWhiteSpace(ServicePulseApiScopes)) ||
-            (requireServicePulseSettings && !string.IsNullOrWhiteSpace(ServicePulseAuthority));
-
-        if (hasIgnoredSettings)
-        {
-            logger.LogWarning("Authentication is disabled but authentication settings are configured. These settings will be ignored: {@Settings}",
-                new
-                {
-                    Authority,
-                    Audience,
-                    ValidateIssuer,
-                    ValidateAudience,
-                    ValidateLifetime,
-                    ValidateIssuerSigningKey,
-                    RequireHttpsMetadata,
-                    ServicePulseClientId = requireServicePulseSettings ? ServicePulseClientId : null,
-                    ServicePulseAuthority = requireServicePulseSettings ? ServicePulseAuthority : null,
-                    ServicePulseApiScopes = requireServicePulseSettings ? ServicePulseApiScopes : null
-                });
-        }
-        else
-        {
-            logger.LogInformation("Authentication is disabled");
-        }
-    }
-
-    void ValidateEnabledConfiguration(bool requireServicePulseSettings)
+    void ValidateRequiredSettings(bool requireServicePulseSettings)
     {
         if (string.IsNullOrWhiteSpace(Authority))
         {
@@ -234,26 +154,6 @@ public class OpenIdConnectSettings
             throw new Exception(message);
         }
 
-        if (!ValidateIssuer)
-        {
-            logger.LogWarning("Authentication.ValidateIssuer is set to false. This is not recommended for production environments as it allows tokens from untrusted issuers");
-        }
-
-        if (!ValidateAudience)
-        {
-            logger.LogWarning("Authentication.ValidateAudience is set to false. This is not recommended for production environments as it allows tokens intended for other applications");
-        }
-
-        if (!ValidateLifetime)
-        {
-            logger.LogWarning("Authentication.ValidateLifetime is set to false. This is not recommended for production environments as it allows expired tokens to be accepted");
-        }
-
-        if (!ValidateIssuerSigningKey)
-        {
-            logger.LogWarning("Authentication.ValidateIssuerSigningKey is set to false. This is not recommended for production environments as it allows forged tokens to be accepted");
-        }
-
         if (requireServicePulseSettings)
         {
             if (string.IsNullOrWhiteSpace(ServicePulseClientId))
@@ -276,6 +176,79 @@ public class OpenIdConnectSettings
                 logger.LogCritical(message);
                 throw new Exception(message);
             }
+        }
+    }
+
+    void LogConfiguration(bool requireServicePulseSettings)
+    {
+        if (Enabled)
+        {
+            logger.LogInformation("Authentication is enabled: {@Settings}",
+                new
+                {
+                    Authority,
+                    Audience,
+                    ValidateIssuer,
+                    ValidateAudience,
+                    ValidateLifetime,
+                    ValidateIssuerSigningKey,
+                    RequireHttpsMetadata,
+                    ServicePulseClientId = requireServicePulseSettings ? ServicePulseClientId : null,
+                    ServicePulseAuthority = requireServicePulseSettings ? ServicePulseAuthority : null,
+                    ServicePulseApiScopes = requireServicePulseSettings ? ServicePulseApiScopes : null
+                });
+        }
+        else
+        {
+            logger.LogInformation("Authentication is disabled: {@Settings}",
+                new
+                {
+                    Authority,
+                    Audience,
+                    ValidateIssuer,
+                    ValidateAudience,
+                    ValidateLifetime,
+                    ValidateIssuerSigningKey,
+                    RequireHttpsMetadata,
+                    ServicePulseClientId = requireServicePulseSettings ? ServicePulseClientId : null,
+                    ServicePulseAuthority = requireServicePulseSettings ? ServicePulseAuthority : null,
+                    ServicePulseApiScopes = requireServicePulseSettings ? ServicePulseApiScopes : null
+                });
+        }
+
+        // Warn about potential misconfigurations
+        var hasAuthConfig = !string.IsNullOrWhiteSpace(Authority) || !string.IsNullOrWhiteSpace(Audience);
+        var hasServicePulseConfig = requireServicePulseSettings &&
+            (!string.IsNullOrWhiteSpace(ServicePulseClientId) || !string.IsNullOrWhiteSpace(ServicePulseApiScopes) || !string.IsNullOrWhiteSpace(ServicePulseAuthority));
+
+        if (!Enabled && (hasAuthConfig || hasServicePulseConfig))
+        {
+            logger.LogWarning("Authentication is disabled but authentication settings are configured. These settings will be ignored");
+        }
+
+        if (Enabled && !ValidateIssuer)
+        {
+            logger.LogWarning("Authentication.ValidateIssuer is disabled. Tokens from any issuer will be accepted. Its recommended to keep this enabled for security");
+        }
+
+        if (Enabled && !ValidateAudience)
+        {
+            logger.LogWarning("Authentication.ValidateAudience is disabled. Tokens intended for other applications will be accepted. Its recommended to keep this enabled for security");
+        }
+
+        if (Enabled && !ValidateLifetime)
+        {
+            logger.LogWarning("Authentication.ValidateLifetime is disabled. Expired tokens will be accepted. Its recommended to keep this enabled for security");
+        }
+
+        if (Enabled && !ValidateIssuerSigningKey)
+        {
+            logger.LogWarning("Authentication.ValidateIssuerSigningKey is disabled. Forged tokens may be accepted. Its recommended to keep this enabled for security");
+        }
+
+        if (Enabled && !RequireHttpsMetadata)
+        {
+            logger.LogWarning("Authentication.RequireHttpsMetadata is disabled. OIDC metadata will be fetched over HTTP which is insecure. Its recommended to keep this enabled for security");
         }
     }
 }

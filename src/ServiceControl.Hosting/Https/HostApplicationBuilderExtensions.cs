@@ -12,6 +12,8 @@ public static class HostApplicationBuilderExtensions
 {
     public static void AddServiceControlHttps(this WebApplicationBuilder hostBuilder, HttpsSettings settings)
     {
+        // EnableHsts is disabled by default
+        // Hsts is automatically disabled in Development environments
         if (settings.EnableHsts)
         {
             hostBuilder.Services.Configure<HstsOptions>(options =>
@@ -21,6 +23,7 @@ public static class HostApplicationBuilderExtensions
             });
         }
 
+        // RedirectHttpToHttps is disabled by default. HttpsPort is null by default.
         if (settings.RedirectHttpToHttps && settings.HttpsPort.HasValue)
         {
             hostBuilder.Services.AddHttpsRedirection(options =>
@@ -29,6 +32,7 @@ public static class HostApplicationBuilderExtensions
             });
         }
 
+        // Kestrel HTTPS is disabled by default
         if (settings.Enabled)
         {
             hostBuilder.WebHost.ConfigureKestrel(kestrel =>

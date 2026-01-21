@@ -12,6 +12,7 @@ public static class WebApplicationExtensions
     public static void UseServiceControlForwardedHeaders(this WebApplication app, ForwardedHeadersSettings settings)
     {
         // Register debug endpoint first (before early return) so it's always available in Development
+        // This endpoint is used in automated tests to verify forwarded headers processing
         if (app.Environment.IsDevelopment())
         {
             _ = app.MapGet("/debug/request-info", (HttpContext context) =>
@@ -49,11 +50,13 @@ public static class WebApplicationExtensions
             });
         }
 
+        // Forwarded headers processing is enabled by default
         if (!settings.Enabled)
         {
             return;
         }
 
+        // Attempt to process all forwarded headers
         var options = new ForwardedHeadersOptions
         {
             ForwardedHeaders = ForwardedHeaders.All
@@ -63,6 +66,7 @@ public static class WebApplicationExtensions
         options.KnownProxies.Clear();
         options.KnownNetworks.Clear();
 
+        // Enabled by default
         if (settings.TrustAllProxies)
         {
             // Trust all proxies: remove hop limit
