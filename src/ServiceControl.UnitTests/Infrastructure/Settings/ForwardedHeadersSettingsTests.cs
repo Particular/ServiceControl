@@ -28,17 +28,18 @@ public class ForwardedHeadersSettingsTests
         Environment.SetEnvironmentVariable("SERVICECONTROL_FORWARDEDHEADERS_KNOWNNETWORKS", null);
     }
 
-    [Test]
-    public void Should_parse_known_proxies_from_comma_separated_list()
+    [TestCase("127.0.0.1,10.0.0.5", Description = "Comma separated")]
+    [TestCase("127.0.0.1;10.0.0.5", Description = "Semicolon separated")]
+    [TestCase("127.0.0.1,10.0.0.5;", Description = "Mixed separators")]
+    public void Should_parse_known_proxies_with_different_separators(string proxies)
     {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES", "127.0.0.1,10.0.0.5,192.168.1.1");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES", proxies);
 
         var settings = new ForwardedHeadersSettings(TestNamespace);
 
-        Assert.That(settings.KnownProxiesRaw, Has.Count.EqualTo(3));
+        Assert.That(settings.KnownProxiesRaw, Has.Count.EqualTo(2));
         Assert.That(settings.KnownProxiesRaw, Does.Contain("127.0.0.1"));
         Assert.That(settings.KnownProxiesRaw, Does.Contain("10.0.0.5"));
-        Assert.That(settings.KnownProxiesRaw, Does.Contain("192.168.1.1"));
     }
 
     [Test]
@@ -96,10 +97,11 @@ public class ForwardedHeadersSettingsTests
         Assert.That(settings.KnownNetworks, Does.Not.Contain("invalid-network"));
     }
 
-    [Test]
-    public void Should_disable_trust_all_proxies_when_known_proxies_configured()
+    [TestCase("SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES", "127.0.0.1", Description = "Known proxies configured")]
+    [TestCase("SERVICECONTROL_FORWARDEDHEADERS_KNOWNNETWORKS", "10.0.0.0/8", Description = "Known networks configured")]
+    public void Should_disable_trust_all_proxies_when_proxy_config_present(string envVar, string value)
     {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES", "127.0.0.1");
+        Environment.SetEnvironmentVariable(envVar, value);
 
         var settings = new ForwardedHeadersSettings(TestNamespace);
 
@@ -107,29 +109,17 @@ public class ForwardedHeadersSettingsTests
     }
 
     [Test]
-    public void Should_disable_trust_all_proxies_when_known_networks_configured()
-    {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_FORWARDEDHEADERS_KNOWNNETWORKS", "10.0.0.0/8");
-
-        var settings = new ForwardedHeadersSettings(TestNamespace);
-
-        Assert.That(settings.TrustAllProxies, Is.False);
-    }
-
-    [Test]
-    public void Should_default_to_enabled()
+    public void Should_have_correct_defaults()
     {
         var settings = new ForwardedHeadersSettings(TestNamespace);
 
-        Assert.That(settings.Enabled, Is.True);
-    }
-
-    [Test]
-    public void Should_default_to_trust_all_proxies()
-    {
-        var settings = new ForwardedHeadersSettings(TestNamespace);
-
-        Assert.That(settings.TrustAllProxies, Is.True);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(settings.Enabled, Is.True);
+            Assert.That(settings.TrustAllProxies, Is.True);
+            Assert.That(settings.KnownProxiesRaw, Is.Empty);
+            Assert.That(settings.KnownNetworks, Is.Empty);
+        }
     }
 
     [Test]
@@ -143,16 +133,6 @@ public class ForwardedHeadersSettingsTests
     }
 
     [Test]
-    public void Should_handle_semicolon_separator_in_proxies()
-    {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES", "127.0.0.1;10.0.0.5");
-
-        var settings = new ForwardedHeadersSettings(TestNamespace);
-
-        Assert.That(settings.KnownProxiesRaw, Has.Count.EqualTo(2));
-    }
-
-    [Test]
     public void Should_trim_whitespace_from_proxy_entries()
     {
         Environment.SetEnvironmentVariable("SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES", " 127.0.0.1 , 10.0.0.5 ");
@@ -162,5 +142,21 @@ public class ForwardedHeadersSettingsTests
         Assert.That(settings.KnownProxiesRaw, Has.Count.EqualTo(2));
         Assert.That(settings.KnownProxiesRaw, Does.Contain("127.0.0.1"));
         Assert.That(settings.KnownProxiesRaw, Does.Contain("10.0.0.5"));
+    }
+
+    [Test]
+    public void Should_parse_proxy_config_even_when_disabled()
+    {
+        Environment.SetEnvironmentVariable("SERVICECONTROL_FORWARDEDHEADERS_ENABLED", "false");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES", "127.0.0.1");
+
+        var settings = new ForwardedHeadersSettings(TestNamespace);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(settings.Enabled, Is.False);
+            Assert.That(settings.KnownProxiesRaw, Has.Count.EqualTo(1));
+            Assert.That(settings.TrustAllProxies, Is.False);
+        }
     }
 }

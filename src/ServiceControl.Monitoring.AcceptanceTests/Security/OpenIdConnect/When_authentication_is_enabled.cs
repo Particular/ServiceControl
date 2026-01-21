@@ -148,6 +148,27 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.OpenIdConnect
         }
 
         [Test]
+        public async Task Should_reject_requests_with_wrong_issuer()
+        {
+            HttpResponseMessage response = null;
+
+            _ = await Define<Context>()
+                .Done(async ctx =>
+                {
+                    var wrongIssuerToken = mockOidcServer.GenerateTokenWithWrongIssuer();
+                    response = await OpenIdConnectAssertions.SendRequestWithBearerToken(
+                        HttpClient,
+                        HttpMethod.Get,
+                        "/monitored-endpoints",
+                        wrongIssuerToken);
+                    return response != null;
+                })
+                .Run();
+
+            OpenIdConnectAssertions.AssertUnauthorized(response);
+        }
+
+        [Test]
         public async Task Should_allow_anonymous_access_to_root_endpoint()
         {
             HttpResponseMessage response = null;

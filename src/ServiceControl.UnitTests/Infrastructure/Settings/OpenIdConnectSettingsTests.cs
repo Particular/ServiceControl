@@ -35,25 +35,23 @@ public class OpenIdConnectSettingsTests
     }
 
     [Test]
-    public void Should_default_to_disabled()
-    {
-        var settings = new OpenIdConnectSettings(TestNamespace, validateConfiguration: false);
-
-        Assert.That(settings.Enabled, Is.False);
-    }
-
-    [Test]
-    public void Should_default_validation_flags_to_true()
+    public void Should_have_correct_defaults()
     {
         var settings = new OpenIdConnectSettings(TestNamespace, validateConfiguration: false);
 
         using (Assert.EnterMultipleScope())
         {
+            Assert.That(settings.Enabled, Is.False);
+            Assert.That(settings.Authority, Is.Null);
+            Assert.That(settings.Audience, Is.Null);
             Assert.That(settings.ValidateIssuer, Is.True);
             Assert.That(settings.ValidateAudience, Is.True);
             Assert.That(settings.ValidateLifetime, Is.True);
             Assert.That(settings.ValidateIssuerSigningKey, Is.True);
             Assert.That(settings.RequireHttpsMetadata, Is.True);
+            Assert.That(settings.ServicePulseClientId, Is.Null);
+            Assert.That(settings.ServicePulseApiScopes, Is.Null);
+            Assert.That(settings.ServicePulseAuthority, Is.Null);
         }
     }
 
@@ -277,17 +275,20 @@ public class OpenIdConnectSettingsTests
     }
 
     [Test]
-    public void Should_allow_optional_service_pulse_authority()
+    public void Should_parse_settings_even_when_disabled()
     {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_ENABLED", "true");
+        // Settings should be parsed and available even when authentication is disabled
+        // (useful for logging and debugging configuration issues)
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_AUTHORITY", "https://login.example.com");
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_AUDIENCE", "my-audience");
-        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID", "my-client-id");
-        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "api://my-api/.default");
-        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY", "https://pulse-auth.example.com");
 
-        var settings = new OpenIdConnectSettings(TestNamespace, validateConfiguration: true, requireServicePulseSettings: true);
+        var settings = new OpenIdConnectSettings(TestNamespace, validateConfiguration: true, requireServicePulseSettings: false);
 
-        Assert.That(settings.ServicePulseAuthority, Is.EqualTo("https://pulse-auth.example.com"));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(settings.Enabled, Is.False);
+            Assert.That(settings.Authority, Is.EqualTo("https://login.example.com"));
+            Assert.That(settings.Audience, Is.EqualTo("my-audience"));
+        }
     }
 }

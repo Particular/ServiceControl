@@ -127,16 +127,18 @@ public class ForwardedHeadersSettings
     void LogConfiguration()
     {
         var hasProxyConfig = KnownProxiesRaw.Count > 0 || KnownNetworks.Count > 0;
+        var knownProxiesDisplay = KnownProxiesRaw.Count > 0 ? string.Join(", ", KnownProxiesRaw) : "(none)";
+        var knownNetworksDisplay = KnownNetworks.Count > 0 ? string.Join(", ", KnownNetworks) : "(none)";
 
         if (Enabled)
         {
-            logger.LogInformation("Forwarded headers processing is enabled: {@Settings}",
-                new { Enabled, TrustAllProxies, KnownProxies = KnownProxiesRaw, KnownNetworks });
+            logger.LogInformation("Forwarded headers processing is enabled: Enabled={Enabled}, TrustAllProxies={TrustAllProxies}, KnownProxies={KnownProxies}, KnownNetworks={KnownNetworks}",
+                Enabled, TrustAllProxies, knownProxiesDisplay, knownNetworksDisplay);
         }
         else
         {
-            logger.LogInformation("Forwarded headers processing is disabled: {@Settings}",
-                new { Enabled, TrustAllProxies, KnownProxies = KnownProxiesRaw, KnownNetworks });
+            logger.LogInformation("Forwarded headers processing is disabled: Enabled={Enabled}, TrustAllProxies={TrustAllProxies}, KnownProxies={KnownProxies}, KnownNetworks={KnownNetworks}",
+                Enabled, TrustAllProxies, knownProxiesDisplay, knownNetworksDisplay);
         }
 
         // Warn about potential misconfigurations

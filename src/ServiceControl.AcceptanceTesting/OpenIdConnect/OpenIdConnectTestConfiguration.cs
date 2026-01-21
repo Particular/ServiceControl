@@ -178,6 +178,9 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
                 ClearConfiguration();
                 disposed = true;
             }
+
+            // Prevent finalizer from running since we've already cleaned up managed resources
+            GC.SuppressFinalize(this);
         }
     }
 }

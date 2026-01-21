@@ -27,6 +27,10 @@
         }
     }
 
+    /// <summary>
+    /// Authentication configuration information exposed via the API.
+    /// This will be serialized to JSON using snake_case naming.
+    /// </summary>
     public class AuthConfig
     {
         public bool Enabled { get; set; }

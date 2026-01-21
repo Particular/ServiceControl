@@ -4,13 +4,13 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
-    using System.Net;
     using System.Net.Http;
     using System.Runtime.Loader;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.ForwardedHeaders;
     using Infrastructure.Hosting;
     using Infrastructure.Hosting.Commands;
     using Infrastructure.Settings;
@@ -142,22 +142,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
                 host = hostBuilder.Build();
 
-                // Test middleware: Set RemoteIpAddress from X-Test-Remote-IP header
-                // This must run BEFORE UseServiceControlAudit (which adds ForwardedHeaders middleware)
-                // so that the ForwardedHeaders middleware can properly check KnownProxies/KnownNetworks
-                _ = host.Use(async (context, next) =>
-                {
-                    if (context.Request.Headers.TryGetValue("X-Test-Remote-IP", out var testIpHeader))
-                    {
-                        var testIpValue = testIpHeader.ToString();
-                        if (IPAddress.TryParse(testIpValue, out var testIp))
-                        {
-                            context.Connection.RemoteIpAddress = testIp;
-                        }
-                    }
-                    await next();
-                });
-
+                host.UseTestRemoteIp();
                 host.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
                 host.UseServiceControlAudit(settings.ForwardedHeadersSettings, settings.HttpsSettings);
                 await host.StartAsync();

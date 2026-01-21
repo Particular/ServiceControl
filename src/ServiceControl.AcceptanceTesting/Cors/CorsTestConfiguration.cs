@@ -75,6 +75,9 @@ namespace ServiceControl.AcceptanceTesting.Cors
                 ClearConfiguration();
                 disposed = true;
             }
+
+            // Prevent finalizer from running since we've already cleaned up managed resources
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -72,16 +72,6 @@ namespace ServiceControl.AcceptanceTesting.ForwardedHeaders
         }
 
         /// <summary>
-        /// Applies the configuration by ensuring environment variables are set.
-        /// This should be called before the ServiceControl instance starts.
-        /// </summary>
-        public void Apply()
-        {
-            // Configuration is already applied via the With* methods
-            // This method exists for explicit apply semantics if needed
-        }
-
-        /// <summary>
         /// Clears all forwarded headers environment variables.
         /// Called automatically on Dispose.
         /// </summary>
@@ -104,6 +94,9 @@ namespace ServiceControl.AcceptanceTesting.ForwardedHeaders
                 ClearConfiguration();
                 disposed = true;
             }
+
+            // Prevent finalizer from running since we've already cleaned up managed resources
+            GC.SuppressFinalize(this);
         }
     }
 }

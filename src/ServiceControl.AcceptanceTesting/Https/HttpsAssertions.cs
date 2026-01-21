@@ -10,8 +10,7 @@ namespace ServiceControl.AcceptanceTesting.Https
     /// </summary>
     public static class HttpsAssertions
     {
-        public const string StrictTransportSecurityHeader = "Strict-Transport-Security";
-        public const string LocationHeader = "Location";
+        const string StrictTransportSecurityHeader = "Strict-Transport-Security";
 
         /// <summary>
         /// Asserts that the response is a redirect to HTTPS.

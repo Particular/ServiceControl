@@ -42,7 +42,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
                 })
                 .Run();
 
-            CorsAssertions.AssertAllowAnyOrigin(response, testOrigin);
+            CorsAssertions.AssertAllowAnyOrigin(response);
         }
 
         [Test]
