@@ -4,17 +4,17 @@
     "LogPath": "C:\\Logs"
   },
   "OpenIdConnectSettings": {
-    "enabled": false,
-    "authority": null,
-    "audience": null,
-    "validateIssuer": true,
-    "validateAudience": true,
-    "validateLifetime": true,
-    "validateIssuerSigningKey": true,
-    "requireHttpsMetadata": true,
-    "servicePulseAuthority": null,
-    "servicePulseClientId": null,
-    "servicePulseApiScopes": null
+    "Enabled": false,
+    "Authority": null,
+    "Audience": null,
+    "ValidateIssuer": true,
+    "ValidateAudience": true,
+    "ValidateLifetime": true,
+    "ValidateIssuerSigningKey": true,
+    "RequireHttpsMetadata": true,
+    "ServicePulseAuthority": null,
+    "ServicePulseClientId": null,
+    "ServicePulseApiScopes": null
   },
   "ForwardedHeadersSettings": {
     "Enabled": true,
