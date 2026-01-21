@@ -46,51 +46,21 @@ public class HttpsSettingsTests
     }
 
     [Test]
-    public void Should_default_to_disabled()
+    public void Should_have_correct_defaults()
     {
         var settings = new HttpsSettings(TestNamespace);
 
-        Assert.That(settings.Enabled, Is.False);
-    }
-
-    [Test]
-    public void Should_default_redirect_to_disabled()
-    {
-        var settings = new HttpsSettings(TestNamespace);
-
-        Assert.That(settings.RedirectHttpToHttps, Is.False);
-    }
-
-    [Test]
-    public void Should_default_hsts_to_disabled()
-    {
-        var settings = new HttpsSettings(TestNamespace);
-
-        Assert.That(settings.EnableHsts, Is.False);
-    }
-
-    [Test]
-    public void Should_default_hsts_max_age_to_one_year()
-    {
-        var settings = new HttpsSettings(TestNamespace);
-
-        Assert.That(settings.HstsMaxAgeSeconds, Is.EqualTo(31536000));
-    }
-
-    [Test]
-    public void Should_default_hsts_include_subdomains_to_false()
-    {
-        var settings = new HttpsSettings(TestNamespace);
-
-        Assert.That(settings.HstsIncludeSubDomains, Is.False);
-    }
-
-    [Test]
-    public void Should_default_https_port_to_null()
-    {
-        var settings = new HttpsSettings(TestNamespace);
-
-        Assert.That(settings.HttpsPort, Is.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(settings.Enabled, Is.False);
+            Assert.That(settings.CertificatePath, Is.Null);
+            Assert.That(settings.CertificatePassword, Is.Null);
+            Assert.That(settings.RedirectHttpToHttps, Is.False);
+            Assert.That(settings.HttpsPort, Is.Null);
+            Assert.That(settings.EnableHsts, Is.False);
+            Assert.That(settings.HstsMaxAgeSeconds, Is.EqualTo(31536000)); // 1 year
+            Assert.That(settings.HstsIncludeSubDomains, Is.False);
+        }
     }
 
     [Test]
@@ -204,15 +174,18 @@ public class HttpsSettingsTests
         // HTTPS disabled (default) should not require certificate
         var settings = new HttpsSettings(TestNamespace);
 
-        Assert.That(settings.Enabled, Is.False);
-        Assert.That(settings.CertificatePath, Is.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(settings.Enabled, Is.False);
+            Assert.That(settings.CertificatePath, Is.Null);
+        }
     }
 
     [Test]
     public void Should_allow_redirect_settings_without_https_enabled()
     {
-        // Redirect settings can be configured even when HTTPS is disabled
-        // (they will be ignored but should not throw)
+        // Redirect settings can be configured even when Kestrel HTTPS is disabled
+        // (useful when running behind a reverse proxy that handles HTTPS)
         Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_REDIRECTHTTPTOHTTPS", "true");
         Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_PORT", "443");
 
@@ -229,8 +202,8 @@ public class HttpsSettingsTests
     [Test]
     public void Should_allow_hsts_settings_without_https_enabled()
     {
-        // HSTS settings can be configured even when HTTPS is disabled
-        // (they will be ignored but should not throw)
+        // HSTS settings can be configured even when Kestrel HTTPS is disabled
+        // (useful when running behind a reverse proxy that handles HTTPS)
         Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_ENABLEHSTS", "true");
         Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_HSTSMAXAGESECONDS", "3600");
         Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_HSTSINCLUDESUBDOMAINS", "true");

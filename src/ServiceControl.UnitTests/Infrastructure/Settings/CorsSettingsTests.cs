@@ -26,19 +26,15 @@ public class CorsSettingsTests
     }
 
     [Test]
-    public void Should_default_to_allow_any_origin()
+    public void Should_have_correct_defaults()
     {
         var settings = new CorsSettings(TestNamespace);
 
-        Assert.That(settings.AllowAnyOrigin, Is.True);
-    }
-
-    [Test]
-    public void Should_default_to_empty_allowed_origins()
-    {
-        var settings = new CorsSettings(TestNamespace);
-
-        Assert.That(settings.AllowedOrigins, Is.Empty);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(settings.AllowAnyOrigin, Is.True);
+            Assert.That(settings.AllowedOrigins, Is.Empty);
+        }
     }
 
     [Test]
@@ -52,23 +48,12 @@ public class CorsSettingsTests
         Assert.That(settings.AllowedOrigins, Does.Contain("https://example.com"));
     }
 
-    [Test]
-    public void Should_parse_multiple_comma_separated_origins()
+    [TestCase("https://example.com,https://other.com", Description = "Comma separated")]
+    [TestCase("https://example.com;https://other.com", Description = "Semicolon separated")]
+    [TestCase("https://example.com,https://other.com;", Description = "Mixed separators")]
+    public void Should_parse_multiple_origins_with_different_separators(string origins)
     {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_CORS_ALLOWEDORIGINS", "https://example.com,https://app.example.com,http://localhost:3000");
-
-        var settings = new CorsSettings(TestNamespace);
-
-        Assert.That(settings.AllowedOrigins, Has.Count.EqualTo(3));
-        Assert.That(settings.AllowedOrigins, Does.Contain("https://example.com"));
-        Assert.That(settings.AllowedOrigins, Does.Contain("https://app.example.com"));
-        Assert.That(settings.AllowedOrigins, Does.Contain("http://localhost:3000"));
-    }
-
-    [Test]
-    public void Should_parse_semicolon_separated_origins()
-    {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_CORS_ALLOWEDORIGINS", "https://example.com;https://other.com");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_CORS_ALLOWEDORIGINS", origins);
 
         var settings = new CorsSettings(TestNamespace);
 
@@ -146,35 +131,34 @@ public class CorsSettingsTests
     }
 
     [Test]
-    public void Should_keep_allow_any_origin_true_when_explicitly_set()
+    public void Should_allow_explicit_allow_any_origin_false_with_specific_origins()
     {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_CORS_ALLOWANYORIGIN", "true");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_CORS_ALLOWANYORIGIN", "false");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_CORS_ALLOWEDORIGINS", "https://example.com");
 
         var settings = new CorsSettings(TestNamespace);
 
-        Assert.That(settings.AllowAnyOrigin, Is.True);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(settings.AllowAnyOrigin, Is.False);
+            Assert.That(settings.AllowedOrigins, Has.Count.EqualTo(1));
+        }
+        Assert.That(settings.AllowedOrigins, Does.Contain("https://example.com"));
     }
 
-    [Test]
-    public void Should_handle_empty_origins_string()
+    [TestCase("", Description = "Empty string")]
+    [TestCase("   ", Description = "Whitespace only")]
+    public void Should_handle_empty_or_whitespace_origins_string(string origins)
     {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_CORS_ALLOWEDORIGINS", "");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_CORS_ALLOWEDORIGINS", origins);
 
         var settings = new CorsSettings(TestNamespace);
 
-        Assert.That(settings.AllowedOrigins, Is.Empty);
-        Assert.That(settings.AllowAnyOrigin, Is.True);
-    }
-
-    [Test]
-    public void Should_handle_whitespace_only_origins_string()
-    {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_CORS_ALLOWEDORIGINS", "   ");
-
-        var settings = new CorsSettings(TestNamespace);
-
-        Assert.That(settings.AllowedOrigins, Is.Empty);
-        Assert.That(settings.AllowAnyOrigin, Is.True);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(settings.AllowedOrigins, Is.Empty);
+            Assert.That(settings.AllowAnyOrigin, Is.True);
+        }
     }
 
     [Test]
@@ -184,8 +168,11 @@ public class CorsSettingsTests
 
         var settings = new CorsSettings(TestNamespace);
 
-        // All origins invalid, so list is empty, but AllowAnyOrigin stays true (no valid origins to override)
-        Assert.That(settings.AllowedOrigins, Is.Empty);
-        Assert.That(settings.AllowAnyOrigin, Is.True);
+        using (Assert.EnterMultipleScope())
+        {
+            // All origins invalid, so list is empty, but AllowAnyOrigin stays true (no valid origins to override)
+            Assert.That(settings.AllowedOrigins, Is.Empty);
+            Assert.That(settings.AllowAnyOrigin, Is.True);
+        }
     }
 }

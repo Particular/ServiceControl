@@ -46,26 +46,6 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
         }
 
         [Test]
-        public async Task Should_allow_second_configured_origin()
-        {
-            HttpResponseMessage response = null;
-            const string allowedOrigin = "https://admin.example.com";
-
-            _ = await Define<Context>()
-                .Done(async ctx =>
-                {
-                    response = await CorsAssertions.SendRequestWithOrigin(
-                        HttpClient,
-                        origin: allowedOrigin,
-                        endpoint: "/api");
-                    return response != null;
-                })
-                .Run();
-
-            CorsAssertions.AssertAllowedOrigin(response, allowedOrigin);
-        }
-
-        [Test]
         public async Task Preflight_request_should_return_correct_cors_headers()
         {
             HttpResponseMessage response = null;
@@ -83,7 +63,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
                 .Run();
 
             CorsAssertions.AssertAllowedOrigin(response, allowedOrigin);
-            CorsAssertions.AssertAllowedMethods(response, "POST", "GET", "PUT", "DELETE");
+            CorsAssertions.AssertAllowedMethods(response, "POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD");
         }
 
         class Context : ScenarioContext

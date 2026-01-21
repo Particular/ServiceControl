@@ -68,8 +68,10 @@ public class CorsSettings
 
     void LogConfiguration()
     {
-        logger.LogInformation("CORS configuration: {@Settings}",
-            new { AllowAnyOrigin, AllowedOrigins });
+        var allowedOriginsDisplay = AllowedOrigins.Count > 0 ? string.Join(", ", AllowedOrigins) : "(none)";
+
+        logger.LogInformation("CORS configuration: AllowAnyOrigin={AllowAnyOrigin}, AllowedOrigins={AllowedOrigins}",
+            AllowAnyOrigin, allowedOriginsDisplay);
 
         // Warn about potential misconfigurations
         if (AllowAnyOrigin)

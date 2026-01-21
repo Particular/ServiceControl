@@ -181,39 +181,21 @@ public class OpenIdConnectSettings
 
     void LogConfiguration(bool requireServicePulseSettings)
     {
+        var authorityDisplay = Authority ?? "(not configured)";
+        var audienceDisplay = Audience ?? "(not configured)";
+        var servicePulseClientIdDisplay = requireServicePulseSettings ? (ServicePulseClientId ?? "(not configured)") : "(n/a)";
+        var servicePulseAuthorityDisplay = requireServicePulseSettings ? (ServicePulseAuthority ?? "(not configured)") : "(n/a)";
+        var servicePulseApiScopesDisplay = requireServicePulseSettings ? (ServicePulseApiScopes ?? "(not configured)") : "(n/a)";
+
         if (Enabled)
         {
-            logger.LogInformation("Authentication is enabled: {@Settings}",
-                new
-                {
-                    Authority,
-                    Audience,
-                    ValidateIssuer,
-                    ValidateAudience,
-                    ValidateLifetime,
-                    ValidateIssuerSigningKey,
-                    RequireHttpsMetadata,
-                    ServicePulseClientId = requireServicePulseSettings ? ServicePulseClientId : null,
-                    ServicePulseAuthority = requireServicePulseSettings ? ServicePulseAuthority : null,
-                    ServicePulseApiScopes = requireServicePulseSettings ? ServicePulseApiScopes : null
-                });
+            logger.LogInformation("Authentication is enabled: Authority={Authority}, Audience={Audience}, ValidateIssuer={ValidateIssuer}, ValidateAudience={ValidateAudience}, ValidateLifetime={ValidateLifetime}, ValidateIssuerSigningKey={ValidateIssuerSigningKey}, RequireHttpsMetadata={RequireHttpsMetadata}, ServicePulseClientId={ServicePulseClientId}, ServicePulseAuthority={ServicePulseAuthority}, ServicePulseApiScopes={ServicePulseApiScopes}",
+                authorityDisplay, audienceDisplay, ValidateIssuer, ValidateAudience, ValidateLifetime, ValidateIssuerSigningKey, RequireHttpsMetadata, servicePulseClientIdDisplay, servicePulseAuthorityDisplay, servicePulseApiScopesDisplay);
         }
         else
         {
-            logger.LogInformation("Authentication is disabled: {@Settings}",
-                new
-                {
-                    Authority,
-                    Audience,
-                    ValidateIssuer,
-                    ValidateAudience,
-                    ValidateLifetime,
-                    ValidateIssuerSigningKey,
-                    RequireHttpsMetadata,
-                    ServicePulseClientId = requireServicePulseSettings ? ServicePulseClientId : null,
-                    ServicePulseAuthority = requireServicePulseSettings ? ServicePulseAuthority : null,
-                    ServicePulseApiScopes = requireServicePulseSettings ? ServicePulseApiScopes : null
-                });
+            logger.LogInformation("Authentication is disabled: Authority={Authority}, Audience={Audience}, ValidateIssuer={ValidateIssuer}, ValidateAudience={ValidateAudience}, ValidateLifetime={ValidateLifetime}, ValidateIssuerSigningKey={ValidateIssuerSigningKey}, RequireHttpsMetadata={RequireHttpsMetadata}, ServicePulseClientId={ServicePulseClientId}, ServicePulseAuthority={ServicePulseAuthority}, ServicePulseApiScopes={ServicePulseApiScopes}",
+                authorityDisplay, audienceDisplay, ValidateIssuer, ValidateAudience, ValidateLifetime, ValidateIssuerSigningKey, RequireHttpsMetadata, servicePulseClientIdDisplay, servicePulseAuthorityDisplay, servicePulseApiScopesDisplay);
         }
 
         // Warn about potential misconfigurations

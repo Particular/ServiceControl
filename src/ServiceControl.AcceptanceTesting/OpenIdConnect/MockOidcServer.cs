@@ -254,6 +254,30 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        /// <summary>
+        /// Generates a token with an invalid issuer.
+        /// </summary>
+        public string GenerateTokenWithWrongIssuer(string subject = "test-user")
+        {
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.RsaSha256);
+
+            var claims = new List<Claim>
+            {
+                new(JwtRegisteredClaimNames.Sub, subject),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: "https://wrong-issuer.example.com",
+                audience: Audience,
+                claims: claims,
+                notBefore: DateTime.UtcNow,
+                expires: DateTime.UtcNow.AddHours(1),
+                signingCredentials: credentials);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
         public void Dispose()
         {
             if (!disposed)
@@ -265,6 +289,8 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
                 cts.Dispose();
                 disposed = true;
             }
+            // Prevent finalizer from running since we've already cleaned up managed resources
+            GC.SuppressFinalize(this);
         }
     }
 }

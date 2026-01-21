@@ -1,4 +1,4 @@
-namespace ServiceControl.Audit.AcceptanceTests.Security.Https
+namespace ServiceControl.Monitoring.AcceptanceTests.Security.Https
 {
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -8,18 +8,18 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Https
     using NUnit.Framework;
 
     /// <summary>
-    /// HSTS Configuration
-    /// Note: HSTS only applies in non-development environments.
+    /// HSTS Configuration in Development Mode
+    /// HSTS only applies in non-development environments (ASP.NET Core's default behavior).
     /// In acceptance tests (which run in Development mode), HSTS headers are not sent.
     /// This test verifies that HSTS is correctly NOT applied in development mode.
     /// </summary>
-    class When_hsts_is_configured : AcceptanceTest
+    class When_hsts_is_configured_in_development_mode : AcceptanceTest
     {
         HttpsTestConfiguration configuration;
 
         [SetUp]
         public void ConfigureHttps() =>
-            configuration = new HttpsTestConfiguration(ServiceControlInstanceType.Audit)
+            configuration = new HttpsTestConfiguration(ServiceControlInstanceType.Monitoring)
                 .WithHstsEnabled()
                 .WithHstsMaxAge(31536000)
                 .WithHstsIncludeSubDomains();
@@ -39,7 +39,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Https
             _ = await Define<Context>()
                 .Done(async ctx =>
                 {
-                    response = await this.GetRaw("/api");
+                    response = await this.GetRaw("/");
                     return response != null;
                 })
                 .Run();

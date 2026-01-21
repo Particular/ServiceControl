@@ -38,7 +38,7 @@ namespace ServiceControl.AcceptanceTesting.ForwardedHeaders
             }
             if (!string.IsNullOrEmpty(testRemoteIp))
             {
-                request.Headers.Add("X-Test-Remote-IP", testRemoteIp);
+                request.Headers.Add(TestRemoteIpMiddleware.HeaderName, testRemoteIp);
             }
 
             var response = await httpClient.SendAsync(request);

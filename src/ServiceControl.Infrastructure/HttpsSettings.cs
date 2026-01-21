@@ -105,33 +105,17 @@ public class HttpsSettings
 
     void LogConfiguration()
     {
+        var httpsPortDisplay = HttpsPort.HasValue ? HttpsPort.Value.ToString() : "(default)";
+
         if (!Enabled)
         {
-            logger.LogInformation("HTTPS is disabled: {@Settings}",
-                new
-                {
-                    Enabled,
-                    RedirectHttpToHttps,
-                    HttpsPort,
-                    EnableHsts,
-                    HstsMaxAgeSeconds,
-                    HstsIncludeSubDomains
-                });
+            logger.LogInformation("HTTPS is disabled: Enabled={Enabled}, RedirectHttpToHttps={RedirectHttpToHttps}, HttpsPort={HttpsPort}, EnableHsts={EnableHsts}, HstsMaxAgeSeconds={HstsMaxAgeSeconds}, HstsIncludeSubDomains={HstsIncludeSubDomains}",
+                Enabled, RedirectHttpToHttps, httpsPortDisplay, EnableHsts, HstsMaxAgeSeconds, HstsIncludeSubDomains);
         }
         else
         {
-            logger.LogInformation("HTTPS is enabled: {@Settings}",
-                new
-                {
-                    Enabled,
-                    CertificatePath,
-                    HasCertificatePassword = !string.IsNullOrEmpty(CertificatePassword),
-                    RedirectHttpToHttps,
-                    HttpsPort,
-                    EnableHsts,
-                    HstsMaxAgeSeconds,
-                    HstsIncludeSubDomains
-                });
+            logger.LogInformation("HTTPS is enabled: Enabled={Enabled}, CertificatePath={CertificatePath}, HasCertificatePassword={HasCertificatePassword}, RedirectHttpToHttps={RedirectHttpToHttps}, HttpsPort={HttpsPort}, EnableHsts={EnableHsts}, HstsMaxAgeSeconds={HstsMaxAgeSeconds}, HstsIncludeSubDomains={HstsIncludeSubDomains}",
+                Enabled, CertificatePath, !string.IsNullOrEmpty(CertificatePassword), RedirectHttpToHttps, httpsPortDisplay, EnableHsts, HstsMaxAgeSeconds, HstsIncludeSubDomains);
         }
 
         // Warn about potential misconfigurations

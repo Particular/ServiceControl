@@ -11,11 +11,10 @@ namespace ServiceControl.AcceptanceTesting.Cors
     /// </summary>
     public static class CorsAssertions
     {
-        public const string AllowOriginHeader = "Access-Control-Allow-Origin";
-        public const string AllowCredentialsHeader = "Access-Control-Allow-Credentials";
-        public const string AllowMethodsHeader = "Access-Control-Allow-Methods";
-        public const string AllowHeadersHeader = "Access-Control-Allow-Headers";
-        public const string ExposeHeadersHeader = "Access-Control-Expose-Headers";
+        const string AllowOriginHeader = "Access-Control-Allow-Origin";
+        const string AllowCredentialsHeader = "Access-Control-Allow-Credentials";
+        const string AllowMethodsHeader = "Access-Control-Allow-Methods";
+        const string ExposeHeadersHeader = "Access-Control-Expose-Headers";
 
         /// <summary>
         /// Sends a preflight OPTIONS request with the Origin header to check CORS policy.
@@ -50,7 +49,7 @@ namespace ServiceControl.AcceptanceTesting.Cors
         /// Asserts that CORS is configured to allow any origin.
         /// The Access-Control-Allow-Origin header should be "*".
         /// </summary>
-        public static void AssertAllowAnyOrigin(HttpResponseMessage response, string sentOrigin)
+        public static void AssertAllowAnyOrigin(HttpResponseMessage response)
         {
             Assert.That(response.StatusCode, Is.Not.EqualTo(HttpStatusCode.Forbidden));
 
@@ -117,13 +116,13 @@ namespace ServiceControl.AcceptanceTesting.Cors
         }
 
         /// <summary>
-        /// Asserts that CORS is completely disabled (no origins allowed).
+        /// Asserts that no origins are allowed (AllowAnyOrigin=false and no specific origins configured).
         /// </summary>
         public static void AssertCorsDisabled(HttpResponseMessage response)
         {
-            // When CORS is disabled, no Access-Control-Allow-Origin header should be present
+            // When no origins are configured, the CORS middleware won't add the Allow-Origin header
             Assert.That(response.Headers.Contains(AllowOriginHeader), Is.False,
-                "Access-Control-Allow-Origin header should not be present when CORS is disabled");
+                "Access-Control-Allow-Origin header should not be present when no origins are allowed");
         }
 
         /// <summary>

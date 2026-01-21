@@ -2,12 +2,12 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 {
     using System;
     using System.IO;
-    using System.Net;
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.ForwardedHeaders;
     using Infrastructure;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
@@ -119,22 +119,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
                 host = hostBuilder.Build();
 
-                // Test middleware: Set RemoteIpAddress from X-Test-Remote-IP header
-                // This must run BEFORE UseServiceControlMonitoring (which adds ForwardedHeaders middleware)
-                // so that the ForwardedHeaders middleware can properly check KnownProxies/KnownNetworks
-                _ = host.Use(async (context, next) =>
-                {
-                    if (context.Request.Headers.TryGetValue("X-Test-Remote-IP", out var testIpHeader))
-                    {
-                        var testIpValue = testIpHeader.ToString();
-                        if (IPAddress.TryParse(testIpValue, out var testIp))
-                        {
-                            context.Connection.RemoteIpAddress = testIp;
-                        }
-                    }
-                    await next();
-                });
-
+                host.UseTestRemoteIp();
                 host.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
                 host.UseServiceControlMonitoring(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings.CorsSettings);
                 await host.StartAsync();

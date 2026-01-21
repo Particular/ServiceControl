@@ -13,10 +13,6 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
     /// </summary>
     public static class OpenIdConnectAssertions
     {
-        public const string AuthorizationHeader = "Authorization";
-        public const string WwwAuthenticateHeader = "WWW-Authenticate";
-        public const string XTokenExpiredHeader = "X-Token-Expired";
-
         /// <summary>
         /// Asserts that the response indicates successful authentication/authorization.
         /// </summary>
