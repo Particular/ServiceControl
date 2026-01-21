@@ -114,6 +114,22 @@
 
         public bool HasBrowsableUrl => ServiceInstance is IURLInfo;
 
+        public string UrlHeading
+        {
+            get
+            {
+                if (IsServiceControlInstance)
+                {
+                    if (ServiceControlInstance.EnableEmbeddedServicePulse)
+                    {
+                        return "SERVICEPULSE";
+                    }
+                }
+
+                return "URL";
+            }
+        }
+
         public string InstallPath => ((IServicePaths)ServiceInstance).InstallPath;
 
         public string DBPath => GetDBPathIfAvailable();
@@ -291,6 +307,7 @@
             NotifyOfPropertyChange("HasNewVersion");
             NotifyOfPropertyChange("Transport");
             NotifyOfPropertyChange("BrowsableUrl");
+            NotifyOfPropertyChange("UrlHeading");
             return Task.CompletedTask;
         }
 
