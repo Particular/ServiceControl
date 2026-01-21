@@ -9,6 +9,10 @@ public class CorsSettings
 {
     readonly ILogger logger = LoggerUtil.CreateStaticLogger<CorsSettings>();
 
+    /// <summary>
+    /// Initializes CORS settings from the given configuration root namespace.
+    /// </summary>
+    /// <param name="rootNamespace"></param>
     public CorsSettings(SettingsRootNamespace rootNamespace)
     {
         // Default to allowing any origin for backwards compatibility
@@ -64,29 +68,18 @@ public class CorsSettings
 
     void LogConfiguration()
     {
+        logger.LogInformation("CORS configuration: {@Settings}",
+            new { AllowAnyOrigin, AllowedOrigins });
+
+        // Warn about potential misconfigurations
         if (AllowAnyOrigin)
         {
-            if (AllowedOrigins.Count > 0)
-            {
-                // This shouldn't happen due to the logic in the constructor, but log if it does
-                logger.LogWarning("CORS is configured to allow any origin. AllowedOrigins setting will be ignored: {@Settings}",
-                    new { AllowAnyOrigin, AllowedOrigins });
-            }
-            else
-            {
-                logger.LogWarning("CORS is configured to allow any origin. Consider configuring Cors.AllowedOrigins for production environments: {@Settings}",
-                    new { AllowAnyOrigin });
-            }
+            logger.LogWarning("CORS is configured to allow any origin. Consider configuring Cors.AllowedOrigins for production environments");
         }
-        else if (AllowedOrigins.Count > 0)
+
+        if (!AllowAnyOrigin && AllowedOrigins.Count == 0)
         {
-            logger.LogInformation("CORS is configured with specific allowed origins: {@Settings}",
-                new { AllowAnyOrigin, AllowedOrigins });
-        }
-        else
-        {
-            logger.LogWarning("CORS is disabled. No origins are allowed and AllowAnyOrigin is false: {@Settings}",
-                new { AllowAnyOrigin, AllowedOrigins });
+            logger.LogWarning("CORS has no origins configured and AllowAnyOrigin is false. All cross-origin requests will be blocked");
         }
     }
 }

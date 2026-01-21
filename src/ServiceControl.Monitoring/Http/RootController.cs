@@ -7,9 +7,10 @@
     [ApiController]
     public class RootController : ControllerBase
     {
+        // Root endpoint returns instance metadata and must remain accessible for discovery and service-to-service calls
+        [AllowAnonymous]
         [Route("")]
         [HttpGet]
-        [AllowAnonymous] // Root endpoint returns instance metadata and must remain accessible for discovery
         public ActionResult<MonitoringInstanceModel> Get()
         {
             var model = new MonitoringInstanceModel

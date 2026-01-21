@@ -16,13 +16,9 @@ namespace ServiceControl.Monitoring
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
-            // OIDC authentication (ServicePulse URLs not required for monitoring)
             OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration, requireServicePulseSettings: false);
-            // X-Forwarded-* header processing for reverse proxy scenarios
             ForwardedHeadersSettings = new ForwardedHeadersSettings(SettingsRootNamespace);
-            // HTTPS/TLS and HSTS configuration
             HttpsSettings = new HttpsSettings(SettingsRootNamespace);
-            // Cross-origin resource sharing policy
             CorsSettings = new CorsSettings(SettingsRootNamespace);
 
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file
@@ -58,12 +54,24 @@ namespace ServiceControl.Monitoring
 
         public LoggingSettings LoggingSettings { get; }
 
+        /// <summary>
+        /// OIDC authentication (ServicePulse URLs not required for monitoring)
+        /// </summary>
         public OpenIdConnectSettings OpenIdConnectSettings { get; }
 
+        /// <summary>
+        /// X-Forwarded-* header processing for reverse proxy scenarios
+        /// </summary>
         public ForwardedHeadersSettings ForwardedHeadersSettings { get; }
 
+        /// <summary>
+        /// HTTPS/TLS and HSTS configuration
+        /// </summary>
         public HttpsSettings HttpsSettings { get; }
 
+        /// <summary>
+        /// Cross-origin resource sharing policy
+        /// </summary>
         public CorsSettings CorsSettings { get; }
 
         public string InstanceName { get; init; } = DEFAULT_INSTANCE_NAME;
@@ -80,6 +88,7 @@ namespace ServiceControl.Monitoring
 
         public TimeSpan EndpointUptimeGracePeriod { get; set; }
 
+        // Use HTTPS scheme if TLS is enabled, otherwise HTTP
         public string RootUrl => $"{(HttpsSettings.Enabled ? "https" : "http")}://{HttpHostName}:{HttpPort}/";
 
         public int? MaximumConcurrencyLevel { get; set; }

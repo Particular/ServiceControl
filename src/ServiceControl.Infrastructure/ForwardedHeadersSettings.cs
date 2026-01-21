@@ -11,6 +11,10 @@ public class ForwardedHeadersSettings
 {
     readonly ILogger logger = LoggerUtil.CreateStaticLogger<ForwardedHeadersSettings>();
 
+    /// <summary>
+    /// Initializes forwarded headers settings from the given configuration root namespace.
+    /// </summary>
+    /// <param name="rootNamespace"></param>
     public ForwardedHeadersSettings(SettingsRootNamespace rootNamespace)
     {
         Enabled = SettingsReader.Read(rootNamespace, "ForwardedHeaders.Enabled", true);
@@ -41,13 +45,26 @@ public class ForwardedHeadersSettings
         LogConfiguration();
     }
 
+    /// <summary>
+    /// When true, forwarded headers processing is enabled.
+    /// </summary>
     public bool Enabled { get; }
 
+    /// <summary>
+    /// When true, all proxies are trusted and X-Forwarded-* headers are processed from any client.
+    /// When false, only proxies/networks listed in KnownProxies/KnownNetworks are trusted.
+    /// </summary>
     public bool TrustAllProxies { get; private set; }
 
     // Store as strings for serialization compatibility, parse to IPAddress when needed
+    /// <summary>
+    /// List of specific IP addresses of trusted proxies.
+    /// </summary>
     public List<string> KnownProxiesRaw { get; } = [];
 
+    /// <summary>
+    /// List of specific CIDR networks of trusted proxies.
+    /// </summary>
     public List<string> KnownNetworks { get; } = [];
 
     // Parse IPAddresses on demand to avoid serialization issues
@@ -111,43 +128,31 @@ public class ForwardedHeadersSettings
     {
         var hasProxyConfig = KnownProxiesRaw.Count > 0 || KnownNetworks.Count > 0;
 
-        if (!Enabled)
+        if (Enabled)
         {
-            if (hasProxyConfig || TrustAllProxies)
-            {
-                logger.LogWarning("Forwarded headers processing is disabled. Proxy configuration settings will be ignored: {@Settings}",
-                    new { Enabled, TrustAllProxies, KnownProxies = KnownProxiesRaw, KnownNetworks });
-            }
-            else
-            {
-                logger.LogInformation("Forwarded headers processing is disabled");
-            }
-            return;
-        }
-
-        if (TrustAllProxies)
-        {
-            if (hasProxyConfig)
-            {
-                // This shouldn't happen due to constructor logic, but log if it does
-                logger.LogWarning("Forwarded headers is configured to trust all proxies. KnownProxies and KnownNetworks settings will be ignored: {@Settings}",
-                    new { Enabled, TrustAllProxies, KnownProxies = KnownProxiesRaw, KnownNetworks });
-            }
-            else
-            {
-                logger.LogWarning("Forwarded headers is configured to trust all proxies. Any client can spoof X-Forwarded-* headers. Consider configuring KnownProxies or KnownNetworks for production environments: {@Settings}",
-                    new { Enabled, TrustAllProxies });
-            }
-        }
-        else if (hasProxyConfig)
-        {
-            logger.LogInformation("Forwarded headers is configured with specific trusted proxies: {@Settings}",
+            logger.LogInformation("Forwarded headers processing is enabled: {@Settings}",
                 new { Enabled, TrustAllProxies, KnownProxies = KnownProxiesRaw, KnownNetworks });
         }
         else
         {
-            logger.LogWarning("Forwarded headers is enabled but no trusted proxies are configured. X-Forwarded-* headers will not be processed: {@Settings}",
+            logger.LogInformation("Forwarded headers processing is disabled: {@Settings}",
                 new { Enabled, TrustAllProxies, KnownProxies = KnownProxiesRaw, KnownNetworks });
+        }
+
+        // Warn about potential misconfigurations
+        if (!Enabled && hasProxyConfig)
+        {
+            logger.LogWarning("Forwarded headers processing is disabled but proxy configuration is present. KnownProxies and KnownNetworks settings will be ignored");
+        }
+
+        if (Enabled && TrustAllProxies)
+        {
+            logger.LogWarning("Forwarded headers is configured to trust all proxies. Any client can spoof X-Forwarded-* headers. Consider configuring KnownProxies or KnownNetworks for production environments");
+        }
+
+        if (Enabled && !TrustAllProxies && !hasProxyConfig)
+        {
+            logger.LogWarning("Forwarded headers is enabled but no trusted proxies are configured. X-Forwarded-* headers will not be processed");
         }
     }
 }

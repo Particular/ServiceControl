@@ -9,9 +9,6 @@
     /// </summary>
     static class Cors
     {
-        /// <summary>
-        /// Builds the default CORS policy based on the provided settings.
-        /// </summary>
         public static CorsPolicy GetDefaultPolicy(CorsSettings settings)
         {
             var builder = new CorsPolicyBuilder();
