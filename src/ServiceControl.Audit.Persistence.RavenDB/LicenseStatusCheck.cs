@@ -14,10 +14,10 @@ static class LicenseStatusCheck
     {
         var ravenConfiguredHttpClient = documentStore.GetRequestExecutor().HttpClient;
         var licenseCheckUrl = documentStore.Urls[0].TrimEnd('/') + "/license/status";
-        
+
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(30_000);
-        
+
         try
         {
             while (true)
@@ -28,12 +28,12 @@ static class LicenseStatusCheck
                 {
                     throw new InvalidOperationException("The current RavenDB license is expired. Please, contact support");
                 }
-    
+
                 if (licenseStatus.LicensedTo != null && licenseStatus.Id != null)
                 {
                     return;
                 }
-                
+
                 await Task.Delay(200, cts.Token);
             }
         }
