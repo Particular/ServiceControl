@@ -15,25 +15,31 @@ static class LicenseStatusCheck
         var ravenConfiguredHttpClient = documentStore.GetRequestExecutor().HttpClient;
         var licenseCheckUrl = documentStore.Urls[0].TrimEnd('/') + "/license/status";
 
-        // Not linking to the incoming cancellationToken to ensure no OperationCancelledException prevents the last InvalidOperationException to be thrown
-        using var cts = new CancellationTokenSource(30_000);
-        while (!cts.IsCancellationRequested)
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(30_000);
+
+        try
         {
-            var httpResponse = await ravenConfiguredHttpClient.GetAsync(licenseCheckUrl, cancellationToken);
-            var licenseStatus = await httpResponse.Content.ReadFromJsonAsync<LicenseStatusFragment>(cancellationToken);
-            if (licenseStatus.Expired)
+            while (!cts.IsCancellationRequested)
             {
-                throw new InvalidOperationException("The current RavenDB license is expired. Please, contact support");
-            }
+                var httpResponse = await ravenConfiguredHttpClient.GetAsync(licenseCheckUrl, cancellationToken);
+                var licenseStatus = await httpResponse.Content.ReadFromJsonAsync<LicenseStatusFragment>(cancellationToken);
+                if (licenseStatus.Expired)
+                {
+                    throw new InvalidOperationException("The current RavenDB license is expired. Please, contact support");
+                }
 
-            if (licenseStatus.LicensedTo != null && licenseStatus.Id != null)
-            {
-                return;
-            }
+                if (licenseStatus.LicensedTo != null && licenseStatus.Id != null)
+                {
+                    return;
+                }
 
-            await Task.Delay(200, cancellationToken);
+                await Task.Delay(200, cts.Token);
+            }
         }
-
-        throw new InvalidOperationException("Cannot validate the current RavenDB license. Please, contact support");
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new InvalidOperationException("Cannot validate the current RavenDB license. Please, contact support");
+        }
     }
 }
