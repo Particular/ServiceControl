@@ -15,7 +15,7 @@ public class FailedMessageEntity
     public string HeadersJson { get; set; } = null!;
 
     // Full-text search column (populated from headers and body)
-    public string? Query { get; set; }
+    public string? Body { get; set; }
 
     // Denormalized fields from FailureGroups for efficient filtering
     // PrimaryFailureGroupId is the first group ID from FailureGroupsJson array

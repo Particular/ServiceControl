@@ -14,7 +14,7 @@ class IngestionUnitOfWorkFactory(IServiceProvider serviceProvider, MinimumRequir
         var scope = serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContextBase>();
         var settings = scope.ServiceProvider.GetRequiredService<PersistenceSettings>();
-        var unitOfWork = new IngestionUnitOfWork(dbContext, storageHelper, settings, serviceProvider);
+        var unitOfWork = new IngestionUnitOfWork(dbContext, storageHelper, settings);
         return ValueTask.FromResult<IIngestionUnitOfWork>(unitOfWork);
     }
 

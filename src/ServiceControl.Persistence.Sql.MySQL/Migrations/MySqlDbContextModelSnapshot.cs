@@ -248,6 +248,9 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<string>("Body")
+                        .HasColumnType("varchar(255)");
+
                     b.Property<string>("ConversationId")
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
@@ -289,9 +292,6 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                         .IsRequired()
                         .HasColumnType("json");
 
-                    b.Property<string>("Query")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("QueueAddress")
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
@@ -323,6 +323,9 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                         .IsUnique();
 
                     b.HasIndex("ConversationId", "LastProcessedAt");
+
+                    b.HasIndex("HeadersJson", "Body")
+                        .HasAnnotation("MySql:FullTextIndex", true);
 
                     b.HasIndex("MessageType", "TimeSent");
 

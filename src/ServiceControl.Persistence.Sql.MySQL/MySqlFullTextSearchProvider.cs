@@ -11,6 +11,9 @@ class MySqlFullTextSearchProvider : IFullTextSearchProvider
         IQueryable<FailedMessageEntity> query,
         string searchTerms)
     {
-        return query.Where(fm => EF.Functions.Match(fm.Query, searchTerms, MySqlMatchSearchMode.NaturalLanguage) > 0);
+        // Search across both HeadersJson and Body columns using FULLTEXT index
+        // The multi-column FULLTEXT index is defined in MySqlDbContext
+        return query.Where(fm =>
+            EF.Functions.Match(new[] { fm.HeadersJson, fm.Body }, searchTerms, MySqlMatchSearchMode.NaturalLanguage) > 0);
     }
 }

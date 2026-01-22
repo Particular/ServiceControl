@@ -23,5 +23,11 @@ class SqlServerDbContext : ServiceControlDbContextBase
                 }
             }
         }
+
+        // SQL Server full-text search optimization
+        // Note: FULLTEXT indexes must be created via migration SQL since EF Core doesn't have direct support
+        // The migration should include:
+        // CREATE FULLTEXT INDEX ON FailedMessages(HeadersJson, Body)
+        //   KEY INDEX PK_FailedMessages;
     }
 }

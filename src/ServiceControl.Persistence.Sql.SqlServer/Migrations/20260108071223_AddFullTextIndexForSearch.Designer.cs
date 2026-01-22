@@ -2,18 +2,18 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using ServiceControl.Persistence.Sql.PostgreSQL;
+using ServiceControl.Persistence.Sql.SqlServer;
 
 #nullable disable
 
-namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
+namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
 {
-    [DbContext(typeof(PostgreSqlDbContext))]
-    [Migration("20260107065432_InitialCreate")]
-    partial class InitialCreate
+    [DbContext(typeof(SqlServerDbContext))]
+    [Migration("20260108071223_AddFullTextIndexForSearch")]
+    partial class AddFullTextIndexForSearch
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,67 +21,54 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.11")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.ArchiveOperationEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("ArchiveState")
-                        .HasColumnType("integer")
-                        .HasColumnName("archive_state");
+                        .HasColumnType("int");
 
                     b.Property<int>("ArchiveType")
-                        .HasColumnType("integer")
-                        .HasColumnName("archive_type");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("CompletionTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("completion_time");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("CurrentBatch")
-                        .HasColumnType("integer")
-                        .HasColumnName("current_batch");
+                        .HasColumnType("int");
 
                     b.Property<string>("GroupName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("group_name");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime?>("Last")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("NumberOfBatches")
-                        .HasColumnType("integer")
-                        .HasColumnName("number_of_batches");
+                        .HasColumnType("int");
 
                     b.Property<int>("NumberOfMessagesArchived")
-                        .HasColumnType("integer")
-                        .HasColumnName("number_of_messages_archived");
+                        .HasColumnType("int");
 
                     b.Property<string>("RequestId")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("request_id");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime>("Started")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("started");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("TotalNumberOfMessages")
-                        .HasColumnType("integer")
-                        .HasColumnName("total_number_of_messages");
+                        .HasColumnType("int");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_archive_operations");
+                    b.HasKey("Id");
 
                     b.HasIndex("ArchiveState");
 
@@ -97,50 +84,40 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Category")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("category");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("CustomCheckId")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("custom_check_id");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("EndpointName")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("endpoint_name");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("FailureReason")
-                        .HasColumnType("text")
-                        .HasColumnName("failure_reason");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Host")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("host");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<Guid>("HostId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("host_id");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("ReportedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("reported_at");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasColumnName("status");
+                        .HasColumnType("int");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_custom_checks");
+                    b.HasKey("Id");
 
                     b.HasIndex("Status");
 
@@ -151,33 +128,27 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateOnly>("Date")
-                        .HasColumnType("date")
-                        .HasColumnName("date");
+                        .HasColumnType("date");
 
                     b.Property<string>("EndpointName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("endpoint_name");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<long>("MessageCount")
-                        .HasColumnType("bigint")
-                        .HasColumnName("message_count");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("ThroughputSource")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("throughput_source");
+                        .HasColumnType("nvarchar(50)");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_throughput");
+                    b.HasKey("Id");
 
                     b.HasIndex(new[] { "EndpointName", "ThroughputSource", "Date" }, "UC_DailyThroughput_EndpointName_ThroughputSource_Date")
                         .IsUnique();
@@ -189,12 +160,10 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<string>("Name")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("name");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("TrackInstances")
-                        .HasColumnType("boolean")
-                        .HasColumnName("track_instances");
+                        .HasColumnType("bit");
 
                     b.HasKey("Name");
 
@@ -205,39 +174,31 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Category")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("category");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("description");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EventType")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("event_type");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime>("RaisedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("raised_at");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("RelatedToJson")
                         .HasMaxLength(4000)
-                        .HasColumnType("jsonb")
-                        .HasColumnName("related_to_json");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Severity")
-                        .HasColumnType("integer")
-                        .HasColumnName("severity");
+                        .HasColumnType("int");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_event_log_items");
+                    b.HasKey("Id");
 
                     b.HasIndex("RaisedAt");
 
@@ -248,22 +209,18 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DispatchContextJson")
                         .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("dispatch_context_json");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_external_integration_dispatch_requests");
+                    b.HasKey("Id");
 
                     b.HasIndex("CreatedAt");
 
@@ -274,20 +231,16 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ExceptionInfo")
-                        .HasColumnType("text")
-                        .HasColumnName("exception_info");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MessageJson")
                         .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("message_json");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_failed_error_imports");
+                    b.HasKey("Id");
 
                     b.ToTable("FailedErrorImports", (string)null);
                 });
@@ -296,96 +249,76 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Body")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ConversationId")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("conversation_id");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("ExceptionMessage")
-                        .HasColumnType("text")
-                        .HasColumnName("exception_message");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ExceptionType")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("exception_type");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("FailureGroupsJson")
                         .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("failure_groups_json");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HeadersJson")
                         .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("headers_json");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("LastProcessedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_processed_at");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("MessageId")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("message_id");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("MessageType")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("message_type");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int?>("NumberOfProcessingAttempts")
-                        .HasColumnType("integer")
-                        .HasColumnName("number_of_processing_attempts");
+                        .HasColumnType("int");
 
                     b.Property<string>("PrimaryFailureGroupId")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("primary_failure_group_id");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("ProcessingAttemptsJson")
                         .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("processing_attempts_json");
-
-                    b.Property<string>("Query")
-                        .HasColumnType("text")
-                        .HasColumnName("query");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("QueueAddress")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("queue_address");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ReceivingEndpointName")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("receiving_endpoint_name");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("SendingEndpointName")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("sending_endpoint_name");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasColumnName("status");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("TimeSent")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("time_sent");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UniqueMessageId")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("unique_message_id");
+                        .HasColumnType("nvarchar(200)");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_failed_messages");
+                    b.HasKey("Id");
 
                     b.HasIndex("MessageId");
 
@@ -415,26 +348,21 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("FailedMessageId")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("failed_message_id");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("RetryBatchId")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("retry_batch_id");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("StageAttempts")
-                        .HasColumnType("integer")
-                        .HasColumnName("stage_attempts");
+                        .HasColumnType("int");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_failed_message_retries");
+                    b.HasKey("Id");
 
                     b.HasIndex("FailedMessageId");
 
@@ -447,22 +375,18 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Comment")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("comment");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("GroupId")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("group_id");
+                        .HasColumnType("nvarchar(200)");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_group_comments");
+                    b.HasKey("Id");
 
                     b.HasIndex("GroupId");
 
@@ -473,37 +397,30 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("EndpointName")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("endpoint_name");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Host")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("host");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("HostDisplayName")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("host_display_name");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<Guid>("HostId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("host_id");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("Monitored")
-                        .HasColumnType("boolean")
-                        .HasColumnName("monitored");
+                        .HasColumnType("bit");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_known_endpoints");
+                    b.HasKey("Id");
 
                     b.ToTable("KnownEndpoints", (string)null);
                 });
@@ -512,25 +429,21 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Data")
                         .IsRequired()
                         .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("data");
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("Key")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("key");
+                        .HasColumnType("nvarchar(200)");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_licensing_metadata");
+                    b.HasKey("Id");
 
                     b.HasIndex("Key")
                         .IsUnique();
@@ -542,26 +455,21 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ETag")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("e_tag");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime>("LastModified")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_modified");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("RedirectsJson")
                         .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("redirects_json");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_message_redirects");
+                    b.HasKey("Id");
 
                     b.ToTable("MessageRedirects", (string)null);
                 });
@@ -570,16 +478,13 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("EmailSettingsJson")
                         .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("email_settings_json");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_notifications_settings");
+                    b.HasKey("Id");
 
                     b.ToTable("NotificationsSettings", (string)null);
                 });
@@ -588,12 +493,10 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<string>("PhysicalAddress")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("physical_address");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("FailedMessageCount")
-                        .HasColumnType("integer")
-                        .HasColumnName("failed_message_count");
+                        .HasColumnType("int");
 
                     b.HasKey("PhysicalAddress");
 
@@ -604,67 +507,53 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Classifier")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("classifier");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Context")
-                        .HasColumnType("text")
-                        .HasColumnName("context");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FailureRetriesJson")
                         .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("failure_retries_json");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("InitialBatchSize")
-                        .HasColumnType("integer")
-                        .HasColumnName("initial_batch_size");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("Last")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Originator")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("originator");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("RequestId")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("request_id");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("RetrySessionId")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("retry_session_id");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("RetryType")
-                        .HasColumnType("integer")
-                        .HasColumnName("retry_type");
+                        .HasColumnType("int");
 
                     b.Property<string>("StagingId")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("staging_id");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime>("StartTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("start_time");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasColumnName("status");
+                        .HasColumnType("int");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_retry_batches");
+                    b.HasKey("Id");
 
                     b.HasIndex("RetrySessionId");
 
@@ -679,19 +568,16 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("RetryBatchId")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("retry_batch_id");
+                        .HasColumnType("nvarchar(200)");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_retry_batch_now_forwarding");
+                    b.HasKey("Id");
 
                     b.HasIndex("RetryBatchId");
 
@@ -701,20 +587,16 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
             modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.RetryHistoryEntity", b =>
                 {
                     b.Property<int>("Id")
-                        .HasColumnType("integer")
-                        .HasDefaultValue(1)
-                        .HasColumnName("id");
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("HistoricOperationsJson")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("historic_operations_json");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UnacknowledgedOperationsJson")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("unacknowledged_operations_json");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_retry_history");
+                    b.HasKey("Id");
 
                     b.ToTable("RetryHistory", (string)null);
                 });
@@ -723,26 +605,21 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("id");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("MessageTypeTypeName")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("message_type_type_name");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("MessageTypeVersion")
-                        .HasColumnType("integer")
-                        .HasColumnName("message_type_version");
+                        .HasColumnType("int");
 
                     b.Property<string>("SubscribersJson")
                         .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("subscribers_json");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_subscriptions");
+                    b.HasKey("Id");
 
                     b.HasIndex("MessageTypeTypeName", "MessageTypeVersion")
                         .IsUnique();
@@ -754,45 +631,36 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("EndpointIndicators")
-                        .HasColumnType("text")
-                        .HasColumnName("endpoint_indicators");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EndpointName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("endpoint_name");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateOnly>("LastCollectedData")
-                        .HasColumnType("date")
-                        .HasColumnName("last_collected_data");
+                        .HasColumnType("date");
 
                     b.Property<string>("SanitizedEndpointName")
-                        .HasColumnType("text")
-                        .HasColumnName("sanitized_endpoint_name");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Scope")
-                        .HasColumnType("text")
-                        .HasColumnName("scope");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ThroughputSource")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("throughput_source");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("UserIndicator")
-                        .HasColumnType("text")
-                        .HasColumnName("user_indicator");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_endpoints");
+                    b.HasKey("Id");
 
                     b.HasIndex(new[] { "EndpointName", "ThroughputSource" }, "UC_ThroughputEndpoint_EndpointName_ThroughputSource")
                         .IsUnique();
@@ -803,15 +671,12 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
             modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.TrialLicenseEntity", b =>
                 {
                     b.Property<int>("Id")
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnType("int");
 
                     b.Property<DateOnly>("TrialEndDate")
-                        .HasColumnType("date")
-                        .HasColumnName("trial_end_date");
+                        .HasColumnType("date");
 
-                    b.HasKey("Id")
-                        .HasName("p_k_trial_licenses");
+                    b.HasKey("Id");
 
                     b.ToTable("TrialLicense", (string)null);
                 });

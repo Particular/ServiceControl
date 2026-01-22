@@ -99,7 +99,7 @@ partial class ErrorMessageDataStore : DataStoreBase, IErrorMessageDataStore
                     ProcessingAttemptsJson = JsonSerializer.Serialize(failedMessage.ProcessingAttempts, JsonSerializationOptions.Default),
                     FailureGroupsJson = JsonSerializer.Serialize(failedMessage.FailureGroups, JsonSerializationOptions.Default),
                     HeadersJson = JsonSerializer.Serialize(lastAttempt?.Headers ?? [], JsonSerializationOptions.Default),
-                    Query = null, // Test data doesn't populate search text
+                    Body = null, // Test data doesn't populate search text
                     PrimaryFailureGroupId = failedMessage.FailureGroups.Count > 0 ? failedMessage.FailureGroups[0].Id : null,
 
                     // Extract denormalized fields from last processing attempt if available

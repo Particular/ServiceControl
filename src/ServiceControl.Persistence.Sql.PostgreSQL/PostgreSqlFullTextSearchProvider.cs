@@ -11,8 +11,10 @@ class PostgreSqlFullTextSearchProvider : IFullTextSearchProvider
         IQueryable<FailedMessageEntity> query,
         string searchTerms)
     {
-        // Convert text to tsvector at query time, use websearch_to_tsquery for user-friendly search
-        return query.Where(fm => EF.Functions.ToTsVector("english", fm.Query ?? "")
-            .Matches(EF.Functions.WebSearchToTsQuery("english", searchTerms)));
+        // Use pre-computed tsvector column for fast full-text search
+        // The Query column is a computed tsvector that combines headers (weight A) and body (weight B)
+        return query.Where(fm =>
+            EF.Property<NpgsqlTypes.NpgsqlTsVector>(fm, "Query")
+                .Matches(EF.Functions.WebSearchToTsQuery("english", searchTerms)));
     }
 }

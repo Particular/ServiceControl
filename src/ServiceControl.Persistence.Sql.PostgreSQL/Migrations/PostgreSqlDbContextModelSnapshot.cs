@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using NpgsqlTypes;
 using ServiceControl.Persistence.Sql.PostgreSQL;
 
 #nullable disable
@@ -296,6 +297,10 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("Body")
+                        .HasColumnType("text")
+                        .HasColumnName("body");
+
                     b.Property<string>("ConversationId")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
@@ -348,9 +353,10 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("processing_attempts_json");
 
-                    b.Property<string>("Query")
-                        .HasColumnType("text")
-                        .HasColumnName("query");
+                    b.Property<NpgsqlTsVector>("Query")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("tsvector")
+                        .HasComputedColumnSql("setweight(to_tsvector('english', coalesce(headers_json::text, '')), 'A') || setweight(to_tsvector('english', coalesce(body, '')), 'B')", true);
 
                     b.Property<string>("QueueAddress")
                         .HasMaxLength(500)
@@ -385,6 +391,10 @@ namespace ServiceControl.Persistence.Sql.PostgreSQL.Migrations
                         .HasName("p_k_failed_messages");
 
                     b.HasIndex("MessageId");
+
+                    b.HasIndex("Query");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Query"), "GIN");
 
                     b.HasIndex("UniqueMessageId")
                         .IsUnique();

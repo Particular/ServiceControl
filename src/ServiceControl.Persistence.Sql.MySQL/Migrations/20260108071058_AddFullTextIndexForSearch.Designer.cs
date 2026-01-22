@@ -12,8 +12,8 @@ using ServiceControl.Persistence.Sql.MySQL;
 namespace ServiceControl.Persistence.Sql.MySQL.Migrations
 {
     [DbContext(typeof(MySqlDbContext))]
-    [Migration("20260106053507_AddFullTextSearchIndex")]
-    partial class AddFullTextSearchIndex
+    [Migration("20260108071058_AddFullTextIndexForSearch")]
+    partial class AddFullTextIndexForSearch
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -251,8 +251,8 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<byte[]>("Body")
-                        .HasColumnType("longblob");
+                    b.Property<string>("Body")
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("ConversationId")
                         .HasMaxLength(200)
@@ -295,9 +295,6 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                         .IsRequired()
                         .HasColumnType("json");
 
-                    b.Property<string>("Query")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("QueueAddress")
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
@@ -329,6 +326,9 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                         .IsUnique();
 
                     b.HasIndex("ConversationId", "LastProcessedAt");
+
+                    b.HasIndex("HeadersJson", "Body")
+                        .HasAnnotation("MySql:FullTextIndex", true);
 
                     b.HasIndex("MessageType", "TimeSent");
 
@@ -452,33 +452,6 @@ namespace ServiceControl.Persistence.Sql.MySQL.Migrations
                         .IsUnique();
 
                     b.ToTable("LicensingMetadata", (string)null);
-                });
-
-            modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.MessageBodyEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<byte[]>("Body")
-                        .IsRequired()
-                        .HasColumnType("longblob");
-
-                    b.Property<int>("BodySize")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<string>("Etag")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("MessageBodies", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.Sql.Core.Entities.MessageRedirectsEntity", b =>

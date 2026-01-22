@@ -23,5 +23,13 @@ class MySqlDbContext : ServiceControlDbContextBase
                 }
             }
         }
+
+        // MySQL full-text search optimization
+        // Add FULLTEXT index on both HeadersJson and Body columns for multi-column search
+        var failedMessages = modelBuilder.Entity<Core.Entities.FailedMessageEntity>();
+
+        failedMessages
+            .HasIndex(e => new { e.HeadersJson, e.Body })
+            .HasAnnotation("MySql:FullTextIndex", true);
     }
 }

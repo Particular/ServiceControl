@@ -11,8 +11,10 @@ class SqlServerFullTextSearchProvider : IFullTextSearchProvider
         IQueryable<FailedMessageEntity> query,
         string searchTerms)
     {
-        // Use FREETEXT for natural language full-text search
-        // EF.Functions.FreeText is available in EF Core for SQL Server
-        return query.Where(fm => EF.Functions.FreeText(fm.Query ?? "", searchTerms));
+        // Search across both HeadersJson and Body columns using FREETEXT
+        // Requires FULLTEXT index to be created on both columns (see SqlServerDbContext)
+        return query.Where(fm =>
+            EF.Functions.FreeText(fm.HeadersJson, searchTerms) ||
+            EF.Functions.FreeText(fm.Body!, searchTerms));
     }
 }

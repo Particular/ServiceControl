@@ -248,6 +248,9 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Body")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ConversationId")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -287,9 +290,6 @@ namespace ServiceControl.Persistence.Sql.SqlServer.Migrations
 
                     b.Property<string>("ProcessingAttemptsJson")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Query")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("QueueAddress")

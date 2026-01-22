@@ -18,7 +18,7 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
         builder.Property(e => e.HeadersJson).HasColumnType("jsonb").IsRequired();
 
         // Full-text search
-        builder.Property(e => e.Query); // Will be mapped to text/nvarchar(max) per database
+        builder.Property(e => e.Body); // Will be mapped to text/nvarchar(max) per database
 
         // Denormalized query fields from FailureGroups
         builder.Property(e => e.PrimaryFailureGroupId).HasMaxLength(200);

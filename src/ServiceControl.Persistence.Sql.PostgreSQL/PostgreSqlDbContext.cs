@@ -81,6 +81,21 @@ class PostgreSqlDbContext : ServiceControlDbContextBase
 
     protected override void OnModelCreatingProvider(ModelBuilder modelBuilder)
     {
-        // PostgreSQL-specific configurations if needed
+        // PostgreSQL full-text search optimization
+        // Add a computed tsvector column combining headers (weight A) and body (weight B)
+        var failedMessages = modelBuilder.Entity<Core.Entities.FailedMessageEntity>();
+
+        failedMessages
+            .Property<NpgsqlTypes.NpgsqlTsVector>("Query")
+            .HasColumnType("tsvector")
+            .HasComputedColumnSql(
+                "setweight(to_tsvector('english', coalesce(headers_json::text, '')), 'A') || " +
+                "setweight(to_tsvector('english', coalesce(body, '')), 'B')",
+                stored: true);
+
+        // Add GIN index on tsvector for fast full-text search
+        failedMessages
+            .HasIndex("Query")
+            .HasMethod("GIN");
     }
 }
