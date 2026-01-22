@@ -130,16 +130,8 @@ public class ForwardedHeadersSettings
         var knownProxiesDisplay = KnownProxiesRaw.Count > 0 ? string.Join(", ", KnownProxiesRaw) : "(none)";
         var knownNetworksDisplay = KnownNetworks.Count > 0 ? string.Join(", ", KnownNetworks) : "(none)";
 
-        if (Enabled)
-        {
-            logger.LogInformation("Forwarded headers processing is enabled: Enabled={Enabled}, TrustAllProxies={TrustAllProxies}, KnownProxies={KnownProxies}, KnownNetworks={KnownNetworks}",
-                Enabled, TrustAllProxies, knownProxiesDisplay, knownNetworksDisplay);
-        }
-        else
-        {
-            logger.LogInformation("Forwarded headers processing is disabled: Enabled={Enabled}, TrustAllProxies={TrustAllProxies}, KnownProxies={KnownProxies}, KnownNetworks={KnownNetworks}",
-                Enabled, TrustAllProxies, knownProxiesDisplay, knownNetworksDisplay);
-        }
+        logger.LogInformation("Forwarded headers settings: Enabled={Enabled}, TrustAllProxies={TrustAllProxies}, KnownProxies={KnownProxies}, KnownNetworks={KnownNetworks}",
+            Enabled, TrustAllProxies, knownProxiesDisplay, knownNetworksDisplay);
 
         // Warn about potential misconfigurations
         if (!Enabled && hasProxyConfig)
@@ -152,9 +144,19 @@ public class ForwardedHeadersSettings
             logger.LogWarning("Forwarded headers is configured to trust all proxies. Any client can spoof X-Forwarded-* headers. Consider configuring KnownProxies or KnownNetworks for production environments");
         }
 
+        if (!Enabled && TrustAllProxies)
+        {
+            logger.LogWarning("Forwarded headers is disabled but TrustAllProxies is true. TrustAllProxies setting will be ignored");
+        }
+
         if (Enabled && !TrustAllProxies && !hasProxyConfig)
         {
             logger.LogWarning("Forwarded headers is enabled but no trusted proxies are configured. X-Forwarded-* headers will not be processed");
+        }
+
+        if (Enabled && KnownProxiesRaw.Count > 0 && KnownNetworks.Count > 0)
+        {
+            logger.LogWarning("Forwarded headers has both KnownProxies and KnownNetworks configured. Both settings will be used to determine trusted proxies. Ensure this is the intended configuration");
         }
     }
 }

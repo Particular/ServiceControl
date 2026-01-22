@@ -114,18 +114,30 @@ namespace ServiceControl.CompositeViews.Messages
             try
             {
                 var request = new HttpRequestMessage(HttpMethod.Get, pathAndQuery);
+                var hasAuth = !string.IsNullOrEmpty(authorizationHeader);
 
                 // Add Authorization header if present
-                if (!string.IsNullOrEmpty(authorizationHeader))
+                if (hasAuth)
                 {
                     request.Headers.TryAddWithoutValidation("Authorization", authorizationHeader);
                 }
 
+                logger.LogDebug("Scatter-gather: GET {BaseAddress}{PathAndQuery} ({AuthStatus})",
+                    remoteInstanceSetting.BaseAddress, pathAndQuery, hasAuth ? "auth header forwarded" : "no auth header");
+
                 // Assuming SendAsync returns uncompressed response and the AutomaticDecompression is enabled on the http client.
                 var rawResponse = await httpClient.SendAsync(request);
+
                 // special case - queried by conversation ID and nothing was found
                 if (rawResponse.StatusCode == HttpStatusCode.NotFound)
                 {
+                    return QueryResult<TOut>.Empty();
+                }
+
+                if (rawResponse.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+                {
+                    logger.LogWarning("Authentication failed when querying remote instance at {RemoteInstanceBaseAddress}. Ensure authentication is correctly configured.",
+                        remoteInstanceSetting.BaseAddress);
                     return QueryResult<TOut>.Empty();
                 }
 

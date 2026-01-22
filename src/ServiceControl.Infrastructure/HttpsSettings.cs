@@ -105,20 +105,22 @@ public class HttpsSettings
 
     void LogConfiguration()
     {
-        var httpsPortDisplay = HttpsPort.HasValue ? HttpsPort.Value.ToString() : "(default)";
+        var httpsPortDisplay = HttpsPort.HasValue ? HttpsPort.Value.ToString() : "(null)";
 
-        if (!Enabled)
-        {
-            logger.LogInformation("HTTPS is disabled: Enabled={Enabled}, RedirectHttpToHttps={RedirectHttpToHttps}, HttpsPort={HttpsPort}, EnableHsts={EnableHsts}, HstsMaxAgeSeconds={HstsMaxAgeSeconds}, HstsIncludeSubDomains={HstsIncludeSubDomains}",
-                Enabled, RedirectHttpToHttps, httpsPortDisplay, EnableHsts, HstsMaxAgeSeconds, HstsIncludeSubDomains);
-        }
-        else
-        {
-            logger.LogInformation("HTTPS is enabled: Enabled={Enabled}, CertificatePath={CertificatePath}, HasCertificatePassword={HasCertificatePassword}, RedirectHttpToHttps={RedirectHttpToHttps}, HttpsPort={HttpsPort}, EnableHsts={EnableHsts}, HstsMaxAgeSeconds={HstsMaxAgeSeconds}, HstsIncludeSubDomains={HstsIncludeSubDomains}",
-                Enabled, CertificatePath, !string.IsNullOrEmpty(CertificatePassword), RedirectHttpToHttps, httpsPortDisplay, EnableHsts, HstsMaxAgeSeconds, HstsIncludeSubDomains);
-        }
+        logger.LogInformation("HTTPS settings: Enabled={Enabled}, CertificatePath={CertificatePath}, HasCertificatePassword={HasCertificatePassword}, RedirectHttpToHttps={RedirectHttpToHttps}, HttpsPort={HttpsPort}, EnableHsts={EnableHsts}, HstsMaxAgeSeconds={HstsMaxAgeSeconds}, HstsIncludeSubDomains={HstsIncludeSubDomains}",
+            Enabled, CertificatePath, !string.IsNullOrEmpty(CertificatePassword), RedirectHttpToHttps, httpsPortDisplay, EnableHsts, HstsMaxAgeSeconds, HstsIncludeSubDomains);
 
         // Warn about potential misconfigurations
+        if (!Enabled)
+        {
+            logger.LogWarning("Kestrel HTTPS is disabled. Local communication will not be encrypted unless TLS is terminated by a reverse proxy");
+        }
+
+        if (!Enabled && (!string.IsNullOrEmpty(CertificatePath) || !string.IsNullOrEmpty(CertificatePassword)))
+        {
+            logger.LogWarning("HTTPS is disabled but certificate settings are provided. CertificatePath and CertificatePassword will be ignored.");
+        }
+
         if (RedirectHttpToHttps && !EnableHsts)
         {
             logger.LogWarning("HTTPS redirect is enabled but HSTS is disabled. Consider enabling Https.EnableHsts for better security");

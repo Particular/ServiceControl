@@ -12,6 +12,7 @@
     using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.AspNetCore.Mvc.Routing;
     using Microsoft.AspNetCore.Routing;
+    using Microsoft.Extensions.Logging.Abstractions;
     using NUnit.Framework;
     using Particular.Approvals;
 
@@ -27,7 +28,7 @@
 
             var settings = CreateTestSettings();
 
-            var controller = new RootController(settings)
+            var controller = new RootController(settings, NullLogger<RootController>.Instance)
             {
                 ControllerContext = controllerContext,
                 Url = new UrlHelper(actionContext)

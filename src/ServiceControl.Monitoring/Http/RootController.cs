@@ -22,6 +22,7 @@
             return Ok(model);
         }
 
+        [AllowAnonymous]
         [Route("")]
         [HttpOptions]
         public void GetSupportedOperations()
