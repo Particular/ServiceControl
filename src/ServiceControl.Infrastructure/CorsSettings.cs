@@ -42,7 +42,7 @@ public class CorsSettings
     /// <summary>
     /// List of specific origins to allow when AllowAnyOrigin is false.
     /// </summary>
-    public List<string> AllowedOrigins { get; } = [];
+    public IReadOnlyList<string> AllowedOrigins { get; } = [];
 
     List<string> ParseOrigins(string value)
     {

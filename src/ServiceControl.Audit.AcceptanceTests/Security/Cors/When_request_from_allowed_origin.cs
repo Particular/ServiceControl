@@ -25,11 +25,11 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
         [TearDown]
         public void CleanupCors() => configuration?.Dispose();
 
-        [Test]
-        public async Task Should_return_matching_origin_in_access_control_allow_origin_header()
+        [TestCase("https://app.example.com")]
+        [TestCase("https://admin.example.com")]
+        public async Task Should_return_matching_origin_in_access_control_allow_origin_header(string allowedOrigin)
         {
             HttpResponseMessage response = null;
-            const string allowedOrigin = "https://app.example.com";
 
             _ = await Define<Context>()
                 .Done(async ctx =>

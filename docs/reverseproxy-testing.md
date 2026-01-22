@@ -20,7 +20,7 @@ This guide provides scenario-based tests for ServiceControl instances behind an 
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
 - [mkcert](https://github.com/FiloSottile/mkcert) for generating local development certificates
-- ServiceControl built locally (see main README for build instructions)
+- ServiceControl built locally (see [main README for instructions](../README.md#how-to-rundebug-locally))
 - curl (included with Windows 10/11, Git Bash, or WSL)
 
 ## Enabling Debug Logs
@@ -550,5 +550,5 @@ The `/debug/request-info` endpoint is only available when running in Development
 
 ## See Also
 
-- [Hosting Guide](hosting-guide.md) - Configuration reference for all deployment scenarios
+- [Hosting Guide](https://docs.particular.net/servicecontrol/security/hosting-guide) - Configuration reference for all deployment scenarios
 - [Forwarded Headers Testing](forward-headers-testing.md) - Testing forwarded headers without a reverse proxy

@@ -4,7 +4,7 @@ This guide explains how to test forwarded headers configuration for ServiceContr
 
 ## Prerequisites
 
-- ServiceControl built locally (see main README for build instructions)
+- ServiceControl built locally (see [main README for instructions](../README.md#how-to-rundebug-locally))
 - curl (included with Windows 10/11, Git Bash, or WSL)
 - (Optional) For formatted JSON output: `npm install -g json` then pipe curl output through `| json`
 - All commands assume you are in the respective project directory
@@ -854,6 +854,6 @@ dotnet test src/ServiceControl.Monitoring.AcceptanceTests/ServiceControl.Monitor
 
 ## See Also
 
-- [Hosting Guide](hosting-guide.md) - Configuration reference for forwarded headers
+- [Hosting Guide](https://docs.particular.net/servicecontrol/security/hosting-guide) - Configuration reference for forwarded headers
 - [Reverse Proxy Testing](reverseproxy-testing.md) - Testing with a real reverse proxy (NGINX)
 - [Testing Architecture](testing-architecture.md) - Overview of testing patterns in this repository

@@ -138,5 +138,10 @@ public class HttpsSettings
         {
             logger.LogWarning("Https.Port is configured but HTTPS redirect is disabled. The port setting will be ignored");
         }
+
+        if (RedirectHttpToHttps && !HttpsPort.HasValue)
+        {
+            logger.LogInformation("Https.Port is not configured. HTTPS redirect will be ignored.");
+        }
     }
 }

@@ -60,12 +60,12 @@ public class ForwardedHeadersSettings
     /// <summary>
     /// List of specific IP addresses of trusted proxies.
     /// </summary>
-    public List<string> KnownProxiesRaw { get; } = [];
+    public IReadOnlyList<string> KnownProxiesRaw { get; } = [];
 
     /// <summary>
     /// List of specific CIDR networks of trusted proxies.
     /// </summary>
-    public List<string> KnownNetworks { get; } = [];
+    public IReadOnlyList<string> KnownNetworks { get; } = [];
 
     // Parse IPAddresses on demand to avoid serialization issues
     [JsonIgnore]

@@ -1,5 +1,6 @@
 namespace ServiceControl.AcceptanceTesting.Https
 {
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using NUnit.Framework;
@@ -17,23 +18,24 @@ namespace ServiceControl.AcceptanceTesting.Https
         /// </summary>
         public static void AssertHttpsRedirect(HttpResponseMessage response, int? expectedPort = null)
         {
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.RedirectKeepVerb).Or.EqualTo(HttpStatusCode.Redirect),
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.RedirectKeepVerb).Or.EqualTo(HttpStatusCode.Redirect),
                             "Response should be a redirect (307 or 302)");
 
-                Assert.That(response.Headers.Location, Is.Not.Null,
-                    "Response should contain Location header");
-            }
-
             var locationUri = response.Headers.Location;
-            Assert.That(locationUri.Scheme, Is.EqualTo("https"),
-                "Redirect Location should use HTTPS scheme");
 
-            if (expectedPort.HasValue)
+            Assert.That(locationUri, Is.Not.Null,
+                "Response should contain Location header");
+
+            using (Assert.EnterMultipleScope())
             {
-                Assert.That(locationUri.Port, Is.EqualTo(expectedPort.Value),
-                    $"Redirect Location should use port {expectedPort.Value}");
+                Assert.That(locationUri.Scheme, Is.EqualTo("https"),
+                    "Redirect Location should use HTTPS scheme");
+
+                if (expectedPort.HasValue)
+                {
+                    Assert.That(locationUri.Port, Is.EqualTo(expectedPort.Value),
+                        $"Redirect Location should use port {expectedPort.Value}");
+                }
             }
         }
 
@@ -54,7 +56,7 @@ namespace ServiceControl.AcceptanceTesting.Https
             Assert.That(response.Headers.Contains(StrictTransportSecurityHeader), Is.True,
                 "Response should contain Strict-Transport-Security header");
 
-            var hstsValue = string.Join("; ", response.Headers.GetValues(StrictTransportSecurityHeader));
+            var hstsValue = response.Headers.GetValues(StrictTransportSecurityHeader).Single();
 
             Assert.That(hstsValue, Does.Contain($"max-age={expectedMaxAge}"),
                 $"HSTS header should contain max-age={expectedMaxAge}");
