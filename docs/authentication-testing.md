@@ -4,7 +4,7 @@ This guide explains how to test authentication configuration for ServiceControl 
 
 ## Prerequisites
 
-- ServiceControl built locally (see main README for build instructions)
+- ServiceControl built locally (see [main README for instructions](../README.md#how-to-rundebug-locally))
 - **Identity Provider (IdP) configured** - For real authentication testing (Scenarios 7+), you need an OIDC provider configured with:
   - An API application registration (for ServiceControl)
   - A client application registration (for ServicePulse)
@@ -244,7 +244,7 @@ curl http://localhost:33333/api/authentication/configuration | json
 }
 ```
 
-See [Authentication](authentication.md) for all anonymous endpoints.
+See [Authentication](https://docs.particular.net/servicecontrol/security/#authentication-anonymous-endpoints) for all anonymous endpoints.
 
 ### Scenario 5: Validation Settings Warnings
 
@@ -757,6 +757,6 @@ The primary instance rejects the expired token before any remote requests are ma
 
 ## See Also
 
-- [Authentication Configuration](authentication.md) - Configuration reference for authentication settings
-- [HTTPS Configuration](https-configuration.md) - HTTPS is recommended when authentication is enabled
+- [Authentication Configuration](https://docs.particular.net/servicecontrol/security/configuration/authentication#configuration) - Configuration reference for authentication settings
+- [TLS Configuration](https://docs.particular.net/servicecontrol/security/configuration/tls#configuration) - HTTPS/TLS is recommended when authentication is enabled
 - [Forwarded Headers Testing](forward-headers-testing.md) - Testing forwarded headers

@@ -210,27 +210,27 @@ public class OpenIdConnectSettings
 
         if (Enabled && !ValidateIssuer)
         {
-            logger.LogWarning("Authentication.ValidateIssuer is disabled. Tokens from any issuer will be accepted. Its recommended to keep this enabled for security");
+            logger.LogWarning("Authentication.ValidateIssuer is disabled. Tokens from any issuer will be accepted. It is recommended to keep this enabled for security");
         }
 
         if (Enabled && !ValidateAudience)
         {
-            logger.LogWarning("Authentication.ValidateAudience is disabled. Tokens intended for other applications will be accepted. Its recommended to keep this enabled for security");
+            logger.LogWarning("Authentication.ValidateAudience is disabled. Tokens intended for other applications will be accepted. It is recommended to keep this enabled for security");
         }
 
         if (Enabled && !ValidateLifetime)
         {
-            logger.LogWarning("Authentication.ValidateLifetime is disabled. Expired tokens will be accepted. Its recommended to keep this enabled for security");
+            logger.LogWarning("Authentication.ValidateLifetime is disabled. Expired tokens will be accepted. It is recommended to keep this enabled for security");
         }
 
         if (Enabled && !ValidateIssuerSigningKey)
         {
-            logger.LogWarning("Authentication.ValidateIssuerSigningKey is disabled. Forged tokens may be accepted. Its recommended to keep this enabled for security");
+            logger.LogWarning("Authentication.ValidateIssuerSigningKey is disabled. Forged tokens may be accepted. It is recommended to keep this enabled for security");
         }
 
         if (Enabled && !RequireHttpsMetadata)
         {
-            logger.LogWarning("Authentication.RequireHttpsMetadata is disabled. OIDC metadata will be fetched over HTTP which is insecure. Its recommended to keep this enabled for security");
+            logger.LogWarning("Authentication.RequireHttpsMetadata is disabled. OIDC metadata will be fetched over HTTP which is insecure. It is recommended to keep this enabled for security");
         }
     }
 }

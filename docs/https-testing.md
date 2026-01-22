@@ -17,7 +17,7 @@ This guide provides scenario-based tests for ServiceControl's direct HTTPS featu
 ## Prerequisites
 
 - [mkcert](https://github.com/FiloSottile/mkcert) for generating local development certificates
-- ServiceControl built locally (see main README for build instructions)
+- ServiceControl built locally (see [main README for instructions](../README.md#how-to-rundebug-locally))
 - curl (included with Windows 10/11, Git Bash, or WSL)
 
 ## Enabling Debug Logs
@@ -257,6 +257,6 @@ $env:SERVICECONTROL_FORWARDEDHEADERS_ENABLED = $null
 
 ## See Also
 
-- [Hosting Guide](hosting-guide.md) - Detailed configuration reference for all deployment scenarios
+- [Hosting Guide](https://docs.particular.net/servicecontrol/security/hosting-guide) - Detailed configuration reference for all deployment scenarios
 - [Reverse Proxy Testing](reverseproxy-testing.md) - Testing with a reverse proxy (NGINX)
 - [Forwarded Headers Testing](forward-headers-testing.md) - Testing forwarded headers without a reverse proxy

@@ -51,6 +51,8 @@ namespace ServiceControl.AcceptanceTesting.Cors
         {
             SetEnvironmentVariable("CORS_ALLOWANYORIGIN", "false");
             // Don't set CORS_ALLOWEDORIGINS - leaves it empty
+            ClearEnvironmentVariable("CORS_ALLOWEDORIGINS");
+
             return this;
         }
 

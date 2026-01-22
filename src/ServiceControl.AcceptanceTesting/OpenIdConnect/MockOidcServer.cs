@@ -48,7 +48,7 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
         static int GetAvailablePort()
         {
             // Find an available port by binding to port 0
-            var listener = new System.Net.Sockets.TcpListener(IPAddress.Loopback, 0);
+            using var listener = new System.Net.Sockets.TcpListener(IPAddress.Loopback, 0);
             listener.Start();
             var port = ((IPEndPoint)listener.LocalEndpoint).Port;
             listener.Stop();

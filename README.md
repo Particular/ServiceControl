@@ -60,10 +60,10 @@ NOTE: If no variable is defined all tests will be executed.
 
 Documentation for configuring security features:
 
-- [HTTPS Configuration](docs/https-configuration.md) - Configure HTTPS/TLS for secure connections
-- [Forwarded Headers](docs/forwarded-headers.md) - Configure X-Forwarded-* header handling for reverse proxy scenarios
-- [Authentication](docs/authentication.md) - Configure authentication for the HTTP API
-- [Hosting Guide](docs/hosting-guide.md) - Scenario based hosting options for ServiceControl
+- [TLS Configuration](https://docs.particular.net/servicecontrol/security/configuration/tls) - Configure HTTPS/TLS for secure connections
+- [Forwarded Headers](https://docs.particular.net/servicecontrol/security/configuration/forward-headers) - Configure X-Forwarded-* header handling for reverse proxy scenarios
+- [Authentication](https://docs.particular.net/servicecontrol/security/configuration/authentication) - Configure authentication for the HTTP API
+- [Hosting Guide](https://docs.particular.net/servicecontrol/security/hosting-guide) - Scenario based hosting options for ServiceControl
 
 Local testing guides:
 
