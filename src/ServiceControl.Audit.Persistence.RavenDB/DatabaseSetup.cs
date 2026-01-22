@@ -27,7 +27,7 @@ class DatabaseSetup(DatabaseConfiguration configuration)
 
         await CreateIndexes(documentStore, configuration.EnableFullTextSearch, cancellationToken);
 
-        await LicenseStatusCheck.WaitForLicenseOrThrow(configuration, cancellationToken);
+        await LicenseStatusCheck.WaitForLicenseOrThrow(documentStore, configuration, cancellationToken);
         await ConfigureExpiration(documentStore, cancellationToken);
     }
 

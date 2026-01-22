@@ -1,27 +1,25 @@
 namespace ServiceControl.Persistence.RavenDB;
 
 using System;
-using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Raven.Client.Documents;
 
 static class LicenseStatusCheck
 {
     record LicenseStatusFragment(string Id, string LicensedTo, string Status, bool Expired);
 
-    public static async Task WaitForLicenseOrThrow(RavenPersisterSettings configuration, CancellationToken cancellationToken)
+    public static async Task WaitForLicenseOrThrow(IDocumentStore documentStore, RavenPersisterSettings ravenPersisterSettings, CancellationToken cancellationToken)
     {
-        using var client = new HttpClient
-        {
-            BaseAddress = new Uri(configuration.ConnectionString ?? configuration.ServerUrl)
-        };
+        var ravenConfiguredHttpClient = documentStore.GetRequestExecutor().HttpClient;
+        var licenseCheckUrl = (ravenPersisterSettings.ConnectionString ?? ravenPersisterSettings.ServerUrl).TrimEnd('/') + "/license/status";
 
         // Not linking to the incoming cancellationToken to ensure no OperationCancelledException prevents the last InvalidOperationException to be thrown
         using var cts = new CancellationTokenSource(30_000);
         while (!cts.IsCancellationRequested)
         {
-            var httpResponse = await client.GetAsync("license/status", cancellationToken);
+            var httpResponse = await ravenConfiguredHttpClient.GetAsync(licenseCheckUrl, cancellationToken);
             var licenseStatus = await httpResponse.Content.ReadFromJsonAsync<LicenseStatusFragment>(cancellationToken);
             if (licenseStatus.Expired)
             {
