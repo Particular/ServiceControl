@@ -119,6 +119,24 @@
                 }
             }
 
+            if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.EnableEmbeddedServicePulse.Name))
+            {
+                var result = await windowManager.ShowYesNoCancelDialog("INPUT REQUIRED - EMBEDDED SERVICEPULSE",
+                    "ServiceControl can host an embedded version of ServicePulse which allows you to monitor your ServiceControl instance without needing to install ServicePulse separately.",
+                    "Would you like to enable the embedded ServicePulse for this instance?",
+                    "Enable Embedded ServicePulse",
+                    "Do NOT enable Embedded ServicePulse");
+
+                if (!result.HasValue)
+                {
+                    //Dialog was cancelled
+                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
+                    return;
+                }
+
+                upgradeOptions.EnableEmbeddedServicePulse = result.Value;
+            }
+
             if (await commandChecks.StopBecauseInstanceIsRunning(instance))
             {
                 return;
