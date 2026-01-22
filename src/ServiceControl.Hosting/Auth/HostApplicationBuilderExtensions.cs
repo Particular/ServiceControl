@@ -108,21 +108,6 @@
                 return "The token has expired. Please obtain a new token and retry.";
             }
 
-            if (context.AuthenticateFailure is SecurityTokenInvalidSignatureException)
-            {
-                return "The token signature is invalid.";
-            }
-
-            if (context.AuthenticateFailure is SecurityTokenInvalidAudienceException)
-            {
-                return "The token audience is invalid.";
-            }
-
-            if (context.AuthenticateFailure is SecurityTokenInvalidIssuerException)
-            {
-                return "The token issuer is invalid.";
-            }
-
             if (context.AuthenticateFailure != null)
             {
                 return "The token is invalid.";

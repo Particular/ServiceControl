@@ -3,18 +3,23 @@ namespace ServiceControl.Audit.Connection
     using System.Text.Json;
     using Infrastructure.Settings;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Logging;
 
     [ApiController]
     [Route("api")]
-    public class ConnectionController(Settings settings) : ControllerBase
+    public class ConnectionController(Settings settings, ILogger<ConnectionController> logger) : ControllerBase
     {
         // This controller doesn't use the default serialization settings because
         // ServicePulse and the Platform Connector Plugin expect the connection
         // details the be serialized and formatted in a specific way
         [Route("connection")]
         [HttpGet]
-        public IActionResult GetConnectionDetails() =>
-            new JsonResult(
+        public IActionResult GetConnectionDetails()
+        {
+            var hasAuthHeader = HttpContext.Request.Headers.ContainsKey("Authorization");
+            logger.LogDebug("Received request to /api/connection. Has Authorization header: {HasAuthHeader}", hasAuthHeader);
+
+            return new JsonResult(
                 new ConnectionDetails
                 {
                     MessageAudit = new MessageAuditConnectionDetails
@@ -28,6 +33,7 @@ namespace ServiceControl.Audit.Connection
                         SagaAuditQueue = settings.AuditQueue,
                     }
                 }, JsonSerializerOptions.Default);
+        }
     }
 
     public class ConnectionDetails

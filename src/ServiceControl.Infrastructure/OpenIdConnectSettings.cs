@@ -187,21 +187,18 @@ public class OpenIdConnectSettings
         var servicePulseAuthorityDisplay = requireServicePulseSettings ? (ServicePulseAuthority ?? "(not configured)") : "(n/a)";
         var servicePulseApiScopesDisplay = requireServicePulseSettings ? (ServicePulseApiScopes ?? "(not configured)") : "(n/a)";
 
-        if (Enabled)
-        {
-            logger.LogInformation("Authentication is enabled: Authority={Authority}, Audience={Audience}, ValidateIssuer={ValidateIssuer}, ValidateAudience={ValidateAudience}, ValidateLifetime={ValidateLifetime}, ValidateIssuerSigningKey={ValidateIssuerSigningKey}, RequireHttpsMetadata={RequireHttpsMetadata}, ServicePulseClientId={ServicePulseClientId}, ServicePulseAuthority={ServicePulseAuthority}, ServicePulseApiScopes={ServicePulseApiScopes}",
-                authorityDisplay, audienceDisplay, ValidateIssuer, ValidateAudience, ValidateLifetime, ValidateIssuerSigningKey, RequireHttpsMetadata, servicePulseClientIdDisplay, servicePulseAuthorityDisplay, servicePulseApiScopesDisplay);
-        }
-        else
-        {
-            logger.LogInformation("Authentication is disabled: Authority={Authority}, Audience={Audience}, ValidateIssuer={ValidateIssuer}, ValidateAudience={ValidateAudience}, ValidateLifetime={ValidateLifetime}, ValidateIssuerSigningKey={ValidateIssuerSigningKey}, RequireHttpsMetadata={RequireHttpsMetadata}, ServicePulseClientId={ServicePulseClientId}, ServicePulseAuthority={ServicePulseAuthority}, ServicePulseApiScopes={ServicePulseApiScopes}",
-                authorityDisplay, audienceDisplay, ValidateIssuer, ValidateAudience, ValidateLifetime, ValidateIssuerSigningKey, RequireHttpsMetadata, servicePulseClientIdDisplay, servicePulseAuthorityDisplay, servicePulseApiScopesDisplay);
-        }
+        logger.LogInformation("Authentication settings: Enabled={Enabled}, Authority={Authority}, Audience={Audience}, ValidateIssuer={ValidateIssuer}, ValidateAudience={ValidateAudience}, ValidateLifetime={ValidateLifetime}, ValidateIssuerSigningKey={ValidateIssuerSigningKey}, RequireHttpsMetadata={RequireHttpsMetadata}, ServicePulseClientId={ServicePulseClientId}, ServicePulseAuthority={ServicePulseAuthority}, ServicePulseApiScopes={ServicePulseApiScopes}",
+            Enabled, authorityDisplay, audienceDisplay, ValidateIssuer, ValidateAudience, ValidateLifetime, ValidateIssuerSigningKey, RequireHttpsMetadata, servicePulseClientIdDisplay, servicePulseAuthorityDisplay, servicePulseApiScopesDisplay);
 
         // Warn about potential misconfigurations
         var hasAuthConfig = !string.IsNullOrWhiteSpace(Authority) || !string.IsNullOrWhiteSpace(Audience);
         var hasServicePulseConfig = requireServicePulseSettings &&
             (!string.IsNullOrWhiteSpace(ServicePulseClientId) || !string.IsNullOrWhiteSpace(ServicePulseApiScopes) || !string.IsNullOrWhiteSpace(ServicePulseAuthority));
+
+        if (!Enabled)
+        {
+            logger.LogWarning("Authentication is disabled. All API endpoints will be accessible without authentication.");
+        }
 
         if (!Enabled && (hasAuthConfig || hasServicePulseConfig))
         {

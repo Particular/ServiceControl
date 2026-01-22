@@ -4,15 +4,17 @@
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Logging;
     using Settings;
 
     [ApiController]
     [Route("api")]
     public class RootController : ControllerBase
     {
-        public RootController(Settings settings)
+        public RootController(Settings settings, ILogger<RootController> logger)
         {
             this.settings = settings;
+            this.logger = logger;
         }
 
         // This endpoint is used for health checks by the primary instance. As its a service-to-service call, it needs to be anonymous.
@@ -21,6 +23,9 @@
         [HttpGet]
         public OkObjectResult Urls()
         {
+            var hasAuthHeader = HttpContext.Request.Headers.ContainsKey("Authorization");
+            logger.LogDebug("Received request to /api. Has Authorization header: {HasAuthHeader}", hasAuthHeader);
+
             var baseUrl = Request.GetDisplayUrl();
 
             if (!baseUrl.EndsWith('/'))
@@ -50,6 +55,9 @@
         [HttpGet]
         public OkObjectResult Config()
         {
+            var hasAuthHeader = HttpContext.Request.Headers.ContainsKey("Authorization");
+            logger.LogDebug("Received request to /api/configuration. Has Authorization header: {HasAuthHeader}", hasAuthHeader);
+
             object content = new
             {
                 Host = new
@@ -89,6 +97,7 @@
         }
 
         readonly Settings settings;
+        readonly ILogger<RootController> logger;
 
         public class RootUrls
         {

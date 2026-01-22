@@ -2,7 +2,8 @@
 
 This guide provides scenario-based tests for ServiceControl's direct HTTPS features. Use this to verify Kestrel HTTPS behavior without a reverse proxy.
 
-> **Note:** HTTP to HTTPS redirection (`RedirectHttpToHttps`) is designed for reverse proxy scenarios where the proxy forwards HTTP requests to ServiceControl. When running with direct HTTPS, ServiceControl only binds to a single port (HTTPS). To test HTTP to HTTPS redirection, see [Reverse Proxy Testing](reverseproxy-testing.md).
+> [!NOTE]
+> HTTP to HTTPS redirection (`RedirectHttpToHttps`) is designed for reverse proxy scenarios where the proxy forwards HTTP requests to ServiceControl. When running with direct HTTPS, ServiceControl only binds to a single port (HTTPS). To test HTTP to HTTPS redirection, see [Reverse Proxy Testing](reverseproxy-testing.md).
 
 ## Instance Reference
 
@@ -12,13 +13,15 @@ This guide provides scenario-based tests for ServiceControl's direct HTTPS featu
 | ServiceControl.Audit      | `src\ServiceControl.Audit`      | 44444        | `SERVICECONTROL_AUDIT_`     | `ServiceControl.Audit/` |
 | ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633        | `MONITORING_`               | `Monitoring/`           |
 
-> **Note:** Environment variables must include the instance prefix (e.g., `SERVICECONTROL_HTTPS_ENABLED` for the primary instance).
+> [!NOTE]
+> Environment variables must include the instance prefix (e.g., `SERVICECONTROL_HTTPS_ENABLED` for the primary instance).
 
 ## Prerequisites
 
 - [mkcert](https://github.com/FiloSottile/mkcert) for generating local development certificates
 - ServiceControl built locally (see [main README for instructions](../README.md#how-to-rundebug-locally))
 - curl (included with Windows 10/11, Git Bash, or WSL)
+- (Optional) For formatted JSON output: `npm install -g json` then pipe curl output through `| json`
 
 ## Enabling Debug Logs
 
@@ -102,15 +105,21 @@ When prompted for a password, you can use an empty password by pressing Enter, o
 
 ## Test Scenarios
 
-All scenarios use environment variables for configuration. Run each scenario from the `src/ServiceControl` directory.
+All scenarios use environment variables for configuration.
 
-### Scenario 1: Basic HTTPS Connectivity
+> [!NOTE]
+> The `RemoteInstances` setting on the primary ServiceControl instance needs the correct schema. e.g.; `https://localhost:44444/api/`
 
-Verify that HTTPS is working with a valid certificate.
+### Test Grouping by Configuration
 
-**Cleanup and start ServiceControl:**
+Both scenarios use the same HTTPS configuration, so you only need to start the service once to run all tests.
+
+## HTTPS Enabled Configuration
+
+**Start the instance once, then run all tests (Scenarios 1, 2).**
 
 ```cmd
+rem ServiceControl (Primary)
 set SERVICECONTROL_HTTPS_ENABLED=true
 set SERVICECONTROL_HTTPS_CERTIFICATEPATH=C:\path\to\ServiceControl\.local\certs\localhost.pfx
 set SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD=changeit
@@ -118,21 +127,53 @@ set SERVICECONTROL_HTTPS_REDIRECTHTTPTOHTTPS=
 set SERVICECONTROL_HTTPS_PORT=
 set SERVICECONTROL_HTTPS_ENABLEHSTS=
 set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=false
+set SERVICECONTROL_REMOTEINSTANCES=[{"api_uri":"https://localhost:44444"}]
+
+rem ServiceControl.Audit
+set SERVICECONTROL_AUDIT_HTTPS_ENABLED=true
+set SERVICECONTROL_AUDIT_HTTPS_CERTIFICATEPATH=C:\path\to\ServiceControl\.local\certs\localhost.pfx
+set SERVICECONTROL_AUDIT_HTTPS_CERTIFICATEPASSWORD=changeit
+set SERVICECONTROL_AUDIT_HTTPS_REDIRECTHTTPTOHTTPS=
+set SERVICECONTROL_AUDIT_HTTPS_PORT=
+set SERVICECONTROL_AUDIT_HTTPS_ENABLEHSTS=
+set SERVICECONTROL_AUDIT_FORWARDEDHEADERS_ENABLED=false
+
+rem ServiceControl.Monitoring
+set MONITORING_HTTPS_ENABLED=true
+set MONITORING_HTTPS_CERTIFICATEPATH=C:\path\to\ServiceControl\.local\certs\localhost.pfx
+set MONITORING_HTTPS_CERTIFICATEPASSWORD=changeit
+set MONITORING_HTTPS_REDIRECTHTTPTOHTTPS=
+set MONITORING_HTTPS_PORT=
+set MONITORING_HTTPS_ENABLEHSTS=
+set MONITORING_FORWARDEDHEADERS_ENABLED=false
 
 dotnet run
 ```
 
+### Scenario 1: Basic HTTPS Connectivity
+
+Verify that HTTPS is working with a valid certificate.
+
 **Test with curl:**
 
 ```cmd
+rem ServiceControl (Primary)
 curl --ssl-no-revoke -v https://localhost:33333/api 2>&1 | findstr /C:"HTTP/" /C:"SSL"
+
+rem ServiceControl.Audit
+curl --ssl-no-revoke -v https://localhost:44444/api 2>&1 | findstr /C:"HTTP/" /C:"SSL"
+
+rem ServiceControl.Monitoring
+curl --ssl-no-revoke -v https://localhost:33633/ 2>&1 | findstr /C:"HTTP/" /C:"SSL"
 ```
 
-> **Note:** The `--ssl-no-revoke` flag is required on Windows because mkcert certificates don't have CRL distribution points, causing `CRYPT_E_NO_REVOCATION_CHECK` errors.
+> [!NOTE]
+> The `--ssl-no-revoke` flag is required on Windows because mkcert certificates don't have CRL distribution points, causing `CRYPT_E_NO_REVOCATION_CHECK` errors.
 
 **Expected output:**
 
 ```text
+* schannel: renegotiating SSL/TLS connection
 * schannel: SSL/TLS connection renegotiated
 < HTTP/1.1 200 OK
 ```
@@ -143,24 +184,17 @@ The request succeeds over HTTPS. The exact SSL output varies by curl version and
 
 Verify that HTTP requests fail when only HTTPS is enabled.
 
-**Cleanup and start ServiceControl:**
+**Test with curl (using configuration above, attempting HTTP):**
 
 ```cmd
-set SERVICECONTROL_HTTPS_ENABLED=true
-set SERVICECONTROL_HTTPS_CERTIFICATEPATH=C:\path\to\ServiceControl\.local\certs\localhost.pfx
-set SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD=changeit
-set SERVICECONTROL_HTTPS_REDIRECTHTTPTOHTTPS=
-set SERVICECONTROL_HTTPS_PORT=
-set SERVICECONTROL_HTTPS_ENABLEHSTS=
-set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=false
-
-dotnet run
-```
-
-**Test with curl (HTTP):**
-
-```cmd
+rem ServiceControl (Primary)
 curl http://localhost:33333/api
+
+rem ServiceControl.Audit
+curl http://localhost:44444/api
+
+rem ServiceControl.Monitoring
+curl http://localhost:33633/
 ```
 
 **Expected output:**
@@ -171,34 +205,8 @@ curl: (52) Empty reply from server
 
 HTTP requests fail because Kestrel is listening for HTTPS but receives plaintext HTTP, which it cannot process. The server closes the connection without responding.
 
-## HTTPS Configuration Reference
-
-| App.config Key                | Environment Variable (Primary)               | Default    | Description                                          |
-|-------------------------------|----------------------------------------------|------------|------------------------------------------------------|
-| `Https.Enabled`               | `SERVICECONTROL_HTTPS_ENABLED`               | `false`    | Enable Kestrel HTTPS                                 |
-| `Https.CertificatePath`       | `SERVICECONTROL_HTTPS_CERTIFICATEPATH`       | -          | Path to PFX certificate file                         |
-| `Https.CertificatePassword`   | `SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD`   | -          | Certificate password (empty string for no password)  |
-| `Https.RedirectHttpToHttps`   | `SERVICECONTROL_HTTPS_REDIRECTHTTPTOHTTPS`   | `false`    | Redirect HTTP requests to HTTPS (reverse proxy only) |
-| `Https.EnableHsts`            | `SERVICECONTROL_HTTPS_ENABLEHSTS`            | `false`    | Enable HTTP Strict Transport Security                |
-| `Https.HstsMaxAgeSeconds`     | `SERVICECONTROL_HTTPS_HSTSMAXAGESECONDS`     | `31536000` | HSTS max-age (1 year)                                |
-| `Https.HstsIncludeSubDomains` | `SERVICECONTROL_HTTPS_HSTSINCLUDESUBDOMAINS` | `false`    | Include subdomains in HSTS                           |
-
-> **Note:** For other instances, replace the `SERVICECONTROL_` prefix with the appropriate instance prefix (see Instance Reference table).
->
-> **Note:** HSTS is not tested locally because ASP.NET Core excludes localhost from HSTS by default (to prevent accidentally caching HSTS during development). HSTS will work correctly in production with non-localhost hostnames.
-
-## Testing Other Instances
-
-The scenarios above use ServiceControl (Primary). To test ServiceControl.Audit or ServiceControl.Monitoring:
-
-1. Use the appropriate environment variable prefix (see Instance Reference above)
-2. Use the corresponding project directory and port
-
-| Instance                  | Project Directory               | Port  | Env Var Prefix          |
-|---------------------------|---------------------------------|-------|-------------------------|
-| ServiceControl (Primary)  | `src\ServiceControl`            | 33333 | `SERVICECONTROL_`       |
-| ServiceControl.Audit      | `src\ServiceControl.Audit`      | 44444 | `SERVICECONTROL_AUDIT_` |
-| ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633 | `MONITORING_`           |
+> [!NOTE]
+> HSTS is not tested locally because ASP.NET Core excludes localhost from HSTS by default (to prevent accidentally caching HSTS during development). HSTS will work correctly in production with non-localhost hostnames.
 
 ## Troubleshooting
 
@@ -234,6 +242,7 @@ After testing, clear the environment variables:
 **Command Prompt (cmd):**
 
 ```cmd
+rem ServiceControl (Primary)
 set SERVICECONTROL_HTTPS_ENABLED=
 set SERVICECONTROL_HTTPS_CERTIFICATEPATH=
 set SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD=
@@ -241,18 +250,25 @@ set SERVICECONTROL_HTTPS_ENABLEHSTS=
 set SERVICECONTROL_HTTPS_HSTSMAXAGESECONDS=
 set SERVICECONTROL_HTTPS_HSTSINCLUDESUBDOMAINS=
 set SERVICECONTROL_FORWARDEDHEADERS_ENABLED=
-```
+set SERVICECONTROL_REMOTEINSTANCES=[{"api_uri":"http://localhost:44444"}]
 
-**PowerShell:**
+rem ServiceControl.Audit
+set SERVICECONTROL_AUDIT_HTTPS_ENABLED=
+set SERVICECONTROL_AUDIT_HTTPS_CERTIFICATEPATH=
+set SERVICECONTROL_AUDIT_HTTPS_CERTIFICATEPASSWORD=
+set SERVICECONTROL_AUDIT_HTTPS_ENABLEHSTS=
+set SERVICECONTROL_AUDIT_HTTPS_HSTSMAXAGESECONDS=
+set SERVICECONTROL_AUDIT_HTTPS_HSTSINCLUDESUBDOMAINS=
+set SERVICECONTROL_AUDIT_FORWARDEDHEADERS_ENABLED=
 
-```powershell
-$env:SERVICECONTROL_HTTPS_ENABLED = $null
-$env:SERVICECONTROL_HTTPS_CERTIFICATEPATH = $null
-$env:SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD = $null
-$env:SERVICECONTROL_HTTPS_ENABLEHSTS = $null
-$env:SERVICECONTROL_HTTPS_HSTSMAXAGESECONDS = $null
-$env:SERVICECONTROL_HTTPS_HSTSINCLUDESUBDOMAINS = $null
-$env:SERVICECONTROL_FORWARDEDHEADERS_ENABLED = $null
+rem ServiceControl.Monitoring
+set MONITORING_HTTPS_ENABLED=
+set MONITORING_HTTPS_CERTIFICATEPATH=
+set MONITORING_HTTPS_CERTIFICATEPASSWORD=
+set MONITORING_HTTPS_ENABLEHSTS=
+set MONITORING_HTTPS_HSTSMAXAGESECONDS=
+set MONITORING_HTTPS_HSTSINCLUDESUBDOMAINS=
+set MONITORING_FORWARDEDHEADERS_ENABLED=
 ```
 
 ## See Also

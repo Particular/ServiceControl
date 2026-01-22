@@ -288,5 +288,70 @@ namespace ServiceControl.AcceptanceTesting.ForwardedHeaders
                 Assert.That(requestInfo.Configuration.TrustAllProxies, Is.False);
             }
         }
+
+        /// <summary>
+        /// Multiple Header Values with TrustAllProxies=true
+        /// When TrustAllProxies is true and multiple values are in X-Forwarded-Proto/Host,
+        /// the original (leftmost) values should be returned.
+        /// </summary>
+        public static void AssertMultipleHeaderValuesProcessedWithTrustAllProxies(
+            RequestInfoResponse requestInfo,
+            string expectedOriginalScheme,
+            string expectedOriginalHost,
+            string expectedOriginalClientIp)
+        {
+            Assert.That(requestInfo, Is.Not.Null);
+
+            using (Assert.EnterMultipleScope())
+            {
+                // When TrustAllProxies=true, ForwardLimit=null, so middleware processes all values
+                // and returns the original (leftmost) values
+                Assert.That(requestInfo.Processed.Scheme, Is.EqualTo(expectedOriginalScheme));
+                Assert.That(requestInfo.Processed.Host, Is.EqualTo(expectedOriginalHost));
+                Assert.That(requestInfo.Processed.RemoteIpAddress, Is.EqualTo(expectedOriginalClientIp));
+
+                // Raw headers should be empty because middleware consumed them
+                Assert.That(requestInfo.RawHeaders.XForwardedFor, Is.Empty);
+                Assert.That(requestInfo.RawHeaders.XForwardedProto, Is.Empty);
+                Assert.That(requestInfo.RawHeaders.XForwardedHost, Is.Empty);
+
+                // Configuration should show trust all proxies
+                Assert.That(requestInfo.Configuration.Enabled, Is.True);
+                Assert.That(requestInfo.Configuration.TrustAllProxies, Is.True);
+            }
+        }
+
+        /// <summary>
+        /// Multiple Header Values with ForwardLimit=1 (Known Proxies)
+        /// When TrustAllProxies=false, ForwardLimit=1, so only the rightmost values are processed.
+        /// </summary>
+        public static void AssertMultipleHeaderValuesWithForwardLimitOne(
+            RequestInfoResponse requestInfo,
+            string expectedLastScheme,
+            string expectedLastHost,
+            string expectedLastProxyIp,
+            string expectedRemainingForwardedFor,
+            string expectedRemainingForwardedProto,
+            string expectedRemainingForwardedHost)
+        {
+            Assert.That(requestInfo, Is.Not.Null);
+
+            using (Assert.EnterMultipleScope())
+            {
+                // When TrustAllProxies=false, ForwardLimit=1, so only rightmost values are processed
+                Assert.That(requestInfo.Processed.Scheme, Is.EqualTo(expectedLastScheme));
+                Assert.That(requestInfo.Processed.Host, Is.EqualTo(expectedLastHost));
+                Assert.That(requestInfo.Processed.RemoteIpAddress, Is.EqualTo(expectedLastProxyIp));
+
+                // Raw headers should contain remaining values (not fully consumed)
+                Assert.That(requestInfo.RawHeaders.XForwardedFor, Is.EqualTo(expectedRemainingForwardedFor));
+                Assert.That(requestInfo.RawHeaders.XForwardedProto, Is.EqualTo(expectedRemainingForwardedProto));
+                Assert.That(requestInfo.RawHeaders.XForwardedHost, Is.EqualTo(expectedRemainingForwardedHost));
+
+                // Configuration should show TrustAllProxies=false
+                Assert.That(requestInfo.Configuration.Enabled, Is.True);
+                Assert.That(requestInfo.Configuration.TrustAllProxies, Is.False);
+            }
+        }
     }
 }
