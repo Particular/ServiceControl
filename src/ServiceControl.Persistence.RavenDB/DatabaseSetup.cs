@@ -23,7 +23,7 @@ namespace ServiceControl.Persistence.RavenDB
 
             await IndexCreation.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, null, null, cancellationToken);
 
-            await LicenseStatusCheck.WaitForLicenseOrThrow(settings, cancellationToken);
+            await LicenseStatusCheck.WaitForLicenseOrThrow(documentStore, cancellationToken);
             await ConfigureExpiration(settings, cancellationToken);
         }
 
