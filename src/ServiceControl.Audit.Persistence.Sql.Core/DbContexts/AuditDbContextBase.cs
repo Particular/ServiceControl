@@ -13,6 +13,7 @@ public abstract class AuditDbContextBase : DbContext
 
     public DbSet<ProcessedMessageEntity> ProcessedMessages { get; set; }
     public DbSet<FailedAuditImportEntity> FailedAuditImports { get; set; }
+    public DbSet<SagaSnapshotEntity> SagaSnapshots { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -26,6 +27,7 @@ public abstract class AuditDbContextBase : DbContext
 
         modelBuilder.ApplyConfiguration(new ProcessedMessageConfiguration());
         modelBuilder.ApplyConfiguration(new FailedAuditImportConfiguration());
+        modelBuilder.ApplyConfiguration(new SagaSnapshotConfiguration());
 
         OnModelCreatingProvider(modelBuilder);
     }

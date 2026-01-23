@@ -10,14 +10,11 @@ class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedMessageE
     {
         builder.ToTable("ProcessedMessages");
         builder.HasKey(e => e.Id);
-        builder.Property(e => e.Id).IsRequired();
+        builder.Property(e => e.Id).ValueGeneratedOnAdd();
         builder.Property(e => e.UniqueMessageId).HasMaxLength(200).IsRequired();
 
         // JSON columns
-        builder.Property(e => e.MessageMetadataJson).HasColumnType("jsonb").IsRequired();
-        builder.Property(e => e.HeadersJson).HasColumnType("jsonb").IsRequired();
-        builder.Property(e => e.InvokedSagasJson).HasColumnType("jsonb");
-        builder.Property(e => e.OriginatesFromSagaJson).HasColumnType("jsonb");
+        builder.Property(e => e.HeadersJson).IsRequired();
 
         // Full-text search column
         builder.Property(e => e.Body); // Will be mapped to text/nvarchar(max) per database
@@ -26,9 +23,17 @@ class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedMessageE
         builder.Property(e => e.MessageId).HasMaxLength(200);
         builder.Property(e => e.MessageType).HasMaxLength(500);
         builder.Property(e => e.ConversationId).HasMaxLength(200);
-        builder.Property(e => e.SendingEndpointName).HasMaxLength(500);
         builder.Property(e => e.ReceivingEndpointName).HasMaxLength(500);
         builder.Property(e => e.BodyUrl).HasMaxLength(500);
+        builder.Property(e => e.TimeSent);
+        builder.Property(e => e.ProcessedAt).IsRequired();
+        builder.Property(e => e.IsSystemMessage).IsRequired();
+        builder.Property(e => e.Status).IsRequired();
+        builder.Property(e => e.BodySize).IsRequired();
+        builder.Property(e => e.BodyNotStored).IsRequired();
+        builder.Property(e => e.CriticalTimeTicks);
+        builder.Property(e => e.ProcessingTimeTicks);
+        builder.Property(e => e.DeliveryTimeTicks);
 
         // PRIMARY: Uniqueness index
         builder.HasIndex(e => e.UniqueMessageId);
@@ -47,10 +52,8 @@ class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedMessageE
         // QueryAuditCounts: endpoint + system + processed at (date grouping)
         builder.HasIndex(e => new { e.ReceivingEndpointName, e.IsSystemMessage, e.ProcessedAt });
 
-        // Retention/cleanup by expiration
-        builder.HasIndex(e => e.ExpiresAt);
-
         // MessageId lookup (for body retrieval)
         builder.HasIndex(e => e.MessageId);
+        builder.HasIndex(e => e.ProcessedAt);
     }
 }

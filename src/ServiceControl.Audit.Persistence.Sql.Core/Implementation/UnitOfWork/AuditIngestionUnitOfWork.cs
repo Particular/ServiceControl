@@ -7,8 +7,6 @@ using Abstractions;
 using DbContexts;
 using Entities;
 using Infrastructure;
-using Microsoft.EntityFrameworkCore;
-using NServiceBus;
 using ServiceControl.Audit.Auditing;
 using ServiceControl.Audit.Monitoring;
 using ServiceControl.Audit.Persistence.Monitoring;
@@ -27,22 +25,10 @@ class AuditIngestionUnitOfWork(
 
     public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body = default, CancellationToken cancellationToken = default)
     {
-        var contentType = GetContentType(processedMessage.Headers, MediaTypeNames.Text.Plain);
-
-        // Add metadata
-        processedMessage.MessageMetadata["ContentLength"] = body.Length;
-        if (!body.IsEmpty)
-        {
-            processedMessage.MessageMetadata["BodyUrl"] = $"/messages/{processedMessage.Id}/body";
-        }
-
-        // Extract denormalized fields from MessageMetadata
         var entity = new ProcessedMessageEntity
         {
-            Id = SequentialGuidGenerator.NewSequentialGuid(),
             UniqueMessageId = processedMessage.UniqueMessageId,
-            MessageMetadataJson = JsonSerializer.Serialize(processedMessage.MessageMetadata, JsonSerializationOptions.Default),
-            HeadersJson = JsonSerializer.Serialize(processedMessage.Headers, JsonSerializationOptions.Default),
+            HeadersJson = JsonSerializer.Serialize(processedMessage.Headers, ProcessedMessageJsonContext.Default.DictionaryStringString),
             ProcessedAt = processedMessage.ProcessedAt,
 
             // Denormalized fields
@@ -50,12 +36,10 @@ class AuditIngestionUnitOfWork(
             MessageType = GetMetadata<string>(processedMessage.MessageMetadata, "MessageType"),
             TimeSent = GetMetadata<DateTime?>(processedMessage.MessageMetadata, "TimeSent"),
             IsSystemMessage = GetMetadata<bool>(processedMessage.MessageMetadata, "IsSystemMessage"),
-            IsRetried = GetMetadata<bool>(processedMessage.MessageMetadata, "IsRetried"),
+            Status = (int)(GetMetadata<bool>(processedMessage.MessageMetadata, "IsRetried") ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful),
             ConversationId = GetMetadata<string>(processedMessage.MessageMetadata, "ConversationId"),
-            MessageIntent = (int)(GetMetadata<MessageIntent?>(processedMessage.MessageMetadata, "MessageIntent") ?? MessageIntent.Send),
 
             // Endpoint details
-            SendingEndpointName = GetEndpointName(processedMessage.MessageMetadata, "SendingEndpoint"),
             ReceivingEndpointName = GetEndpointName(processedMessage.MessageMetadata, "ReceivingEndpoint"),
 
             // Performance metrics
@@ -67,28 +51,40 @@ class AuditIngestionUnitOfWork(
             Body = BuildInlineBody(processedMessage.Headers, body),
             BodySize = body.Length,
             BodyUrl = body.IsEmpty ? null : $"/messages/{processedMessage.Id}/body",
-            BodyNotStored = body.Length > settings.MaxBodySizeToStore,
-
-            // Saga info
-            InvokedSagasJson = SerializeSagaInfo(processedMessage.MessageMetadata, "InvokedSagas"),
-            OriginatesFromSagaJson = SerializeSagaInfo(processedMessage.MessageMetadata, "OriginatesFromSaga"),
-
-            // Retention
-            ExpiresAt = DateTime.UtcNow.Add(settings.AuditRetentionPeriod)
+            BodyNotStored = body.Length > settings.MaxBodySizeToStore
         };
 
         dbContext.ProcessedMessages.Add(entity);
 
         // Store body in file system if large enough
-        if (!body.IsEmpty && body.Length >= LargeObjectHeapThreshold)
+        if (!body.IsEmpty && body.Length < settings.MaxBodySizeToStore)
         {
-            await storageHelper.WriteBodyAsync(processedMessage.UniqueMessageId, body, contentType, cancellationToken).ConfigureAwait(false);
+            var contentType = GetContentType(processedMessage.Headers, MediaTypeNames.Text.Plain);
+
+            await storageHelper.WriteBodyAsync(processedMessage.UniqueMessageId, body, contentType, cancellationToken);
         }
     }
 
-    // NO-OPS per requirements
     public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken = default)
-        => Task.CompletedTask;
+    {
+        var entity = new SagaSnapshotEntity
+        {
+            SagaId = sagaSnapshot.SagaId,
+            SagaType = sagaSnapshot.SagaType,
+            StartTime = sagaSnapshot.StartTime,
+            FinishTime = sagaSnapshot.FinishTime,
+            Endpoint = sagaSnapshot.Endpoint,
+            Status = sagaSnapshot.Status,
+            InitiatingMessageJson = JsonSerializer.Serialize(sagaSnapshot.InitiatingMessage, SagaSnapshotJsonContext.Default.InitiatingMessage),
+            OutgoingMessagesJson = JsonSerializer.Serialize(sagaSnapshot.OutgoingMessages, SagaSnapshotJsonContext.Default.ListResultingMessage),
+            ProcessedAt = sagaSnapshot.ProcessedAt,
+            StateAfterChange = sagaSnapshot.StateAfterChange,
+        };
+
+        dbContext.SagaSnapshots.Add(entity);
+
+        return Task.CompletedTask;
+    }
 
     public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken = default)
         => Task.CompletedTask;
@@ -98,10 +94,6 @@ class AuditIngestionUnitOfWork(
         try
         {
             await dbContext.SaveChangesAsync().ConfigureAwait(false);
-        }
-        catch (DbUpdateException)
-        {
-            // Ignore concurrency exceptions during ingestion
         }
         finally
         {
@@ -163,15 +155,6 @@ class AuditIngestionUnitOfWork(
                     return null;
                 }
             }
-        }
-        return null;
-    }
-
-    static string? SerializeSagaInfo(Dictionary<string, object> metadata, string key)
-    {
-        if (metadata.TryGetValue(key, out var value) && value != null)
-        {
-            return JsonSerializer.Serialize(value, JsonSerializationOptions.Default);
         }
         return null;
     }

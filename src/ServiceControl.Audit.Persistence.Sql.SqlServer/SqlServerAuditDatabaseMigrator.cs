@@ -10,7 +10,7 @@ class SqlServerAuditDatabaseMigrator(
     ILogger<SqlServerAuditDatabaseMigrator> logger)
     : IAuditDatabaseMigrator
 {
-    public async Task Migrate(CancellationToken cancellationToken = default)
+    public async Task ApplyMigrations(CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Starting SQL Server database migration for Audit");
 

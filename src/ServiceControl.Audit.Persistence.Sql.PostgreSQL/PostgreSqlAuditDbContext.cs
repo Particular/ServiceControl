@@ -1,7 +1,9 @@
 namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL;
 
 using Core.DbContexts;
+using Core.Entities;
 using Microsoft.EntityFrameworkCore;
+using NpgsqlTypes;
 
 public class PostgreSqlAuditDbContext : AuditDbContextBase
 {
@@ -53,7 +55,19 @@ public class PostgreSqlAuditDbContext : AuditDbContextBase
 
     protected override void OnModelCreatingProvider(ModelBuilder modelBuilder)
     {
-        // PostgreSQL-specific: computed tsvector column for full-text search can be added via migration
+        modelBuilder.Entity<ProcessedMessageEntity>(entity =>
+        {
+            entity.Property<NpgsqlTsVector>("Query")
+                .HasColumnName("query")
+                .HasColumnType("tsvector")
+                .HasComputedColumnSql(
+                    "setweight(to_tsvector('english', coalesce(headers_json::text, '')), 'A') || setweight(to_tsvector('english', coalesce(body, '')), 'B')",
+                    stored: true);
+
+            entity.HasIndex("Query")
+                .HasDatabaseName("ix_processed_messages_query")
+                .HasMethod("GIN");
+        });
     }
 
     static string ToSnakeCase(string name)

@@ -10,7 +10,7 @@ class PostgreSqlAuditDatabaseMigrator(
     ILogger<PostgreSqlAuditDatabaseMigrator> logger)
     : IAuditDatabaseMigrator
 {
-    public async Task Migrate(CancellationToken cancellationToken = default)
+    public async Task ApplyMigrations(CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Starting PostgreSQL database migration for Audit");
 

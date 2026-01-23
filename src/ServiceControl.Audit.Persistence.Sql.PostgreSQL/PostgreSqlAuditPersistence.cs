@@ -5,7 +5,6 @@ using Core.DbContexts;
 using Core.FullTextSearch;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 class PostgreSqlAuditPersistence : BaseAuditPersistence, IPersistence
 {
@@ -55,8 +54,6 @@ class PostgreSqlAuditPersistence : BaseAuditPersistence, IPersistence
             {
                 options.EnableSensitiveDataLogging();
             }
-
-            options.LogTo(Console.WriteLine, LogLevel.Warning).EnableDetailedErrors();
         }, ServiceLifetime.Scoped);
 
         services.AddScoped<AuditDbContextBase>(sp => sp.GetRequiredService<PostgreSqlAuditDbContext>());
