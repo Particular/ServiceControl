@@ -94,6 +94,9 @@ namespace ServiceControl.Management.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Specify whether to enable full text search on error messages.")]
         public SwitchParameter EnableFullTextSearchOnBodies { get; set; } = true;
 
+        [Parameter(Mandatory = false, HelpMessage = "Specify whether to enable embedded ServicePulse instance.")]
+        public SwitchParameter EnableEmbeddedServicePulse { get; set; }
+
         [Parameter(Mandatory = false, HelpMessage = "Reuse the specified log, db, and install paths even if they are not empty")]
         public SwitchParameter Force { get; set; }
 
@@ -172,6 +175,7 @@ namespace ServiceControl.Management.PowerShell
             details.TransportPackage = ServiceControlCoreTransports.Find(Transport);
             details.SkipQueueCreation = SkipQueueCreation;
             details.EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies;
+            details.EnableEmbeddedServicePulse = EnableEmbeddedServicePulse;
 
             var modulePath = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
 
