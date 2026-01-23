@@ -25,7 +25,6 @@
   "HttpsSettings": {
     "Enabled": false,
     "CertificatePath": null,
-    "CertificatePassword": null,
     "RedirectHttpToHttps": false,
     "HttpsPort": null,
     "EnableHsts": false,
