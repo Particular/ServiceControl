@@ -23,8 +23,7 @@
         [HttpGet]
         public OkObjectResult Urls()
         {
-            var hasAuthHeader = HttpContext.Request.Headers.ContainsKey("Authorization");
-            logger.LogDebug("Received request to /api. Has Authorization header: {HasAuthHeader}", hasAuthHeader);
+            logger.LogDebug("Received request to /api.");
 
             var baseUrl = Request.GetDisplayUrl();
 
@@ -55,8 +54,7 @@
         [HttpGet]
         public OkObjectResult Config()
         {
-            var hasAuthHeader = HttpContext.Request.Headers.ContainsKey("Authorization");
-            logger.LogDebug("Received request to /api/configuration. Has Authorization header: {HasAuthHeader}", hasAuthHeader);
+            logger.LogDebug("Received request to /api/configuration.");
 
             object content = new
             {

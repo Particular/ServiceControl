@@ -16,8 +16,7 @@ namespace ServiceControl.Audit.Connection
         [HttpGet]
         public IActionResult GetConnectionDetails()
         {
-            var hasAuthHeader = HttpContext.Request.Headers.ContainsKey("Authorization");
-            logger.LogDebug("Received request to /api/connection. Has Authorization header: {HasAuthHeader}", hasAuthHeader);
+            logger.LogDebug("Received request to /api/connection.");
 
             return new JsonResult(
                 new ConnectionDetails

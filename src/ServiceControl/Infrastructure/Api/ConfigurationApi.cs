@@ -103,8 +103,7 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
 
                 try
                 {
-                    // Remote config queries don't forward authentication
-                    logger.LogDebug("Remote config: GET {BaseAddress}/api/configuration (no auth header)", remote.BaseAddress);
+                    logger.LogDebug("Remote config: GET {BaseAddress}/api/configuration", remote.BaseAddress);
 
                     using var response = await httpClient.GetAsync("/api/configuration", cancellationToken);
 

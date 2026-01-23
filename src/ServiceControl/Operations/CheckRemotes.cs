@@ -67,8 +67,7 @@
             {
                 var client = httpClientFactory.CreateClient(remoteSettings.InstanceId);
 
-                // Health checks don't forward authentication - /api is anonymous
-                logger.LogDebug("Health check: GET {BaseAddress}/api (no auth header)", remoteSettings.BaseAddress);
+                logger.LogDebug("Health check: GET {BaseAddress}/api", remoteSettings.BaseAddress);
 
                 var response = await client.GetAsync("/api", cancellationToken);
                 response.EnsureSuccessStatusCode();
