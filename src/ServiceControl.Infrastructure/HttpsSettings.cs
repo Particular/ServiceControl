@@ -2,6 +2,7 @@ namespace ServiceControl.Infrastructure;
 
 using System;
 using System.IO;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Configuration;
 
@@ -53,6 +54,7 @@ public class HttpsSettings
     /// Password for the HTTPS certificate.
     /// Can be null for certificates without a password.
     /// </summary>
+    [JsonIgnore]
     public string CertificatePassword { get; }
 
     /// <summary>
