@@ -8,18 +8,16 @@
     using ServiceControl.Api;
     using ServiceControl.Api.Contracts;
 
+    // This is used for service-to-service communication. This currently needs to be anonymous
+    [AllowAnonymous]
     [ApiController]
     [Route("api")]
     public class RootController(IConfigurationApi configurationApi) : ControllerBase
     {
-        // This endpoint is used for health checks. As its service-to-service (e.g. primary to audit), this needs to be anonymous.
-        [AllowAnonymous]
         [Route("")]
         [HttpGet]
         public Task<RootUrls> Urls() => configurationApi.GetUrls(Request.GetDisplayUrl(), default);
 
-        // This endpoint is used for configuration checks on remotes. As its service-to-service (e.g. primary to audit), this needs to be anonymous.
-        [AllowAnonymous]
         [Route("instance-info")]
         [Route("configuration")]
         [HttpGet]

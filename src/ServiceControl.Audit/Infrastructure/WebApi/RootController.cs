@@ -4,27 +4,23 @@
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Extensions.Logging;
     using Settings;
 
+    // the /api endpoint is used for service-to-service communication. This currently needs to be anonymous
+    [AllowAnonymous]
     [ApiController]
     [Route("api")]
     public class RootController : ControllerBase
     {
-        public RootController(Settings settings, ILogger<RootController> logger)
+        public RootController(Settings settings)
         {
             this.settings = settings;
-            this.logger = logger;
         }
 
-        // This endpoint is used for health checks by the primary instance. As its a service-to-service call, it needs to be anonymous.
-        [AllowAnonymous]
         [Route("")]
         [HttpGet]
         public OkObjectResult Urls()
         {
-            logger.LogDebug("Received request to /api.");
-
             var baseUrl = Request.GetDisplayUrl();
 
             if (!baseUrl.EndsWith('/'))
@@ -47,15 +43,11 @@
             return Ok(model);
         }
 
-        // This endpoint is used by the primary instance to get the config of remotes. As its a service-to-service call, it needs to be anonymous.
-        [AllowAnonymous]
         [Route("instance-info")]
         [Route("configuration")]
         [HttpGet]
         public OkObjectResult Config()
         {
-            logger.LogDebug("Received request to /api/configuration.");
-
             object content = new
             {
                 Host = new
@@ -95,7 +87,6 @@
         }
 
         readonly Settings settings;
-        readonly ILogger<RootController> logger;
 
         public class RootUrls
         {

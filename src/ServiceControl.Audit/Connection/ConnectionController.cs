@@ -3,22 +3,21 @@ namespace ServiceControl.Audit.Connection
     using System.Text.Json;
     using Infrastructure.Settings;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Extensions.Logging;
+    using Microsoft.AspNetCore.Authorization;
 
     [ApiController]
     [Route("api")]
-    public class ConnectionController(Settings settings, ILogger<ConnectionController> logger) : ControllerBase
+    public class ConnectionController(Settings settings) : ControllerBase
     {
         // This controller doesn't use the default serialization settings because
         // ServicePulse and the Platform Connector Plugin expect the connection
         // details the be serialized and formatted in a specific way
+        // This endpoint is anonymous to allow the Platform Connector to access it without authentication from NServiceBus endpoints
+        [AllowAnonymous]
         [Route("connection")]
         [HttpGet]
-        public IActionResult GetConnectionDetails()
-        {
-            logger.LogDebug("Received request to /api/connection.");
-
-            return new JsonResult(
+        public IActionResult GetConnectionDetails() =>
+         new JsonResult(
                 new ConnectionDetails
                 {
                     MessageAudit = new MessageAuditConnectionDetails
@@ -32,7 +31,6 @@ namespace ServiceControl.Audit.Connection
                         SagaAuditQueue = settings.AuditQueue,
                     }
                 }, JsonSerializerOptions.Default);
-        }
     }
 
     public class ConnectionDetails

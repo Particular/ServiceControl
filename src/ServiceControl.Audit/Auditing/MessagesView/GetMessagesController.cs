@@ -7,19 +7,16 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using Infrastructure;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Extensions.Logging;
     using Persistence;
 
     [ApiController]
     [Route("api")]
-    public class GetMessagesController(IAuditDataStore dataStore, ILogger<GetMessagesController> logger) : ControllerBase
+    public class GetMessagesController(IAuditDataStore dataStore) : ControllerBase
     {
         [Route("messages")]
         [HttpGet]
         public async Task<IList<MessagesView>> GetAllMessages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, [FromQuery(Name = "include_system_messages")] bool includeSystemMessages, CancellationToken cancellationToken)
         {
-            logger.LogDebug("Received request to /api/messages.");
-
             var result = await dataStore.GetMessages(includeSystemMessages, pagingInfo, sortInfo, cancellationToken: cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
@@ -29,8 +26,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IList<MessagesView>> GetEndpointMessages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, [FromQuery(Name = "include_system_messages")] bool includeSystemMessages, string endpoint, CancellationToken cancellationToken)
         {
-            logger.LogDebug("Received request to /api/endpoints/{Endpoint}/messages.", endpoint);
-
             var result = await dataStore.QueryMessagesByReceivingEndpoint(includeSystemMessages, endpoint, pagingInfo, sortInfo, cancellationToken: cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
@@ -40,8 +35,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IList<AuditCount>> GetEndpointAuditCounts([FromQuery] PagingInfo pagingInfo, string endpoint, CancellationToken cancellationToken)
         {
-            logger.LogDebug("Received request to /api/endpoints/{Endpoint}/audit-count.", endpoint);
-
             var result = await dataStore.QueryAuditCounts(endpoint, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
@@ -51,8 +44,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IActionResult> Get(string id, CancellationToken cancellationToken)
         {
-            logger.LogDebug("Received request to /api/messages/{Id}/body.", id);
-
             var result = await dataStore.GetMessageBody(id, cancellationToken);
 
             if (result.Found == false)
@@ -79,8 +70,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string q, CancellationToken cancellationToken)
         {
-            logger.LogDebug("Received request to /api/messages/search.");
-
             var result = await dataStore.QueryMessages(q, pagingInfo, sortInfo, cancellationToken: cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
@@ -90,8 +79,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IList<MessagesView>> SearchByKeyWord([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string keyword, CancellationToken cancellationToken)
         {
-            logger.LogDebug("Received request to /api/messages/search/{Keyword}.", keyword);
-
             var result = await dataStore.QueryMessages(keyword, pagingInfo, sortInfo, cancellationToken: cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
@@ -101,8 +88,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string q, CancellationToken cancellationToken)
         {
-            logger.LogDebug("Received request to /api/endpoints/{Endpoint}/messages/search.", endpoint);
-
             var result = await dataStore.QueryMessagesByReceivingEndpointAndKeyword(endpoint, q, pagingInfo, sortInfo, cancellationToken: cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
@@ -112,8 +97,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IList<MessagesView>> SearchByKeyword([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string keyword, CancellationToken cancellationToken)
         {
-            logger.LogDebug("Received request to /api/endpoints/{Endpoint}/messages/search/{Keyword}.", endpoint, keyword);
-
             var result = await dataStore.QueryMessagesByReceivingEndpointAndKeyword(endpoint, keyword, pagingInfo, sortInfo, cancellationToken: cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
