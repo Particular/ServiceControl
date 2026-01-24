@@ -11,6 +11,7 @@ This guide explains how to test authentication configuration for ServiceControl 
   - API scopes configured and permissions granted
   - See [ServiceControl Authentication](https://docs.particular.net/servicecontrol/security/configuration/authentication) for example setups
 - curl (included with Windows 10/11, Git Bash, or WSL)
+- HTTP Request logging to view comms to and from instances
 - (Optional) For formatted JSON output: `npm install -g json` then pipe curl output through `| json`
 
 ## Enabling Debug Logs
@@ -26,6 +27,33 @@ set MONITORING_LOGLEVEL=Debug
 **Valid log levels:** `Trace`, `Debug`, `Information` (or `Info`), `Warning` (or `Warn`), `Error`, `Critical` (or `Fatal`), `None` (or `Off`)
 
 Debug logs will show detailed authentication flow information including token validation, claims processing, and authorization decisions.
+
+### HTTP Request Logs
+
+HTTP logs can be enabled by adding a `nlog.config` file in beside the exe:
+
+```xml
+<?xml version="1.0" encoding="utf-8" ?>
+<nlog xmlns="http://www.nlog-project.org/schemas/NLog.xsd"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  
+  <targets>
+    <target name="console" xsi:type="ColoredConsole" 
+            layout="${longdate}|${level}|${logger}|${message}${onexception:|${exception:format=tostring}}" />
+  </targets>
+
+  <rules>
+    <!-- Enable HTTP logging -->
+    <logger name="Microsoft.AspNetCore.HttpLogging.*" minlevel="Info" writeTo="console" />
+    
+    <!-- Suppress other ASP.NET Core noise -->
+    <logger name="Microsoft.AspNetCore.*" maxlevel="Info" final="true" />
+    
+    <!-- Everything else -->
+    <logger name="*" minlevel="Info" writeTo="console" />
+  </rules>
+</nlog>
+```
 
 ## Instance Reference
 

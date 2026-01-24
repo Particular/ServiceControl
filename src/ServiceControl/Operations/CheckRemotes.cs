@@ -6,16 +6,14 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class CheckRemotes : CustomCheck
     {
-        public CheckRemotes(Settings settings, IHttpClientFactory httpClientFactory, ILogger<CheckRemotes> logger) : base("ServiceControl Remotes", "Health", TimeSpan.FromSeconds(30))
+        public CheckRemotes(Settings settings, IHttpClientFactory httpClientFactory) : base("ServiceControl Remotes", "Health", TimeSpan.FromSeconds(30))
         {
             this.httpClientFactory = httpClientFactory;
-            this.logger = logger;
             remoteInstanceSetting = settings.RemoteInstances;
             remoteQueryTasks = new List<Task>(remoteInstanceSetting.Length);
         }
@@ -66,9 +64,6 @@
             try
             {
                 var client = httpClientFactory.CreateClient(remoteSettings.InstanceId);
-
-                logger.LogDebug("Health check: GET {BaseAddress}/api", remoteSettings.BaseAddress);
-
                 var response = await client.GetAsync("/api", cancellationToken);
                 response.EnsureSuccessStatusCode();
                 remoteSettings.TemporarilyUnavailable = false;
@@ -90,7 +85,6 @@
         }
 
         readonly IHttpClientFactory httpClientFactory;
-        readonly ILogger<CheckRemotes> logger;
         RemoteInstanceSetting[] remoteInstanceSetting;
         List<Task> remoteQueryTasks;
     }

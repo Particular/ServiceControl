@@ -35,8 +35,7 @@
                 new ActiveLicense(null, NullLogger<ActiveLicense>.Instance) { IsValid = true },
                 new Settings(),
                 null,
-                new MassTransitConnectorHeartbeatStatus(),
-                NullLogger<ConfigurationApi>.Instance);
+                new MassTransitConnectorHeartbeatStatus());
 
             var controller = new RootController(configurationApi)
             {

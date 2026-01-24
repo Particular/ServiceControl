@@ -122,9 +122,6 @@ namespace ServiceControl.CompositeViews.Messages
                     request.Headers.TryAddWithoutValidation("Authorization", authorizationHeader);
                 }
 
-                logger.LogDebug("Scatter-gather: GET {BaseAddress}{PathAndQuery} ({AuthStatus})",
-                    remoteInstanceSetting.BaseAddress, pathAndQuery, hasAuth ? "auth header forwarded" : "no auth header");
-
                 // Assuming SendAsync returns uncompressed response and the AutomaticDecompression is enabled on the http client.
                 var rawResponse = await httpClient.SendAsync(request);
 

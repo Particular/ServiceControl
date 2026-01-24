@@ -8,14 +8,13 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Configuration;
-using Microsoft.Extensions.Logging;
 using Monitoring.HeartbeatMonitoring;
 using Particular.ServiceControl.Licensing;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Api;
 using ServiceControl.Api.Contracts;
 
-class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFactory httpClientFactory, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus, ILogger<ConfigurationApi> logger) : IConfigurationApi
+class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFactory httpClientFactory, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus) : IConfigurationApi
 {
     public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken)
     {
@@ -103,8 +102,6 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
 
                 try
                 {
-                    logger.LogDebug("Remote config: GET {BaseAddress}/api/configuration", remote.BaseAddress);
-
                     using var response = await httpClient.GetAsync("/api/configuration", cancellationToken);
 
                     if (response.Headers.TryGetValues("X-Particular-Version", out var values))

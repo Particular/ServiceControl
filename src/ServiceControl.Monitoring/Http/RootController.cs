@@ -4,11 +4,11 @@
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Primitives;
 
+    // This is used for service-to-service communication. This currently needs to be anonymous
+    [AllowAnonymous]
     [ApiController]
     public class RootController : ControllerBase
     {
-        // Root endpoint returns instance metadata and must remain accessible for discovery and service-to-service calls
-        [AllowAnonymous]
         [Route("")]
         [HttpGet]
         public ActionResult<MonitoringInstanceModel> Get()
@@ -22,7 +22,6 @@
             return Ok(model);
         }
 
-        [AllowAnonymous]
         [Route("")]
         [HttpOptions]
         public void GetSupportedOperations()

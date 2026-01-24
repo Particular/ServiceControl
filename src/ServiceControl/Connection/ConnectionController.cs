@@ -4,6 +4,7 @@
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
 
     [ApiController]
@@ -13,6 +14,8 @@
         // This controller doesn't use the default serialization settings because
         // ServicePulse and the Platform Connector Plugin expect the connection
         // details the be serialized and formatted in a specific way
+        // This endpoint is anonymous to allow the Platform Connector to access it without authentication from NServiceBus endpoints
+        [AllowAnonymous]
         [Route("connection")]
         [HttpGet]
         public async Task<IActionResult> GetConnectionDetails()
