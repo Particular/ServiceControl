@@ -7,8 +7,10 @@ using Abstractions;
 using DbContexts;
 using Entities;
 using Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using ServiceControl.Audit.Auditing;
 using ServiceControl.Audit.Monitoring;
+using ServiceControl.Audit.Persistence.Infrastructure;
 using ServiceControl.Audit.Persistence.Monitoring;
 using ServiceControl.Audit.Persistence.UnitOfWork;
 using ServiceControl.SagaAudit;
@@ -86,8 +88,28 @@ class AuditIngestionUnitOfWork(
         return Task.CompletedTask;
     }
 
-    public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken = default)
-        => Task.CompletedTask;
+    public async Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken = default)
+    {
+        //return Task.CompletedTask; // Known endpoints are not tracked in SQL persistence
+
+        var entity = new KnownEndpointEntity
+        {
+            Id = DeterministicGuid.MakeId(knownEndpoint.Name, knownEndpoint.HostId.ToString()),
+            Name = knownEndpoint.Name,
+            HostId = knownEndpoint.HostId,
+            Host = knownEndpoint.Host,
+            LastSeen = knownEndpoint.LastSeen
+        };
+
+        await dbContext.KnownEndpoints.Upsert(entity)
+                    .On(c => c.Id)
+                    .UpdateIf((db, ins) => db.LastSeen < ins.LastSeen)
+                    .WhenMatched((_, ins) => new KnownEndpointEntity
+                    {
+                        LastSeen = ins.LastSeen
+                    })
+                    .RunAsync(cancellationToken);
+    }
 
     public async ValueTask DisposeAsync()
     {

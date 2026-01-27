@@ -10,7 +10,8 @@ public class RetentionCleaner(
     ILogger<RetentionCleaner> logger,
     TimeProvider timeProvider,
     AuditDbContextBase dbContext,
-    AuditSqlPersisterSettings settings) : BackgroundService
+    AuditSqlPersisterSettings settings,
+    FileSystemBodyStorageHelper bodyStorageHelper) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -45,6 +46,16 @@ public class RetentionCleaner(
     {
         var cutoff = timeProvider.GetUtcNow().DateTime - settings.AuditRetentionPeriod;
 
+        // Get the IDs of messages to delete so we can clean up body files
+        var messageIdsToDelete = await dbContext.ProcessedMessages
+            .Where(m => m.ProcessedAt < cutoff)
+            .Select(m => m.UniqueMessageId)
+            .ToListAsync(stoppingToken);
+
+        // Delete body files first
+        bodyStorageHelper.DeleteBodies(messageIdsToDelete);
+
+        // Then delete database records
         var deletedMessages = await dbContext.ProcessedMessages
             .Where(m => m.ProcessedAt < cutoff)
             .ExecuteDeleteAsync(stoppingToken);

@@ -3,7 +3,6 @@ namespace ServiceControl.Audit.Persistence.Sql.Core.DbContexts;
 using Entities;
 using EntityConfigurations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 public abstract class AuditDbContextBase : DbContext
 {
@@ -14,11 +13,11 @@ public abstract class AuditDbContextBase : DbContext
     public DbSet<ProcessedMessageEntity> ProcessedMessages { get; set; }
     public DbSet<FailedAuditImportEntity> FailedAuditImports { get; set; }
     public DbSet<SagaSnapshotEntity> SagaSnapshots { get; set; }
+    public DbSet<KnownEndpointEntity> KnownEndpoints { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.LogTo(Console.WriteLine, LogLevel.Warning)
-            .EnableDetailedErrors();
+        optionsBuilder.EnableDetailedErrors();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -28,6 +27,7 @@ public abstract class AuditDbContextBase : DbContext
         modelBuilder.ApplyConfiguration(new ProcessedMessageConfiguration());
         modelBuilder.ApplyConfiguration(new FailedAuditImportConfiguration());
         modelBuilder.ApplyConfiguration(new SagaSnapshotConfiguration());
+        modelBuilder.ApplyConfiguration(new KnownEndpointConfiguration());
 
         OnModelCreatingProvider(modelBuilder);
     }

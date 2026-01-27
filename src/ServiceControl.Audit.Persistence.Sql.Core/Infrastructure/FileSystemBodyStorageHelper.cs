@@ -156,6 +156,32 @@ public class FileSystemBodyStorageHelper(AuditSqlPersisterSettings settings)
         }
     }
 
+    public void DeleteBody(string bodyId)
+    {
+        var filePath = Path.Combine(settings.MessageBodyStoragePath, $"{bodyId}.body");
+
+        try
+        {
+            File.Delete(filePath);
+        }
+        catch (DirectoryNotFoundException)
+        {
+            // Directory doesn't exist, nothing to delete
+        }
+        catch (FileNotFoundException)
+        {
+            // File doesn't exist, nothing to delete
+        }
+    }
+
+    public void DeleteBodies(IEnumerable<string> bodyIds)
+    {
+        foreach (var bodyId in bodyIds)
+        {
+            DeleteBody(bodyId);
+        }
+    }
+
     public class MessageBodyFileResult
     {
         public Stream Stream { get; set; } = null!;
