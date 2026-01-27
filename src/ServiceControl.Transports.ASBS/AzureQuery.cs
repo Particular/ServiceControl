@@ -25,6 +25,9 @@ using Microsoft.Extensions.Logging;
 public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings)
     : BrokerThroughputQuery(logger, "AzureServiceBus")
 {
+    const string CompleteMessageMetricName = "CompleteMessage";
+    const string MicrosoftServicebusNamespacesMetricsNamespace = "Microsoft.ServiceBus/Namespaces";
+
     string serviceBusName = string.Empty;
     ArmClient? armClient;
     TokenCredential? credential;
@@ -56,12 +59,12 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         {
             // Extract ServiceBus name from connection string
             serviceBusName = ExtractServiceBusName();
-            logger.LogInformation("ServiceBus name extracted from connection string");
-            Diagnostics.AppendLine($"ServiceBus name not set, defaulted to \"{serviceBusName}\"");
+            logger.LogInformation("Azure Service Bus namespace name extracted from connection string");
+            Diagnostics.AppendLine($"Azure Service Bus namespace not set, defaulted to \"{serviceBusName}\"");
         }
         else
         {
-            Diagnostics.AppendLine($"ServiceBus name set to \"{serviceBusName}\"");
+            Diagnostics.AppendLine($"Azure Service Bus namespace set to \"{serviceBusName}\"");
         }
 
         if (!settings.TryGetValue(AzureServiceBusSettings.SubscriptionId, out string? subscriptionId))
@@ -145,12 +148,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
         (ArmEnvironment armEnvironment, MetricsClientAudience metricsClientAudience) GetEnvironment()
         {
-            if (managementUrlParsed == null)
-            {
-                return (ArmEnvironment.AzurePublicCloud, MetricsClientAudience.AzurePublicCloud);
-            }
-
-            if (managementUrlParsed == ArmEnvironment.AzurePublicCloud.Endpoint)
+            if (managementUrlParsed == null || managementUrlParsed == ArmEnvironment.AzurePublicCloud.Endpoint)
             {
                 return (ArmEnvironment.AzurePublicCloud, MetricsClientAudience.AzurePublicCloud);
             }
@@ -173,9 +171,8 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             string options = string.Join(", ",
                 new[]
                 {
-                    ArmEnvironment.AzurePublicCloud, ArmEnvironment.AzureGermany, ArmEnvironment.AzureGovernment,
-                    ArmEnvironment.AzureChina
-                }.Select(armEnvironment => $"\"{armEnvironment.Endpoint}\""));
+                    ArmEnvironment.AzurePublicCloud, ArmEnvironment.AzureGermany, ArmEnvironment.AzureGovernment, ArmEnvironment.AzureChina
+                }.Select(environment => $"\"{environment.Endpoint}\""));
             InitialiseErrors.Add($"Management url configuration is invalid, available options are {options}");
 
             return (ArmEnvironment.AzurePublicCloud, MetricsClientAudience.AzurePublicCloud);
@@ -202,7 +199,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,
         DateOnly startDate,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         logger.LogInformation($"Gathering metrics for \"{brokerQueue.QueueName}\" queue");
 
@@ -219,7 +216,11 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         var data = new Dictionary<DateOnly, QueueThroughput>();
         while (currentDate <= endDate)
         {
-            data.Add(currentDate, new QueueThroughput { TotalThroughput = 0, DateUTC = currentDate });
+            data.Add(currentDate, new QueueThroughput
+            {
+                TotalThroughput = 0,
+                DateUTC = currentDate
+            });
             currentDate = currentDate.AddDays(1);
         }
 
@@ -242,8 +243,8 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         }
 
         var serviceBusNamespaceResource = await armClient
-            .GetServiceBusNamespaceResource(resourceId).GetAsync(cancellationToken)
-                ?? throw new Exception($"Could not find ServiceBus with resource Id: \"{resourceId}\"");
+                                              .GetServiceBusNamespaceResource(resourceId).GetAsync(cancellationToken)
+                                          ?? throw new Exception($"Could not find an Azure Service Bus namespace with resource Id: \"{resourceId}\"");
 
         // Determine the region of the namespace
         var regionName = serviceBusNamespaceResource.Value.Data.Location.Name;
@@ -281,8 +282,8 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
         var response = await metricsClient.QueryResourcesAsync(
             [resourceId!],
-            ["CompleteMessage"],
-            "Microsoft.ServiceBus/namespaces",
+            [CompleteMessageMetricName],
+            MicrosoftServicebusNamespacesMetricsNamespace,
             new MetricsQueryResourcesOptions
             {
                 Filter = $"EntityName eq '{queueName}'",
@@ -291,37 +292,57 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             },
             cancellationToken);
 
-        var metricValues =
-            response.Value.Values.FirstOrDefault()?.Metrics.FirstOrDefault()?.TimeSeries.FirstOrDefault()?.Values ?? [];
+        var metricQueryResult = response.Value.Values.SingleOrDefault(mr => mr.Namespace == MicrosoftServicebusNamespacesMetricsNamespace);
 
-        return metricValues.AsReadOnly();
+        if (metricQueryResult is null)
+        {
+            throw new Exception($"No metrics query results returned for {MicrosoftServicebusNamespacesMetricsNamespace}");
+        }
+
+        var metricResult = metricQueryResult.GetMetricByName(CompleteMessageMetricName);
+
+        if (metricResult.Error.Message is not null)
+        {
+            throw new Exception($"Metrics query result for '{metricResult.Name}' failed: {metricResult.Error.Message}");
+        }
+
+        var timeSeries = metricResult.TimeSeries.SingleOrDefault();
+
+        if (timeSeries is null)
+        {
+            throw new Exception($"Metrics query result for '{metricResult.Name}' contained no time series");
+        }
+
+        return timeSeries.Values.AsReadOnly();
     }
 
     public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var validNamespaces = await GetValidNamespaceNames(cancellationToken);
 
         SubscriptionResource? subscription = await armClient!.GetDefaultSubscriptionAsync(cancellationToken);
         var namespaces = subscription.GetServiceBusNamespacesAsync(cancellationToken);
 
-        await foreach (var serviceBusNamespaceResource in namespaces.WithCancellation(cancellationToken))
+        await foreach (var serviceBusNamespaceResource in namespaces)
         {
-            if (validNamespaces.Contains(serviceBusNamespaceResource.Data.Name))
+            if (!validNamespaces.Contains(serviceBusNamespaceResource.Data.Name))
             {
-                resourceId = serviceBusNamespaceResource.Id;
-
-                await foreach (var queue in serviceBusNamespaceResource.GetServiceBusQueues()
-                                   .WithCancellation(cancellationToken))
-                {
-                    yield return new DefaultBrokerQueue(queue.Data.Name);
-                }
-
-                yield break;
+                continue;
             }
+
+            resourceId = serviceBusNamespaceResource.Id;
+
+            await foreach (var queue in serviceBusNamespaceResource.GetServiceBusQueues()
+                               .WithCancellation(cancellationToken))
+            {
+                yield return new DefaultBrokerQueue(queue.Data.Name);
+            }
+
+            yield break;
         }
 
-        throw new Exception($"Could not find a ServiceBus named \"{serviceBusName}\"");
+        throw new Exception($"Could not find a Azure Service Bus namespace named \"{serviceBusName}\"");
     }
 
     // ArmEnvironment Audience Values: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/resourcemanager/Azure.ResourceManager/src/ArmEnvironment.cs
@@ -338,12 +359,9 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     {
         var validNamespaces = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { serviceBusName };
 
-        if (!ServiceBusDomains.TryGetValue(armEnvironment, out var serviceBusCloudDomain))
-        {
-            // Worst case: the DNS lookup finds nothing additional to match
-            serviceBusCloudDomain = "servicebus.windows.net";
-        }
+        var serviceBusCloudDomain = ServiceBusDomains.GetValueOrDefault(armEnvironment, "servicebus.windows.net");
 
+        // Worst case: the DNS lookup finds nothing additional to match
         var queryDomain = $"{serviceBusName}.{serviceBusCloudDomain}";
         var validDomainTail = $".{serviceBusCloudDomain}.";
 
@@ -365,12 +383,12 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
     public override KeyDescriptionPair[] Settings =>
     [
-        new KeyDescriptionPair(AzureServiceBusSettings.ServiceBusName, AzureServiceBusSettings.ServiceBusNameDescription),
-        new KeyDescriptionPair(AzureServiceBusSettings.ClientId, AzureServiceBusSettings.ClientIdDescription),
-        new KeyDescriptionPair(AzureServiceBusSettings.ClientSecret, AzureServiceBusSettings.ClientSecretDescription),
-        new KeyDescriptionPair(AzureServiceBusSettings.TenantId, AzureServiceBusSettings.TenantIdDescription),
-        new KeyDescriptionPair(AzureServiceBusSettings.SubscriptionId, AzureServiceBusSettings.SubscriptionIdDescription),
-        new KeyDescriptionPair(AzureServiceBusSettings.ManagementUrl, AzureServiceBusSettings.ManagementUrlDescription)
+        new(AzureServiceBusSettings.ServiceBusName, AzureServiceBusSettings.ServiceBusNameDescription),
+        new(AzureServiceBusSettings.ClientId, AzureServiceBusSettings.ClientIdDescription),
+        new(AzureServiceBusSettings.ClientSecret, AzureServiceBusSettings.ClientSecretDescription),
+        new(AzureServiceBusSettings.TenantId, AzureServiceBusSettings.TenantIdDescription),
+        new(AzureServiceBusSettings.SubscriptionId, AzureServiceBusSettings.SubscriptionIdDescription),
+        new(AzureServiceBusSettings.ManagementUrl, AzureServiceBusSettings.ManagementUrlDescription)
     ];
 
     protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(

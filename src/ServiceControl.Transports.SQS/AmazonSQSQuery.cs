@@ -195,53 +195,62 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
 
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,
         DateOnly startDate,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var endDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
+        var utcNow = timeProvider.GetUtcNow();
+        var endDate = DateOnly.FromDateTime(utcNow.DateTime).AddDays(-1); // Query date up to but not including today
 
-        if (endDate < startDate)
+        var isBeforeStartDate = endDate < startDate;
+
+        if (isBeforeStartDate)
         {
+            logger.LogTrace("Skipping {Start} {End} {UtcNow}, ", startDate, endDate, utcNow);
             yield break;
         }
+
+        // Convert DATES that state up to but INCLUDING the TO value to a timestamp from X to Y EXCLUDING
+        // Example: 2025-01-01 to 2025-01-10 => 2025-01-01T00:00:00 to 2025-01-11T00:00:00
+
+        var queryStartUtc = startDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var queryEndUtc = endDate
+            .AddDays(1) // Convert from INCLUDING to EXCLUDING, thus need to bump one day, using ToDateTime(TimeOnly.MaxValue) would be wrong
+            .ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+
+        logger.LogDebug("GetThroughputPerDay {QueueName} {UtcNow} {StartDate} {EndDate} {QueryStart} {QueryEnd}", brokerQueue.QueueName, utcNow, startDate, endDate, queryStartUtc, queryEndUtc);
+
+        const int SecondsInDay = 24 * 60 * 60;
 
         var req = new GetMetricStatisticsRequest
         {
             Namespace = "AWS/SQS",
             MetricName = "NumberOfMessagesDeleted",
-            StartTime = startDate.ToDateTime(TimeOnly.MinValue),
-            EndTime = endDate.ToDateTime(TimeOnly.MaxValue),
-            Period = 24 * 60 * 60, // 1 day
+            StartTime = queryStartUtc,
+            EndTime = queryEndUtc, // The value specified is exclusive; results include data points up to the specified time stamp.
+            Period = SecondsInDay,
             Statistics = ["Sum"],
-            Dimensions = [
-                new Dimension { Name = "QueueName", Value = brokerQueue.QueueName }
+            Dimensions =
+            [
+                new Dimension
+                {
+                    Name = "QueueName", Value = brokerQueue.QueueName
+                }
             ]
         };
 
         var resp = await cloudWatch!.GetMetricStatisticsAsync(req, cancellationToken);
+        var dataPoints = resp.Datapoints.ToDictionary(x => DateOnly.FromDateTime(x.Timestamp!.Value.Date), x => (long)(x.Sum ?? 0));
 
-        DateOnly currentDate = startDate;
-        var data = new Dictionary<DateOnly, QueueThroughput>();
-        while (currentDate <= endDate)
+        for (DateOnly currentDate = startDate; currentDate <= endDate; currentDate = currentDate.AddDays(1))
         {
-            data.Add(currentDate, new QueueThroughput { TotalThroughput = 0, DateUTC = currentDate });
+            dataPoints.TryGetValue(currentDate, out var sum);
 
-            currentDate = currentDate.AddDays(1);
-        }
+            logger.LogTrace("Queue throughput {QueueName} {Date} {Total}", brokerQueue.QueueName, currentDate, sum);
 
-        foreach (var datapoint in resp.Datapoints ?? [])
-        {
-            // There is a bug in the AWS SDK. The timestamp is actually UTC time, eventhough the DateTime returned type says Local
-            // See https://github.com/aws/aws-sdk-net/issues/167
-            // So do not convert the timestamp to UTC time!
-            if (datapoint.Timestamp.HasValue)
+            yield return new QueueThroughput
             {
-                data[DateOnly.FromDateTime(datapoint.Timestamp.Value)].TotalThroughput = (long)datapoint.Sum.GetValueOrDefault(0);
-            }
-        }
-
-        foreach (QueueThroughput queueThroughput in data.Values)
-        {
-            yield return queueThroughput;
+                TotalThroughput = sum,
+                DateUTC = currentDate
+            };
         }
     }
 

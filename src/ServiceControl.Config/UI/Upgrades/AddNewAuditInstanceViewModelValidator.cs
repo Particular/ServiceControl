@@ -60,6 +60,11 @@
                 .NotEmpty()
                 .NotEqual(x => x.ServiceControlAudit.AuditQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit"))
                 .When(x => x.SubmitAttempted && (x.ServiceControlAudit.AuditForwarding?.Value ?? false));
+
+            RuleFor(x => x.ServiceControlAudit.HostName)
+                .NotEmpty()
+                .ValidHostname()
+                .When(x => x.SubmitAttempted);
         }
     }
 }

@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Raven.Client.Documents;
@@ -25,6 +27,7 @@ class DatabaseSetup(DatabaseConfiguration configuration)
 
         await CreateIndexes(documentStore, configuration.EnableFullTextSearch, cancellationToken);
 
+        await LicenseStatusCheck.WaitForLicenseOrThrow(documentStore, cancellationToken);
         await ConfigureExpiration(documentStore, cancellationToken);
     }
 

@@ -2,7 +2,7 @@ Connection settings to AzureServiceBus have some errors:
 Invalid tenant id provided. You can locate your tenant id by following the instructions listed here: https://learn.microsoft.com/partner-center/find-ids-and-domain-names (Parameter 'tenantId')
 
 Connection attempted with the following settings:
-ServiceBus name not set, defaulted to "testmenow"
+Azure Service Bus namespace not set, defaulted to "testmenow"
 SubscriptionId set
 TenantId set
 ClientId set
