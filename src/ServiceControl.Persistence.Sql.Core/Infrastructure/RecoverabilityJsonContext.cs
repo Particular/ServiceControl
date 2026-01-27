@@ -10,6 +10,6 @@ using ServiceControl.MessageFailures;
 [JsonSerializable(typeof(Dictionary<string, string>))]
 [JsonSerializable(typeof(List<FailedMessage.ProcessingAttempt>))]
 [JsonSerializable(typeof(List<FailedMessage.FailureGroup>))]
-internal partial class RecoverabilityJsonContext : JsonSerializerContext
+partial class RecoverabilityJsonContext : JsonSerializerContext
 {
 }
