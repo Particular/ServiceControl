@@ -2,7 +2,6 @@
 {
     using System;
     using System.Text.Json;
-    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
 
@@ -12,8 +11,6 @@
         readonly string mainInputQueue = receiveAddresses.MainReceiveAddress;
         readonly TimeSpan defaultInterval = TimeSpan.FromSeconds(1);
 
-        // This endpoint is anonymous to allow the Platform Connector to access it without authentication from NServiceBus endpoints
-        [AllowAnonymous]
         [Route("connection")]
         [HttpGet]
         public IActionResult GetConnectionDetails() =>

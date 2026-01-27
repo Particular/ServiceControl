@@ -3,7 +3,6 @@ namespace ServiceControl.Audit.Connection
     using System.Text.Json;
     using Infrastructure.Settings;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Authorization;
 
     [ApiController]
     [Route("api")]
@@ -12,8 +11,6 @@ namespace ServiceControl.Audit.Connection
         // This controller doesn't use the default serialization settings because
         // ServicePulse and the Platform Connector Plugin expect the connection
         // details the be serialized and formatted in a specific way
-        // This endpoint is anonymous to allow the Platform Connector to access it without authentication from NServiceBus endpoints
-        [AllowAnonymous]
         [Route("connection")]
         [HttpGet]
         public IActionResult GetConnectionDetails() =>
