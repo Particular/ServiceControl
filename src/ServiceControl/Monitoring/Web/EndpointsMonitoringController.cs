@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Primitives;
@@ -32,7 +33,9 @@
         [HttpGet]
         public EndpointsView[] Endpoints() => monitoring.GetEndpoints();
 
-        //Added as a way for SP to check if the DELETE operation is supported by the SC API
+        // Added as a way for SP to check if operations are supported by the SC API
+        // Needs to be anonymous to allow preflight OPTIONS requests from browsers
+        [AllowAnonymous]
         [Route("endpoints")]
         [HttpOptions]
         public void GetSupportedOperations()

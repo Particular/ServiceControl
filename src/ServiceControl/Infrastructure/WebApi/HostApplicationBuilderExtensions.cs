@@ -12,7 +12,7 @@
 
     static class HostApplicationBuilderExtensions
     {
-        public static void AddServiceControlApi(this IHostApplicationBuilder builder)
+        public static void AddServiceControlApi(this IHostApplicationBuilder builder, CorsSettings corsSettings)
         {
             // This registers concrete classes that implement IApi. Currently it is hard to find out to what
             // component those APIs should belong to so we leave it here for now.
@@ -20,7 +20,7 @@
 
             builder.AddServiceControlApis();
 
-            builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
+            builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy(corsSettings)));
 
             // We're not explicitly adding Gzip here because it's already in the default list of supported compressors
             builder.Services.AddResponseCompression();

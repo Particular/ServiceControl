@@ -1,8 +1,11 @@
 ﻿namespace ServiceControl.Monitoring.Http
 {
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Primitives;
 
+    // This is used for service-to-service communication. This currently needs to be anonymous
+    [AllowAnonymous]
     [ApiController]
     public class RootController : ControllerBase
     {

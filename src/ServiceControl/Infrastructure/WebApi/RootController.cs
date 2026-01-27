@@ -2,11 +2,14 @@
 {
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using ServiceControl.Api;
     using ServiceControl.Api.Contracts;
 
+    // This is used for service-to-service communication. This currently needs to be anonymous
+    [AllowAnonymous]
     [ApiController]
     [Route("api")]
     public class RootController(IConfigurationApi configurationApi) : ControllerBase

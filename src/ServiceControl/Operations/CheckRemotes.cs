@@ -26,7 +26,7 @@
                 using var cancellationTokenSource = new CancellationTokenSource(queryTimeout);
                 foreach (var remote in remoteInstanceSetting)
                 {
-                    remoteQueryTasks.Add(CheckSuccessStatusCode(httpClientFactory, remote, queryTimeout, cancellationTokenSource.Token));
+                    remoteQueryTasks.Add(CheckSuccessStatusCode(remote, queryTimeout, cancellationTokenSource.Token));
                 }
 
                 try
@@ -59,7 +59,7 @@
             }
         }
 
-        static async Task CheckSuccessStatusCode(IHttpClientFactory httpClientFactory, RemoteInstanceSetting remoteSettings, TimeSpan queryTimeout, CancellationToken cancellationToken)
+        async Task CheckSuccessStatusCode(RemoteInstanceSetting remoteSettings, TimeSpan queryTimeout, CancellationToken cancellationToken)
         {
             try
             {

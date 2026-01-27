@@ -17,6 +17,11 @@
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
+            OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration, requireServicePulseSettings: false);
+            ForwardedHeadersSettings = new ForwardedHeadersSettings(SettingsRootNamespace);
+            HttpsSettings = new HttpsSettings(SettingsRootNamespace);
+            CorsSettings = new CorsSettings(SettingsRootNamespace);
+
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
             InstanceName = SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", InstanceName);
 
@@ -92,6 +97,26 @@
 
         public LoggingSettings LoggingSettings { get; }
 
+        /// <summary>
+        /// Security settings for API authentication and authorization
+        /// </summary>
+        public OpenIdConnectSettings OpenIdConnectSettings { get; }
+
+        /// <summary>
+        /// Settings for handling X-Forwarded-* headers from reverse proxies
+        /// </summary>
+        public ForwardedHeadersSettings ForwardedHeadersSettings { get; }
+
+        /// <summary>
+        /// Settings for enabling HTTPS/TLS on the API
+        /// </summary>
+        public HttpsSettings HttpsSettings { get; }
+
+        /// <summary>
+        /// Settings for Cross-Origin Resource Sharing (CORS) policy
+        /// </summary>
+        public CorsSettings CorsSettings { get; }
+
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }
 
@@ -108,7 +133,9 @@
                     suffix = $"{VirtualDirectory}/";
                 }
 
-                return $"http://{Hostname}:{Port}/{suffix}";
+                // Use HTTPS scheme if TLS is enabled, otherwise HTTP
+                var scheme = HttpsSettings.Enabled ? "https" : "http";
+                return $"{scheme}://{Hostname}:{Port}/{suffix}";
             }
         }
 

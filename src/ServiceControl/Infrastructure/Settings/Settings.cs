@@ -29,6 +29,11 @@ namespace ServiceBus.Management.Infrastructure.Settings
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
+            OpenIdConnectSettings = new OpenIdConnectSettings(SettingsRootNamespace, ValidateConfiguration);
+            ForwardedHeadersSettings = new ForwardedHeadersSettings(SettingsRootNamespace);
+            HttpsSettings = new HttpsSettings(SettingsRootNamespace);
+            CorsSettings = new CorsSettings(SettingsRootNamespace);
+
             // Overwrite the instance name if it is specified in ENVVAR, reg, or config file -- LEGACY SETTING NAME
             InstanceName = SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", InstanceName);
 
@@ -74,6 +79,26 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public LoggingSettings LoggingSettings { get; }
 
+        /// <summary>
+        /// OIDC authentication for API access via ServicePulse
+        /// </summary>
+        public OpenIdConnectSettings OpenIdConnectSettings { get; }
+
+        /// <summary>
+        /// X-Forwarded-* header processing for reverse proxy scenarios
+        /// </summary>
+        public ForwardedHeadersSettings ForwardedHeadersSettings { get; }
+
+        /// <summary>
+        /// HTTPS/TLS and HSTS configuration
+        /// </summary>
+        public HttpsSettings HttpsSettings { get; }
+
+        /// <summary>
+        /// Cross-origin resource sharing policy
+        /// </summary>
+        public CorsSettings CorsSettings { get; }
+
         public string NotificationsFilter { get; set; }
 
         public bool AllowMessageEditing { get; set; }
@@ -103,7 +128,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
                     suffix = $"{VirtualDirectory}/";
                 }
 
-                return $"http://{Hostname}:{Port}/{suffix}";
+                // Use HTTPS scheme if TLS is enabled, otherwise HTTP
+                var scheme = HttpsSettings.Enabled ? "https" : "http";
+                return $"{scheme}://{Hostname}:{Port}/{suffix}";
             }
         }
 

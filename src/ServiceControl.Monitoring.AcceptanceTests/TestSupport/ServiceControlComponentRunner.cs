@@ -7,6 +7,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.ForwardedHeaders;
     using Infrastructure;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
@@ -16,6 +17,8 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using Microsoft.Extensions.Logging;
     using Monitoring;
     using NServiceBus;
+    using ServiceControl.Hosting.Auth;
+    using ServiceControl.Hosting.Https;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceControl.Infrastructure;
@@ -96,6 +99,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 hostBuilder.Logging.ClearProviders();
                 hostBuilder.Logging.ConfigureLogging(LogLevel.Information);
 
+                hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControlMonitoring((criticalErrorContext, cancellationToken) =>
                 {
                     var logitem = new ScenarioContext.LogItem
@@ -109,11 +113,15 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                     return criticalErrorContext.Stop(cancellationToken);
                 }, settings, configuration);
                 hostBuilder.AddServiceControlMonitoringApi();
+                hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
 
                 hostBuilder.AddServiceControlMonitoringTesting(settings);
 
                 host = hostBuilder.Build();
-                host.UseServiceControlMonitoring();
+
+                host.UseTestRemoteIp();
+                host.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
+                host.UseServiceControlMonitoring(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings.CorsSettings);
                 await host.StartAsync();
 
                 HttpClient = host.Services.GetRequiredKeyedService<TestServer>(settings.InstanceName).CreateClient();
