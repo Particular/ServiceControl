@@ -31,11 +31,12 @@
             await Define<MyContext>()
                 .Done(async c =>
                 {
-                    await this.Post<object>("/api/criticalerror/trigger?message=Failed");
-                    return true;
-                })
-                .Done(async c =>
-                {
+                    if (!c.CriticalErrorTriggered)
+                    {
+                        await this.Post<object>("/api/criticalerror/trigger?message=Failed");
+                        c.CriticalErrorTriggered = true;
+                    }
+
                     var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == nameof(CustomCheckFailed) && e.Description.Contains("ServiceControl Primary Instance"));
                     entry = result;
                     return result;
@@ -51,6 +52,7 @@
 
         public class MyContext : ScenarioContext
         {
+            public bool CriticalErrorTriggered { get; set; }
         }
     }
 }
