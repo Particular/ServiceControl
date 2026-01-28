@@ -84,16 +84,7 @@
             }
 
             foundTransportNames.Sort();
-
-            TestContext.Error.WriteLine("Found Transports: " + string.Join(", ", foundTransportNames));
-
-            var assemblyLocation = typeof(TransportManifestLibrary).Assembly.Location;
-            var locationPath = Path.GetDirectoryName(assemblyLocation);
-            foreach (var path in Directory.EnumerateFiles(locationPath!, "*.*", SearchOption.AllDirectories))
-            {
-                TestContext.Error.WriteLine("Found file: " + path);
-            }
-
+            // If this fails on a new .NET version, the framework override for MSMQ needs to be updated
             Approver.Verify(foundTransportNames);
         }
     }
