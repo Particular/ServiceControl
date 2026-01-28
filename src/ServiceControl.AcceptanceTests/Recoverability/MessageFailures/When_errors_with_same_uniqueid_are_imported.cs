@@ -86,7 +86,7 @@
 
         public class SourceEndpoint : EndpointConfigurationBuilder
         {
-            public SourceEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
+            public SourceEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => c.EnableFeature<SendMultipleFailedMessagesWithSameUniqueId>());
 
             class SendMultipleFailedMessagesWithSameUniqueId : DispatchRawMessages<MyContext>
             {

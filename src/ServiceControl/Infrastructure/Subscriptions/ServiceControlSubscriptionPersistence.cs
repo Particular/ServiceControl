@@ -1,14 +1,12 @@
 ﻿namespace ServiceControl.Infrastructure.Subscriptions
 {
     using NServiceBus;
-    using NServiceBus.Features;
     using NServiceBus.Persistence;
 
-    class ServiceControlSubscriptionPersistence : PersistenceDefinition
+    class ServiceControlSubscriptionPersistence : PersistenceDefinition, IPersistenceDefinitionFactory<ServiceControlSubscriptionPersistence>
     {
-        public ServiceControlSubscriptionPersistence()
-        {
-            Supports<StorageType.Subscriptions>(s => s.EnableFeatureByDefault<SubscriptionStorage>());
-        }
+        ServiceControlSubscriptionPersistence() => Supports<StorageType.Subscriptions, SubscriptionStorage>();
+
+        static ServiceControlSubscriptionPersistence IPersistenceDefinitionFactory<ServiceControlSubscriptionPersistence>.Create() => new();
     }
 }

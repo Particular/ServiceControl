@@ -22,21 +22,19 @@
 
             await Define<TestContext>(ctx => context = ctx)
                 .WithEndpoint<MonitoredEndpoint>(b =>
-                b.CustomConfig(endpointConfig => endpointConfig.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "First"))
-                .ToCreateInstance(endpointConfig => Endpoint.Create(endpointConfig), async (startableEndpoint, cancellationToken) =>
-                {
-                    context.FirstInstance = await startableEndpoint.Start(cancellationToken);
-
-                    return context.FirstInstance;
-                }))
+                    b.CustomConfig(c => c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "First"))
+                    .ToCreateInstance((services, configuration) => EndpointWithExternallyManagedContainer.Create(configuration, services), async (startableEndpoint, provider, ct) =>
+                    {
+                        context.FirstInstance = await startableEndpoint.Start(provider, ct);
+                        return context.FirstInstance;
+                    }))
                 .WithEndpoint<MonitoredEndpoint>(b =>
-                b.CustomConfig(endpointConfig => endpointConfig.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "Second"))
-                .ToCreateInstance(endpointConfig => Endpoint.Create(endpointConfig), async (startableEndpoint, cancellationToken) =>
-                {
-                    context.SecondInstance = await startableEndpoint.Start(cancellationToken);
-
-                    return context.SecondInstance;
-                }))
+                    b.CustomConfig(c => c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "Second"))
+                    .ToCreateInstance((services, configuration) => EndpointWithExternallyManagedContainer.Create(configuration, services), async (startableEndpoint, provider, ct) =>
+                    {
+                        context.SecondInstance = await startableEndpoint.Start(provider, ct);
+                        return context.SecondInstance;
+                    }))
                 .Done(async c =>
                 {
                     if (!c.WaitedInitial2Seconds)

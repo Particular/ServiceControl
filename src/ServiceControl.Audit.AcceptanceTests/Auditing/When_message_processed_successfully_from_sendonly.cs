@@ -34,7 +34,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Auditing
 
         class Sendonly : EndpointConfigurationBuilder
         {
-            public Sendonly() => EndpointSetup<DefaultServerWithoutAudit>();
+            public Sendonly() => EndpointSetup<DefaultServerWithoutAudit>(c => c.EnableFeature<SendMessage>());
 
             class SendMessage : DispatchRawMessages<MyContext>
             {
@@ -45,7 +45,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Auditing
                         [Headers.MessageId] = context.MessageId,
                         [Headers.ProcessingEndpoint] = Conventions.EndpointNamingConvention(typeof(Sendonly))
                     };
-                    return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
+                    return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, Array.Empty<byte>()), new UnicastAddressTag("audit")));
                 }
             }
         }

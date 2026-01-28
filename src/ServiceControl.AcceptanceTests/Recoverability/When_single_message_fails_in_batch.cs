@@ -70,7 +70,7 @@
 
         class Sendonly : EndpointConfigurationBuilder
         {
-            public Sendonly() => EndpointSetup<DefaultServerWithoutAudit>();
+            public Sendonly() => EndpointSetup<DefaultServerWithoutAudit>(c => c.EnableFeature<SendMessage>());
 
             class SendMessage : DispatchRawMessages<MyContext>
             {

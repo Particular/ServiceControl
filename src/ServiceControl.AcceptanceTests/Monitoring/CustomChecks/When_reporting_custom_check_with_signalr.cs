@@ -19,7 +19,8 @@
     class When_reporting_custom_check_with_signalr : AcceptanceTest
     {
         [Test]
-        public async Task Should_result_in_a_custom_check_failed_event()
+        [CancelAfter(120_000)]
+        public async Task Should_result_in_a_custom_check_failed_event(CancellationToken cancellation)
         {
             var context = await Define<MyContext>(ctx =>
                 {
@@ -28,7 +29,7 @@
                 .WithEndpoint<EndpointWithCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(cancellation);
 
             Assert.That(context.SignalrData.IndexOf("\"severity\":\"error\","), Is.GreaterThan(0), "Couldn't find severity error in signalr data");
         }

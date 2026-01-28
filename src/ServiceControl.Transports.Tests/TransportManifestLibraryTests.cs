@@ -84,6 +84,7 @@
             }
 
             foundTransportNames.Sort();
+            // If this fails on a new .NET version, the framework override for MSMQ needs to be updated
             Approver.Verify(foundTransportNames);
         }
     }

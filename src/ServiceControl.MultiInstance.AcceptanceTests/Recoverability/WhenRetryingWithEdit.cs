@@ -1,6 +1,7 @@
 namespace ServiceControl.MultiInstance.AcceptanceTests.Recoverability;
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using AcceptanceTesting;
 using AcceptanceTesting.EndpointTemplates;
@@ -15,7 +16,8 @@ using TestSupport;
 class WhenRetryingWithEdit : WhenRetrying
 {
     [Test]
-    public async Task ShouldCreateNewMessageAndResolveEditedMessage()
+    [CancelAfter(30_000)]
+    public async Task ShouldCreateNewMessageAndResolveEditedMessage(CancellationToken cancellationToken)
     {
         CustomServiceControlPrimarySettings = s => { s.AllowMessageEditing = true; };
 
@@ -49,7 +51,7 @@ class WhenRetryingWithEdit : WhenRetrying
 
                 return failedResolvedMessage.HasResult; // If there is a result it means the message was resolved
             })
-            .Run(TimeSpan.FromSeconds(30));
+            .Run(cancellationToken);
     }
 
     class FailureEndpoint : EndpointConfigurationBuilder

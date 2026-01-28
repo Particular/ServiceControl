@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!-- Must stay net8.0, as it's used by ServiceControlInstaller.Engine, which must be net8.0 to support PowerShell 7.4 LTS -->
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 

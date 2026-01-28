@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Recoverability
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -17,7 +18,8 @@
     class When_issuing_retry_by_specifying_instance_id : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_work()
+        [CancelAfter(120_000)]
+        public async Task Should_be_work(CancellationToken cancellationToken)
         {
             string addressOfItself = null;
 
@@ -47,7 +49,7 @@
 
                     return await GetFailedMessage(c, ServiceControlInstanceName, FailedMessageStatus.Resolved);
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(cancellationToken);
         }
 
         Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c, string instance, FailedMessageStatus expectedStatus)

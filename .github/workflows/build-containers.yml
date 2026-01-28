@@ -39,7 +39,6 @@ jobs:
         uses: actions/setup-dotnet@v5.1.0
         with:
           global-json-file: global.json
-          dotnet-version: 8.0.x
       - name: Run MinVer
         uses: Particular/run-minver-action@v1.0.0
       - name: Validate build version
@@ -76,7 +75,7 @@ jobs:
             org.opencontainers.image.created=${{ steps.date.outputs.date }}
             org.opencontainers.image.title=${{ matrix.title }}
             org.opencontainers.image.description=${{ matrix.description }}
-            org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled-composite-extra
+            org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-composite-extra
           annotations: |
             index:org.opencontainers.image.source=https://github.com/Particular/ServiceControl/tree/${{ github.sha }}
             index:org.opencontainers.image.authors="Particular Software"
@@ -88,6 +87,6 @@ jobs:
             index:org.opencontainers.image.created=${{ steps.date.outputs.date }}
             index:org.opencontainers.image.title=${{ matrix.title }}
             index:org.opencontainers.image.description=${{ matrix.description }}
-            index:org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled-composite-extra
+            index:org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-composite-extra
           file: src/${{ matrix.project }}/Dockerfile
           tags: ghcr.io/particular/${{ matrix.name }}:${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}

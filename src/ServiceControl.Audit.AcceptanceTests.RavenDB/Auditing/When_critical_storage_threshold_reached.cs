@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting.EndpointTemplates;
     using Audit.Auditing;
@@ -56,7 +57,8 @@
         }
 
         [Test]
-        public async Task Should_stop_ingestion_and_resume_when_more_space_is_available()
+        [CancelAfter(120_000)]
+        public async Task Should_stop_ingestion_and_resume_when_more_space_is_available(CancellationToken cancellationToken)
         {
             SetStorageConfiguration = d =>
             {
@@ -95,7 +97,7 @@
                    })
                )
                .Done(async c => await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id"))
-               .Run(TimeSpan.FromSeconds(120));
+               .Run(cancellationToken);
         }
 
         public class Sender : EndpointConfigurationBuilder

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -163,7 +164,8 @@
         }
 
         [Test]
-        public async Task Only_unresolved_issues_should_be_archived()
+        [CancelAfter(120_000)]
+        public async Task Only_unresolved_issues_should_be_archived(CancellationToken cancellationToken)
         {
             await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
@@ -220,7 +222,7 @@
                         e => e.Status == FailedMessageStatus.Resolved);
                 })
                 .Done(ctx => true) //Done when sequence is finished
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(cancellationToken);
         }
 
         public class Receiver : EndpointConfigurationBuilder

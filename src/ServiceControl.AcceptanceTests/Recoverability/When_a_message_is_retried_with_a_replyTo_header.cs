@@ -53,8 +53,11 @@
         {
             public VerifyHeader() =>
                 EndpointSetup<DefaultServerWithoutAudit>(
-                    (c, r) => c.RegisterMessageMutator(new VerifyHeaderIsUnchanged((ReplyToContext)r.ScenarioContext))
-                );
+                    (c, r) =>
+                    {
+                        c.EnableFeature<FakeSender>();
+                        c.RegisterMessageMutator(new VerifyHeaderIsUnchanged((ReplyToContext)r.ScenarioContext));
+                    });
 
             class FakeSender : DispatchRawMessages<ReplyToContext>
             {

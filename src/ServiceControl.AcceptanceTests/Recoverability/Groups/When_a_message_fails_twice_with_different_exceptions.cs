@@ -3,6 +3,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
     using System;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -17,7 +18,8 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
     class When_a_message_fails_twice_with_different_exceptions : AcceptanceTest
     {
         [Test]
-        public async Task Only_the_second_groups_should_apply()
+        [CancelAfter(180_000)]
+        public async Task Only_the_second_groups_should_apply(CancellationToken cancellationToken)
         {
             FailedMessage originalMessage = null;
             FailedMessage retriedMessage = null;
@@ -52,7 +54,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 
                     return false;
                 })
-                .Run(TimeSpan.FromMinutes(3));
+                .Run(cancellationToken);
 
             Assert.Multiple(() =>
             {

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,8 @@
     class When_a_message_is_retried_with_a_redirect : AcceptanceTest
     {
         [Test]
-        public async Task It_should_be_sent_to_the_correct_endpoint()
+        [CancelAfter(120_000)]
+        public async Task It_should_be_sent_to_the_correct_endpoint(CancellationToken cancellationToken)
         {
             var context = await Define<Context>()
                 .WithEndpoint<FromEndpoint>(b => b.When(bus => bus.SendLocal(new MessageToRetry()))
@@ -45,7 +47,7 @@
                         return Task.CompletedTask;
                     }))
                 .Done(ctx => ctx.Received)
-                .Run(TimeSpan.FromSeconds(120));
+                .Run(cancellationToken);
 
             Assert.That(context.Received, Is.True);
         }

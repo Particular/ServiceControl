@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -13,7 +14,8 @@
     class When_a_invalid_id_is_sent_to_retry : AcceptanceTest
     {
         [Test]
-        public async Task SubsequentBatchesShouldBeProcessed()
+        [CancelAfter(180_000)]
+        public async Task SubsequentBatchesShouldBeProcessed(CancellationToken cancellationToken)
         {
             var context = await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(cfg => cfg
@@ -36,7 +38,7 @@
                     }).DoNotFailOnErrorMessages()
                     .When(async ctx => ctx.IssueRetry && await this.TryGet<object>("/api/errors/" + ctx.UniqueMessageId), (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry")).DoNotFailOnErrorMessages())
                 .Done(ctx => ctx.Done)
-                .Run(TimeSpan.FromMinutes(3));
+                .Run(cancellationToken);
 
             Assert.That(context.Done, Is.True);
         }

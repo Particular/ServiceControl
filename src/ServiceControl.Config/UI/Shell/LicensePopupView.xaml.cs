@@ -22,10 +22,7 @@
         void TryClosePopup()
         {
             var popup = this.TryFindParent<Popup>();
-            if (popup != null)
-            {
-                popup.IsOpen = false;
-            }
+            popup?.IsOpen = false;
         }
     }
 }

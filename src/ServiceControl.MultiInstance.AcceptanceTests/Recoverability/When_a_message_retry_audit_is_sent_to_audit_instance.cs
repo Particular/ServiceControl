@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Recoverability
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,8 @@
     class When_a_message_retry_audit_is_sent_to_audit_instance : AcceptanceTest
     {
         [Test]
-        public async Task Should_mark_as_resolved()
+        [CancelAfter(120_000)]
+        public async Task Should_mark_as_resolved(CancellationToken cancellationToken)
         {
             FailedMessage failure;
 
@@ -39,7 +41,7 @@
 
                     return failure.Status == FailedMessageStatus.Resolved;
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(cancellationToken);
         }
 
         Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c)

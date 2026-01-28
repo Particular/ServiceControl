@@ -71,7 +71,8 @@
                     return Task.CompletedTask;
                 }
 
-                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper) => mapper.ConfigureMapping<MessageInitiatingSaga>(msg => msg.Id).ToSaga(saga => saga.MessageId);
+                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
+                    => mapper.MapSaga(saga => saga.MessageId).ToMessage<MessageInitiatingSaga>(msg => msg.Id);
             }
 
             public class MySagaData : ContainSagaData

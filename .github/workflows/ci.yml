@@ -41,7 +41,6 @@ jobs:
         uses: actions/setup-dotnet@v5.1.0
         with:
           global-json-file: global.json
-          dotnet-version: 8.0.x
       - name: Download RavenDB Server
         run: ./tools/download-ravendb-server.ps1
       - name: Build

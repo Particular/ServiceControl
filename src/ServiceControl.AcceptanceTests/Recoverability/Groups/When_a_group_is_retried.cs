@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -15,7 +16,8 @@
     class When_a_group_is_retried : AcceptanceTest
     {
         [Test]
-        public async Task Only_unresolved_issues_should_be_retried()
+        [CancelAfter(120_000)]
+        public async Task Only_unresolved_issues_should_be_retried(CancellationToken cancellationToken)
         {
             FailedMessage messageToBeRetriedAsPartOfGroupRetry = null;
             FailedMessage messageToBeArchived = null;
@@ -79,7 +81,7 @@
                     messageToBeArchived = messageToBeArchivedArchivedResult;
                     return messageToBeArchivedArchivedResult;
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(cancellationToken);
 
             Assert.Multiple(() =>
             {

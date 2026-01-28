@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -18,7 +19,8 @@
     class When_a_retry_for_a_failed_message_is_successful : AcceptanceTest
     {
         [Test]
-        public async Task Should_show_up_as_resolved_in_the_eventlog()
+        [CancelAfter(120_000)]
+        public async Task Should_show_up_as_resolved_in_the_eventlog(CancellationToken cancellationToken)
         {
             FailedMessage failure = null;
             List<EventLogItem> eventLogItems = null;
@@ -45,7 +47,7 @@
 
                     return false;
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(cancellationToken);
 
             Assert.Multiple(() =>
             {
@@ -55,7 +57,8 @@
         }
 
         [Test]
-        public async Task Should_show_up_as_resolved_when_doing_a_multi_retry()
+        [CancelAfter(120_000)]
+        public async Task Should_show_up_as_resolved_when_doing_a_multi_retry(CancellationToken cancellationToken)
         {
             FailedMessage failure = null;
 
@@ -79,13 +82,14 @@
 
                     return false;
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(cancellationToken);
 
             Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
         }
 
         [Test]
-        public async Task Should_show_up_as_resolved_when_doing_a_retry_all()
+        [CancelAfter(120_000)]
+        public async Task Should_show_up_as_resolved_when_doing_a_retry_all(CancellationToken cancellationToken)
         {
             FailedMessage failure = null;
 
@@ -109,13 +113,14 @@
 
                     return false;
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(cancellationToken);
 
             Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
         }
 
         [Test]
-        public async Task Acknowledging_the_retry_should_be_successful()
+        [CancelAfter(120_000)]
+        public async Task Acknowledging_the_retry_should_be_successful(CancellationToken cancellationToken)
         {
             FailedMessage failure;
 
@@ -139,11 +144,12 @@
 
                     return false;
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(cancellationToken);
         }
 
         [Test]
-        public async Task Should_show_up_as_resolved_when_doing_a_retry_all_for_the_given_endpoint()
+        [CancelAfter(120_000)]
+        public async Task Should_show_up_as_resolved_when_doing_a_retry_all_for_the_given_endpoint(CancellationToken cancellationToken)
         {
             FailedMessage failure = null;
 
@@ -167,7 +173,7 @@
 
                     return false;
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(cancellationToken);
 
             Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
         }

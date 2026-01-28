@@ -36,7 +36,7 @@
 
         public class ThirdPartyEndpoint : EndpointConfigurationBuilder
         {
-            public ThirdPartyEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
+            public ThirdPartyEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => c.EnableFeature<SendMessage>());
 
             class SendMessage : DispatchRawMessages<MyContext>
             {
@@ -47,7 +47,7 @@
                         {Headers.ProcessingEndpoint, Conventions.EndpointNamingConvention(typeof(ThirdPartyEndpoint))},
                         {Headers.MessageId, context.MessageId}
                     };
-                    return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
+                    return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, Array.Empty<byte>()), new UnicastAddressTag("audit")));
                 }
             }
         }
