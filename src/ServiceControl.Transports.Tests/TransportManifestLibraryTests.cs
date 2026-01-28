@@ -88,6 +88,13 @@
             TestContext.Out.WriteLine("Found Transports: " + string.Join(", ", foundTransportNames));
             TestContext.Error.WriteLine("Found Transports: " + string.Join(", ", foundTransportNames));
 
+            var assemblyLocation = typeof(TransportManifestLibrary).Assembly.Location;
+            var locationPath = Path.GetDirectoryName(assemblyLocation);
+            foreach (var path in Directory.EnumerateFiles(locationPath!, "*.*", SearchOption.AllDirectories))
+            {
+                TestContext.Out.WriteLine("Found file: " + path);
+            }
+
             Approver.Verify(foundTransportNames);
         }
     }
