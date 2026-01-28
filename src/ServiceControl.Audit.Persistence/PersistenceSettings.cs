@@ -23,6 +23,12 @@
 
         public bool EnableFullTextSearchOnBodies { get; set; }
 
+        /// <summary>
+        /// Base path for storing message bodies on the filesystem.
+        /// Initialized by persistence configuration based on DatabasePath or explicit configuration.
+        /// </summary>
+        public string MessageBodyStoragePath { get; set; }
+
         public int MaxBodySizeToStore { get; set; }
 
         public IDictionary<string, string> PersisterSpecificSettings { get; }

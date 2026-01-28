@@ -12,10 +12,12 @@
   </PropertyGroup>
 
   <!-- Needed for build ordering -->
-  <Import Project="..\ProjectReferences.Persisters.Primary.props" />
   <Import Project="..\ProjectReferences.Transports.props" />
 
   <ItemGroup>
+    <ProjectReference Include="../ServiceControl.Persistence.Sql.MySQL/ServiceControl.Persistence.Sql.MySQL.csproj" />
+    <ProjectReference Include="../ServiceControl.Persistence.Sql.PostgreSQL/ServiceControl.Persistence.Sql.PostgreSQL.csproj" />
+    <ProjectReference Include="../ServiceControl.Persistence.Sql.SqlServer/ServiceControl.Persistence.Sql.SqlServer.csproj" />
     <ProjectReference Include="..\Particular.LicensingComponent\Particular.LicensingComponent.csproj" />
     <ProjectReference Include="..\ServiceControl.Api\ServiceControl.Api.csproj" />
     <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />

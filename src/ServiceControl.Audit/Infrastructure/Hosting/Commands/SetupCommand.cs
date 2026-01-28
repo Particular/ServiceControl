@@ -1,10 +1,15 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
 {
+    using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using ServiceControl.Audit.Persistence;
+    using ServiceControl.Audit.Persistence.Sql.Core.Abstractions;
     using ServiceControl.Infrastructure;
     using Settings;
     using Transports;
@@ -46,6 +51,25 @@
 
             using var host = hostBuilder.Build();
             await host.StartAsync();
+
+            if (settings.IngestAuditMessages)
+            {
+                // Create message body storage directory if it doesn't exist
+                var persistenceSettings = host.Services.GetRequiredService<PersistenceSettings>();
+                if (!string.IsNullOrEmpty(persistenceSettings.MessageBodyStoragePath))
+                {
+                    if (!Directory.Exists(persistenceSettings.MessageBodyStoragePath))
+                    {
+                        Directory.CreateDirectory(persistenceSettings.MessageBodyStoragePath);
+                    }
+                }
+                else
+                {
+                    throw new Exception("Message body storage path is not configured.");
+                }
+            }
+            await host.Services.GetRequiredService<IAuditDatabaseMigrator>().ApplyMigrations();
+
             await host.StopAsync();
         }
     }
