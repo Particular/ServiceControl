@@ -84,6 +84,10 @@
             }
 
             foundTransportNames.Sort();
+
+            TestContext.Out.WriteLine("Found Transports: " + string.Join(", ", foundTransportNames));
+            TestContext.Error.WriteLine("Found Transports: " + string.Join(", ", foundTransportNames));
+
             Approver.Verify(foundTransportNames);
         }
     }
