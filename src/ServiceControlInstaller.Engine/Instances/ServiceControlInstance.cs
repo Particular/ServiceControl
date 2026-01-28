@@ -136,6 +136,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
 
             EnableEmbeddedServicePulse = AppConfig.Read(ServiceControlSettings.EnableEmbeddedServicePulse, false);
+            HttpsEnabled = AppConfig.Read(ServiceControlSettings.HttpsEnabled, false);
 
             if (TimeSpan.TryParse(AppConfig.Read(ServiceControlSettings.ErrorRetentionPeriod, (string)null), out var errorRetentionPeriod))
             {

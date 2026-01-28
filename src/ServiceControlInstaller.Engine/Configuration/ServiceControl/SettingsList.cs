@@ -119,5 +119,11 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             Name = "ServiceControl/EnableEmbeddedServicePulse",
             SupportedFrom = new SemanticVersion(6, 9, 0)
         };
+
+        public static readonly SettingInfo HttpsEnabled = new()
+        {
+            Name = "ServiceControl/Https.Enabled",
+            SupportedFrom = new SemanticVersion(6, 9, 0)
+        };
     }
 }
