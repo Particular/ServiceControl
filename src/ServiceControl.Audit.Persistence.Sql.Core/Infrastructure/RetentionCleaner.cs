@@ -3,13 +3,14 @@ namespace ServiceControl.Audit.Persistence.Sql.Core.Infrastructure;
 using Abstractions;
 using DbContexts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 public class RetentionCleaner(
     ILogger<RetentionCleaner> logger,
     TimeProvider timeProvider,
-    AuditDbContextBase dbContext,
+    IServiceScopeFactory serviceScopeFactory,
     AuditSqlPersisterSettings settings,
     FileSystemBodyStorageHelper bodyStorageHelper) : BackgroundService
 {
@@ -44,6 +45,9 @@ public class RetentionCleaner(
 
     async Task Clean(CancellationToken stoppingToken)
     {
+        using var scope = serviceScopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContextBase>();
+
         var cutoff = timeProvider.GetUtcNow().DateTime - settings.AuditRetentionPeriod;
 
         // Get the IDs of messages to delete so we can clean up body files
