@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -15,7 +16,8 @@
     class When_a_message_is_retried_and_succeeds_with_a_reply : AcceptanceTest
     {
         [Test]
-        public async Task The_reply_should_go_to_the_correct_endpoint()
+        [CancelAfter(60_000)]
+        public async Task The_reply_should_go_to_the_correct_endpoint(CancellationToken cancellation)
         {
             var context = await Define<RetryReplyContext>()
                 .WithEndpoint<Originator>(c => c.When(bus => bus.Send(new OriginalMessage())))
@@ -41,7 +43,7 @@
 
                     return !string.IsNullOrWhiteSpace(c.ReplyHandledBy);
                 })
-                .Run(TimeSpan.FromMinutes(1));
+                .Run(cancellation);
 
             Assert.That(context.ReplyHandledBy, Is.EqualTo("Originating Endpoint"), "Reply handled by incorrect endpoint");
         }

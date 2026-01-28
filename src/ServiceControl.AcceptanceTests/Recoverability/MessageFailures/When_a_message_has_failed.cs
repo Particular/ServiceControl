@@ -149,7 +149,8 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         }
 
         [Test]
-        public async Task Should_be_listed_in_the_messages_list()
+        [CancelAfter(120_000)]
+        public async Task Should_be_listed_in_the_messages_list(CancellationToken cancellationToken)
         {
             var failure = new MessagesView();
 
@@ -161,7 +162,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     failure = result;
                     return result;
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(cancellationToken);
 
             Assert.Multiple(() =>
             {

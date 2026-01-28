@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -20,7 +21,8 @@
     class When_a_retry_for_a_empty_body_message_is_successful : AcceptanceTest
     {
         [Test]
-        public async Task Should_show_up_as_resolved_when_doing_a_single_retry()
+        [CancelAfter(120_000)]
+        public async Task Should_show_up_as_resolved_when_doing_a_single_retry(CancellationToken cancellationToken)
         {
             FailedMessage failure = null;
 
@@ -41,7 +43,7 @@
                     failure = afterRetryResult;
                     return c.Done && afterRetryResult;
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(cancellationToken);
 
             Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
         }
