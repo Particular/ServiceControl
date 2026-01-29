@@ -40,7 +40,10 @@
 
         public bool SkipQueueCreation { get; set; }
 
-        public string Url => $"http://{HostName}:{Port}/";
+        public string Url => $"{UrlScheme}://{HostName}:{Port}/";
+
+        public bool HttpsEnabled { get; set; }
+        string UrlScheme => HttpsEnabled ? "https" : "http";
 
         public string BrowsableUrl
         {
@@ -52,7 +55,7 @@
                     "+" => Environment.MachineName.ToLower(),
                     _ => HostName,
                 };
-                return $"http://{host}:{Port}/";
+                return $"{UrlScheme}://{host}:{Port}/";
             }
         }
 
@@ -71,6 +74,8 @@
             ConnectionString = ReadConnectionString();
             Description = GetDescription();
             ServiceAccount = Service.Account;
+            HttpsEnabled = AppConfig.Read(SettingsList.HttpsEnabled, false);
+
         }
 
         string DefaultLogPath()
