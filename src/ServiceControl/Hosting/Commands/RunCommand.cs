@@ -30,6 +30,10 @@
 
             var app = hostBuilder.Build();
             app.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings);
+            if (settings.EnableEmbeddedServicePulse)
+            {
+                app.UseServicePulse(settings.ServicePulseSettings);
+            }
             app.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
 
             await app.RunAsync(settings.RootUrl);

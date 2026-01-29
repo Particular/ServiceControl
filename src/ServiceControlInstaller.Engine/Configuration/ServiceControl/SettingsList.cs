@@ -113,5 +113,17 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             Name = "LicensingComponent/RabbitMQ/Password",
             RemovedFrom = new SemanticVersion(6, 5, 0)
         };
+
+        public static readonly SettingInfo EnableEmbeddedServicePulse = new()
+        {
+            Name = "ServiceControl/EnableEmbeddedServicePulse",
+            SupportedFrom = new SemanticVersion(6, 9, 0)
+        };
+
+        public static readonly SettingInfo HttpsEnabled = new()
+        {
+            Name = "ServiceControl/Https.Enabled",
+            SupportedFrom = new SemanticVersion(6, 9, 0)
+        };
     }
 }
