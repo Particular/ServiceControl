@@ -26,5 +26,12 @@ namespace ServiceControlInstaller.Engine.Configuration.Monitoring
             Name = "Monitoring/ShutdownTimeout",
             SupportedFrom = new SemanticVersion(6, 4, 1)
         };
+
+        public static readonly SettingInfo HttpsEnabled = new()
+        {
+            Name = "Monitoring/Https.Enabled",
+            SupportedFrom = new SemanticVersion(6, 9, 0)
+        };
+
     }
 }
