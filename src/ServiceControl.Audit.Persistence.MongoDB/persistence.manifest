@@ -1,0 +1,13 @@
+{
+  "Name": "MongoDB",
+  "DisplayName": "MongoDB",
+  "Description": "MongoDB ServiceControl Audit persister (supports MongoDB, Azure DocumentDB, Amazon DocumentDB)",
+  "AssemblyName": "ServiceControl.Audit.Persistence.MongoDB",
+  "TypeName": "ServiceControl.Audit.Persistence.MongoDB.MongoPersistenceConfiguration, ServiceControl.Audit.Persistence.MongoDB",
+  "Settings": [
+    {
+      "Name": "ServiceControl.Audit/Database/ConnectionString",
+      "Mandatory": true
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.MongoDB\ServiceControl.Audit.Persistence.MongoDB.csproj" />
+    <!-- Needed to bring the dependencies that the persistence plugin excludes -->
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
+    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NServiceBus.CustomChecks" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="Particular.Approvals" />
+    <PackageReference Include="Testcontainers.MongoDb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.Audit.Persistence.Tests\*.cs" LinkBase="Shared" />
+    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\PersistenceManifestLibraryTests.cs" />
+    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\TestsFilter.cs" />
+  </ItemGroup>
+
+</Project>
