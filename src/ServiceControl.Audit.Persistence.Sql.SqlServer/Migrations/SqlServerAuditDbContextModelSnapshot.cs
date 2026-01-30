@@ -66,6 +66,40 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                     b.ToTable("KnownEndpoints", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceControl.Audit.Persistence.Sql.Core.Entities.KnownEndpointInsertOnlyEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Host")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("HostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("KnownEndpointId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LastSeen")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KnownEndpointId");
+
+                    b.HasIndex("LastSeen");
+
+                    b.ToTable("KnownEndpointsInsertOnly", (string)null);
+                });
+
             modelBuilder.Entity("ServiceControl.Audit.Persistence.Sql.Core.Entities.ProcessedMessageEntity", b =>
                 {
                     b.Property<long>("Id")

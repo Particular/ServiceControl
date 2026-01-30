@@ -7,7 +7,6 @@ using Abstractions;
 using DbContexts;
 using Entities;
 using Infrastructure;
-using Microsoft.EntityFrameworkCore;
 using ServiceControl.Audit.Auditing;
 using ServiceControl.Audit.Monitoring;
 using ServiceControl.Audit.Persistence.Infrastructure;
@@ -58,7 +57,7 @@ class AuditIngestionUnitOfWork(
 
         dbContext.ProcessedMessages.Add(entity);
 
-        // Store body in file system if large enough
+        // Store body in file system if below threshold
         if (!body.IsEmpty && body.Length < settings.MaxBodySizeToStore)
         {
             var contentType = GetContentType(processedMessage.Headers, MediaTypeNames.Text.Plain);
@@ -88,27 +87,20 @@ class AuditIngestionUnitOfWork(
         return Task.CompletedTask;
     }
 
-    public async Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken = default)
+    public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken = default)
     {
-        //return Task.CompletedTask; // Known endpoints are not tracked in SQL persistence
-
-        var entity = new KnownEndpointEntity
+        var entity = new KnownEndpointInsertOnlyEntity
         {
-            Id = DeterministicGuid.MakeId(knownEndpoint.Name, knownEndpoint.HostId.ToString()),
+            KnownEndpointId = DeterministicGuid.MakeId(knownEndpoint.Name, knownEndpoint.HostId.ToString()),
             Name = knownEndpoint.Name,
             HostId = knownEndpoint.HostId,
             Host = knownEndpoint.Host,
             LastSeen = knownEndpoint.LastSeen
         };
 
-        await dbContext.KnownEndpoints.Upsert(entity)
-                    .On(c => c.Id)
-                    .UpdateIf((db, ins) => db.LastSeen < ins.LastSeen)
-                    .WhenMatched((_, ins) => new KnownEndpointEntity
-                    {
-                        LastSeen = ins.LastSeen
-                    })
-                    .RunAsync(cancellationToken);
+        dbContext.KnownEndpointsInsertOnly.Add(entity);
+
+        return Task.CompletedTask;
     }
 
     public async ValueTask DisposeAsync()

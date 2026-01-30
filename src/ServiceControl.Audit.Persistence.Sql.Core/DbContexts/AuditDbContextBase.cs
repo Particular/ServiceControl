@@ -14,6 +14,7 @@ public abstract class AuditDbContextBase : DbContext
     public DbSet<FailedAuditImportEntity> FailedAuditImports { get; set; }
     public DbSet<SagaSnapshotEntity> SagaSnapshots { get; set; }
     public DbSet<KnownEndpointEntity> KnownEndpoints { get; set; }
+    public DbSet<KnownEndpointInsertOnlyEntity> KnownEndpointsInsertOnly { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -28,6 +29,7 @@ public abstract class AuditDbContextBase : DbContext
         modelBuilder.ApplyConfiguration(new FailedAuditImportConfiguration());
         modelBuilder.ApplyConfiguration(new SagaSnapshotConfiguration());
         modelBuilder.ApplyConfiguration(new KnownEndpointConfiguration());
+        modelBuilder.ApplyConfiguration(new KnownEndpointInsertOnlyConfiguration());
 
         OnModelCreatingProvider(modelBuilder);
     }

@@ -25,6 +25,38 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "KnownEndpoints",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    HostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Host = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastSeen = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_KnownEndpoints", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "KnownEndpointsInsertOnly",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    KnownEndpointId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    HostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Host = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastSeen = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_KnownEndpointsInsertOnly", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ProcessedMessages",
                 columns: table => new
                 {
@@ -74,6 +106,21 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                 {
                     table.PrimaryKey("PK_SagaSnapshots", x => x.Id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_KnownEndpoints_LastSeen",
+                table: "KnownEndpoints",
+                column: "LastSeen");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_KnownEndpointsInsertOnly_KnownEndpointId",
+                table: "KnownEndpointsInsertOnly",
+                column: "KnownEndpointId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_KnownEndpointsInsertOnly_LastSeen",
+                table: "KnownEndpointsInsertOnly",
+                column: "LastSeen");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProcessedMessages_ConversationId_ProcessedAt",
@@ -126,6 +173,12 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
         {
             migrationBuilder.DropTable(
                 name: "FailedAuditImports");
+
+            migrationBuilder.DropTable(
+                name: "KnownEndpoints");
+
+            migrationBuilder.DropTable(
+                name: "KnownEndpointsInsertOnly");
 
             migrationBuilder.DropTable(
                 name: "ProcessedMessages");

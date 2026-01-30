@@ -13,6 +13,9 @@ public class PostgreSqlAuditDbContext : AuditDbContextBase
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Call base first to apply entity configurations
+        base.OnModelCreating(modelBuilder);
+
         // Apply snake_case naming convention for PostgreSQL
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
@@ -29,15 +32,8 @@ public class PostgreSqlAuditDbContext : AuditDbContextBase
                 property.SetColumnName(ToSnakeCase(property.Name));
             }
 
-            // Convert index names to snake_case
-            foreach (var index in entity.GetIndexes())
-            {
-                var indexName = index.GetDatabaseName();
-                if (indexName != null)
-                {
-                    index.SetDatabaseName(ToSnakeCase(indexName));
-                }
-            }
+            // Skip index name conversion - EF generates unique names and snake_case
+            // conversion can cause collisions due to truncation
 
             // Convert foreign key names to snake_case
             foreach (var key in entity.GetForeignKeys())
@@ -49,8 +45,6 @@ public class PostgreSqlAuditDbContext : AuditDbContextBase
                 }
             }
         }
-
-        base.OnModelCreating(modelBuilder);
     }
 
     protected override void OnModelCreatingProvider(ModelBuilder modelBuilder)

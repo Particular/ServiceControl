@@ -12,8 +12,8 @@ using ServiceControl.Audit.Persistence.Sql.SqlServer;
 namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerAuditDbContext))]
-    [Migration("20260123032858_AddFullTextIndexForSearch")]
-    partial class AddFullTextIndexForSearch
+    [Migration("20260130012543_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -41,6 +41,66 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("FailedAuditImports", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Audit.Persistence.Sql.Core.Entities.KnownEndpointEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Host")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("HostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LastSeen")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastSeen");
+
+                    b.ToTable("KnownEndpoints", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Audit.Persistence.Sql.Core.Entities.KnownEndpointInsertOnlyEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Host")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("HostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("KnownEndpointId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LastSeen")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KnownEndpointId");
+
+                    b.HasIndex("LastSeen");
+
+                    b.ToTable("KnownEndpointsInsertOnly", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Audit.Persistence.Sql.Core.Entities.ProcessedMessageEntity", b =>

@@ -1,8 +1,10 @@
 namespace ServiceControl.Audit.Persistence.Sql.Core.Entities;
 
-public class KnownEndpointEntity
+public class KnownEndpointInsertOnlyEntity
 {
-    public Guid Id { get; set; }
+    public long Id { get; set; }
+    public Guid KnownEndpointId { get; set; }
+
     public string? Name { get; set; }
 
     public Guid HostId { get; set; }

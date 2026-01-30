@@ -1,5 +1,6 @@
 namespace ServiceControl.Audit.Persistence.Sql.Core.Infrastructure;
 
+using System.Diagnostics;
 using Abstractions;
 using DbContexts;
 using Microsoft.EntityFrameworkCore;
@@ -45,29 +46,66 @@ public class RetentionCleaner(
 
     async Task Clean(CancellationToken stoppingToken)
     {
+        var stopwatch = Stopwatch.StartNew();
+        const int batchSize = 250;
+
         using var scope = serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContextBase>();
 
-        var cutoff = timeProvider.GetUtcNow().DateTime - settings.AuditRetentionPeriod;
+        var cutoff = timeProvider.GetUtcNow().UtcDateTime - settings.AuditRetentionPeriod;
 
-        // Get the IDs of messages to delete so we can clean up body files
-        var messageIdsToDelete = await dbContext.ProcessedMessages
-            .Where(m => m.ProcessedAt < cutoff)
-            .Select(m => m.UniqueMessageId)
-            .ToListAsync(stoppingToken);
+        var totalDeletedMessages = 0;
+        int deleted;
 
-        // Delete body files first
-        bodyStorageHelper.DeleteBodies(messageIdsToDelete);
+        do
+        {
+            // Get a batch of IDs to delete so we can clean up body files
+            var messageIdsToDelete = await dbContext.ProcessedMessages
+                .Where(m => m.ProcessedAt < cutoff)
+                .OrderBy(m => m.ProcessedAt)
+                .Select(m => m.UniqueMessageId)
+                .Take(batchSize)
+                .ToListAsync(stoppingToken);
 
-        // Then delete database records
-        var deletedMessages = await dbContext.ProcessedMessages
-            .Where(m => m.ProcessedAt < cutoff)
-            .ExecuteDeleteAsync(stoppingToken);
+            if (messageIdsToDelete.Count == 0)
+            {
+                break;
+            }
 
-        var deletedSnapshots = await dbContext.SagaSnapshots
-            .Where(s => s.ProcessedAt < cutoff)
-            .ExecuteDeleteAsync(stoppingToken);
+            // Delete body files first
+            bodyStorageHelper.DeleteBodies(messageIdsToDelete);
 
-        logger.LogInformation("Retention cleanup removed {Messages} messages and {Snapshots} saga snapshots", deletedMessages, deletedSnapshots);
+            // Then delete the database records for this batch
+            deleted = await dbContext.ProcessedMessages
+                .Where(m => messageIdsToDelete.Contains(m.UniqueMessageId))
+                .ExecuteDeleteAsync(stoppingToken);
+
+            totalDeletedMessages += deleted;
+        } while (deleted == batchSize);
+
+        var totalDeletedSnapshots = 0;
+
+        do
+        {
+            var snapshotIdsToDelete = await dbContext.SagaSnapshots
+                .Where(s => s.ProcessedAt < cutoff)
+                .OrderBy(s => s.ProcessedAt)
+                .Select(s => s.Id)
+                .Take(batchSize)
+                .ToListAsync(stoppingToken);
+
+            if (snapshotIdsToDelete.Count == 0)
+            {
+                break;
+            }
+
+            deleted = await dbContext.SagaSnapshots
+                .Where(s => snapshotIdsToDelete.Contains(s.Id))
+                .ExecuteDeleteAsync(stoppingToken);
+
+            totalDeletedSnapshots += deleted;
+        } while (deleted == batchSize);
+
+        logger.LogInformation("Retention cleanup removed {Messages} messages and {Snapshots} saga snapshots in {Elapsed}", totalDeletedMessages, totalDeletedSnapshots, stopwatch.Elapsed.ToString(@"hh\:mm\:ss"));
     }
 }

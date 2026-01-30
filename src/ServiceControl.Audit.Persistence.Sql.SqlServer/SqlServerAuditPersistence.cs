@@ -3,6 +3,7 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer;
 using Core.Abstractions;
 using Core.DbContexts;
 using Core.FullTextSearch;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,6 +21,7 @@ class SqlServerAuditPersistence : BaseAuditPersistence, IPersistence
         ConfigureDbContext(services);
         RegisterDataStores(services);
         services.AddSingleton<IAuditFullTextSearchProvider, SqlServerAuditFullTextSearchProvider>();
+        services.AddHostedService<KnownEndpointsReconciler>();
     }
 
     public void AddInstaller(IServiceCollection services)

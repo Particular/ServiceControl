@@ -13,7 +13,7 @@ using ServiceControl.Audit.Persistence.Sql.PostgreSQL;
 namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 {
     [DbContext(typeof(PostgreSqlAuditDbContext))]
-    [Migration("20260123033159_InitialCreate")]
+    [Migration("20260130012749_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -44,7 +44,78 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FailedAuditImports", (string)null);
+                    b.ToTable("failed_audit_imports", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Audit.Persistence.Sql.Core.Entities.KnownEndpointEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Host")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("host");
+
+                    b.Property<Guid>("HostId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("host_id");
+
+                    b.Property<DateTime>("LastSeen")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_seen");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastSeen");
+
+                    b.ToTable("known_endpoints", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Audit.Persistence.Sql.Core.Entities.KnownEndpointInsertOnlyEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Host")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("host");
+
+                    b.Property<Guid>("HostId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("host_id");
+
+                    b.Property<Guid>("KnownEndpointId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("known_endpoint_id");
+
+                    b.Property<DateTime>("LastSeen")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_seen");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KnownEndpointId");
+
+                    b.HasIndex("LastSeen");
+
+                    b.ToTable("known_endpoints_insert_only", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Audit.Persistence.Sql.Core.Entities.ProcessedMessageEntity", b =>
@@ -158,9 +229,9 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                     b.HasIndex("ReceivingEndpointName", "IsSystemMessage", "ProcessedAt");
 
                     b.HasIndex("ReceivingEndpointName", "IsSystemMessage", "TimeSent", "ProcessedAt")
-                        .HasDatabaseName("IX_ProcessedMessages_receiving_endpoint_name_is_system_messag~1");
+                        .HasDatabaseName("IX_processed_messages_receiving_endpoint_name_is_system_messa~1");
 
-                    b.ToTable("ProcessedMessages", (string)null);
+                    b.ToTable("processed_messages", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Audit.Persistence.Sql.Core.Entities.SagaSnapshotEntity", b =>
@@ -223,7 +294,7 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 
                     b.HasIndex("SagaId");
 
-                    b.ToTable("SagaSnapshots", (string)null);
+                    b.ToTable("saga_snapshots", (string)null);
                 });
 #pragma warning restore 612, 618
         }

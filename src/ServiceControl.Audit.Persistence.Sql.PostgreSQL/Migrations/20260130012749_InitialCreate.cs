@@ -14,7 +14,7 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "FailedAuditImports",
+                name: "failed_audit_imports",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -23,11 +23,43 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FailedAuditImports", x => x.id);
+                    table.PrimaryKey("PK_failed_audit_imports", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProcessedMessages",
+                name: "known_endpoints",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    host_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    host = table.Column<string>(type: "text", nullable: false),
+                    last_seen = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_known_endpoints", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "known_endpoints_insert_only",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    known_endpoint_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    host_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    host = table.Column<string>(type: "text", nullable: false),
+                    last_seen = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_known_endpoints_insert_only", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "processed_messages",
                 columns: table => new
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
@@ -53,11 +85,11 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProcessedMessages", x => x.id);
+                    table.PrimaryKey("PK_processed_messages", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "SagaSnapshots",
+                name: "saga_snapshots",
                 columns: table => new
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
@@ -75,58 +107,73 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SagaSnapshots", x => x.id);
+                    table.PrimaryKey("PK_saga_snapshots", x => x.id);
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_known_endpoints_last_seen",
+                table: "known_endpoints",
+                column: "last_seen");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_known_endpoints_insert_only_known_endpoint_id",
+                table: "known_endpoints_insert_only",
+                column: "known_endpoint_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_known_endpoints_insert_only_last_seen",
+                table: "known_endpoints_insert_only",
+                column: "last_seen");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_processed_messages_conversation_id_processed_at",
+                table: "processed_messages",
+                columns: new[] { "conversation_id", "processed_at" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_processed_messages_is_system_message_time_sent_processed_at",
+                table: "processed_messages",
+                columns: new[] { "is_system_message", "time_sent", "processed_at" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_processed_messages_message_id",
+                table: "processed_messages",
+                column: "message_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_processed_messages_processed_at",
+                table: "processed_messages",
+                column: "processed_at");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_processed_messages_query",
-                table: "ProcessedMessages",
+                table: "processed_messages",
                 column: "query")
                 .Annotation("Npgsql:IndexMethod", "GIN");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_conversation_id_processed_at",
-                table: "ProcessedMessages",
-                columns: new[] { "conversation_id", "processed_at" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_is_system_message_time_sent_processed_at",
-                table: "ProcessedMessages",
-                columns: new[] { "is_system_message", "time_sent", "processed_at" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_message_id",
-                table: "ProcessedMessages",
-                column: "message_id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_processed_at",
-                table: "ProcessedMessages",
-                column: "processed_at");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_receiving_endpoint_name_is_system_messag~1",
-                table: "ProcessedMessages",
+                name: "IX_processed_messages_receiving_endpoint_name_is_system_messa~1",
+                table: "processed_messages",
                 columns: new[] { "receiving_endpoint_name", "is_system_message", "time_sent", "processed_at" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_receiving_endpoint_name_is_system_message~",
-                table: "ProcessedMessages",
+                name: "IX_processed_messages_receiving_endpoint_name_is_system_messag~",
+                table: "processed_messages",
                 columns: new[] { "receiving_endpoint_name", "is_system_message", "processed_at" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_unique_message_id",
-                table: "ProcessedMessages",
+                name: "IX_processed_messages_unique_message_id",
+                table: "processed_messages",
                 column: "unique_message_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SagaSnapshots_processed_at",
-                table: "SagaSnapshots",
+                name: "IX_saga_snapshots_processed_at",
+                table: "saga_snapshots",
                 column: "processed_at");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SagaSnapshots_saga_id",
-                table: "SagaSnapshots",
+                name: "IX_saga_snapshots_saga_id",
+                table: "saga_snapshots",
                 column: "saga_id");
         }
 
@@ -134,13 +181,19 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "FailedAuditImports");
+                name: "failed_audit_imports");
 
             migrationBuilder.DropTable(
-                name: "ProcessedMessages");
+                name: "known_endpoints");
 
             migrationBuilder.DropTable(
-                name: "SagaSnapshots");
+                name: "known_endpoints_insert_only");
+
+            migrationBuilder.DropTable(
+                name: "processed_messages");
+
+            migrationBuilder.DropTable(
+                name: "saga_snapshots");
         }
     }
 }
