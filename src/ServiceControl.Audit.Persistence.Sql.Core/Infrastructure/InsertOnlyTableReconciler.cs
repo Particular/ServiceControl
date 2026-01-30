@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.Persistence.Sql.Core.Infrastructure;
 
 using DbContexts;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -51,7 +50,9 @@ public abstract class InsertOnlyTableReconciler<TInsertOnly, TTarget>(
             using var scope = serviceScopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContextBase>();
 
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
             var rowsAffected = await ReconcileBatch(dbContext, stoppingToken);
+            await transaction.CommitAsync(stoppingToken);
 
             if (rowsAffected < BatchSize)
             {

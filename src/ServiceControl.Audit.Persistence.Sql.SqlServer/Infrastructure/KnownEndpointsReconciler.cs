@@ -23,15 +23,23 @@ class KnownEndpointsReconciler(
             BEGIN
                 SELECT 0;
                 RETURN;
-            END
+            END;
 
-            WITH deleted AS (
-                DELETE TOP (@batchSize) FROM KnownEndpointsInsertOnly
-                OUTPUT DELETED.KnownEndpointId, DELETED.Name, DELETED.HostId, DELETED.Host, DELETED.LastSeen
-            ),
-            aggregated AS (
+            DECLARE @deleted TABLE (
+                KnownEndpointId UNIQUEIDENTIFIER,
+                Name NVARCHAR(MAX),
+                HostId UNIQUEIDENTIFIER,
+                Host NVARCHAR(MAX),
+                LastSeen DATETIME2
+            );
+
+            DELETE TOP (@batchSize) FROM KnownEndpointsInsertOnly
+            OUTPUT DELETED.KnownEndpointId, DELETED.Name, DELETED.HostId, DELETED.Host, DELETED.LastSeen
+            INTO @deleted;
+
+            WITH aggregated AS (
                 SELECT KnownEndpointId, Name, HostId, Host, MAX(LastSeen) AS LastSeen
-                FROM deleted
+                FROM @deleted
                 GROUP BY KnownEndpointId, Name, HostId, Host
             )
             MERGE INTO KnownEndpoints AS target
