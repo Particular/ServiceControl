@@ -55,7 +55,7 @@ public class PostgreSqlAuditDbContext : AuditDbContextBase
                 .HasColumnName("query")
                 .HasColumnType("tsvector")
                 .HasComputedColumnSql(
-                    "setweight(to_tsvector('english', coalesce(headers_json::text, '')), 'A') || setweight(to_tsvector('english', coalesce(body, '')), 'B')",
+                    "to_tsvector('simple', coalesce(headers_json, '') || ' ' || coalesce(body, ''))",
                     stored: true);
 
             entity.HasIndex("Query")

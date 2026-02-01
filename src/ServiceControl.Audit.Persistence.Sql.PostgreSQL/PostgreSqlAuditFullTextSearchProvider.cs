@@ -11,12 +11,10 @@ class PostgreSqlAuditFullTextSearchProvider : IAuditFullTextSearchProvider
         IQueryable<ProcessedMessageEntity> query,
         string searchTerms)
     {
-        // Use pre-computed tsvector column for fast full-text search
-        // The "query" column is created via migration with weights:
-        // - headers (weight A) for higher relevance
-        // - body (weight B) for standard relevance
+        // Use pre-computed tsvector column with 'simple' configuration for exact matching
+        // The "query" column combines headers_json and body without stemming or stop words
         return query.Where(pm =>
             EF.Property<NpgsqlTsVector>(pm, "query")
-                .Matches(EF.Functions.WebSearchToTsQuery("english", searchTerms)));
+                .Matches(EF.Functions.PlainToTsQuery("simple", searchTerms)));
     }
 }
