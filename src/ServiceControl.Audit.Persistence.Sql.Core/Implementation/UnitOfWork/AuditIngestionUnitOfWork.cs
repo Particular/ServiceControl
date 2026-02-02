@@ -9,7 +9,7 @@ using Entities;
 using Infrastructure;
 using ServiceControl.Audit.Auditing;
 //using ServiceControl.Audit.Monitoring;
-//using ServiceControl.Audit.Persistence.Infrastructure;
+using ServiceControl.Audit.Persistence.Infrastructure;
 using ServiceControl.Audit.Persistence.Monitoring;
 using ServiceControl.Audit.Persistence.UnitOfWork;
 using ServiceControl.SagaAudit;
@@ -94,17 +94,16 @@ class AuditIngestionUnitOfWork(
 
     public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken = default)
     {
+        var entity = new KnownEndpointInsertOnlyEntity
+        {
+            KnownEndpointId = DeterministicGuid.MakeId(knownEndpoint.Name, knownEndpoint.HostId.ToString()),
+            Name = knownEndpoint.Name,
+            HostId = knownEndpoint.HostId,
+            Host = knownEndpoint.Host,
+            LastSeen = knownEndpoint.LastSeen
+        };
 
-        // var entity = new KnownEndpointInsertOnlyEntity
-        // {
-        //     KnownEndpointId = DeterministicGuid.MakeId(knownEndpoint.Name, knownEndpoint.HostId.ToString()),
-        //     Name = knownEndpoint.Name,
-        //     HostId = knownEndpoint.HostId,
-        //     Host = knownEndpoint.Host,
-        //     LastSeen = knownEndpoint.LastSeen
-        // };
-
-        //dbContext.KnownEndpointsInsertOnly.Add(entity);
+        dbContext.KnownEndpointsInsertOnly.Add(entity);
 
         return Task.CompletedTask;
     }
