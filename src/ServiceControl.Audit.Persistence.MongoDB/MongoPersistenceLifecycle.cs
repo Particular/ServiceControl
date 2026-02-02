@@ -5,6 +5,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB
     using global::MongoDB.Bson;
     using global::MongoDB.Bson.Serialization;
     using global::MongoDB.Bson.Serialization.Serializers;
+    using Indexes;
     using Microsoft.Extensions.Logging;
 
     /// <summary>
@@ -14,6 +15,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB
     class MongoPersistenceLifecycle(
         MongoClientProvider clientProvider,
         MongoSettings settings,
+        IndexInitializer indexInitializer,
         ILogger<MongoPersistenceLifecycle> logger) : IMongoPersistenceLifecycle
     {
         static bool serializersRegistered;
@@ -21,6 +23,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB
 
         readonly MongoClientProvider clientProvider = clientProvider;
         readonly MongoSettings settings = settings;
+        readonly IndexInitializer indexInitializer = indexInitializer;
         readonly ILogger<MongoPersistenceLifecycle> logger = logger;
 
         public async Task Initialize(CancellationToken cancellationToken = default)
@@ -33,6 +36,9 @@ namespace ServiceControl.Audit.Persistence.MongoDB
 
             // Verify connectivity with a ping
             await VerifyConnectivity(cancellationToken).ConfigureAwait(false);
+
+            // Create indexes
+            await indexInitializer.CreateIndexes(cancellationToken).ConfigureAwait(false);
 
             logger.LogInformation(
                 "MongoDB persistence initialized. Product: {ProductName}, Database: {DatabaseName}",

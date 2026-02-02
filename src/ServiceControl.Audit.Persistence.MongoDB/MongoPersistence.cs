@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.Persistence.MongoDB
 {
     using Auditing.BodyStorage;
+    using Indexes;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.UnitOfWork;
     using UnitOfWork;
@@ -36,6 +37,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB
 
             services.AddSingleton<MongoClientProvider>();
             services.AddSingleton<IMongoClientProvider>(sp => sp.GetRequiredService<MongoClientProvider>());
+
+            services.AddSingleton<IndexInitializer>();
 
             services.AddSingleton<MongoPersistenceLifecycle>();
             services.AddSingleton<IMongoPersistenceLifecycle>(sp => sp.GetRequiredService<MongoPersistenceLifecycle>());
