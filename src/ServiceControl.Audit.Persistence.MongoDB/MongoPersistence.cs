@@ -1,5 +1,6 @@
 namespace ServiceControl.Audit.Persistence.MongoDB
 {
+    using Auditing.BodyStorage;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.UnitOfWork;
     using UnitOfWork;
@@ -17,9 +18,13 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             // Stage 2 - Unit of work for audit ingestion
             services.AddSingleton<IAuditIngestionUnitOfWorkFactory, MongoAuditIngestionUnitOfWorkFactory>();
 
+            // Stage 6 - Failed audit storage
+            services.AddSingleton<IFailedAuditStorage, MongoFailedAuditStorage>();
+
+            // Stage 4 - Body storage (base64 in separate collection)
+            services.AddSingleton<IBodyStorage, MongoBase64BodyStorage>();
+
             // TODO: Stage 3 - Add IAuditDataStore
-            // TODO: Stage 4 - Add IBodyStorage
-            // TODO: Stage 6 - Add IFailedAuditStorage
             // TODO: Stage 7 - Add MinimumRequiredStorageState
         }
 

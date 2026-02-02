@@ -78,5 +78,13 @@ namespace ServiceControl.Audit.Persistence.MongoDB.ProductCapabilities
         /// Standard is 16MB (16,777,216 bytes) for all supported products.
         /// </summary>
         int MaxDocumentSizeBytes { get; }
+
+        /// <summary>
+        /// Whether the $facet aggregation stage is supported.
+        /// MongoDB and Azure DocumentDB support $facet.
+        /// Amazon DocumentDB does NOT support $facet.
+        /// When $facet is not supported, use multiple queries instead.
+        /// </summary>
+        bool SupportsFacetAggregation { get; }
     }
 }

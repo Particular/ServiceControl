@@ -11,6 +11,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
     using global::MongoDB.Bson;
     using global::MongoDB.Driver;
     using Monitoring;
+    using NServiceBus;
     using Persistence.UnitOfWork;
     using ServiceControl.SagaAudit;
 
@@ -24,6 +25,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
         readonly List<ProcessedMessageDocument> processedMessages = [];
         readonly List<KnownEndpointDocument> knownEndpoints = [];
         readonly List<SagaSnapshotDocument> sagaSnapshots = [];
+        readonly List<MessageBodyDocument> messageBodies = [];
 
         public Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
         {
@@ -31,8 +33,16 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
 
             if (!body.IsEmpty)
             {
-                processedMessage.Body = Convert.ToBase64String(body.Span);
                 processedMessage.MessageMetadata["BodyUrl"] = $"/messages/{processedMessage.Id}/body";
+
+                var contentType = processedMessage.Headers.GetValueOrDefault(Headers.ContentType, "text/plain");
+                messageBodies.Add(new MessageBodyDocument
+                {
+                    Id = processedMessage.Id,
+                    ContentType = contentType,
+                    BodySize = body.Length,
+                    Body = Convert.ToBase64String(body.Span)
+                });
             }
 
             processedMessages.Add(new ProcessedMessageDocument
@@ -41,7 +51,6 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                 UniqueMessageId = processedMessage.UniqueMessageId,
                 MessageMetadata = ConvertToBsonDocument(processedMessage.MessageMetadata),
                 Headers = processedMessage.Headers,
-                Body = processedMessage.Body,
                 ProcessedAt = processedMessage.ProcessedAt,
                 ExpiresAt = DateTime.UtcNow.Add(auditRetentionPeriod)
             });
@@ -88,7 +97,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
 
         public async Task CommitAsync()
         {
-            if (processedMessages.Count == 0 && knownEndpoints.Count == 0 && sagaSnapshots.Count == 0)
+            if (processedMessages.Count == 0 && knownEndpoints.Count == 0 && sagaSnapshots.Count == 0 && messageBodies.Count == 0)
             {
                 return;
             }
@@ -129,12 +138,19 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                 models.Add(new BulkWriteReplaceOneModel<SagaSnapshotDocument>(ns, filter, doc) { IsUpsert = true });
             }
 
+            foreach (var doc in messageBodies)
+            {
+                var ns = new CollectionNamespace(databaseName, CollectionNames.MessageBodies);
+                var filter = Builders<MessageBodyDocument>.Filter.Eq(d => d.Id, doc.Id);
+                models.Add(new BulkWriteReplaceOneModel<MessageBodyDocument>(ns, filter, doc) { IsUpsert = true });
+            }
+
             _ = await client.BulkWriteAsync(models, new ClientBulkWriteOptions { IsOrdered = false }).ConfigureAwait(false);
         }
 
         async Task CommitWithParallelBulkWritesAsync()
         {
-            var tasks = new List<Task>(3);
+            var tasks = new List<Task>(4);
 
             if (processedMessages.Count > 0)
             {
@@ -157,6 +173,14 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                 tasks.Add(BulkUpsertAsync(
                     database.GetCollection<SagaSnapshotDocument>(CollectionNames.SagaSnapshots),
                     sagaSnapshots,
+                    doc => doc.Id));
+            }
+
+            if (messageBodies.Count > 0)
+            {
+                tasks.Add(BulkUpsertAsync(
+                    database.GetCollection<MessageBodyDocument>(CollectionNames.MessageBodies),
+                    messageBodies,
                     doc => doc.Id));
             }
 
@@ -184,9 +208,61 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
             var doc = new BsonDocument();
             foreach (var kvp in dictionary)
             {
-                doc[kvp.Key] = BsonValue.Create(kvp.Value);
+                doc[kvp.Key] = ConvertToBsonValue(kvp.Value);
             }
             return doc;
+        }
+
+        // mostly here to handle special types not natively supported by BsonTypeMapper
+        static BsonValue ConvertToBsonValue(object value)
+        {
+            if (value == null)
+            {
+                return BsonNull.Value;
+            }
+
+            // Handle types not natively supported by BsonTypeMapper
+            if (value is TimeSpan ts)
+            {
+                return ts.ToString();
+            }
+
+            if (value is DateTimeOffset dto)
+            {
+                return dto.UtcDateTime;
+            }
+
+            // Enums - convert to string for readability
+            if (value.GetType().IsEnum)
+            {
+                return value.ToString();
+            }
+
+            // Nested dictionaries need recursive conversion to handle special types like TimeSpan
+            if (value is IDictionary<string, object> dict)
+            {
+                return ConvertToBsonDocument(dict as Dictionary<string, object> ?? new Dictionary<string, object>(dict));
+            }
+
+            // Lists/Arrays - recursively convert items to handle special types
+            if (value is System.Collections.IEnumerable enumerable and not string and not byte[])
+            {
+                var array = new BsonArray();
+                foreach (var item in enumerable)
+                {
+                    array.Add(ConvertToBsonValue(item));
+                }
+                return array;
+            }
+
+            // Try BsonTypeMapper for natively supported types (primitives, string, DateTime, Guid, byte[], etc.)
+            if (BsonTypeMapper.TryMapToBsonValue(value, out var bsonValue))
+            {
+                return bsonValue;
+            }
+
+            // Complex objects (like EndpointDetails) - serialize to BsonDocument
+            return value.ToBsonDocument(value.GetType());
         }
 
         static InitiatingMessageDocument ToDocument(InitiatingMessage msg) => new()

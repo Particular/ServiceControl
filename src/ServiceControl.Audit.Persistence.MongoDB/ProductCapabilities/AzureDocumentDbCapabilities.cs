@@ -18,8 +18,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB.ProductCapabilities
         public string ProductName => "Azure DocumentDB";
         public Version? ServerVersion { get; }
 
-        // Multi-collection bulk write is a MongoDB 8.0+ feature
-        public bool SupportsMultiCollectionBulkWrite => ServerVersion >= MongoVersions.Version8;
+        // TODO: 2026-02-02 - Doco states that this is not supported in Azure DocumentDB
+        public bool SupportsMultiCollectionBulkWrite => false;
 
         // GridFS is not documented/supported - use embedded document storage
         public bool SupportsGridFS => false;
@@ -34,5 +34,6 @@ namespace ServiceControl.Audit.Persistence.MongoDB.ProductCapabilities
         public bool SupportsTtlIndexes => true;
         public bool SupportsChangeStreams => true;
         public int MaxDocumentSizeBytes => 16 * 1024 * 1024; // 16MB
+        public bool SupportsFacetAggregation => true;
     }
 }
