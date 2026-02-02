@@ -22,8 +22,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB.ProductCapabilities
         public string ProductName => IsElasticCluster ? "Amazon DocumentDB (Elastic)" : "Amazon DocumentDB";
         public Version? ServerVersion { get; }
 
-        // Multi-collection bulk write is a MongoDB 8.0+ feature
-        public bool SupportsMultiCollectionBulkWrite => ServerVersion >= MongoVersions.Version8;
+        // TODO: 2026-02-02 - Doco states that this is not supported in Amazon DocumentDB
+        public bool SupportsMultiCollectionBulkWrite => false;
 
         // GridFS not supported on Elastic clusters
         public bool SupportsGridFS => !IsElasticCluster;
@@ -40,5 +40,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB.ProductCapabilities
         public bool SupportsChangeStreams => !IsElasticCluster;
 
         public int MaxDocumentSizeBytes => 16 * 1024 * 1024; // 16MB
+
+        // $facet aggregation is NOT supported on Amazon DocumentDB
+        public bool SupportsFacetAggregation => false;
     }
 }

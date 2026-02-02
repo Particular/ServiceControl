@@ -6,7 +6,6 @@ namespace ServiceControl.Audit.Persistence.Tests
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.CustomChecks;
-    using NUnit.Framework;
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Persistence.MongoDB;
     using UnitOfWork;

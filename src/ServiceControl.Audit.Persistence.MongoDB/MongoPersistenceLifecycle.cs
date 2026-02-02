@@ -3,6 +3,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB
     using System.Threading;
     using System.Threading.Tasks;
     using global::MongoDB.Bson;
+    using global::MongoDB.Bson.Serialization;
+    using global::MongoDB.Bson.Serialization.Serializers;
     using Microsoft.Extensions.Logging;
 
     /// <summary>
@@ -14,12 +16,16 @@ namespace ServiceControl.Audit.Persistence.MongoDB
         MongoSettings settings,
         ILogger<MongoPersistenceLifecycle> logger) : IMongoPersistenceLifecycle
     {
+        static bool serializersRegistered;
+        static readonly object serializerLock = new();
+
         readonly MongoClientProvider clientProvider = clientProvider;
         readonly MongoSettings settings = settings;
         readonly ILogger<MongoPersistenceLifecycle> logger = logger;
 
         public async Task Initialize(CancellationToken cancellationToken = default)
         {
+            RegisterSerializers();
             logger.LogInformation("Initializing MongoDB persistence for database '{DatabaseName}'", settings.DatabaseName);
 
             // Initialize the client and detect product capabilities
@@ -46,6 +52,34 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             // Perform a ping command to verify connectivity
             var command = new BsonDocument("ping", 1);
             _ = await clientProvider.Database.RunCommandAsync<BsonDocument>(command, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
+        static void RegisterSerializers()
+        {
+            if (serializersRegistered)
+            {
+                return;
+            }
+
+            lock (serializerLock)
+            {
+                if (serializersRegistered)
+                {
+                    return;
+                }
+
+                // Register Guid serializer with Standard representation to avoid "GuidRepresentation is Unspecified" errors
+                try
+                {
+                    BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+                }
+                catch (BsonSerializationException)
+                {
+                    // Serializer already registered by another component - this is fine
+                }
+
+                serializersRegistered = true;
+            }
         }
     }
 }

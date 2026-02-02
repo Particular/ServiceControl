@@ -5,7 +5,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB
 
     public class MongoPersistenceConfiguration : IPersistenceConfiguration
     {
-        public const string ConnectionStringKey = "ServiceControl.Audit/Database/ConnectionString";
+        public const string ConnectionStringKey = "Database/ConnectionString";
 
         public IEnumerable<string> ConfigurationKeys =>
         [

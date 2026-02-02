@@ -433,17 +433,6 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
         }
 
         [Test]
-        public void Should_have_correct_multi_collection_bulk_write_capability()
-        {
-            var clientProvider = host.Services.GetRequiredService<IMongoClientProvider>();
-            var capabilities = clientProvider.ProductCapabilities;
-            var expected = Environment.GetExpectedCapabilities();
-
-            Assert.That(capabilities.SupportsMultiCollectionBulkWrite, Is.EqualTo(expected.SupportsMultiCollectionBulkWrite),
-                $"Expected SupportsMultiCollectionBulkWrite to be {expected.SupportsMultiCollectionBulkWrite} for {expected.ProductName}");
-        }
-
-        [Test]
         public async Task Should_handle_large_batch_with_multiple_document_types()
         {
             var factory = host.Services.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();

@@ -6,7 +6,7 @@
   "TypeName": "ServiceControl.Audit.Persistence.MongoDB.MongoPersistenceConfiguration, ServiceControl.Audit.Persistence.MongoDB",
   "Settings": [
     {
-      "Name": "ServiceControl.Audit/Database/ConnectionString",
+      "Name": "Database/ConnectionString",
       "Mandatory": true
     }
   ]

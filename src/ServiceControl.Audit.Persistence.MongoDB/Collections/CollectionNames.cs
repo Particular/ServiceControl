@@ -9,5 +9,6 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Collections
         public const string KnownEndpoints = "knownEndpoints";
         public const string SagaSnapshots = "sagaSnapshots";
         public const string FailedAuditImports = "failedAuditImports";
+        public const string MessageBodies = "messageBodies";
     }
 }
