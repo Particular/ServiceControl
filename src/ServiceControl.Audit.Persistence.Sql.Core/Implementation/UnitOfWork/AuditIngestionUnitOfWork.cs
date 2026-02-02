@@ -1,6 +1,6 @@
 namespace ServiceControl.Audit.Persistence.Sql.Core.Implementation.UnitOfWork;
 
-using System.Net.Mime;
+//using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using Abstractions;
@@ -16,7 +16,9 @@ using ServiceControl.SagaAudit;
 
 class AuditIngestionUnitOfWork(
     AuditDbContextBase dbContext,
+#pragma warning disable CS9113 // Parameter is unread.
     FileSystemBodyStorageHelper storageHelper,
+#pragma warning restore CS9113 // Parameter is unread.
     AuditSqlPersisterSettings settings)
     : IAuditIngestionUnitOfWork
 {
@@ -57,13 +59,14 @@ class AuditIngestionUnitOfWork(
 
         dbContext.ProcessedMessages.Add(entity);
 
+        await Task.CompletedTask;
         // Store body in file system if below threshold
-        if (!body.IsEmpty && body.Length < settings.MaxBodySizeToStore)
-        {
-            var contentType = GetContentType(processedMessage.Headers, MediaTypeNames.Text.Plain);
+        // if (!body.IsEmpty && body.Length < settings.MaxBodySizeToStore)
+        // {
+        //     var contentType = GetContentType(processedMessage.Headers, MediaTypeNames.Text.Plain);
 
-            await storageHelper.WriteBodyAsync(processedMessage.UniqueMessageId, body, contentType, cancellationToken);
-        }
+        //     await storageHelper.WriteBodyAsync(processedMessage.UniqueMessageId, body, contentType, cancellationToken);
+        // }
     }
 
     public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken = default)
@@ -114,10 +117,10 @@ class AuditIngestionUnitOfWork(
             await dbContext.DisposeAsync().ConfigureAwait(false);
         }
     }
-
-    static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
-        => headers.TryGetValue(Headers.ContentType, out var contentType) ? contentType : defaultContentType;
-
+    /*
+        static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
+            => headers.TryGetValue(Headers.ContentType, out var contentType) ? contentType : defaultContentType;
+    */
     static T? GetMetadata<T>(Dictionary<string, object> metadata, string key)
     {
         if (metadata.TryGetValue(key, out var value))
