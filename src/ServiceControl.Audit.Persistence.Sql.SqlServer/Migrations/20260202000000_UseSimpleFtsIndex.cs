@@ -22,13 +22,9 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
             // STOPLIST = OFF disables stop words filtering for more precise matches
             // LANGUAGE 0 uses neutral language settings
             migrationBuilder.Sql(@"
-                CREATE FULLTEXT INDEX ON ProcessedMessages(HeadersJson, Body)
+                CREATE FULLTEXT INDEX ON ProcessedMessages(HeadersJson LANGUAGE 0, Body LANGUAGE 0)
                     KEY INDEX PK_ProcessedMessages
-                    WITH STOPLIST = OFF, CHANGE_TRACKING AUTO;
-                ALTER FULLTEXT INDEX ON ProcessedMessages
-                    ALTER COLUMN HeadersJson LANGUAGE 0;
-                ALTER FULLTEXT INDEX ON ProcessedMessages
-                    ALTER COLUMN Body LANGUAGE 0;
+                    WITH STOPLIST = OFF;
             ", suppressTransaction: true);
         }
 
