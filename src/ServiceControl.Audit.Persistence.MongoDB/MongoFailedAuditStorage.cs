@@ -72,7 +72,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             if (documentsToDelete.Count > 0)
             {
                 var filter = Builders<FailedAuditImportDocument>.Filter.In(d => d.Id, documentsToDelete);
-                await collection.DeleteManyAsync(filter, cancellationToken).ConfigureAwait(false);
+                _ = await collection.DeleteManyAsync(filter, cancellationToken).ConfigureAwait(false);
             }
         }
 

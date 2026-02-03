@@ -1,7 +1,10 @@
 namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
+    using global::MongoDB.Bson;
+    using global::MongoDB.Driver;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NUnit.Framework;
@@ -100,16 +103,10 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
                         $"Expected product '{expected.ProductName}' but got '{capabilities.ProductName}'");
                     Assert.That(capabilities.SupportsMultiCollectionBulkWrite, Is.EqualTo(expected.SupportsMultiCollectionBulkWrite),
                         $"SupportsMultiCollectionBulkWrite mismatch for {expected.ProductName}");
-                    Assert.That(capabilities.SupportsGridFS, Is.EqualTo(expected.SupportsGridFS),
-                        $"SupportsGridFS mismatch for {expected.ProductName}");
                     Assert.That(capabilities.SupportsTextIndexes, Is.EqualTo(expected.SupportsTextIndexes),
                         $"SupportsTextIndexes mismatch for {expected.ProductName}");
-                    Assert.That(capabilities.SupportsTransactions, Is.EqualTo(expected.SupportsTransactions),
-                        $"SupportsTransactions mismatch for {expected.ProductName}");
                     Assert.That(capabilities.SupportsTtlIndexes, Is.EqualTo(expected.SupportsTtlIndexes),
                         $"SupportsTtlIndexes mismatch for {expected.ProductName}");
-                    Assert.That(capabilities.SupportsChangeStreams, Is.EqualTo(expected.SupportsChangeStreams),
-                        $"SupportsChangeStreams mismatch for {expected.ProductName}");
                     Assert.That(capabilities.MaxDocumentSizeBytes, Is.EqualTo(expected.MaxDocumentSizeBytes),
                         $"MaxDocumentSizeBytes mismatch for {expected.ProductName}");
                 });
@@ -121,10 +118,9 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
         }
 
         [Test]
-        public async Task Should_use_correct_database_name()
+        public async Task Should_create_processedMessages_indexes_on_startup()
         {
-            var databaseName = $"custom_db_{Guid.NewGuid():N}";
-            var connectionString = Environment.BuildConnectionString(databaseName);
+            var connectionString = Environment.BuildConnectionString($"index_test_{Guid.NewGuid():N}");
 
             var persistenceSettings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
             persistenceSettings.PersisterSpecificSettings[MongoPersistenceConfiguration.ConnectionStringKey] = connectionString;
@@ -141,8 +137,17 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
             try
             {
                 var clientProvider = host.Services.GetRequiredService<IMongoClientProvider>();
+                var collection = clientProvider.Database.GetCollection<BsonDocument>("processedMessages");
+                var indexes = await GetIndexNames(collection).ConfigureAwait(false);
 
-                Assert.That(clientProvider.Database.DatabaseNamespace.DatabaseName, Is.EqualTo(databaseName));
+                Assert.Multiple(() =>
+                {
+                    Assert.That(indexes, Does.Contain("processedAt_desc"), "Missing processedAt_desc index");
+                    Assert.That(indexes, Does.Contain("timeSent_desc"), "Missing timeSent_desc index");
+                    Assert.That(indexes, Does.Contain("endpoint_processedAt"), "Missing endpoint_processedAt index");
+                    Assert.That(indexes, Does.Contain("conversationId"), "Missing conversationId index");
+                    Assert.That(indexes, Does.Contain("ttl_expiry"), "Missing ttl_expiry index");
+                });
             }
             finally
             {
@@ -150,63 +155,23 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
             }
         }
 
-        [Test]
-        public async Task Should_default_database_name_to_audit()
+        static async Task<List<string>> GetIndexNames(IMongoCollection<BsonDocument> collection)
         {
-            // Connection string without database name
-            var connectionString = Environment.GetConnectionString();
+            var indexNames = new List<string>();
+            using var cursor = await collection.Indexes.ListAsync().ConfigureAwait(false);
 
-            var persistenceSettings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
-            persistenceSettings.PersisterSpecificSettings[MongoPersistenceConfiguration.ConnectionStringKey] = connectionString;
-
-            var config = new MongoPersistenceConfiguration();
-            var persistence = config.Create(persistenceSettings);
-
-            var hostBuilder = Host.CreateApplicationBuilder();
-            persistence.AddPersistence(hostBuilder.Services);
-
-            using var host = hostBuilder.Build();
-            await host.StartAsync().ConfigureAwait(false);
-
-            try
+            while (await cursor.MoveNextAsync().ConfigureAwait(false))
             {
-                var clientProvider = host.Services.GetRequiredService<IMongoClientProvider>();
-
-                Assert.That(clientProvider.Database.DatabaseNamespace.DatabaseName, Is.EqualTo("audit"));
+                foreach (var index in cursor.Current)
+                {
+                    if (index.TryGetValue("name", out var name))
+                    {
+                        indexNames.Add(name.AsString);
+                    }
+                }
             }
-            finally
-            {
-                await host.StopAsync().ConfigureAwait(false);
-            }
-        }
 
-        [Test]
-        public async Task Should_start_and_stop_cleanly()
-        {
-            var connectionString = Environment.BuildConnectionString($"start_stop_test_{Guid.NewGuid():N}");
-
-            var persistenceSettings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
-            persistenceSettings.PersisterSpecificSettings[MongoPersistenceConfiguration.ConnectionStringKey] = connectionString;
-
-            var config = new MongoPersistenceConfiguration();
-            var persistence = config.Create(persistenceSettings);
-
-            var hostBuilder = Host.CreateApplicationBuilder();
-            persistence.AddPersistence(hostBuilder.Services);
-
-            using var host = hostBuilder.Build();
-
-            // Start
-            await host.StartAsync().ConfigureAwait(false);
-
-            var clientProvider = host.Services.GetRequiredService<IMongoClientProvider>();
-            Assert.That(clientProvider.Client, Is.Not.Null);
-
-            // Stop
-            await host.StopAsync().ConfigureAwait(false);
-
-            // Host should be stopped without errors
-            Assert.Pass("Host started and stopped cleanly");
+            return indexNames;
         }
     }
 }

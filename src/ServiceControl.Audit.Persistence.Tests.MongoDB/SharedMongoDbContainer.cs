@@ -34,7 +34,7 @@ namespace ServiceControl.Audit.Persistence.Tests
                 container = new MongoDbBuilder()
                     .WithImage("mongo:8.0")
                     .WithName($"servicecontrol-audit-tests-{Guid.NewGuid():N}")
-                    .WithPortBinding(50465, 27017)
+                    .WithPortBinding(27018, 27017)
                     .WithUsername(string.Empty) // Disable authentication for simpler testing
                     .WithPassword(string.Empty)
                     .Build();
