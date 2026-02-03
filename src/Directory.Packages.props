@@ -63,7 +63,7 @@
     <PackageVersion Include="Particular.Obsoletes" Version="1.0.0" />
     <PackageVersion Include="Polly.Core" Version="8.5.2" />
     <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
-    <PackageVersion Include="PropertyChanging.Fody" Version="1.30.3" />
+    <PackageVersion Include="PropertyChanging.Fody" Version="1.31.0" />
     <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
     <PackageVersion Include="RavenDB.Embedded" Version="6.2.13" />
     <PackageVersion Include="ReactiveUI.WPF" Version="20.1.63" />
