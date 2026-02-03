@@ -117,7 +117,7 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
 
     class FailingEndpoint : EndpointConfigurationBuilder
     {
-        public FailingEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
+        public FailingEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => c.EnableFeature<SendFailedMessage>());
 
         class SendFailedMessage : DispatchRawMessages<TestContext>
         {

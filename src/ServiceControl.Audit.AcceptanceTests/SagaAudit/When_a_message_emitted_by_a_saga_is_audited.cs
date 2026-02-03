@@ -49,9 +49,7 @@
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
-                {
-                    mapper.ConfigureMapping<MessageInitiatingSaga>(msg => msg.Id).ToSaga(saga => saga.MessageId);
-                }
+                    => mapper.MapSaga(s => s.MessageId).ToMessage<MessageInitiatingSaga>(m => m.Id);
             }
 
             public class MySagaData : ContainSagaData

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -15,7 +16,8 @@
     class When_all_messages_are_retried : AcceptanceTest
     {
         [Test]
-        public async Task Only_unresolved_issues_should_be_retried()
+        [CancelAfter(180_000)]
+        public async Task Only_unresolved_issues_should_be_retried(CancellationToken cancellationToken)
         {
             FailedMessage messageToBeRetriedAsPartOfRetryAll = null;
             FailedMessage messageToBeArchived = null;
@@ -79,7 +81,7 @@
                     messageToBeArchived = archivedResult;
                     return archivedResult;
                 })
-                .Run(TimeSpan.FromMinutes(3));
+                .Run(cancellationToken);
 
             Assert.Multiple(() =>
             {

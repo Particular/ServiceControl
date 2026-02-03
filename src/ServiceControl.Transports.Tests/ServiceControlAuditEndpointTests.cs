@@ -29,7 +29,7 @@
                 .Done(c => c.EndpointsStarted)
                 .Run();
 
-            Assert.That(ctx.EndpointsStarted, Is.True);
+            Assert.That(ctx.EndpointsStarted.Task.IsCompletedSuccessfully, Is.True);
         }
 
         [TestCase(15)]
@@ -59,8 +59,11 @@
                 .Done(c => c.EndpointsStarted)
                 .Run();
 
-            Assert.That(ctx.EndpointsStarted, Is.True);
-            Assert.That(transportSettings.MaxConcurrency, Is.EqualTo(setConcurrency ?? GetTransportDefaultConcurrency()));
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(ctx.EndpointsStarted.Task.IsCompletedSuccessfully, Is.True);
+                Assert.That(transportSettings.MaxConcurrency, Is.EqualTo(setConcurrency ?? GetTransportDefaultConcurrency()));
+            }
         }
 
         private static partial int GetTransportDefaultConcurrency();

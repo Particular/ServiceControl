@@ -592,10 +592,7 @@
             using var session = await sessionProvider.OpenSession();
             var failedMessage = await session
                 .LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(messageUniqueId));
-            if (failedMessage != null)
-            {
-                failedMessage.Status = FailedMessageStatus.Unresolved;
-            }
+            failedMessage?.Status = FailedMessageStatus.Unresolved;
 
             var failedMessageRetry = await session
                 .LoadAsync<FailedMessageRetry>(FailedMessageRetry.MakeDocumentId(messageUniqueId));

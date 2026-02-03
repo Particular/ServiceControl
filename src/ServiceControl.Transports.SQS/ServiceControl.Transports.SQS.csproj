@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.CloudWatch" />
-    <!-- Required for IAM Roles for Service Accounts even though no API is added -->
     <PackageReference Include="NServiceBus.AmazonSQS" />
   </ItemGroup>
 

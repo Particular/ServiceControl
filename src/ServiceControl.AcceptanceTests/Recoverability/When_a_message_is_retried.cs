@@ -106,7 +106,12 @@
         {
             public VerifyHeader() =>
                 EndpointSetup<DefaultServerWithoutAudit>(
-                    (c, r) => c.Pipeline.Register(new CaptureIncomingMessage((TestContext)r.ScenarioContext), "Captures the incoming message"));
+                    (c, r) =>
+                    {
+                        c.EnableFeature<FakeSender>();
+                        c.Pipeline.Register(new CaptureIncomingMessage((TestContext)r.ScenarioContext),
+                            "Captures the incoming message");
+                    });
 
             class FakeSender : DispatchRawMessages<TestContext>
             {

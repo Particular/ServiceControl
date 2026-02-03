@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -20,7 +21,8 @@
     class When_requesting_a_message_body : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_forwarded_to_audit_instance()
+        [CancelAfter(120_000)]
+        public async Task Should_be_forwarded_to_audit_instance(CancellationToken cancellationToken)
         {
             string addressOfAuditInstance = null;
 
@@ -61,11 +63,11 @@
                     Console.WriteLine($"GetRaw for {c.AuditInstanceMessageId} resulted in {response.StatusCode}");
                     return response.StatusCode == HttpStatusCode.OK;
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(cancellationToken);
 
             Assert.That(response.Content.Headers.ContentType.ToString(), Is.EqualTo(context.MessageContentType), "ContentType mismatch");
 
-            var body = await response.Content.ReadAsByteArrayAsync();
+            var body = await response.Content.ReadAsByteArrayAsync(cancellationToken);
 
             Assert.Multiple(() =>
             {

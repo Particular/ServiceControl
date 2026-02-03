@@ -109,17 +109,16 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public string ApiUrl => $"{RootUrl}api";
 
-        string _instanceId;
         public string InstanceId
         {
             get
             {
-                if (string.IsNullOrEmpty(_instanceId))
+                if (string.IsNullOrEmpty(field))
                 {
-                    _instanceId = InstanceIdGenerator.FromApiUrl(ApiUrl);
+                    field = InstanceIdGenerator.FromApiUrl(ApiUrl);
                 }
 
-                return _instanceId;
+                return field;
             }
         }
 

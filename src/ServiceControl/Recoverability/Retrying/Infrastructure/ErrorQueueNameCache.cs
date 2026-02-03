@@ -4,19 +4,17 @@ using System;
 
 class ErrorQueueNameCache
 {
-    string resolvedErrorAddress;
-
     public string ResolvedErrorAddress
     {
         get
         {
-            if (string.IsNullOrEmpty(resolvedErrorAddress))
+            if (string.IsNullOrEmpty(field))
             {
                 throw new InvalidOperationException($"{nameof(ResolvedErrorAddress)} is not set. Please set it before accessing.");
             }
 
-            return resolvedErrorAddress;
+            return field;
         }
-        set => resolvedErrorAddress = value;
+        set;
     }
 }

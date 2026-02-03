@@ -14,7 +14,6 @@
     {
         protected DispatchRawMessages()
         {
-            EnableByDefault();
         }
 
         protected override void Setup(FeatureConfigurationContext context)

@@ -36,7 +36,11 @@
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
-            public FailureEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoDelayedRetries(); });
+            public FailureEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c =>
+            {
+                c.EnableFeature<SendFailedMessage>();
+                c.NoDelayedRetries();
+            });
 
             public class SendFailedMessage : DispatchRawMessages<MyContext>
             {

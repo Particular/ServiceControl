@@ -200,28 +200,21 @@
                     c.GetSettings().Get<TransportDefinition>().TransportTransactionMode =
                         TransportTransactionMode.ReceiveOnly;
                     c.EnableFeature<Outbox>();
+
+                    c.RegisterStartupTask(new SendMessageAtStart());
+
                     c.ReportSuccessfulRetriesToServiceControl();
 
                     c.NoRetries();
                 });
 
-            class StartFeature : Feature
+            class SendMessageAtStart : FeatureStartupTask
             {
-                public StartFeature() => EnableByDefault();
+                protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
+                    => session.SendLocal(new MyMessage(), cancellationToken);
 
-                protected override void Setup(FeatureConfigurationContext context)
-                {
-                    context.RegisterStartupTask(new SendMessageAtStart());
-                }
-
-                class SendMessageAtStart : FeatureStartupTask
-                {
-                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
-                        => session.SendLocal(new MyMessage(), cancellationToken);
-
-                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
-                        => Task.CompletedTask;
-                }
+                protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
+                    => Task.CompletedTask;
             }
 
             public class MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
@@ -254,30 +247,16 @@
                         TransportTransactionMode.ReceiveOnly;
                     c.EnableFeature<Outbox>();
 
+                    c.RegisterStartupTask(new SendMessageAtStart());
+
                     c.NoRetries();
                 });
 
-            class StartFeature : Feature
+            class SendMessageAtStart : FeatureStartupTask
             {
-                public StartFeature() => EnableByDefault();
+                protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default) => session.SendLocal(new MyMessage(), cancellationToken);
 
-                protected override void Setup(FeatureConfigurationContext context)
-                {
-                    context.RegisterStartupTask(new SendMessageAtStart());
-                }
-
-                class SendMessageAtStart : FeatureStartupTask
-                {
-                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
-                    {
-                        return session.SendLocal(new MyMessage(), cancellationToken);
-                    }
-
-                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
-                    {
-                        return Task.CompletedTask;
-                    }
-                }
+                protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default) => Task.CompletedTask;
             }
 
             public class MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
