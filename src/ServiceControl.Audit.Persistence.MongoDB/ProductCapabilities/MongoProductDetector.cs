@@ -23,8 +23,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.ProductCapabilities
             if (IsAzureCosmosDb(connectionString))
             {
                 throw new NotSupportedException(
-                    "Azure Cosmos DB for MongoDB is not supported due to significant limitations " +
-                    "(no text search, limited transactions, missing aggregation stages). " +
+                    "Azure Cosmos DB for MongoDB is not supported due to significant limitations. " +
                     "Please use Azure DocumentDB, Amazon DocumentDB, or MongoDB Community/Enterprise instead.");
             }
 
@@ -32,7 +31,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.ProductCapabilities
             var buildInfo = await GetBuildInfoAsync(client, cancellationToken).ConfigureAwait(false);
             var serverVersion = ParseVersion(buildInfo);
 
-            // Check connection string for known cloud providers
+            // TODO: Is there a better way to determine the product type? User could be using a custom host name. Do we need to make this an explicit config option?
             if (IsAzureDocumentDb(connectionString))
             {
                 return new AzureDocumentDbCapabilities(serverVersion);

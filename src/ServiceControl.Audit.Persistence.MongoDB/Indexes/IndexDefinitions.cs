@@ -33,7 +33,18 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Indexes
             // TTL index for automatic document expiration
             new(
                 Builders<ProcessedMessageDocument>.IndexKeys.Ascending(x => x.ExpiresAt),
-                new CreateIndexOptions { Name = "ttl_expiry", ExpireAfter = TimeSpan.Zero })
+                new CreateIndexOptions { Name = "ttl_expiry", ExpireAfter = TimeSpan.Zero }),
+
+            // Compound text index for full-text search
+            // Indexes metadata fields directly (no duplication) plus header values and body content
+            new(
+                Builders<ProcessedMessageDocument>.IndexKeys
+                    .Text("messageMetadata.MessageId")
+                    .Text("messageMetadata.MessageType")
+                    .Text("messageMetadata.ConversationId")
+                    .Text(x => x.HeaderSearchText)
+                    .Text(x => x.Body),
+                new CreateIndexOptions { Name = "text_search" })
         ];
 
         public static CreateIndexModel<SagaSnapshotDocument>[] SagaSnapshots =>
@@ -66,9 +77,10 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Indexes
 
         public static CreateIndexModel<MessageBodyDocument>[] MessageBodies =>
         [
-            // Note: MessageBodies don't have an ExpiresAt field currently
-            // Bodies are cleaned up when their parent ProcessedMessage expires
-            // If we want TTL on bodies, we'd need to add ExpiresAt to MessageBodyDocument
+            // TTL index for automatic document expiration
+            new(
+                Builders<MessageBodyDocument>.IndexKeys.Ascending(x => x.ExpiresAt),
+                new CreateIndexOptions { Name = "ttl_expiry", ExpireAfter = TimeSpan.Zero })
         ];
 
         public static CreateIndexModel<FailedAuditImportDocument>[] FailedAuditImports =>

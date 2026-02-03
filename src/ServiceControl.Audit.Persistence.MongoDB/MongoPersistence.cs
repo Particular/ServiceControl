@@ -1,6 +1,8 @@
 namespace ServiceControl.Audit.Persistence.MongoDB
 {
+    using System;
     using Auditing.BodyStorage;
+    using BodyStorage;
     using Indexes;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.UnitOfWork;
@@ -16,20 +18,43 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             services.AddSingleton(sp =>
                 sp.GetRequiredService<IMongoClientProvider>().ProductCapabilities);
 
-            // Stage 2 - Unit of work for audit ingestion
+            // Unit of work for audit ingestion
             services.AddSingleton<IAuditIngestionUnitOfWorkFactory, MongoAuditIngestionUnitOfWorkFactory>();
 
-            // Stage 6 - Failed audit storage
+            // Failed audit storage
             services.AddSingleton<IFailedAuditStorage, MongoFailedAuditStorage>();
 
-            // Stage 4 - Body storage (base64 in separate collection)
-            services.AddSingleton<IBodyStorage, MongoBase64BodyStorage>();
+            // Body storage - register based on configuration
+            RegisterBodyStorage(services, settings);
 
-            // TODO: Stage 3 - Add IAuditDataStore
+            // Audit data store for queries
+            services.AddSingleton<IAuditDataStore, MongoAuditDataStore>();
+
             // TODO: Stage 7 - Add MinimumRequiredStorageState
         }
 
         public void AddInstaller(IServiceCollection services) => ConfigureLifecycle(services, settings);
+
+        static void RegisterBodyStorage(IServiceCollection services, MongoSettings settings)
+        {
+            switch (settings.BodyStorageType)
+            {
+                case BodyStorageType.None:
+                    services.AddSingleton<IBodyStorage, NullBodyStorage>();
+                    break;
+
+                case BodyStorageType.Database:
+                    services.AddSingleton<IBodyStorage, InlineBodyStorage>();
+                    break;
+
+                case BodyStorageType.FileSystem:
+                    services.AddSingleton<IBodyStorage, FileSystemBodyStorage>();
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(settings.BodyStorageType), settings.BodyStorageType, "Unknown body storage type");
+            }
+        }
 
         static void ConfigureLifecycle(IServiceCollection services, MongoSettings settings)
         {

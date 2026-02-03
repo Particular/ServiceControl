@@ -6,10 +6,14 @@ namespace ServiceControl.Audit.Persistence.MongoDB
     public class MongoPersistenceConfiguration : IPersistenceConfiguration
     {
         public const string ConnectionStringKey = "Database/ConnectionString";
+        public const string BodyStorageTypeKey = "Database/BodyStorageType";
+        public const string BodyStoragePathKey = "Database/BodyStoragePath";
 
         public IEnumerable<string> ConfigurationKeys =>
         [
-            ConnectionStringKey
+            ConnectionStringKey,
+            BodyStorageTypeKey,
+            BodyStoragePathKey
         ];
 
         public string Name => "MongoDB";
@@ -36,12 +40,32 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             var mongoUrl = global::MongoDB.Driver.MongoUrl.Create(connectionString);
             var databaseName = string.IsNullOrWhiteSpace(mongoUrl.DatabaseName) ? "audit" : mongoUrl.DatabaseName;
 
+            // Body storage type - defaults to Database
+            var bodyStorageType = BodyStorageType.Database;
+            if (settings.PersisterSpecificSettings.TryGetValue(BodyStorageTypeKey, out var bodyStorageTypeValue))
+            {
+                if (Enum.TryParse<BodyStorageType>(bodyStorageTypeValue, ignoreCase: true, out var parsed))
+                {
+                    bodyStorageType = parsed;
+                }
+            }
+
+            // Body storage path - required for FileSystem storage
+            settings.PersisterSpecificSettings.TryGetValue(BodyStoragePathKey, out var bodyStoragePath);
+
+            if (bodyStorageType == BodyStorageType.FileSystem && string.IsNullOrWhiteSpace(bodyStoragePath))
+            {
+                throw new InvalidOperationException($"{BodyStoragePathKey} must be specified when BodyStorageType is FileSystem.");
+            }
+
             return new MongoSettings(
                 connectionString,
                 databaseName,
                 settings.AuditRetentionPeriod,
                 settings.EnableFullTextSearchOnBodies,
-                settings.MaxBodySizeToStore);
+                settings.MaxBodySizeToStore,
+                bodyStorageType,
+                bodyStoragePath);
         }
     }
 }

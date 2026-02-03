@@ -28,7 +28,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Indexes
                 IndexDefinitions.KnownEndpoints,
                 cancellationToken).ConfigureAwait(false);
 
-            // MessageBodies and FailedAuditImports have no additional indexes currently
+            // FailedAuditImports has no additional indexes - queries are by _id only
         }
 
         async Task CreateCollectionIndexes<T>(
@@ -46,7 +46,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Indexes
                 indexes.Length,
                 collection.CollectionNamespace.CollectionName);
 
-            await collection.Indexes
+            _ = await collection.Indexes
                 .CreateManyAsync(indexes, cancellationToken)
                 .ConfigureAwait(false);
         }

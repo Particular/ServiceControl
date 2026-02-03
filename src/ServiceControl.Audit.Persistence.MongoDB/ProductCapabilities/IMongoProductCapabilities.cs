@@ -35,43 +35,18 @@ namespace ServiceControl.Audit.Persistence.MongoDB.ProductCapabilities
 
         /// <summary>
         /// Whether multi-collection bulk write operations are supported.
-        /// This is a MongoDB 8.0+ feature that allows writing to multiple collections
-        /// in a single operation.
         /// </summary>
         bool SupportsMultiCollectionBulkWrite { get; }
 
         /// <summary>
-        /// Whether GridFS is supported for storing large binary data.
-        /// MongoDB and Amazon DocumentDB (non-Elastic) support GridFS.
-        /// Azure DocumentDB does not support GridFS.
-        /// </summary>
-        bool SupportsGridFS { get; }
-
-        /// <summary>
         /// Whether text indexes are supported for full-text search.
-        /// All supported products have some level of text index support,
-        /// but capabilities vary (e.g., language support, operators).
         /// </summary>
         bool SupportsTextIndexes { get; }
 
         /// <summary>
-        /// Whether multi-document transactions are supported.
-        /// All supported products support transactions with varying limits.
-        /// </summary>
-        bool SupportsTransactions { get; }
-
-        /// <summary>
         /// Whether TTL (Time-To-Live) indexes are supported for automatic document expiration.
-        /// All supported products support TTL indexes.
         /// </summary>
         bool SupportsTtlIndexes { get; }
-
-        /// <summary>
-        /// Whether change streams are supported for real-time data notifications.
-        /// MongoDB and Azure DocumentDB support change streams.
-        /// Amazon DocumentDB Elastic clusters do not support change streams.
-        /// </summary>
-        bool SupportsChangeStreams { get; }
 
         /// <summary>
         /// Maximum document size in bytes.
@@ -81,8 +56,6 @@ namespace ServiceControl.Audit.Persistence.MongoDB.ProductCapabilities
 
         /// <summary>
         /// Whether the $facet aggregation stage is supported.
-        /// MongoDB and Azure DocumentDB support $facet.
-        /// Amazon DocumentDB does NOT support $facet.
         /// When $facet is not supported, use multiple queries instead.
         /// </summary>
         bool SupportsFacetAggregation { get; }

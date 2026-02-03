@@ -8,16 +8,10 @@ namespace ServiceControl.Audit.Persistence.MongoDB.ProductCapabilities
     /// Capabilities for MongoDB Community/Enterprise.
     /// Full feature support.
     /// </summary>
-    public class MongoDbCommunityCapabilities : IMongoProductCapabilities
+    public class MongoDbCommunityCapabilities(Version? serverVersion = null) : IMongoProductCapabilities
     {
-        public MongoDbCommunityCapabilities(Version? serverVersion = null)
-        {
-            ServerVersion = serverVersion;
-        }
-
         public string ProductName => "MongoDB Community";
-        public Version? ServerVersion { get; }
-
+        public Version? ServerVersion { get; } = serverVersion;
         // Multi-collection bulk write is a MongoDB 8.0+ feature i.e. Mongo.bulkWrite()
         public bool SupportsMultiCollectionBulkWrite => ServerVersion >= MongoVersions.Version8;
         public bool SupportsGridFS => true;

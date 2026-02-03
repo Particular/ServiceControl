@@ -2,10 +2,13 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Auditing;
+    using Auditing.BodyStorage;
+    using BodyStorage;
     using Collections;
     using Documents;
     using global::MongoDB.Bson;
@@ -19,30 +22,45 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
         IMongoClient client,
         IMongoDatabase database,
         bool supportsMultiCollectionBulkWrite,
-        TimeSpan auditRetentionPeriod)
+        TimeSpan auditRetentionPeriod,
+        IBodyStorage bodyStorage,
+        int maxBodySizeToStore)
         : IAuditIngestionUnitOfWork
     {
         readonly List<ProcessedMessageDocument> processedMessages = [];
         readonly List<KnownEndpointDocument> knownEndpoints = [];
         readonly List<SagaSnapshotDocument> sagaSnapshots = [];
-        readonly List<MessageBodyDocument> messageBodies = [];
 
-        public Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
+        public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
         {
             processedMessage.MessageMetadata["ContentLength"] = body.Length;
 
-            if (!body.IsEmpty)
+            // Determine if body should be stored based on size limit and storage type
+            var shouldStoreBody = !body.IsEmpty && body.Length <= maxBodySizeToStore && bodyStorage is not NullBodyStorage;
+            string textBody = null;
+            byte[] binaryBody = null;
+
+            if (shouldStoreBody)
             {
                 processedMessage.MessageMetadata["BodyUrl"] = $"/messages/{processedMessage.Id}/body";
 
-                var contentType = processedMessage.Headers.GetValueOrDefault(Headers.ContentType, "text/plain");
-                messageBodies.Add(new MessageBodyDocument
+                if (bodyStorage is InlineBodyStorage)
                 {
-                    Id = processedMessage.Id,
-                    ContentType = contentType,
-                    BodySize = body.Length,
-                    Body = Convert.ToBase64String(body.Span)
-                });
+                    // Try to store as UTF-8 text (enables full-text search)
+                    // If not valid UTF-8, store as binary (retrievable but not searchable)
+                    textBody = TryGetUtf8String(body);
+                    if (textBody == null)
+                    {
+                        binaryBody = body.ToArray();
+                    }
+                }
+                else
+                {
+                    // Store body in external storage (file system, etc.)
+                    var contentType = processedMessage.Headers.GetValueOrDefault(Headers.ContentType, "text/plain");
+                    using var bodyStream = new MemoryStream(body.ToArray());
+                    await bodyStorage.Store(processedMessage.Id, contentType, body.Length, bodyStream, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             processedMessages.Add(new ProcessedMessageDocument
@@ -51,11 +69,50 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                 UniqueMessageId = processedMessage.UniqueMessageId,
                 MessageMetadata = ConvertToBsonDocument(processedMessage.MessageMetadata),
                 Headers = processedMessage.Headers,
+                Body = textBody,
+                BinaryBody = binaryBody,
                 ProcessedAt = processedMessage.ProcessedAt,
-                ExpiresAt = DateTime.UtcNow.Add(auditRetentionPeriod)
+                ExpiresAt = DateTime.UtcNow.Add(auditRetentionPeriod),
+                HeaderSearchText = BuildHeaderSearchText(processedMessage.Headers)
             });
+        }
 
-            return Task.CompletedTask;
+        /// <summary>
+        /// Attempts to decode the body as UTF-8 text. Returns null if the body contains invalid UTF-8 (binary content).
+        /// </summary>
+        static string TryGetUtf8String(ReadOnlyMemory<byte> body)
+        {
+            try
+            {
+                // Use strict UTF-8 encoding that throws on invalid sequences
+                // Default UTF8Encoding silently replaces invalid bytes with replacement characters
+                return StrictUtf8Encoding.GetString(body.Span);
+            }
+            catch
+            {
+                // Body is not valid UTF-8 text (binary content), skip inline storage
+                return null;
+            }
+        }
+
+        // UTF-8 encoding that throws DecoderFallbackException on invalid byte sequences
+        static readonly System.Text.Encoding StrictUtf8Encoding = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
+        /// <summary>
+        /// Builds searchable text from header values only.
+        /// Headers are stored as a dictionary and can't be directly text-indexed,
+        /// so we flatten the values into a single searchable string.
+        /// Metadata fields (MessageId, MessageType, etc.) are indexed directly.
+        /// </summary>
+        static string BuildHeaderSearchText(Dictionary<string, string> headers)
+        {
+            if (headers == null || headers.Count == 0)
+            {
+                return null;
+            }
+
+            var headerValues = headers.Values.Where(v => !string.IsNullOrEmpty(v));
+            return string.Join(" ", headerValues);
         }
 
         public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken)
@@ -97,7 +154,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
 
         public async Task CommitAsync()
         {
-            if (processedMessages.Count == 0 && knownEndpoints.Count == 0 && sagaSnapshots.Count == 0 && messageBodies.Count == 0)
+            if (processedMessages.Count == 0 && knownEndpoints.Count == 0 && sagaSnapshots.Count == 0)
             {
                 return;
             }
@@ -138,19 +195,12 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                 models.Add(new BulkWriteReplaceOneModel<SagaSnapshotDocument>(ns, filter, doc) { IsUpsert = true });
             }
 
-            foreach (var doc in messageBodies)
-            {
-                var ns = new CollectionNamespace(databaseName, CollectionNames.MessageBodies);
-                var filter = Builders<MessageBodyDocument>.Filter.Eq(d => d.Id, doc.Id);
-                models.Add(new BulkWriteReplaceOneModel<MessageBodyDocument>(ns, filter, doc) { IsUpsert = true });
-            }
-
             _ = await client.BulkWriteAsync(models, new ClientBulkWriteOptions { IsOrdered = false }).ConfigureAwait(false);
         }
 
         async Task CommitWithParallelBulkWritesAsync()
         {
-            var tasks = new List<Task>(4);
+            var tasks = new List<Task>(3);
 
             if (processedMessages.Count > 0)
             {
@@ -173,14 +223,6 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                 tasks.Add(BulkUpsertAsync(
                     database.GetCollection<SagaSnapshotDocument>(CollectionNames.SagaSnapshots),
                     sagaSnapshots,
-                    doc => doc.Id));
-            }
-
-            if (messageBodies.Count > 0)
-            {
-                tasks.Add(BulkUpsertAsync(
-                    database.GetCollection<MessageBodyDocument>(CollectionNames.MessageBodies),
-                    messageBodies,
                     doc => doc.Id));
             }
 
@@ -221,7 +263,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                 return BsonNull.Value;
             }
 
-            // Handle types not natively supported by BsonTypeMapper
+            // Handle types that need special conversion
             if (value is TimeSpan ts)
             {
                 return ts.ToString();
@@ -230,6 +272,13 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
             if (value is DateTimeOffset dto)
             {
                 return dto.UtcDateTime;
+            }
+
+            // Guids - convert to string to avoid BinaryData serialization issues
+            // This is also consistent with how RavenDB stores Guids in metadata
+            if (value is Guid guid)
+            {
+                return guid.ToString();
             }
 
             // Enums - convert to string for readability

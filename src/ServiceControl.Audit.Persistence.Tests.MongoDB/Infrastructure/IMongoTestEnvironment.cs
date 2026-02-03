@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Infrastructure
 {
     using System.Threading.Tasks;
-    using ServiceControl.Audit.Persistence.MongoDB.ProductCapabilities;
 
     /// <summary>
     /// Abstracts the test environment for different MongoDB-compatible products.
