@@ -8,6 +8,7 @@ public class SqlServerAuditPersistenceConfiguration : IPersistenceConfiguration
     const string CommandTimeoutKey = "Database/CommandTimeout";
     const string MessageBodyStoragePathKey = "MessageBody/StoragePath";
     const string MinBodySizeForCompressionKey = "MessageBody/MinCompressionSize";
+    const string StoreMessageBodiesOnDiskKey = "MessageBody/StoreOnDisk";
 
     public string Name => "SqlServer";
 
@@ -16,7 +17,8 @@ public class SqlServerAuditPersistenceConfiguration : IPersistenceConfiguration
         DatabaseConnectionStringKey,
         CommandTimeoutKey,
         MessageBodyStoragePathKey,
-        MinBodySizeForCompressionKey
+        MinBodySizeForCompressionKey,
+        StoreMessageBodiesOnDiskKey
     ];
 
     public IPersistence Create(PersistenceSettings settings)
@@ -37,7 +39,8 @@ public class SqlServerAuditPersistenceConfiguration : IPersistenceConfiguration
             ConnectionString = connectionString,
             CommandTimeout = GetSetting(settings, CommandTimeoutKey, 30),
             MessageBodyStoragePath = messageBodyStoragePath,
-            MinBodySizeForCompression = GetSetting(settings, MinBodySizeForCompressionKey, 4096)
+            MinBodySizeForCompression = GetSetting(settings, MinBodySizeForCompressionKey, 4096),
+            StoreMessageBodiesOnDisk = GetSetting(settings, StoreMessageBodiesOnDiskKey, true)
         };
 
         return new SqlServerAuditPersistence(specificSettings);
@@ -68,6 +71,15 @@ public class SqlServerAuditPersistenceConfiguration : IPersistenceConfiguration
         if (settings.PersisterSpecificSettings.TryGetValue(key, out var value) && int.TryParse(value, out var intValue))
         {
             return intValue;
+        }
+        return defaultValue;
+    }
+
+    static bool GetSetting(PersistenceSettings settings, string key, bool defaultValue)
+    {
+        if (settings.PersisterSpecificSettings.TryGetValue(key, out var value) && bool.TryParse(value, out var boolValue))
+        {
+            return boolValue;
         }
         return defaultValue;
     }

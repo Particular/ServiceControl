@@ -14,4 +14,5 @@ public abstract class AuditSqlPersisterSettings : PersistenceSettings
     public int CommandTimeout { get; set; } = 30;
     public bool EnableSensitiveDataLogging { get; set; } = false;
     public int MinBodySizeForCompression { get; set; } = 4096;
+    public bool StoreMessageBodiesOnDisk { get; set; } = true;
 }

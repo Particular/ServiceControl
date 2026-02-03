@@ -50,17 +50,17 @@ class AuditIngestionUnitOfWork(
             DeliveryTimeTicks = GetMetadata<TimeSpan?>(processedMessage.MessageMetadata, "DeliveryTime")?.Ticks,
 
             // Full-text search content (header values + body text for single-column FTS indexing)
-            SearchableContent = BuildSearchableContent(processedMessage.Headers, body),
+            SearchableContent = settings.EnableFullTextSearchOnBodies ? BuildSearchableContent(processedMessage.Headers, body) : null,
             BodySize = body.Length,
             BodyUrl = body.IsEmpty ? null : $"/messages/{processedMessage.Id}/body",
-            BodyNotStored = body.Length > settings.MaxBodySizeToStore
+            BodyNotStored = !settings.StoreMessageBodiesOnDisk || body.Length > settings.MaxBodySizeToStore
         };
 
         dbContext.ProcessedMessages.Add(entity);
 
         await Task.CompletedTask;
-        //Store body in file system if below threshold
-        if (!body.IsEmpty && body.Length < settings.MaxBodySizeToStore)
+        //Store body in file system if below threshold and disk storage is enabled
+        if (settings.StoreMessageBodiesOnDisk && !body.IsEmpty && body.Length < settings.MaxBodySizeToStore)
         {
             var contentType = GetContentType(processedMessage.Headers, MediaTypeNames.Text.Plain);
 
