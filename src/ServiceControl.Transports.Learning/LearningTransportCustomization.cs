@@ -50,7 +50,7 @@ namespace ServiceControl.Transports.Learning
 
             while (true)
             {
-                if (Directory.EnumerateFiles(directory).Any(file => file.EndsWith(".sln")))
+                if (Directory.EnumerateFiles(directory).Any(file => file.EndsWith(".sln") || file.EndsWith(".slnx")))
                 {
                     return Path.Combine(directory, ".learningtransport");
                 }
