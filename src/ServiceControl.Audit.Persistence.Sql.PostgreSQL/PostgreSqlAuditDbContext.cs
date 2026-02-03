@@ -49,19 +49,8 @@ public class PostgreSqlAuditDbContext : AuditDbContextBase
 
     protected override void OnModelCreatingProvider(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<ProcessedMessageEntity>(entity =>
-        {
-            entity.Property<NpgsqlTsVector>("Query")
-                .HasColumnName("query")
-                .HasColumnType("tsvector")
-                .HasComputedColumnSql(
-                    "to_tsvector('simple', coalesce(headers_json, '') || ' ' || coalesce(body, ''))",
-                    stored: true);
-
-            entity.HasIndex("Query")
-                .HasDatabaseName("ix_processed_messages_query")
-                .HasMethod("GIN");
-        });
+        // FTS index will be created via raw SQL in migration since EF Core
+        // doesn't directly support functional GIN indexes on expressions
     }
 
     static string ToSnakeCase(string name)

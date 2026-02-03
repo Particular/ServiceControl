@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using NpgsqlTypes;
 using ServiceControl.Audit.Persistence.Sql.PostgreSQL;
 
 #nullable disable
@@ -13,7 +12,7 @@ using ServiceControl.Audit.Persistence.Sql.PostgreSQL;
 namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 {
     [DbContext(typeof(PostgreSqlAuditDbContext))]
-    [Migration("20260130012749_InitialCreate")]
+    [Migration("20260203024138_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -127,10 +126,6 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("Body")
-                        .HasColumnType("text")
-                        .HasColumnName("body");
-
                     b.Property<bool>("BodyNotStored")
                         .HasColumnType("boolean")
                         .HasColumnName("body_not_stored");
@@ -184,16 +179,14 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("processing_time_ticks");
 
-                    b.Property<NpgsqlTsVector>("Query")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("tsvector")
-                        .HasColumnName("query")
-                        .HasComputedColumnSql("setweight(to_tsvector('english', coalesce(headers_json::text, '')), 'A') || setweight(to_tsvector('english', coalesce(body, '')), 'B')", true);
-
                     b.Property<string>("ReceivingEndpointName")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("receiving_endpoint_name");
+
+                    b.Property<string>("SearchableContent")
+                        .HasColumnType("text")
+                        .HasColumnName("searchable_content");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer")
@@ -214,11 +207,6 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                     b.HasIndex("MessageId");
 
                     b.HasIndex("ProcessedAt");
-
-                    b.HasIndex("Query")
-                        .HasDatabaseName("ix_processed_messages_query");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Query"), "GIN");
 
                     b.HasIndex("UniqueMessageId");
 

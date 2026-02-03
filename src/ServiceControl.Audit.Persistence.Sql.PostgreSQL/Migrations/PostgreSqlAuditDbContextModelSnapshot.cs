@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using NpgsqlTypes;
 using ServiceControl.Audit.Persistence.Sql.PostgreSQL;
 
 #nullable disable
@@ -124,10 +123,6 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("Body")
-                        .HasColumnType("text")
-                        .HasColumnName("body");
-
                     b.Property<bool>("BodyNotStored")
                         .HasColumnType("boolean")
                         .HasColumnName("body_not_stored");
@@ -181,16 +176,14 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("processing_time_ticks");
 
-                    b.Property<NpgsqlTsVector>("Query")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("tsvector")
-                        .HasColumnName("query")
-                        .HasComputedColumnSql("to_tsvector('simple', coalesce(headers_json, '') || ' ' || coalesce(body, ''))", true);
-
                     b.Property<string>("ReceivingEndpointName")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("receiving_endpoint_name");
+
+                    b.Property<string>("SearchableContent")
+                        .HasColumnType("text")
+                        .HasColumnName("searchable_content");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer")
@@ -211,11 +204,6 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                     b.HasIndex("MessageId");
 
                     b.HasIndex("ProcessedAt");
-
-                    b.HasIndex("Query")
-                        .HasDatabaseName("ix_processed_messages_query");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Query"), "GIN");
 
                     b.HasIndex("UniqueMessageId");
 

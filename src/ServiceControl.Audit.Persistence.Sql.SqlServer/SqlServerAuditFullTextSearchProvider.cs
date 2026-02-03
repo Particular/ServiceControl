@@ -10,10 +10,8 @@ class SqlServerAuditFullTextSearchProvider : IAuditFullTextSearchProvider
         IQueryable<ProcessedMessageEntity> query,
         string searchTerms)
     {
-        // Use SQL Server FREETEXT for natural language search
-        // Requires FULLTEXT index on HeadersJson and Body columns
+        // Use SQL Server FREETEXT for natural language search on combined searchable content
         return query.Where(pm =>
-            EF.Functions.FreeText(pm.HeadersJson, searchTerms) ||
-            EF.Functions.FreeText(pm.Body!, searchTerms));
+            EF.Functions.FreeText(pm.SearchableContent!, searchTerms));
     }
 }

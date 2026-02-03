@@ -16,8 +16,8 @@ class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedMessageE
         // JSON columns
         builder.Property(e => e.HeadersJson).IsRequired();
 
-        // Full-text search column
-        builder.Property(e => e.Body); // Will be mapped to text/nvarchar(max) per database
+        // Full-text search column (combines header values + body text)
+        builder.Property(e => e.SearchableContent);
 
         // Denormalized query fields
         builder.Property(e => e.MessageId).HasMaxLength(200);

@@ -12,8 +12,8 @@ using ServiceControl.Audit.Persistence.Sql.SqlServer;
 namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerAuditDbContext))]
-    [Migration("20260130012600_AddFullTextIndexForSearch")]
-    partial class AddFullTextIndexForSearch
+    [Migration("20260203024037_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -111,9 +111,6 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("Body")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("BodyNotStored")
                         .HasColumnType("bit");
 
@@ -158,6 +155,9 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                     b.Property<string>("ReceivingEndpointName")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("SearchableContent")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");

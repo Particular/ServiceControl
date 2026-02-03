@@ -1,7 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using NpgsqlTypes;
 
 #nullable disable
 
@@ -66,7 +65,7 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     unique_message_id = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     headers_json = table.Column<string>(type: "text", nullable: false),
-                    body = table.Column<string>(type: "text", nullable: true),
+                    searchable_content = table.Column<string>(type: "text", nullable: true),
                     message_id = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     message_type = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     time_sent = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -80,8 +79,7 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                     delivery_time_ticks = table.Column<long>(type: "bigint", nullable: true),
                     body_size = table.Column<int>(type: "integer", nullable: false),
                     body_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    body_not_stored = table.Column<bool>(type: "boolean", nullable: false),
-                    query = table.Column<NpgsqlTsVector>(type: "tsvector", nullable: true, computedColumnSql: "setweight(to_tsvector('english', coalesce(headers_json::text, '')), 'A') || setweight(to_tsvector('english', coalesce(body, '')), 'B')", stored: true)
+                    body_not_stored = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -144,12 +142,6 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                 name: "IX_processed_messages_processed_at",
                 table: "processed_messages",
                 column: "processed_at");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_processed_messages_query",
-                table: "processed_messages",
-                column: "query")
-                .Annotation("Npgsql:IndexMethod", "GIN");
 
             migrationBuilder.CreateIndex(
                 name: "IX_processed_messages_receiving_endpoint_name_is_system_messa~1",

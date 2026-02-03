@@ -11,10 +11,10 @@ class PostgreSqlAuditFullTextSearchProvider : IAuditFullTextSearchProvider
         IQueryable<ProcessedMessageEntity> query,
         string searchTerms)
     {
-        // Use pre-computed tsvector column with 'simple' configuration for exact matching
-        // The "query" column combines headers_json and body without stemming or stop words
+        // Use 'simple' configuration for exact matching (no stemming or stop words)
+        // The GIN index on to_tsvector('simple', searchable_content) will be used
         return query.Where(pm =>
-            EF.Property<NpgsqlTsVector>(pm, "query")
+            EF.Functions.ToTsVector("simple", pm.SearchableContent!)
                 .Matches(EF.Functions.PlainToTsQuery("simple", searchTerms)));
     }
 }

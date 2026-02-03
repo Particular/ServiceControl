@@ -64,7 +64,7 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UniqueMessageId = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     HeadersJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Body = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SearchableContent = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     MessageId = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     MessageType = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     TimeSent = table.Column<DateTime>(type: "datetime2", nullable: true),

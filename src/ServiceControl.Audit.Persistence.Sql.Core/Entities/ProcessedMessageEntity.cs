@@ -8,8 +8,8 @@ public class ProcessedMessageEntity
     // JSON columns for complex nested data
     public string HeadersJson { get; set; } = null!;
 
-    // Full-text search column (populated from headers and body)
-    public string? Body { get; set; }
+    // Full-text search column (combines headers JSON and message body for indexing)
+    public string? SearchableContent { get; set; }
 
     // Denormalized fields for efficient querying
     public string? MessageId { get; set; }
