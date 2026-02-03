@@ -142,16 +142,16 @@
         {
             get
             {
-                if (maxBodySizeToStore <= 0)
+                if (field <= 0)
                 {
                     logger.LogError("MaxBodySizeToStore settings is invalid, 1 is the minimum value. Defaulting to {MaxBodySizeToStoreDefault}", MaxBodySizeToStoreDefault);
                     return MaxBodySizeToStoreDefault;
                 }
 
-                return maxBodySizeToStore;
+                return field;
             }
-            set => maxBodySizeToStore = value;
-        }
+            set;
+        } = SettingsReader.Read(SettingsRootNamespace, "MaxBodySizeToStore", MaxBodySizeToStoreDefault);
 
         public string InstanceName { get; init; } = DEFAULT_INSTANCE_NAME;
 
@@ -371,9 +371,6 @@
 
         // logger is intentionally not static to prevent it from being initialized before LoggingConfigurator.ConfigureLogging has been called
         readonly ILogger logger = LoggerUtil.CreateStaticLogger<Settings>();
-
-        int maxBodySizeToStore = SettingsReader.Read(SettingsRootNamespace, "MaxBodySizeToStore", MaxBodySizeToStoreDefault);
-
         public const string DEFAULT_INSTANCE_NAME = "Particular.ServiceControl.Audit";
         public static readonly SettingsRootNamespace SettingsRootNamespace = new("ServiceControl.Audit");
 

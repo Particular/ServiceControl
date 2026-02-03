@@ -20,7 +20,7 @@
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.ASBS"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.ASQ"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.Learning"));
-                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.Msmq", "net8.0-windows"));
+                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.Msmq", "net10.0-windows"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.RabbitMQ"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.SqlServer"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.SQS"));
@@ -36,8 +36,8 @@
         const string configuration = "Release";
 #endif
 
-#if NET8_0
-        const string framework = "net8.0";
+#if NET10_0
+        const string framework = "net10.0";
 #endif
     }
 }

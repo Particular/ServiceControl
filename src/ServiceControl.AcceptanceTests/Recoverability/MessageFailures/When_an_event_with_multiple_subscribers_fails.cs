@@ -43,7 +43,7 @@
 
         public class FakeFailedSubscribers : EndpointConfigurationBuilder
         {
-            public FakeFailedSubscribers() => EndpointSetup<DefaultServerWithoutAudit>();
+            public FakeFailedSubscribers() => EndpointSetup<DefaultServerWithoutAudit>(c => c.EnableFeature<SendDuplicateMessages>());
 
             class SendDuplicateMessages : DispatchRawMessages<FailingEventContext>
             {

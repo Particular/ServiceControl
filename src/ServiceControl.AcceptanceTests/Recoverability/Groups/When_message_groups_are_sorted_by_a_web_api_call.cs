@@ -88,6 +88,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
             public Receiver() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
+                    c.EnableFeature<SendFailedMessages>();
                     c.NoRetries();
                     c.LimitMessageProcessingConcurrencyTo(1);
                 });

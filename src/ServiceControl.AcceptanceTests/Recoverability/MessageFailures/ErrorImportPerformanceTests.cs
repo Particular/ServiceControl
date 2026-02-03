@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -14,7 +15,8 @@
     class ErrorImportPerformanceTests : AcceptanceTest
     {
         [Test]
-        public async Task Should_import_all_messages()
+        [CancelAfter(180_000)]
+        public async Task Should_import_all_messages(CancellationToken cancellationToken)
         {
             await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(bus => Task.WhenAll(Enumerable.Repeat(0, 100).Select(i => bus.SendLocal(new MyMessage())))).DoNotFailOnErrorMessages())
@@ -34,7 +36,7 @@
 
                     return messages.Count >= 100;
                 })
-                .Run(TimeSpan.FromMinutes(3));
+                .Run(cancellationToken);
         }
 
         public class Receiver : EndpointConfigurationBuilder

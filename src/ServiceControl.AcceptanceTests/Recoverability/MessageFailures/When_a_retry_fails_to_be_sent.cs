@@ -24,7 +24,8 @@
     class When_a_retry_fails_to_be_sent : AcceptanceTest
     {
         [Test]
-        public async Task SubsequentBatchesShouldBeProcessed()
+        [CancelAfter(180_000)]
+        public async Task SubsequentBatchesShouldBeProcessed(CancellationToken cancellationToken)
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
@@ -61,7 +62,7 @@
                     successfullyRetried = successfullyRetriedResult;
                     return decomissionedFailureResult && successfullyRetriedResult;
                 })
-                .Run(TimeSpan.FromMinutes(3));
+                .Run(cancellationToken);
 
             Assert.Multiple(() =>
             {
@@ -81,6 +82,7 @@
             public FailureEndpoint() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
+                    c.EnableFeature<SendFailedMessage>();
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });

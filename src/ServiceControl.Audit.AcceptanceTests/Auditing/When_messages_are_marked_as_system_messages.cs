@@ -126,7 +126,7 @@
 
         class SystemMessageEndpoint : EndpointConfigurationBuilder
         {
-            public SystemMessageEndpoint() => EndpointSetup<DefaultServerWithAudit>();
+            public SystemMessageEndpoint() => EndpointSetup<DefaultServerWithAudit>(c => c.EnableFeature<SendMessageLowLevel>());
 
             public class SendMessageLowLevel : DispatchRawMessages<SystemMessageTestContext>
             {
@@ -152,13 +152,11 @@
                         headers[Headers.ControlMessageHeader] = context.ControlMessageHeaderValue != null && (bool)context.ControlMessageHeaderValue ? context.ControlMessageHeaderValue.ToString() : null;
                     }
 
-                    return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
+                    return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, Array.Empty<byte>()), new UnicastAddressTag("audit")));
                 }
 
                 protected override Task AfterDispatch(IMessageSession session, SystemMessageTestContext context)
-                {
-                    return session.SendLocal(new DoQueryAllowed());
-                }
+                    => session.SendLocal(new DoQueryAllowed());
             }
 
             class MyHandler(SystemMessageTestContext testContext) : IHandleMessages<DoQueryAllowed>

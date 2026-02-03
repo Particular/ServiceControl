@@ -1,0 +1,122 @@
+<Solution>
+  <Folder Name="/Installer/">
+    <Project Path="LegacyArtifacts/LegacyArtifacts.csproj" />
+    <Project Path="ServiceControl.Config/ServiceControl.Config.csproj" />
+    <Project Path="ServiceControl.Management.PowerShell/ServiceControl.Management.PowerShell.csproj" />
+    <Project Path="ServiceControlInstaller.Engine/ServiceControlInstaller.Engine.csproj" />
+    <Project Path="ServiceControlInstaller.Packaging/ServiceControlInstaller.Packaging.csproj" />
+  </Folder>
+  <Folder Name="/Installer/Testing/">
+    <Project Path="ServiceControl.Config.Tests/ServiceControl.Config.Tests.csproj" />
+    <Project Path="ServiceControl.Infrastructure.Tests/ServiceControl.Infrastructure.Tests.csproj" />
+    <Project Path="ServiceControlInstaller.Engine.UnitTests/ServiceControlInstaller.Engine.UnitTests.csproj" />
+    <Project Path="ServiceControlInstaller.Packaging.UnitTests/ServiceControlInstaller.Packaging.UnitTests.csproj" />
+    <Project Path="SetupProcessFake/SetupProcessFake.csproj" />
+  </Folder>
+  <Folder Name="/Instances/" />
+  <Folder Name="/Instances/Audit/">
+    <Project Path="ServiceControl.Audit/ServiceControl.Audit.csproj" />
+  </Folder>
+  <Folder Name="/Instances/Audit/Persistence/">
+    <Project Path="ServiceControl.Audit.Persistence.InMemory/ServiceControl.Audit.Persistence.InMemory.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.RavenDB/ServiceControl.Audit.Persistence.RavenDB.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.SagaAudit/ServiceControl.Audit.Persistence.SagaAudit.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.Sql.Core/ServiceControl.Audit.Persistence.Sql.Core.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.Sql.PostgreSQL/ServiceControl.Audit.Persistence.Sql.PostgreSQL.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.Sql.SqlServer/ServiceControl.Audit.Persistence.Sql.SqlServer.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence/ServiceControl.Audit.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/Instances/Audit/Testing/">
+    <Project Path="ServiceControl.Audit.AcceptanceTests.RavenDB/ServiceControl.Audit.AcceptanceTests.RavenDB.csproj" />
+    <Project Path="ServiceControl.Audit.AcceptanceTests/ServiceControl.Audit.AcceptanceTests.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.Tests.RavenDB/ServiceControl.Audit.Persistence.Tests.RavenDB.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.Tests/ServiceControl.Audit.Persistence.Tests.csproj" />
+    <Project Path="ServiceControl.Audit.UnitTests/ServiceControl.Audit.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/Instances/Monitoring/">
+    <Project Path="ServiceControl.Monitoring/ServiceControl.Monitoring.csproj" />
+  </Folder>
+  <Folder Name="/Instances/Monitoring/Testing/">
+    <Project Path="ServiceControl.Monitoring.AcceptanceTests/ServiceControl.Monitoring.AcceptanceTests.csproj" />
+    <Project Path="ServiceControl.Monitoring.UnitTests/ServiceControl.Monitoring.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/Instances/Primary/">
+    <Project Path="ServiceControl/ServiceControl.csproj" />
+  </Folder>
+  <Folder Name="/Instances/Primary/Persistence/">
+    <Project Path="ServiceControl.Persistence.RavenDB/ServiceControl.Persistence.RavenDB.csproj" />
+    <Project Path="ServiceControl.Persistence.Sql.Core/ServiceControl.Persistence.Sql.Core.csproj" />
+    <Project Path="ServiceControl.Persistence.Sql.MySQL/ServiceControl.Persistence.Sql.MySQL.csproj" />
+    <Project Path="ServiceControl.Persistence.Sql.PostgreSQL/ServiceControl.Persistence.Sql.PostgreSQL.csproj" />
+    <Project Path="ServiceControl.Persistence.Sql.SqlServer/ServiceControl.Persistence.Sql.SqlServer.csproj" />
+    <Project Path="ServiceControl.Persistence/ServiceControl.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/Instances/Primary/Testing/">
+    <Project Path="ServiceControl.AcceptanceTests.RavenDB/ServiceControl.AcceptanceTests.RavenDB.csproj" />
+    <Project Path="ServiceControl.Persistence.Tests.InMemory/ServiceControl.Persistence.Tests.InMemory.csproj" />
+    <Project Path="ServiceControl.Persistence.Tests.RavenDB/ServiceControl.Persistence.Tests.RavenDB.csproj" />
+    <Project Path="ServiceControl.UnitTests/ServiceControl.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/Instances/Shared/">
+    <Project Path="ServiceControl.Api/ServiceControl.Api.csproj" />
+    <Project Path="ServiceControl.Configuration/ServiceControl.Configuration.csproj" />
+    <Project Path="ServiceControl.DomainEvents/ServiceControl.DomainEvents.csproj" />
+    <Project Path="ServiceControl.Hosting/ServiceControl.Hosting.csproj" />
+    <Project Path="ServiceControl.Infrastructure.Metrics/ServiceControl.Infrastructure.Metrics.csproj" />
+    <Project Path="ServiceControl.Infrastructure/ServiceControl.Infrastructure.csproj" />
+    <Project Path="ServiceControl.LicenseManagement/ServiceControl.LicenseManagement.csproj" />
+    <Project Path="ServiceControl.RavenDB/ServiceControl.RavenDB.csproj" />
+    <Project Path="ServiceControl.SagaAudit/ServiceControl.SagaAudit.csproj" />
+  </Folder>
+  <Folder Name="/Instances/Shared/Testing/">
+    <Project Path="ServiceControl.AcceptanceTesting/ServiceControl.AcceptanceTesting.csproj" />
+    <Project Path="ServiceControl.MultiInstance.AcceptanceTests/ServiceControl.MultiInstance.AcceptanceTests.csproj" />
+  </Folder>
+  <Folder Name="/Particular.LicensingComponent/">
+    <Project Path="Particular.LicensingComponent.Contracts/Particular.LicensingComponent.Contracts.csproj" />
+    <Project Path="Particular.LicensingComponent/Particular.LicensingComponent.csproj" />
+  </Folder>
+  <Folder Name="/Particular.LicensingComponent/Persistence/">
+    <Project Path="Particular.LicensingComponent.Persistence.InMemory/Particular.LicensingComponent.Persistence.InMemory.csproj" />
+    <Project Path="Particular.LicensingComponent.Persistence/Particular.LicensingComponent.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/Particular.LicensingComponent/Testing/">
+    <Project Path="Particular.LicensingComponent.UnitTests/Particular.LicensingComponent.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/ServiceControl.Transports/">
+    <Project Path="ServiceControl.Transports.ASBS/ServiceControl.Transports.ASBS.csproj" />
+    <Project Path="ServiceControl.Transports.ASQ/ServiceControl.Transports.ASQ.csproj" />
+    <Project Path="ServiceControl.Transports.Learning/ServiceControl.Transports.Learning.csproj" />
+    <Project Path="ServiceControl.Transports.Msmq/ServiceControl.Transports.Msmq.csproj" />
+    <Project Path="ServiceControl.Transports.PostgreSql/ServiceControl.Transports.PostgreSql.csproj" />
+    <Project Path="ServiceControl.Transports.RabbitMQ/ServiceControl.Transports.RabbitMQ.csproj" />
+    <Project Path="ServiceControl.Transports.SqlServer/ServiceControl.Transports.SqlServer.csproj" />
+    <Project Path="ServiceControl.Transports.SQS/ServiceControl.Transports.SQS.csproj" />
+    <Project Path="ServiceControl.Transports/ServiceControl.Transports.csproj" />
+  </Folder>
+  <Folder Name="/ServiceControl.Transports/Testing/">
+    <Project Path="ServiceControl.Transports.ASBS.Tests/ServiceControl.Transports.ASBS.Tests.csproj" />
+    <Project Path="ServiceControl.Transports.ASQ.Tests/ServiceControl.Transports.ASQ.Tests.csproj" />
+    <Project Path="ServiceControl.Transports.Msmq.Tests/ServiceControl.Transports.Msmq.Tests.csproj" />
+    <Project Path="ServiceControl.Transports.PostgreSql.Tests/ServiceControl.Transports.PostgreSql.Tests.csproj" />
+    <Project Path="ServiceControl.Transports.RabbitMQClassicConventionalRouting.Tests/ServiceControl.Transports.RabbitMQClassicConventionalRoutingTests.csproj" />
+    <Project Path="ServiceControl.Transports.RabbitMQClassicDirectRouting.Tests/ServiceControl.Transports.RabbitMQClassicDirectRouting.Tests.csproj" />
+    <Project Path="ServiceControl.Transports.RabbitMQQuorumConventionalRouting.Tests/ServiceControl.Transports.RabbitMQQuorumConventionalRouting.Tests.csproj" />
+    <Project Path="ServiceControl.Transports.RabbitMQQuorumDirectRouting.Tests/ServiceControl.Transports.RabbitMQQuorumDirectRouting.Tests.csproj" />
+    <Project Path="ServiceControl.Transports.SqlServer.Tests/ServiceControl.Transports.SqlServer.Tests.csproj" />
+    <Project Path="ServiceControl.Transports.SQS.Tests/ServiceControl.Transports.SQS.Tests.csproj" />
+    <Project Path="ServiceControl.Transports.Tests/ServiceControl.Transports.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="../.github/workflows/ci.yml" />
+    <File Path="../.github/workflows/release.yml" />
+    <File Path="Custom.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="ProjectReferences.Persisters.Audit.props" />
+    <File Path="ProjectReferences.Persisters.Primary.props" />
+    <File Path="ProjectReferences.Transports.props" />
+  </Folder>
+  <Project Path="HealthCheckApp/HealthCheckApp.csproj" />
+  <Project Path="Particular.PlatformSample.ServiceControl/Particular.PlatformSample.ServiceControl.csproj" />
+  <Project Path="TestHelper/TestHelper.csproj" />
+</Solution>

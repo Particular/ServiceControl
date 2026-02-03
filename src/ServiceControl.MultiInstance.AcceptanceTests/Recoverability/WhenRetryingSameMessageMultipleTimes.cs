@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -25,7 +26,8 @@
         [TestCase(new[] { RetryType.Edit, RetryType.NoEdit, RetryType.Edit, RetryType.NoEdit })]
         //[TestCase(new[] { RetryType.NoEdit, RetryType.Edit, RetryType.NoEdit, RetryType.Edit })]
         [TestCase(new[] { RetryType.Edit, RetryType.Edit, RetryType.NoEdit })]
-        public async Task WithMixOfRetryTypes(RetryType[] retryTypes)
+        [CancelAfter(15_000)]
+        public async Task WithMixOfRetryTypes(RetryType[] retryTypes, CancellationToken cancellationToken)
         {
             CustomServiceControlPrimarySettings = s => { s.AllowMessageEditing = true; };
 
@@ -79,7 +81,7 @@
                     return false;
 
                 })
-                .Run(TimeSpan.FromSeconds(15));
+                .Run(cancellationToken);
         }
 
         class FailureEndpoint : EndpointConfigurationBuilder

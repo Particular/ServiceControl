@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -15,7 +16,8 @@
     class When_a_retry_for_a_failed_message_fails : AcceptanceTest
     {
         [Test]
-        public async Task It_should_be_marked_as_unresolved()
+        [CancelAfter(120_000)]
+        public async Task It_should_be_marked_as_unresolved(CancellationToken cancellationToken)
         {
             var result = await Define<MyContext>(ctx => { ctx.Succeed = false; })
                 .WithEndpoint<FailureEndpoint>(b =>
@@ -40,13 +42,14 @@
                     return ctx.Result.ProcessingAttempts.Count == 3;
                 })
                 .Done()
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(cancellationToken);
 
             Assert.That(result.Result.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
         }
 
         [Test]
-        public async Task It_should_be_able_to_be_retried_successfully()
+        [CancelAfter(120_000)]
+        public async Task It_should_be_able_to_be_retried_successfully(CancellationToken cancellationToken)
         {
             var result = await Define<MyContext>(ctx => { ctx.Succeed = false; })
                 .WithEndpoint<FailureEndpoint>(b =>
@@ -78,7 +81,7 @@
                     return ctx.Result != null;
                 })
                 .Done()
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(cancellationToken);
 
             Assert.That(result.Result.Status, Is.EqualTo(FailedMessageStatus.Resolved));
         }

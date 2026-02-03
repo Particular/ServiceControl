@@ -4,13 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Net.Mime;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
-using DbContexts;
 using Entities;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using NServiceBus;
 using NServiceBus.Transport;
 using ServiceControl.MessageFailures;
@@ -156,11 +153,8 @@ class RecoverabilityIngestionUnitOfWork(IngestionUnitOfWork parent, FileSystemBo
         var failedMessage = await parent.DbContext.FailedMessages
             .FirstOrDefaultAsync(fm => fm.UniqueMessageId == retriedMessageUniqueId);
 
-        if (failedMessage != null)
-        {
-            // Update its status to Resolved - EF Core tracks this change
-            failedMessage.Status = FailedMessageStatus.Resolved;
-        }
+        // Update its status to Resolved - EF Core tracks this change
+        failedMessage?.Status = FailedMessageStatus.Resolved;
 
         // Remove any retry tracking document - query by UniqueMessageId instead since we no longer have the composite pattern
         var failedMsg = await parent.DbContext.FailedMessages

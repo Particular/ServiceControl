@@ -48,10 +48,7 @@ public class RetryBatchesDataStore : DataStoreBase, IRetryBatchesDataStore
                 var entity = await dbContext.FailedMessageRetries
                     .FirstOrDefaultAsync(f => f.Id == Guid.Parse(failedMessageRetry.Id));
 
-                if (entity != null)
-                {
-                    entity.StageAttempts = 1;
-                }
+                entity?.StageAttempts = 1;
             }
 
             try
