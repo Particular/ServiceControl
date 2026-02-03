@@ -2,7 +2,6 @@ namespace ServiceControl.Persistence
 {
     using System;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Persistence.Sql.MySQL;
     using ServiceControl.Persistence.Sql.PostgreSQL;
     using ServiceControl.Persistence.Sql.SqlServer;
 
@@ -25,7 +24,6 @@ namespace ServiceControl.Persistence
             return settings.PersistenceType switch
             {
                 "PostgreSQL" => new PostgreSqlPersistenceConfiguration(),
-                "MySQL" => new MySqlPersistenceConfiguration(),
                 "SqlServer" => new SqlServerPersistenceConfiguration(),
                 _ => throw new Exception($"Unsupported persistence type {settings.PersistenceType}."),
             };
