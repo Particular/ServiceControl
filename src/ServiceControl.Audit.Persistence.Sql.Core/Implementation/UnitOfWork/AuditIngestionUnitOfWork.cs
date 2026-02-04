@@ -21,6 +21,7 @@ class AuditIngestionUnitOfWork(
  )
     : IAuditIngestionUnitOfWork
 {
+    readonly List<Task> bodyStorageTasks = [];
     // Large object heap starts above 85000 bytes
     const int LargeObjectHeapThreshold = 85_000;
     static readonly Encoding Utf8 = new UTF8Encoding(true, true);
@@ -58,13 +59,13 @@ class AuditIngestionUnitOfWork(
 
         dbContext.ProcessedMessages.Add(entity);
 
-        await Task.CompletedTask;
-        //Store body in file system if below threshold and disk storage is enabled
+        //Store body if below threshold and storage is enabled
         if (settings.StoreMessageBodiesOnDisk && !body.IsEmpty && body.Length < settings.MaxBodySizeToStore)
         {
             var contentType = GetContentType(processedMessage.Headers, MediaTypeNames.Text.Plain);
 
-            await bodyPersistence.WriteBodyAsync(processedMessage.UniqueMessageId, body, contentType, cancellationToken);
+            // Queue body storage to run in parallel, awaited in DisposeAsync
+            bodyStorageTasks.Add(bodyPersistence.WriteBodyAsync(processedMessage.UniqueMessageId, body, contentType, cancellationToken));
         }
     }
 
@@ -109,11 +110,13 @@ class AuditIngestionUnitOfWork(
     {
         try
         {
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            // Wait for all body storage operations to complete first
+            await Task.WhenAll(bodyStorageTasks);
+            await dbContext.SaveChangesAsync();
         }
         finally
         {
-            await dbContext.DisposeAsync().ConfigureAwait(false);
+            await dbContext.DisposeAsync();
         }
     }
 
