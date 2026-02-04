@@ -51,7 +51,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             }
 
             // Body storage path - required for FileSystem storage
-            settings.PersisterSpecificSettings.TryGetValue(BodyStoragePathKey, out var bodyStoragePath);
+            _ = settings.PersisterSpecificSettings.TryGetValue(BodyStoragePathKey, out var bodyStoragePath);
 
             if (bodyStorageType == BodyStorageType.FileSystem && string.IsNullOrWhiteSpace(bodyStoragePath))
             {

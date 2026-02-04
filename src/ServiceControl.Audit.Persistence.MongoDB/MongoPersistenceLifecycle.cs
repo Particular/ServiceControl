@@ -30,6 +30,12 @@ namespace ServiceControl.Audit.Persistence.MongoDB
         {
             RegisterSerializers();
             logger.LogInformation("Initializing MongoDB persistence for database '{DatabaseName}'", settings.DatabaseName);
+            logger.LogInformation("MongoDB settings: AuditRetentionPeriod={AuditRetentionPeriod}, BodyStorageType={BodyStorageType}, BodyStoragePath={BodyStoragePath}, EnableFullTextSearchOnBodies={EnableFullTextSearchOnBodies}, MaxBodySizeToStore={MaxBodySizeToStore}",
+                settings.AuditRetentionPeriod,
+                settings.BodyStorageType,
+                settings.BodyStoragePath ?? "(not set)",
+                settings.EnableFullTextSearchOnBodies,
+                settings.MaxBodySizeToStore);
 
             // Initialize the client and detect product capabilities
             await clientProvider.InitializeAsync(cancellationToken).ConfigureAwait(false);
@@ -55,9 +61,10 @@ namespace ServiceControl.Audit.Persistence.MongoDB
 
         async Task VerifyConnectivity(CancellationToken cancellationToken)
         {
-            // Perform a ping command to verify connectivity
+            logger.LogInformation("Verifying MongoDB connectivity");
             var command = new BsonDocument("ping", 1);
             _ = await clientProvider.Database.RunCommandAsync<BsonDocument>(command, cancellationToken: cancellationToken).ConfigureAwait(false);
+            logger.LogInformation("MongoDB connectivity verified");
         }
 
         static void RegisterSerializers()

@@ -56,7 +56,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                 }
                 else
                 {
-                    // Store body in external storage (file system, etc.)
+                    // Store body in external storage (file system, BLOB, etc.)
                     var contentType = processedMessage.Headers.GetValueOrDefault(Headers.ContentType, "text/plain");
                     using var bodyStream = new MemoryStream(body.ToArray());
                     await bodyStorage.Store(processedMessage.Id, contentType, body.Length, bodyStream, cancellationToken).ConfigureAwait(false);
@@ -77,9 +77,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
             });
         }
 
-        /// <summary>
-        /// Attempts to decode the body as UTF-8 text. Returns null if the body contains invalid UTF-8 (binary content).
-        /// </summary>
+        // Attempts to decode the body as UTF-8 text. Returns null if the body contains invalid UTF-8 (binary content).
         static string TryGetUtf8String(ReadOnlyMemory<byte> body)
         {
             try
@@ -90,7 +88,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
             }
             catch
             {
-                // Body is not valid UTF-8 text (binary content), skip inline storage
+                // Body is not valid UTF-8 text (binary content)
                 return null;
             }
         }
