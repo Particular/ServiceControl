@@ -30,6 +30,7 @@ public class PostgreSqlAuditPersistenceConfiguration : IPersistenceConfiguration
             settings, MessageBodyStoragePathKey, Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "Particular", "ServiceControl.Audit", "bodies"));
+        var messageBodyStorageConnectionString = GetSetting(settings, "MessageBody/StorageConnectionString", string.Empty);
 
         var specificSettings = new PostgreSqlAuditPersisterSettings(
             settings.AuditRetentionPeriod,
@@ -37,6 +38,7 @@ public class PostgreSqlAuditPersistenceConfiguration : IPersistenceConfiguration
             settings.MaxBodySizeToStore)
         {
             ConnectionString = connectionString,
+            MessageBodyStorageConnectionString = messageBodyStorageConnectionString,
             CommandTimeout = GetSetting(settings, CommandTimeoutKey, 30),
             MessageBodyStoragePath = messageBodyStoragePath,
             MinBodySizeForCompression = GetSetting(settings, MinBodySizeForCompressionKey, 4096),

@@ -28,6 +28,7 @@ public class SqlServerAuditPersistenceConfiguration : IPersistenceConfiguration
             settings, MessageBodyStoragePathKey, Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "Particular", "ServiceControl.Audit", "bodies"));
+        var messageBodyStorageConnectionString = GetSetting(settings, "MessageBody/StorageConnectionString", string.Empty);
 
         var specificSettings = new SqlServerAuditPersisterSettings(
             settings.AuditRetentionPeriod,
@@ -37,6 +38,7 @@ public class SqlServerAuditPersistenceConfiguration : IPersistenceConfiguration
             ConnectionString = connectionString,
             CommandTimeout = GetSetting(settings, CommandTimeoutKey, 30),
             MessageBodyStoragePath = messageBodyStoragePath,
+            MessageBodyStorageConnectionString = messageBodyStorageConnectionString,
             MinBodySizeForCompression = GetSetting(settings, MinBodySizeForCompressionKey, 4096),
             StoreMessageBodiesOnDisk = GetSetting(settings, StoreMessageBodiesOnDiskKey, true)
         };
