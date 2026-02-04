@@ -30,7 +30,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             // Audit data store for queries
             services.AddSingleton<IAuditDataStore, MongoAuditDataStore>();
 
-            // TODO: Stage 7 - Add MinimumRequiredStorageState
+            // TODO: Add MinimumRequiredStorageState
         }
 
         public void AddInstaller(IServiceCollection services) => ConfigureLifecycle(services, settings);
