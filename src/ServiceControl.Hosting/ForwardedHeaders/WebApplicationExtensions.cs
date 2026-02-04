@@ -64,7 +64,7 @@ public static class WebApplicationExtensions
 
         // Clear default loopback-only restrictions
         options.KnownProxies.Clear();
-        options.KnownNetworks.Clear();
+        options.KnownIPNetworks.Clear();
 
         // Enabled by default
         if (settings.TrustAllProxies)
@@ -82,7 +82,7 @@ public static class WebApplicationExtensions
 
             foreach (var network in settings.KnownNetworks)
             {
-                options.KnownNetworks.Add(IPNetwork.Parse(network));
+                options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(network));
             }
         }
 

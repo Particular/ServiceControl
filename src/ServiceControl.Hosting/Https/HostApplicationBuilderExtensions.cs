@@ -49,9 +49,9 @@ public static class HostApplicationBuilderExtensions
     {
         if (string.IsNullOrEmpty(settings.CertificatePassword))
         {
-            return new X509Certificate2(settings.CertificatePath);
+            return X509CertificateLoader.LoadPkcs12FromFile(settings.CertificatePath, null);
         }
 
-        return new X509Certificate2(settings.CertificatePath, settings.CertificatePassword);
+        return X509CertificateLoader.LoadPkcs12FromFile(settings.CertificatePath, settings.CertificatePassword);
     }
 }
