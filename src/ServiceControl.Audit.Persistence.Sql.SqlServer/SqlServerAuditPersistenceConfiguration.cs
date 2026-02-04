@@ -24,10 +24,7 @@ public class SqlServerAuditPersistenceConfiguration : IPersistenceConfiguration
         var connectionString = GetRequiredSetting(settings, DatabaseConnectionStringKey);
 
         // Initialize message body storage path
-        var messageBodyStoragePath = GetSetting(
-            settings, MessageBodyStoragePathKey, Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                "Particular", "ServiceControl.Audit", "bodies"));
+        var messageBodyStoragePath = GetSetting(settings, MessageBodyStoragePathKey, string.Empty);
         var messageBodyStorageConnectionString = GetSetting(settings, "MessageBody/StorageConnectionString", string.Empty);
 
         var specificSettings = new SqlServerAuditPersisterSettings(
