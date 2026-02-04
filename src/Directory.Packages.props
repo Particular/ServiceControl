@@ -12,7 +12,7 @@
     <PackageVersion Include="ByteSize" Version="2.1.2" />
     <PackageVersion Include="Caliburn.Micro" Version="4.0.230" />
     <PackageVersion Include="DnsClient" Version="1.8.0" />
-    <PackageVersion Include="FluentValidation" Version="11.11.0" />
+    <PackageVersion Include="FluentValidation" Version="11.12.0" />
     <PackageVersion Include="Fody" Version="6.9.3" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.1" />
     <PackageVersion Include="HdrHistogram" Version="2.5.0" />
