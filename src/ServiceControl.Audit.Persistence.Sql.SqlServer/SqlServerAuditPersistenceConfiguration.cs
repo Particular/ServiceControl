@@ -7,7 +7,7 @@ public class SqlServerAuditPersistenceConfiguration : IPersistenceConfiguration
     const string MessageBodyStoragePathKey = "MessageBody/StoragePath";
     const string MinBodySizeForCompressionKey = "MessageBody/MinCompressionSize";
     const string StoreMessageBodiesOnDiskKey = "MessageBody/StoreOnDisk";
-
+    const string MessageBodyStorageConnectionStringKey = "MessageBody/StorageConnectionString";
     public string Name => "SqlServer";
 
     public IEnumerable<string> ConfigurationKeys =>
@@ -16,7 +16,8 @@ public class SqlServerAuditPersistenceConfiguration : IPersistenceConfiguration
         CommandTimeoutKey,
         MessageBodyStoragePathKey,
         MinBodySizeForCompressionKey,
-        StoreMessageBodiesOnDiskKey
+        StoreMessageBodiesOnDiskKey,
+        MessageBodyStorageConnectionStringKey
     ];
 
     public IPersistence Create(PersistenceSettings settings)
@@ -25,7 +26,7 @@ public class SqlServerAuditPersistenceConfiguration : IPersistenceConfiguration
 
         // Initialize message body storage path
         var messageBodyStoragePath = GetSetting(settings, MessageBodyStoragePathKey, string.Empty);
-        var messageBodyStorageConnectionString = GetSetting(settings, "MessageBody/StorageConnectionString", string.Empty);
+        var messageBodyStorageConnectionString = GetSetting(settings, MessageBodyStorageConnectionStringKey, string.Empty);
 
         var specificSettings = new SqlServerAuditPersisterSettings(
             settings.AuditRetentionPeriod,

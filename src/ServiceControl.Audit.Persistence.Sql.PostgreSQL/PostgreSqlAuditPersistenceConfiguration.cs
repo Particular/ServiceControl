@@ -1,7 +1,5 @@
 namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL;
 
-using Configuration;
-
 public class PostgreSqlAuditPersistenceConfiguration : IPersistenceConfiguration
 {
     const string DatabaseConnectionStringKey = "Database/ConnectionString";
@@ -9,6 +7,7 @@ public class PostgreSqlAuditPersistenceConfiguration : IPersistenceConfiguration
     const string MessageBodyStoragePathKey = "MessageBody/StoragePath";
     const string MinBodySizeForCompressionKey = "MessageBody/MinCompressionSize";
     const string StoreMessageBodiesOnDiskKey = "MessageBody/StoreOnDisk";
+    const string MessageBodyStorageConnectionStringKey = "MessageBody/StorageConnectionString";
 
     public string Name => "PostgreSQL";
 
@@ -18,7 +17,8 @@ public class PostgreSqlAuditPersistenceConfiguration : IPersistenceConfiguration
         CommandTimeoutKey,
         MessageBodyStoragePathKey,
         MinBodySizeForCompressionKey,
-        StoreMessageBodiesOnDiskKey
+        StoreMessageBodiesOnDiskKey,
+        MessageBodyStorageConnectionStringKey
     ];
 
     public IPersistence Create(PersistenceSettings settings)
@@ -27,7 +27,7 @@ public class PostgreSqlAuditPersistenceConfiguration : IPersistenceConfiguration
 
         // Initialize message body storage path
         var messageBodyStoragePath = GetSetting(settings, MessageBodyStoragePathKey, string.Empty);
-        var messageBodyStorageConnectionString = GetSetting(settings, "MessageBody/StorageConnectionString", string.Empty);
+        var messageBodyStorageConnectionString = GetSetting(settings, MessageBodyStorageConnectionStringKey, string.Empty);
 
         var specificSettings = new PostgreSqlAuditPersisterSettings(
             settings.AuditRetentionPeriod,

@@ -7,9 +7,19 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using ServiceControl.Audit.Persistence.Sql.Core.Abstractions;
 
-public class AzureBlobBodyStoragePersistence(BlobContainerClient blobContainerClient, AuditSqlPersisterSettings settings) : IBodyStoragePersistence
+public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
 {
     const string FormatVersion = "1";
+    readonly AuditSqlPersisterSettings settings;
+    readonly BlobContainerClient blobContainerClient;
+
+    public AzureBlobBodyStoragePersistence(AuditSqlPersisterSettings settings)
+    {
+        this.settings = settings;
+
+        var blobClient = new BlobServiceClient(settings.MessageBodyStorageConnectionString);
+        blobContainerClient = blobClient.GetBlobContainerClient("audit-bodies");
+    }
 
     // Blob deletion is handled by Azure Blob Storage lifecycle management policies.
     // See: https://learn.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-policy-delete
@@ -31,7 +41,7 @@ public class AzureBlobBodyStoragePersistence(BlobContainerClient blobContainerCl
                 throw new InvalidOperationException($"Unsupported blob format version: {version}");
             }
 
-            var contentType = metadata.TryGetValue("ContentType", out var ct) ? ct : "application/octet-stream";
+            var contentType = metadata.TryGetValue("ContentType", out var ct) ? Uri.UnescapeDataString(ct) : "application/octet-stream";
             var bodySize = metadata.TryGetValue("BodySize", out var sizeStr) && int.TryParse(sizeStr, out var size) ? size : 0;
             var isCompressed = metadata.TryGetValue("IsCompressed", out var compressedStr) && bool.TryParse(compressedStr, out var compressed) && compressed;
             var etag = properties.Details.ETag.ToString();
@@ -101,7 +111,6 @@ public class AzureBlobBodyStoragePersistence(BlobContainerClient blobContainerCl
 
             var options = new BlobUploadOptions
             {
-                AccessTier = AccessTier.Cool,
                 TransferValidation = new UploadTransferValidationOptions
                 {
                     ChecksumAlgorithm = StorageChecksumAlgorithm.Auto
@@ -109,7 +118,7 @@ public class AzureBlobBodyStoragePersistence(BlobContainerClient blobContainerCl
                 Metadata = new Dictionary<string, string>
                 {
                     { "FormatVersion", FormatVersion },
-                    { "ContentType", contentType },
+                    { "ContentType", Uri.EscapeDataString(contentType) },
                     { "BodySize", body.Length.ToString() },
                     { "IsCompressed", shouldCompress.ToString() }
                 }

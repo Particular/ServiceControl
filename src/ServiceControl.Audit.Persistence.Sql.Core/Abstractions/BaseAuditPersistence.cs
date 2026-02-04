@@ -19,9 +19,7 @@ public abstract class BaseAuditPersistence
         }
         else
         {
-            var blobClient = new BlobServiceClient(settings.MessageBodyStorageConnectionString);
-            var blobContainerClient = blobClient.GetBlobContainerClient("audit-bodies");
-            services.AddSingleton<IBodyStoragePersistence>(new AzureBlobBodyStoragePersistence(blobContainerClient, settings));
+            services.AddSingleton<IBodyStoragePersistence, AzureBlobBodyStoragePersistence>();
         }
         services.AddSingleton<IBodyStorage, BodyStorageFetcher>();
         services.AddSingleton<IAuditDataStore, EFAuditDataStore>();
