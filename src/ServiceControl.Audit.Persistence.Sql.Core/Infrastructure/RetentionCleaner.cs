@@ -13,7 +13,7 @@ public class RetentionCleaner(
     TimeProvider timeProvider,
     IServiceScopeFactory serviceScopeFactory,
     AuditSqlPersisterSettings settings,
-    FileSystemBodyStorageHelper bodyStorageHelper) : BackgroundService
+    IBodyStoragePersistence bodyPersistence) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -73,7 +73,7 @@ public class RetentionCleaner(
             }
 
             // Delete body files first
-            bodyStorageHelper.DeleteBodies(messageIdsToDelete);
+            await bodyPersistence.DeleteBodies(messageIdsToDelete, stoppingToken);
 
             // Then delete the database records for this batch
             deleted = await dbContext.ProcessedMessages

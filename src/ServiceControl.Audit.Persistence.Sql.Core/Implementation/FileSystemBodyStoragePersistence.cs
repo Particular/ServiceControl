@@ -3,7 +3,7 @@ namespace ServiceControl.Audit.Persistence.Sql.Core.Infrastructure;
 using System.IO.Compression;
 using Abstractions;
 
-public class FileSystemBodyStorageHelper(AuditSqlPersisterSettings settings)
+public class FileSystemBodyStoragePersistence(AuditSqlPersisterSettings settings) : IBodyStoragePersistence
 {
     const int FormatVersion = 1;
 
@@ -60,10 +60,10 @@ public class FileSystemBodyStorageHelper(AuditSqlPersisterSettings settings)
                 // Write body (compressed or not)
                 if (shouldCompress)
                 {
-                    var gzipStream = new GZipStream(fileStream, CompressionLevel.Optimal, leaveOpen: true);
-                    await using (gzipStream.ConfigureAwait(false))
+                    var brotliStream = new BrotliStream(fileStream, CompressionLevel.Fastest, leaveOpen: true);
+                    await using (brotliStream.ConfigureAwait(false))
                     {
-                        await gzipStream.WriteAsync(body, cancellationToken).ConfigureAwait(false);
+                        await brotliStream.WriteAsync(body, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 else
@@ -95,7 +95,7 @@ public class FileSystemBodyStorageHelper(AuditSqlPersisterSettings settings)
         }
     }
 
-    public Task<MessageBodyFileResult?> ReadBodyAsync(string bodyId)
+    public Task<MessageBodyFileResult?> ReadBodyAsync(string bodyId, CancellationToken cancellationToken = default)
     {
         var filePath = Path.Combine(settings.MessageBodyStoragePath, $"{bodyId}.body");
 
@@ -133,7 +133,7 @@ public class FileSystemBodyStorageHelper(AuditSqlPersisterSettings settings)
             Stream bodyStream = fileStream;
             if (isCompressed)
             {
-                bodyStream = new GZipStream(fileStream, CompressionMode.Decompress, leaveOpen: false);
+                bodyStream = new BrotliStream(fileStream, CompressionMode.Decompress, leaveOpen: false);
             }
 
             var result = new MessageBodyFileResult
@@ -156,7 +156,17 @@ public class FileSystemBodyStorageHelper(AuditSqlPersisterSettings settings)
         }
     }
 
-    public void DeleteBody(string bodyId)
+    public Task DeleteBodies(IEnumerable<string> bodyIds, CancellationToken cancellationToken = default)
+    {
+        foreach (var bodyId in bodyIds)
+        {
+            DeleteBody(bodyId);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    void DeleteBody(string bodyId)
     {
         var filePath = Path.Combine(settings.MessageBodyStoragePath, $"{bodyId}.body");
 
@@ -174,19 +184,4 @@ public class FileSystemBodyStorageHelper(AuditSqlPersisterSettings settings)
         }
     }
 
-    public void DeleteBodies(IEnumerable<string> bodyIds)
-    {
-        foreach (var bodyId in bodyIds)
-        {
-            DeleteBody(bodyId);
-        }
-    }
-
-    public class MessageBodyFileResult
-    {
-        public Stream Stream { get; set; } = null!;
-        public string ContentType { get; set; } = null!;
-        public int BodySize { get; set; }
-        public string Etag { get; set; } = null!;
-    }
 }

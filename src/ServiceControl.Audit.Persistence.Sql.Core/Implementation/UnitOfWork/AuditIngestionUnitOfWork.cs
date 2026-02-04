@@ -16,7 +16,7 @@ using ServiceControl.SagaAudit;
 
 class AuditIngestionUnitOfWork(
     AuditDbContextBase dbContext,
-    FileSystemBodyStorageHelper storageHelper,
+    IBodyStoragePersistence bodyPersistence,
     AuditSqlPersisterSettings settings
  )
     : IAuditIngestionUnitOfWork
@@ -64,7 +64,7 @@ class AuditIngestionUnitOfWork(
         {
             var contentType = GetContentType(processedMessage.Headers, MediaTypeNames.Text.Plain);
 
-            await storageHelper.WriteBodyAsync(processedMessage.UniqueMessageId, body, contentType, cancellationToken);
+            await bodyPersistence.WriteBodyAsync(processedMessage.UniqueMessageId, body, contentType, cancellationToken);
         }
     }
 

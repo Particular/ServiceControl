@@ -1,7 +1,5 @@
 namespace ServiceControl.Audit.Persistence.Sql.SqlServer;
 
-using Configuration;
-
 public class SqlServerAuditPersistenceConfiguration : IPersistenceConfiguration
 {
     const string DatabaseConnectionStringKey = "Database/ConnectionString";

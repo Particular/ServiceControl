@@ -29,6 +29,8 @@
         /// </summary>
         public string MessageBodyStoragePath { get; set; }
 
+        public string MessageBodyStorageConnectionString { get; set; }
+
         public int MaxBodySizeToStore { get; set; }
 
         public IDictionary<string, string> PersisterSpecificSettings { get; }

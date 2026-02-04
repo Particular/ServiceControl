@@ -63,7 +63,7 @@
                         Directory.CreateDirectory(persistenceSettings.MessageBodyStoragePath);
                     }
                 }
-                else
+                else if (string.IsNullOrEmpty(persistenceSettings.MessageBodyStorageConnectionString))
                 {
                     throw new Exception("Message body storage path is not configured.");
                 }
