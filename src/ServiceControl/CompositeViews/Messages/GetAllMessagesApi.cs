@@ -3,6 +3,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
     using Persistence;
     using Persistence.Infrastructure;
@@ -10,8 +11,8 @@ namespace ServiceControl.CompositeViews.Messages
 
     public class GetAllMessagesApi : ScatterGatherApiMessageView<IErrorMessageDataStore, ScatterGatherApiMessageViewWithSystemMessagesContext>
     {
-        public GetAllMessagesApi(IErrorMessageDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, ILogger<GetAllMessagesApi> logger)
-            : base(dataStore, settings, httpClientFactory, logger)
+        public GetAllMessagesApi(IErrorMessageDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<GetAllMessagesApi> logger)
+            : base(dataStore, settings, httpClientFactory, httpContextAccessor, logger)
         {
         }
 

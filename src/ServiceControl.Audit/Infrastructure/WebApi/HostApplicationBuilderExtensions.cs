@@ -4,12 +4,13 @@
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using ServiceControl.Infrastructure;
 
     static class HostApplicationBuilderExtensions
     {
-        public static void AddServiceControlAuditApi(this IHostApplicationBuilder builder)
+        public static void AddServiceControlAuditApi(this IHostApplicationBuilder builder, CorsSettings corsSettings)
         {
-            builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
+            builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy(corsSettings)));
 
             // We're not explicitly adding Gzip here because it's already in the default list of supported compressors
             builder.Services.AddResponseCompression();

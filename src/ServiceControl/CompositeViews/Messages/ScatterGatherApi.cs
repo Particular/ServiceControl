@@ -7,6 +7,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Net.Http;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -27,26 +28,31 @@ namespace ServiceControl.CompositeViews.Messages
         where TIn : ScatterGatherContext
         where TOut : class
     {
-        protected ScatterGatherApi(TDataStore store, Settings settings, IHttpClientFactory httpClientFactory, ILogger logger)
+        protected ScatterGatherApi(TDataStore store, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger logger)
         {
             DataStore = store;
             Settings = settings;
             HttpClientFactory = httpClientFactory;
+            HttpContextAccessor = httpContextAccessor;
             this.logger = logger;
         }
 
         protected TDataStore DataStore { get; }
         Settings Settings { get; }
         IHttpClientFactory HttpClientFactory { get; }
+        IHttpContextAccessor HttpContextAccessor { get; }
 
         public async Task<QueryResult<TOut>> Execute(TIn input, string pathAndQuery)
         {
             var remotes = Settings.RemoteInstances;
             var instanceId = Settings.InstanceId;
+            var authorizationHeader = HttpContextAccessor.HttpContext?.Request.Headers.Authorization.ToString();
+
             var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1)
             {
                 LocalCall(input, instanceId)
             };
+
             foreach (var remote in remotes)
             {
                 if (remote.TemporarilyUnavailable)
@@ -54,7 +60,7 @@ namespace ServiceControl.CompositeViews.Messages
                     continue;
                 }
 
-                tasks.Add(RemoteCall(HttpClientFactory.CreateClient(remote.InstanceId), pathAndQuery, remote));
+                tasks.Add(RemoteCall(HttpClientFactory.CreateClient(remote.InstanceId), pathAndQuery, remote, authorizationHeader));
             }
 
             var results = await Task.WhenAll(tasks);
@@ -96,22 +102,39 @@ namespace ServiceControl.CompositeViews.Messages
             );
         }
 
-        async Task<QueryResult<TOut>> RemoteCall(HttpClient client, string pathAndQuery, RemoteInstanceSetting remoteInstanceSetting)
+        async Task<QueryResult<TOut>> RemoteCall(HttpClient client, string pathAndQuery, RemoteInstanceSetting remoteInstanceSetting, string authorizationHeader)
         {
-            var fetched = await FetchAndParse(client, pathAndQuery, remoteInstanceSetting);
+            var fetched = await FetchAndParse(client, pathAndQuery, remoteInstanceSetting, authorizationHeader);
             fetched.InstanceId = remoteInstanceSetting.InstanceId;
             return fetched;
         }
 
-        async Task<QueryResult<TOut>> FetchAndParse(HttpClient httpClient, string pathAndQuery, RemoteInstanceSetting remoteInstanceSetting)
+        async Task<QueryResult<TOut>> FetchAndParse(HttpClient httpClient, string pathAndQuery, RemoteInstanceSetting remoteInstanceSetting, string authorizationHeader)
         {
             try
             {
+                var request = new HttpRequestMessage(HttpMethod.Get, pathAndQuery);
+                var hasAuth = !string.IsNullOrEmpty(authorizationHeader);
+
+                // Add Authorization header if present
+                if (hasAuth)
+                {
+                    request.Headers.TryAddWithoutValidation("Authorization", authorizationHeader);
+                }
+
                 // Assuming SendAsync returns uncompressed response and the AutomaticDecompression is enabled on the http client.
-                var rawResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, pathAndQuery));
+                var rawResponse = await httpClient.SendAsync(request);
+
                 // special case - queried by conversation ID and nothing was found
                 if (rawResponse.StatusCode == HttpStatusCode.NotFound)
                 {
+                    return QueryResult<TOut>.Empty();
+                }
+
+                if (rawResponse.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+                {
+                    logger.LogWarning("Authentication failed when querying remote instance at {RemoteInstanceBaseAddress}. Ensure authentication is correctly configured.",
+                        remoteInstanceSetting.BaseAddress);
                     return QueryResult<TOut>.Empty();
                 }
 

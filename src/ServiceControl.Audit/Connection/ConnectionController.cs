@@ -14,7 +14,7 @@ namespace ServiceControl.Audit.Connection
         [Route("connection")]
         [HttpGet]
         public IActionResult GetConnectionDetails() =>
-            new JsonResult(
+         new JsonResult(
                 new ConnectionDetails
                 {
                     MessageAudit = new MessageAuditConnectionDetails
