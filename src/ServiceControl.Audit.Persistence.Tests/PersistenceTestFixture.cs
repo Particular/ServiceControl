@@ -2,8 +2,6 @@
 {
     using System;
     using System.Diagnostics;
-    using System.IO;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
@@ -30,26 +28,6 @@
         {
             testCancellationTokenSource?.Dispose();
             return configuration?.Cleanup();
-        }
-
-        protected string GetManifestPath()
-        {
-            var currentFolder = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
-
-            while (currentFolder != null)
-            {
-                var file = currentFolder.EnumerateFiles("*.sln", SearchOption.TopDirectoryOnly)
-                    .SingleOrDefault();
-
-                if (file != null)
-                {
-                    return Path.Combine(file.Directory.FullName, $"ServiceControl.Audit.Persistence.{PersisterName}", "persistence.manifest");
-                }
-
-                currentFolder = currentFolder.Parent;
-            }
-
-            throw new Exception($"Cannot find manifest folder for {PersisterName}");
         }
 
         protected string PersisterName => configuration.Name;

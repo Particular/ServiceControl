@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyModel" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" GeneratePathProperty="true" VersionOverride="8.0.2" />
     <PackageReference Include="System.Management.Automation" />
   </ItemGroup>
 
@@ -36,7 +36,7 @@
 
   <ItemGroup>
     <Artifact Include="$(OutputPath)" DestinationFolder="$(PowerShellModuleArtifactsPath)" />
-    <Artifact Include="$(PkgMicrosoft_Extensions_DependencyModel)\lib\netstandard2.0\Microsoft.Extensions.DependencyModel.dll" DestinationFolder="$(PowerShellModuleArtifactsPath)" />
+    <Artifact Include="$(PkgMicrosoft_Extensions_DependencyModel)\lib\net8.0\Microsoft.Extensions.DependencyModel.dll" DestinationFolder="$(PowerShellModuleArtifactsPath)" />
     <Artifact Include="$(PowerShellModuleName).psd1" DestinationFolder="$(PowerShellModuleArtifactsPath)" />
     <Artifact Include="$(PowerShellModuleName).psm1" DestinationFolder="$(PowerShellModuleArtifactsPath)" />
     <Artifact Include="$(PowerShellModuleName).format.ps1xml" DestinationFolder="$(PowerShellModuleArtifactsPath)" />

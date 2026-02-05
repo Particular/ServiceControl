@@ -6,6 +6,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Persistence;
 
@@ -31,6 +32,8 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             return result.Results;
         }
 
+        // This endpoint is used for service-to-service communication. It currently needs to be anonymous
+        [AllowAnonymous]
         [Route("endpoints/{endpoint}/audit-count")]
         [HttpGet]
         public async Task<IList<AuditCount>> GetEndpointAuditCounts([FromQuery] PagingInfo pagingInfo, string endpoint, CancellationToken cancellationToken)

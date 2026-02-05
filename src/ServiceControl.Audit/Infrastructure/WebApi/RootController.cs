@@ -1,10 +1,13 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
     using Configuration;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using Settings;
 
+    // the /api endpoint is used for service-to-service communication. This currently needs to be anonymous
+    [AllowAnonymous]
     [ApiController]
     [Route("api")]
     public class RootController : ControllerBase

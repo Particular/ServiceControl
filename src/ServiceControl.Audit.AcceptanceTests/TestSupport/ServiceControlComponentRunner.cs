@@ -10,6 +10,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.ForwardedHeaders;
     using Infrastructure.Hosting;
     using Infrastructure.Hosting.Commands;
     using Infrastructure.Settings;
@@ -19,6 +20,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
+    using ServiceControl.Hosting.Auth;
+    using ServiceControl.Hosting.Https;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceControl.Infrastructure;
@@ -116,6 +119,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
                     EnvironmentName = Environments.Development
                 });
+                hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControlAudit((criticalErrorContext, cancellationToken) =>
                 {
                     var logitem = new ScenarioContext.LogItem
@@ -129,14 +133,18 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     return criticalErrorContext.Stop(cancellationToken);
                 }, settings, configuration);
 
-                hostBuilder.AddServiceControlAuditApi();
+                hostBuilder.AddServiceControlAuditApi(settings.CorsSettings);
+                hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
 
                 hostBuilder.AddServiceControlAuditTesting(settings);
 
                 hostBuilderCustomization(hostBuilder);
 
                 host = hostBuilder.Build();
-                host.UseServiceControlAudit();
+
+                host.UseTestRemoteIp();
+                host.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
+                host.UseServiceControlAudit(settings.ForwardedHeadersSettings, settings.HttpsSettings);
                 await host.StartAsync();
                 ServiceProvider = host.Services;
                 InstanceTestServer = host.GetTestServer();

@@ -1,7 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.UnitTests.Setup;
 
 using System;
-using System.Threading;
 using Engine.Setup;
 using NUnit.Framework;
 

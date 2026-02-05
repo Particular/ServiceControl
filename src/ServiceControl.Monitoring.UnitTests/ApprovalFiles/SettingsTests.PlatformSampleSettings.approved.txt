@@ -3,6 +3,38 @@
     "LogLevel": "Information",
     "LogPath": "C:\\Logs"
   },
+  "OpenIdConnectSettings": {
+    "Enabled": false,
+    "Authority": null,
+    "Audience": null,
+    "ValidateIssuer": true,
+    "ValidateAudience": true,
+    "ValidateLifetime": true,
+    "ValidateIssuerSigningKey": true,
+    "RequireHttpsMetadata": true,
+    "ServicePulseAuthority": null,
+    "ServicePulseClientId": null,
+    "ServicePulseApiScopes": null
+  },
+  "ForwardedHeadersSettings": {
+    "Enabled": true,
+    "TrustAllProxies": true,
+    "KnownProxiesRaw": [],
+    "KnownNetworks": []
+  },
+  "HttpsSettings": {
+    "Enabled": false,
+    "CertificatePath": null,
+    "RedirectHttpToHttps": false,
+    "HttpsPort": null,
+    "EnableHsts": false,
+    "HstsMaxAgeSeconds": 31536000,
+    "HstsIncludeSubDomains": false
+  },
+  "CorsSettings": {
+    "AllowAnyOrigin": true,
+    "AllowedOrigins": []
+  },
   "InstanceName": "Particular.Monitoring",
   "TransportType": "NServiceBus.ServiceControlLearningTransport, ServiceControl.Transports.LearningTransport",
   "ConnectionString": null,
@@ -13,5 +45,6 @@
   "RootUrl": "http://localhost:9999/",
   "MaximumConcurrencyLevel": null,
   "ServiceControlThroughputDataQueue": "ServiceControl.ThroughputData",
+  "ValidateConfiguration": true,
   "ShutdownTimeout": "00:00:05"
 }
