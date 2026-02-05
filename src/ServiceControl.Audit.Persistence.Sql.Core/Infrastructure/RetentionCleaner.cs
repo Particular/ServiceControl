@@ -50,34 +50,36 @@ public abstract class RetentionCleaner(
         using var scope = serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContextBase>();
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
-
-        if (!await TryAcquireLock(dbContext, stoppingToken))
-        {
-            logger.LogDebug("Another instance is running retention cleanup, skipping this cycle");
-            return;
-        }
-
         var stopwatch = Stopwatch.StartNew();
         var cutoff = timeProvider.GetUtcNow().UtcDateTime - settings.AuditRetentionPeriod;
 
         var totalDeletedMessages = 0;
         var totalDeletedSnapshots = 0;
+        var lockAcquired = false;
 
-        try
+        // Use execution strategy to handle retrying execution strategies that don't support user-initiated transactions
+        var strategy = dbContext.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
         {
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
+
+            if (!await TryAcquireLock(dbContext, stoppingToken))
+            {
+                logger.LogDebug("Another instance is running retention cleanup, skipping this cycle");
+                return;
+            }
+
+            lockAcquired = true;
             totalDeletedMessages = await CleanProcessedMessages(dbContext, cutoff, stoppingToken);
             totalDeletedSnapshots = await CleanSagaSnapshots(dbContext, cutoff, stoppingToken);
             await transaction.CommitAsync(stoppingToken);
-        }
-        catch
-        {
-            await transaction.RollbackAsync(stoppingToken);
-            throw;
-        }
+        });
 
-        logger.LogInformation("Retention cleanup removed {Messages} messages and {Snapshots} saga snapshots in {Elapsed}",
-            totalDeletedMessages, totalDeletedSnapshots, stopwatch.Elapsed.ToString(@"hh\:mm\:ss"));
+        if (lockAcquired)
+        {
+            logger.LogInformation("Retention cleanup removed {Messages} messages and {Snapshots} saga snapshots in {Elapsed}",
+                totalDeletedMessages, totalDeletedSnapshots, stopwatch.Elapsed.ToString(@"hh\:mm\:ss"));
+        }
     }
 
     async Task<int> CleanProcessedMessages(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
