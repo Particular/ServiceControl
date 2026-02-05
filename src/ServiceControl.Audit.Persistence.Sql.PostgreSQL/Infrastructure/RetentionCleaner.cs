@@ -22,7 +22,9 @@ class RetentionCleaner(
         // The lock is automatically released when the transaction ends
         var sql = "SELECT pg_try_advisory_xact_lock(hashtext('retention_cleaner'))";
 
-        var result = await dbContext.Database.SqlQueryRaw<bool>(sql).FirstOrDefaultAsync(stoppingToken);
+        // AsAsyncEnumerable() is required because SqlQueryRaw may return non-composable SQL
+        // that cannot have additional operators (like FirstOrDefault's TOP 1) composed on top of it
+        var result = await dbContext.Database.SqlQueryRaw<bool>(sql).AsAsyncEnumerable().FirstOrDefaultAsync(stoppingToken);
         return result;
     }
 }

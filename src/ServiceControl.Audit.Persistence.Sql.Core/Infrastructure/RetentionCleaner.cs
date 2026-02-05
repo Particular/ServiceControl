@@ -61,6 +61,11 @@ public abstract class RetentionCleaner(
         var strategy = dbContext.Database.CreateExecutionStrategy();
         await strategy.ExecuteAsync(async () =>
         {
+            // Reset state on each retry attempt to avoid accumulating values across retries
+            totalDeletedMessages = 0;
+            totalDeletedSnapshots = 0;
+            lockAcquired = false;
+
             await using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
             if (!await TryAcquireLock(dbContext, stoppingToken))

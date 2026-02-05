@@ -30,7 +30,9 @@ class RetentionCleaner(
             SELECT @lockResult;
         ";
 
-        var result = await dbContext.Database.SqlQueryRaw<int>(sql).FirstOrDefaultAsync(stoppingToken);
+        // AsAsyncEnumerable() is required because SqlQueryRaw with stored procedures returns non-composable SQL
+        // that cannot have additional operators (like FirstOrDefault's TOP 1) composed on top of it
+        var result = await dbContext.Database.SqlQueryRaw<int>(sql).AsAsyncEnumerable().FirstOrDefaultAsync(stoppingToken);
         return result >= 0;
     }
 }
