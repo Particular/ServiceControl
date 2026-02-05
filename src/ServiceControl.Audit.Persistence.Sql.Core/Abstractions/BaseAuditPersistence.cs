@@ -26,6 +26,5 @@ public abstract class BaseAuditPersistence
         services.AddSingleton<IFailedAuditStorage, EFFailedAuditStorage>();
         services.AddSingleton<IAuditIngestionUnitOfWorkFactory, AuditIngestionUnitOfWorkFactory>();
         services.AddSingleton(TimeProvider.System);
-        services.AddHostedService<RetentionCleaner>();
     }
 }

@@ -22,6 +22,7 @@ class PostgreSqlAuditPersistence : BaseAuditPersistence, IPersistence
         RegisterDataStores(services, settings);
         services.AddSingleton<IAuditFullTextSearchProvider, PostgreSqlAuditFullTextSearchProvider>();
         services.AddHostedService<KnownEndpointsReconciler>();
+        services.AddHostedService<RetentionCleaner>();
     }
 
     public void AddInstaller(IServiceCollection services)

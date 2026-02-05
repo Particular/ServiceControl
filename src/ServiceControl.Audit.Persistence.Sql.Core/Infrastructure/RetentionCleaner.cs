@@ -8,16 +8,17 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-public class RetentionCleaner(
-    ILogger<RetentionCleaner> logger,
+public abstract class RetentionCleaner(
+    ILogger logger,
     TimeProvider timeProvider,
     IServiceScopeFactory serviceScopeFactory,
     AuditSqlPersisterSettings settings,
     IBodyStoragePersistence bodyPersistence) : BackgroundService
 {
+    protected const int BatchSize = 250;
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // NO-OPS per requirements
         logger.LogInformation("Starting {ServiceName}", nameof(RetentionCleaner));
 
         try
@@ -46,25 +47,53 @@ public class RetentionCleaner(
 
     async Task Clean(CancellationToken stoppingToken)
     {
-        var stopwatch = Stopwatch.StartNew();
-        const int batchSize = 250;
-
         using var scope = serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContextBase>();
 
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
+
+        if (!await TryAcquireLock(dbContext, stoppingToken))
+        {
+            logger.LogDebug("Another instance is running retention cleanup, skipping this cycle");
+            return;
+        }
+
+        var stopwatch = Stopwatch.StartNew();
         var cutoff = timeProvider.GetUtcNow().UtcDateTime - settings.AuditRetentionPeriod;
 
         var totalDeletedMessages = 0;
+        var totalDeletedSnapshots = 0;
+
+        try
+        {
+            totalDeletedMessages = await CleanProcessedMessages(dbContext, cutoff, stoppingToken);
+            totalDeletedSnapshots = await CleanSagaSnapshots(dbContext, cutoff, stoppingToken);
+            await transaction.CommitAsync(stoppingToken);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(stoppingToken);
+            throw;
+        }
+
+        logger.LogInformation("Retention cleanup removed {Messages} messages and {Snapshots} saga snapshots in {Elapsed}",
+            totalDeletedMessages, totalDeletedSnapshots, stopwatch.Elapsed.ToString(@"hh\:mm\:ss"));
+    }
+
+    async Task<int> CleanProcessedMessages(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
+    {
+        var totalDeleted = 0;
         int deleted;
 
         do
         {
             // Get a batch of IDs to delete so we can clean up body files
+            // Note: No OrderBy - we just need any expired records, not necessarily the oldest first.
+            // Ordering would require sorting potentially millions of rows and cause timeouts.
             var messageIdsToDelete = await dbContext.ProcessedMessages
                 .Where(m => m.ProcessedAt < cutoff)
-                .OrderBy(m => m.ProcessedAt)
                 .Select(m => m.UniqueMessageId)
-                .Take(batchSize)
+                .Take(BatchSize)
                 .ToListAsync(stoppingToken);
 
             if (messageIdsToDelete.Count == 0)
@@ -80,18 +109,23 @@ public class RetentionCleaner(
                 .Where(m => messageIdsToDelete.Contains(m.UniqueMessageId))
                 .ExecuteDeleteAsync(stoppingToken);
 
-            totalDeletedMessages += deleted;
-        } while (deleted == batchSize);
+            totalDeleted += deleted;
+        } while (deleted == BatchSize);
 
-        var totalDeletedSnapshots = 0;
+        return totalDeleted;
+    }
+
+    async Task<int> CleanSagaSnapshots(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
+    {
+        var totalDeleted = 0;
+        int deleted;
 
         do
         {
             var snapshotIdsToDelete = await dbContext.SagaSnapshots
                 .Where(s => s.ProcessedAt < cutoff)
-                .OrderBy(s => s.ProcessedAt)
                 .Select(s => s.Id)
-                .Take(batchSize)
+                .Take(BatchSize)
                 .ToListAsync(stoppingToken);
 
             if (snapshotIdsToDelete.Count == 0)
@@ -103,9 +137,11 @@ public class RetentionCleaner(
                 .Where(s => snapshotIdsToDelete.Contains(s.Id))
                 .ExecuteDeleteAsync(stoppingToken);
 
-            totalDeletedSnapshots += deleted;
-        } while (deleted == batchSize);
+            totalDeleted += deleted;
+        } while (deleted == BatchSize);
 
-        logger.LogInformation("Retention cleanup removed {Messages} messages and {Snapshots} saga snapshots in {Elapsed}", totalDeletedMessages, totalDeletedSnapshots, stopwatch.Elapsed.ToString(@"hh\:mm\:ss"));
+        return totalDeleted;
     }
+
+    protected abstract Task<bool> TryAcquireLock(AuditDbContextBase dbContext, CancellationToken stoppingToken);
 }

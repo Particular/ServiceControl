@@ -22,6 +22,7 @@ class SqlServerAuditPersistence : BaseAuditPersistence, IPersistence
         RegisterDataStores(services, settings);
         services.AddSingleton<IAuditFullTextSearchProvider, SqlServerAuditFullTextSearchProvider>();
         services.AddHostedService<KnownEndpointsReconciler>();
+        services.AddHostedService<RetentionCleaner>();
     }
 
     public void AddInstaller(IServiceCollection services)
