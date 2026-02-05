@@ -14,6 +14,7 @@
     using NServiceBus.Transport;
     using Persistence;
     using Persistence.UnitOfWork;
+    using ServiceControl.Audit.Persistence.Sql.Core.Infrastructure;
     using ServiceControl.Infrastructure;
     using Transports;
 
@@ -29,6 +30,7 @@
             IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
             IHostApplicationLifetime applicationLifetime,
             IngestionMetrics metrics,
+            IngestionThrottleState throttleState,
             ILogger<AuditIngestion> logger
         )
         {
@@ -40,6 +42,7 @@
             this.settings = settings;
             this.applicationLifetime = applicationLifetime;
             this.metrics = metrics;
+            this.throttleState = throttleState;
             this.logger = logger;
 
             BatchSize = settings.AuditIngestionBatchSize;
@@ -338,20 +341,63 @@
             {
                 await foreach (var batch in batchChannel.Reader.ReadAllAsync(stoppingToken))
                 {
-                    currentBatch = batch;
+                    var currentBatchRef = batch;
+
+                    // Check if this writer should yield due to throttling
+                    // Writers with higher IDs yield first (writer 3 yields before writer 2, etc.)
+                    var currentLimit = throttleState.GetActiveWriterLimit(
+                        MaxParallelWriters,
+                        settings.CleanupThrottleInterval,
+                        settings.MinWritersDuringCleanup);
+
+                    while (writerId >= currentLimit && !stoppingToken.IsCancellationRequested)
+                    {
+                        logger.LogDebug("Writer {WriterId} yielding due to throttle (limit: {Limit})",
+                            writerId, currentLimit);
+
+                        // Put batch back for an active writer to handle
+                        await batchChannel.Writer.WriteAsync(currentBatchRef, stoppingToken);
+
+                        // Wait before checking if throttle has lifted
+                        await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+
+                        // Re-check limit (may have changed or cleanup may have ended)
+                        currentLimit = throttleState.GetActiveWriterLimit(
+                            MaxParallelWriters,
+                            settings.CleanupThrottleInterval,
+                            settings.MinWritersDuringCleanup);
+
+                        // If still throttled, try to get a batch (another writer may have taken ours)
+                        if (writerId >= currentLimit)
+                        {
+                            if (!batchChannel.Reader.TryRead(out currentBatchRef))
+                            {
+                                // No batch available, wait for next one from the outer loop
+                                currentBatchRef = null;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (currentBatchRef == null)
+                    {
+                        continue;
+                    }
+
+                    currentBatch = currentBatchRef;
                     try
                     {
                         using var batchMetrics = metrics.BeginBatch(BatchSize);
 
-                        await auditIngestor.Ingest(batch, stoppingToken);
+                        await auditIngestor.Ingest(currentBatch, stoppingToken);
 
-                        batchMetrics.Complete(batch.Count);
+                        batchMetrics.Complete(currentBatch.Count);
                         currentBatch = null; // Successfully processed
                     }
                     catch (Exception e) when (e is not OperationCanceledException)
                     {
                         // Signal failure to all messages in this batch
-                        foreach (var context in batch)
+                        foreach (var context in currentBatch)
                         {
                             _ = context.GetTaskCompletionSource().TrySetException(e);
                         }
@@ -446,6 +492,7 @@
         readonly Watchdog watchdog;
         readonly IHostApplicationLifetime applicationLifetime;
         readonly IngestionMetrics metrics;
+        readonly IngestionThrottleState throttleState;
         readonly ILogger<AuditIngestion> logger;
 
         internal static class LogMessages

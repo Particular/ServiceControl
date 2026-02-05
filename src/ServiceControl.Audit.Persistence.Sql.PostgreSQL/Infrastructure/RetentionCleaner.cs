@@ -13,8 +13,9 @@ class RetentionCleaner(
     IServiceScopeFactory serviceScopeFactory,
     AuditSqlPersisterSettings settings,
     IBodyStoragePersistence bodyPersistence,
-    RetentionMetrics metrics)
-    : Core.Infrastructure.RetentionCleaner(logger, timeProvider, serviceScopeFactory, settings, bodyPersistence, metrics)
+    RetentionMetrics metrics,
+    IngestionThrottleState throttleState)
+    : Core.Infrastructure.RetentionCleaner(logger, timeProvider, serviceScopeFactory, settings, bodyPersistence, metrics, throttleState)
 {
     protected override async Task<bool> TryAcquireLock(AuditDbContextBase dbContext, CancellationToken stoppingToken)
     {

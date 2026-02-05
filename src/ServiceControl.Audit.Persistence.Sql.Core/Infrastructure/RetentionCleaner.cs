@@ -14,7 +14,8 @@ public abstract class RetentionCleaner(
     IServiceScopeFactory serviceScopeFactory,
     AuditSqlPersisterSettings settings,
     IBodyStoragePersistence bodyPersistence,
-    RetentionMetrics metrics) : BackgroundService
+    RetentionMetrics metrics,
+    IngestionThrottleState throttleState) : BackgroundService
 {
     protected const int BatchSize = 250;
 
@@ -26,7 +27,7 @@ public abstract class RetentionCleaner(
         {
             await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
 
-            using PeriodicTimer timer = new(TimeSpan.FromMinutes(5), timeProvider);
+            using PeriodicTimer timer = new(TimeSpan.FromHours(1), timeProvider);
 
             do
             {
@@ -79,9 +80,20 @@ public abstract class RetentionCleaner(
             }
 
             lockAcquired = true;
-            totalDeletedMessages = await CleanProcessedMessages(dbContext, cutoff, stoppingToken);
-            totalDeletedSnapshots = await CleanSagaSnapshots(dbContext, cutoff, stoppingToken);
-            await transaction.CommitAsync(stoppingToken);
+
+            // Signal cleanup starting - throttling will progressively increase over time
+            throttleState.BeginCleanup();
+            try
+            {
+                totalDeletedMessages = await CleanProcessedMessages(dbContext, cutoff, stoppingToken);
+                totalDeletedSnapshots = await CleanSagaSnapshots(dbContext, cutoff, stoppingToken);
+                await transaction.CommitAsync(stoppingToken);
+            }
+            finally
+            {
+                // Always restore full ingestion capacity when done
+                throttleState.EndCleanup();
+            }
         });
 
         if (lockAcquired)
@@ -126,6 +138,12 @@ public abstract class RetentionCleaner(
 
             batchMetrics.RecordDeleted(deleted);
             totalDeleted += deleted;
+
+            // Delay between batches to reduce contention with ingestion
+            if (deleted == BatchSize)
+            {
+                await Task.Delay(settings.RetentionCleanupBatchDelay, stoppingToken);
+            }
         } while (deleted == BatchSize);
 
         return totalDeleted;
@@ -157,6 +175,12 @@ public abstract class RetentionCleaner(
 
             batchMetrics.RecordDeleted(deleted);
             totalDeleted += deleted;
+
+            // Delay between batches to reduce contention with ingestion
+            if (deleted == BatchSize)
+            {
+                await Task.Delay(settings.RetentionCleanupBatchDelay, stoppingToken);
+            }
         } while (deleted == BatchSize);
 
         return totalDeleted;
