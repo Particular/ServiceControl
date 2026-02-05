@@ -1,0 +1,10 @@
+{
+  packageRules: [
+    {
+      description: "Keep ServiceControl.Management.PowerShell on 8.x",
+      matchFileNames: ["**/ServiceControl.Management.PowerShell.csproj"],
+      matchPackageNames: ["Microsoft.Extensions.DependencyModel"],
+      allowedVersions: "<9.0.0"
+    }
+  ]
+}
