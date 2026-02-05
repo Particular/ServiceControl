@@ -6,46 +6,55 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Indexes
 
     static class IndexDefinitions
     {
-        public static CreateIndexModel<ProcessedMessageDocument>[] ProcessedMessages =>
-        [
-            // Primary sort index for default message listing
-            new(
-                Builders<ProcessedMessageDocument>.IndexKeys.Descending(x => x.ProcessedAt),
-                new CreateIndexOptions { Name = "processedAt_desc" }),
-
-            // Alternative sort by time sent
-            new(
-                Builders<ProcessedMessageDocument>.IndexKeys.Descending("messageMetadata.TimeSent"),
-                new CreateIndexOptions { Name = "timeSent_desc" }),
-
-            // Compound index for filtering by endpoint with processedAt sort
-            new(
-                Builders<ProcessedMessageDocument>.IndexKeys
-                    .Ascending("messageMetadata.ReceivingEndpoint.Name")
-                    .Descending(x => x.ProcessedAt),
-                new CreateIndexOptions { Name = "endpoint_processedAt" }),
-
-            // Conversation queries (sparse since not all messages have conversations)
-            new(
-                Builders<ProcessedMessageDocument>.IndexKeys.Ascending("messageMetadata.ConversationId"),
-                new CreateIndexOptions { Name = "conversationId", Sparse = true }),
-
-            // TTL index for automatic document expiration
-            new(
-                Builders<ProcessedMessageDocument>.IndexKeys.Ascending(x => x.ExpiresAt),
-                new CreateIndexOptions { Name = "ttl_expiry", ExpireAfter = TimeSpan.Zero }),
-
-            // Compound text index for full-text search
-            // Indexes metadata fields directly (no duplication) plus header values and body content
-            new(
-                Builders<ProcessedMessageDocument>.IndexKeys
+        public static CreateIndexModel<ProcessedMessageDocument>[] GetProcessedMessageIndexes(bool enableFullTextSearchOnBodies)
+        {
+            var textIndexKeys = enableFullTextSearchOnBodies
+                ? Builders<ProcessedMessageDocument>.IndexKeys
                     .Text("messageMetadata.MessageId")
                     .Text("messageMetadata.MessageType")
                     .Text("messageMetadata.ConversationId")
                     .Text(x => x.HeaderSearchText)
-                    .Text(x => x.Body),
-                new CreateIndexOptions { Name = "text_search" })
-        ];
+                    .Text(x => x.Body)
+                : Builders<ProcessedMessageDocument>.IndexKeys
+                    .Text("messageMetadata.MessageId")
+                    .Text("messageMetadata.MessageType")
+                    .Text("messageMetadata.ConversationId")
+                    .Text(x => x.HeaderSearchText);
+
+            return
+            [
+                // Primary sort index for default message listing
+                new(
+                    Builders<ProcessedMessageDocument>.IndexKeys.Descending(x => x.ProcessedAt),
+                    new CreateIndexOptions { Name = "processedAt_desc" }),
+
+                // Alternative sort by time sent
+                new(
+                    Builders<ProcessedMessageDocument>.IndexKeys.Descending("messageMetadata.TimeSent"),
+                    new CreateIndexOptions { Name = "timeSent_desc" }),
+
+                // Compound index for filtering by endpoint with processedAt sort
+                new(
+                    Builders<ProcessedMessageDocument>.IndexKeys
+                        .Ascending("messageMetadata.ReceivingEndpoint.Name")
+                        .Descending(x => x.ProcessedAt),
+                    new CreateIndexOptions { Name = "endpoint_processedAt" }),
+
+                // Conversation queries (sparse since not all messages have conversations)
+                new(
+                    Builders<ProcessedMessageDocument>.IndexKeys.Ascending("messageMetadata.ConversationId"),
+                    new CreateIndexOptions { Name = "conversationId", Sparse = true }),
+
+                // TTL index for automatic document expiration
+                new(
+                    Builders<ProcessedMessageDocument>.IndexKeys.Ascending(x => x.ExpiresAt),
+                    new CreateIndexOptions { Name = "ttl_expiry", ExpireAfter = TimeSpan.Zero }),
+
+                // Compound text index for full-text search
+                // Indexes metadata fields directly (no duplication) plus header values (and optionally body content)
+                new(textIndexKeys, new CreateIndexOptions { Name = "text_search" })
+            ];
+        }
 
         public static CreateIndexModel<SagaSnapshotDocument>[] SagaSnapshots =>
         [
