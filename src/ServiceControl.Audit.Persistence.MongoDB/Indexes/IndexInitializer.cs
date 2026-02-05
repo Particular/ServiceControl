@@ -7,7 +7,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Indexes
     using global::MongoDB.Driver;
     using Microsoft.Extensions.Logging;
 
-    class IndexInitializer(IMongoClientProvider clientProvider, ILogger<IndexInitializer> logger)
+    class IndexInitializer(IMongoClientProvider clientProvider, MongoSettings settings, ILogger<IndexInitializer> logger)
     {
         public async Task CreateIndexes(CancellationToken cancellationToken = default)
         {
@@ -15,7 +15,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Indexes
 
             await CreateCollectionIndexes(
                 database.GetCollection<ProcessedMessageDocument>(CollectionNames.ProcessedMessages),
-                IndexDefinitions.ProcessedMessages,
+                IndexDefinitions.GetProcessedMessageIndexes(settings.EnableFullTextSearchOnBodies),
                 cancellationToken).ConfigureAwait(false);
 
             await CreateCollectionIndexes(
