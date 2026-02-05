@@ -58,7 +58,7 @@
     <PackageVersion Include="NUnit3TestAdapter" Version="6.1.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.9.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
-    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0" />
     <PackageVersion Include="Particular.Approvals" Version="2.0.1" />
     <PackageVersion Include="Particular.LicensingComponent.Report" Version="1.0.0" />
     <PackageVersion Include="Particular.Licensing.Sources" Version="6.1.0" />
