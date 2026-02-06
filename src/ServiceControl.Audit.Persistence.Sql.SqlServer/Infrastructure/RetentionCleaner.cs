@@ -19,7 +19,8 @@ class RetentionCleaner(
 {
     protected override async Task<bool> TryAcquireLock(AuditDbContextBase dbContext, CancellationToken stoppingToken)
     {
-        // Use SQL Server's sp_getapplock for distributed locking
+        // Use SQL Server's sp_getapplock with session-level ownership so the lock persists
+        // across multiple transactions within the same connection.
         // LockTimeout = 0 means return immediately if lock cannot be acquired
         // Returns >= 0 on success, < 0 on failure
         var sql = @"
@@ -27,7 +28,7 @@ class RetentionCleaner(
             EXEC @lockResult = sp_getapplock
                 @Resource = 'retention_cleaner',
                 @LockMode = 'Exclusive',
-                @LockOwner = 'Transaction',
+                @LockOwner = 'Session',
                 @LockTimeout = 0;
             SELECT @lockResult;
         ";
@@ -36,5 +37,16 @@ class RetentionCleaner(
         // that cannot have additional operators (like FirstOrDefault's TOP 1) composed on top of it
         var result = await dbContext.Database.SqlQueryRaw<int>(sql).AsAsyncEnumerable().FirstOrDefaultAsync(stoppingToken);
         return result >= 0;
+    }
+
+    protected override async Task ReleaseLock(AuditDbContextBase dbContext, CancellationToken stoppingToken)
+    {
+        var sql = @"
+            EXEC sp_releaseapplock
+                @Resource = 'retention_cleaner',
+                @LockOwner = 'Session';
+        ";
+
+        await dbContext.Database.ExecuteSqlRawAsync(sql, stoppingToken);
     }
 }

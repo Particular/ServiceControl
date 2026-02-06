@@ -55,53 +55,38 @@ public abstract class RetentionCleaner(
         var stopwatch = Stopwatch.StartNew();
         var cutoff = timeProvider.GetUtcNow().UtcDateTime - settings.AuditRetentionPeriod;
 
-        var totalDeletedMessages = 0;
-        var totalDeletedSnapshots = 0;
-        var lockAcquired = false;
-
         using var cycleMetrics = metrics.BeginCleanupCycle();
 
-        // Use execution strategy to handle retrying execution strategies that don't support user-initiated transactions
-        var strategy = dbContext.Database.CreateExecutionStrategy();
-        await strategy.ExecuteAsync(async () =>
+        if (!await TryAcquireLock(dbContext, stoppingToken))
         {
-            // Reset state on each retry attempt to avoid accumulating values across retries
-            totalDeletedMessages = 0;
-            totalDeletedSnapshots = 0;
-            lockAcquired = false;
+            logger.LogDebug("Another instance is running retention cleanup, skipping this cycle");
+            metrics.RecordLockSkipped();
+            return;
+        }
 
-            await using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
-
-            if (!await TryAcquireLock(dbContext, stoppingToken))
-            {
-                logger.LogDebug("Another instance is running retention cleanup, skipping this cycle");
-                metrics.RecordLockSkipped();
-                return;
-            }
-
-            lockAcquired = true;
-
+        try
+        {
             // Signal cleanup starting - throttling will progressively increase over time
             throttleState.BeginCleanup();
             try
             {
-                totalDeletedMessages = await CleanProcessedMessages(dbContext, cutoff, stoppingToken);
-                totalDeletedSnapshots = await CleanSagaSnapshots(dbContext, cutoff, stoppingToken);
-                await transaction.CommitAsync(stoppingToken);
+                var totalDeletedMessages = await CleanProcessedMessages(dbContext, cutoff, stoppingToken);
+                var totalDeletedSnapshots = await CleanSagaSnapshots(dbContext, cutoff, stoppingToken);
+
+                cycleMetrics.Complete();
+
+                logger.LogInformation("Retention cleanup removed {Messages} messages and {Snapshots} saga snapshots in {Elapsed}",
+                    totalDeletedMessages, totalDeletedSnapshots, stopwatch.Elapsed.ToString(@"hh\:mm\:ss"));
             }
             finally
             {
                 // Always restore full ingestion capacity when done
                 throttleState.EndCleanup();
             }
-        });
-
-        if (lockAcquired)
+        }
+        finally
         {
-            cycleMetrics.Complete();
-
-            logger.LogInformation("Retention cleanup removed {Messages} messages and {Snapshots} saga snapshots in {Elapsed}",
-                totalDeletedMessages, totalDeletedSnapshots, stopwatch.Elapsed.ToString(@"hh\:mm\:ss"));
+            await ReleaseLock(dbContext, stoppingToken);
         }
     }
 
@@ -114,34 +99,43 @@ public abstract class RetentionCleaner(
         {
             using var batchMetrics = metrics.BeginBatch(EntityTypes.Message);
 
-            // Get a batch of IDs to delete so we can clean up body files
-            // Note: No OrderBy - we just need any expired records, not necessarily the oldest first.
-            // Ordering would require sorting potentially millions of rows and cause timeouts.
-            var messageIdsToDelete = await dbContext.ProcessedMessages
-                .Where(m => m.ProcessedAt < cutoff)
-                .Select(m => m.UniqueMessageId)
-                .Distinct()
-                .Take(BatchSize)
-                .ToListAsync(stoppingToken);
-
-            if (messageIdsToDelete.Count == 0)
+            var strategy = dbContext.Database.CreateExecutionStrategy();
+            deleted = await strategy.ExecuteAsync(async () =>
             {
-                break;
-            }
+                await using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
-            // Delete body files first
-            await bodyPersistence.DeleteBodies(messageIdsToDelete, stoppingToken);
+                // Get a batch of IDs to delete so we can clean up body files
+                // Note: No OrderBy - we just need any expired records, not necessarily the oldest first.
+                // Ordering would require sorting potentially millions of rows and cause timeouts.
+                var messageIdsToDelete = await dbContext.ProcessedMessages
+                    .Where(m => m.ProcessedAt < cutoff)
+                    .Select(m => m.UniqueMessageId)
+                    .Distinct()
+                    .Take(BatchSize)
+                    .ToListAsync(stoppingToken);
 
-            // Then delete the database records for this batch
-            deleted = await dbContext.ProcessedMessages
-                .Where(m => messageIdsToDelete.Contains(m.UniqueMessageId))
-                .ExecuteDeleteAsync(stoppingToken);
+                if (messageIdsToDelete.Count == 0)
+                {
+                    return 0;
+                }
+
+                // Delete body files first (non-transactional, fire-and-forget)
+                await bodyPersistence.DeleteBodies(messageIdsToDelete, stoppingToken);
+
+                // Then delete the database records for this batch
+                var batchDeleted = await dbContext.ProcessedMessages
+                    .Where(m => messageIdsToDelete.Contains(m.UniqueMessageId))
+                    .ExecuteDeleteAsync(stoppingToken);
+
+                await transaction.CommitAsync(stoppingToken);
+                return batchDeleted;
+            });
 
             batchMetrics.RecordDeleted(deleted);
             totalDeleted += deleted;
 
             // Delay between batches to reduce contention with ingestion
-            if (deleted == BatchSize)
+            if (deleted >= BatchSize)
             {
                 await Task.Delay(settings.RetentionCleanupBatchDelay, stoppingToken);
             }
@@ -159,26 +153,35 @@ public abstract class RetentionCleaner(
         {
             using var batchMetrics = metrics.BeginBatch(EntityTypes.SagaSnapshot);
 
-            var snapshotIdsToDelete = await dbContext.SagaSnapshots
-                .Where(s => s.ProcessedAt < cutoff)
-                .Select(s => s.Id)
-                .Take(BatchSize)
-                .ToListAsync(stoppingToken);
-
-            if (snapshotIdsToDelete.Count == 0)
+            var strategy = dbContext.Database.CreateExecutionStrategy();
+            deleted = await strategy.ExecuteAsync(async () =>
             {
-                break;
-            }
+                await using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
-            deleted = await dbContext.SagaSnapshots
-                .Where(s => snapshotIdsToDelete.Contains(s.Id))
-                .ExecuteDeleteAsync(stoppingToken);
+                var snapshotIdsToDelete = await dbContext.SagaSnapshots
+                    .Where(s => s.ProcessedAt < cutoff)
+                    .Select(s => s.Id)
+                    .Take(BatchSize)
+                    .ToListAsync(stoppingToken);
+
+                if (snapshotIdsToDelete.Count == 0)
+                {
+                    return 0;
+                }
+
+                var batchDeleted = await dbContext.SagaSnapshots
+                    .Where(s => snapshotIdsToDelete.Contains(s.Id))
+                    .ExecuteDeleteAsync(stoppingToken);
+
+                await transaction.CommitAsync(stoppingToken);
+                return batchDeleted;
+            });
 
             batchMetrics.RecordDeleted(deleted);
             totalDeleted += deleted;
 
             // Delay between batches to reduce contention with ingestion
-            if (deleted == BatchSize)
+            if (deleted >= BatchSize)
             {
                 await Task.Delay(settings.RetentionCleanupBatchDelay, stoppingToken);
             }
@@ -188,4 +191,5 @@ public abstract class RetentionCleaner(
     }
 
     protected abstract Task<bool> TryAcquireLock(AuditDbContextBase dbContext, CancellationToken stoppingToken);
+    protected abstract Task ReleaseLock(AuditDbContextBase dbContext, CancellationToken stoppingToken);
 }
