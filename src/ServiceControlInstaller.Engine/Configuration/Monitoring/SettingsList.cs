@@ -30,7 +30,7 @@ namespace ServiceControlInstaller.Engine.Configuration.Monitoring
         public static readonly SettingInfo HttpsEnabled = new()
         {
             Name = "Monitoring/Https.Enabled",
-            SupportedFrom = new SemanticVersion(6, 9, 0)
+            SupportedFrom = new SemanticVersion(6, 11, 0)
         };
 
     }
