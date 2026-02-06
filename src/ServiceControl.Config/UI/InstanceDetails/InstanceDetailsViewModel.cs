@@ -120,7 +120,7 @@
             {
                 if (IsServiceControlInstance)
                 {
-                    if (ServiceControlInstance.EnableEmbeddedServicePulse)
+                    if (ServiceControlInstance.EnableIntegratedServicePulse)
                     {
                         return "SERVICEPULSE";
                     }

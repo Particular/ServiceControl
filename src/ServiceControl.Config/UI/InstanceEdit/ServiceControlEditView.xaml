@@ -234,9 +234,9 @@
                 <controls:FormComboBox HorizontalAlignment="Stretch"
                                            VerticalAlignment="Top"
                                            DisplayMemberPath="Name"
-                                           Header="ENABLE EMBEDDED SERVICEPULSE"
-                                           ItemsSource="{Binding EnableEmbeddedServicePulseOptions}"
-                                           SelectedValue="{Binding EnableEmbeddedServicePulse}" />
+                                           Header="ENABLE INTEGRATED SERVICEPULSE"
+                                           ItemsSource="{Binding EnableIntegratedServicePulseOptions}"
+                                           SelectedValue="{Binding EnableIntegratedServicePulse}" />
             </StackPanel>
         </sie:SharedServiceControlEditorView.SharedContent>
     </sie:SharedServiceControlEditorView>

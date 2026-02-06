@@ -42,7 +42,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.ConnectionString = ConnectionString;
             instance.DatabaseMaintenancePort = Convert.ToInt32(ServiceControl.DatabaseMaintenancePortNumber);
             instance.EnableFullTextSearchOnBodies = ServiceControl.EnableFullTextSearchOnBodies.Value;
-            instance.EnableEmbeddedServicePulse = ServiceControl.EnableEmbeddedServicePulse.Value;
+            instance.EnableIntegratedServicePulse = ServiceControl.EnableIntegratedServicePulse.Value;
         }
 
         public string InstanceName => ServiceControl.InstanceName;
@@ -190,13 +190,13 @@ namespace ServiceControl.Config.UI.InstanceEdit
             set => ServiceControl.EnableFullTextSearchOnBodies = value;
         }
 
-        public IEnumerable<EnableEmbeddedServicePulseOption> EnableEmbeddedServicePulseOptions =>
-            ServiceControl.EnableEmbeddedServicePulseOptions;
+        public IEnumerable<EnableIntegratedServicePulseOption> EnableIntegratedServicePulseOptions =>
+            ServiceControl.EnableIntegratedServicePulseOptions;
 
-        public EnableEmbeddedServicePulseOption EnableEmbeddedServicePulse
+        public EnableIntegratedServicePulseOption EnableIntegratedServicePulse
         {
-            get => ServiceControl.EnableEmbeddedServicePulse;
-            set => ServiceControl.EnableEmbeddedServicePulse = value;
+            get => ServiceControl.EnableIntegratedServicePulse;
+            set => ServiceControl.EnableIntegratedServicePulse = value;
         }
 
         public bool SubmitAttempted { get; set; }

@@ -63,6 +63,7 @@
     <PackageVersion Include="Particular.LicensingComponent.Report" Version="1.0.0" />
     <PackageVersion Include="Particular.Licensing.Sources" Version="6.1.0" />
     <PackageVersion Include="Particular.Obsoletes" Version="1.0.0" />
+    <PackageVersion Include="Particular.ServicePulse.Core" Version="2.5.0-alpha.0.26" />
     <PackageVersion Include="Polly.Core" Version="8.6.5" />
     <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
     <PackageVersion Include="PropertyChanging.Fody" Version="1.31.0" />
@@ -80,7 +81,6 @@
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="10.0.2" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="10.0.2" />
-    <PackageVersion Include="ServicePulse.Core" Version="2.5.0-alpha.0.58" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>

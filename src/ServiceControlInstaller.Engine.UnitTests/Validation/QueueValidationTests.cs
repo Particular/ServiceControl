@@ -21,7 +21,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             public bool ForwardErrorMessages { get; set; }
 
-            public bool EnableEmbeddedServicePulse { get; set; }
+            public bool EnableIntegratedServicePulse { get; set; }
 
             public TimeSpan ErrorRetentionPeriod { get; set; }
 

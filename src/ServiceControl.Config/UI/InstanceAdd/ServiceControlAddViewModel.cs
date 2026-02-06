@@ -220,13 +220,13 @@
             set => ServiceControl.EnableFullTextSearchOnBodies = value;
         }
 
-        public IEnumerable<EnableEmbeddedServicePulseOption> ErrorEnableEmbeddedServicePulseOptions =>
-            ServiceControl.EnableEmbeddedServicePulseOptions;
+        public IEnumerable<EnableIntegratedServicePulseOption> ErrorEnableIntegratedServicePulseOptions =>
+            ServiceControl.EnableIntegratedServicePulseOptions;
 
-        public EnableEmbeddedServicePulseOption ErrorEnableEmbeddedServicePulse
+        public EnableIntegratedServicePulseOption ErrorEnableIntegratedServicePulse
         {
-            get => ServiceControl.EnableEmbeddedServicePulse;
-            set => ServiceControl.EnableEmbeddedServicePulse = value;
+            get => ServiceControl.EnableIntegratedServicePulse;
+            set => ServiceControl.EnableIntegratedServicePulse = value;
         }
 
         /* Add Audit Instance */

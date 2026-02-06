@@ -38,14 +38,14 @@ public class ServiceControlInformation : SharedServiceControlEditorViewModel
                 Value = false
             }
         };
-        EnableEmbeddedServicePulseOptions = new[]
+        EnableIntegratedServicePulseOptions = new[]
         {
-            new EnableEmbeddedServicePulseOption
+            new EnableIntegratedServicePulseOption
             {
                 Name = "On",
                 Value = true
             },
-            new EnableEmbeddedServicePulseOption
+            new EnableIntegratedServicePulseOption
             {
                 Name = "Off",
                 Value = false
@@ -61,7 +61,7 @@ public class ServiceControlInformation : SharedServiceControlEditorViewModel
         PortNumber = "33333";
         DatabaseMaintenancePortNumber = "33334";
         EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.First(p => p.Value); //Default to On.
-        EnableEmbeddedServicePulse = EnableEmbeddedServicePulseOptions.First(p => p.Value); //Default to On.
+        EnableIntegratedServicePulse = EnableIntegratedServicePulseOptions.First(p => p.Value); //Default to On.
         ViewModelParent = viewModelParent;
     }
 
@@ -106,9 +106,9 @@ public class ServiceControlInformation : SharedServiceControlEditorViewModel
 
     public EnableFullTextSearchOnBodiesOption EnableFullTextSearchOnBodies { get; set; }
 
-    public IEnumerable<EnableEmbeddedServicePulseOption> EnableEmbeddedServicePulseOptions { get; }
+    public IEnumerable<EnableIntegratedServicePulseOption> EnableIntegratedServicePulseOptions { get; }
 
-    public EnableEmbeddedServicePulseOption EnableEmbeddedServicePulse { get; set; }
+    public EnableIntegratedServicePulseOption EnableIntegratedServicePulse { get; set; }
 
     protected void UpdateErrorRetention(TimeSpan value)
     {
@@ -140,7 +140,7 @@ public class ServiceControlInformation : SharedServiceControlEditorViewModel
         ErrorForwardingQueueName = instance.ErrorLogQueue;
         UpdateErrorRetention(instance.ErrorRetentionPeriod);
         EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.FirstOrDefault(p => p.Value == instance.EnableFullTextSearchOnBodies);
-        EnableEmbeddedServicePulse = EnableEmbeddedServicePulseOptions.FirstOrDefault(p => p.Value == instance.EnableEmbeddedServicePulse);
+        EnableIntegratedServicePulse = EnableIntegratedServicePulseOptions.FirstOrDefault(p => p.Value == instance.EnableIntegratedServicePulse);
     }
 
     ForwardingOption errorForwarding;

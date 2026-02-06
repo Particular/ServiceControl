@@ -91,7 +91,7 @@
 
         public bool ForwardErrorMessages { get; set; }
 
-        public bool EnableEmbeddedServicePulse { get; set; }
+        public bool EnableIntegratedServicePulse { get; set; }
 
         public TransportInfo TransportPackage { get; set; }
 
