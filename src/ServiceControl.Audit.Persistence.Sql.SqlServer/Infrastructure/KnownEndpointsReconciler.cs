@@ -37,10 +37,15 @@ class KnownEndpointsReconciler(
             OUTPUT DELETED.KnownEndpointId, DELETED.Name, DELETED.HostId, DELETED.Host, DELETED.LastSeen
             INTO @deleted;
 
-            WITH aggregated AS (
-                SELECT KnownEndpointId, Name, HostId, Host, MAX(LastSeen) AS LastSeen
+            WITH ranked AS (
+                SELECT KnownEndpointId, Name, HostId, Host, LastSeen,
+                       ROW_NUMBER() OVER (PARTITION BY KnownEndpointId ORDER BY LastSeen DESC) AS rn
                 FROM @deleted
-                GROUP BY KnownEndpointId, Name, HostId, Host
+            ),
+            aggregated AS (
+                SELECT KnownEndpointId, Name, HostId, Host, LastSeen
+                FROM ranked
+                WHERE rn = 1
             )
             MERGE INTO KnownEndpoints AS target
             USING aggregated AS source
