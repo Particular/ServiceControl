@@ -52,8 +52,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.dll.config;nsb*.txt"
-      DirExclude=".db;.logs" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl" />
+    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.dll.config;nsb*.txt" DirExclude=".db;.logs" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl" />
   </ItemGroup>
 
   <ItemGroup>
