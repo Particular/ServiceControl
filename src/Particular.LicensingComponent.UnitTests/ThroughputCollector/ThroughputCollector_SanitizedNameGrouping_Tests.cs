@@ -35,7 +35,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
                 .WithThroughput(data: [60])
             .Build();
 
-        var throughputCollector = new ThroughputCollector(DataStore, configuration.ThroughputSettings, configuration.AuditQuery, configuration.MonitoringService, new BrokerThroughputQuery_WithLowerCaseSanitizedNameCleanse());
+        var throughputCollector = new ThroughputCollector(DataStore, configuration.ThroughputSettings, configuration.AuditQuery, configuration.MonitoringService, [], new BrokerThroughputQuery_WithLowerCaseSanitizedNameCleanse());
 
         // Act
         var summary = await throughputCollector.GetThroughputSummary(default);
@@ -61,7 +61,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
                 .WithThroughput(data: [60])
             .Build();
 
-        var throughputCollector = new ThroughputCollector(DataStore, configuration.ThroughputSettings, configuration.AuditQuery, configuration.MonitoringService, new BrokerThroughputQuery_WithLowerCaseSanitizedNameCleanse());
+        var throughputCollector = new ThroughputCollector(DataStore, configuration.ThroughputSettings, configuration.AuditQuery, configuration.MonitoringService, [], new BrokerThroughputQuery_WithLowerCaseSanitizedNameCleanse());
 
         // Act
         var report = await throughputCollector.GenerateThroughputReport(null, null, default);
@@ -88,7 +88,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
                 .WithThroughput(data: [60])
             .Build();
 
-        var throughputCollector = new ThroughputCollector(DataStore, configuration.ThroughputSettings, configuration.AuditQuery, configuration.MonitoringService, new BrokerThroughputQuery_WithNoSanitizedNameCleanse());
+        var throughputCollector = new ThroughputCollector(DataStore, configuration.ThroughputSettings, configuration.AuditQuery, configuration.MonitoringService, [], new BrokerThroughputQuery_WithNoSanitizedNameCleanse());
 
         // Act
         var summary = await throughputCollector.GetThroughputSummary(default);
@@ -114,7 +114,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
                 .WithThroughput(data: [60])
             .Build();
 
-        var throughputCollector = new ThroughputCollector(DataStore, configuration.ThroughputSettings, configuration.AuditQuery, configuration.MonitoringService, new BrokerThroughputQuery_WithNoSanitizedNameCleanse());
+        var throughputCollector = new ThroughputCollector(DataStore, configuration.ThroughputSettings, configuration.AuditQuery, configuration.MonitoringService, [], new BrokerThroughputQuery_WithNoSanitizedNameCleanse());
 
         // Act
         var report = await throughputCollector.GenerateThroughputReport(null, null, default);
