@@ -1,0 +1,25 @@
+{
+  "Name": "SqlServer",
+  "DisplayName": "SQL Server",
+  "Description": "SQL Server ServiceControl Audit persister",
+  "AssemblyName": "ServiceControl.Audit.Persistence.Sql.SqlServer",
+  "TypeName": "ServiceControl.Audit.Persistence.Sql.SqlServer.SqlServerAuditPersistenceConfiguration, ServiceControl.Audit.Persistence.Sql.SqlServer",
+  "Settings": [
+    {
+      "Name": "ServiceControl.Audit/Database/ConnectionString",
+      "Mandatory": true
+    },
+    {
+      "Name": "ServiceControl.Audit/Database/CommandTimeout",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl.Audit/MessageBody/StoragePath",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl.Audit/MessageBody/MinCompressionSize",
+      "Mandatory": false
+    }
+  ]
+}

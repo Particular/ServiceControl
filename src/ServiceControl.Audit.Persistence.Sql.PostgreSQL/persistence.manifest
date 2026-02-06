@@ -1,0 +1,25 @@
+{
+  "Name": "PostgreSQL",
+  "DisplayName": "PostgreSQL",
+  "Description": "PostgreSQL ServiceControl Audit persister",
+  "AssemblyName": "ServiceControl.Audit.Persistence.Sql.PostgreSQL",
+  "TypeName": "ServiceControl.Audit.Persistence.Sql.PostgreSQL.PostgreSqlAuditPersistenceConfiguration, ServiceControl.Audit.Persistence.Sql.PostgreSQL",
+  "Settings": [
+    {
+      "Name": "ServiceControl.Audit/Database/ConnectionString",
+      "Mandatory": true
+    },
+    {
+      "Name": "ServiceControl.Audit/Database/CommandTimeout",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl.Audit/MessageBody/StoragePath",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl.Audit/MessageBody/MinCompressionSize",
+      "Mandatory": false
+    }
+  ]
+}

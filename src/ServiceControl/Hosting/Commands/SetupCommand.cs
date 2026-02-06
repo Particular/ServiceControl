@@ -1,7 +1,10 @@
 ﻿namespace ServiceControl.Hosting.Commands
 {
+    using System;
+    using System.IO;
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Particular.ServiceControl;
@@ -9,6 +12,7 @@
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Persistence;
     using Transports;
 
     class SetupCommand : AbstractCommand
@@ -34,9 +38,10 @@
 
             await host.StartAsync();
 
+            var logger = LoggerUtil.CreateStaticLogger<SetupCommand>();
             if (args.SkipQueueCreation)
             {
-                LoggerUtil.CreateStaticLogger<SetupCommand>().LogInformation("Skipping queue creation");
+                logger.LogInformation("Skipping queue creation");
             }
             else
             {
@@ -46,6 +51,23 @@
 
                 await transportCustomization.ProvisionQueues(transportSettings, componentSetupContext.Queues);
             }
+
+            // Create message body storage directory if it doesn't exist
+            var persistenceSettings = host.Services.GetRequiredService<PersistenceSettings>();
+            if (!string.IsNullOrEmpty(persistenceSettings.MessageBodyStoragePath))
+            {
+                if (!Directory.Exists(persistenceSettings.MessageBodyStoragePath))
+                {
+                    logger.LogInformation("Creating message body storage directory: {StoragePath}", persistenceSettings.MessageBodyStoragePath);
+                    Directory.CreateDirectory(persistenceSettings.MessageBodyStoragePath);
+                }
+            }
+            else
+            {
+                throw new Exception("Message body storage path is not configured.");
+            }
+
+            await host.Services.GetRequiredService<IDatabaseMigrator>().ApplyMigrations();
 
             await host.StopAsync();
         }
