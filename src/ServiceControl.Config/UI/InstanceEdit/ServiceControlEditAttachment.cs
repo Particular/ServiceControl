@@ -70,6 +70,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.DatabaseMaintenancePort = !string.IsNullOrWhiteSpace(viewModel.ServiceControl.DatabaseMaintenancePortNumber) ? Convert.ToInt32(viewModel.ServiceControl.DatabaseMaintenancePortNumber) : null;
             instance.VirtualDirectory = null;
             instance.ForwardErrorMessages = viewModel.ServiceControl.ErrorForwarding.Value;
+            instance.EnableIntegratedServicePulse = viewModel.ServiceControl.EnableIntegratedServicePulse.Value;
             instance.ErrorQueue = viewModel.ServiceControl.ErrorQueueName;
             instance.ErrorLogQueue = viewModel.ServiceControl.ErrorForwardingQueueName;
             instance.ErrorRetentionPeriod = viewModel.ServiceControl.ErrorRetentionPeriod;

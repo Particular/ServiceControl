@@ -2656,6 +2656,13 @@
           <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
         </command:parameter>
         <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>EnableIntegratedServicePulse</maml:name>
+          <maml:description>
+            <maml:para>Enable the integrated version of ServicePulse that ships with ServiceControl.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
           <maml:name>Force</maml:name>
           <maml:description>
             <maml:para>Force the installation even if the directories specified are not empty</maml:para>
@@ -2942,6 +2949,18 @@
         </dev:type>
         <dev:defaultValue></dev:defaultValue>
       </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>EnableIntegratedServicePulse</maml:name>
+        <maml:description>
+          <maml:para>Enable the integrated version of ServicePulse that ships with ServiceControl</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue></dev:defaultValue>
+      </command:parameter>
     </command:parameters>
     <command:inputTypes>
       <command:inputType>
@@ -2998,7 +3017,8 @@
           -DisplayName &apos;ServiceControl Test&apos; `
           -AuditRetentionPeriod $AuditRetention `
           -ErrorRetentionPeriod $ErrorRetention `
-          -ForwardErrorMessages:$false
+          -ForwardErrorMessages:$false `
+          -EnableIntegratedServicePulse
         </dev:code>
         <dev:remarks>
           <maml:para>Add a servicecontrol instance</maml:para>

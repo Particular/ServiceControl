@@ -137,7 +137,7 @@
         <GroupBox Grid.Row="4"
                   Grid.Column="1"
                   Visibility="{Binding HasBrowsableUrl, Converter={StaticResource boolToVis}}"
-                  Header="URL"
+                  Header="{Binding UrlHeading}"
                   HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding BrowsableUrl}">
                 <Hyperlink.ContextMenu>
