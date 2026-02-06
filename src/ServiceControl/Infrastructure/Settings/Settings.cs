@@ -66,11 +66,11 @@ namespace ServiceBus.Management.Infrastructure.Settings
             MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
             RetryHistoryDepth = SettingsReader.Read(SettingsRootNamespace, "RetryHistoryDepth", 10);
             AllowMessageEditing = SettingsReader.Read<bool>(SettingsRootNamespace, "AllowMessageEditing");
-            EnableEmbeddedServicePulse = SettingsReader.Read(SettingsRootNamespace, "EnableEmbeddedServicePulse", false);
+            EnableIntegratedServicePulse = SettingsReader.Read(SettingsRootNamespace, "EnableIntegratedServicePulse", false);
             ServicePulseSettings = ServicePulseSettings.GetFromEnvironmentVariables() with
             {
                 ServiceControlUrl = $"{ApiUrl}/",
-                IsEmbedded = true
+                IsIntegrated = true
             };
             NotificationsFilter = SettingsReader.Read<string>(SettingsRootNamespace, "NotificationsFilter");
             RemoteInstances = GetRemoteInstances().ToArray();
@@ -110,7 +110,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool AllowMessageEditing { get; set; }
 
-        public bool EnableEmbeddedServicePulse { get; set; }
+        public bool EnableIntegratedServicePulse { get; set; }
         public ServicePulseSettings ServicePulseSettings { get; set; }
 
         //HINT: acceptance tests only

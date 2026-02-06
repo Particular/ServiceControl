@@ -114,16 +114,16 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             RemovedFrom = new SemanticVersion(6, 5, 0)
         };
 
-        public static readonly SettingInfo EnableEmbeddedServicePulse = new()
+        public static readonly SettingInfo EnableIntegratedServicePulse = new()
         {
-            Name = "ServiceControl/EnableEmbeddedServicePulse",
-            SupportedFrom = new SemanticVersion(6, 9, 0)
+            Name = "ServiceControl/EnableIntegratedServicePulse",
+            SupportedFrom = new SemanticVersion(6, 12, 0)
         };
 
         public static readonly SettingInfo HttpsEnabled = new()
         {
             Name = "ServiceControl/Https.Enabled",
-            SupportedFrom = new SemanticVersion(6, 9, 0)
+            SupportedFrom = new SemanticVersion(6, 11, 0)
         };
     }
 }

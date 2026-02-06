@@ -257,9 +257,9 @@
                                 <controls:FormComboBox HorizontalAlignment="Stretch"
                                                VerticalAlignment="Top"
                                                DisplayMemberPath="Name"
-                                               Header="ENABLE EMBEDDED SERVICEPULSE"
-                                               ItemsSource="{Binding ErrorEnableEmbeddedServicePulseOptions}"
-                                               SelectedValue="{Binding ErrorEnableEmbeddedServicePulse}" />
+                                               Header="ENABLE INTEGRATED SERVICEPULSE"
+                                               ItemsSource="{Binding ErrorEnableIntegratedServicePulseOptions}"
+                                               SelectedValue="{Binding ErrorEnableIntegratedServicePulse}" />
                             </StackPanel>
                         </Expander>
                     </Grid>

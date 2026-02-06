@@ -85,7 +85,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public TimeSpan ErrorRetentionPeriod { get; set; }
         public bool SkipQueueCreation { get; set; }
         public bool EnableFullTextSearchOnBodies { get; set; }
-        public bool EnableEmbeddedServicePulse { get; set; }
+        public bool EnableIntegratedServicePulse { get; set; }
         public bool HttpsEnabled { get; set; }
 
         protected abstract string BaseServiceName { get; }
@@ -96,7 +96,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                var suffix = EnableEmbeddedServicePulse ? "" : "api/";
+                var suffix = EnableIntegratedServicePulse ? "" : "api/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
                     return $"{UrlScheme}://{HostName}:{Port}/{suffix}";
@@ -110,7 +110,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                var suffix = EnableEmbeddedServicePulse ? "" : "api/";
+                var suffix = EnableIntegratedServicePulse ? "" : "api/";
                 string host = HostName switch
                 {
                     "*" => "localhost",

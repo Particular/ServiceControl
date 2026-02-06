@@ -10,7 +10,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public int? MaintenancePort { get; set; }
         public bool SkipQueueCreation { get; set; }
         public string RemoteUrl { get; set; }
-        public bool EnableEmbeddedServicePulse { get; set; }
+        public bool EnableIntegratedServicePulse { get; set; }
         public bool Force { get; set; }
 
         public void ApplyChangesToInstance(ServiceControlBaseService instance)
@@ -54,7 +54,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
 
             instance.SkipQueueCreation = SkipQueueCreation;
-            instance.EnableEmbeddedServicePulse = EnableEmbeddedServicePulse;
+            instance.EnableIntegratedServicePulse = EnableIntegratedServicePulse;
         }
 
         void ApplyChangesTo(ServiceControlAuditInstance instance)
