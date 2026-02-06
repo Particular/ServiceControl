@@ -120,6 +120,7 @@ public abstract class RetentionCleaner(
             var messageIdsToDelete = await dbContext.ProcessedMessages
                 .Where(m => m.ProcessedAt < cutoff)
                 .Select(m => m.UniqueMessageId)
+                .Distinct()
                 .Take(BatchSize)
                 .ToListAsync(stoppingToken);
 
@@ -144,7 +145,7 @@ public abstract class RetentionCleaner(
             {
                 await Task.Delay(settings.RetentionCleanupBatchDelay, stoppingToken);
             }
-        } while (deleted == BatchSize);
+        } while (deleted >= BatchSize);
 
         return totalDeleted;
     }
@@ -181,7 +182,7 @@ public abstract class RetentionCleaner(
             {
                 await Task.Delay(settings.RetentionCleanupBatchDelay, stoppingToken);
             }
-        } while (deleted == BatchSize);
+        } while (deleted >= BatchSize);
 
         return totalDeleted;
     }
