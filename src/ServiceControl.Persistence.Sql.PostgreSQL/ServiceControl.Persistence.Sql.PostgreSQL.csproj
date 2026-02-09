@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Persistence.Sql.Core\ServiceControl.Persistence.Sql.Core.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" />
+    <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
+    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
+    <ProjectReference Include="..\ServiceControl.DomainEvents\ServiceControl.DomainEvents.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="persistence.manifest" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

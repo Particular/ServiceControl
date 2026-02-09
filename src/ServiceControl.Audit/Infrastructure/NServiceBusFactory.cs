@@ -46,10 +46,10 @@ namespace ServiceControl.Audit.Infrastructure
                 routing.RouteToEndpoint(typeof(RegisterNewEndpoint), serviceControlLogicalQueue);
                 routing.RouteToEndpoint(typeof(MarkMessageFailureResolvedByRetry), serviceControlLogicalQueue);
 
-                configuration.ReportCustomChecksTo(
-                    transportCustomization.ToTransportQualifiedQueueName(settings.ServiceControlQueueAddress),
-                    TimeSpan.FromMinutes(1) // Prevent clock skew issues, overrides calculated TTL due to some custom check using short reporting intervals (i.e. 5s results in 20s TTL)
-                );
+                // configuration.ReportCustomChecksTo(
+                //     transportCustomization.ToTransportQualifiedQueueName(settings.ServiceControlQueueAddress),
+                //     TimeSpan.FromMinutes(1) // Prevent clock skew issues, overrides calculated TTL due to some custom check using short reporting intervals (i.e. 5s results in 20s TTL)
+                // );
             }
 
             configuration.GetSettings().Set(settings.LoggingSettings);

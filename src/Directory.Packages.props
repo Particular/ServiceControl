@@ -9,6 +9,7 @@
     <PackageVersion Include="Azure.Identity" Version="1.17.1" />
     <PackageVersion Include="Azure.Monitor.Query.Metrics" Version="1.0.0" />
     <PackageVersion Include="Azure.ResourceManager.ServiceBus" Version="1.1.0" />
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.27.0" />
     <PackageVersion Include="ByteSize" Version="2.1.2" />
     <PackageVersion Include="Caliburn.Micro" Version="4.0.230" />
     <PackageVersion Include="DnsClient" Version="1.8.0" />
@@ -20,6 +21,10 @@
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.2" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.2" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
@@ -52,6 +57,7 @@
     <PackageVersion Include="NServiceBus.Transport.Msmq.Sources" Version="4.0.0" />
     <PackageVersion Include="NServiceBus.Transport.PostgreSql" Version="9.0.0" />
     <PackageVersion Include="NServiceBus.Transport.SqlServer" Version="9.0.0" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageVersion Include="NuGet.Versioning" Version="6.14.0" />
     <PackageVersion Include="NUnit" Version="4.4.0" />
     <PackageVersion Include="NUnit.Analyzers" Version="4.11.2" />
