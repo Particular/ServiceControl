@@ -14,7 +14,17 @@ class SqlServerAuditDatabaseMigrator(
     {
         logger.LogInformation("Starting SQL Server database migration for Audit");
 
-        await dbContext.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
+        var originalTimeout = dbContext.Database.GetCommandTimeout();
+        dbContext.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
+        try
+        {
+            await dbContext.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            dbContext.Database.SetCommandTimeout(originalTimeout);
+        }
 
         logger.LogInformation("SQL Server database migration completed for Audit");
     }

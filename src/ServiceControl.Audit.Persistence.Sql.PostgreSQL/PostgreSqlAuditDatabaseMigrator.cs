@@ -14,7 +14,17 @@ class PostgreSqlAuditDatabaseMigrator(
     {
         logger.LogInformation("Starting PostgreSQL database migration for Audit");
 
-        await dbContext.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
+        var originalTimeout = dbContext.Database.GetCommandTimeout();
+        dbContext.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
+        try
+        {
+            await dbContext.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            dbContext.Database.SetCommandTimeout(originalTimeout);
+        }
 
         logger.LogInformation("PostgreSQL database migration completed for Audit");
     }
