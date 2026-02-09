@@ -40,6 +40,6 @@ class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedMessageE
         builder.HasIndex(e => e.ProcessedAt);
 
         builder.Property(e => e.BatchId).IsRequired();
-        builder.HasIndex(e => e.BatchId);
+        builder.HasIndex(e => new { e.BatchId, e.ProcessedAt });
     }
 }

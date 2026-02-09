@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiceControl.Audit.Persistence.Sql.PostgreSQL;
@@ -11,9 +12,11 @@ using ServiceControl.Audit.Persistence.Sql.PostgreSQL;
 namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 {
     [DbContext(typeof(PostgreSqlAuditDbContext))]
-    partial class PostgreSqlAuditDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260209075207_RestoreCompositeRetentionIndex")]
+    partial class RestoreCompositeRetentionIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
