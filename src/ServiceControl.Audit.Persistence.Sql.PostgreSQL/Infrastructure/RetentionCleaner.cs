@@ -43,35 +43,31 @@ class RetentionCleaner(
         await command.ExecuteNonQueryAsync(stoppingToken);
     }
 
-    protected override async Task<List<Guid>> DeleteExpiredMessages(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
+    protected override async Task<List<Guid>> FindExpiredMessageBatches(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
     {
-        // Single server-side statement using RETURNING to capture batch IDs of deleted rows.
         var sql = """
-            DELETE FROM "ProcessedMessages"
-            WHERE ctid IN (
-                SELECT ctid FROM "ProcessedMessages"
-                WHERE "ProcessedAt" < {0}
-                LIMIT {1}
-            )
-            RETURNING "BatchId"
+            SELECT "BatchId"
+            FROM "ProcessedMessages"
+            GROUP BY "BatchId"
+            HAVING MAX("ProcessedAt") < {0}
+            LIMIT 10
             """;
 
-        return await dbContext.Database.SqlQueryRaw<Guid>(sql, cutoff, BatchSize)
+        return await dbContext.Database.SqlQueryRaw<Guid>(sql, cutoff)
             .ToListAsync(stoppingToken);
     }
 
-    protected override async Task<int> DeleteExpiredSagaSnapshots(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
+    protected override async Task<List<Guid>> FindExpiredSagaSnapshotBatches(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
     {
-        return await dbContext.Database.ExecuteSqlRawAsync(
-            """
-            DELETE FROM "SagaSnapshots"
-            WHERE ctid IN (
-                SELECT ctid FROM "SagaSnapshots"
-                WHERE "ProcessedAt" < {0}
-                LIMIT {1}
-            )
-            """,
-            [cutoff, BatchSize],
-            stoppingToken);
+        var sql = """
+            SELECT "BatchId"
+            FROM "SagaSnapshots"
+            GROUP BY "BatchId"
+            HAVING MAX("ProcessedAt") < {0}
+            LIMIT 10
+            """;
+
+        return await dbContext.Database.SqlQueryRaw<Guid>(sql, cutoff)
+            .ToListAsync(stoppingToken);
     }
 }

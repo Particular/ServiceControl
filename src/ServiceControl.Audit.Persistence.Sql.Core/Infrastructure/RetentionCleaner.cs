@@ -18,15 +18,13 @@ public abstract class RetentionCleaner(
     RetentionMetrics metrics,
     IngestionThrottleState throttleState) : BackgroundService
 {
-    protected const int BatchSize = 1000;
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Starting {ServiceName}", nameof(RetentionCleaner));
 
         try
         {
-            await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
+            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
 
             using PeriodicTimer timer = new(TimeSpan.FromHours(1), timeProvider);
 
@@ -103,46 +101,34 @@ public abstract class RetentionCleaner(
     async Task<int> CleanProcessedMessages(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
     {
         var totalDeleted = 0;
-        int deleted;
-        var affectedBatchIds = new HashSet<Guid>();
 
         do
         {
-            using var batchMetrics = metrics.BeginBatch(EntityTypes.Message);
-
-            // Delete expired messages and capture the distinct batch IDs of deleted rows
-            // in a single server-side operation (using OUTPUT/RETURNING clauses).
-            // This avoids any separate SELECT query against the large table.
-            var deletedBatchIds = await DeleteExpiredMessages(dbContext, cutoff, stoppingToken);
-            deleted = deletedBatchIds.Count;
-
-            foreach (var batchId in deletedBatchIds)
+            // Find a small number of fully expired batches. This query is efficient because
+            // the IX_ProcessedMessages_BatchId_ProcessedAt index allows SQL Server to walk
+            // through batch groups and check MAX(ProcessedAt) per group. TOP 10 means it
+            // stops as soon as it finds 10 qualifying batches.
+            var expiredBatchIds = await FindExpiredMessageBatches(dbContext, cutoff, stoppingToken);
+            if (expiredBatchIds.Count == 0)
             {
-                affectedBatchIds.Add(batchId);
+                break;
             }
 
-            batchMetrics.RecordDeleted(deleted);
-            totalDeleted += deleted;
+            // Delete body storage for this batch first
+            await bodyPersistence.DeleteBatches(expiredBatchIds, stoppingToken);
 
-            if (deleted > 0)
+            foreach (var batchId in expiredBatchIds)
             {
-                await Task.Delay(settings.RetentionCleanupBatchDelay, stoppingToken);
-            }
-        } while (deleted > 0);
+                // Delete all messages in this batch
+                var deleted = await dbContext.ProcessedMessages
+                    .Where(m => m.BatchId == batchId)
+                    .ExecuteDeleteAsync(stoppingToken);
 
-        // Clean up body storage for batches that no longer have any messages in the DB.
-        // Each AnyAsync call does a single index seek on IX_ProcessedMessages_BatchId_ProcessedAt
-        // and returns immediately on first row found, so this is cheap even for large tables.
-        foreach (var batchId in affectedBatchIds)
-        {
-            var stillInUse = await dbContext.ProcessedMessages
-                .AnyAsync(m => m.BatchId == batchId, stoppingToken);
-
-            if (!stillInUse)
-            {
-                await bodyPersistence.DeleteBatches([batchId], stoppingToken);
+                totalDeleted += deleted;
             }
-        }
+
+            await Task.Delay(settings.RetentionCleanupBatchDelay, stoppingToken);
+        } while (true);
 
         return totalDeleted;
     }
@@ -150,22 +136,26 @@ public abstract class RetentionCleaner(
     async Task<int> CleanSagaSnapshots(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
     {
         var totalDeleted = 0;
-        int deleted;
 
         do
         {
-            using var batchMetrics = metrics.BeginBatch(EntityTypes.SagaSnapshot);
-
-            deleted = await DeleteExpiredSagaSnapshots(dbContext, cutoff, stoppingToken);
-
-            batchMetrics.RecordDeleted(deleted);
-            totalDeleted += deleted;
-
-            if (deleted > 0)
+            var expiredBatchIds = await FindExpiredSagaSnapshotBatches(dbContext, cutoff, stoppingToken);
+            if (expiredBatchIds.Count == 0)
             {
+                break;
+            }
+
+            foreach (var batchId in expiredBatchIds)
+            {
+                var deleted = await dbContext.SagaSnapshots
+                    .Where(s => s.BatchId == batchId)
+                    .ExecuteDeleteAsync(stoppingToken);
+
+                totalDeleted += deleted;
+
                 await Task.Delay(settings.RetentionCleanupBatchDelay, stoppingToken);
             }
-        } while (deleted > 0);
+        } while (true);
 
         return totalDeleted;
     }
@@ -173,10 +163,6 @@ public abstract class RetentionCleaner(
     protected abstract DbConnection CreateLockConnection();
     protected abstract Task<bool> TryAcquireLock(DbConnection lockConnection, CancellationToken stoppingToken);
     protected abstract Task ReleaseLock(DbConnection lockConnection, CancellationToken stoppingToken);
-    /// <summary>
-    /// Deletes a batch of expired messages and returns the distinct batch IDs of the deleted rows.
-    /// The count of items in the returned list represents how many rows were deleted.
-    /// </summary>
-    protected abstract Task<List<Guid>> DeleteExpiredMessages(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken);
-    protected abstract Task<int> DeleteExpiredSagaSnapshots(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken);
+    protected abstract Task<List<Guid>> FindExpiredMessageBatches(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken);
+    protected abstract Task<List<Guid>> FindExpiredSagaSnapshotBatches(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken);
 }
