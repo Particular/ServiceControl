@@ -17,11 +17,13 @@ using ServiceControl.SagaAudit;
 class AuditIngestionUnitOfWork(
     AuditDbContextBase dbContext,
     IBodyStoragePersistence bodyPersistence,
-    AuditSqlPersisterSettings settings
+    AuditSqlPersisterSettings settings,
+    BatchIdGenerator batchIdGenerator
  )
     : IAuditIngestionUnitOfWork
 {
     readonly List<Task> bodyStorageTasks = [];
+    readonly Guid batchId = batchIdGenerator.CurrentBatchId;
     // Large object heap starts above 85000 bytes
     const int LargeObjectHeapThreshold = 85_000;
     static readonly Encoding Utf8 = new UTF8Encoding(true, true);
@@ -30,6 +32,7 @@ class AuditIngestionUnitOfWork(
     {
         var entity = new ProcessedMessageEntity
         {
+            BatchId = batchId,
             UniqueMessageId = processedMessage.UniqueMessageId,
             HeadersJson = JsonSerializer.Serialize(processedMessage.Headers, ProcessedMessageJsonContext.Default.DictionaryStringString),
             ProcessedAt = processedMessage.ProcessedAt,
@@ -65,7 +68,7 @@ class AuditIngestionUnitOfWork(
             var contentType = GetContentType(processedMessage.Headers, MediaTypeNames.Text.Plain);
 
             // Queue body storage to run in parallel, awaited in DisposeAsync
-            bodyStorageTasks.Add(bodyPersistence.WriteBodyAsync(processedMessage.UniqueMessageId, body, contentType, cancellationToken));
+            bodyStorageTasks.Add(bodyPersistence.WriteBodyAsync(processedMessage.UniqueMessageId, body, contentType, batchId, cancellationToken));
         }
     }
 
@@ -73,6 +76,7 @@ class AuditIngestionUnitOfWork(
     {
         var entity = new SagaSnapshotEntity
         {
+            BatchId = batchId,
             SagaId = sagaSnapshot.SagaId,
             SagaType = sagaSnapshot.SagaType,
             StartTime = sagaSnapshot.StartTime,

@@ -104,27 +104,27 @@ public abstract class RetentionCleaner(
             {
                 await using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
-                // Get a batch of IDs to delete so we can clean up body files
-                // Note: No OrderBy - we just need any expired records, not necessarily the oldest first.
-                // Ordering would require sorting potentially millions of rows and cause timeouts.
-                var messageIdsToDelete = await dbContext.ProcessedMessages
-                    .Where(m => m.ProcessedAt < cutoff)
-                    .Select(m => m.UniqueMessageId)
-                    .Distinct()
+                // Get BatchIds where ALL messages are expired (using MAX(ProcessedAt))
+                // This ensures we only delete complete batches, not partial batches
+                var expiredBatchIds = await dbContext.ProcessedMessages
+                    .GroupBy(m => m.BatchId)
+                    .Select(g => new { BatchId = g.Key, LatestProcessedAt = g.Max(m => m.ProcessedAt) })
+                    .Where(b => b.LatestProcessedAt < cutoff)
+                    .Select(b => b.BatchId)
                     .Take(BatchSize)
                     .ToListAsync(stoppingToken);
 
-                if (messageIdsToDelete.Count == 0)
+                if (expiredBatchIds.Count == 0)
                 {
                     return 0;
                 }
 
-                // Delete body files first (non-transactional, fire-and-forget)
-                await bodyPersistence.DeleteBodies(messageIdsToDelete, stoppingToken);
+                // Delete body folders first (non-transactional, fire-and-forget)
+                await bodyPersistence.DeleteBatches(expiredBatchIds, stoppingToken);
 
-                // Then delete the database records for this batch
+                // Delete database records for these batches
                 var batchDeleted = await dbContext.ProcessedMessages
-                    .Where(m => messageIdsToDelete.Contains(m.UniqueMessageId))
+                    .Where(m => expiredBatchIds.Contains(m.BatchId))
                     .ExecuteDeleteAsync(stoppingToken);
 
                 await transaction.CommitAsync(stoppingToken);
@@ -135,11 +135,11 @@ public abstract class RetentionCleaner(
             totalDeleted += deleted;
 
             // Delay between batches to reduce contention with ingestion
-            if (deleted >= BatchSize)
+            if (deleted > 0)
             {
                 await Task.Delay(settings.RetentionCleanupBatchDelay, stoppingToken);
             }
-        } while (deleted >= BatchSize);
+        } while (deleted > 0);
 
         return totalDeleted;
     }
@@ -158,19 +158,24 @@ public abstract class RetentionCleaner(
             {
                 await using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
-                var snapshotIdsToDelete = await dbContext.SagaSnapshots
-                    .Where(s => s.ProcessedAt < cutoff)
-                    .Select(s => s.Id)
+                // Get BatchIds where all snapshots are expired
+                var expiredBatchIds = await dbContext.SagaSnapshots
+                    .GroupBy(s => s.BatchId)
+                    .Select(g => new { BatchId = g.Key, LatestProcessedAt = g.Max(s => s.ProcessedAt) })
+                    .Where(b => b.LatestProcessedAt < cutoff)
+                    .Select(b => b.BatchId)
                     .Take(BatchSize)
                     .ToListAsync(stoppingToken);
 
-                if (snapshotIdsToDelete.Count == 0)
+                if (expiredBatchIds.Count == 0)
                 {
                     return 0;
                 }
 
+                metrics.RecordBatchesDeleted(expiredBatchIds.Count);
+
                 var batchDeleted = await dbContext.SagaSnapshots
-                    .Where(s => snapshotIdsToDelete.Contains(s.Id))
+                    .Where(s => expiredBatchIds.Contains(s.BatchId))
                     .ExecuteDeleteAsync(stoppingToken);
 
                 await transaction.CommitAsync(stoppingToken);
@@ -181,11 +186,11 @@ public abstract class RetentionCleaner(
             totalDeleted += deleted;
 
             // Delay between batches to reduce contention with ingestion
-            if (deleted >= BatchSize)
+            if (deleted > 0)
             {
                 await Task.Delay(settings.RetentionCleanupBatchDelay, stoppingToken);
             }
-        } while (deleted >= BatchSize);
+        } while (deleted > 0);
 
         return totalDeleted;
     }

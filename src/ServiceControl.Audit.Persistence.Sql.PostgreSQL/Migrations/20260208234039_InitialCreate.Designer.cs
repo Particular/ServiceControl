@@ -12,15 +12,15 @@ using ServiceControl.Audit.Persistence.Sql.PostgreSQL;
 namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 {
     [DbContext(typeof(PostgreSqlAuditDbContext))]
-    [Migration("20260203024145_AddFullTextIndexForSearch")]
-    partial class AddFullTextIndexForSearch
+    [Migration("20260208234039_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.11")
+                .HasAnnotation("ProductVersion", "10.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -126,6 +126,10 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("batch_id");
+
                     b.Property<bool>("BodyNotStored")
                         .HasColumnType("boolean")
                         .HasColumnName("body_not_stored");
@@ -210,6 +214,9 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 
                     b.HasIndex("UniqueMessageId");
 
+                    b.HasIndex("BatchId", "ProcessedAt")
+                        .HasDatabaseName("IX_ProcessedMessages_BatchId_ProcessedAt");
+
                     b.HasIndex("ConversationId", "ProcessedAt");
 
                     b.HasIndex("IsSystemMessage", "TimeSent", "ProcessedAt");
@@ -230,6 +237,10 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("batch_id");
 
                     b.Property<string>("Endpoint")
                         .IsRequired()
@@ -281,6 +292,9 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                     b.HasIndex("ProcessedAt");
 
                     b.HasIndex("SagaId");
+
+                    b.HasIndex("BatchId", "ProcessedAt")
+                        .HasDatabaseName("IX_SagaSnapshots_BatchId_ProcessedAt");
 
                     b.ToTable("saga_snapshots", (string)null);
                 });

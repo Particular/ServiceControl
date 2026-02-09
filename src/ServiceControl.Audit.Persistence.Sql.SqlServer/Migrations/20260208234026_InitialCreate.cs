@@ -62,6 +62,7 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    BatchId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UniqueMessageId = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     HeadersJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SearchableContent = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -91,6 +92,7 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    BatchId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     SagaId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     SagaType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -121,6 +123,11 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                 name: "IX_KnownEndpointsInsertOnly_LastSeen",
                 table: "KnownEndpointsInsertOnly",
                 column: "LastSeen");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProcessedMessages_BatchId_ProcessedAt",
+                table: "ProcessedMessages",
+                columns: new[] { "BatchId", "ProcessedAt" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProcessedMessages_ConversationId_ProcessedAt",
@@ -156,6 +163,11 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                 name: "IX_ProcessedMessages_UniqueMessageId",
                 table: "ProcessedMessages",
                 column: "UniqueMessageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SagaSnapshots_BatchId_ProcessedAt",
+                table: "SagaSnapshots",
+                columns: new[] { "BatchId", "ProcessedAt" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_SagaSnapshots_ProcessedAt",

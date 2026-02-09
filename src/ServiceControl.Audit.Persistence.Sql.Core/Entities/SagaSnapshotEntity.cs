@@ -5,6 +5,7 @@ using ServiceControl.SagaAudit;
 public class SagaSnapshotEntity
 {
     public long Id { get; set; }
+    public Guid BatchId { get; set; }
     public Guid SagaId { get; set; }
     public string? SagaType { get; set; }
     public DateTime StartTime { get; set; }

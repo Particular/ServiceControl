@@ -3,6 +3,7 @@ namespace ServiceControl.Audit.Persistence.Sql.Core.Entities;
 public class ProcessedMessageEntity
 {
     public long Id { get; set; }
+    public Guid BatchId { get; set; }
     public string UniqueMessageId { get; set; } = null!;
 
     // JSON columns for complex nested data

@@ -58,6 +58,7 @@
             AuditIngestionBatchTimeout = GetAuditIngestionBatchTimeout();
             CleanupThrottleInterval = GetCleanupThrottleInterval();
             MinWritersDuringCleanup = GetMinWritersDuringCleanup();
+            BatchIdRotationInterval = GetBatchIdRotationInterval();
             EnableFullTextSearchOnBodies = SettingsReader.Read(SettingsRootNamespace, "EnableFullTextSearchOnBodies", true);
             ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
 
@@ -195,6 +196,7 @@
         public TimeSpan AuditIngestionBatchTimeout { get; set; }
         public TimeSpan CleanupThrottleInterval { get; set; }
         public int MinWritersDuringCleanup { get; set; }
+        public TimeSpan BatchIdRotationInterval { get; set; }
 
         public bool EnableFullTextSearchOnBodies { get; set; }
 
@@ -451,6 +453,38 @@
             }
 
             return value;
+        }
+
+        TimeSpan GetBatchIdRotationInterval()
+        {
+            var valueRead = SettingsReader.Read<string>(SettingsRootNamespace, "BatchIdRotationInterval");
+            if (valueRead == null)
+            {
+                return TimeSpan.FromSeconds(30);
+            }
+
+            if (TimeSpan.TryParse(valueRead, out var result))
+            {
+                if (ValidateConfiguration && result < TimeSpan.FromSeconds(10))
+                {
+                    var message = "BatchIdRotationInterval setting is invalid, minimum value is 10 seconds.";
+                    InternalLogger.Fatal(message);
+                    throw new Exception(message);
+                }
+
+                if (ValidateConfiguration && result > TimeSpan.FromMinutes(10))
+                {
+                    var message = "BatchIdRotationInterval setting is invalid, maximum value is 10 minutes.";
+                    InternalLogger.Fatal(message);
+                    throw new Exception(message);
+                }
+
+                return result;
+            }
+
+            var parseMessage = "BatchIdRotationInterval setting is invalid, please make sure it is a TimeSpan.";
+            InternalLogger.Fatal(parseMessage);
+            throw new Exception(parseMessage);
         }
 
         // logger is intentionally not static to prevent it from being initialized before LoggingConfigurator.ConfigureLogging has been called

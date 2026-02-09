@@ -11,6 +11,7 @@ public class RetentionMetrics
     public static readonly string BatchDurationInstrumentName = $"{InstrumentPrefix}.batch_duration";
     public static readonly string MessagesDeletedInstrumentName = $"{InstrumentPrefix}.messages_deleted_total";
     public static readonly string SagaSnapshotsDeletedInstrumentName = $"{InstrumentPrefix}.saga_snapshots_deleted_total";
+    public static readonly string BatchesDeletedInstrumentName = $"{InstrumentPrefix}.batches_deleted_total";
 
     public RetentionMetrics(IMeterFactory meterFactory)
     {
@@ -20,6 +21,7 @@ public class RetentionMetrics
         batchDuration = meter.CreateHistogram<double>(BatchDurationInstrumentName, unit: "s", description: "Retention cleanup batch duration");
         messagesDeleted = meter.CreateCounter<long>(MessagesDeletedInstrumentName, description: "Total audit messages deleted by retention cleanup");
         sagaSnapshotsDeleted = meter.CreateCounter<long>(SagaSnapshotsDeletedInstrumentName, description: "Total saga snapshots deleted by retention cleanup");
+        batchesDeleted = meter.CreateCounter<long>(BatchesDeletedInstrumentName, description: "Total batches deleted by retention cleanup");
         consecutiveFailureGauge = meter.CreateObservableGauge($"{InstrumentPrefix}.consecutive_failures_total", () => consecutiveFailures, description: "Consecutive retention cleanup failures");
         lockSkippedCounter = meter.CreateCounter<long>($"{InstrumentPrefix}.lock_skipped_total", description: "Number of times cleanup was skipped due to another instance holding the lock");
     }
@@ -29,6 +31,8 @@ public class RetentionMetrics
     public BatchOperationMetrics BeginBatch(string entityType) => new(batchDuration, messagesDeleted, sagaSnapshotsDeleted, entityType);
 
     public void RecordLockSkipped() => lockSkippedCounter.Add(1);
+
+    public void RecordBatchesDeleted(int count) => batchesDeleted.Add(count);
 
     void RecordCycleOutcome(bool success)
     {
@@ -48,6 +52,7 @@ public class RetentionMetrics
     readonly Histogram<double> batchDuration;
     readonly Counter<long> messagesDeleted;
     readonly Counter<long> sagaSnapshotsDeleted;
+    readonly Counter<long> batchesDeleted;
 #pragma warning disable IDE0052
     readonly ObservableGauge<long> consecutiveFailureGauge;
 #pragma warning restore IDE0052

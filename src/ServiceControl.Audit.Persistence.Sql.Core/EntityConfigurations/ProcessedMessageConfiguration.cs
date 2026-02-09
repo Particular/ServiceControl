@@ -55,5 +55,10 @@ class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedMessageE
         // MessageId lookup (for body retrieval)
         builder.HasIndex(e => e.MessageId);
         builder.HasIndex(e => e.ProcessedAt);
+
+        // Batch retention cleanup index
+        builder.Property(e => e.BatchId).IsRequired();
+        builder.HasIndex(e => new { e.BatchId, e.ProcessedAt })
+            .HasDatabaseName("IX_ProcessedMessages_BatchId_ProcessedAt");
     }
 }

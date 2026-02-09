@@ -63,6 +63,7 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    batch_id = table.Column<Guid>(type: "uuid", nullable: false),
                     unique_message_id = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     headers_json = table.Column<string>(type: "text", nullable: false),
                     searchable_content = table.Column<string>(type: "text", nullable: true),
@@ -92,6 +93,7 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    batch_id = table.Column<Guid>(type: "uuid", nullable: false),
                     saga_id = table.Column<Guid>(type: "uuid", nullable: false),
                     saga_type = table.Column<string>(type: "text", nullable: false),
                     start_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -159,6 +161,11 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                 column: "unique_message_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ProcessedMessages_BatchId_ProcessedAt",
+                table: "processed_messages",
+                columns: new[] { "batch_id", "processed_at" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_saga_snapshots_processed_at",
                 table: "saga_snapshots",
                 column: "processed_at");
@@ -167,6 +174,11 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                 name: "IX_saga_snapshots_saga_id",
                 table: "saga_snapshots",
                 column: "saga_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SagaSnapshots_BatchId_ProcessedAt",
+                table: "saga_snapshots",
+                columns: new[] { "batch_id", "processed_at" });
         }
 
         /// <inheritdoc />

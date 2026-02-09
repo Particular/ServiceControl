@@ -23,11 +23,11 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
 
     // Blob deletion is handled by Azure Blob Storage lifecycle management policies.
     // See: https://learn.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-policy-delete
-    public Task DeleteBodies(IEnumerable<string> bodyIds, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    public Task DeleteBatches(IEnumerable<Guid> batchIds, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-    public async Task<MessageBodyFileResult?> ReadBodyAsync(string bodyId, CancellationToken cancellationToken = default)
+    public async Task<MessageBodyFileResult?> ReadBodyAsync(string bodyId, Guid batchId, CancellationToken cancellationToken = default)
     {
-        var blob = blobContainerClient.GetBlobClient(bodyId);
+        var blob = blobContainerClient.GetBlobClient($"{batchId}/{bodyId}");
 
         try
         {
@@ -78,9 +78,9 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
         }
     }
 
-    public async Task WriteBodyAsync(string bodyId, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
+    public async Task WriteBodyAsync(string bodyId, ReadOnlyMemory<byte> body, string contentType, Guid batchId, CancellationToken cancellationToken = default)
     {
-        var blob = blobContainerClient.GetBlobClient(bodyId);
+        var blob = blobContainerClient.GetBlobClient($"{batchId}/{bodyId}");
         var shouldCompress = body.Length >= settings.MinBodySizeForCompression;
 
         BinaryData data;

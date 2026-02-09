@@ -11,9 +11,11 @@ public class FileSystemBodyStoragePersistence(AuditSqlPersisterSettings settings
         string bodyId,
         ReadOnlyMemory<byte> body,
         string contentType,
+        Guid batchId,
         CancellationToken cancellationToken = default)
     {
-        var filePath = Path.Combine(settings.MessageBodyStoragePath, $"{bodyId}.body");
+        var batchFolder = Path.Combine(settings.MessageBodyStoragePath, batchId.ToString());
+        var filePath = Path.Combine(batchFolder, $"{bodyId}.body");
 
         // Bodies are immutable - skip if file already exists
         if (File.Exists(filePath))
@@ -21,12 +23,7 @@ public class FileSystemBodyStoragePersistence(AuditSqlPersisterSettings settings
             return;
         }
 
-        // Ensure directory exists
-        var directory = Path.GetDirectoryName(filePath);
-        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
+        Directory.CreateDirectory(batchFolder);
 
         // Write to temp file first for atomic operation
         var tempFilePath = filePath + ".tmp";
@@ -95,9 +92,10 @@ public class FileSystemBodyStoragePersistence(AuditSqlPersisterSettings settings
         }
     }
 
-    public Task<MessageBodyFileResult?> ReadBodyAsync(string bodyId, CancellationToken cancellationToken = default)
+    public Task<MessageBodyFileResult?> ReadBodyAsync(string bodyId, Guid batchId, CancellationToken cancellationToken = default)
     {
-        var filePath = Path.Combine(settings.MessageBodyStoragePath, $"{bodyId}.body");
+        var batchFolder = Path.Combine(settings.MessageBodyStoragePath, batchId.ToString());
+        var filePath = Path.Combine(batchFolder, $"{bodyId}.body");
 
         if (!File.Exists(filePath))
         {
@@ -156,31 +154,34 @@ public class FileSystemBodyStoragePersistence(AuditSqlPersisterSettings settings
         }
     }
 
-    public Task DeleteBodies(IEnumerable<string> bodyIds, CancellationToken cancellationToken = default)
+    public Task DeleteBatches(IEnumerable<Guid> batchIds, CancellationToken cancellationToken = default)
     {
-        foreach (var bodyId in bodyIds)
+        foreach (var batchId in batchIds)
         {
-            DeleteBody(bodyId);
+            DeleteBatchFolder(batchId);
         }
 
         return Task.CompletedTask;
     }
 
-    void DeleteBody(string bodyId)
+    void DeleteBatchFolder(Guid batchId)
     {
-        var filePath = Path.Combine(settings.MessageBodyStoragePath, $"{bodyId}.body");
+        var batchFolder = Path.Combine(settings.MessageBodyStoragePath, batchId.ToString());
 
         try
         {
-            File.Delete(filePath);
+            if (Directory.Exists(batchFolder))
+            {
+                Directory.Delete(batchFolder, recursive: true);
+            }
         }
         catch (DirectoryNotFoundException)
         {
-            // Directory doesn't exist, nothing to delete
+            // Already deleted, ignore
         }
         catch (FileNotFoundException)
         {
-            // File doesn't exist, nothing to delete
+            // Already deleted, ignore
         }
     }
 

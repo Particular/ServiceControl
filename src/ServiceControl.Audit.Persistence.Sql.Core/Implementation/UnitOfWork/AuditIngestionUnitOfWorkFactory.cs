@@ -9,7 +9,8 @@ using ServiceControl.Audit.Persistence.UnitOfWork;
 class AuditIngestionUnitOfWorkFactory(
     IServiceProvider serviceProvider,
     MinimumRequiredStorageState storageState,
-    IBodyStoragePersistence storagePersistence)
+    IBodyStoragePersistence storagePersistence,
+    BatchIdGenerator batchIdGenerator)
     : IAuditIngestionUnitOfWorkFactory
 {
     public ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken)
@@ -17,7 +18,7 @@ class AuditIngestionUnitOfWorkFactory(
         var scope = serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContextBase>();
         var settings = scope.ServiceProvider.GetRequiredService<AuditSqlPersisterSettings>();
-        var unitOfWork = new AuditIngestionUnitOfWork(dbContext, storagePersistence, settings);
+        var unitOfWork = new AuditIngestionUnitOfWork(dbContext, storagePersistence, settings, batchIdGenerator);
         return ValueTask.FromResult<IAuditIngestionUnitOfWork>(unitOfWork);
     }
 

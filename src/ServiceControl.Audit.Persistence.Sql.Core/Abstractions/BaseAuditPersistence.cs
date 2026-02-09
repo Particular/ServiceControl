@@ -14,6 +14,8 @@ public abstract class BaseAuditPersistence
     {
         services.AddSingleton<MinimumRequiredStorageState>();
         services.AddSingleton<IngestionThrottleState>();
+        services.AddSingleton<BatchIdGenerator>();
+        services.AddHostedService(sp => sp.GetRequiredService<BatchIdGenerator>());
         if (!string.IsNullOrEmpty(settings.MessageBodyStoragePath))
         {
             services.AddSingleton<IBodyStoragePersistence, FileSystemBodyStoragePersistence>();
