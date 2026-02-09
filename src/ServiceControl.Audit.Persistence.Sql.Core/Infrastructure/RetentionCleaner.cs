@@ -1,5 +1,6 @@
 namespace ServiceControl.Audit.Persistence.Sql.Core.Infrastructure;
 
+using System.Data.Common;
 using System.Diagnostics;
 using Abstractions;
 using DbContexts;
@@ -57,7 +58,16 @@ public abstract class RetentionCleaner(
 
         using var cycleMetrics = metrics.BeginCleanupCycle();
 
-        if (!await TryAcquireLock(dbContext, stoppingToken))
+        // Use a dedicated connection for the distributed lock, separate from the DbContext.
+        // Session-level locks (sp_getapplock / pg_advisory_lock) are tied to the connection.
+        // The DbContext's retry execution strategy can drop and reopen its connection on
+        // transient errors, which would silently release a lock held on that connection.
+        // By holding the lock on a separate connection, the lock remains stable regardless
+        // of what happens to the DbContext's connection during batch operations.
+        await using var lockConnection = CreateLockConnection();
+        await lockConnection.OpenAsync(stoppingToken);
+
+        if (!await TryAcquireLock(lockConnection, stoppingToken))
         {
             logger.LogDebug("Another instance is running retention cleanup, skipping this cycle");
             metrics.RecordLockSkipped();
@@ -86,7 +96,7 @@ public abstract class RetentionCleaner(
         }
         finally
         {
-            await ReleaseLock(dbContext, stoppingToken);
+            await ReleaseLock(lockConnection, stoppingToken);
         }
     }
 
@@ -195,6 +205,7 @@ public abstract class RetentionCleaner(
         return totalDeleted;
     }
 
-    protected abstract Task<bool> TryAcquireLock(AuditDbContextBase dbContext, CancellationToken stoppingToken);
-    protected abstract Task ReleaseLock(AuditDbContextBase dbContext, CancellationToken stoppingToken);
+    protected abstract DbConnection CreateLockConnection();
+    protected abstract Task<bool> TryAcquireLock(DbConnection lockConnection, CancellationToken stoppingToken);
+    protected abstract Task ReleaseLock(DbConnection lockConnection, CancellationToken stoppingToken);
 }

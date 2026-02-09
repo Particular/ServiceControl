@@ -1,11 +1,11 @@
 namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Infrastructure;
 
+using System.Data.Common;
 using Core.Abstractions;
-using Core.DbContexts;
 using Core.Infrastructure;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 class RetentionCleaner(
     ILogger<RetentionCleaner> logger,
@@ -17,22 +17,27 @@ class RetentionCleaner(
     IngestionThrottleState throttleState)
     : Core.Infrastructure.RetentionCleaner(logger, timeProvider, serviceScopeFactory, settings, bodyPersistence, metrics, throttleState)
 {
-    protected override async Task<bool> TryAcquireLock(AuditDbContextBase dbContext, CancellationToken stoppingToken)
+    string connectionString = settings.ConnectionString;
+
+    protected override DbConnection CreateLockConnection() => new NpgsqlConnection(connectionString);
+
+    protected override async Task<bool> TryAcquireLock(DbConnection lockConnection, CancellationToken stoppingToken)
     {
         // Use PostgreSQL's session-level advisory lock so the lock persists
         // across multiple transactions within the same connection.
         // pg_try_advisory_lock returns true if lock acquired, false otherwise
-        var sql = "SELECT pg_try_advisory_lock(hashtext('retention_cleaner'))";
+        await using var command = lockConnection.CreateCommand();
+        command.CommandText = "SELECT pg_try_advisory_lock(hashtext('retention_cleaner'))";
 
-        // AsAsyncEnumerable() is required because SqlQueryRaw may return non-composable SQL
-        // that cannot have additional operators (like FirstOrDefault's TOP 1) composed on top of it
-        var result = await dbContext.Database.SqlQueryRaw<bool>(sql).AsAsyncEnumerable().FirstOrDefaultAsync(stoppingToken);
-        return result;
+        var result = await command.ExecuteScalarAsync(stoppingToken);
+        return result is true;
     }
 
-    protected override async Task ReleaseLock(AuditDbContextBase dbContext, CancellationToken stoppingToken)
+    protected override async Task ReleaseLock(DbConnection lockConnection, CancellationToken stoppingToken)
     {
-        var sql = "SELECT pg_advisory_unlock(hashtext('retention_cleaner'))";
-        await dbContext.Database.ExecuteSqlRawAsync(sql, stoppingToken);
+        await using var command = lockConnection.CreateCommand();
+        command.CommandText = "SELECT pg_advisory_unlock(hashtext('retention_cleaner'))";
+
+        await command.ExecuteNonQueryAsync(stoppingToken);
     }
 }
