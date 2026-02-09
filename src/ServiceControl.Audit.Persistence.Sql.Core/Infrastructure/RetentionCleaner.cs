@@ -18,7 +18,7 @@ public abstract class RetentionCleaner(
     RetentionMetrics metrics,
     IngestionThrottleState throttleState) : BackgroundService
 {
-    protected const int BatchSize = 250;
+    protected const int BatchSize = 1000;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -114,31 +114,50 @@ public abstract class RetentionCleaner(
             {
                 await using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
-                // Get BatchIds where ALL messages are expired (using MAX(ProcessedAt))
-                // This ensures we only delete complete batches, not partial batches
-                var expiredBatchIds = await dbContext.ProcessedMessages
-                    .GroupBy(m => m.BatchId)
-                    .Select(g => new { BatchId = g.Key, LatestProcessedAt = g.Max(m => m.ProcessedAt) })
-                    .Where(b => b.LatestProcessedAt < cutoff)
-                    .Select(b => b.BatchId)
+                // Select the oldest expired messages by ProcessedAt, limited to BatchSize.
+                // This uses the IX_ProcessedMessages_ProcessedAt index for an efficient
+                // range scan from the beginning, stopping after BatchSize rows.
+                var expiredMessages = await dbContext.ProcessedMessages
+                    .Where(m => m.ProcessedAt < cutoff)
                     .Take(BatchSize)
+                    .Select(m => new { m.Id, m.BatchId })
                     .ToListAsync(stoppingToken);
 
-                if (expiredBatchIds.Count == 0)
+                if (expiredMessages.Count == 0)
                 {
                     return 0;
                 }
 
-                // Delete body folders first (non-transactional, fire-and-forget)
-                await bodyPersistence.DeleteBatches(expiredBatchIds, stoppingToken);
+                var messageIds = expiredMessages.Select(m => m.Id).ToList();
+                var affectedBatchIds = expiredMessages.Select(m => m.BatchId).Distinct().ToList();
 
-                // Delete database records for these batches
-                var batchDeleted = await dbContext.ProcessedMessages
-                    .Where(m => expiredBatchIds.Contains(m.BatchId))
+                // Delete the selected messages by their primary keys
+                var messagesDeleted = await dbContext.ProcessedMessages
+                    .Where(m => messageIds.Contains(m.Id))
                     .ExecuteDeleteAsync(stoppingToken);
 
+                // After deleting, find which affected batches now have zero remaining
+                // messages. Only those batch folders can be safely removed from disk.
+                // This query is cheap: for each of the ~30 batch IDs, it does an index
+                // seek on IX_ProcessedMessages_BatchId_ProcessedAt and returns immediately
+                // if any row exists.
+                var batchIdsStillInUse = await dbContext.ProcessedMessages
+                    .Where(m => affectedBatchIds.Contains(m.BatchId))
+                    .Select(m => m.BatchId)
+                    .Distinct()
+                    .ToListAsync(stoppingToken);
+
+                var fullyDeletedBatchIds = affectedBatchIds
+                    .Where(id => !batchIdsStillInUse.Contains(id))
+                    .ToList();
+
+                if (fullyDeletedBatchIds.Count > 0)
+                {
+                    await bodyPersistence.DeleteBatches(fullyDeletedBatchIds, stoppingToken);
+                }
+
                 await transaction.CommitAsync(stoppingToken);
-                return batchDeleted;
+                return messagesDeleted;
             });
 
             batchMetrics.RecordDeleted(deleted);
@@ -168,28 +187,23 @@ public abstract class RetentionCleaner(
             {
                 await using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
-                // Get BatchIds where all snapshots are expired
-                var expiredBatchIds = await dbContext.SagaSnapshots
-                    .GroupBy(s => s.BatchId)
-                    .Select(g => new { BatchId = g.Key, LatestProcessedAt = g.Max(s => s.ProcessedAt) })
-                    .Where(b => b.LatestProcessedAt < cutoff)
-                    .Select(b => b.BatchId)
+                var expiredIds = await dbContext.SagaSnapshots
+                    .Where(s => s.ProcessedAt < cutoff)
                     .Take(BatchSize)
+                    .Select(s => s.Id)
                     .ToListAsync(stoppingToken);
 
-                if (expiredBatchIds.Count == 0)
+                if (expiredIds.Count == 0)
                 {
                     return 0;
                 }
 
-                metrics.RecordBatchesDeleted(expiredBatchIds.Count);
-
-                var batchDeleted = await dbContext.SagaSnapshots
-                    .Where(s => expiredBatchIds.Contains(s.BatchId))
+                var snapshotsDeleted = await dbContext.SagaSnapshots
+                    .Where(s => expiredIds.Contains(s.Id))
                     .ExecuteDeleteAsync(stoppingToken);
 
                 await transaction.CommitAsync(stoppingToken);
-                return batchDeleted;
+                return snapshotsDeleted;
             });
 
             batchMetrics.RecordDeleted(deleted);
