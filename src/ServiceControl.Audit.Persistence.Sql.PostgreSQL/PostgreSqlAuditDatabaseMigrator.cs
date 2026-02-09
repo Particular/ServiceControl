@@ -15,7 +15,7 @@ class PostgreSqlAuditDatabaseMigrator(
         logger.LogInformation("Starting PostgreSQL database migration for Audit");
 
         var originalTimeout = dbContext.Database.GetCommandTimeout();
-        dbContext.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+        dbContext.Database.SetCommandTimeout(TimeSpan.FromMinutes(15));
 
         try
         {
