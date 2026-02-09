@@ -43,20 +43,21 @@ class RetentionCleaner(
         await command.ExecuteNonQueryAsync(stoppingToken);
     }
 
-    protected override async Task<int> DeleteExpiredMessages(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
+    protected override async Task<List<Guid>> DeleteExpiredMessages(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
     {
-        // PostgreSQL doesn't support DELETE TOP(N), so use a subquery with ctid
-        return await dbContext.Database.ExecuteSqlRawAsync(
-            """
+        // Single server-side statement using RETURNING to capture batch IDs of deleted rows.
+        var sql = """
             DELETE FROM "ProcessedMessages"
             WHERE ctid IN (
                 SELECT ctid FROM "ProcessedMessages"
                 WHERE "ProcessedAt" < {0}
                 LIMIT {1}
             )
-            """,
-            [cutoff, BatchSize],
-            stoppingToken);
+            RETURNING "BatchId"
+            """;
+
+        return await dbContext.Database.SqlQueryRaw<Guid>(sql, cutoff, BatchSize)
+            .ToListAsync(stoppingToken);
     }
 
     protected override async Task<int> DeleteExpiredSagaSnapshots(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)

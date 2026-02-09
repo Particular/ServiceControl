@@ -56,14 +56,19 @@ class RetentionCleaner(
         await command.ExecuteNonQueryAsync(stoppingToken);
     }
 
-    protected override async Task<int> DeleteExpiredMessages(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
+    protected override async Task<List<Guid>> DeleteExpiredMessages(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
     {
-        // Single server-side statement: DELETE TOP avoids round-tripping IDs as parameters
-        // and lets SQL Server optimize lock acquisition for the batch.
-        return await dbContext.Database.ExecuteSqlRawAsync(
-            "DELETE TOP({0}) FROM [ProcessedMessages] WHERE [ProcessedAt] < {1}",
-            [BatchSize, cutoff],
-            stoppingToken);
+        // Single server-side statement using OUTPUT to capture batch IDs of deleted rows.
+        // DELETE TOP avoids round-tripping IDs and OUTPUT DELETED.BatchId gives us the
+        // batch IDs we need for body storage cleanup without a separate query.
+        var sql = @"
+            DELETE TOP({0}) FROM [ProcessedMessages]
+            OUTPUT DELETED.[BatchId]
+            WHERE [ProcessedAt] < {1}
+        ";
+
+        return await dbContext.Database.SqlQueryRaw<Guid>(sql, BatchSize, cutoff)
+            .ToListAsync(stoppingToken);
     }
 
     protected override async Task<int> DeleteExpiredSagaSnapshots(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)

@@ -110,22 +110,13 @@ public abstract class RetentionCleaner(
         {
             using var batchMetrics = metrics.BeginBatch(EntityTypes.Message);
 
-            // First, collect the batch IDs that will be affected by this delete batch.
-            // This is a cheap index-only scan on IX_ProcessedMessages_ProcessedAt that
-            // reads at most BatchSize entries and returns only the small BatchId column.
-            var batchIdsInThisBatch = await dbContext.ProcessedMessages
-                .Where(m => m.ProcessedAt < cutoff)
-                .Take(BatchSize)
-                .Select(m => m.BatchId)
-                .Distinct()
-                .ToListAsync(stoppingToken);
+            // Delete expired messages and capture the distinct batch IDs of deleted rows
+            // in a single server-side operation (using OUTPUT/RETURNING clauses).
+            // This avoids any separate SELECT query against the large table.
+            var deletedBatchIds = await DeleteExpiredMessages(dbContext, cutoff, stoppingToken);
+            deleted = deletedBatchIds.Count;
 
-            // Delete expired messages using provider-specific batch delete SQL.
-            // This executes as a single server-side statement (e.g. DELETE TOP(@batchSize)
-            // for SQL Server) avoiding the need to round-trip thousands of IDs as parameters.
-            deleted = await DeleteExpiredMessages(dbContext, cutoff, stoppingToken);
-
-            foreach (var batchId in batchIdsInThisBatch)
+            foreach (var batchId in deletedBatchIds)
             {
                 affectedBatchIds.Add(batchId);
             }
@@ -182,6 +173,10 @@ public abstract class RetentionCleaner(
     protected abstract DbConnection CreateLockConnection();
     protected abstract Task<bool> TryAcquireLock(DbConnection lockConnection, CancellationToken stoppingToken);
     protected abstract Task ReleaseLock(DbConnection lockConnection, CancellationToken stoppingToken);
-    protected abstract Task<int> DeleteExpiredMessages(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken);
+    /// <summary>
+    /// Deletes a batch of expired messages and returns the distinct batch IDs of the deleted rows.
+    /// The count of items in the returned list represents how many rows were deleted.
+    /// </summary>
+    protected abstract Task<List<Guid>> DeleteExpiredMessages(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken);
     protected abstract Task<int> DeleteExpiredSagaSnapshots(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken);
 }
