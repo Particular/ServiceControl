@@ -23,6 +23,7 @@ class PostgreSqlAuditPersistence : BaseAuditPersistence, IPersistence
         RegisterDataStores(services, settings);
         services.AddSingleton<IAuditFullTextSearchProvider, PostgreSqlAuditFullTextSearchProvider>();
         services.AddSingleton<RetentionMetrics>();
+        services.AddSingleton<IPartitionManager, PostgreSqlPartitionManager>();
         services.AddHostedService<KnownEndpointsReconciler>();
         services.AddHostedService<Infrastructure.RetentionCleaner>();
     }
@@ -32,6 +33,7 @@ class PostgreSqlAuditPersistence : BaseAuditPersistence, IPersistence
         ConfigureDbContext(services);
         RegisterDataStores(services, settings);
         services.AddSingleton<IAuditFullTextSearchProvider, PostgreSqlAuditFullTextSearchProvider>();
+        services.AddSingleton<IPartitionManager, PostgreSqlPartitionManager>();
         services.AddSingleton<IAuditDatabaseMigrator, PostgreSqlAuditDatabaseMigrator>();
     }
 

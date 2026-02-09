@@ -12,7 +12,7 @@ using ServiceControl.Audit.Persistence.Sql.PostgreSQL;
 namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 {
     [DbContext(typeof(PostgreSqlAuditDbContext))]
-    [Migration("20260203024138_InitialCreate")]
+    [Migration("20260209221510_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.11")
+                .HasAnnotation("ProductVersion", "10.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -126,6 +126,10 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<DateTime>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at");
+
                     b.Property<bool>("BodyNotStored")
                         .HasColumnType("boolean")
                         .HasColumnName("body_not_stored");
@@ -171,10 +175,6 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("message_type");
 
-                    b.Property<DateTime>("ProcessedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("processed_at");
-
                     b.Property<long?>("ProcessingTimeTicks")
                         .HasColumnType("bigint")
                         .HasColumnName("processing_time_ticks");
@@ -202,22 +202,13 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("unique_message_id");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("MessageId");
-
-                    b.HasIndex("ProcessedAt");
-
-                    b.HasIndex("UniqueMessageId");
+                    b.HasKey("Id", "ProcessedAt");
 
                     b.HasIndex("ConversationId", "ProcessedAt");
 
-                    b.HasIndex("IsSystemMessage", "TimeSent", "ProcessedAt");
+                    b.HasIndex("MessageId", "ProcessedAt");
 
-                    b.HasIndex("ReceivingEndpointName", "IsSystemMessage", "ProcessedAt");
-
-                    b.HasIndex("ReceivingEndpointName", "IsSystemMessage", "TimeSent", "ProcessedAt")
-                        .HasDatabaseName("IX_processed_messages_receiving_endpoint_name_is_system_messa~1");
+                    b.HasIndex("UniqueMessageId", "ProcessedAt");
 
                     b.ToTable("processed_messages", (string)null);
                 });
@@ -230,6 +221,10 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at");
 
                     b.Property<string>("Endpoint")
                         .IsRequired()
@@ -249,10 +244,6 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("outgoing_messages_json");
-
-                    b.Property<DateTime>("ProcessedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("processed_at");
 
                     b.Property<Guid>("SagaId")
                         .HasColumnType("uuid")
@@ -276,11 +267,9 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("status");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id", "ProcessedAt");
 
-                    b.HasIndex("ProcessedAt");
-
-                    b.HasIndex("SagaId");
+                    b.HasIndex("SagaId", "ProcessedAt");
 
                     b.ToTable("saga_snapshots", (string)null);
                 });

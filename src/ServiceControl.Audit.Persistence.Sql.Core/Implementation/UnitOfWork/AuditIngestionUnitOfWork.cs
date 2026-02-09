@@ -65,7 +65,7 @@ class AuditIngestionUnitOfWork(
             var contentType = GetContentType(processedMessage.Headers, MediaTypeNames.Text.Plain);
 
             // Queue body storage to run in parallel, awaited in DisposeAsync
-            bodyStorageTasks.Add(bodyPersistence.WriteBodyAsync(processedMessage.UniqueMessageId, body, contentType, cancellationToken));
+            bodyStorageTasks.Add(bodyPersistence.WriteBodyAsync(processedMessage.UniqueMessageId, processedMessage.ProcessedAt, body, contentType, cancellationToken));
         }
     }
 

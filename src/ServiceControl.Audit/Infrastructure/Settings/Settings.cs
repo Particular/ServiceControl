@@ -56,8 +56,6 @@
             AuditIngestionBatchSize = GetAuditIngestionBatchSize();
             AuditIngestionMaxParallelWriters = GetAuditIngestionMaxParallelWriters();
             AuditIngestionBatchTimeout = GetAuditIngestionBatchTimeout();
-            CleanupThrottleInterval = GetCleanupThrottleInterval();
-            MinWritersDuringCleanup = GetMinWritersDuringCleanup();
             EnableFullTextSearchOnBodies = SettingsReader.Read(SettingsRootNamespace, "EnableFullTextSearchOnBodies", true);
             ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
 
@@ -193,9 +191,6 @@
         public int AuditIngestionBatchSize { get; set; }
         public int AuditIngestionMaxParallelWriters { get; set; }
         public TimeSpan AuditIngestionBatchTimeout { get; set; }
-        public TimeSpan CleanupThrottleInterval { get; set; }
-        public int MinWritersDuringCleanup { get; set; }
-
         public bool EnableFullTextSearchOnBodies { get; set; }
 
         // The default value is set to the maximum allowed time by the most
@@ -398,59 +393,6 @@
             var parseMessage = $"{nameof(AuditIngestionBatchTimeout)} setting is invalid, please make sure it is a TimeSpan.";
             InternalLogger.Fatal(parseMessage);
             throw new Exception(parseMessage);
-        }
-
-        TimeSpan GetCleanupThrottleInterval()
-        {
-            var valueRead = SettingsReader.Read<string>(SettingsRootNamespace, "CleanupThrottleInterval");
-            if (valueRead == null)
-            {
-                return TimeSpan.FromMinutes(1);
-            }
-
-            if (TimeSpan.TryParse(valueRead, out var result))
-            {
-                if (ValidateConfiguration && result < TimeSpan.FromSeconds(10))
-                {
-                    var message = $"{nameof(CleanupThrottleInterval)} setting is invalid, minimum value is 10 seconds.";
-                    InternalLogger.Fatal(message);
-                    throw new Exception(message);
-                }
-
-                if (ValidateConfiguration && result > TimeSpan.FromMinutes(10))
-                {
-                    var message = $"{nameof(CleanupThrottleInterval)} setting is invalid, maximum value is 10 minutes.";
-                    InternalLogger.Fatal(message);
-                    throw new Exception(message);
-                }
-
-                return result;
-            }
-
-            var parseMessage = $"{nameof(CleanupThrottleInterval)} setting is invalid, please make sure it is a TimeSpan.";
-            InternalLogger.Fatal(parseMessage);
-            throw new Exception(parseMessage);
-        }
-
-        int GetMinWritersDuringCleanup()
-        {
-            var value = SettingsReader.Read(SettingsRootNamespace, "MinWritersDuringCleanup", 1);
-
-            if (ValidateConfiguration && value < 1)
-            {
-                var message = $"{nameof(MinWritersDuringCleanup)} setting is invalid, minimum value is 1.";
-                InternalLogger.Fatal(message);
-                throw new Exception(message);
-            }
-
-            if (ValidateConfiguration && value > AuditIngestionMaxParallelWriters)
-            {
-                var message = $"{nameof(MinWritersDuringCleanup)} setting is invalid, cannot exceed {nameof(AuditIngestionMaxParallelWriters)} ({AuditIngestionMaxParallelWriters}).";
-                InternalLogger.Fatal(message);
-                throw new Exception(message);
-            }
-
-            return value;
         }
 
         // logger is intentionally not static to prevent it from being initialized before LoggingConfigurator.ConfigureLogging has been called

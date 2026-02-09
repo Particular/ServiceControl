@@ -13,7 +13,6 @@ public abstract class BaseAuditPersistence
     protected static void RegisterDataStores(IServiceCollection services, AuditSqlPersisterSettings settings)
     {
         services.AddSingleton<MinimumRequiredStorageState>();
-        services.AddSingleton<IngestionThrottleState>();
         if (!string.IsNullOrEmpty(settings.MessageBodyStoragePath))
         {
             services.AddSingleton<IBodyStoragePersistence, FileSystemBodyStoragePersistence>();
@@ -22,7 +21,7 @@ public abstract class BaseAuditPersistence
         {
             services.AddSingleton<IBodyStoragePersistence, AzureBlobBodyStoragePersistence>();
         }
-        services.AddSingleton<IBodyStorage, BodyStorageFetcher>();
+        services.AddScoped<IBodyStorage, BodyStorageFetcher>();
         services.AddSingleton<IAuditDataStore, EFAuditDataStore>();
         services.AddSingleton<IFailedAuditStorage, EFFailedAuditStorage>();
         services.AddSingleton<IAuditIngestionUnitOfWorkFactory, AuditIngestionUnitOfWorkFactory>();

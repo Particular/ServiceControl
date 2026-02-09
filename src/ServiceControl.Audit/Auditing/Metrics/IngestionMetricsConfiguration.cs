@@ -21,8 +21,5 @@ public static class IngestionMetricsConfiguration
         builder.AddView(
             instrumentName: RetentionMetrics.CleanupDurationInstrumentName,
             new ExplicitBucketHistogramConfiguration { Boundaries = [1, 5, 10, 30, 60, 300] });
-        builder.AddView(
-            instrumentName: RetentionMetrics.BatchDurationInstrumentName,
-            new ExplicitBucketHistogramConfiguration { Boundaries = [0.1, 0.5, 1, 5, 10, 30] });
     }
 }

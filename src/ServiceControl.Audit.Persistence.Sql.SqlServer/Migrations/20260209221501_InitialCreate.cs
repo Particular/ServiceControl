@@ -62,13 +62,13 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    ProcessedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UniqueMessageId = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     HeadersJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SearchableContent = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     MessageId = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     MessageType = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     TimeSent = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ProcessedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsSystemMessage = table.Column<bool>(type: "bit", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     ConversationId = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
@@ -82,7 +82,7 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProcessedMessages", x => x.Id);
+                    table.PrimaryKey("PK_ProcessedMessages", x => new { x.Id, x.ProcessedAt });
                 });
 
             migrationBuilder.CreateTable(
@@ -91,6 +91,7 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    ProcessedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     SagaId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     SagaType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -99,12 +100,11 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                     StateAfterChange = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     InitiatingMessageJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     OutgoingMessagesJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Endpoint = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ProcessedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Endpoint = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SagaSnapshots", x => x.Id);
+                    table.PrimaryKey("PK_SagaSnapshots", x => new { x.Id, x.ProcessedAt });
                 });
 
             migrationBuilder.CreateIndex(
@@ -128,44 +128,19 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                 columns: new[] { "ConversationId", "ProcessedAt" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_IsSystemMessage_TimeSent_ProcessedAt",
+                name: "IX_ProcessedMessages_MessageId_ProcessedAt",
                 table: "ProcessedMessages",
-                columns: new[] { "IsSystemMessage", "TimeSent", "ProcessedAt" });
+                columns: new[] { "MessageId", "ProcessedAt" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_MessageId",
+                name: "IX_ProcessedMessages_UniqueMessageId_ProcessedAt",
                 table: "ProcessedMessages",
-                column: "MessageId");
+                columns: new[] { "UniqueMessageId", "ProcessedAt" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_ProcessedAt",
-                table: "ProcessedMessages",
-                column: "ProcessedAt");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_ReceivingEndpointName_IsSystemMessage_ProcessedAt",
-                table: "ProcessedMessages",
-                columns: new[] { "ReceivingEndpointName", "IsSystemMessage", "ProcessedAt" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_ReceivingEndpointName_IsSystemMessage_TimeSent_ProcessedAt",
-                table: "ProcessedMessages",
-                columns: new[] { "ReceivingEndpointName", "IsSystemMessage", "TimeSent", "ProcessedAt" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_UniqueMessageId",
-                table: "ProcessedMessages",
-                column: "UniqueMessageId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_SagaSnapshots_ProcessedAt",
+                name: "IX_SagaSnapshots_SagaId_ProcessedAt",
                 table: "SagaSnapshots",
-                column: "ProcessedAt");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_SagaSnapshots_SagaId",
-                table: "SagaSnapshots",
-                column: "SagaId");
+                columns: new[] { "SagaId", "ProcessedAt" });
         }
 
         /// <inheritdoc />

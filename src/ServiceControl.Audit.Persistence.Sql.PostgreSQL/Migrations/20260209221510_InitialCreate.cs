@@ -63,13 +63,13 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    processed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     unique_message_id = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     headers_json = table.Column<string>(type: "text", nullable: false),
                     searchable_content = table.Column<string>(type: "text", nullable: true),
                     message_id = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     message_type = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     time_sent = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    processed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     is_system_message = table.Column<bool>(type: "boolean", nullable: false),
                     status = table.Column<int>(type: "integer", nullable: false),
                     conversation_id = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
@@ -83,7 +83,7 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_processed_messages", x => x.id);
+                    table.PrimaryKey("PK_processed_messages", x => new { x.id, x.processed_at });
                 });
 
             migrationBuilder.CreateTable(
@@ -92,6 +92,7 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    processed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     saga_id = table.Column<Guid>(type: "uuid", nullable: false),
                     saga_type = table.Column<string>(type: "text", nullable: false),
                     start_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -100,12 +101,11 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                     state_after_change = table.Column<string>(type: "text", nullable: false),
                     initiating_message_json = table.Column<string>(type: "text", nullable: false),
                     outgoing_messages_json = table.Column<string>(type: "text", nullable: false),
-                    endpoint = table.Column<string>(type: "text", nullable: false),
-                    processed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    endpoint = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_saga_snapshots", x => x.id);
+                    table.PrimaryKey("PK_saga_snapshots", x => new { x.id, x.processed_at });
                 });
 
             migrationBuilder.CreateIndex(
@@ -129,44 +129,19 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                 columns: new[] { "conversation_id", "processed_at" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_processed_messages_is_system_message_time_sent_processed_at",
+                name: "IX_processed_messages_message_id_processed_at",
                 table: "processed_messages",
-                columns: new[] { "is_system_message", "time_sent", "processed_at" });
+                columns: new[] { "message_id", "processed_at" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_processed_messages_message_id",
+                name: "IX_processed_messages_unique_message_id_processed_at",
                 table: "processed_messages",
-                column: "message_id");
+                columns: new[] { "unique_message_id", "processed_at" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_processed_messages_processed_at",
-                table: "processed_messages",
-                column: "processed_at");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_processed_messages_receiving_endpoint_name_is_system_messa~1",
-                table: "processed_messages",
-                columns: new[] { "receiving_endpoint_name", "is_system_message", "time_sent", "processed_at" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_processed_messages_receiving_endpoint_name_is_system_messag~",
-                table: "processed_messages",
-                columns: new[] { "receiving_endpoint_name", "is_system_message", "processed_at" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_processed_messages_unique_message_id",
-                table: "processed_messages",
-                column: "unique_message_id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_saga_snapshots_processed_at",
+                name: "IX_saga_snapshots_saga_id_processed_at",
                 table: "saga_snapshots",
-                column: "processed_at");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_saga_snapshots_saga_id",
-                table: "saga_snapshots",
-                column: "saga_id");
+                columns: new[] { "saga_id", "processed_at" });
         }
 
         /// <inheritdoc />

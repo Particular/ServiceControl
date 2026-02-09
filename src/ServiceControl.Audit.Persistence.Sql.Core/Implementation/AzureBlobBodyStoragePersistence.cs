@@ -21,66 +21,10 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
         blobContainerClient = blobClient.GetBlobContainerClient("audit-bodies");
     }
 
-    // Blob deletion is handled by Azure Blob Storage lifecycle management policies.
-    // See: https://learn.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-policy-delete
-    public Task DeleteBodies(IEnumerable<string> bodyIds, CancellationToken cancellationToken = default) => Task.CompletedTask;
-
-    public async Task<MessageBodyFileResult?> ReadBodyAsync(string bodyId, CancellationToken cancellationToken = default)
+    public async Task WriteBodyAsync(string bodyId, DateTime processedAt, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
     {
-        var blob = blobContainerClient.GetBlobClient(bodyId);
-
-        try
-        {
-            var response = await blob.DownloadContentAsync(cancellationToken);
-            var properties = response.Value;
-            var metadata = properties.Details.Metadata;
-
-            // Check format version
-            if (metadata.TryGetValue("FormatVersion", out var version) && version != FormatVersion)
-            {
-                throw new InvalidOperationException($"Unsupported blob format version: {version}");
-            }
-
-            var contentType = metadata.TryGetValue("ContentType", out var ct) ? Uri.UnescapeDataString(ct) : "application/octet-stream";
-            var bodySize = metadata.TryGetValue("BodySize", out var sizeStr) && int.TryParse(sizeStr, out var size) ? size : 0;
-            var isCompressed = metadata.TryGetValue("IsCompressed", out var compressedStr) && bool.TryParse(compressedStr, out var compressed) && compressed;
-            var etag = properties.Details.ETag.ToString();
-
-            Stream stream;
-            if (isCompressed)
-            {
-                var compressedData = properties.Content.ToMemory();
-                var decompressedBuffer = new byte[bodySize];
-
-                if (!BrotliDecoder.TryDecompress(compressedData.Span, decompressedBuffer, out var bytesWritten) || bytesWritten != bodySize)
-                {
-                    throw new InvalidOperationException($"Failed to decompress body for {bodyId}");
-                }
-
-                stream = new MemoryStream(decompressedBuffer, writable: false);
-            }
-            else
-            {
-                stream = properties.Content.ToStream();
-            }
-
-            return new MessageBodyFileResult
-            {
-                Stream = stream,
-                ContentType = contentType,
-                BodySize = bodySize,
-                Etag = etag
-            };
-        }
-        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
-        {
-            return null;
-        }
-    }
-
-    public async Task WriteBodyAsync(string bodyId, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
-    {
-        var blob = blobContainerClient.GetBlobClient(bodyId);
+        var datePrefix = processedAt.ToString("yyyy-MM-dd");
+        var blob = blobContainerClient.GetBlobClient($"{datePrefix}/{bodyId}");
         var shouldCompress = body.Length >= settings.MinBodySizeForCompression;
 
         BinaryData data;
@@ -133,5 +77,71 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
                 ArrayPool<byte>.Shared.Return(rentedBuffer);
             }
         }
+    }
+
+    public async Task<MessageBodyFileResult?> ReadBodyAsync(string bodyId, DateTime processedAt, CancellationToken cancellationToken = default)
+    {
+        var datePrefix = processedAt.ToString("yyyy-MM-dd");
+        var blob = blobContainerClient.GetBlobClient($"{datePrefix}/{bodyId}");
+
+        try
+        {
+            var response = await blob.DownloadContentAsync(cancellationToken);
+            var properties = response.Value;
+            var metadata = properties.Details.Metadata;
+
+            // Check format version
+            if (metadata.TryGetValue("FormatVersion", out var version) && version != FormatVersion)
+            {
+                throw new InvalidOperationException($"Unsupported blob format version: {version}");
+            }
+
+            var contentType = metadata.TryGetValue("ContentType", out var ct) ? Uri.UnescapeDataString(ct) : "application/octet-stream";
+            var bodySize = metadata.TryGetValue("BodySize", out var sizeStr) && int.TryParse(sizeStr, out var size) ? size : 0;
+            var isCompressed = metadata.TryGetValue("IsCompressed", out var compressedStr) && bool.TryParse(compressedStr, out var compressed) && compressed;
+            var etag = properties.Details.ETag.ToString();
+
+            Stream stream;
+            if (isCompressed)
+            {
+                var compressedData = properties.Content.ToMemory();
+                var decompressedBuffer = new byte[bodySize];
+
+                if (!BrotliDecoder.TryDecompress(compressedData.Span, decompressedBuffer, out var bytesWritten) || bytesWritten != bodySize)
+                {
+                    throw new InvalidOperationException($"Failed to decompress body for {bodyId}");
+                }
+
+                stream = new MemoryStream(decompressedBuffer, writable: false);
+            }
+            else
+            {
+                stream = properties.Content.ToStream();
+            }
+
+            return new MessageBodyFileResult
+            {
+                Stream = stream,
+                ContentType = contentType,
+                BodySize = bodySize,
+                Etag = etag
+            };
+        }
+        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            return null;
+        }
+    }
+
+    public Task DeleteBodiesForDate(DateTime date, CancellationToken cancellationToken = default)
+    {
+        // var datePrefix = date.ToString("yyyy-MM-dd") + "/";
+
+        // await foreach (var blobItem in blobContainerClient.GetBlobsAsync(BlobTraits.None, BlobStates.None, datePrefix, cancellationToken))
+        // {
+        //     await blobContainerClient.DeleteBlobIfExistsAsync(blobItem.Name, cancellationToken: cancellationToken);
+        // }
+
+        return Task.CompletedTask;
     }
 }

@@ -12,15 +12,15 @@ using ServiceControl.Audit.Persistence.Sql.SqlServer;
 namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerAuditDbContext))]
-    [Migration("20260203024044_AddFullTextIndexForSearch")]
-    partial class AddFullTextIndexForSearch
+    [Migration("20260209221537_AddPartitioningAndFullTextSearch")]
+    partial class AddPartitioningAndFullTextSearch
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.11")
+                .HasAnnotation("ProductVersion", "10.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -111,6 +111,9 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<DateTime>("ProcessedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("BodyNotStored")
                         .HasColumnType("bit");
 
@@ -146,9 +149,6 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<DateTime>("ProcessedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<long?>("ProcessingTimeTicks")
                         .HasColumnType("bigint");
 
@@ -170,21 +170,13 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("MessageId");
-
-                    b.HasIndex("ProcessedAt");
-
-                    b.HasIndex("UniqueMessageId");
+                    b.HasKey("Id", "ProcessedAt");
 
                     b.HasIndex("ConversationId", "ProcessedAt");
 
-                    b.HasIndex("IsSystemMessage", "TimeSent", "ProcessedAt");
+                    b.HasIndex("MessageId", "ProcessedAt");
 
-                    b.HasIndex("ReceivingEndpointName", "IsSystemMessage", "ProcessedAt");
-
-                    b.HasIndex("ReceivingEndpointName", "IsSystemMessage", "TimeSent", "ProcessedAt");
+                    b.HasIndex("UniqueMessageId", "ProcessedAt");
 
                     b.ToTable("ProcessedMessages", (string)null);
                 });
@@ -196,6 +188,9 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("ProcessedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Endpoint")
                         .IsRequired()
@@ -211,9 +206,6 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                     b.Property<string>("OutgoingMessagesJson")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("ProcessedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<Guid>("SagaId")
                         .HasColumnType("uniqueidentifier");
@@ -232,11 +224,9 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id", "ProcessedAt");
 
-                    b.HasIndex("ProcessedAt");
-
-                    b.HasIndex("SagaId");
+                    b.HasIndex("SagaId", "ProcessedAt");
 
                     b.ToTable("SagaSnapshots", (string)null);
                 });

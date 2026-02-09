@@ -9,11 +9,13 @@ public class FileSystemBodyStoragePersistence(AuditSqlPersisterSettings settings
 
     public async Task WriteBodyAsync(
         string bodyId,
+        DateTime processedAt,
         ReadOnlyMemory<byte> body,
         string contentType,
         CancellationToken cancellationToken = default)
     {
-        var filePath = Path.Combine(settings.MessageBodyStoragePath, $"{bodyId}.body");
+        var dateFolder = processedAt.ToString("yyyy-MM-dd");
+        var filePath = Path.Combine(settings.MessageBodyStoragePath, dateFolder, $"{bodyId}.body");
 
         // Bodies are immutable - skip if file already exists
         if (File.Exists(filePath))
@@ -95,9 +97,10 @@ public class FileSystemBodyStoragePersistence(AuditSqlPersisterSettings settings
         }
     }
 
-    public Task<MessageBodyFileResult?> ReadBodyAsync(string bodyId, CancellationToken cancellationToken = default)
+    public Task<MessageBodyFileResult?> ReadBodyAsync(string bodyId, DateTime processedAt, CancellationToken cancellationToken = default)
     {
-        var filePath = Path.Combine(settings.MessageBodyStoragePath, $"{bodyId}.body");
+        var dateFolder = processedAt.ToString("yyyy-MM-dd");
+        var filePath = Path.Combine(settings.MessageBodyStoragePath, dateFolder, $"{bodyId}.body");
 
         if (!File.Exists(filePath))
         {
@@ -156,32 +159,23 @@ public class FileSystemBodyStoragePersistence(AuditSqlPersisterSettings settings
         }
     }
 
-    public Task DeleteBodies(IEnumerable<string> bodyIds, CancellationToken cancellationToken = default)
+    public Task DeleteBodiesForDate(DateTime date, CancellationToken cancellationToken = default)
     {
-        foreach (var bodyId in bodyIds)
+        var dateFolder = date.ToString("yyyy-MM-dd");
+        var directoryPath = Path.Combine(settings.MessageBodyStoragePath, dateFolder);
+
+        try
         {
-            DeleteBody(bodyId);
+            if (Directory.Exists(directoryPath))
+            {
+                Directory.Delete(directoryPath, recursive: true);
+            }
+        }
+        catch (DirectoryNotFoundException)
+        {
+            // Already gone
         }
 
         return Task.CompletedTask;
     }
-
-    void DeleteBody(string bodyId)
-    {
-        var filePath = Path.Combine(settings.MessageBodyStoragePath, $"{bodyId}.body");
-
-        try
-        {
-            File.Delete(filePath);
-        }
-        catch (DirectoryNotFoundException)
-        {
-            // Directory doesn't exist, nothing to delete
-        }
-        catch (FileNotFoundException)
-        {
-            // File doesn't exist, nothing to delete
-        }
-    }
-
 }

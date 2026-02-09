@@ -9,7 +9,7 @@ class SagaSnapshotConfiguration : IEntityTypeConfiguration<SagaSnapshotEntity>
     public void Configure(EntityTypeBuilder<SagaSnapshotEntity> builder)
     {
         builder.ToTable("SagaSnapshots");
-        builder.HasKey(e => e.Id);
+        builder.HasKey(e => new { e.Id, e.ProcessedAt });
         builder.Property(e => e.Id).ValueGeneratedOnAdd();
         builder.Property(e => e.SagaId).IsRequired();
         builder.Property(e => e.SagaType).IsRequired();
@@ -22,7 +22,6 @@ class SagaSnapshotConfiguration : IEntityTypeConfiguration<SagaSnapshotEntity>
         builder.Property(e => e.Endpoint).IsRequired();
         builder.Property(e => e.ProcessedAt).IsRequired();
 
-        builder.HasIndex(e => e.SagaId);
-        builder.HasIndex(e => e.ProcessedAt);
+        builder.HasIndex(e => new { e.SagaId, e.ProcessedAt });
     }
 }

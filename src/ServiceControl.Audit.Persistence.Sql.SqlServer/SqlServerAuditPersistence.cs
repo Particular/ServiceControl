@@ -23,6 +23,7 @@ class SqlServerAuditPersistence : BaseAuditPersistence, IPersistence
         RegisterDataStores(services, settings);
         services.AddSingleton<IAuditFullTextSearchProvider, SqlServerAuditFullTextSearchProvider>();
         services.AddSingleton<RetentionMetrics>();
+        services.AddSingleton<IPartitionManager, SqlServerPartitionManager>();
         services.AddHostedService<KnownEndpointsReconciler>();
         services.AddHostedService<Infrastructure.RetentionCleaner>();
     }
@@ -32,6 +33,7 @@ class SqlServerAuditPersistence : BaseAuditPersistence, IPersistence
         ConfigureDbContext(services);
         RegisterDataStores(services, settings);
         services.AddSingleton<IAuditFullTextSearchProvider, SqlServerAuditFullTextSearchProvider>();
+        services.AddSingleton<IPartitionManager, SqlServerPartitionManager>();
         services.AddSingleton<IAuditDatabaseMigrator, SqlServerAuditDatabaseMigrator>();
     }
 

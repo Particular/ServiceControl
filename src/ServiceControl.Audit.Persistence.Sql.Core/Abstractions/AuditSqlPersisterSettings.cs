@@ -15,5 +15,4 @@ public abstract class AuditSqlPersisterSettings : PersistenceSettings
     public bool EnableSensitiveDataLogging { get; set; } = false;
     public int MinBodySizeForCompression { get; set; } = 4096;
     public bool StoreMessageBodiesOnDisk { get; set; } = true;
-    public TimeSpan RetentionCleanupBatchDelay { get; set; } = TimeSpan.FromMilliseconds(100);
 }

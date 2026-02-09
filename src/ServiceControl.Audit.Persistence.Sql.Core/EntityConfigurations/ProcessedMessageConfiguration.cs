@@ -9,7 +9,7 @@ class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedMessageE
     public void Configure(EntityTypeBuilder<ProcessedMessageEntity> builder)
     {
         builder.ToTable("ProcessedMessages");
-        builder.HasKey(e => e.Id);
+        builder.HasKey(e => new { e.Id, e.ProcessedAt });
         builder.Property(e => e.Id).ValueGeneratedOnAdd();
         builder.Property(e => e.UniqueMessageId).HasMaxLength(200).IsRequired();
 
@@ -35,25 +35,13 @@ class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedMessageE
         builder.Property(e => e.ProcessingTimeTicks);
         builder.Property(e => e.DeliveryTimeTicks);
 
-        // PRIMARY: Uniqueness index
-        builder.HasIndex(e => e.UniqueMessageId);
-
-        // COMPOSITE INDEXES: Based on IAuditDataStore query patterns
-
-        // GetMessages: includeSystemMessages, timeSent range, sort by ProcessedAt/TimeSent
-        builder.HasIndex(e => new { e.IsSystemMessage, e.TimeSent, e.ProcessedAt });
-
-        // QueryMessagesByReceivingEndpoint: endpoint + system messages + time range
-        builder.HasIndex(e => new { e.ReceivingEndpointName, e.IsSystemMessage, e.TimeSent, e.ProcessedAt });
+        // Uniqueness index (includes ProcessedAt for partition alignment)
+        builder.HasIndex(e => new { e.UniqueMessageId, e.ProcessedAt });
 
         // QueryMessagesByConversationId
         builder.HasIndex(e => new { e.ConversationId, e.ProcessedAt });
 
-        // QueryAuditCounts: endpoint + system + processed at (date grouping)
-        builder.HasIndex(e => new { e.ReceivingEndpointName, e.IsSystemMessage, e.ProcessedAt });
-
-        // MessageId lookup (for body retrieval)
-        builder.HasIndex(e => e.MessageId);
-        builder.HasIndex(e => e.ProcessedAt);
+        // MessageId lookup (includes ProcessedAt for partition alignment)
+        builder.HasIndex(e => new { e.MessageId, e.ProcessedAt });
     }
 }
