@@ -35,30 +35,11 @@ class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedMessageE
         builder.Property(e => e.ProcessingTimeTicks);
         builder.Property(e => e.DeliveryTimeTicks);
 
-        // PRIMARY: Uniqueness index
         builder.HasIndex(e => e.UniqueMessageId);
-
-        // COMPOSITE INDEXES: Based on IAuditDataStore query patterns
-
-        // GetMessages: includeSystemMessages, timeSent range, sort by ProcessedAt/TimeSent
-        builder.HasIndex(e => new { e.IsSystemMessage, e.TimeSent, e.ProcessedAt });
-
-        // QueryMessagesByReceivingEndpoint: endpoint + system messages + time range
-        builder.HasIndex(e => new { e.ReceivingEndpointName, e.IsSystemMessage, e.TimeSent, e.ProcessedAt });
-
-        // QueryMessagesByConversationId
-        builder.HasIndex(e => new { e.ConversationId, e.ProcessedAt });
-
-        // QueryAuditCounts: endpoint + system + processed at (date grouping)
-        builder.HasIndex(e => new { e.ReceivingEndpointName, e.IsSystemMessage, e.ProcessedAt });
-
-        // MessageId lookup (for body retrieval)
-        builder.HasIndex(e => e.MessageId);
+        builder.HasIndex(e => e.TimeSent);
         builder.HasIndex(e => e.ProcessedAt);
 
-        // Batch retention cleanup index
         builder.Property(e => e.BatchId).IsRequired();
-        builder.HasIndex(e => new { e.BatchId, e.ProcessedAt })
-            .HasDatabaseName("IX_ProcessedMessages_BatchId_ProcessedAt");
+        builder.HasIndex(e => e.BatchId);
     }
 }

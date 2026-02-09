@@ -119,7 +119,6 @@ public abstract class RetentionCleaner(
 
             foreach (var batchId in expiredBatchIds)
             {
-                // Delete all messages in this batch
                 var deleted = await dbContext.ProcessedMessages
                     .Where(m => m.BatchId == batchId)
                     .ExecuteDeleteAsync(stoppingToken);

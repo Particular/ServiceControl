@@ -25,9 +25,7 @@ class SagaSnapshotConfiguration : IEntityTypeConfiguration<SagaSnapshotEntity>
         builder.HasIndex(e => e.SagaId);
         builder.HasIndex(e => e.ProcessedAt);
 
-        // Batch retention cleanup index
         builder.Property(e => e.BatchId).IsRequired();
-        builder.HasIndex(e => new { e.BatchId, e.ProcessedAt })
-            .HasDatabaseName("IX_SagaSnapshots_BatchId_ProcessedAt");
+        builder.HasIndex(e => e.BatchId);
     }
 }
