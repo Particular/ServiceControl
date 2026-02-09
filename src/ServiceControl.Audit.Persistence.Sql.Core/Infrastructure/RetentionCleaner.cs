@@ -104,6 +104,7 @@ public abstract class RetentionCleaner(
     {
         var totalDeleted = 0;
         int deleted;
+        var affectedBatchIds = new HashSet<Guid>();
 
         do
         {
@@ -114,9 +115,9 @@ public abstract class RetentionCleaner(
             {
                 await using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
-                // Select the oldest expired messages by ProcessedAt, limited to BatchSize.
+                // Select expired messages by ProcessedAt, limited to BatchSize.
                 // This uses the IX_ProcessedMessages_ProcessedAt index for an efficient
-                // range scan from the beginning, stopping after BatchSize rows.
+                // range scan, stopping after BatchSize rows.
                 var expiredMessages = await dbContext.ProcessedMessages
                     .Where(m => m.ProcessedAt < cutoff)
                     .Take(BatchSize)
@@ -129,34 +130,20 @@ public abstract class RetentionCleaner(
                 }
 
                 var messageIds = expiredMessages.Select(m => m.Id).ToList();
-                var affectedBatchIds = expiredMessages.Select(m => m.BatchId).Distinct().ToList();
 
                 // Delete the selected messages by their primary keys
                 var messagesDeleted = await dbContext.ProcessedMessages
                     .Where(m => messageIds.Contains(m.Id))
                     .ExecuteDeleteAsync(stoppingToken);
 
-                // After deleting, find which affected batches now have zero remaining
-                // messages. Only those batch folders can be safely removed from disk.
-                // This query is cheap: for each of the ~30 batch IDs, it does an index
-                // seek on IX_ProcessedMessages_BatchId_ProcessedAt and returns immediately
-                // if any row exists.
-                var batchIdsStillInUse = await dbContext.ProcessedMessages
-                    .Where(m => affectedBatchIds.Contains(m.BatchId))
-                    .Select(m => m.BatchId)
-                    .Distinct()
-                    .ToListAsync(stoppingToken);
+                await transaction.CommitAsync(stoppingToken);
 
-                var fullyDeletedBatchIds = affectedBatchIds
-                    .Where(id => !batchIdsStillInUse.Contains(id))
-                    .ToList();
-
-                if (fullyDeletedBatchIds.Count > 0)
+                // Collect affected batch IDs for body cleanup after all deletes complete
+                foreach (var batchId in expiredMessages.Select(m => m.BatchId).Distinct())
                 {
-                    await bodyPersistence.DeleteBatches(fullyDeletedBatchIds, stoppingToken);
+                    affectedBatchIds.Add(batchId);
                 }
 
-                await transaction.CommitAsync(stoppingToken);
                 return messagesDeleted;
             });
 
@@ -169,6 +156,20 @@ public abstract class RetentionCleaner(
                 await Task.Delay(settings.RetentionCleanupBatchDelay, stoppingToken);
             }
         } while (deleted > 0);
+
+        // Clean up body storage for batches that no longer have any messages in the DB.
+        // Each AnyAsync call does a single index seek on IX_ProcessedMessages_BatchId_ProcessedAt
+        // and returns immediately on first row found, so this is cheap even for large tables.
+        foreach (var batchId in affectedBatchIds)
+        {
+            var stillInUse = await dbContext.ProcessedMessages
+                .AnyAsync(m => m.BatchId == batchId, stoppingToken);
+
+            if (!stillInUse)
+            {
+                await bodyPersistence.DeleteBatches([batchId], stoppingToken);
+            }
+        }
 
         return totalDeleted;
     }
