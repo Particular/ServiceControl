@@ -2,8 +2,10 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Infrastructure;
 
 using System.Data.Common;
 using Core.Abstractions;
+using Core.DbContexts;
 using Core.Infrastructure;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -52,5 +54,23 @@ class RetentionCleaner(
         ";
 
         await command.ExecuteNonQueryAsync(stoppingToken);
+    }
+
+    protected override async Task<int> DeleteExpiredMessages(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
+    {
+        // Single server-side statement: DELETE TOP avoids round-tripping IDs as parameters
+        // and lets SQL Server optimize lock acquisition for the batch.
+        return await dbContext.Database.ExecuteSqlRawAsync(
+            "DELETE TOP({0}) FROM [ProcessedMessages] WHERE [ProcessedAt] < {1}",
+            [BatchSize, cutoff],
+            stoppingToken);
+    }
+
+    protected override async Task<int> DeleteExpiredSagaSnapshots(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
+    {
+        return await dbContext.Database.ExecuteSqlRawAsync(
+            "DELETE TOP({0}) FROM [SagaSnapshots] WHERE [ProcessedAt] < {1}",
+            [BatchSize, cutoff],
+            stoppingToken);
     }
 }

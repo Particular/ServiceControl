@@ -2,7 +2,9 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Infrastructure;
 
 using System.Data.Common;
 using Core.Abstractions;
+using Core.DbContexts;
 using Core.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -39,5 +41,36 @@ class RetentionCleaner(
         command.CommandText = "SELECT pg_advisory_unlock(hashtext('retention_cleaner'))";
 
         await command.ExecuteNonQueryAsync(stoppingToken);
+    }
+
+    protected override async Task<int> DeleteExpiredMessages(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
+    {
+        // PostgreSQL doesn't support DELETE TOP(N), so use a subquery with ctid
+        return await dbContext.Database.ExecuteSqlRawAsync(
+            """
+            DELETE FROM "ProcessedMessages"
+            WHERE ctid IN (
+                SELECT ctid FROM "ProcessedMessages"
+                WHERE "ProcessedAt" < {0}
+                LIMIT {1}
+            )
+            """,
+            [cutoff, BatchSize],
+            stoppingToken);
+    }
+
+    protected override async Task<int> DeleteExpiredSagaSnapshots(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken stoppingToken)
+    {
+        return await dbContext.Database.ExecuteSqlRawAsync(
+            """
+            DELETE FROM "SagaSnapshots"
+            WHERE ctid IN (
+                SELECT ctid FROM "SagaSnapshots"
+                WHERE "ProcessedAt" < {0}
+                LIMIT {1}
+            )
+            """,
+            [cutoff, BatchSize],
+            stoppingToken);
     }
 }
