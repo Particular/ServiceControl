@@ -71,7 +71,7 @@
     <PackageVersion Include="ReactiveUI.WPF" Version="20.1.63" />
     <PackageVersion Include="Seq.Extensions.Logging" Version="8.0.0" />
     <PackageVersion Include="ServiceControl.Contracts" Version="5.1.0" />
-    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="10.0.2" />
+    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="10.0.3" />
     <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="10.0.2" />
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="10.0.2" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
