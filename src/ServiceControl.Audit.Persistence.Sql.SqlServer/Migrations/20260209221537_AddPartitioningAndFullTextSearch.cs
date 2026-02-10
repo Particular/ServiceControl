@@ -83,6 +83,11 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                 ON ps_ProcessedAt([ProcessedAt]);
                 """);
 
+            migrationBuilder.Sql("""
+                CREATE UNIQUE NONCLUSTERED INDEX [UX_ProcessedMessages_FullTextKey]
+                ON [ProcessedMessages] ([Id])
+                ON [PRIMARY];
+                """);
             // Create FULLTEXT catalog and index for search
             migrationBuilder.Sql("""
                 IF NOT EXISTS (SELECT * FROM sys.fulltext_catalogs WHERE name = 'ProcessedMessagesCatalog')
@@ -93,7 +98,7 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
 
             migrationBuilder.Sql("""
                 CREATE FULLTEXT INDEX ON ProcessedMessages(SearchableContent LANGUAGE 0)
-                    KEY INDEX PK_ProcessedMessages
+                    KEY INDEX UX_ProcessedMessages_FullTextKey
                     WITH STOPLIST = OFF;
                 """, suppressTransaction: true);
         }
