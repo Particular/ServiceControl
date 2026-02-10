@@ -58,7 +58,9 @@ public abstract class RetentionCleaner(
         var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContextBase>();
 
         var stopwatch = Stopwatch.StartNew();
-        var cutoff = timeProvider.GetUtcNow().UtcDateTime - settings.AuditRetentionPeriod;
+        // Round up to whole days since partitions are daily
+        var retentionPeriod = TimeSpan.FromDays(Math.Ceiling(settings.AuditRetentionPeriod.TotalDays));
+        var cutoff = timeProvider.GetUtcNow().UtcDateTime - retentionPeriod;
         var today = timeProvider.GetUtcNow().UtcDateTime.Date;
 
         using var cycleMetrics = metrics.BeginCleanupCycle();
