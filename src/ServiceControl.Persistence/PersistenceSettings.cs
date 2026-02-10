@@ -13,6 +13,19 @@
 
         public bool EnableFullTextSearchOnBodies { get; set; } = true;
 
+        /// <summary>
+        /// Base path for storing message bodies on the filesystem.
+        /// Initialized by persistence configuration based on DatabasePath or explicit configuration.
+        /// </summary>
+        public string MessageBodyStoragePath { get; set; }
+
+        /// <summary>
+        /// Minimum body size in bytes to trigger compression. Bodies smaller than this threshold
+        /// will not be compressed to avoid performance overhead on small payloads.
+        /// Default is 4KB (4096 bytes).
+        /// </summary>
+        public int MinBodySizeForCompression { get; set; } = 4096;
+
         public TimeSpan? OverrideCustomCheckRepeatTime { get; set; }
     }
 }

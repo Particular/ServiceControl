@@ -1,0 +1,9 @@
+[*.cs]
+
+# Justification: ServiceControl app has no synchronization context
+dotnet_diagnostic.CA2007.severity = none
+
+# Disable style rules for auto-generated EF migrations
+[**/Migrations/*.cs]
+dotnet_diagnostic.IDE0065.severity = none
+generated_code = true

@@ -11,10 +11,11 @@
   </PropertyGroup>
 
   <!-- Needed for build ordering -->
-  <Import Project="..\ProjectReferences.Persisters.Audit.props" />
   <Import Project="..\ProjectReferences.Transports.props" />
 
   <ItemGroup>
+    <ProjectReference Include="../ServiceControl.Audit.Persistence.Sql.PostgreSQL/ServiceControl.Audit.Persistence.Sql.PostgreSQL.csproj" />
+    <ProjectReference Include="../ServiceControl.Audit.Persistence.Sql.SqlServer/ServiceControl.Audit.Persistence.Sql.SqlServer.csproj" />
     <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
     <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
