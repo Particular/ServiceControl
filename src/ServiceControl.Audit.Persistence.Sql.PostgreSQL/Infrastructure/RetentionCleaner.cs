@@ -17,7 +17,9 @@ class RetentionCleaner(
     RetentionMetrics metrics)
     : Core.Infrastructure.RetentionCleaner(logger, timeProvider, serviceScopeFactory, settings, bodyPersistence, partitionManager, metrics)
 {
-    protected override DbConnection CreateConnection() => new NpgsqlConnection(settings.ConnectionString);
+    readonly string connectionString = settings.ConnectionString;
+
+    protected override DbConnection CreateConnection() => new NpgsqlConnection(connectionString);
 
     protected override async Task<bool> TryAcquireLock(DbConnection lockConnection, CancellationToken stoppingToken)
     {
