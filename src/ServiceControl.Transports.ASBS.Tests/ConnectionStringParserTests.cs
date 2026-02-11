@@ -37,6 +37,9 @@
                 //EnablePartitioning
                 yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;EnablePartitioning=True",
                     new ConnectionSettings(new SharedAccessSignatureAuthentication("Endpoint=sb://some.endpoint.name/;EnablePartitioning=True"), enablePartitioning: true));
+                //HierarchyNamespace
+                yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;HierarchyNamespace=my-hierarchy",
+                    new ConnectionSettings(new SharedAccessSignatureAuthentication("Endpoint=sb://some.endpoint.name/;HierarchyNamespace=my-hierarchy"), hierarchyNamespace: "my-hierarchy"));
             }
         }
 
