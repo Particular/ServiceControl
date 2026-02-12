@@ -146,109 +146,11 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                 name: "IX_SagaSnapshots_SagaId_CreatedOn",
                 table: "SagaSnapshots",
                 columns: new[] { "SagaId", "CreatedOn" });
-
-            // === Hand-crafted: Partitioning ===
-            // Create partition function and scheme for hourly partitions on CreatedOn.
-            // Actual partition boundaries are created at runtime by the partition manager.
-            migrationBuilder.Sql("""
-                CREATE PARTITION FUNCTION pf_CreatedOn (datetime2)
-                AS RANGE RIGHT FOR VALUES ();
-                """);
-
-            migrationBuilder.Sql("""
-                CREATE PARTITION SCHEME ps_CreatedOn
-                AS PARTITION pf_CreatedOn ALL TO ([PRIMARY]);
-                """);
-
-            // Move ProcessedMessages onto the partition scheme
-            migrationBuilder.Sql("""
-                ALTER TABLE [ProcessedMessages] DROP CONSTRAINT [PK_ProcessedMessages];
-                """);
-
-            migrationBuilder.Sql("""
-                DROP INDEX [IX_ProcessedMessages_UniqueMessageId_CreatedOn] ON [ProcessedMessages];
-                DROP INDEX [IX_ProcessedMessages_MessageId_CreatedOn] ON [ProcessedMessages];
-                DROP INDEX [IX_ProcessedMessages_ConversationId_CreatedOn] ON [ProcessedMessages];
-                DROP INDEX [IX_ProcessedMessages_TimeSent] ON [ProcessedMessages];
-                """);
-
-            migrationBuilder.Sql("""
-                DECLARE @sql NVARCHAR(MAX);
-                SELECT @sql = 'ALTER TABLE [ProcessedMessages] ADD CONSTRAINT [PK_ProcessedMessages] PRIMARY KEY CLUSTERED ([Id], [CreatedOn]) ON ps_CreatedOn([CreatedOn])';
-                EXEC(@sql);
-                """);
-
-            migrationBuilder.Sql("""
-                CREATE NONCLUSTERED INDEX [IX_ProcessedMessages_UniqueMessageId_CreatedOn]
-                ON [ProcessedMessages] ([UniqueMessageId], [CreatedOn])
-                ON ps_CreatedOn([CreatedOn]);
-
-                CREATE NONCLUSTERED INDEX [IX_ProcessedMessages_MessageId_CreatedOn]
-                ON [ProcessedMessages] ([MessageId], [CreatedOn])
-                ON ps_CreatedOn([CreatedOn]);
-
-                CREATE NONCLUSTERED INDEX [IX_ProcessedMessages_ConversationId_CreatedOn]
-                ON [ProcessedMessages] ([ConversationId], [CreatedOn])
-                ON ps_CreatedOn([CreatedOn]);
-
-                CREATE NONCLUSTERED INDEX [IX_ProcessedMessages_TimeSent]
-                ON [ProcessedMessages] ([TimeSent])
-                ON [PRIMARY];
-                """);
-
-            // Move SagaSnapshots onto the partition scheme
-            migrationBuilder.Sql("""
-                ALTER TABLE [SagaSnapshots] DROP CONSTRAINT [PK_SagaSnapshots];
-                """);
-
-            migrationBuilder.Sql("""
-                DROP INDEX [IX_SagaSnapshots_SagaId_CreatedOn] ON [SagaSnapshots];
-                """);
-
-            migrationBuilder.Sql("""
-                DECLARE @sql NVARCHAR(MAX);
-                SELECT @sql = 'ALTER TABLE [SagaSnapshots] ADD CONSTRAINT [PK_SagaSnapshots] PRIMARY KEY CLUSTERED ([Id], [CreatedOn]) ON ps_CreatedOn([CreatedOn])';
-                EXEC(@sql);
-                """);
-
-            migrationBuilder.Sql("""
-                CREATE NONCLUSTERED INDEX [IX_SagaSnapshots_SagaId_CreatedOn]
-                ON [SagaSnapshots] ([SagaId], [CreatedOn])
-                ON ps_CreatedOn([CreatedOn]);
-                """);
-
-            // === Hand-crafted: Full-text search ===
-            migrationBuilder.Sql("""
-                CREATE UNIQUE NONCLUSTERED INDEX [UX_ProcessedMessages_FullTextKey]
-                ON [ProcessedMessages] ([Id])
-                ON [PRIMARY];
-                """);
-
-            migrationBuilder.Sql("""
-                IF NOT EXISTS (SELECT * FROM sys.fulltext_catalogs WHERE name = 'ProcessedMessagesCatalog')
-                BEGIN
-                    CREATE FULLTEXT CATALOG ProcessedMessagesCatalog AS DEFAULT;
-                END
-                """, suppressTransaction: true);
-
-            migrationBuilder.Sql("""
-                CREATE FULLTEXT INDEX ON ProcessedMessages(SearchableContent LANGUAGE 0)
-                    KEY INDEX UX_ProcessedMessages_FullTextKey
-                    WITH STOPLIST = OFF;
-                """, suppressTransaction: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Drop fulltext index first
-            migrationBuilder.Sql("""
-                IF EXISTS (SELECT * FROM sys.fulltext_indexes WHERE object_id = OBJECT_ID('ProcessedMessages'))
-                BEGIN
-                    DROP FULLTEXT INDEX ON ProcessedMessages;
-                END
-                """, suppressTransaction: true);
-
             migrationBuilder.DropTable(
                 name: "FailedAuditImports");
 
@@ -263,11 +165,6 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
 
             migrationBuilder.DropTable(
                 name: "SagaSnapshots");
-
-            migrationBuilder.Sql("""
-                DROP PARTITION SCHEME ps_CreatedOn;
-                DROP PARTITION FUNCTION pf_CreatedOn;
-                """);
         }
     }
 }

@@ -12,8 +12,8 @@ using ServiceControl.Audit.Persistence.Sql.SqlServer;
 namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerAuditDbContext))]
-    [Migration("20260212054100_AlignTimeSentIndex")]
-    partial class AlignTimeSentIndex
+    [Migration("20260212060000_AddPartitioning")]
+    partial class AddPartitioning
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

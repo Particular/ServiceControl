@@ -138,13 +138,6 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                 name: "IX_saga_snapshots_saga_id_created_on",
                 table: "saga_snapshots",
                 columns: new[] { "saga_id", "created_on" });
-
-            // Hand-crafted: Full-text search GIN index
-            migrationBuilder.Sql("""
-                CREATE INDEX ix_processed_messages_searchable_content
-                ON processed_messages
-                USING GIN (to_tsvector('simple', searchable_content));
-                """);
         }
 
         /// <inheritdoc />
