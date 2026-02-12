@@ -14,5 +14,5 @@ public class SagaSnapshotEntity
     public string? InitiatingMessageJson { get; set; }
     public string? OutgoingMessagesJson { get; set; }
     public string? Endpoint { get; set; }
-    public DateTime ProcessedAt { get; set; }
+    public DateTime CreatedOn { get; set; }
 }

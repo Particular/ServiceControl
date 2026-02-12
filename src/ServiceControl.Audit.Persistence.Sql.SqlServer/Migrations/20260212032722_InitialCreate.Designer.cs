@@ -12,7 +12,7 @@ using ServiceControl.Audit.Persistence.Sql.SqlServer;
 namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerAuditDbContext))]
-    [Migration("20260209221501_InitialCreate")]
+    [Migration("20260212032722_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -111,7 +111,7 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("ProcessedAt")
+                    b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("BodyNotStored")
@@ -170,13 +170,15 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.HasKey("Id", "ProcessedAt");
+                    b.HasKey("Id", "CreatedOn");
 
-                    b.HasIndex("ConversationId", "ProcessedAt");
+                    b.HasIndex("TimeSent");
 
-                    b.HasIndex("MessageId", "ProcessedAt");
+                    b.HasIndex("ConversationId", "CreatedOn");
 
-                    b.HasIndex("UniqueMessageId", "ProcessedAt");
+                    b.HasIndex("MessageId", "CreatedOn");
+
+                    b.HasIndex("UniqueMessageId", "CreatedOn");
 
                     b.ToTable("ProcessedMessages", (string)null);
                 });
@@ -189,7 +191,7 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("ProcessedAt")
+                    b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Endpoint")
@@ -224,9 +226,9 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.HasKey("Id", "ProcessedAt");
+                    b.HasKey("Id", "CreatedOn");
 
-                    b.HasIndex("SagaId", "ProcessedAt");
+                    b.HasIndex("SagaId", "CreatedOn");
 
                     b.ToTable("SagaSnapshots", (string)null);
                 });

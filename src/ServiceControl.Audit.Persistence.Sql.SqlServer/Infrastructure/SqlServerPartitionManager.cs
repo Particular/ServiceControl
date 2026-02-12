@@ -8,42 +8,44 @@ using ServiceControl.Audit.Persistence.Sql.Core.Infrastructure;
 #pragma warning disable EF1002, EF1003
 public class SqlServerPartitionManager : IPartitionManager
 {
-    const string PartitionFunctionName = "pf_ProcessedAt";
-    const string PartitionSchemeName = "ps_ProcessedAt";
+    const string PartitionFunctionName = "pf_CreatedOn";
+    const string PartitionSchemeName = "ps_CreatedOn";
 
     static readonly string[] PartitionedTables = ["ProcessedMessages", "SagaSnapshots"];
 
-    public async Task EnsurePartitionsExist(AuditDbContextBase dbContext, DateTime currentDate, int daysAhead, CancellationToken ct)
+    public async Task EnsurePartitionsExist(AuditDbContextBase dbContext, DateTime currentHour, int hoursAhead, CancellationToken ct)
     {
         var existingBoundaries = await GetExistingBoundaries(dbContext, ct);
-        var targetDate = currentDate.Date.AddDays(daysAhead);
+        var truncatedHour = TruncateToHour(currentHour);
+        var targetHour = truncatedHour.AddHours(hoursAhead);
 
-        for (var date = currentDate.Date; date <= targetDate; date = date.AddDays(1))
+        for (var hour = truncatedHour; hour <= targetHour; hour = hour.AddHours(1))
         {
-            if (existingBoundaries.Contains(date))
+            if (existingBoundaries.Contains(hour))
             {
                 continue;
             }
 
-            var dateStr = date.ToString("yyyy-MM-dd");
+            var hourStr = hour.ToString("yyyy-MM-ddTHH:00:00");
 
             await dbContext.Database.ExecuteSqlRawAsync(
                 "ALTER PARTITION SCHEME " + PartitionSchemeName + " NEXT USED [PRIMARY]", ct);
 
             await dbContext.Database.ExecuteSqlRawAsync(
-                "ALTER PARTITION FUNCTION " + PartitionFunctionName + "() SPLIT RANGE ('" + dateStr + "')", ct);
+                "ALTER PARTITION FUNCTION " + PartitionFunctionName + "() SPLIT RANGE ('" + hourStr + "')", ct);
         }
     }
 
-    public async Task DropPartition(AuditDbContextBase dbContext, DateTime partitionDate, CancellationToken ct)
+    public async Task DropPartition(AuditDbContextBase dbContext, DateTime partitionHour, CancellationToken ct)
     {
-        var partitionNumber = await GetPartitionNumber(dbContext, partitionDate, ct);
+        var truncatedHour = TruncateToHour(partitionHour);
+        var partitionNumber = await GetPartitionNumber(dbContext, truncatedHour, ct);
         if (partitionNumber == null)
         {
             return;
         }
 
-        var dateStr = partitionDate.ToString("yyyy-MM-dd");
+        var hourStr = truncatedHour.ToString("yyyy-MM-ddTHH:00:00");
 
         foreach (var table in PartitionedTables)
         {
@@ -52,11 +54,13 @@ public class SqlServerPartitionManager : IPartitionManager
         }
 
         await dbContext.Database.ExecuteSqlRawAsync(
-            "ALTER PARTITION FUNCTION " + PartitionFunctionName + "() MERGE RANGE ('" + dateStr + "')", ct);
+            "ALTER PARTITION FUNCTION " + PartitionFunctionName + "() MERGE RANGE ('" + hourStr + "')", ct);
     }
 
-    public async Task<List<DateTime>> GetExpiredPartitionDates(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken ct)
+    public async Task<List<DateTime>> GetExpiredPartitions(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken ct)
     {
+        var truncatedCutoff = TruncateToHour(cutoff);
+
         var boundaries = await dbContext.Database
             .SqlQueryRaw<DateTime>(
                 "SELECT CAST(prv.value AS datetime2) AS Value " +
@@ -64,7 +68,7 @@ public class SqlServerPartitionManager : IPartitionManager
                 "INNER JOIN sys.partition_functions pf ON prv.function_id = pf.function_id " +
                 "WHERE pf.name = '" + PartitionFunctionName + "' " +
                 "AND CAST(prv.value AS datetime2) < {0} " +
-                "ORDER BY prv.value", cutoff.Date)
+                "ORDER BY prv.value", truncatedCutoff)
             .ToListAsync(ct);
 
         return boundaries;
@@ -81,18 +85,20 @@ public class SqlServerPartitionManager : IPartitionManager
                 "ORDER BY prv.value")
             .ToListAsync(ct);
 
-        return [.. boundaries.Select(b => b.Date)];
+        return [.. boundaries.Select(TruncateToHour)];
     }
 
-    async Task<int?> GetPartitionNumber(AuditDbContextBase dbContext, DateTime partitionDate, CancellationToken ct)
+    async Task<int?> GetPartitionNumber(AuditDbContextBase dbContext, DateTime partitionHour, CancellationToken ct)
     {
-        var dateStr = partitionDate.ToString("yyyy-MM-dd");
+        var hourStr = partitionHour.ToString("yyyy-MM-ddTHH:00:00");
 
         var result = await dbContext.Database
             .SqlQueryRaw<int>(
-                "SELECT $PARTITION." + PartitionFunctionName + "('" + dateStr + "') AS Value")
+                "SELECT $PARTITION." + PartitionFunctionName + "('" + hourStr + "') AS Value")
             .ToListAsync(ct);
 
         return result.Count > 0 ? result[0] : null;
     }
+
+    static DateTime TruncateToHour(DateTime dt) => new(dt.Year, dt.Month, dt.Day, dt.Hour, 0, 0, dt.Kind);
 }

@@ -28,11 +28,13 @@ class AuditIngestionUnitOfWork(
 
     public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body = default, CancellationToken cancellationToken = default)
     {
+        var createdOn = TruncateToHour(DateTime.UtcNow);
+
         var entity = new ProcessedMessageEntity
         {
+            CreatedOn = createdOn,
             UniqueMessageId = processedMessage.UniqueMessageId,
             HeadersJson = JsonSerializer.Serialize(processedMessage.Headers, ProcessedMessageJsonContext.Default.DictionaryStringString),
-            ProcessedAt = processedMessage.ProcessedAt,
 
             // Denormalized fields
             MessageId = GetMetadata<string>(processedMessage.MessageMetadata, "MessageId"),
@@ -65,7 +67,7 @@ class AuditIngestionUnitOfWork(
             var contentType = GetContentType(processedMessage.Headers, MediaTypeNames.Text.Plain);
 
             // Queue body storage to run in parallel, awaited in DisposeAsync
-            bodyStorageTasks.Add(bodyPersistence.WriteBodyAsync(processedMessage.UniqueMessageId, processedMessage.ProcessedAt, body, contentType, cancellationToken));
+            bodyStorageTasks.Add(bodyPersistence.WriteBodyAsync(processedMessage.UniqueMessageId, createdOn, body, contentType, cancellationToken));
         }
     }
 
@@ -73,6 +75,7 @@ class AuditIngestionUnitOfWork(
     {
         var entity = new SagaSnapshotEntity
         {
+            CreatedOn = TruncateToHour(DateTime.UtcNow),
             SagaId = sagaSnapshot.SagaId,
             SagaType = sagaSnapshot.SagaType,
             StartTime = sagaSnapshot.StartTime,
@@ -81,7 +84,6 @@ class AuditIngestionUnitOfWork(
             Status = sagaSnapshot.Status,
             InitiatingMessageJson = JsonSerializer.Serialize(sagaSnapshot.InitiatingMessage, SagaSnapshotJsonContext.Default.InitiatingMessage),
             OutgoingMessagesJson = JsonSerializer.Serialize(sagaSnapshot.OutgoingMessages, SagaSnapshotJsonContext.Default.ListResultingMessage),
-            ProcessedAt = sagaSnapshot.ProcessedAt,
             StateAfterChange = sagaSnapshot.StateAfterChange,
         };
 
@@ -233,4 +235,6 @@ class AuditIngestionUnitOfWork(
         }
         return false;
     }
+
+    static DateTime TruncateToHour(DateTime dt) => new(dt.Year, dt.Month, dt.Day, dt.Hour, 0, 0, dt.Kind);
 }

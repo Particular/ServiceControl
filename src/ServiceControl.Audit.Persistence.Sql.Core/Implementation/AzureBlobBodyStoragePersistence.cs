@@ -21,9 +21,9 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
         blobContainerClient = blobClient.GetBlobContainerClient("audit-bodies");
     }
 
-    public async Task WriteBodyAsync(string bodyId, DateTime processedAt, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
+    public async Task WriteBodyAsync(string bodyId, DateTime createdOn, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
     {
-        var datePrefix = processedAt.ToString("yyyy-MM-dd");
+        var datePrefix = createdOn.ToString("yyyy-MM-dd-HH");
         var blob = blobContainerClient.GetBlobClient($"{datePrefix}/{bodyId}");
         var shouldCompress = body.Length >= settings.MinBodySizeForCompression;
 
@@ -79,9 +79,9 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
         }
     }
 
-    public async Task<MessageBodyFileResult?> ReadBodyAsync(string bodyId, DateTime processedAt, CancellationToken cancellationToken = default)
+    public async Task<MessageBodyFileResult?> ReadBodyAsync(string bodyId, DateTime createdOn, CancellationToken cancellationToken = default)
     {
-        var datePrefix = processedAt.ToString("yyyy-MM-dd");
+        var datePrefix = createdOn.ToString("yyyy-MM-dd-HH");
         var blob = blobContainerClient.GetBlobClient($"{datePrefix}/{bodyId}");
 
         try
@@ -133,11 +133,11 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
         }
     }
 
-    public Task DeleteBodiesForDate(DateTime date, CancellationToken cancellationToken = default)
+    public Task DeleteBodiesForHour(DateTime hour, CancellationToken cancellationToken = default)
     {
-        // var datePrefix = date.ToString("yyyy-MM-dd") + "/";
+        // var hourPrefix = hour.ToString("yyyy-MM-dd-HH") + "/";
 
-        // await foreach (var blobItem in blobContainerClient.GetBlobsAsync(BlobTraits.None, BlobStates.None, datePrefix, cancellationToken))
+        // await foreach (var blobItem in blobContainerClient.GetBlobsAsync(BlobTraits.None, BlobStates.None, hourPrefix, cancellationToken))
         // {
         //     await blobContainerClient.DeleteBlobIfExistsAsync(blobItem.Name, cancellationToken: cancellationToken);
         // }

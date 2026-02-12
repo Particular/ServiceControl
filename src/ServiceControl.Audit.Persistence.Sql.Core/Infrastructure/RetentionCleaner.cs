@@ -17,7 +17,7 @@ public abstract class RetentionCleaner(
     IPartitionManager partitionManager,
     RetentionMetrics metrics) : BackgroundService
 {
-    const int DaysAhead = 3;
+    const int HoursAhead = 6;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -58,10 +58,10 @@ public abstract class RetentionCleaner(
         var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContextBase>();
 
         var stopwatch = Stopwatch.StartNew();
-        // Round up to whole days since partitions are daily
-        var retentionPeriod = TimeSpan.FromDays(Math.Ceiling(settings.AuditRetentionPeriod.TotalDays));
+        // Round up to whole hours since partitions are hourly
+        var retentionPeriod = TimeSpan.FromHours(Math.Ceiling(settings.AuditRetentionPeriod.TotalHours));
         var cutoff = timeProvider.GetUtcNow().UtcDateTime - retentionPeriod;
-        var today = timeProvider.GetUtcNow().UtcDateTime.Date;
+        var now = timeProvider.GetUtcNow().UtcDateTime;
 
         using var cycleMetrics = metrics.BeginCleanupCycle();
 
@@ -74,29 +74,29 @@ public abstract class RetentionCleaner(
 
         try
         {
-            // Ensure partitions exist for upcoming days
-            await partitionManager.EnsurePartitionsExist(dbContext, today, DaysAhead, stoppingToken);
+            // Ensure partitions exist for upcoming hours
+            await partitionManager.EnsurePartitionsExist(dbContext, now, HoursAhead, stoppingToken);
 
             // Find and drop expired partitions
-            var expiredDates = await partitionManager.GetExpiredPartitionDates(dbContext, cutoff, stoppingToken);
+            var expiredPartitions = await partitionManager.GetExpiredPartitions(dbContext, cutoff, stoppingToken);
 
-            foreach (var date in expiredDates)
+            foreach (var hour in expiredPartitions)
             {
-                // Delete body storage for this date first
-                await bodyPersistence.DeleteBodiesForDate(date, stoppingToken);
+                // Delete body storage for this hour first
+                await bodyPersistence.DeleteBodiesForHour(hour, stoppingToken);
 
                 // Drop the database partition
-                await partitionManager.DropPartition(dbContext, date, stoppingToken);
+                await partitionManager.DropPartition(dbContext, hour, stoppingToken);
 
                 metrics.RecordPartitionDropped();
 
-                logger.LogInformation("Dropped partition for {Date}", date.ToString("yyyy-MM-dd"));
+                logger.LogInformation("Dropped partition for {Hour}", hour.ToString("yyyy-MM-dd HH:00"));
             }
 
             cycleMetrics.Complete();
 
             logger.LogInformation("Retention cleanup dropped {Partitions} partition(s) in {Elapsed}",
-                expiredDates.Count, stopwatch.Elapsed.ToString(@"hh\:mm\:ss"));
+                expiredPartitions.Count, stopwatch.Elapsed.ToString(@"hh\:mm\:ss"));
         }
         finally
         {

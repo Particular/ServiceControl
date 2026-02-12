@@ -9,12 +9,12 @@ public class FileSystemBodyStoragePersistence(AuditSqlPersisterSettings settings
 
     public async Task WriteBodyAsync(
         string bodyId,
-        DateTime processedAt,
+        DateTime createdOn,
         ReadOnlyMemory<byte> body,
         string contentType,
         CancellationToken cancellationToken = default)
     {
-        var dateFolder = processedAt.ToString("yyyy-MM-dd");
+        var dateFolder = createdOn.ToString("yyyy-MM-dd-HH");
         var filePath = Path.Combine(settings.MessageBodyStoragePath, dateFolder, $"{bodyId}.body");
 
         // Bodies are immutable - skip if file already exists
@@ -97,9 +97,9 @@ public class FileSystemBodyStoragePersistence(AuditSqlPersisterSettings settings
         }
     }
 
-    public Task<MessageBodyFileResult?> ReadBodyAsync(string bodyId, DateTime processedAt, CancellationToken cancellationToken = default)
+    public Task<MessageBodyFileResult?> ReadBodyAsync(string bodyId, DateTime createdOn, CancellationToken cancellationToken = default)
     {
-        var dateFolder = processedAt.ToString("yyyy-MM-dd");
+        var dateFolder = createdOn.ToString("yyyy-MM-dd-HH");
         var filePath = Path.Combine(settings.MessageBodyStoragePath, dateFolder, $"{bodyId}.body");
 
         if (!File.Exists(filePath))
@@ -159,9 +159,9 @@ public class FileSystemBodyStoragePersistence(AuditSqlPersisterSettings settings
         }
     }
 
-    public Task DeleteBodiesForDate(DateTime date, CancellationToken cancellationToken = default)
+    public Task DeleteBodiesForHour(DateTime hour, CancellationToken cancellationToken = default)
     {
-        var dateFolder = date.ToString("yyyy-MM-dd");
+        var dateFolder = hour.ToString("yyyy-MM-dd-HH");
         var directoryPath = Path.Combine(settings.MessageBodyStoragePath, dateFolder);
 
         try

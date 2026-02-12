@@ -9,8 +9,9 @@ class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedMessageE
     public void Configure(EntityTypeBuilder<ProcessedMessageEntity> builder)
     {
         builder.ToTable("ProcessedMessages");
-        builder.HasKey(e => new { e.Id, e.ProcessedAt });
+        builder.HasKey(e => new { e.Id, e.CreatedOn });
         builder.Property(e => e.Id).ValueGeneratedOnAdd();
+        builder.Property(e => e.CreatedOn).IsRequired();
         builder.Property(e => e.UniqueMessageId).HasMaxLength(200).IsRequired();
 
         // JSON columns
@@ -26,7 +27,6 @@ class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedMessageE
         builder.Property(e => e.ReceivingEndpointName).HasMaxLength(500);
         builder.Property(e => e.BodyUrl).HasMaxLength(500);
         builder.Property(e => e.TimeSent);
-        builder.Property(e => e.ProcessedAt).IsRequired();
         builder.Property(e => e.IsSystemMessage).IsRequired();
         builder.Property(e => e.Status).IsRequired();
         builder.Property(e => e.BodySize).IsRequired();
@@ -35,13 +35,16 @@ class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedMessageE
         builder.Property(e => e.ProcessingTimeTicks);
         builder.Property(e => e.DeliveryTimeTicks);
 
-        // Uniqueness index (includes ProcessedAt for partition alignment)
-        builder.HasIndex(e => new { e.UniqueMessageId, e.ProcessedAt });
+        // Uniqueness index (includes CreatedOn for partition alignment)
+        builder.HasIndex(e => new { e.UniqueMessageId, e.CreatedOn });
 
         // QueryMessagesByConversationId
-        builder.HasIndex(e => new { e.ConversationId, e.ProcessedAt });
+        builder.HasIndex(e => new { e.ConversationId, e.CreatedOn });
 
-        // MessageId lookup (includes ProcessedAt for partition alignment)
-        builder.HasIndex(e => new { e.MessageId, e.ProcessedAt });
+        // MessageId lookup (includes CreatedOn for partition alignment)
+        builder.HasIndex(e => new { e.MessageId, e.CreatedOn });
+
+        // TimeSent index for range queries
+        builder.HasIndex(e => e.TimeSent);
     }
 }

@@ -123,9 +123,9 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("ProcessedAt")
+                    b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("processed_at");
+                        .HasColumnName("created_on");
 
                     b.Property<bool>("BodyNotStored")
                         .HasColumnType("boolean")
@@ -199,13 +199,15 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("unique_message_id");
 
-                    b.HasKey("Id", "ProcessedAt");
+                    b.HasKey("Id", "CreatedOn");
 
-                    b.HasIndex("ConversationId", "ProcessedAt");
+                    b.HasIndex("TimeSent");
 
-                    b.HasIndex("MessageId", "ProcessedAt");
+                    b.HasIndex("ConversationId", "CreatedOn");
 
-                    b.HasIndex("UniqueMessageId", "ProcessedAt");
+                    b.HasIndex("MessageId", "CreatedOn");
+
+                    b.HasIndex("UniqueMessageId", "CreatedOn");
 
                     b.ToTable("processed_messages", (string)null);
                 });
@@ -219,9 +221,9 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("ProcessedAt")
+                    b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("processed_at");
+                        .HasColumnName("created_on");
 
                     b.Property<string>("Endpoint")
                         .IsRequired()
@@ -264,9 +266,9 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("status");
 
-                    b.HasKey("Id", "ProcessedAt");
+                    b.HasKey("Id", "CreatedOn");
 
-                    b.HasIndex("SagaId", "ProcessedAt");
+                    b.HasIndex("SagaId", "CreatedOn");
 
                     b.ToTable("saga_snapshots", (string)null);
                 });

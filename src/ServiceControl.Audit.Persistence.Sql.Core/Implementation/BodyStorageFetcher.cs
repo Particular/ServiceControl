@@ -14,18 +14,18 @@ class BodyStorageFetcher(IBodyStoragePersistence storagePersistence, AuditDbCont
 
     public async Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken)
     {
-        // Look up ProcessedAt from the database to locate the correct date folder
-        var processedAt = await dbContext.ProcessedMessages
+        // Look up CreatedOn from the database to locate the correct hourly folder
+        var createdOn = await dbContext.ProcessedMessages
             .Where(m => m.UniqueMessageId == bodyId)
-            .Select(m => m.ProcessedAt)
+            .Select(m => m.CreatedOn)
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (processedAt == default)
+        if (createdOn == default)
         {
             return new StreamResult { HasResult = false };
         }
 
-        var result = await storagePersistence.ReadBodyAsync(bodyId, processedAt, cancellationToken);
+        var result = await storagePersistence.ReadBodyAsync(bodyId, createdOn, cancellationToken);
 
         if (result == null)
         {

@@ -15,7 +15,7 @@ public class ProcessedMessageEntity
     public string? MessageId { get; set; }
     public string? MessageType { get; set; }
     public DateTime? TimeSent { get; set; }
-    public DateTime ProcessedAt { get; set; }
+    public DateTime CreatedOn { get; set; }
     public bool IsSystemMessage { get; set; }
     public int Status { get; set; }
     public string? ConversationId { get; set; }

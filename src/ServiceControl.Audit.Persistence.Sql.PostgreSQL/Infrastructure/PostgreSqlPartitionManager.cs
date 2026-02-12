@@ -14,36 +14,37 @@ public class PostgreSqlPartitionManager : IPartitionManager
         ("saga_snapshots", "saga_snapshots")
     ];
 
-    public async Task EnsurePartitionsExist(AuditDbContextBase dbContext, DateTime currentDate, int daysAhead, CancellationToken ct)
+    public async Task EnsurePartitionsExist(AuditDbContextBase dbContext, DateTime currentHour, int hoursAhead, CancellationToken ct)
     {
-        var targetDate = currentDate.Date.AddDays(daysAhead);
+        var truncatedHour = TruncateToHour(currentHour);
+        var targetHour = truncatedHour.AddHours(hoursAhead);
 
-        for (var date = currentDate.Date; date <= targetDate; date = date.AddDays(1))
+        for (var hour = truncatedHour; hour <= targetHour; hour = hour.AddHours(1))
         {
-            var nextDate = date.AddDays(1);
-            var dateSuffix = date.ToString("yyyyMMdd");
-            var dateStr = date.ToString("yyyy-MM-dd");
-            var nextDateStr = nextDate.ToString("yyyy-MM-dd");
+            var nextHour = hour.AddHours(1);
+            var hourSuffix = hour.ToString("yyyyMMddHH");
+            var hourStr = hour.ToString("yyyy-MM-dd HH:00:00");
+            var nextHourStr = nextHour.ToString("yyyy-MM-dd HH:00:00");
 
             foreach (var (parentTable, prefix) in PartitionedTables)
             {
-                var partitionName = prefix + "_" + dateSuffix;
+                var partitionName = prefix + "_" + hourSuffix;
 
                 await dbContext.Database.ExecuteSqlRawAsync(
                     "CREATE TABLE IF NOT EXISTS " + partitionName +
                     " PARTITION OF " + parentTable +
-                    " FOR VALUES FROM ('" + dateStr + "') TO ('" + nextDateStr + "')", ct);
+                    " FOR VALUES FROM ('" + hourStr + "') TO ('" + nextHourStr + "')", ct);
             }
         }
     }
 
-    public async Task DropPartition(AuditDbContextBase dbContext, DateTime partitionDate, CancellationToken ct)
+    public async Task DropPartition(AuditDbContextBase dbContext, DateTime partitionHour, CancellationToken ct)
     {
-        var dateSuffix = partitionDate.ToString("yyyyMMdd");
+        var hourSuffix = TruncateToHour(partitionHour).ToString("yyyyMMddHH");
 
         foreach (var (parentTable, prefix) in PartitionedTables)
         {
-            var partitionName = prefix + "_" + dateSuffix;
+            var partitionName = prefix + "_" + hourSuffix;
 
             await dbContext.Database.ExecuteSqlRawAsync(
                 "ALTER TABLE " + parentTable + " DETACH PARTITION " + partitionName, ct);
@@ -53,8 +54,10 @@ public class PostgreSqlPartitionManager : IPartitionManager
         }
     }
 
-    public async Task<List<DateTime>> GetExpiredPartitionDates(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken ct)
+    public async Task<List<DateTime>> GetExpiredPartitions(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken ct)
     {
+        var truncatedCutoff = TruncateToHour(cutoff);
+
         var partitionNames = await dbContext.Database
             .SqlQueryRaw<string>(
                 "SELECT c.relname AS Value " +
@@ -70,15 +73,17 @@ public class PostgreSqlPartitionManager : IPartitionManager
 
         foreach (var name in partitionNames)
         {
-            // Parse date from partition name: processed_messages_YYYYMMDD
+            // Parse hour from partition name: processed_messages_yyyyMMddHH
             var datePart = name.Replace("processed_messages_", "");
-            if (DateTime.TryParseExact(datePart, "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out var date)
-                && date < cutoff.Date)
+            if (DateTime.TryParseExact(datePart, "yyyyMMddHH", null, System.Globalization.DateTimeStyles.None, out var hour)
+                && hour < truncatedCutoff)
             {
-                result.Add(date);
+                result.Add(hour);
             }
         }
 
         return result;
     }
+
+    static DateTime TruncateToHour(DateTime dt) => new(dt.Year, dt.Month, dt.Day, dt.Hour, 0, 0, dt.Kind);
 }

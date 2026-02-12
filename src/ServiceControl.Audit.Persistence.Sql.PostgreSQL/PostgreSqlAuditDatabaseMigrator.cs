@@ -20,9 +20,9 @@ class PostgreSqlAuditDatabaseMigrator(
         await dbContext.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
 
         // Ensure partitions exist before ingestion starts.
-        // This handles gaps from downtime — creates partitions for today + 3 days ahead.
-        var today = timeProvider.GetUtcNow().UtcDateTime.Date;
-        await partitionManager.EnsurePartitionsExist(dbContext, today, daysAhead: 3, cancellationToken);
+        // This handles gaps from downtime — creates partitions for now + 6 hours ahead.
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        await partitionManager.EnsurePartitionsExist(dbContext, now, hoursAhead: 6, cancellationToken);
 
         logger.LogInformation("PostgreSQL database migration completed for Audit");
     }
