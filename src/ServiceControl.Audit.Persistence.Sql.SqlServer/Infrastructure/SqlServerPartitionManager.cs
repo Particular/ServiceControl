@@ -62,6 +62,11 @@ public class SqlServerPartitionManager : IPartitionManager
             await dbContext.Database.ExecuteSqlRawAsync(
                 "SELECT TOP(0) * INTO " + stagingTable + " FROM " + table, ct);
 
+            // The staging table must have a matching clustered index for SWITCH PARTITION to work.
+            // SELECT INTO copies columns but not indexes.
+            await dbContext.Database.ExecuteSqlRawAsync(
+                "CREATE CLUSTERED INDEX [CIX_" + stagingTable + "] ON " + stagingTable + " ([Id], [CreatedOn])", ct);
+
             await dbContext.Database.ExecuteSqlRawAsync(
                 "ALTER TABLE " + table + " SWITCH PARTITION " + partitionNumber + " TO " + stagingTable, ct);
 
