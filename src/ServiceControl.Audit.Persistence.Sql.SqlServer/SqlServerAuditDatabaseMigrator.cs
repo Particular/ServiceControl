@@ -17,7 +17,12 @@ class SqlServerAuditDatabaseMigrator(
     {
         logger.LogInformation("Starting SQL Server database migration for Audit");
 
+        var previousTimeout = dbContext.Database.GetCommandTimeout();
+        dbContext.Database.SetCommandTimeout(TimeSpan.FromMinutes(40));
+
         await dbContext.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
+
+        dbContext.Database.SetCommandTimeout(previousTimeout);
 
         // Ensure partitions exist before ingestion starts.
         // This handles gaps from downtime — creates partitions for now + 6 hours ahead.

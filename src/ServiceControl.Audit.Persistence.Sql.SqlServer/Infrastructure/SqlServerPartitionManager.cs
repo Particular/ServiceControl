@@ -49,8 +49,24 @@ public class SqlServerPartitionManager : IPartitionManager
 
         foreach (var table in PartitionedTables)
         {
+            var stagingTable = table + "_Staging";
+
+            // Use SWITCH instead of TRUNCATE WITH (PARTITIONS(...)) because the latter
+            // requires all indexes to be partition-aligned, which isn't possible when a
+            // table has a full-text key index (must be single-column, can't include the
+            // partitioning column). SWITCH is a metadata-only operation and has no such
+            // restriction.
             await dbContext.Database.ExecuteSqlRawAsync(
-                "TRUNCATE TABLE " + table + " WITH (PARTITIONS(" + partitionNumber + "))", ct);
+                "IF OBJECT_ID('" + stagingTable + "', 'U') IS NOT NULL DROP TABLE " + stagingTable, ct);
+
+            await dbContext.Database.ExecuteSqlRawAsync(
+                "SELECT TOP(0) * INTO " + stagingTable + " FROM " + table, ct);
+
+            await dbContext.Database.ExecuteSqlRawAsync(
+                "ALTER TABLE " + table + " SWITCH PARTITION " + partitionNumber + " TO " + stagingTable, ct);
+
+            await dbContext.Database.ExecuteSqlRawAsync(
+                "DROP TABLE " + stagingTable, ct);
         }
 
         await dbContext.Database.ExecuteSqlRawAsync(
