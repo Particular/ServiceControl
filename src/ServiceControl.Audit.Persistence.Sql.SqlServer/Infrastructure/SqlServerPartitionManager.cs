@@ -60,13 +60,20 @@ public class SqlServerPartitionManager(MinimumRequiredStorageState storageState)
         {
             foreach (var table in PartitionedTables)
             {
-                await dbContext.Database.ExecuteSqlRawAsync(
-                    "DELETE FROM " + table + " WHERE CreatedOn >= '" + hourStr + "' AND CreatedOn < '" + nextHourStr + "'", ct);
+                while (true)
+                {
+                    var deleted = await dbContext.Database.ExecuteSqlRawAsync(
+                        "DELETE TOP (10000) FROM " + table + " WHERE CreatedOn >= '" + hourStr + "' AND CreatedOn < '" + nextHourStr + "'", ct);
+
+                    if (deleted == 0)
+                    {
+                        break;
+                    }
+                }
             }
 
             await dbContext.Database.ExecuteSqlRawAsync(
                 "ALTER PARTITION FUNCTION " + PartitionFunctionName + "() MERGE RANGE ('" + hourStr + "')", ct);
-
         }
         finally
         {
