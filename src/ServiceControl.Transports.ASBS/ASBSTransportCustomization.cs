@@ -42,6 +42,10 @@
             var transport = connectionSettings.AuthenticationMethod.CreateTransportDefinition(connectionSettings, selectedTopology);
             transport.UseWebSockets = connectionSettings.UseWebSockets;
             transport.EnablePartitioning = connectionSettings.EnablePartitioning;
+            if (!string.IsNullOrWhiteSpace(connectionSettings.HierarchyNamespace))
+            {
+                transport.HierarchyNamespaceOptions = new HierarchyNamespaceOptions { HierarchyNamespace = connectionSettings.HierarchyNamespace };
+            }
 
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 
@@ -67,7 +71,8 @@
                 {
                     TopicToPublishTo = connectionSettings.TopicName,
                     TopicToSubscribeOn = connectionSettings.TopicName,
-                    EventsToMigrateMap = [
+                    EventsToMigrateMap =
+                    [
                         "ServiceControl.Contracts.CustomCheckFailed",
                         "ServiceControl.Contracts.CustomCheckSucceeded",
                         "ServiceControl.Contracts.HeartbeatRestored",
