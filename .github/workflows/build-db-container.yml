@@ -69,10 +69,10 @@ jobs:
           TAG_NAME: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
         shell: pwsh
         run: |
-          $manifestCreate = "docker manifest create ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}"
+          $manifestCreate = "docker buildx imagetools create -t ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}"
           $containers = cat src/ServiceControl.RavenDB/containers.json | ConvertFrom-Json
           $containers | ForEach-Object -Process {
-            $manifestCreate += " --amend ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}-$($_.tag)"
+            $manifestCreate += " ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}-$($_.tag)"
           }
           Invoke-Expression $manifestCreate
           docker buildx imagetools inspect ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}
