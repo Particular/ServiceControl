@@ -1,14 +1,18 @@
 namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
 {
     using System.Threading;
+    using System.Threading.Channels;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using Persistence.UnitOfWork;
+    using Search;
 
     class MongoAuditIngestionUnitOfWorkFactory(
         IMongoClientProvider clientProvider,
         MongoSettings settings,
-        IBodyStorage bodyStorage)
+        IBodyStorage bodyStorage,
+        MinimumRequiredStorageState storageState,
+        Channel<BodyEntry> bodyChannel = null)
         : IAuditIngestionUnitOfWorkFactory
     {
         public ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken)
@@ -19,12 +23,12 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                 clientProvider.ProductCapabilities.SupportsMultiCollectionBulkWrite,
                 settings.AuditRetentionPeriod,
                 bodyStorage,
-                settings.MaxBodySizeToStore);
+                settings.MaxBodySizeToStore,
+                bodyChannel);
 
             return ValueTask.FromResult<IAuditIngestionUnitOfWork>(unitOfWork);
         }
 
-        // TODO: Stage 7 - Implement proper storage state monitoring
-        public bool CanIngestMore() => true;
+        public bool CanIngestMore() => storageState.CanIngestMore;
     }
 }

@@ -36,6 +36,10 @@ namespace ServiceControl.Audit.Persistence.MongoDB
                 settings.BodyStoragePath ?? "(not set)",
                 settings.EnableFullTextSearchOnBodies,
                 settings.MaxBodySizeToStore);
+            logger.LogInformation("Body writer settings: BatchSize={BodyWriterBatchSize}, ParallelWriters={BodyWriterParallelWriters}, BatchTimeout={BodyWriterBatchTimeout}",
+                settings.BodyWriterBatchSize,
+                settings.BodyWriterParallelWriters,
+                settings.BodyWriterBatchTimeout);
 
             // Initialize the client and detect product capabilities
             await clientProvider.InitializeAsync(cancellationToken).ConfigureAwait(false);

@@ -59,5 +59,12 @@ namespace ServiceControl.Audit.Persistence.MongoDB.ProductCapabilities
         /// When $facet is not supported, use multiple queries instead.
         /// </summary>
         bool SupportsFacetAggregation { get; }
+
+        /// <summary>
+        /// Whether WiredTiger cache metrics are available via serverStatus.
+        /// When true, dirty cache percentage is used for ingestion backpressure detection.
+        /// When false, write latency tracking is used instead.
+        /// </summary>
+        bool SupportsWiredTigerCacheMetrics { get; }
     }
 }

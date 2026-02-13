@@ -101,10 +101,3 @@ src/scaffolding.config
 
 # Visual Studio Code
 .vscode
-
-# AI config
-.claude/
-CLAUDE.md
-
-# User-specific files
-.local
