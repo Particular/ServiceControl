@@ -1,12 +1,13 @@
 namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Infrastructure;
 
 using Microsoft.EntityFrameworkCore;
+using ServiceControl.Audit.Persistence.Sql.Core.Abstractions;
 using ServiceControl.Audit.Persistence.Sql.Core.DbContexts;
 using ServiceControl.Audit.Persistence.Sql.Core.Infrastructure;
 
 // Partition/table names cannot be parameterized in SQL; all values come from internal constants and date formatting
 #pragma warning disable EF1002, EF1003
-public class SqlServerPartitionManager : IPartitionManager
+public class SqlServerPartitionManager(MinimumRequiredStorageState storageState) : IPartitionManager
 {
     const string PartitionFunctionName = "pf_CreatedOn";
     const string PartitionSchemeName = "ps_CreatedOn";
@@ -54,14 +55,23 @@ public class SqlServerPartitionManager : IPartitionManager
         // target partition is scanned.
         dbContext.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
 
-        foreach (var table in PartitionedTables)
+        storageState.CanIngestMore = false;
+        try
         {
-            await dbContext.Database.ExecuteSqlRawAsync(
-                "DELETE FROM " + table + " WHERE CreatedOn >= '" + hourStr + "' AND CreatedOn < '" + nextHourStr + "'", ct);
-        }
+            foreach (var table in PartitionedTables)
+            {
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    "DELETE FROM " + table + " WHERE CreatedOn >= '" + hourStr + "' AND CreatedOn < '" + nextHourStr + "'", ct);
+            }
 
-        await dbContext.Database.ExecuteSqlRawAsync(
-            "ALTER PARTITION FUNCTION " + PartitionFunctionName + "() MERGE RANGE ('" + hourStr + "')", ct);
+            await dbContext.Database.ExecuteSqlRawAsync(
+                "ALTER PARTITION FUNCTION " + PartitionFunctionName + "() MERGE RANGE ('" + hourStr + "')", ct);
+
+        }
+        finally
+        {
+            storageState.CanIngestMore = true;
+        }
     }
 
     public async Task<List<DateTime>> GetExpiredPartitions(AuditDbContextBase dbContext, DateTime cutoff, CancellationToken ct)
