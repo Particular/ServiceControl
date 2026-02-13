@@ -15,7 +15,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Indexes
 
             await CreateCollectionIndexes(
                 database.GetCollection<ProcessedMessageDocument>(CollectionNames.ProcessedMessages),
-                IndexDefinitions.GetProcessedMessageIndexes(settings.EnableFullTextSearchOnBodies),
+                IndexDefinitions.GetProcessedMessageIndexes(),
                 cancellationToken).ConfigureAwait(false);
 
             await CreateCollectionIndexes(
@@ -27,6 +27,14 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Indexes
                 database.GetCollection<KnownEndpointDocument>(CollectionNames.KnownEndpoints),
                 IndexDefinitions.KnownEndpoints,
                 cancellationToken).ConfigureAwait(false);
+
+            if (settings.BodyStorageType == BodyStorageType.Database)
+            {
+                await CreateCollectionIndexes(
+                    database.GetCollection<MessageBodyDocument>(CollectionNames.MessageBodies),
+                    IndexDefinitions.GetMessageBodyIndexes(settings.EnableFullTextSearchOnBodies),
+                    cancellationToken).ConfigureAwait(false);
+            }
 
             // FailedAuditImports has no additional indexes - queries are by _id only
         }

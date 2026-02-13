@@ -18,7 +18,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB
     using ServiceControl.Audit.Persistence.Infrastructure;
     using ServiceControl.SagaAudit;
 
-    class MongoAuditDataStore(IMongoClientProvider clientProvider, IBodyStorage bodyStorage) : IAuditDataStore
+    class MongoAuditDataStore(IMongoClientProvider clientProvider, IBodyStorage bodyStorage, MongoSettings settings) : IAuditDataStore
     {
         public async Task<QueryResult<IList<MessagesView>>> GetMessages(
             bool includeSystemMessages,
@@ -108,27 +108,24 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             CancellationToken cancellationToken)
         {
             var collection = GetProcessedMessagesCollection();
-
-            // Combine text search with time range filter
-            var textFilter = Builders<ProcessedMessageDocument>.Filter.Text(searchParam);
             var timeRangeFilter = BuildTimeSentRangeFilter(timeSentRange);
-            var filter = Builders<ProcessedMessageDocument>.Filter.And(textFilter, timeRangeFilter);
 
-            var sort = BuildSort(sortInfo);
+            if (!settings.EnableFullTextSearchOnBodies)
+            {
+                // Metadata-only search on processedMessages
+                var textFilter = Builders<ProcessedMessageDocument>.Filter.Text(searchParam);
+                var filter = Builders<ProcessedMessageDocument>.Filter.And(textFilter, timeRangeFilter);
+                return await ExecuteQuery(collection, filter, sortInfo, pagingInfo, cancellationToken).ConfigureAwait(false);
+            }
 
-            var totalCount = await collection.CountDocumentsAsync(filter, cancellationToken: cancellationToken).ConfigureAwait(false);
+            // Two-phase search: metadata + body
+            var combinedFilter = await BuildTwoPhaseSearchFilter(searchParam, timeRangeFilter, pagingInfo, cancellationToken).ConfigureAwait(false);
+            if (combinedFilter == null)
+            {
+                return new QueryResult<IList<MessagesView>>([], new QueryStatsInfo(string.Empty, 0));
+            }
 
-            var documents = await collection
-                .Find(filter)
-                .Sort(sort)
-                .Skip(pagingInfo.Offset)
-                .Limit(pagingInfo.PageSize)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            var results = documents.Select(ToMessagesView).ToList();
-
-            return new QueryResult<IList<MessagesView>>(results, new QueryStatsInfo(string.Empty, (int)totalCount));
+            return await ExecuteQuery(collection, combinedFilter, sortInfo, pagingInfo, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(
@@ -140,28 +137,26 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             CancellationToken cancellationToken)
         {
             var collection = GetProcessedMessagesCollection();
-
-            // Combine text search, endpoint filter, and time range filter
-            var textFilter = Builders<ProcessedMessageDocument>.Filter.Text(keyword);
             var endpointFilter = Builders<ProcessedMessageDocument>.Filter.Eq("messageMetadata.ReceivingEndpoint.Name", endpoint);
             var timeRangeFilter = BuildTimeSentRangeFilter(timeSentRange);
-            var filter = Builders<ProcessedMessageDocument>.Filter.And(textFilter, endpointFilter, timeRangeFilter);
 
-            var sort = BuildSort(sortInfo);
+            if (!settings.EnableFullTextSearchOnBodies)
+            {
+                // Metadata-only search on processedMessages
+                var textFilter = Builders<ProcessedMessageDocument>.Filter.Text(keyword);
+                var filter = Builders<ProcessedMessageDocument>.Filter.And(textFilter, endpointFilter, timeRangeFilter);
+                return await ExecuteQuery(collection, filter, sortInfo, pagingInfo, cancellationToken).ConfigureAwait(false);
+            }
 
-            var totalCount = await collection.CountDocumentsAsync(filter, cancellationToken: cancellationToken).ConfigureAwait(false);
+            // Two-phase search: metadata + body
+            var baseFilter = Builders<ProcessedMessageDocument>.Filter.And(endpointFilter, timeRangeFilter);
+            var combinedFilter = await BuildTwoPhaseSearchFilter(keyword, baseFilter, pagingInfo, cancellationToken).ConfigureAwait(false);
+            if (combinedFilter == null)
+            {
+                return new QueryResult<IList<MessagesView>>([], new QueryStatsInfo(string.Empty, 0));
+            }
 
-            var documents = await collection
-                .Find(filter)
-                .Sort(sort)
-                .Skip(pagingInfo.Offset)
-                .Limit(pagingInfo.PageSize)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            var results = documents.Select(ToMessagesView).ToList();
-
-            return new QueryResult<IList<MessagesView>>(results, new QueryStatsInfo(string.Empty, (int)totalCount));
+            return await ExecuteQuery(collection, combinedFilter, sortInfo, pagingInfo, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints(CancellationToken cancellationToken)
@@ -308,6 +303,73 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             }
 
             return MessageBodyView.NotFound();
+        }
+
+        async Task<FilterDefinition<ProcessedMessageDocument>> BuildTwoPhaseSearchFilter(
+            string searchParam,
+            FilterDefinition<ProcessedMessageDocument> additionalFilter,
+            PagingInfo pagingInfo,
+            CancellationToken cancellationToken)
+        {
+            var collection = GetProcessedMessagesCollection();
+            var idLimit = pagingInfo.Offset + pagingInfo.PageSize + 500;
+
+            // Phase 1: Metadata text search on processedMessages
+            var metadataTextFilter = Builders<ProcessedMessageDocument>.Filter.Text(searchParam);
+            var metadataFilter = Builders<ProcessedMessageDocument>.Filter.And(metadataTextFilter, additionalFilter);
+            var metadataIdsTask = collection
+                .Find(metadataFilter)
+                .Project(d => d.Id)
+                .Limit(idLimit)
+                .ToListAsync(cancellationToken);
+
+            // Phase 2: Body text search on messageBodies (in parallel)
+            var bodySearchCollection = clientProvider.Database
+                .GetCollection<MessageBodyDocument>(CollectionNames.MessageBodies);
+            var bodyTextFilter = Builders<MessageBodyDocument>.Filter.Text(searchParam);
+            var bodyIdsTask = bodySearchCollection
+                .Find(bodyTextFilter)
+                .Project(d => d.Id)
+                .Limit(idLimit)
+                .ToListAsync(cancellationToken);
+
+            _ = await Task.WhenAll(metadataIdsTask, bodyIdsTask).ConfigureAwait(false);
+
+            var allIds = new HashSet<string>(metadataIdsTask.Result);
+            allIds.UnionWith(bodyIdsTask.Result);
+
+            if (allIds.Count == 0)
+            {
+                return null;
+            }
+
+            // Fetch full documents by merged IDs with additional filters
+            var idFilter = Builders<ProcessedMessageDocument>.Filter.In(d => d.Id, allIds);
+            return Builders<ProcessedMessageDocument>.Filter.And(idFilter, additionalFilter);
+        }
+
+        static async Task<QueryResult<IList<MessagesView>>> ExecuteQuery(
+            IMongoCollection<ProcessedMessageDocument> collection,
+            FilterDefinition<ProcessedMessageDocument> filter,
+            SortInfo sortInfo,
+            PagingInfo pagingInfo,
+            CancellationToken cancellationToken)
+        {
+            var sort = BuildSort(sortInfo);
+
+            var totalCount = await collection.CountDocumentsAsync(filter, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            var documents = await collection
+                .Find(filter)
+                .Sort(sort)
+                .Skip(pagingInfo.Offset)
+                .Limit(pagingInfo.PageSize)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            var results = documents.Select(ToMessagesView).ToList();
+
+            return new QueryResult<IList<MessagesView>>(results, new QueryStatsInfo(string.Empty, (int)totalCount));
         }
 
         IMongoCollection<ProcessedMessageDocument> GetProcessedMessagesCollection()

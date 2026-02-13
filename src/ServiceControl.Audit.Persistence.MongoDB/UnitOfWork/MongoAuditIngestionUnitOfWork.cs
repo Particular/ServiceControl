@@ -13,9 +13,11 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
     using Documents;
     using global::MongoDB.Bson;
     using global::MongoDB.Driver;
+    using System.Threading.Channels;
     using Monitoring;
     using NServiceBus;
     using Persistence.UnitOfWork;
+    using Search;
     using ServiceControl.SagaAudit;
 
     class MongoAuditIngestionUnitOfWork(
@@ -24,7 +26,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
         bool supportsMultiCollectionBulkWrite,
         TimeSpan auditRetentionPeriod,
         IBodyStorage bodyStorage,
-        int maxBodySizeToStore)
+        int maxBodySizeToStore,
+        Channel<BodyEntry> bodyChannel = null)
         : IAuditIngestionUnitOfWork
     {
         readonly List<ProcessedMessageDocument> processedMessages = [];
@@ -37,31 +40,40 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
 
             // Determine if body should be stored based on size limit and storage type
             var shouldStoreBody = !body.IsEmpty && body.Length <= maxBodySizeToStore && bodyStorage is not NullBodyStorage;
-            string textBody = null;
-            byte[] binaryBody = null;
 
             if (shouldStoreBody)
             {
                 processedMessage.MessageMetadata["BodyUrl"] = $"/messages/{processedMessage.Id}/body";
+                var contentType = processedMessage.Headers.GetValueOrDefault(Headers.ContentType, "text/plain");
 
-                if (bodyStorage is InlineBodyStorage)
+                if (bodyStorage is MongoBodyStorage)
                 {
-                    // Try to store as UTF-8 text (enables full-text search)
-                    // If not valid UTF-8, store as binary (retrievable but not searchable)
-                    textBody = TryGetUtf8String(body);
-                    if (textBody == null)
+                    // Database body storage: enqueue for async write via BodyStorageWriter
+                    var textBody = TryGetUtf8String(body);
+                    var bodyExpiresAt = DateTime.UtcNow.Add(auditRetentionPeriod);
+
+                    if (bodyChannel != null)
                     {
-                        binaryBody = body.ToArray();
+                        await bodyChannel.Writer.WriteAsync(new BodyEntry
+                        {
+                            Id = processedMessage.Id,
+                            ContentType = contentType,
+                            BodySize = body.Length,
+                            TextBody = textBody,
+                            BinaryBody = textBody == null ? body.ToArray() : null,
+                            ExpiresAt = bodyExpiresAt
+                        }, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 else
                 {
-                    // Store body in external storage (file system, BLOB, etc.)
-                    var contentType = processedMessage.Headers.GetValueOrDefault(Headers.ContentType, "text/plain");
+                    // External storage (file system, BLOB, etc.)
                     using var bodyStream = new MemoryStream(body.ToArray());
                     await bodyStorage.Store(processedMessage.Id, contentType, body.Length, bodyStream, cancellationToken).ConfigureAwait(false);
                 }
             }
+
+            var expiresAt = DateTime.UtcNow.Add(auditRetentionPeriod);
 
             processedMessages.Add(new ProcessedMessageDocument
             {
@@ -69,11 +81,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                 UniqueMessageId = processedMessage.UniqueMessageId,
                 MessageMetadata = ConvertToBsonDocument(processedMessage.MessageMetadata),
                 Headers = processedMessage.Headers,
-                Body = textBody,
-                BinaryBody = binaryBody,
                 ProcessedAt = processedMessage.ProcessedAt,
-                ExpiresAt = DateTime.UtcNow.Add(auditRetentionPeriod),
-                HeaderSearchText = BuildHeaderSearchText(processedMessage.Headers)
+                ExpiresAt = expiresAt
             });
         }
 
@@ -95,23 +104,6 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
 
         // UTF-8 encoding that throws DecoderFallbackException on invalid byte sequences
         static readonly System.Text.Encoding StrictUtf8Encoding = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-
-        /// <summary>
-        /// Builds searchable text from header values only.
-        /// Headers are stored as a dictionary and can't be directly text-indexed,
-        /// so we flatten the values into a single searchable string.
-        /// Metadata fields (MessageId, MessageType, etc.) are indexed directly.
-        /// </summary>
-        static string BuildHeaderSearchText(Dictionary<string, string> headers)
-        {
-            if (headers == null || headers.Count == 0)
-            {
-                return null;
-            }
-
-            var headerValues = headers.Values.Where(v => !string.IsNullOrEmpty(v));
-            return string.Join(" ", headerValues);
-        }
 
         public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken)
         {

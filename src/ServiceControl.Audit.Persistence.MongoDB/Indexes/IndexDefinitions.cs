@@ -1,25 +1,21 @@
 namespace ServiceControl.Audit.Persistence.MongoDB.Indexes
 {
     using System;
+    using System.Collections.Generic;
     using Documents;
     using global::MongoDB.Driver;
 
     static class IndexDefinitions
     {
-        public static CreateIndexModel<ProcessedMessageDocument>[] GetProcessedMessageIndexes(bool enableFullTextSearchOnBodies)
+        public static CreateIndexModel<ProcessedMessageDocument>[] GetProcessedMessageIndexes()
         {
-            var textIndexKeys = enableFullTextSearchOnBodies
-                ? Builders<ProcessedMessageDocument>.IndexKeys
-                    .Text("messageMetadata.MessageId")
-                    .Text("messageMetadata.MessageType")
-                    .Text("messageMetadata.ConversationId")
-                    .Text(x => x.HeaderSearchText)
-                    .Text(x => x.Body)
-                : Builders<ProcessedMessageDocument>.IndexKeys
-                    .Text("messageMetadata.MessageId")
-                    .Text("messageMetadata.MessageType")
-                    .Text("messageMetadata.ConversationId")
-                    .Text(x => x.HeaderSearchText);
+            // Text index covers metadata fields only. Body text search is handled
+            // by the separate messageBodySearch collection to avoid write path overhead.
+            var textIndexKeys = Builders<ProcessedMessageDocument>.IndexKeys
+                .Text("messageMetadata.MessageId")
+                .Text("messageMetadata.MessageType")
+                .Text("messageMetadata.ConversationId")
+                .Text("headers");
 
             return
             [
@@ -84,13 +80,26 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Indexes
                 new CreateIndexOptions { Name = "ttl_expiry", ExpireAfter = TimeSpan.Zero })
         ];
 
-        public static CreateIndexModel<MessageBodyDocument>[] MessageBodies =>
-        [
-            // TTL index for automatic document expiration
-            new(
-                Builders<MessageBodyDocument>.IndexKeys.Ascending(x => x.ExpiresAt),
-                new CreateIndexOptions { Name = "ttl_expiry", ExpireAfter = TimeSpan.Zero })
-        ];
+        public static CreateIndexModel<MessageBodyDocument>[] GetMessageBodyIndexes(bool enableFullTextSearch)
+        {
+            var indexes = new List<CreateIndexModel<MessageBodyDocument>>
+            {
+                // TTL index for automatic document expiration
+                new(
+                    Builders<MessageBodyDocument>.IndexKeys.Ascending(x => x.ExpiresAt),
+                    new CreateIndexOptions { Name = "ttl_expiry", ExpireAfter = TimeSpan.Zero })
+            };
+
+            if (enableFullTextSearch)
+            {
+                // Text index on body content for full-text search (async, eventual consistency)
+                indexes.Add(new(
+                    Builders<MessageBodyDocument>.IndexKeys.Text(x => x.TextBody),
+                    new CreateIndexOptions { Name = "body_text_search" }));
+            }
+
+            return [.. indexes];
+        }
 
         public static CreateIndexModel<FailedAuditImportDocument>[] FailedAuditImports =>
         [
