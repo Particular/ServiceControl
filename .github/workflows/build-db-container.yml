@@ -70,10 +70,16 @@ jobs:
         shell: pwsh
         run: |
           $manifestCreate = "docker manifest create ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}"
+          echo "first"
           $containers = cat src/ServiceControl.RavenDB/containers.json | ConvertFrom-Json
+          echo "second"
           $containers | ForEach-Object -Process {
             $manifestCreate += " --amend ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}-$($_.tag)"
           }
+          echo $manifestCreate
           Invoke-Expression $manifestCreate
+          echo "third"
           docker buildx imagetools inspect ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}
+          echo "fourth"
           docker manifest push ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}
+          echo "fifth"
