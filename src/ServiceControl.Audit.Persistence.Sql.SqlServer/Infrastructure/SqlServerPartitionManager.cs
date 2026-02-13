@@ -52,6 +52,8 @@ public class SqlServerPartitionManager : IPartitionManager
         // on ProcessedMessages is not partition-aligned and blocks the operation.
         // DELETE with a range filter benefits from partition elimination so only the
         // target partition is scanned.
+        dbContext.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
         foreach (var table in PartitionedTables)
         {
             await dbContext.Database.ExecuteSqlRawAsync(
