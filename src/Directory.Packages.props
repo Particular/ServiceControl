@@ -47,7 +47,7 @@
     <PackageVersion Include="NServiceBus.RabbitMQ" Version="11.0.0" />
     <PackageVersion Include="NServiceBus.SagaAudit" Version="6.0.0" />
     <PackageVersion Include="NServiceBus.Testing" Version="10.0.1" />
-    <PackageVersion Include="NServiceBus.Transport.AzureServiceBus" Version="6.0.0" />
+    <PackageVersion Include="NServiceBus.Transport.AzureServiceBus" Version="6.1.0" />
     <PackageVersion Include="NServiceBus.Transport.AzureStorageQueues" Version="14.0.0" />
     <PackageVersion Include="NServiceBus.Transport.Msmq.Sources" Version="4.0.0" />
     <PackageVersion Include="NServiceBus.Transport.PostgreSql" Version="9.0.0" />
