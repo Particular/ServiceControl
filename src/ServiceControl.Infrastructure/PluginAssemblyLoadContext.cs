@@ -19,7 +19,9 @@ public class PluginAssemblyLoadContext(string assemblyPath) : AssemblyLoadContex
             // Since we ensure we are using the same version of dependencies in every project, it should be okay to use the already loaded copy.
             foreach (var assembly in Default.Assemblies)
             {
-                if (assembly.FullName == assemblyName.FullName)
+                var loadedAssembly = assembly.GetName();
+
+                if (loadedAssembly.Name == assemblyName.Name && loadedAssembly.Version >= assemblyName.Version)
                 {
                     return null;
                 }
