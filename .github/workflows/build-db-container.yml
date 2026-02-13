@@ -69,11 +69,15 @@ jobs:
           TAG_NAME: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
         shell: pwsh
         run: |
+          Write-Output "Creating multi-arch manifest creation command for containers specified in src/ServiceControl.RavenDB/containers.json"
           $manifestCreate = "docker buildx imagetools create -t ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}"
           $containers = cat src/ServiceControl.RavenDB/containers.json | ConvertFrom-Json
           $containers | ForEach-Object -Process {
             $manifestCreate += " ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}-$($_.tag)"
           }
+          Write-Output "Invoking manifest creation command `$manifestCreate`"
           Invoke-Expression $manifestCreate
+          Write-Output "Multi-arch image should now be on GitHub Container Registry at https://github.com/Particular/ServiceControl/pkgs/container/servicecontrol-ravendb/"
+          Write-Output "Inspecting resulting tag `ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}`"
           docker buildx imagetools inspect ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}
-          docker manifest push ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}
+
