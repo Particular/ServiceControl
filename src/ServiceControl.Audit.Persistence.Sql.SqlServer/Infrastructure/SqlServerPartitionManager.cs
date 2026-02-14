@@ -44,15 +44,15 @@ public class SqlServerPartitionManager : IPartitionManager
 
         // Find the oldest hour that has data, then return all hourly buckets up to the cutoff
         var oldestHours = await dbContext.Database
-            .SqlQueryRaw<DateTime>(
+            .SqlQueryRaw<DateTime?>(
                 "SELECT MIN(CreatedOn) AS Value FROM ProcessedMessages " +
                 "UNION ALL " +
                 "SELECT MIN(CreatedOn) AS Value FROM SagaSnapshots")
             .ToListAsync(ct);
 
         var oldest = oldestHours
-            .Where(d => d != default)
-            .Select(TruncateToHour)
+            .Where(d => d.HasValue)
+            .Select(d => TruncateToHour(d!.Value))
             .DefaultIfEmpty(truncatedCutoff)
             .Min();
 
