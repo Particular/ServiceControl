@@ -1,27 +1,21 @@
 namespace ServiceControl.Audit.Persistence
 {
     using System;
-    using System.IO;
     using Configuration;
     using ServiceControl.Audit.Infrastructure.Settings;
+    using ServiceControl.Audit.Persistence.Sql.PostgreSQL;
+    using ServiceControl.Audit.Persistence.Sql.SqlServer;
 
     static class PersistenceConfigurationFactory
     {
         public static IPersistenceConfiguration LoadPersistenceConfiguration(Settings settings)
         {
-            try
+            return settings.PersistenceType switch
             {
-                var persistenceManifest = PersistenceManifestLibrary.Find(settings.PersistenceType);
-                var assemblyPath = Path.Combine(persistenceManifest.Location, $"{persistenceManifest.AssemblyName}.dll");
-                var loadContext = settings.AssemblyLoadContextResolver(assemblyPath);
-                var customizationType = Type.GetType(persistenceManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
-
-                return (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Could not load persistence customization type {settings.PersistenceType}.", e);
-            }
+                "PostgreSQL" => new PostgreSqlAuditPersistenceConfiguration(),
+                "SqlServer" => new SqlServerAuditPersistenceConfiguration(),
+                _ => throw new Exception($"Unsupported persistence type {settings.PersistenceType}."),
+            };
         }
 
         public static PersistenceSettings BuildPersistenceSettings(this IPersistenceConfiguration persistenceConfiguration, Settings settings)

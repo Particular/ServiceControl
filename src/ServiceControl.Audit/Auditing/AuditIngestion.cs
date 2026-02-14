@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
@@ -40,17 +41,27 @@
             this.applicationLifetime = applicationLifetime;
             this.metrics = metrics;
             this.logger = logger;
-            if (!transportSettings.MaxConcurrency.HasValue)
-            {
-                throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
-            }
 
-            MaxBatchSize = transportSettings.MaxConcurrency.Value;
+            BatchSize = settings.AuditIngestionBatchSize;
+            MaxParallelWriters = settings.AuditIngestionMaxParallelWriters;
+            BatchTimeout = settings.AuditIngestionBatchTimeout;
 
-            channel = Channel.CreateBounded<MessageContext>(new BoundedChannelOptions(MaxBatchSize)
+            // Message channel: larger buffer to decouple transport from batch assembly
+            int messageChannelCapacity = BatchSize * MaxParallelWriters * 2;
+            messageChannel = Channel.CreateBounded<MessageContext>(new BoundedChannelOptions(messageChannelCapacity)
             {
-                SingleReader = true,
-                SingleWriter = false,
+                SingleReader = true,   // Batch assembler is single reader
+                SingleWriter = false,  // Transport threads write concurrently
+                AllowSynchronousContinuations = false,
+                FullMode = BoundedChannelFullMode.Wait
+            });
+
+            // Batch channel: holds assembled batches for parallel writers
+            int batchChannelCapacity = MaxParallelWriters * 2;
+            batchChannel = Channel.CreateBounded<List<MessageContext>>(new BoundedChannelOptions(batchChannelCapacity)
+            {
+                SingleReader = false,  // Multiple writers consume concurrently
+                SingleWriter = true,   // Batch assembler is single writer
                 AllowSynchronousContinuations = false,
                 FullMode = BoundedChannelFullMode.Wait
             });
@@ -210,7 +221,7 @@
             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-            await channel.Writer.WriteAsync(messageContext, cancellationToken);
+            await messageChannel.Writer.WriteAsync(messageContext, cancellationToken);
             _ = await taskCompletionSource.Task;
 
             messageIngestionMetrics.Success();
@@ -224,54 +235,145 @@
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            // Start batch assembler task
+            // Note: Pass CancellationToken.None to Task.Run - if stoppingToken is already cancelled
+            // it would throw immediately without starting the task. Let the loop handle cancellation internally.
+            batchAssemblerTask = Task.Run(() => BatchAssemblerLoop(stoppingToken), CancellationToken.None);
+
+            // Start parallel writer tasks
+            writerTasks = new Task[MaxParallelWriters];
+            for (int i = 0; i < MaxParallelWriters; i++)
+            {
+                int writerId = i;
+                writerTasks[i] = Task.Run(() => WriterLoop(writerId, stoppingToken), CancellationToken.None);
+            }
+
             try
             {
-                var contexts = new List<MessageContext>(MaxBatchSize);
+                await Task.WhenAll(writerTasks.Append(batchAssemblerTask));
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                // Expected during shutdown
+            }
+        }
 
-                while (await channel.Reader.WaitToReadAsync(stoppingToken))
+        async Task BatchAssemblerLoop(CancellationToken stoppingToken)
+        {
+            var batch = new List<MessageContext>(BatchSize);
+
+            try
+            {
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    // will only enter here if there is something to read.
+                    // Wait for at least one message
+                    if (!await messageChannel.Reader.WaitToReadAsync(stoppingToken))
+                    {
+                        break; // Channel completed
+                    }
+
+                    // Drain available messages up to BatchSize
+                    while (batch.Count < BatchSize && messageChannel.Reader.TryRead(out var context))
+                    {
+                        batch.Add(context);
+                    }
+
+                    // If batch is not full, wait with timeout for more messages
+                    if (batch.Count > 0 && batch.Count < BatchSize)
+                    {
+                        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+                        timeoutCts.CancelAfter(BatchTimeout);
+
+                        try
+                        {
+                            while (batch.Count < BatchSize)
+                            {
+                                if (!await messageChannel.Reader.WaitToReadAsync(timeoutCts.Token))
+                                {
+                                    break; // Channel completed
+                                }
+
+                                while (batch.Count < BatchSize && messageChannel.Reader.TryRead(out var context))
+                                {
+                                    batch.Add(context);
+                                }
+                            }
+                        }
+                        catch (OperationCanceledException) when (!stoppingToken.IsCancellationRequested)
+                        {
+                            // Timeout reached, dispatch partial batch
+                        }
+                    }
+
+                    if (batch.Count > 0)
+                    {
+                        await batchChannel.Writer.WriteAsync(batch, stoppingToken);
+                        batch = new List<MessageContext>(BatchSize);
+                    }
+                }
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                // Expected during shutdown
+            }
+            finally
+            {
+                // Complete the batch channel to signal writers to finish
+                batchChannel.Writer.Complete();
+
+                // Cancel any remaining messages in incomplete batch
+                foreach (var context in batch)
+                {
+                    _ = context.GetTaskCompletionSource().TrySetCanceled(stoppingToken);
+                }
+            }
+        }
+
+        async Task WriterLoop(int writerId, CancellationToken stoppingToken)
+        {
+            logger.LogDebug("Writer {WriterId} started", writerId);
+            List<MessageContext> currentBatch = null;
+
+            try
+            {
+                await foreach (var batch in batchChannel.Reader.ReadAllAsync(stoppingToken))
+                {
+                    currentBatch = batch;
                     try
                     {
-                        using var batchMetrics = metrics.BeginBatch(MaxBatchSize);
+                        using var batchMetrics = metrics.BeginBatch(BatchSize);
 
-                        // as long as there is something to read this will fetch up to MaximumConcurrency items
-                        while (channel.Reader.TryRead(out var context))
-                        {
-                            contexts.Add(context);
-                        }
+                        await auditIngestor.Ingest(currentBatch, stoppingToken);
 
-                        await auditIngestor.Ingest(contexts, stoppingToken);
-
-                        batchMetrics.Complete(contexts.Count);
+                        batchMetrics.Complete(currentBatch.Count);
+                        currentBatch = null; // Successfully processed
                     }
-                    catch (Exception e)
+                    catch (Exception e) when (e is not OperationCanceledException)
                     {
-                        // signal all message handling tasks to terminate
-                        foreach (var context in contexts)
+                        // Signal failure to all messages in this batch
+                        foreach (var context in currentBatch)
                         {
                             _ = context.GetTaskCompletionSource().TrySetException(e);
                         }
 
-                        if (e is OperationCanceledException && stoppingToken.IsCancellationRequested)
-                        {
-                            logger.LogInformation(e, "Batch cancelled");
-                            break;
-                        }
-
-                        logger.LogInformation(e, "Ingesting messages failed");
-                    }
-                    finally
-                    {
-                        contexts.Clear();
+                        currentBatch = null; // Failure handled
+                        logger.LogWarning(e, "Writer {WriterId} failed to ingest batch", writerId);
                     }
                 }
-                // will fall out here when writer is completed
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
-                // ExecuteAsync cancelled
+                // Expected during shutdown - signal cancellation for any in-flight batch
+                if (currentBatch != null)
+                {
+                    foreach (var context in currentBatch)
+                    {
+                        _ = context.GetTaskCompletionSource().TrySetCanceled(stoppingToken);
+                    }
+                }
             }
+
+            logger.LogDebug("Writer {WriterId} stopped", writerId);
         }
 
         public override async Task StopAsync(CancellationToken cancellationToken)
@@ -279,8 +381,27 @@
             try
             {
                 await watchdog.Stop(cancellationToken);
-                channel.Writer.Complete();
+
+                // Complete message channel to stop accepting new messages
+                messageChannel.Writer.Complete();
+
+                // Wait for batch assembler to finish (it completes the batch channel)
+                if (batchAssemblerTask != null)
+                {
+                    await batchAssemblerTask.WaitAsync(cancellationToken);
+                }
+
+                // Wait for all writers to finish
+                if (writerTasks != null)
+                {
+                    await Task.WhenAll(writerTasks).WaitAsync(cancellationToken);
+                }
+
                 await base.StopAsync(cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                logger.LogInformation("Graceful shutdown timed out");
             }
             finally
             {
@@ -298,10 +419,20 @@
             }
         }
 
+        public override void Dispose()
+        {
+            startStopSemaphore.Dispose();
+            base.Dispose();
+        }
+
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver messageReceiver;
+        Task batchAssemblerTask;
+        Task[] writerTasks;
 
-        readonly int MaxBatchSize;
+        readonly int BatchSize;
+        readonly int MaxParallelWriters;
+        readonly TimeSpan BatchTimeout;
         readonly SemaphoreSlim startStopSemaphore = new(1);
         readonly string inputEndpoint;
         readonly ITransportCustomization transportCustomization;
@@ -310,7 +441,8 @@
         readonly AuditIngestionFaultPolicy errorHandlingPolicy;
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Settings settings;
-        readonly Channel<MessageContext> channel;
+        readonly Channel<MessageContext> messageChannel;
+        readonly Channel<List<MessageContext>> batchChannel;
         readonly Watchdog watchdog;
         readonly IHostApplicationLifetime applicationLifetime;
         readonly IngestionMetrics metrics;
