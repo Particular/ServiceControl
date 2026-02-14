@@ -15,6 +15,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Persistence;
     using ServiceControl.Transports;
+    using ServicePulse;
     using JsonSerializer = System.Text.Json.JsonSerializer;
 
     public class Settings
@@ -65,6 +66,12 @@ namespace ServiceBus.Management.Infrastructure.Settings
             MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
             RetryHistoryDepth = SettingsReader.Read(SettingsRootNamespace, "RetryHistoryDepth", 10);
             AllowMessageEditing = SettingsReader.Read<bool>(SettingsRootNamespace, "AllowMessageEditing");
+            EnableIntegratedServicePulse = SettingsReader.Read(SettingsRootNamespace, "EnableIntegratedServicePulse", false);
+            ServicePulseSettings = ServicePulseSettings.GetFromEnvironmentVariables() with
+            {
+                ServiceControlUrl = $"{ApiUrl}/",
+                IsIntegrated = true
+            };
             NotificationsFilter = SettingsReader.Read<string>(SettingsRootNamespace, "NotificationsFilter");
             RemoteInstances = GetRemoteInstances().ToArray();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
@@ -102,6 +109,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string NotificationsFilter { get; set; }
 
         public bool AllowMessageEditing { get; set; }
+
+        public bool EnableIntegratedServicePulse { get; set; }
+        public ServicePulseSettings ServicePulseSettings { get; set; }
 
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }

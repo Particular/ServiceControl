@@ -38,6 +38,19 @@ public class ServiceControlInformation : SharedServiceControlEditorViewModel
                 Value = false
             }
         };
+        EnableIntegratedServicePulseOptions = new[]
+        {
+            new EnableIntegratedServicePulseOption
+            {
+                Name = "On",
+                Value = true
+            },
+            new EnableIntegratedServicePulseOption
+            {
+                Name = "Off",
+                Value = false
+            }
+        };
         ErrorRetention = SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI;
         Description = "ServiceControl Service";
         HostName = "localhost";
@@ -48,6 +61,7 @@ public class ServiceControlInformation : SharedServiceControlEditorViewModel
         PortNumber = "33333";
         DatabaseMaintenancePortNumber = "33334";
         EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.First(p => p.Value); //Default to On.
+        EnableIntegratedServicePulse = EnableIntegratedServicePulseOptions.First(p => p.Value); //Default to On.
         ViewModelParent = viewModelParent;
     }
 
@@ -92,6 +106,10 @@ public class ServiceControlInformation : SharedServiceControlEditorViewModel
 
     public EnableFullTextSearchOnBodiesOption EnableFullTextSearchOnBodies { get; set; }
 
+    public IEnumerable<EnableIntegratedServicePulseOption> EnableIntegratedServicePulseOptions { get; }
+
+    public EnableIntegratedServicePulseOption EnableIntegratedServicePulse { get; set; }
+
     protected void UpdateErrorRetention(TimeSpan value)
     {
         ErrorRetention = ErrorRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
@@ -122,6 +140,7 @@ public class ServiceControlInformation : SharedServiceControlEditorViewModel
         ErrorForwardingQueueName = instance.ErrorLogQueue;
         UpdateErrorRetention(instance.ErrorRetentionPeriod);
         EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.FirstOrDefault(p => p.Value == instance.EnableFullTextSearchOnBodies);
+        EnableIntegratedServicePulse = EnableIntegratedServicePulseOptions.FirstOrDefault(p => p.Value == instance.EnableIntegratedServicePulse);
     }
 
     ForwardingOption errorForwarding;
