@@ -12,15 +12,15 @@ using ServiceControl.Audit.Persistence.Sql.SqlServer;
 namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerAuditDbContext))]
-    [Migration("20260212032722_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260214031634_AddFullTextSearch")]
+    partial class AddFullTextSearch
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.2")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -172,13 +172,13 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
 
                     b.HasKey("Id", "CreatedOn");
 
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("MessageId");
+
                     b.HasIndex("TimeSent");
 
-                    b.HasIndex("ConversationId", "CreatedOn");
-
-                    b.HasIndex("MessageId", "CreatedOn");
-
-                    b.HasIndex("UniqueMessageId", "CreatedOn");
+                    b.HasIndex("UniqueMessageId");
 
                     b.ToTable("ProcessedMessages", (string)null);
                 });
@@ -228,7 +228,7 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
 
                     b.HasKey("Id", "CreatedOn");
 
-                    b.HasIndex("SagaId", "CreatedOn");
+                    b.HasIndex("SagaId");
 
                     b.ToTable("SagaSnapshots", (string)null);
                 });

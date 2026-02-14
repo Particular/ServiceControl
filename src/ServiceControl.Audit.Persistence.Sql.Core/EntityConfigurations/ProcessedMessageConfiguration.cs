@@ -35,16 +35,9 @@ class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedMessageE
         builder.Property(e => e.ProcessingTimeTicks);
         builder.Property(e => e.DeliveryTimeTicks);
 
-        // Uniqueness index (includes CreatedOn for partition alignment)
-        builder.HasIndex(e => new { e.UniqueMessageId, e.CreatedOn });
-
-        // QueryMessagesByConversationId
-        builder.HasIndex(e => new { e.ConversationId, e.CreatedOn });
-
-        // MessageId lookup (includes CreatedOn for partition alignment)
-        builder.HasIndex(e => new { e.MessageId, e.CreatedOn });
-
-        // TimeSent index for range queries
+        builder.HasIndex(e => e.UniqueMessageId);
+        builder.HasIndex(e => e.ConversationId);
+        builder.HasIndex(e => e.MessageId);
         builder.HasIndex(e => e.TimeSent);
     }
 }

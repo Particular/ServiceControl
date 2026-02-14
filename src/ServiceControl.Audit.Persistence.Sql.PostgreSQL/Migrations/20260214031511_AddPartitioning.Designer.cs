@@ -12,15 +12,15 @@ using ServiceControl.Audit.Persistence.Sql.PostgreSQL;
 namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 {
     [DbContext(typeof(PostgreSqlAuditDbContext))]
-    [Migration("20260212032730_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260214031511_AddPartitioning")]
+    partial class AddPartitioning
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.2")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -204,13 +204,13 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 
                     b.HasKey("Id", "CreatedOn");
 
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("MessageId");
+
                     b.HasIndex("TimeSent");
 
-                    b.HasIndex("ConversationId", "CreatedOn");
-
-                    b.HasIndex("MessageId", "CreatedOn");
-
-                    b.HasIndex("UniqueMessageId", "CreatedOn");
+                    b.HasIndex("UniqueMessageId");
 
                     b.ToTable("processed_messages", (string)null);
                 });
@@ -271,7 +271,7 @@ namespace ServiceControl.Audit.Persistence.Sql.PostgreSQL.Migrations
 
                     b.HasKey("Id", "CreatedOn");
 
-                    b.HasIndex("SagaId", "CreatedOn");
+                    b.HasIndex("SagaId");
 
                     b.ToTable("saga_snapshots", (string)null);
                 });

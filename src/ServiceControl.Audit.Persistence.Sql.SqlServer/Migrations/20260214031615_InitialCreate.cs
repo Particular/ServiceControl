@@ -123,14 +123,14 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                 column: "LastSeen");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_ConversationId_CreatedOn",
+                name: "IX_ProcessedMessages_ConversationId",
                 table: "ProcessedMessages",
-                columns: new[] { "ConversationId", "CreatedOn" });
+                column: "ConversationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_MessageId_CreatedOn",
+                name: "IX_ProcessedMessages_MessageId",
                 table: "ProcessedMessages",
-                columns: new[] { "MessageId", "CreatedOn" });
+                column: "MessageId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProcessedMessages_TimeSent",
@@ -138,14 +138,14 @@ namespace ServiceControl.Audit.Persistence.Sql.SqlServer.Migrations
                 column: "TimeSent");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProcessedMessages_UniqueMessageId_CreatedOn",
+                name: "IX_ProcessedMessages_UniqueMessageId",
                 table: "ProcessedMessages",
-                columns: new[] { "UniqueMessageId", "CreatedOn" });
+                column: "UniqueMessageId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SagaSnapshots_SagaId_CreatedOn",
+                name: "IX_SagaSnapshots_SagaId",
                 table: "SagaSnapshots",
-                columns: new[] { "SagaId", "CreatedOn" });
+                column: "SagaId");
         }
 
         /// <inheritdoc />

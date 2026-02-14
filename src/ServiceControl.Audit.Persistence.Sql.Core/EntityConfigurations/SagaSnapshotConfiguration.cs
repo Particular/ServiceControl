@@ -22,6 +22,6 @@ class SagaSnapshotConfiguration : IEntityTypeConfiguration<SagaSnapshotEntity>
         builder.Property(e => e.OutgoingMessagesJson).IsRequired();
         builder.Property(e => e.Endpoint).IsRequired();
 
-        builder.HasIndex(e => new { e.SagaId, e.CreatedOn });
+        builder.HasIndex(e => e.SagaId);
     }
 }
