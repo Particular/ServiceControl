@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Caliburn.Micro;
 
     public class RxViewAware : RxPropertyChanged, IViewAware
@@ -61,7 +62,7 @@
         static void AttachViewReadyOnActivated(IActivate activatable, object nonGeneratedView)
         {
             var viewReference = new WeakReference(nonGeneratedView);
-            EventHandler<ActivationEventArgs> handler = null;
+            AsyncEventHandler<ActivationEventArgs> handler = null;
             handler = (s, e) =>
             {
                 ((IActivate)s).Activated -= handler;
@@ -70,6 +71,8 @@
                 {
                     PlatformProvider.Current.ExecuteOnLayoutUpdated(view, ((RxViewAware)s).OnViewReady);
                 }
+
+                return Task.CompletedTask;
             };
             activatable.Activated += handler;
         }

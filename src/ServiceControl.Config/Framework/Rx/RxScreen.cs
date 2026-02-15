@@ -37,7 +37,7 @@
         /// <summary>
         /// Raised after activation occurs.
         /// </summary>
-        public event EventHandler<ActivationEventArgs> Activated = (sender, e) => { };
+        public event AsyncEventHandler<ActivationEventArgs> Activated = (sender, e) => Task.CompletedTask;
 
         public IEventAggregator EventAggregator { get; set; }
 
@@ -70,7 +70,7 @@
             Log.Info("Activating {0}.", this);
             await OnActivate();
 
-            Activated(this, new ActivationEventArgs
+            await Activated(this, new ActivationEventArgs
             {
                 WasInitialized = initialized
             });
