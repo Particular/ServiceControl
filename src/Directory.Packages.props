@@ -74,7 +74,7 @@
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="10.0.3" />
     <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="10.0.3" />
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="10.0.3" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
     <PackageVersion Include="System.Management" Version="10.0.3" />
     <PackageVersion Include="System.Management.Automation" Version="7.4.13" />
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
