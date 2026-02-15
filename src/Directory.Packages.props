@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup Label="Versions for direct package references">
     <PackageVersion Include="Autofac" Version="9.0.0" />
-    <PackageVersion Include="AWSSDK.CloudWatch" Version="4.0.6.7" />
+    <PackageVersion Include="AWSSDK.CloudWatch" Version="4.0.7" />
     <PackageVersion Include="Azure.Identity" Version="1.17.1" />
     <PackageVersion Include="Azure.Monitor.Query.Metrics" Version="1.0.0" />
     <PackageVersion Include="Azure.ResourceManager.ServiceBus" Version="1.1.0" />
