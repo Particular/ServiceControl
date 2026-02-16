@@ -69,7 +69,7 @@
     <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
     <PackageVersion Include="RavenDB.Embedded" Version="6.2.13" />
     <PackageVersion Include="ReactiveUI.WPF" Version="20.4.1" />
-    <PackageVersion Include="Seq.Extensions.Logging" Version="8.0.0" />
+    <PackageVersion Include="Seq.Extensions.Logging" Version="9.0.0" />
     <PackageVersion Include="ServiceControl.Contracts" Version="5.1.0" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="10.0.3" />
     <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="10.0.3" />
