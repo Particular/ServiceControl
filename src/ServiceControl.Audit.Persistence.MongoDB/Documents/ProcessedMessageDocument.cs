@@ -19,6 +19,14 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Documents
         [BsonElement("headers")]
         public Dictionary<string, string> Headers { get; set; }
 
+        /// <summary>
+        /// Flattened header values for text index search. Required because NServiceBus header
+        /// keys contain dots and $ characters which MongoDB's text index cannot traverse.
+        /// </summary>
+        [BsonElement("headerSearchTokens")]
+        [BsonIgnoreIfNull]
+        public List<string> HeaderSearchTokens { get; set; }
+
         [BsonElement("processedAt")]
         public DateTime ProcessedAt { get; set; }
 

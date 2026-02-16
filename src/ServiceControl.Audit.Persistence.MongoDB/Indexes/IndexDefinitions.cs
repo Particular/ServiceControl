@@ -9,13 +9,15 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Indexes
     {
         public static CreateIndexModel<ProcessedMessageDocument>[] GetProcessedMessageIndexes()
         {
-            // Text index covers metadata fields only. Body text search is handled
-            // by the separate messageBodySearch collection to avoid write path overhead.
+            // Text index covers metadata fields and header values. Body text search is handled
+            // by the separate messageBodies collection to avoid write path overhead.
+            // Note: headerSearchTokens is a flattened string array of header values because
+            // NServiceBus header keys contain dots/$, which MongoDB's text index cannot traverse.
             var textIndexKeys = Builders<ProcessedMessageDocument>.IndexKeys
                 .Text("messageMetadata.MessageId")
                 .Text("messageMetadata.MessageType")
                 .Text("messageMetadata.ConversationId")
-                .Text("headers");
+                .Text("headerSearchTokens");
 
             return
             [
