@@ -18,9 +18,6 @@
             if (!string.IsNullOrWhiteSpace(srcFolder) && srcFolder.EndsWith("src"))
             {
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Persistence.RavenDB"));
-                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Persistence.Sql.SqlServer"));
-                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Persistence.Sql.PostgreSQL"));
-                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Persistence.Sql.MySQL"));
             }
         }
 

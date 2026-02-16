@@ -45,9 +45,6 @@
   </Folder>
   <Folder Name="/Instances/Primary/Persistence/">
     <Project Path="ServiceControl.Persistence.RavenDB/ServiceControl.Persistence.RavenDB.csproj" />
-    <Project Path="ServiceControl.Persistence.Sql.Core/ServiceControl.Persistence.Sql.Core.csproj" />
-    <Project Path="ServiceControl.Persistence.Sql.PostgreSQL/ServiceControl.Persistence.Sql.PostgreSQL.csproj" />
-    <Project Path="ServiceControl.Persistence.Sql.SqlServer/ServiceControl.Persistence.Sql.SqlServer.csproj" />
     <Project Path="ServiceControl.Persistence/ServiceControl.Persistence.csproj" />
   </Folder>
   <Folder Name="/Instances/Primary/Testing/">
