@@ -1,15 +1,26 @@
 namespace ServiceControl.Audit.Persistence.MongoDB
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
 
-    /// <summary>
-    /// Hosted service that manages the MongoDB persistence lifecycle.
-    /// </summary>
-    sealed class MongoPersistenceLifecycleHostedService(IMongoPersistenceLifecycle lifecycle) : IHostedService
+    sealed class MongoPersistenceLifecycleHostedService(
+        IMongoPersistenceLifecycle lifecycle,
+        ILogger<MongoPersistenceLifecycleHostedService> logger) : IHostedService
     {
-        public Task StartAsync(CancellationToken cancellationToken) => lifecycle.Initialize(cancellationToken);
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await lifecycle.Initialize(cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                logger.LogInformation("MongoDB persistence initialization cancelled");
+            }
+        }
 
         public Task StopAsync(CancellationToken cancellationToken) => lifecycle.Stop(cancellationToken);
     }

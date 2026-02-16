@@ -333,7 +333,13 @@
 
             if (TargetMessageIngestionRate is { } rate)
             {
-                return (int)Math.Ceiling(rate * 0.075);
+                // Per-message latency = batch fill time + write overhead
+                // At low rates, batch timeout (100ms) dominates fill time
+                // At high rates, batches fill quickly (batch_size/rate)
+                var batchSize = Math.Min(Math.Max(50, (int)(rate * 0.05)), 200);
+                var batchFillSeconds = Math.Min((double)batchSize / rate, 0.1);
+                var estimatedLatency = batchFillSeconds + 0.03;
+                return (int)Math.Ceiling(rate * estimatedLatency * 1.5);
             }
 
             return null;

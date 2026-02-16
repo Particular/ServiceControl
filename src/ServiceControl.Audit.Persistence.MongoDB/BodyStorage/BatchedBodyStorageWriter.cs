@@ -1,4 +1,4 @@
-namespace ServiceControl.Audit.Persistence.MongoDB.Search
+namespace ServiceControl.Audit.Persistence.MongoDB.BodyStorage
 {
     using System;
     using System.Collections.Generic;
@@ -6,25 +6,24 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Search
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using Collections;
-    using Documents;
-    using global::MongoDB.Driver;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
 
-    class BodyStorageWriter(
-        Channel<BodyEntry> channel,
-        IMongoClientProvider clientProvider,
+    abstract class BatchedBodyStorageWriter<TEntry>(
+        Channel<TEntry> channel,
         MongoSettings settings,
-        ILogger<BodyStorageWriter> logger)
+        ILogger logger)
         : BackgroundService
     {
         readonly int BatchSize = settings.BodyWriterBatchSize;
         readonly int ParallelWriters = settings.BodyWriterParallelWriters;
         readonly TimeSpan BatchTimeout = settings.BodyWriterBatchTimeout;
-        const int MaxRetries = 3;
+        const int BacklogWarningThreshold = 5_000;
+        long totalWritten;
+        DateTime lastBacklogWarning;
+        DateTime lastBackpressureWarning;
 
-        readonly Channel<List<MessageBodyDocument>> batchChannel = Channel.CreateBounded<List<MessageBodyDocument>>(
+        readonly Channel<List<TEntry>> batchChannel = Channel.CreateBounded<List<TEntry>>(
             new BoundedChannelOptions(settings.BodyWriterParallelWriters * 2)
             {
                 SingleReader = false,
@@ -33,9 +32,32 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Search
                 FullMode = BoundedChannelFullMode.Wait
             });
 
+        protected ChannelWriter<TEntry> WriteChannel => channel.Writer;
+
+        protected async ValueTask WriteToChannelAsync(TEntry entry, CancellationToken cancellationToken)
+        {
+            if (channel.Writer.TryWrite(entry))
+            {
+                return;
+            }
+
+            if (DateTime.UtcNow - lastBackpressureWarning > TimeSpan.FromSeconds(10))
+            {
+                lastBackpressureWarning = DateTime.UtcNow;
+                logger.LogWarning("{WriterName} channel is full (backlog: {Backlog}). Body writes are blocking ingestion until the writer catches up",
+                    WriterName, channel.Reader.Count);
+            }
+
+            await channel.Writer.WriteAsync(entry, cancellationToken).ConfigureAwait(false);
+        }
+
+        protected abstract string WriterName { get; }
+
+        protected abstract Task FlushBatchAsync(List<TEntry> batch, CancellationToken cancellationToken);
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            logger.LogInformation("Body storage writer started ({Writers} writers, batch size {BatchSize})", ParallelWriters, BatchSize);
+            logger.LogInformation("{WriterName} started ({Writers} writers, batch size {BatchSize})", WriterName, ParallelWriters, BatchSize);
 
             var assemblerTask = Task.Run(() => BatchAssemblerLoop(stoppingToken), CancellationToken.None);
 
@@ -55,12 +77,12 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Search
                 // Expected during shutdown
             }
 
-            logger.LogInformation("Body storage writer stopped");
+            logger.LogInformation("{WriterName} stopped", WriterName);
         }
 
         async Task BatchAssemblerLoop(CancellationToken stoppingToken)
         {
-            var batch = new List<MessageBodyDocument>(BatchSize);
+            var batch = new List<TEntry>(BatchSize);
 
             try
             {
@@ -68,7 +90,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Search
                 {
                     while (batch.Count < BatchSize && channel.Reader.TryRead(out var entry))
                     {
-                        batch.Add(ToDocument(entry));
+                        batch.Add(entry);
                     }
 
                     if (batch.Count > 0 && batch.Count < BatchSize)
@@ -86,7 +108,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Search
 
                                 while (batch.Count < BatchSize && channel.Reader.TryRead(out var entry))
                                 {
-                                    batch.Add(ToDocument(entry));
+                                    batch.Add(entry);
                                 }
                             }
                         }
@@ -99,7 +121,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Search
                     if (batch.Count > 0)
                     {
                         await batchChannel.Writer.WriteAsync(batch, stoppingToken).ConfigureAwait(false);
-                        batch = new List<MessageBodyDocument>(BatchSize);
+                        batch = new List<TEntry>(BatchSize);
                     }
                 }
             }
@@ -108,12 +130,12 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Search
                 // Shutting down - drain channel into remaining batches
                 while (channel.Reader.TryRead(out var entry))
                 {
-                    batch.Add(ToDocument(entry));
+                    batch.Add(entry);
 
                     if (batch.Count >= BatchSize)
                     {
                         await batchChannel.Writer.WriteAsync(batch, CancellationToken.None).ConfigureAwait(false);
-                        batch = new List<MessageBodyDocument>(BatchSize);
+                        batch = new List<TEntry>(BatchSize);
                     }
                 }
 
@@ -130,7 +152,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Search
 
         async Task WriterLoop(int writerId, CancellationToken stoppingToken)
         {
-            logger.LogDebug("Body writer {WriterId} started", writerId);
+            logger.LogDebug("{WriterName} writer {WriterId} started", WriterName, writerId);
 
             try
             {
@@ -139,7 +161,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Search
                 // accepting new batches.
                 await foreach (var batch in batchChannel.Reader.ReadAllAsync(stoppingToken).ConfigureAwait(false))
                 {
-                    await FlushBatch(batch, CancellationToken.None).ConfigureAwait(false);
+                    await FlushBatchAsync(batch, CancellationToken.None).ConfigureAwait(false);
+                    ReportBatchWritten(batch.Count);
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -150,66 +173,31 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Search
             // Drain any remaining batches after the assembler completes the channel
             while (batchChannel.Reader.TryRead(out var batch))
             {
-                await FlushBatchBestEffort(batch).ConfigureAwait(false);
-            }
-
-            logger.LogDebug("Body writer {WriterId} stopped", writerId);
-        }
-
-        async Task FlushBatchBestEffort(List<MessageBodyDocument> batch)
-        {
-            try
-            {
-                await FlushBatch(batch, CancellationToken.None).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed to flush {Count} body entries during shutdown", batch.Count);
-            }
-        }
-
-        async Task FlushBatch(List<MessageBodyDocument> batch, CancellationToken cancellationToken)
-        {
-            var collection = clientProvider.Database
-                .GetCollection<MessageBodyDocument>(CollectionNames.MessageBodies);
-
-            var writes = batch.Select(doc =>
-                new ReplaceOneModel<MessageBodyDocument>(
-                    Builders<MessageBodyDocument>.Filter.Eq(d => d.Id, doc.Id),
-                    doc)
-                { IsUpsert = true })
-                .ToList();
-
-            for (var attempt = 1; attempt <= MaxRetries; attempt++)
-            {
                 try
                 {
-                    _ = await collection.BulkWriteAsync(writes, new BulkWriteOptions { IsOrdered = false }, cancellationToken).ConfigureAwait(false);
-                    logger.LogDebug("Wrote {Count} body entries", batch.Count);
-                    return;
-                }
-                catch (Exception ex) when (attempt < MaxRetries && !cancellationToken.IsCancellationRequested)
-                {
-                    var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt - 1));
-                    logger.LogWarning(ex, "Failed to write {Count} body entries (attempt {Attempt}/{MaxRetries}), retrying in {Delay}s",
-                        batch.Count, attempt, MaxRetries, delay.TotalSeconds);
-                    await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                    await FlushBatchAsync(batch, CancellationToken.None).ConfigureAwait(false);
+                    ReportBatchWritten(batch.Count);
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Failed to write {Count} body entries after {MaxRetries} attempts", batch.Count, MaxRetries);
+                    logger.LogError(ex, "Failed to flush {Count} entries during shutdown", batch.Count);
                 }
             }
+
+            logger.LogDebug("{WriterName} writer {WriterId} stopped", WriterName, writerId);
         }
 
-        static MessageBodyDocument ToDocument(BodyEntry entry) => new()
+        void ReportBatchWritten(int batchCount)
         {
-            Id = entry.Id,
-            ContentType = entry.ContentType,
-            BodySize = entry.BodySize,
-            TextBody = entry.TextBody,
-            BinaryBody = entry.BinaryBody,
-            ExpiresAt = entry.ExpiresAt
-        };
+            totalWritten += batchCount;
+            var backlog = channel.Reader.Count;
+            logger.LogDebug("{WriterName}: batch={BatchCount}, total={TotalWritten}, backlog={Backlog}",
+                WriterName, batchCount, totalWritten, backlog);
+            if (backlog > BacklogWarningThreshold && DateTime.UtcNow - lastBacklogWarning > TimeSpan.FromSeconds(10))
+            {
+                lastBacklogWarning = DateTime.UtcNow;
+                logger.LogWarning("{WriterName} is not keeping up with ingestion. Channel backlog: {Backlog} items", WriterName, backlog);
+            }
+        }
     }
 }

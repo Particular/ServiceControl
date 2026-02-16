@@ -1,15 +1,18 @@
 namespace ServiceControl.Audit.Persistence.MongoDB.BodyStorage
 {
+    using System;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
 
-    /// <summary>
-    /// A no-op body storage implementation used when body storage is disabled.
-    /// </summary>
-    class NullBodyStorage : IBodyStorage
+    class NullBodyStorage : IBodyStorage, IBodyWriter
     {
+        public bool IsEnabled => false;
+
+        public ValueTask WriteAsync(string id, string contentType, ReadOnlyMemory<byte> body, DateTime expiresAt, CancellationToken cancellationToken)
+            => ValueTask.CompletedTask;
+
         public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken)
             => Task.CompletedTask;
 

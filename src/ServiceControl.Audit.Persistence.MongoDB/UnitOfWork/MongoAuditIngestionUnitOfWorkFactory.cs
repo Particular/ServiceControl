@@ -1,18 +1,15 @@
 namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
 {
     using System.Threading;
-    using System.Threading.Channels;
     using System.Threading.Tasks;
-    using Auditing.BodyStorage;
+    using BodyStorage;
     using Persistence.UnitOfWork;
-    using Search;
 
     class MongoAuditIngestionUnitOfWorkFactory(
         IMongoClientProvider clientProvider,
         MongoSettings settings,
-        IBodyStorage bodyStorage,
-        MinimumRequiredStorageState storageState,
-        Channel<BodyEntry> bodyChannel = null)
+        IBodyWriter bodyWriter,
+        MinimumRequiredStorageState storageState)
         : IAuditIngestionUnitOfWorkFactory
     {
         public ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken)
@@ -22,9 +19,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                 clientProvider.Database,
                 clientProvider.ProductCapabilities.SupportsMultiCollectionBulkWrite,
                 settings.AuditRetentionPeriod,
-                bodyStorage,
                 settings.MaxBodySizeToStore,
-                bodyChannel);
+                bodyWriter);
 
             return ValueTask.FromResult<IAuditIngestionUnitOfWork>(unitOfWork);
         }

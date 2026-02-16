@@ -2,22 +2,18 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Auditing;
-    using Auditing.BodyStorage;
     using BodyStorage;
     using Collections;
     using Documents;
     using global::MongoDB.Bson;
     using global::MongoDB.Driver;
-    using System.Threading.Channels;
     using Monitoring;
     using NServiceBus;
     using Persistence.UnitOfWork;
-    using Search;
     using ServiceControl.SagaAudit;
 
     class MongoAuditIngestionUnitOfWork(
@@ -25,9 +21,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
         IMongoDatabase database,
         bool supportsMultiCollectionBulkWrite,
         TimeSpan auditRetentionPeriod,
-        IBodyStorage bodyStorage,
         int maxBodySizeToStore,
-        Channel<BodyEntry> bodyChannel = null)
+        IBodyWriter bodyEntryWriter)
         : IAuditIngestionUnitOfWork
     {
         readonly List<ProcessedMessageDocument> processedMessages = [];
@@ -38,39 +33,15 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
         {
             processedMessage.MessageMetadata["ContentLength"] = body.Length;
 
-            // Determine if body should be stored based on size limit and storage type
-            var shouldStoreBody = !body.IsEmpty && body.Length <= maxBodySizeToStore && bodyStorage is not NullBodyStorage;
+            var shouldStoreBody = !body.IsEmpty && body.Length <= maxBodySizeToStore && bodyEntryWriter.IsEnabled;
 
             if (shouldStoreBody)
             {
                 processedMessage.MessageMetadata["BodyUrl"] = $"/messages/{processedMessage.Id}/body";
                 var contentType = processedMessage.Headers.GetValueOrDefault(Headers.ContentType, "text/plain");
+                var bodyExpiresAt = DateTime.UtcNow.Add(auditRetentionPeriod);
 
-                if (bodyStorage is MongoBodyStorage)
-                {
-                    // Database body storage: enqueue for async write via BodyStorageWriter
-                    var textBody = TryGetUtf8String(body);
-                    var bodyExpiresAt = DateTime.UtcNow.Add(auditRetentionPeriod);
-
-                    if (bodyChannel != null)
-                    {
-                        await bodyChannel.Writer.WriteAsync(new BodyEntry
-                        {
-                            Id = processedMessage.Id,
-                            ContentType = contentType,
-                            BodySize = body.Length,
-                            TextBody = textBody,
-                            BinaryBody = textBody == null ? body.ToArray() : null,
-                            ExpiresAt = bodyExpiresAt
-                        }, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-                else
-                {
-                    // External storage (file system, BLOB, etc.)
-                    using var bodyStream = new MemoryStream(body.ToArray());
-                    await bodyStorage.Store(processedMessage.Id, contentType, body.Length, bodyStream, cancellationToken).ConfigureAwait(false);
-                }
+                await bodyEntryWriter.WriteAsync(processedMessage.Id, contentType, body, bodyExpiresAt, cancellationToken).ConfigureAwait(false);
             }
 
             var expiresAt = DateTime.UtcNow.Add(auditRetentionPeriod);
@@ -85,25 +56,6 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                 ExpiresAt = expiresAt
             });
         }
-
-        // Attempts to decode the body as UTF-8 text. Returns null if the body contains invalid UTF-8 (binary content).
-        static string TryGetUtf8String(ReadOnlyMemory<byte> body)
-        {
-            try
-            {
-                // Use strict UTF-8 encoding that throws on invalid sequences
-                // Default UTF8Encoding silently replaces invalid bytes with replacement characters
-                return StrictUtf8Encoding.GetString(body.Span);
-            }
-            catch
-            {
-                // Body is not valid UTF-8 text (binary content)
-                return null;
-            }
-        }
-
-        // UTF-8 encoding that throws DecoderFallbackException on invalid byte sequences
-        static readonly System.Text.Encoding StrictUtf8Encoding = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
         public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken)
         {

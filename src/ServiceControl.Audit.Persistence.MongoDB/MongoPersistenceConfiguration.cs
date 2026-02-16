@@ -7,19 +7,21 @@ namespace ServiceControl.Audit.Persistence.MongoDB
     {
         public const string ConnectionStringKey = "Database/ConnectionString";
         public const string BodyStorageTypeKey = "Database/BodyStorageType";
-        public const string BodyStoragePathKey = "Database/BodyStoragePath";
         public const string BodyWriterBatchSizeKey = "Database/BodyWriterBatchSize";
         public const string BodyWriterParallelWritersKey = "Database/BodyWriterParallelWriters";
         public const string BodyWriterBatchTimeoutKey = "Database/BodyWriterBatchTimeout";
+        public const string BlobConnectionStringKey = "Database/BlobConnectionString";
+        public const string BlobContainerNameKey = "Database/BlobContainerName";
 
         public IEnumerable<string> ConfigurationKeys =>
         [
             ConnectionStringKey,
             BodyStorageTypeKey,
-            BodyStoragePathKey,
             BodyWriterBatchSizeKey,
             BodyWriterParallelWritersKey,
-            BodyWriterBatchTimeoutKey
+            BodyWriterBatchTimeoutKey,
+            BlobConnectionStringKey,
+            BlobContainerNameKey
         ];
 
         public string Name => "MongoDB";
@@ -46,22 +48,34 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             var mongoUrl = global::MongoDB.Driver.MongoUrl.Create(connectionString);
             var databaseName = string.IsNullOrWhiteSpace(mongoUrl.DatabaseName) ? "audit" : mongoUrl.DatabaseName;
 
-            // Body storage type - defaults to Database
+            // Body storage type - defaults to Database. Accept "BLOB" as alias for Blob.
             var bodyStorageType = BodyStorageType.Database;
             if (settings.PersisterSpecificSettings.TryGetValue(BodyStorageTypeKey, out var bodyStorageTypeValue))
             {
-                if (Enum.TryParse<BodyStorageType>(bodyStorageTypeValue, ignoreCase: true, out var parsed))
+                if (string.Equals(bodyStorageTypeValue?.Trim(), "BLOB", StringComparison.OrdinalIgnoreCase))
+                {
+                    bodyStorageType = BodyStorageType.Blob;
+                }
+                else if (Enum.TryParse<BodyStorageType>(bodyStorageTypeValue, ignoreCase: true, out var parsed))
                 {
                     bodyStorageType = parsed;
                 }
             }
 
-            // Body storage path - required for FileSystem storage
-            _ = settings.PersisterSpecificSettings.TryGetValue(BodyStoragePathKey, out var bodyStoragePath);
+            // Blob storage settings
+            _ = settings.PersisterSpecificSettings.TryGetValue(BlobConnectionStringKey, out var blobConnectionString);
+            _ = settings.PersisterSpecificSettings.TryGetValue(BlobContainerNameKey, out var blobContainerName);
 
-            if (bodyStorageType == BodyStorageType.FileSystem && string.IsNullOrWhiteSpace(bodyStoragePath))
+            if (bodyStorageType == BodyStorageType.Blob && string.IsNullOrWhiteSpace(blobConnectionString))
             {
-                throw new InvalidOperationException($"{BodyStoragePathKey} must be specified when BodyStorageType is FileSystem.");
+                throw new InvalidOperationException($"{BlobConnectionStringKey} must be specified when BodyStorageType is Blob.");
+            }
+
+            // Full text search requires Database body storage - bodies must be in MongoDB to be indexed
+            var enableFullTextSearch = settings.EnableFullTextSearchOnBodies;
+            if (bodyStorageType != BodyStorageType.Database && enableFullTextSearch)
+            {
+                enableFullTextSearch = false;
             }
 
             // Body writer settings - auto-calculate from TargetMessageIngestionRate if set, otherwise use defaults
@@ -98,10 +112,11 @@ namespace ServiceControl.Audit.Persistence.MongoDB
                 connectionString,
                 databaseName,
                 settings.AuditRetentionPeriod,
-                settings.EnableFullTextSearchOnBodies,
+                enableFullTextSearch,
                 settings.MaxBodySizeToStore,
                 bodyStorageType,
-                bodyStoragePath,
+                blobConnectionString,
+                string.IsNullOrWhiteSpace(blobContainerName) ? "message-bodies" : blobContainerName,
                 bodyWriterBatchSize,
                 bodyWriterParallelWriters,
                 bodyWriterBatchTimeout);

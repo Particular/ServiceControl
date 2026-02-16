@@ -16,8 +16,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB
         Database,
 
         /// <summary>
-        /// Message bodies are stored on the file system.
+        /// Message bodies are stored in Azure Blob Storage.
         /// </summary>
-        FileSystem
+        Blob
     }
 }

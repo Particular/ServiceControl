@@ -2,6 +2,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB
 {
     using System.Threading;
     using System.Threading.Tasks;
+    using Auditing.BodyStorage;
+    using BodyStorage;
     using global::MongoDB.Bson;
     using global::MongoDB.Bson.Serialization;
     using global::MongoDB.Bson.Serialization.Serializers;
@@ -16,6 +18,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB
         MongoClientProvider clientProvider,
         MongoSettings settings,
         IndexInitializer indexInitializer,
+        IBodyStorage bodyStorage,
         ILogger<MongoPersistenceLifecycle> logger) : IMongoPersistenceLifecycle
     {
         static bool serializersRegistered;
@@ -24,22 +27,27 @@ namespace ServiceControl.Audit.Persistence.MongoDB
         readonly MongoClientProvider clientProvider = clientProvider;
         readonly MongoSettings settings = settings;
         readonly IndexInitializer indexInitializer = indexInitializer;
+        readonly IBodyStorage bodyStorage = bodyStorage;
         readonly ILogger<MongoPersistenceLifecycle> logger = logger;
 
         public async Task Initialize(CancellationToken cancellationToken = default)
         {
             RegisterSerializers();
             logger.LogInformation("Initializing MongoDB persistence for database '{DatabaseName}'", settings.DatabaseName);
-            logger.LogInformation("MongoDB settings: AuditRetentionPeriod={AuditRetentionPeriod}, BodyStorageType={BodyStorageType}, BodyStoragePath={BodyStoragePath}, EnableFullTextSearchOnBodies={EnableFullTextSearchOnBodies}, MaxBodySizeToStore={MaxBodySizeToStore}",
+            logger.LogInformation("MongoDB settings: AuditRetentionPeriod={AuditRetentionPeriod}, BodyStorageType={BodyStorageType}, EnableFullTextSearchOnBodies={EnableFullTextSearchOnBodies}, MaxBodySizeToStore={MaxBodySizeToStore}",
                 settings.AuditRetentionPeriod,
                 settings.BodyStorageType,
-                settings.BodyStoragePath ?? "(not set)",
                 settings.EnableFullTextSearchOnBodies,
                 settings.MaxBodySizeToStore);
             logger.LogInformation("Body writer settings: BatchSize={BodyWriterBatchSize}, ParallelWriters={BodyWriterParallelWriters}, BatchTimeout={BodyWriterBatchTimeout}",
                 settings.BodyWriterBatchSize,
                 settings.BodyWriterParallelWriters,
                 settings.BodyWriterBatchTimeout);
+
+            if (settings.BodyStorageType is not BodyStorageType.Database and not BodyStorageType.None)
+            {
+                logger.LogWarning("Full text search on bodies is not available with {BodyStorageType} body storage. Full text search requires Database body storage.", settings.BodyStorageType);
+            }
 
             // Initialize the client and detect product capabilities
             await clientProvider.InitializeAsync(cancellationToken).ConfigureAwait(false);
@@ -49,6 +57,12 @@ namespace ServiceControl.Audit.Persistence.MongoDB
 
             // Create indexes
             await indexInitializer.CreateIndexes(cancellationToken).ConfigureAwait(false);
+
+            // Initialize blob storage container if using Azure Blob body storage
+            if (bodyStorage is AzureBlobBodyStorage blobStorage)
+            {
+                await blobStorage.Initialize(cancellationToken).ConfigureAwait(false);
+            }
 
             logger.LogInformation(
                 "MongoDB persistence initialized. Product: {ProductName}, Database: {DatabaseName}",

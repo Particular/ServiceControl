@@ -7,7 +7,6 @@ namespace ServiceControl.Audit.Persistence.MongoDB
     using Indexes;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.UnitOfWork;
-    using Search;
     using UnitOfWork;
 
     class MongoPersistence(MongoSettings settings) : IPersistence
@@ -20,36 +19,14 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             services.AddSingleton(sp =>
                 sp.GetRequiredService<IMongoClientProvider>().ProductCapabilities);
 
-            // Async body storage - decouples body writes (and optional FTS text index) from main write path
-            if (settings.BodyStorageType == BodyStorageType.Database)
-            {
-                var channel = Channel.CreateBounded<BodyEntry>(new BoundedChannelOptions(10_000)
-                {
-                    SingleReader = true,
-                    SingleWriter = false,
-                    FullMode = BoundedChannelFullMode.Wait
-                });
-                services.AddSingleton(channel);
-                services.AddHostedService<BodyStorageWriter>();
-            }
+            // Body storage and writer - register based on configuration
+            RegisterBodyStorage(services, settings);
 
             // Unit of work for audit ingestion
-            services.AddSingleton<IAuditIngestionUnitOfWorkFactory>(sp =>
-            {
-                var channel = sp.GetService<Channel<BodyEntry>>();
-                return new MongoAuditIngestionUnitOfWorkFactory(
-                    sp.GetRequiredService<IMongoClientProvider>(),
-                    sp.GetRequiredService<MongoSettings>(),
-                    sp.GetRequiredService<IBodyStorage>(),
-                    sp.GetRequiredService<MinimumRequiredStorageState>(),
-                    channel);
-            });
+            services.AddSingleton<IAuditIngestionUnitOfWorkFactory, MongoAuditIngestionUnitOfWorkFactory>();
 
             // Failed audit storage
             services.AddSingleton<IFailedAuditStorage, MongoFailedAuditStorage>();
-
-            // Body storage - register based on configuration
-            RegisterBodyStorage(services, settings);
 
             // Audit data store for queries
             services.AddSingleton<IAuditDataStore, MongoAuditDataStore>();
@@ -65,20 +42,41 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             switch (settings.BodyStorageType)
             {
                 case BodyStorageType.None:
-                    services.AddSingleton<IBodyStorage, NullBodyStorage>();
+                    services.AddSingleton<NullBodyStorage>();
+                    services.AddSingleton<IBodyStorage>(sp => sp.GetRequiredService<NullBodyStorage>());
+                    services.AddSingleton<IBodyWriter>(sp => sp.GetRequiredService<NullBodyStorage>());
                     break;
 
                 case BodyStorageType.Database:
-                    services.AddSingleton<IBodyStorage, MongoBodyStorage>();
+                    RegisterBodyWriteChannel(services);
+                    services.AddSingleton<MongoBodyStorage>();
+                    services.AddSingleton<IBodyStorage>(sp => sp.GetRequiredService<MongoBodyStorage>());
+                    services.AddSingleton<IBodyWriter>(sp => sp.GetRequiredService<MongoBodyStorage>());
+                    services.AddHostedService(sp => sp.GetRequiredService<MongoBodyStorage>());
                     break;
 
-                case BodyStorageType.FileSystem:
-                    services.AddSingleton<IBodyStorage, FileSystemBodyStorage>();
+                case BodyStorageType.Blob:
+                    RegisterBodyWriteChannel(services);
+                    services.AddSingleton<AzureBlobBodyStorage>();
+                    services.AddSingleton<IBodyStorage>(sp => sp.GetRequiredService<AzureBlobBodyStorage>());
+                    services.AddSingleton<IBodyWriter>(sp => sp.GetRequiredService<AzureBlobBodyStorage>());
+                    services.AddHostedService(sp => sp.GetRequiredService<AzureBlobBodyStorage>());
                     break;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(settings.BodyStorageType), settings.BodyStorageType, "Unknown body storage type");
             }
+        }
+
+        static void RegisterBodyWriteChannel(IServiceCollection services)
+        {
+            var channel = Channel.CreateBounded<BodyWriteItem>(new BoundedChannelOptions(10_000)
+            {
+                SingleReader = true,
+                SingleWriter = false,
+                FullMode = BoundedChannelFullMode.Wait
+            });
+            services.AddSingleton(channel);
         }
 
         static void ConfigureLifecycle(IServiceCollection services, MongoSettings settings)

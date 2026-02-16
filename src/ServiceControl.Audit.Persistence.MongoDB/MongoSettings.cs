@@ -9,7 +9,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB
         bool enableFullTextSearchOnBodies,
         int maxBodySizeToStore,
         BodyStorageType bodyStorageType = BodyStorageType.Database,
-        string bodyStoragePath = null,
+        string blobConnectionString = null,
+        string blobContainerName = "message-bodies",
         int bodyWriterBatchSize = 500,
         int bodyWriterParallelWriters = 4,
         TimeSpan? bodyWriterBatchTimeout = null)
@@ -20,7 +21,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB
         public bool EnableFullTextSearchOnBodies { get; } = enableFullTextSearchOnBodies;
         public int MaxBodySizeToStore { get; } = maxBodySizeToStore;
         public BodyStorageType BodyStorageType { get; } = bodyStorageType;
-        public string BodyStoragePath { get; } = bodyStoragePath;
+        public string BlobConnectionString { get; } = blobConnectionString;
+        public string BlobContainerName { get; } = blobContainerName;
         public int BodyWriterBatchSize { get; } = bodyWriterBatchSize;
         public int BodyWriterParallelWriters { get; } = bodyWriterParallelWriters;
         public TimeSpan BodyWriterBatchTimeout { get; } = bodyWriterBatchTimeout ?? TimeSpan.FromMilliseconds(500);
