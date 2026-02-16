@@ -84,7 +84,7 @@
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
   <ItemGroup Label="Versions to pin transitive references">
-    <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.15.0" />
+    <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.16.0" />
     <PackageVersion Include="System.IO.Hashing" Version="10.0.3" />
   </ItemGroup>
   <ItemGroup>
