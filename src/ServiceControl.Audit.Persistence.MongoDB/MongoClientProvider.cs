@@ -14,10 +14,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB
     /// </summary>
     class MongoClientProvider(MongoSettings settings) : IMongoClientProvider, IAsyncDisposable
     {
-        readonly MongoSettings settings = settings;
         IMongoClient? client;
-        IMongoDatabase? database;
-        IMongoProductCapabilities? productCapabilities;
         bool initialized;
 
         public IMongoClient Client
@@ -29,23 +26,9 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             }
         }
 
-        public IMongoDatabase Database
-        {
-            get
-            {
-                EnsureInitialized();
-                return database!;
-            }
-        }
+        public IMongoDatabase Database { get; private set; } = null!;
 
-        public IMongoProductCapabilities ProductCapabilities
-        {
-            get
-            {
-                EnsureInitialized();
-                return productCapabilities!;
-            }
-        }
+        public IMongoProductCapabilities ProductCapabilities { get; private set; } = null!;
 
         public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
@@ -61,10 +44,10 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             clientSettings.ApplicationName = "ServiceControl.Audit";
 
             client = new MongoClient(clientSettings);
-            database = client.GetDatabase(settings.DatabaseName);
+            Database = client.GetDatabase(settings.DatabaseName);
 
             // Detect product capabilities
-            productCapabilities = await MongoProductDetector.DetectAsync(client, settings.ConnectionString, cancellationToken).ConfigureAwait(false);
+            ProductCapabilities = await MongoProductDetector.DetectAsync(client, settings.ConnectionString, cancellationToken).ConfigureAwait(false);
 
             initialized = true;
         }
@@ -74,8 +57,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             // MongoClient doesn't need explicit disposal in MongoDB.Driver 3.x
             // but we implement IAsyncDisposable for future-proofing
             client = null;
-            database = null;
-            productCapabilities = null;
+            Database = null!;
+            ProductCapabilities = null!;
             initialized = false;
 
             return ValueTask.CompletedTask;
