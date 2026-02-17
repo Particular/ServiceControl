@@ -8,13 +8,15 @@
             string topicName = default,
             bool useWebSockets = default,
             bool enablePartitioning = default,
-            TimeSpan? queryDelayInterval = default)
+            TimeSpan? queryDelayInterval = default,
+            string hierarchyNamespace = default)
         {
             AuthenticationMethod = authenticationSettings;
             TopicName = topicName;
             UseWebSockets = useWebSockets;
             EnablePartitioning = enablePartitioning;
             QueryDelayInterval = queryDelayInterval;
+            HierarchyNamespace = hierarchyNamespace;
         }
 
         public AuthenticationMethod AuthenticationMethod { get; }
@@ -26,5 +28,7 @@
         public bool UseWebSockets { get; }
 
         public bool EnablePartitioning { get; }
+
+        public string HierarchyNamespace { get; }
     }
 }

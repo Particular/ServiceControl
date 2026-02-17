@@ -35,6 +35,7 @@
                 {
                     throw new Exception($"Can't parse {value} as a valid query delay interval.");
                 }
+
                 queryDelayInterval = TimeSpan.FromMilliseconds(delayInterval);
             }
 
@@ -72,6 +73,12 @@
                 }
             }
 
+            string hierarchyNamespace = null;
+            if (builder.TryGetValue("HierarchyNamespace", out var hierarchyNamespaceString))
+            {
+                hierarchyNamespace = (string)hierarchyNamespaceString;
+            }
+
             var shouldUseManagedIdentity = builder.TryGetValue("Authentication", out var authType) && (string)authType == "Managed Identity";
 
             if (shouldUseManagedIdentity)
@@ -79,11 +86,12 @@
                 var fullyQualifiedNamespace = endpoint.ToString().TrimEnd('/').Replace("sb://", "");
 
                 return new ConnectionSettings(
-                  new TokenCredentialAuthentication(fullyQualifiedNamespace, clientIdString),
-                  topicNameString,
-                  useWebSockets,
-                  enablePartitioning,
-                  queryDelayInterval);
+                    new TokenCredentialAuthentication(fullyQualifiedNamespace, clientIdString),
+                    topicNameString,
+                    useWebSockets,
+                    enablePartitioning,
+                    queryDelayInterval,
+                    hierarchyNamespace);
             }
 
             if (clientIdString != null)
@@ -96,7 +104,8 @@
                 topicNameString,
                 useWebSockets,
                 enablePartitioning,
-                queryDelayInterval);
+                queryDelayInterval,
+                hierarchyNamespace);
         }
     }
 }
