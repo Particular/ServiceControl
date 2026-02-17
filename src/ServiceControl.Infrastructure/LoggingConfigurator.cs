@@ -25,7 +25,7 @@ namespace ServiceControl.Infrastructure
             }
 
             var logLevel = loggingSettings.LogLevel.ToNLogLevel();
-            var loggingTo = ConfigureNLog("logfile.${shortdate}.txt", loggingSettings.LogPath, loggingSettings.LogLevel.ToNLogLevel());
+            var loggingTo = ConfigureNLog("logfile.txt", loggingSettings.LogPath, loggingSettings.LogLevel.ToNLogLevel());
 
             //using LogManager here rather than LoggerUtil.CreateStaticLogger since this is exclusive to NLog
             var logger = LogManager.GetLogger("LoggingConfiguration");
@@ -43,8 +43,7 @@ namespace ServiceControl.Infrastructure
                 Name = "file",
                 ArchiveEvery = FileArchivePeriod.Day,
                 FileName = Path.Combine(logPath, logFileName),
-                ArchiveFileName = Path.Combine(logPath, "logfile.{#}.txt"),
-                ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
+                ArchiveSuffixFormat = ".{1:yyyy-MM-dd}.{0:00}",
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
                 ArchiveAboveSize = 30 * megaByte
