@@ -35,7 +35,11 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             services.AddSingleton<MinimumRequiredStorageState>();
         }
 
-        public void AddInstaller(IServiceCollection services) => ConfigureLifecycle(services, settings);
+        public void AddInstaller(IServiceCollection services)
+        {
+            ConfigureLifecycle(services, settings);
+            RegisterBodyStorage(services, settings);
+        }
 
         static void RegisterBodyStorage(IServiceCollection services, MongoSettings settings)
         {
