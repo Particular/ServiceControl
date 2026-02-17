@@ -3,6 +3,7 @@
   <ItemGroup Label="Persisters">
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" ReferenceOutputAssembly="false" Private="false" />
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDB\ServiceControl.Audit.Persistence.RavenDB.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.MongoDB\ServiceControl.Audit.Persistence.MongoDB.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
 </Project>
