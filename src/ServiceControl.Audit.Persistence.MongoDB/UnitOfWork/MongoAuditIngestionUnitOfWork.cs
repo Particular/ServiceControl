@@ -179,15 +179,29 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
         // TODO: A cleaner approach would be to have an explicit CommitAsync method on the IAuditIngestionUnitOfWork interface. 
         public async ValueTask DisposeAsync() => await CommitAsync().ConfigureAwait(false);
 
+        const int MaxRetries = 3;
+
         static async Task BulkUpsertAsync<T>(IMongoCollection<T> collection, List<T> documents, Func<T, string> idSelector)
         {
             var writes = documents.Select(doc =>
                 new ReplaceOneModel<T>(
                     Builders<T>.Filter.Eq("_id", idSelector(doc)),
                     doc)
-                { IsUpsert = true });
+                { IsUpsert = true })
+                .ToList();
 
-            _ = await collection.BulkWriteAsync(writes, new BulkWriteOptions { IsOrdered = false }).ConfigureAwait(false);
+            for (var attempt = 1; attempt <= MaxRetries; attempt++)
+            {
+                try
+                {
+                    _ = await collection.BulkWriteAsync(writes, new BulkWriteOptions { IsOrdered = false }).ConfigureAwait(false);
+                    return;
+                }
+                catch (MongoCommandException) when (attempt < MaxRetries)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt - 1))).ConfigureAwait(false);
+                }
+            }
         }
 
         static BsonDocument ConvertToBsonDocument(Dictionary<string, object> dictionary)
