@@ -52,11 +52,10 @@ namespace ServiceControl.Audit.Persistence.MongoDB
                     break;
 
                 case BodyStorageType.Database:
-                    RegisterBodyWriteChannel(services);
-                    services.AddSingleton<MongoBodyStorage>();
-                    services.AddSingleton<IBodyStorage>(sp => sp.GetRequiredService<MongoBodyStorage>());
-                    services.AddSingleton<IBodyWriter>(sp => sp.GetRequiredService<MongoBodyStorage>());
-                    services.AddHostedService(sp => sp.GetRequiredService<MongoBodyStorage>());
+                    services.AddSingleton<NullBodyStorage>();
+                    services.AddSingleton<IBodyWriter>(sp => sp.GetRequiredService<NullBodyStorage>());
+                    services.AddSingleton<InlineMongoBodyStorage>();
+                    services.AddSingleton<IBodyStorage>(sp => sp.GetRequiredService<InlineMongoBodyStorage>());
                     break;
 
                 case BodyStorageType.Blob:

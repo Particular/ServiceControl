@@ -3,6 +3,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Auditing;
@@ -23,6 +24,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
         bool supportsMultiCollectionBulkWrite,
         TimeSpan auditRetentionPeriod,
         int maxBodySizeToStore,
+        bool storeBodyInline,
         IBodyWriter bodyEntryWriter,
         ILogger<MongoAuditIngestionUnitOfWork> logger)
         : IAuditIngestionUnitOfWork
@@ -35,15 +37,38 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
         {
             processedMessage.MessageMetadata["ContentLength"] = body.Length;
 
-            var shouldStoreBody = !body.IsEmpty && body.Length <= maxBodySizeToStore && bodyEntryWriter.IsEnabled;
+            var shouldStoreBody = !body.IsEmpty && body.Length <= maxBodySizeToStore && (storeBodyInline || bodyEntryWriter.IsEnabled);
+
+            string inlineContentType = null;
+            string inlineTextBody = null;
+            byte[] inlineBinaryBody = null;
 
             if (shouldStoreBody)
             {
                 processedMessage.MessageMetadata["BodyUrl"] = $"/messages/{processedMessage.Id}/body";
-                var contentType = processedMessage.Headers.GetValueOrDefault(Headers.ContentType, "text/plain");
-                var bodyExpiresAt = DateTime.UtcNow.Add(auditRetentionPeriod);
+                var contentType = processedMessage.Headers.GetValueOrDefault(Headers.ContentType, "text/plain").Trim();
 
-                await bodyEntryWriter.WriteAsync(processedMessage.Id, contentType, body, bodyExpiresAt, cancellationToken).ConfigureAwait(false);
+                if (storeBodyInline)
+                {
+                    inlineContentType = contentType;
+                    if (MessageBodyDocument.IsTextContentType(contentType))
+                    {
+                        inlineTextBody = TryGetUtf8String(body);
+                        if (inlineTextBody == null)
+                        {
+                            inlineBinaryBody = body.ToArray();
+                        }
+                    }
+                    else
+                    {
+                        inlineBinaryBody = body.ToArray();
+                    }
+                }
+                else
+                {
+                    var bodyExpiresAt = DateTime.UtcNow.Add(auditRetentionPeriod);
+                    await bodyEntryWriter.WriteAsync(processedMessage.Id, contentType, body, bodyExpiresAt, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             var expiresAt = DateTime.UtcNow.Add(auditRetentionPeriod);
@@ -58,7 +83,11 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                     .Where(v => !string.IsNullOrWhiteSpace(v))
                     .ToList(),
                 ProcessedAt = processedMessage.ProcessedAt,
-                ExpiresAt = expiresAt
+                ExpiresAt = expiresAt,
+                BodyContentType = inlineContentType,
+                BodySize = shouldStoreBody ? body.Length : 0,
+                TextBody = inlineTextBody,
+                BinaryBody = inlineBinaryBody
             });
         }
 
@@ -273,6 +302,20 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
 
             // Complex objects (like EndpointDetails) - serialize to BsonDocument
             return value.ToBsonDocument(value.GetType());
+        }
+
+        static readonly Encoding StrictUtf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
+        static string TryGetUtf8String(ReadOnlyMemory<byte> body)
+        {
+            try
+            {
+                return StrictUtf8Encoding.GetString(body.Span);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         static InitiatingMessageDocument ToDocument(InitiatingMessage msg) => new()

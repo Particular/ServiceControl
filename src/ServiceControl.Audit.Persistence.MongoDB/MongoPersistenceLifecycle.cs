@@ -39,13 +39,12 @@ namespace ServiceControl.Audit.Persistence.MongoDB
                 settings.BodyStorageType,
                 settings.EnableFullTextSearchOnBodies,
                 settings.MaxBodySizeToStore);
-            logger.LogInformation("Body writer settings: BatchSize={BodyWriterBatchSize}, ParallelWriters={BodyWriterParallelWriters}, BatchTimeout={BodyWriterBatchTimeout}",
-                settings.BodyWriterBatchSize,
-                settings.BodyWriterParallelWriters,
-                settings.BodyWriterBatchTimeout);
-
-            if (settings.BodyStorageType is not BodyStorageType.Database and not BodyStorageType.None)
+            if (settings.BodyStorageType == BodyStorageType.Blob)
             {
+                logger.LogInformation("Body writer settings: BatchSize={BodyWriterBatchSize}, ParallelWriters={BodyWriterParallelWriters}, BatchTimeout={BodyWriterBatchTimeout}",
+                    settings.BodyWriterBatchSize,
+                    settings.BodyWriterParallelWriters,
+                    settings.BodyWriterBatchTimeout);
                 logger.LogWarning("Full text search on bodies is not available with {BodyStorageType} body storage. Full text search requires Database body storage.", settings.BodyStorageType);
             }
 

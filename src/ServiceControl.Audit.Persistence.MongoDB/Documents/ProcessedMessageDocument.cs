@@ -32,5 +32,21 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Documents
 
         [BsonElement("expiresAt")]
         public DateTime ExpiresAt { get; set; }
+
+        [BsonElement("bodyContentType")]
+        [BsonIgnoreIfNull]
+        public string BodyContentType { get; set; }
+
+        [BsonElement("bodySize")]
+        [BsonIgnoreIfDefault]
+        public int BodySize { get; set; }
+
+        [BsonElement("textBody")]
+        [BsonIgnoreIfNull]
+        public string TextBody { get; set; }
+
+        [BsonElement("binaryBody")]
+        [BsonIgnoreIfNull]
+        public byte[] BinaryBody { get; set; }
     }
 }

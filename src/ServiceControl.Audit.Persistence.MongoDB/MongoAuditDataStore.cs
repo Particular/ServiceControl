@@ -110,15 +110,17 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             var collection = GetProcessedMessagesCollection();
             var timeRangeFilter = BuildTimeSentRangeFilter(timeSentRange);
 
-            if (!settings.EnableFullTextSearchOnBodies)
+            if (!settings.EnableFullTextSearchOnBodies || settings.BodyStorageType == BodyStorageType.Database)
             {
-                // Metadata-only search on processedMessages
+                // Single-phase text search on processedMessages.
+                // When BodyStorageType is Database, body text is stored inline and included in the
+                // processedMessages text index, so a single search covers both metadata and body.
                 var textFilter = Builders<ProcessedMessageDocument>.Filter.Text(searchParam);
                 var filter = Builders<ProcessedMessageDocument>.Filter.And(textFilter, timeRangeFilter);
                 return await ExecuteQuery(collection, filter, sortInfo, pagingInfo, cancellationToken).ConfigureAwait(false);
             }
 
-            // Two-phase search: metadata + body
+            // Two-phase search: metadata + body (for non-inline body storage with FTS enabled)
             var combinedFilter = await BuildTwoPhaseSearchFilter(searchParam, timeRangeFilter, pagingInfo, cancellationToken).ConfigureAwait(false);
             if (combinedFilter == null)
             {
@@ -140,15 +142,15 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             var endpointFilter = Builders<ProcessedMessageDocument>.Filter.Eq("messageMetadata.ReceivingEndpoint.Name", endpoint);
             var timeRangeFilter = BuildTimeSentRangeFilter(timeSentRange);
 
-            if (!settings.EnableFullTextSearchOnBodies)
+            if (!settings.EnableFullTextSearchOnBodies || settings.BodyStorageType == BodyStorageType.Database)
             {
-                // Metadata-only search on processedMessages
+                // Single-phase text search on processedMessages (see QueryMessages for explanation)
                 var textFilter = Builders<ProcessedMessageDocument>.Filter.Text(keyword);
                 var filter = Builders<ProcessedMessageDocument>.Filter.And(textFilter, endpointFilter, timeRangeFilter);
                 return await ExecuteQuery(collection, filter, sortInfo, pagingInfo, cancellationToken).ConfigureAwait(false);
             }
 
-            // Two-phase search: metadata + body
+            // Two-phase search: metadata + body (for non-inline body storage with FTS enabled)
             var baseFilter = Builders<ProcessedMessageDocument>.Filter.And(endpointFilter, timeRangeFilter);
             var combinedFilter = await BuildTwoPhaseSearchFilter(keyword, baseFilter, pagingInfo, cancellationToken).ConfigureAwait(false);
             if (combinedFilter == null)

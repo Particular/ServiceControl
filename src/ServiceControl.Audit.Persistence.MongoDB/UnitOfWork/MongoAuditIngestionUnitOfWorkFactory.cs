@@ -22,6 +22,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                 clientProvider.ProductCapabilities.SupportsMultiCollectionBulkWrite,
                 settings.AuditRetentionPeriod,
                 settings.MaxBodySizeToStore,
+                settings.BodyStorageType == BodyStorageType.Database,
                 bodyWriter,
                 logger);
 

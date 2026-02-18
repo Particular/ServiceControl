@@ -7,10 +7,11 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Indexes
 
     static class IndexDefinitions
     {
-        public static CreateIndexModel<ProcessedMessageDocument>[] GetProcessedMessageIndexes()
+        public static CreateIndexModel<ProcessedMessageDocument>[] GetProcessedMessageIndexes(bool includeBodyText = false)
         {
-            // Text index covers metadata fields and header values. Body text search is handled
-            // by the separate messageBodies collection to avoid write path overhead.
+            // Text index covers metadata fields and header values.
+            // When includeBodyText is true (inline body storage with FTS enabled), also indexes textBody
+            // for single-collection full-text search covering both metadata and body content.
             // Note: headerSearchTokens is a flattened string array of header values because
             // NServiceBus header keys contain dots/$, which MongoDB's text index cannot traverse.
             var textIndexKeys = Builders<ProcessedMessageDocument>.IndexKeys
@@ -18,6 +19,11 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Indexes
                 .Text("messageMetadata.MessageType")
                 .Text("messageMetadata.ConversationId")
                 .Text("headerSearchTokens");
+
+            if (includeBodyText)
+            {
+                textIndexKeys = textIndexKeys.Text("textBody");
+            }
 
             return
             [
