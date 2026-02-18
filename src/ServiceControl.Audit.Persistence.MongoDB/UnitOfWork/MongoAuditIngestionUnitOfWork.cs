@@ -13,6 +13,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
     using global::MongoDB.Driver;
     using Monitoring;
     using NServiceBus;
+    using Microsoft.Extensions.Logging;
     using Persistence.UnitOfWork;
     using ServiceControl.SagaAudit;
 
@@ -22,7 +23,8 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
         bool supportsMultiCollectionBulkWrite,
         TimeSpan auditRetentionPeriod,
         int maxBodySizeToStore,
-        IBodyWriter bodyEntryWriter)
+        IBodyWriter bodyEntryWriter,
+        ILogger<MongoAuditIngestionUnitOfWork> logger)
         : IAuditIngestionUnitOfWork
     {
         readonly List<ProcessedMessageDocument> processedMessages = [];
@@ -181,7 +183,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
 
         const int MaxRetries = 3;
 
-        static async Task BulkUpsertAsync<T>(IMongoCollection<T> collection, List<T> documents, Func<T, string> idSelector)
+        async Task BulkUpsertAsync<T>(IMongoCollection<T> collection, List<T> documents, Func<T, string> idSelector)
         {
             var writes = documents.Select(doc =>
                 new ReplaceOneModel<T>(
@@ -197,9 +199,12 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                     _ = await collection.BulkWriteAsync(writes, new BulkWriteOptions { IsOrdered = false }).ConfigureAwait(false);
                     return;
                 }
-                catch (MongoCommandException) when (attempt < MaxRetries)
+                catch (MongoCommandException ex) when (attempt < MaxRetries)
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt - 1))).ConfigureAwait(false);
+                    var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt - 1));
+                    logger.LogWarning(ex, "Deadlock detected on {Collection} ({Count} documents, attempt {Attempt}/{MaxRetries}), retrying in {Delay}s",
+                        collection.CollectionNamespace.CollectionName, documents.Count, attempt, MaxRetries, delay.TotalSeconds);
+                    await Task.Delay(delay).ConfigureAwait(false);
                 }
             }
         }
