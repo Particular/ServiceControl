@@ -147,33 +147,30 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
 
         async Task CommitWithParallelBulkWritesAsync()
         {
-            var tasks = new List<Task>(3);
-
+            // Sequential writes to avoid cross-collection deadlocks
             if (processedMessages.Count > 0)
             {
-                tasks.Add(BulkUpsertAsync(
+                await BulkUpsertAsync(
                     database.GetCollection<ProcessedMessageDocument>(CollectionNames.ProcessedMessages),
                     processedMessages,
-                    doc => doc.Id));
+                    doc => doc.Id).ConfigureAwait(false);
             }
 
             if (knownEndpoints.Count > 0)
             {
-                tasks.Add(BulkUpsertAsync(
+                await BulkUpsertAsync(
                     database.GetCollection<KnownEndpointDocument>(CollectionNames.KnownEndpoints),
                     knownEndpoints,
-                    doc => doc.Id));
+                    doc => doc.Id).ConfigureAwait(false);
             }
 
             if (sagaSnapshots.Count > 0)
             {
-                tasks.Add(BulkUpsertAsync(
+                await BulkUpsertAsync(
                     database.GetCollection<SagaSnapshotDocument>(CollectionNames.SagaSnapshots),
                     sagaSnapshots,
-                    doc => doc.Id));
+                    doc => doc.Id).ConfigureAwait(false);
             }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         // This is a slight misuse of the IAsyncDisposable pattern, however it works fine because the AuditPersister always calls DisposeAsync() in the finally block
