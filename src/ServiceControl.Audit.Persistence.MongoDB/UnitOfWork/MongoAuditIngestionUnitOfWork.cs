@@ -211,18 +211,32 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
 
         async Task BulkUpsertAsync<T>(IMongoCollection<T> collection, List<T> documents, Func<T, string> idSelector)
         {
-            var writes = documents.Select(doc =>
-                new ReplaceOneModel<T>(
-                    Builders<T>.Filter.Eq("_id", idSelector(doc)),
-                    doc)
-                { IsUpsert = true })
-                .ToList();
+            // Optimistic insert: most audit messages are new, so insert is the fast path
+            // (no _id lookup required). Fall back to upsert only for duplicates.
+            var inserts = documents.Select(doc => new InsertOneModel<T>(doc)).ToList<WriteModel<T>>();
 
             for (var attempt = 1; attempt <= MaxRetries; attempt++)
             {
                 try
                 {
-                    _ = await collection.BulkWriteAsync(writes, new BulkWriteOptions { IsOrdered = false }).ConfigureAwait(false);
+                    _ = await collection.BulkWriteAsync(inserts, new BulkWriteOptions { IsOrdered = false }).ConfigureAwait(false);
+                    return;
+                }
+                catch (MongoBulkWriteException<T> ex) when (ex.WriteErrors.Count > 0 && ex.WriteErrors.All(e => e.Category == ServerErrorCategory.DuplicateKey))
+                {
+                    // Collect the documents that already exist and need to be overwritten
+                    var duplicateIndexes = new HashSet<int>(ex.WriteErrors.Select(e => e.Index));
+                    var upserts = duplicateIndexes
+                        .Select(i => new ReplaceOneModel<T>(
+                            Builders<T>.Filter.Eq("_id", idSelector(documents[i])),
+                            documents[i])
+                        { IsUpsert = true })
+                        .ToList<WriteModel<T>>();
+
+                    logger.LogDebug("Upserting {Count} duplicate documents on {Collection}",
+                        upserts.Count, collection.CollectionNamespace.CollectionName);
+
+                    _ = await collection.BulkWriteAsync(upserts, new BulkWriteOptions { IsOrdered = false }).ConfigureAwait(false);
                     return;
                 }
                 catch (MongoCommandException ex) when (attempt < MaxRetries)
