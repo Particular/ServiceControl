@@ -49,7 +49,7 @@ catch (Exception ex)
     }
     else
     {
-        LoggingConfigurator.ConfigureNLog("bootstrap.${shortdate}.txt", "./", NLog.LogLevel.Fatal);
+        LoggingConfigurator.ConfigureNLog("bootstrap.txt", "./", NLog.LogLevel.Fatal);
         NLog.LogManager.GetCurrentClassLogger().Fatal(ex, "Unrecoverable error");
     }
     throw;
