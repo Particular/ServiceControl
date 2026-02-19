@@ -89,7 +89,19 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.MongoDbCommunity
             }
             finally
             {
-                var client = new MongoClient(connectionString);
+                var mongoUrl = MongoUrl.Create(connectionString);
+                var clientSettings = MongoClientSettings.FromUrl(mongoUrl);
+
+                // Configure client settings
+                clientSettings.ApplicationName = "ServiceControl.Audit.Tests";
+
+                //for dev only - required for AWS DocumentDB to bypass the certificate validation
+                clientSettings.SslSettings = new SslSettings
+                {
+                    ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true
+                };
+
+                var client = new MongoClient(clientSettings);
                 await client.DropDatabaseAsync(databaseName).ConfigureAwait(false);
                 await host.StopAsync().ConfigureAwait(false);
             }

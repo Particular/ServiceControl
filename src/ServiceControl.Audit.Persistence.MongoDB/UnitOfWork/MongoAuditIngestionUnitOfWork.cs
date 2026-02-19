@@ -79,9 +79,9 @@ namespace ServiceControl.Audit.Persistence.MongoDB.UnitOfWork
                 UniqueMessageId = processedMessage.UniqueMessageId,
                 MessageMetadata = ConvertToBsonDocument(processedMessage.MessageMetadata),
                 Headers = processedMessage.Headers,
-                HeaderSearchTokens = processedMessage.Headers?.Values
+                HeaderSearchTokens = string.Join(' ', processedMessage.Headers?.Values
                     .Where(v => !string.IsNullOrWhiteSpace(v))
-                    .ToList(),
+                    .ToList()),
                 ProcessedAt = processedMessage.ProcessedAt,
                 ExpiresAt = expiresAt,
                 BodyContentType = inlineContentType,

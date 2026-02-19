@@ -43,6 +43,13 @@ namespace ServiceControl.Audit.Persistence.MongoDB
             // Configure client settings
             clientSettings.ApplicationName = "ServiceControl.Audit";
 
+            //for dev only - required for AWS DocumentDB to bypass the certificate validation
+            clientSettings.SslSettings = new SslSettings
+            {
+                ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true
+            };
+
+
             client = new MongoClient(clientSettings);
             Database = client.GetDatabase(settings.DatabaseName);
 
