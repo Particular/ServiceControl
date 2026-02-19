@@ -20,8 +20,8 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
 
     /// <summary>
     /// Base class for body storage tests that can run against different MongoDB-compatible products.
-    /// Bodies are stored asynchronously in the messageBodies collection via a background writer.
-    /// Tests must wait for the background writer to flush before asserting.
+    /// With the default BodyStorageType.Database, bodies are stored inline in processedMessages
+    /// during ingestion. The IBodyStorage (InlineMongoBodyStorage) reads them back from there.
     /// </summary>
     public abstract class BodyStorageTestsBase
     {
@@ -98,8 +98,8 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
 
             await IngestMessage(factory, message, Encoding.UTF8.GetBytes(bodyContent)).ConfigureAwait(false);
 
-            // Wait for the background body writer to flush to messageBodies collection
-            var result = await WaitForBodyAsync(bodyStorage, messageId).ConfigureAwait(false);
+            // Retrieve body via IBodyStorage (reads inline from processedMessages)
+            var result = await bodyStorage.TryFetch(messageId, CancellationToken.None).ConfigureAwait(false);
 
             Assert.Multiple(() =>
             {
@@ -126,8 +126,8 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
 
             await IngestMessage(factory, message, binaryContent).ConfigureAwait(false);
 
-            // Wait for the background body writer to flush
-            var result = await WaitForBodyAsync(bodyStorage, messageId).ConfigureAwait(false);
+            // Retrieve body via IBodyStorage (reads inline from processedMessages)
+            var result = await bodyStorage.TryFetch(messageId, CancellationToken.None).ConfigureAwait(false);
 
             Assert.Multiple(() =>
             {
@@ -141,10 +141,10 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
             await result.Stream.CopyToAsync(memoryStream).ConfigureAwait(false);
             Assert.That(memoryStream.ToArray(), Is.EqualTo(binaryContent), "Binary content should match");
 
-            // Verify it's stored as binaryBody (not textBody) in messageBodies collection
-            var collection = database.GetCollection<BsonDocument>(CollectionNames.MessageBodies);
+            // Verify it's stored as binaryBody (not textBody) inline in processedMessages
+            var collection = database.GetCollection<BsonDocument>(CollectionNames.ProcessedMessages);
             var doc = await collection.Find(Builders<BsonDocument>.Filter.Eq("_id", messageId)).FirstOrDefaultAsync().ConfigureAwait(false);
-            Assert.That(doc, Is.Not.Null, "Body document should exist in messageBodies collection");
+            Assert.That(doc, Is.Not.Null, "Document should exist in processedMessages collection");
             Assert.That(doc.Contains("textBody"), Is.False, "Text body field should not exist for binary content");
             Assert.That(doc.Contains("binaryBody") && doc["binaryBody"] != BsonNull.Value, Is.True, "Binary body field should have content");
         }
@@ -160,23 +160,23 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
         }
 
         [Test]
-        public async Task Should_store_body_in_message_bodies_collection()
+        public async Task Should_store_body_inline_in_processed_messages()
         {
             var factory = host.Services.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
 
-            var messageId = "separate-collection-test";
-            var bodyContent = "{ \"test\": \"body in separate collection\" }";
+            var messageId = "inline-body-test";
+            var bodyContent = "{ \"test\": \"body stored inline\" }";
             var message = CreateProcessedMessage(messageId, "application/json");
 
             await IngestMessage(factory, message, Encoding.UTF8.GetBytes(bodyContent)).ConfigureAwait(false);
 
-            // Wait for the background body writer to flush to messageBodies collection
-            var collection = database.GetCollection<BsonDocument>(CollectionNames.MessageBodies);
-            var doc = await WaitForDocumentAsync(collection, messageId).ConfigureAwait(false);
+            // Verify body is stored inline in processedMessages collection
+            var collection = database.GetCollection<BsonDocument>(CollectionNames.ProcessedMessages);
+            var doc = await collection.Find(Builders<BsonDocument>.Filter.Eq("_id", messageId)).FirstOrDefaultAsync().ConfigureAwait(false);
 
-            Assert.That(doc, Is.Not.Null, "Body document should exist in messageBodies collection");
-            Assert.That(doc["textBody"].AsString, Is.EqualTo(bodyContent), "Body should be stored as UTF-8 text in messageBodies");
-            Assert.That(doc["contentType"].AsString, Is.EqualTo("application/json"), "Content type should be stored");
+            Assert.That(doc, Is.Not.Null, "Document should exist in processedMessages collection");
+            Assert.That(doc["textBody"].AsString, Is.EqualTo(bodyContent), "Body should be stored as inline text");
+            Assert.That(doc["bodyContentType"].AsString, Is.EqualTo("application/json"), "Content type should be stored");
         }
 
         [Test]
@@ -280,49 +280,6 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
             }
         }
 
-        /// <summary>
-        /// Polls IBodyStorage.TryFetch until the body appears or timeout is reached.
-        /// Bodies are written asynchronously by a background writer, so they may not be
-        /// immediately available after ingestion.
-        /// </summary>
-        static async Task<StreamResult> WaitForBodyAsync(IBodyStorage bodyStorage, string bodyId, int timeoutMs = 5000)
-        {
-            var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
-            StreamResult result;
-            do
-            {
-                result = await bodyStorage.TryFetch(bodyId, CancellationToken.None).ConfigureAwait(false);
-                if (result.HasResult)
-                {
-                    return result;
-                }
-
-                await Task.Delay(100).ConfigureAwait(false);
-            } while (DateTime.UtcNow < deadline);
-
-            return result;
-        }
-
-        /// <summary>
-        /// Polls a MongoDB collection until a document with the given ID appears or timeout is reached.
-        /// </summary>
-        static async Task<BsonDocument> WaitForDocumentAsync(IMongoCollection<BsonDocument> collection, string id, int timeoutMs = 5000)
-        {
-            var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
-            BsonDocument doc;
-            do
-            {
-                doc = await collection.Find(Builders<BsonDocument>.Filter.Eq("_id", id)).FirstOrDefaultAsync().ConfigureAwait(false);
-                if (doc != null)
-                {
-                    return doc;
-                }
-
-                await Task.Delay(100).ConfigureAwait(false);
-            } while (DateTime.UtcNow < deadline);
-
-            return doc;
-        }
 
         static ProcessedMessage CreateProcessedMessage(string messageId, string contentType = "text/plain")
         {

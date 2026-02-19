@@ -6,6 +6,9 @@ namespace ServiceControl.Audit.Persistence.MongoDB.BodyStorage
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
 
+    /// <summary>
+    /// Body storage implementation that does not store message bodies. This is used when body storage is disabled, and allows the system to function without storing or retrieving message bodies.
+    /// </summary>
     class NullBodyStorage : IBodyStorage, IBodyWriter
     {
         public bool IsEnabled => false;

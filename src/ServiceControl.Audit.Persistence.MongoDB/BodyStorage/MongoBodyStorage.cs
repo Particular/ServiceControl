@@ -13,6 +13,11 @@ namespace ServiceControl.Audit.Persistence.MongoDB.BodyStorage
     using global::MongoDB.Driver;
     using Microsoft.Extensions.Logging;
 
+    /// <summary>
+    /// Not in use. This was a test to see if storing message bodies in a seperate MongoDB collection would be viable. 
+    /// The implementation is complete and functional, but the performance was not good enough to justify the added complexity compared to the inline MongoDB body storage approach. 
+    /// Keeping the code around for now in case we want to revisit this approach in the future, but it is not currently used or tested by default.
+    /// </summary>
     class MongoBodyStorage(
         Channel<BodyWriteItem> channel,
         IMongoClientProvider clientProvider,

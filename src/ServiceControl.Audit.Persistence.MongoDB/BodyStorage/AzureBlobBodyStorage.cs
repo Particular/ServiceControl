@@ -13,6 +13,10 @@ namespace ServiceControl.Audit.Persistence.MongoDB.BodyStorage
     using Azure.Storage.Blobs.Models;
     using Microsoft.Extensions.Logging;
 
+    /// <summary>
+    /// Body storage implementation that uses Azure Blob Storage to store message bodies. Each body is stored as a separate blob, with metadata for content type and size.
+    /// The implementation includes retry logic for transient failures when uploading blobs, and uses a batched writer to optimize performance when storing large volumes of messages.
+    /// </summary>
     class AzureBlobBodyStorage(
         Channel<BodyWriteItem> channel,
         MongoSettings settings,

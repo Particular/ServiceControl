@@ -9,6 +9,10 @@ namespace ServiceControl.Audit.Persistence.MongoDB.BodyStorage
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
 
+    /// <summary>
+    /// Base class for body storage writers that batch write operations for improved performance. 
+    /// The batcher assembles batches of entries from the input channel, and processes them in parallel using a configurable number of writer tasks.
+    /// </summary>
     abstract class BatchedBodyStorageWriter<TEntry>(
         Channel<TEntry> channel,
         MongoSettings settings,
@@ -121,7 +125,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.BodyStorage
                     if (batch.Count > 0)
                     {
                         await batchChannel.Writer.WriteAsync(batch, stoppingToken).ConfigureAwait(false);
-                        batch = new List<TEntry>(BatchSize);
+                        batch = [];
                     }
                 }
             }
@@ -135,7 +139,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.BodyStorage
                     if (batch.Count >= BatchSize)
                     {
                         await batchChannel.Writer.WriteAsync(batch, CancellationToken.None).ConfigureAwait(false);
-                        batch = new List<TEntry>(BatchSize);
+                        batch = [];
                     }
                 }
 

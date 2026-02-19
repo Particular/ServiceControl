@@ -8,6 +8,9 @@ namespace ServiceControl.Audit.Persistence.MongoDB.BodyStorage
     using Documents;
     using global::MongoDB.Driver;
 
+    /// <summary>
+    /// Body storage implementation that stores message bodies inline in the ProcessedMessages collection.
+    /// </summary>
     class InlineMongoBodyStorage(IMongoClientProvider clientProvider) : IBodyStorage
     {
         public async Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken)

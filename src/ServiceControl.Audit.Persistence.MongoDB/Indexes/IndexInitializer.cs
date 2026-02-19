@@ -13,6 +13,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Indexes
         {
             var database = clientProvider.Database;
 
+            // The ProcessedMessages collection has the most complex indexes, including a text index on the body when full text search on bodies is enabled.
             var includeBodyTextInProcessedMessages = settings.EnableFullTextSearchOnBodies && settings.BodyStorageType == BodyStorageType.Database;
             await CreateCollectionIndexes(
                 database.GetCollection<ProcessedMessageDocument>(CollectionNames.ProcessedMessages),

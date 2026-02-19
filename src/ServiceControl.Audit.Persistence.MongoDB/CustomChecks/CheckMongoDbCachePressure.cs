@@ -36,6 +36,10 @@ namespace ServiceControl.Audit.Persistence.MongoDB.CustomChecks
             }
         }
 
+        /// <summary>
+        /// Checks MongoDB WiredTiger cache metrics to determine if write pressure is causing the dirty cache to grow beyond a safe threshold. 
+        /// If the percentage of dirty bytes in the cache exceeds the configured threshold, ingestion will be paused to allow the storage engine to flush data to disk and recover.
+        /// </summary>
         async Task<CheckResult> CheckWiredTigerCachePressure(CancellationToken cancellationToken)
         {
             var serverStatus = await clientProvider.Database
@@ -70,6 +74,9 @@ namespace ServiceControl.Audit.Persistence.MongoDB.CustomChecks
             return CheckResult.Pass;
         }
 
+        /// <summary>
+        /// Checks MongoDB write latency by performing a simple ping command and measuring the response time. If the average latency over a rolling window exceeds the configured threshold, ingestion will be paused to allow the database to recover from potential overload conditions.
+        /// </summary>
         async Task<CheckResult> CheckWriteLatency(CancellationToken cancellationToken)
         {
             var sw = Stopwatch.StartNew();

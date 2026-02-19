@@ -5,8 +5,6 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using global::MongoDB.Bson;
-    using global::MongoDB.Driver;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NUnit.Framework;
@@ -14,7 +12,6 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Monitoring;
     using ServiceControl.Audit.Persistence.MongoDB;
-    using ServiceControl.Audit.Persistence.MongoDB.Collections;
     using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Persistence.UnitOfWork;
     using Infrastructure;
@@ -27,7 +24,6 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
         protected IMongoTestEnvironment Environment { get; private set; }
 
         IHost host;
-        IMongoDatabase database;
         string databaseName;
 
         protected abstract IMongoTestEnvironment CreateEnvironment();
@@ -65,9 +61,6 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
 
             host = hostBuilder.Build();
             await host.StartAsync().ConfigureAwait(false);
-
-            var clientProvider = host.Services.GetRequiredService<IMongoClientProvider>();
-            database = clientProvider.Database;
         }
 
         [TearDown]
@@ -247,10 +240,7 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
 
             await IngestMessageWithBody(factory, message, Encoding.UTF8.GetBytes(bodyJson)).ConfigureAwait(false);
 
-            // Wait for the background body writer to flush to messageBodies collection
-            var collection = database.GetCollection<BsonDocument>(CollectionNames.MessageBodies);
-            await WaitForDocumentAsync(collection, "msg-body-search").ConfigureAwait(false);
-
+            // Body is stored inline in processedMessages; QueryWithRetryAsync handles text index update delay
             var result = await QueryWithRetryAsync(dataStore, uniqueBodyContent).ConfigureAwait(false);
 
             Assert.That(result.Results, Has.Count.EqualTo(1), "Should find message by body content");
@@ -331,24 +321,6 @@ namespace ServiceControl.Audit.Persistence.Tests.MongoDB.Shared
             } while (DateTime.UtcNow < deadline);
 
             return result;
-        }
-
-        /// <summary>
-        /// Polls a MongoDB collection until a document with the given ID appears or timeout is reached.
-        /// </summary>
-        static async Task WaitForDocumentAsync(IMongoCollection<BsonDocument> collection, string id, int timeoutMs = 5000)
-        {
-            var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
-            do
-            {
-                var doc = await collection.Find(Builders<BsonDocument>.Filter.Eq("_id", id)).FirstOrDefaultAsync().ConfigureAwait(false);
-                if (doc != null)
-                {
-                    return;
-                }
-
-                await Task.Delay(100).ConfigureAwait(false);
-            } while (DateTime.UtcNow < deadline);
         }
 
         static ProcessedMessage CreateProcessedMessage(string id, string messageId, string messageType)
