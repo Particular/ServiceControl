@@ -4,5 +4,5 @@ using System;
 
 partial class ServiceControlPrimaryEndpointTests
 {
-    private static partial int GetTransportDefaultConcurrency() => Math.Max(8, Environment.ProcessorCount);
+    private static partial int GetTransportDefaultConcurrency() => 10;
 }
