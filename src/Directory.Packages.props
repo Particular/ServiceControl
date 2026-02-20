@@ -7,6 +7,7 @@
     <PackageVersion Include="Autofac" Version="9.0.0" />
     <PackageVersion Include="AWSSDK.CloudWatch" Version="4.0.7" />
     <PackageVersion Include="Azure.Identity" Version="1.17.1" />
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.27.0" />
     <PackageVersion Include="Azure.Monitor.Query.Metrics" Version="1.0.0" />
     <PackageVersion Include="Azure.ResourceManager.ServiceBus" Version="1.1.0" />
     <PackageVersion Include="ByteSize" Version="2.1.2" />
@@ -19,6 +20,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.3" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.3" />
+    <PackageVersion Include="MongoDB.Driver" Version="3.6.0" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.3" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.3" />
@@ -80,6 +82,7 @@
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="10.0.3" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="10.0.3" />
+    <PackageVersion Include="Testcontainers.MongoDb" Version="4.3.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>

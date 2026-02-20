@@ -26,7 +26,10 @@ namespace ServiceControl.Audit.Persistence
 
         public static PersistenceSettings BuildPersistenceSettings(this IPersistenceConfiguration persistenceConfiguration, Settings settings)
         {
-            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
+            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore)
+            {
+                TargetMessageIngestionRate = settings.TargetMessageIngestionRate
+            };
 
             foreach (var key in persistenceConfiguration.ConfigurationKeys)
             {
