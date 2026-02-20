@@ -38,6 +38,7 @@
             settings.Set(ServiceControlSettings.ErrorRetentionPeriod, details.ErrorRetentionPeriod.ToString(), version);
             settings.Set(ServiceControlSettings.EnableFullTextSearchOnBodies, details.EnableFullTextSearchOnBodies.ToString(), version);
             settings.Set(ServiceControlSettings.RemoteInstances, RemoteInstanceConverter.ToJson(details.RemoteInstances), version);
+            settings.Set(ServiceControlSettings.EnableIntegratedServicePulse, details.EnableIntegratedServicePulse.ToString(), version);
 
             // Windows services allow a maximum of 125 seconds when stopping a service.
             // When shutting down or restarting the OS we have no control over the

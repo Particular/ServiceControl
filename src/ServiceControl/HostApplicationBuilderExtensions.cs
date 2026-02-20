@@ -24,6 +24,7 @@ namespace Particular.ServiceControl
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Transport;
+    using Particular.LicensingComponent;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -54,6 +55,7 @@ namespace Particular.ServiceControl
 
             services.AddSingleton<MessageStreamerHub>();
             services.AddSingleton(settings);
+            services.AddEnvironmentDataProvider<ServiceControlErrorInstanceEnvironmentDataProvider>();
 
             services.AddHttpLogging(options =>
             {

@@ -12,7 +12,7 @@ using ServiceControl.Transports.BrokerThroughput;
 using Shared;
 using QueueThroughput = Report.QueueThroughput;
 
-public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettings throughputSettings, IAuditQuery auditQuery, MonitoringService monitoringService, IBrokerThroughputQuery? throughputQuery = null)
+public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettings throughputSettings, IAuditQuery auditQuery, MonitoringService monitoringService, IEnumerable<IEnvironmentDataProvider> environmentDataProviders, IBrokerThroughputQuery? throughputQuery = null)
     : IThroughputCollector
 {
     public async Task<ThroughputConnectionSettings> GetThroughputConnectionSettingsInformation(CancellationToken cancellationToken)
@@ -178,6 +178,14 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.ServicePulseVersion.ToString()] = spVersion;
         report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.AuditEnabled.ToString()] = systemHasAuditEnabled.ToString();
         report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.MonitoringEnabled.ToString()] = systemHasMonitoringEnabled.ToString();
+
+        foreach (var environmentDataProvider in environmentDataProviders)
+        {
+            foreach (var (key, value) in environmentDataProvider.GetData())
+            {
+                report.EnvironmentInformation.EnvironmentData[key] = value;
+            }
+        }
 
         var throughputReport = new SignedReport { ReportData = report, Signature = Signature.SignReport(report) };
         return throughputReport;

@@ -119,6 +119,24 @@
                 }
             }
 
+            if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.EnableIntegratedServicePulse.Name))
+            {
+                var result = await windowManager.ShowYesNoCancelDialog("INPUT REQUIRED - INTEGRATED SERVICEPULSE",
+                    "ServiceControl can host an integrated version of ServicePulse which allows you to monitor your ServiceControl instance without needing to install ServicePulse separately.",
+                    "Should an integrated ServicePulse be enabled for this ServiceControl instance?",
+                    "Enable integrated ServicePulse",
+                    "Do NOT enable integrated ServicePulse");
+
+                if (!result.HasValue)
+                {
+                    //Dialog was cancelled
+                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
+                    return;
+                }
+
+                upgradeOptions.EnableIntegratedServicePulse = result.Value;
+            }
+
             if (await commandChecks.StopBecauseInstanceIsRunning(instance))
             {
                 return;

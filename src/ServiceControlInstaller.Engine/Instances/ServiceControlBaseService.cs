@@ -85,19 +85,24 @@ namespace ServiceControlInstaller.Engine.Instances
         public TimeSpan ErrorRetentionPeriod { get; set; }
         public bool SkipQueueCreation { get; set; }
         public bool EnableFullTextSearchOnBodies { get; set; }
+        public bool EnableIntegratedServicePulse { get; set; }
+        public bool HttpsEnabled { get; set; }
 
         protected abstract string BaseServiceName { get; }
+
+        public string UrlScheme => HttpsEnabled ? "https" : "http";
 
         public string Url
         {
             get
             {
+                var suffix = EnableIntegratedServicePulse ? "" : "api/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{HostName}:{Port}/api/";
+                    return $"{UrlScheme}://{HostName}:{Port}/{suffix}";
                 }
 
-                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}api/";
+                return $"{UrlScheme}://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}{suffix}";
             }
         }
 
@@ -105,6 +110,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
+                var suffix = EnableIntegratedServicePulse ? "" : "api/";
                 string host = HostName switch
                 {
                     "*" => "localhost",
@@ -113,10 +119,10 @@ namespace ServiceControlInstaller.Engine.Instances
                 };
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{host}:{Port}/api/";
+                    return $"{UrlScheme}://{host}:{Port}/{suffix}";
                 }
 
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}api/";
+                return $"{UrlScheme}://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}{suffix}/";
             }
         }
 
