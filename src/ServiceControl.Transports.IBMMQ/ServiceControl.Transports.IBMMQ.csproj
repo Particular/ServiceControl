@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+<PropertyGroup>
+  <TargetFramework>net10.0</TargetFramework>
+  <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+</PropertyGroup>
+
+<ItemGroup>
+  <!-- Private=false & ExcludeAssets=runtime prevent repeatedly including binary dependencies of ServiceControl.Transports in each transport directory -->
+  <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" Private="false" ExcludeAssets="runtime" />
+</ItemGroup>
+
+<ItemGroup>
+  <PackageReference Include="NServiceBus.CustomChecks" />
+  <PackageReference Include="NServiceBus.Transport.IbmMq" />
+  <PackageReference Include="System.Configuration.ConfigurationManager" />
+  <PackageReference Include="System.Diagnostics.PerformanceCounter" />
+</ItemGroup>
+
+<ItemGroup>
+  <None Update="transport.manifest" CopyToOutputDirectory="PreserveNewest" />
+  <None Update="transport.manifest">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+</ItemGroup>
+
+<ItemGroup Condition="$(RuntimeIdentifier.StartsWith(linux)) == false">
+  <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(Identity)\Transports\MSMQ')" />
+</ItemGroup>
+
+</Project>

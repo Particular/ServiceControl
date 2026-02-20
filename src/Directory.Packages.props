@@ -52,6 +52,7 @@
     <PackageVersion Include="NServiceBus.Transport.Msmq.Sources" Version="4.0.0" />
     <PackageVersion Include="NServiceBus.Transport.PostgreSql" Version="9.0.0" />
     <PackageVersion Include="NServiceBus.Transport.SqlServer" Version="9.0.0" />
+    <PackageVersion Include="NServiceBus.Transport.IbmMq" Version="0.1.0-alpha.1" />
     <PackageVersion Include="NuGet.Versioning" Version="7.3.0" />
     <PackageVersion Include="NUnit" Version="4.5.0" />
     <PackageVersion Include="NUnit.Analyzers" Version="4.11.2" />
