@@ -13,6 +13,7 @@
     <Project Path="ServiceControlInstaller.Packaging.UnitTests/ServiceControlInstaller.Packaging.UnitTests.csproj" />
     <Project Path="SetupProcessFake/SetupProcessFake.csproj" />
   </Folder>
+  <Folder Name="/Instances/" />
   <Folder Name="/Instances/Audit/">
     <Project Path="ServiceControl.Audit/ServiceControl.Audit.csproj" />
   </Folder>
@@ -20,6 +21,9 @@
     <Project Path="ServiceControl.Audit.Persistence.InMemory/ServiceControl.Audit.Persistence.InMemory.csproj" />
     <Project Path="ServiceControl.Audit.Persistence.RavenDB/ServiceControl.Audit.Persistence.RavenDB.csproj" />
     <Project Path="ServiceControl.Audit.Persistence.SagaAudit/ServiceControl.Audit.Persistence.SagaAudit.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.Sql.Core/ServiceControl.Audit.Persistence.Sql.Core.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.Sql.PostgreSQL/ServiceControl.Audit.Persistence.Sql.PostgreSQL.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.Sql.SqlServer/ServiceControl.Audit.Persistence.Sql.SqlServer.csproj" />
     <Project Path="ServiceControl.Audit.Persistence/ServiceControl.Audit.Persistence.csproj" />
   </Folder>
   <Folder Name="/Instances/Audit/Testing/">
