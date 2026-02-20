@@ -19,7 +19,7 @@ public class IBMMQTransportCustomization : TransportCustomization<IbmMqTransport
 
     protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
     {
-        services.AddSingleton<IProvideQueueLength, NoOpQueueLengthProvider>();
+        services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
         services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
     }
 
