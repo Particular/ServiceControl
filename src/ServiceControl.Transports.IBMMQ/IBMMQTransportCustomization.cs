@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Transports.IBMMQ;
 
+using System;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using NServiceBus;
@@ -24,7 +25,12 @@ public class IBMMQTransportCustomization : TransportCustomization<IbmMqTransport
 
     protected override IbmMqTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
     {
-        var transport = new IbmMqTransport(TestConnectionDetails.Apply);
+        var overrides = transportSettings.Get<Action<IbmMqTransportOptions>>();
+        var transport = new IbmMqTransport(o =>
+        {
+            overrides(o);
+            TestConnectionDetails.Apply(o);
+        });
         transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode)
             ? preferredTransactionMode
             : TransportTransactionMode.ReceiveOnly;
