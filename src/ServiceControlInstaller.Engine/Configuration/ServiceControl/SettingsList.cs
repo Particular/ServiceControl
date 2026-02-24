@@ -117,7 +117,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         public static readonly SettingInfo EnableIntegratedServicePulse = new()
         {
             Name = "ServiceControl/EnableIntegratedServicePulse",
-            SupportedFrom = new SemanticVersion(6, 12, 0)
+            SupportedFrom = new SemanticVersion(6, 13, 0)
         };
 
         public static readonly SettingInfo HttpsEnabled = new()
