@@ -67,11 +67,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
             RetryHistoryDepth = SettingsReader.Read(SettingsRootNamespace, "RetryHistoryDepth", 10);
             AllowMessageEditing = SettingsReader.Read<bool>(SettingsRootNamespace, "AllowMessageEditing");
             EnableIntegratedServicePulse = SettingsReader.Read(SettingsRootNamespace, "EnableIntegratedServicePulse", false);
-            ServicePulseSettings = ServicePulseSettings.GetFromEnvironmentVariables() with
+            if (EnableIntegratedServicePulse)
             {
-                ServiceControlUrl = $"{ApiUrl}/",
-                IsIntegrated = true
-            };
+                ServicePulseSettings = ServicePulseSettings.GetFromEnvironmentVariables() with
+                {
+                    ServiceControlUrl = $"{ApiUrl}/",
+                    IsIntegrated = true
+                };
+            }
             NotificationsFilter = SettingsReader.Read<string>(SettingsRootNamespace, "NotificationsFilter");
             RemoteInstances = GetRemoteInstances().ToArray();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();

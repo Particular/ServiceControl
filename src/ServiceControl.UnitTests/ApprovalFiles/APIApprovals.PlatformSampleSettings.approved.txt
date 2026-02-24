@@ -37,6 +37,8 @@
   },
   "NotificationsFilter": null,
   "AllowMessageEditing": false,
+  "EnableIntegratedServicePulse": false,
+  "ServicePulseSettings": null,
   "MessageFilter": null,
   "EmailDropFolder": null,
   "ValidateConfiguration": true,
