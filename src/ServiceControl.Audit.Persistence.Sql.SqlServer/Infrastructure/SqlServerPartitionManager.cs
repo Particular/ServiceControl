@@ -21,12 +21,20 @@ public class SqlServerPartitionManager : IPartitionManager
         var hourStr = TruncateToHour(partitionHour).ToString("yyyy-MM-ddTHH:00:00");
         var nextHourStr = TruncateToHour(partitionHour).AddHours(1).ToString("yyyy-MM-ddTHH:00:00");
 
+        // I used this setting when testing in more budget constrained environments, and it seems to help prevent timeouts when deleting large amounts of data.
+        // But since then We have also concluded that those budget environments are not fit for running ServiceControl.
+        // I am coming to the conclusion that we should leve the default 30 seconds, and if we see issues in the logs it means the environment needs to be scaled up!
         dbContext.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
 
         foreach (var table in Tables)
         {
             while (true)
             {
+                // The comment below is accurate, but after testing, I have come to the conclusion that the performance benefits of deleting in batches of 4500 rows are actually not ideal, 
+                // and that it is better to delete all rows in one go, even if it means that we might get a lock escalation to a full table lock.
+                // In our testing the retention deletion doubled in time when we switched to deleting in batches of 4500 rows.
+                // And no noticeable decrease in ingestion performance was observed when we switched to deleting all rows in one go, even with the lock escalation.
+
                 // Prevent lock escalation to a full table lock by deleting in batches of 4500 rows, 
                 // the rule of thumb is that a lock escalation occurs when a transaction acquires more than 5000 locks. 
                 // Deleting in batches of 4500 rows allows us to stay below this threshold and avoid escalating to a full table lock, 

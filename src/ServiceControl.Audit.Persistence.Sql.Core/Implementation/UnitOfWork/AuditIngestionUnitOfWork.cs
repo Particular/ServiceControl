@@ -34,6 +34,7 @@ class AuditIngestionUnitOfWork(
         {
             CreatedOn = createdOn,
             UniqueMessageId = processedMessage.UniqueMessageId,
+            // We probably should split the keys and values into separate columns, so that we can index only the values for FTS. See comment below about combining headers and body for FTS indexing.
             HeadersJson = JsonSerializer.Serialize(processedMessage.Headers, ProcessedMessageJsonContext.Default.DictionaryStringString),
 
             // Denormalized fields
@@ -52,7 +53,8 @@ class AuditIngestionUnitOfWork(
             ProcessingTimeTicks = GetMetadata<TimeSpan?>(processedMessage.MessageMetadata, "ProcessingTime")?.Ticks,
             DeliveryTimeTicks = GetMetadata<TimeSpan?>(processedMessage.MessageMetadata, "DeliveryTime")?.Ticks,
 
-            // Full-text search content (header values + body text for single-column FTS indexing)
+            // Here we are combining header values with body text for full-text search indexing. 
+            // This should be modified so that we don't do this combining, and there fore we don't always need to store the body in external storage.
             SearchableContent = settings.EnableFullTextSearchOnBodies ? BuildSearchableContent(processedMessage.Headers, body) : null,
             BodySize = body.Length,
             BodyUrl = body.IsEmpty ? null : $"/messages/{processedMessage.Id}/body",
