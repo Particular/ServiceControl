@@ -31,13 +31,15 @@ namespace ServiceControl.Audit.Persistence.MongoDB.ProductCapabilities
             var buildInfo = await GetBuildInfoAsync(client, cancellationToken).ConfigureAwait(false);
             var serverVersion = ParseVersion(buildInfo);
 
+            var hostInfo = await GetHostInfoAsync(client, cancellationToken).ConfigureAwait(false);
+
             // TODO: Is there a better way to determine the product type? User could be using a custom host name. Do we need to make this an explicit config option?
             if (IsAzureDocumentDb(connectionString))
             {
                 return new AzureDocumentDbCapabilities(serverVersion);
             }
 
-            if (IsAmazonDocumentDb(connectionString))
+            if (IsAmazonDocumentDb(hostInfo.ToJson()))
             {
                 var isElastic = IsElasticCluster(buildInfo);
                 return new AmazonDocumentDbCapabilities(isElastic, serverVersion);
@@ -64,11 +66,11 @@ namespace ServiceControl.Audit.Persistence.MongoDB.ProductCapabilities
         static bool IsAzureDocumentDb(string connectionString) =>
             connectionString.Contains(".mongocluster.cosmos.azure.com", StringComparison.OrdinalIgnoreCase);
 
-        static bool IsAmazonDocumentDb(string connectionString)
+        static bool IsAmazonDocumentDb(string hostInfoString)
         {
-            // Amazon DocumentDB connection strings contain .docdb.amazonaws.com or docdb-elastic
-            return connectionString.Contains(".docdb.amazonaws.com", StringComparison.OrdinalIgnoreCase) ||
-                   connectionString.Contains("docdb-elastic", StringComparison.OrdinalIgnoreCase);
+            // Amazon DocumentDB host info contain .docdb.amazonaws.com or docdb-elastic
+            return hostInfoString.Contains(".docdb.amazonaws.com", StringComparison.OrdinalIgnoreCase) ||
+                   hostInfoString.Contains("docdb-elastic", StringComparison.OrdinalIgnoreCase);
         }
 
         static async Task<BsonDocument?> GetBuildInfoAsync(IMongoClient client, CancellationToken cancellationToken)
@@ -77,6 +79,21 @@ namespace ServiceControl.Audit.Persistence.MongoDB.ProductCapabilities
             {
                 var adminDb = client.GetDatabase("admin");
                 var command = new BsonDocument("buildInfo", 1);
+                return await adminDb.RunCommandAsync<BsonDocument>(command, cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                // If we can't get buildInfo, return null
+                return null;
+            }
+        }
+
+        static async Task<BsonDocument?> GetHostInfoAsync(IMongoClient client, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var adminDb = client.GetDatabase("admin");
+                var command = new BsonDocument("hostInfo", 1);
                 return await adminDb.RunCommandAsync<BsonDocument>(command, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
             catch

@@ -25,7 +25,7 @@ namespace ServiceControl.Audit.Persistence.MongoDB.Documents
         /// </summary>
         [BsonElement("headerSearchTokens")]
         [BsonIgnoreIfNull]
-        public List<string> HeaderSearchTokens { get; set; }
+        public string HeaderSearchTokens { get; set; }
 
         [BsonElement("processedAt")]
         public DateTime ProcessedAt { get; set; }
