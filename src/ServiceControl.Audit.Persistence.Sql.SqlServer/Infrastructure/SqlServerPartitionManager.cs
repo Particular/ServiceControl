@@ -27,8 +27,12 @@ public class SqlServerPartitionManager : IPartitionManager
         {
             while (true)
             {
+                // Prevent lock escalation to a full table lock by deleting in batches of 4500 rows, 
+                // the rule of thumb is that a lock escalation occurs when a transaction acquires more than 5000 locks. 
+                // Deleting in batches of 4500 rows allows us to stay below this threshold and avoid escalating to a full table lock, 
+                // which can improve concurrency and reduce contention with other transactions.
                 var deleted = await dbContext.Database.ExecuteSqlRawAsync(
-                    "DELETE TOP (10000) FROM " + table + " WHERE CreatedOn >= '" + hourStr + "' AND CreatedOn < '" + nextHourStr + "'", ct);
+                    "DELETE TOP (4500) FROM " + table + " WHERE CreatedOn >= '" + hourStr + "' AND CreatedOn < '" + nextHourStr + "'", ct);
 
                 if (deleted == 0)
                 {
