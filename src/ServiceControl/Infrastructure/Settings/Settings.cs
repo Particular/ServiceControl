@@ -71,7 +71,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             {
                 ServicePulseSettings = ServicePulseSettings.GetFromEnvironmentVariables() with
                 {
-                    ServiceControlUrl = $"{ApiUrl}/",
+                    ServiceControlUrl = "/api/",
                     IsIntegrated = true
                 };
             }
