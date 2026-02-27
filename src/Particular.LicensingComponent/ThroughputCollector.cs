@@ -126,6 +126,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
             //get all data that we have, including daily values
             var queueThroughput = new QueueThroughput
             {
+                NameHash = OneWayHasher.CalculateOneWayHash(endpointData.Name),
                 QueueName = masker.Mask(endpointData.Name),
                 UserIndicator = endpointData.UserIndicator,
                 EndpointIndicators = endpointData.EndpointIndicators ?? [],
