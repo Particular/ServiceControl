@@ -70,7 +70,7 @@
             }
             catch (Exception ex)
             {
-                logger.Error(ex.Message);
+                logger.Error("Error installing the service: {0}", ex);
                 return false;
             }
 
@@ -137,7 +137,7 @@
             }
             catch (Exception ex)
             {
-                logger.Error("Upgrade Failed: {0}", ex.Message);
+                logger.Error("Upgrade Failed: {0}", ex);
                 return false;
             }
 
