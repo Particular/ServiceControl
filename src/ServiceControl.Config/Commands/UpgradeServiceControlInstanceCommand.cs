@@ -122,7 +122,11 @@
             if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.EnableIntegratedServicePulse.Name))
             {
                 var result = await windowManager.ShowYesNoCancelDialog("INPUT REQUIRED - INTEGRATED SERVICEPULSE",
-                    "ServiceControl can host an integrated version of ServicePulse which allows you to monitor your ServiceControl instance without needing to install ServicePulse separately.",
+                    """
+                    ServiceControl can host an integrated version of ServicePulse, which allows you to monitor your ServiceControl instance without needing to install ServicePulse separately.
+                    
+                    For more information, see https://docs.particular.net/servicecontrol/servicecontrol-instances/integrated-servicepulse
+                    """,
                     "Should an integrated ServicePulse be enabled for this ServiceControl instance?",
                     "Enable integrated ServicePulse",
                     "Do NOT enable integrated ServicePulse");
