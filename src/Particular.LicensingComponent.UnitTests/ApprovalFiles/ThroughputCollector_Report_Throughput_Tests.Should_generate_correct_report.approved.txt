@@ -12,7 +12,7 @@
     "Queues": [
       {
         "QueueName": "REDACTED1",
-        "NameHash": "FAD4132E2E84D00CFDCF59DEE29B4353D5AFD88C2268113B63E10F8562F0415D",
+        "NameHash": "66DB6BA4857B08195A497D6FA4BFAAC140B35A0B5925C0845E37AA39DB1A0050",
         "Throughput": 65,
         "EndpointIndicators": [
           "KnownEndpoint"
@@ -42,7 +42,7 @@
       },
       {
         "QueueName": "Endpoint2",
-        "NameHash": "CC025A7DAEDE6B7354219CD6CBE69F6CC20D9A4E50AE4697D0339D83F1916B0B",
+        "NameHash": "936C4C33C71B498D9C60C90F78138AF1ECF3C9F72089F054563E125C94B0A224",
         "Throughput": 65,
         "EndpointIndicators": [
           "KnownEndpoint"
@@ -72,7 +72,7 @@
       },
       {
         "QueueName": "Endpoint3",
-        "NameHash": "41F376A830F79D28A6C4AB64BFBAB49E3460266F2EF832D5D323A3D15D332935",
+        "NameHash": "8035D54FFAF0523F509245E1556BB1BD18C37B76A2D7DB4C928024B348A13132",
         "Throughput": 57,
         "EndpointIndicators": [
           "KnownEndpoint"
@@ -111,7 +111,7 @@
       },
       {
         "QueueName": "Endpoint4",
-        "NameHash": "F3B76C9479C36F3759A00E4A6C899A60B310349888FC36D84C07D9EC14BC3F2A",
+        "NameHash": "BBF022C092922A8B3A63455FC7583EAF35840E66F01B73AF997EACDCA8ABCEA4",
         "Throughput": 47,
         "EndpointIndicators": [],
         "UserIndicator": "PlannedToDecommission",
@@ -131,7 +131,7 @@
       },
       {
         "QueueName": "Endpoint5",
-        "NameHash": "4843958694AE6C4DE89E992E0C3381120824212D35506B021F062F9D263FFB9B",
+        "NameHash": "435D99844B95C6079607233709D2B6FA8F2EE5E67C187946F4BC476EBB8C9E42",
         "Throughput": 15,
         "EndpointIndicators": [],
         "UserIndicator": "NotNServiceBusEndpoint",
