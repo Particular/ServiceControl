@@ -6,16 +6,14 @@
 
     public static class RemoteInstanceConverter
     {
-        public static List<RemoteInstanceSetting> FromJson(string json) => JsonSerializer.Deserialize<List<RemoteInstanceSetting>>(json, Options);
+        public static List<RemoteInstanceSetting> FromJson(string json) => JsonSerializer.Deserialize(json, RemoteInstanceContext.Default.ListRemoteInstanceSetting);
 
-        public static string ToJson(IList<RemoteInstanceSetting> settings) => JsonSerializer.Serialize(settings, Options);
-
-        static readonly JsonSerializerOptions Options = new()
-        {
-            WriteIndented = false,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
+        public static string ToJson(List<RemoteInstanceSetting> settings) => JsonSerializer.Serialize(settings, RemoteInstanceContext.Default.ListRemoteInstanceSetting);
     }
+
+    [JsonSourceGenerationOptions(WriteIndented = false, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonSerializable(typeof(List<RemoteInstanceSetting>))]
+    public partial class RemoteInstanceContext : JsonSerializerContext;
 
     public class RemoteInstanceSetting
     {
