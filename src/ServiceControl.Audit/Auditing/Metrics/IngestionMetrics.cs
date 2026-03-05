@@ -11,15 +11,15 @@ public class IngestionMetrics
 {
     public const string MeterName = "Particular.ServiceControl.Audit";
 
-    public static readonly string BatchDurationInstrumentName = $"{InstrumentPrefix}.batch_duration_seconds";
-    public static readonly string MessageDurationInstrumentName = $"{InstrumentPrefix}.message_duration_seconds";
+    public static readonly string BatchDurationInstrumentName = $"{InstrumentPrefix}.batch_duration";
+    public static readonly string MessageDurationInstrumentName = $"{InstrumentPrefix}.message_duration";
 
     public IngestionMetrics(IMeterFactory meterFactory)
     {
         var meter = meterFactory.Create(MeterName, MeterVersion);
 
-        batchDuration = meter.CreateHistogram<double>(BatchDurationInstrumentName, unit: "seconds", "Message batch processing duration in seconds");
-        ingestionDuration = meter.CreateHistogram<double>(MessageDurationInstrumentName, unit: "seconds", description: "Audit message processing duration in seconds");
+        batchDuration = meter.CreateHistogram<double>(BatchDurationInstrumentName, unit: "s", "Message batch processing duration in seconds");
+        ingestionDuration = meter.CreateHistogram<double>(MessageDurationInstrumentName, unit: "s", description: "Audit message processing duration in seconds");
         consecutiveBatchFailureGauge = meter.CreateObservableGauge($"{InstrumentPrefix}.consecutive_batch_failures_total", () => consecutiveBatchFailures, description: "Consecutive audit ingestion batch failures");
         failureCounter = meter.CreateCounter<long>($"{InstrumentPrefix}.failures_total", description: "Audit ingestion failure count");
     }
