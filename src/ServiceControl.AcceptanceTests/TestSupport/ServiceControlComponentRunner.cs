@@ -135,7 +135,7 @@
 
                 host.UseTestRemoteIp();
                 host.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
-                host.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings);
+                host.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings.EnableMcpServer);
                 await host.StartAsync();
                 DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
                 // Bring this back and look into the base address of the client
