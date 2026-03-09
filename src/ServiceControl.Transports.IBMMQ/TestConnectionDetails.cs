@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Specialized;
 using System.Web;
-using NServiceBus.Transport.IbmMq;
+using NServiceBus.Transport.IBMMQ;
 
 /// <summary>
 /// Copied directly from:
@@ -25,7 +25,7 @@ static class TestConnectionDetails
     public static string TopicPrefix => Query["topicprefix"] ?? "DEV";
 
 
-    public static void Apply(IbmMqTransportOptions options)
+    public static void Apply(IBMMQTransportOptions options)
     {
         options.Host = Host;
         options.Port = Port;

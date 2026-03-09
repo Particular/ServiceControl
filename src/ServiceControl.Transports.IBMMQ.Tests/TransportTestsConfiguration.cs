@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Transports;
 using Transports.IBMMQ;
 using NServiceBus;
-using NServiceBus.Transport.IbmMq;
+using NServiceBus.Transport.IBMMQ;
 using NUnit.Framework;
 
 [SetUpFixture]
@@ -41,9 +41,9 @@ class TransportTestsConfiguration
 
 sealed class TestIBMMQTransportCustomization : IBMMQTransportCustomization
 {
-    protected override IbmMqTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
+    protected override IBMMQTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
     {
-        transportSettings.Set<Action<IbmMqTransportOptions>>(o => o.ResourceNameSanitizer = name => name
+        transportSettings.Set<Action<IBMMQTransportOptions>>(o => o.ResourceNameSanitizer = name => name
                 .Replace("ServiceControlMonitoring", "SCM") // Mitigate max queue name length
                 .Replace("-", ".") // dash is an illegal char
         );
