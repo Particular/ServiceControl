@@ -110,7 +110,7 @@ jobs:
         run: |
           docker run --name ibmmq -d -p 1414:1414 -p 9443:9443 `
             --health-cmd "dspmq" --health-interval 10s --health-timeout 5s --health-retries 10 --health-start-period 30s `
-            -e LICENSE=accept -e MQ_QMGR_NAME=QM1 `
+            -e LICENSE=accept -e MQ_QMGR_NAME=QM1 -e MQ_ADMIN_PASSWORD=passw0rd `
             icr.io/ibm-messaging/mq:latest
           # Wait for container health check to pass
           while ((docker inspect --format '{{.State.Health.Status}}' ibmmq) -ne 'healthy') {
