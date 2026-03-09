@@ -24,7 +24,8 @@ class TransportTestsConfiguration
     public Task Configure()
     {
         TransportCustomization = new TestIBMMQTransportCustomization();
-        ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
+        ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey)
+                           ?? Environment.GetEnvironmentVariable(ConnectionStringKey.ToUpperInvariant()); // Env keys are case sensitive, POSIX is all uppercase
 
         if (string.IsNullOrEmpty(ConnectionString))
         {

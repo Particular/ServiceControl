@@ -13,7 +13,12 @@ using NServiceBus.Transport.IBMMQ;
 static class TestConnectionDetails
 {
     // mq://admin:passw0rd@localhost:1414/QM1?appname=&sslkeyrepo=&cipherspec=&sslpeername=&topicprefix=DEV&channel=DEV.ADMIN.SVRCONN
-    static readonly Uri ConnectionUri = new(Environment.GetEnvironmentVariable("IBMMQ_CONNECTIONSTRING") ?? "mq://admin:passw0rd@localhost:1414");
+    static readonly Uri ConnectionUri = new(
+        Environment.GetEnvironmentVariable("ServiceControl_TransportTests_IBMMQ_ConnectionString")
+        ?? Environment.GetEnvironmentVariable("SERVICECONTROL_TRANSPORTTESTS_IBMMQ_CONNECTIONSTRING")
+        ?? "mq://admin:passw0rd@localhost:1414"
+        );
+
     static readonly NameValueCollection Query = HttpUtility.ParseQueryString(ConnectionUri.Query);
 
     public static string Host => ConnectionUri.Host;
