@@ -3,6 +3,8 @@ namespace ServiceControl;
 using Infrastructure.SignalR;
 using Infrastructure.WebApi;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.HttpOverrides;
+using ModelContextProtocol.AspNetCore;
 using ServiceControl.Hosting.ForwardedHeaders;
 using ServiceControl.Hosting.Https;
 using ServiceControl.Infrastructure;
