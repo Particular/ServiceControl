@@ -9,6 +9,8 @@
     using Microsoft.Extensions.Hosting;
     using Particular.LicensingComponent.WebApi;
     using Particular.ServiceControl;
+    using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Configuration;
 
     static class HostApplicationBuilderExtensions
     {
@@ -19,6 +21,14 @@
             builder.Services.RegisterApiTypes(Assembly.GetExecutingAssembly());
 
             builder.AddServiceControlApis();
+
+            if (SettingsReader.Read(Settings.SettingsRootNamespace, "EnableMcpServer", false))
+            {
+                builder.Services
+                    .AddMcpServer()
+                    .WithHttpTransport()
+                    .WithToolsFromAssembly();
+            }
 
             builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy(corsSettings)));
 

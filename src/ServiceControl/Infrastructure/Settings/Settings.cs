@@ -81,6 +81,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
             TrackInstancesInitialValue = SettingsReader.Read(SettingsRootNamespace, "TrackInstancesInitialValue", true);
             ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
+            EnableMcpServer = SettingsReader.Read(SettingsRootNamespace, "EnableMcpServer", false);
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
 
@@ -112,6 +113,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string NotificationsFilter { get; set; }
 
         public bool AllowMessageEditing { get; set; }
+
+        public bool EnableMcpServer { get; set; }
 
         public bool EnableIntegratedServicePulse { get; set; }
         public ServicePulseSettings ServicePulseSettings { get; set; }

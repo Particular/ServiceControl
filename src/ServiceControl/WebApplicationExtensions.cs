@@ -3,6 +3,8 @@ namespace ServiceControl;
 using Infrastructure.SignalR;
 using Infrastructure.WebApi;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.HttpOverrides;
+using ModelContextProtocol.AspNetCore;
 using ServiceControl.Hosting.ForwardedHeaders;
 using ServiceControl.Hosting.Https;
 using ServiceControl.Infrastructure;
@@ -19,5 +21,6 @@ public static class WebApplicationExtensions
         app.MapHub<MessageStreamerHub>("/api/messagestream");
         app.UseCors();
         app.MapControllers();
+        app.MapMcp();
     }
 }
