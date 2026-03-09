@@ -25,6 +25,7 @@
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.SqlServer"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.SQS"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.PostgreSql"));
+                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.IBMMQ"));
             }
         }
 
