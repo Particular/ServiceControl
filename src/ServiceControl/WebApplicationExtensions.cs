@@ -3,15 +3,14 @@ namespace ServiceControl;
 using Infrastructure.SignalR;
 using Infrastructure.WebApi;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.HttpOverrides;
-using ModelContextProtocol.AspNetCore;
+using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Hosting.ForwardedHeaders;
 using ServiceControl.Hosting.Https;
 using ServiceControl.Infrastructure;
 
 public static class WebApplicationExtensions
 {
-    public static void UseServiceControl(this WebApplication app, ForwardedHeadersSettings forwardedHeadersSettings, HttpsSettings httpsSettings)
+    public static void UseServiceControl(this WebApplication app, ForwardedHeadersSettings forwardedHeadersSettings, HttpsSettings httpsSettings, Settings settings)
     {
         app.UseServiceControlForwardedHeaders(forwardedHeadersSettings);
         app.UseServiceControlHttps(httpsSettings);
@@ -21,6 +20,10 @@ public static class WebApplicationExtensions
         app.MapHub<MessageStreamerHub>("/api/messagestream");
         app.UseCors();
         app.MapControllers();
-        app.MapMcp();
+
+        if (settings.EnableMcpServer)
+        {
+            app.MapMcp();
+        }
     }
 }

@@ -27,10 +27,10 @@
             hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
             hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
-            hostBuilder.AddServiceControlApi(settings.CorsSettings);
+            hostBuilder.AddServiceControlApi(settings);
 
             var app = hostBuilder.Build();
-            app.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings);
+            app.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings);
             if (settings.EnableIntegratedServicePulse)
             {
                 app.UseServicePulse(settings.ServicePulseSettings);
