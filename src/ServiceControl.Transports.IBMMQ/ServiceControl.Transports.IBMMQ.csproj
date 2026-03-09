@@ -12,7 +12,7 @@
 
 <ItemGroup>
   <PackageReference Include="NServiceBus.CustomChecks" />
-  <PackageReference Include="NServiceBus.Transport.IbmMq" />
+  <PackageReference Include="NServiceBus.Transport.IBMMQ" />
   <PackageReference Include="System.Configuration.ConfigurationManager" />
   <PackageReference Include="System.Diagnostics.PerformanceCounter" />
 </ItemGroup>
