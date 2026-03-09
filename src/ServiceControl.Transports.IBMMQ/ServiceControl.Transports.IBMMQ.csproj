@@ -24,8 +24,8 @@
   </None>
 </ItemGroup>
 
-<ItemGroup Condition="$(RuntimeIdentifier.StartsWith(linux)) == false">
-  <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(Identity)\Transports\MSMQ')" />
+<ItemGroup>
+  <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(Identity)\Transports\IBMMQ')" />
 </ItemGroup>
 
 </Project>
