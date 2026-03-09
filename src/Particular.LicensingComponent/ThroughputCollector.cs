@@ -6,13 +6,14 @@ using System.Threading;
 using AuditThroughput;
 using Contracts;
 using MonitoringThroughput;
+using Particular.LicensingComponent.Report.Utility;
 using Persistence;
 using Report;
 using ServiceControl.Transports.BrokerThroughput;
 using Shared;
 using QueueThroughput = Report.QueueThroughput;
 
-public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettings throughputSettings, IAuditQuery auditQuery, MonitoringService monitoringService, IBrokerThroughputQuery? throughputQuery = null)
+public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettings throughputSettings, IAuditQuery auditQuery, MonitoringService monitoringService, IEnumerable<IEnvironmentDataProvider> environmentDataProviders, IBrokerThroughputQuery? throughputQuery = null)
     : IThroughputCollector
 {
     public async Task<ThroughputConnectionSettings> GetThroughputConnectionSettingsInformation(CancellationToken cancellationToken)
@@ -112,9 +113,8 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
 
     public async Task<SignedReport> GenerateThroughputReport(string spVersion, DateTime? reportEndDate, CancellationToken cancellationToken)
     {
-        (string Mask, string Replacement)[] masks = [];
         var reportMasks = await dataStore.GetReportMasks(cancellationToken);
-        CreateMasks(reportMasks.ToArray());
+        var masker = new Masker([.. reportMasks]);
 
         var queueThroughputs = new List<QueueThroughput>();
         List<string> ignoredQueueNames = [];
@@ -126,7 +126,8 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
             //get all data that we have, including daily values
             var queueThroughput = new QueueThroughput
             {
-                QueueName = Mask(endpointData.Name),
+                NameHash = OneWayHasher.CalculateOneWayHash(endpointData.Name),
+                QueueName = masker.Mask(endpointData.Name),
                 UserIndicator = endpointData.UserIndicator,
                 EndpointIndicators = endpointData.EndpointIndicators ?? [],
                 NoDataOrSendOnly = endpointData.ThroughputData.Sum() == 0,
@@ -179,30 +180,16 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.AuditEnabled.ToString()] = systemHasAuditEnabled.ToString();
         report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.MonitoringEnabled.ToString()] = systemHasMonitoringEnabled.ToString();
 
+        foreach (var environmentDataProvider in environmentDataProviders)
+        {
+            foreach (var (key, value) in environmentDataProvider.GetData())
+            {
+                report.EnvironmentInformation.EnvironmentData[key] = value;
+            }
+        }
+
         var throughputReport = new SignedReport { ReportData = report, Signature = Signature.SignReport(report) };
         return throughputReport;
-
-        void CreateMasks(string[] wordsToMask)
-        {
-            var number = 0;
-            masks = wordsToMask
-                .Select(mask =>
-                {
-                    number++;
-                    return (mask, $"REDACTED{number}");
-                })
-                .ToArray();
-        }
-
-        string Mask(string stringToMask)
-        {
-            foreach (var (mask, replacement) in masks)
-            {
-                stringToMask = stringToMask.Replace(mask, replacement, StringComparison.OrdinalIgnoreCase);
-            }
-
-            return stringToMask;
-        }
     }
 
     async IAsyncEnumerable<EndpointData> GetDistinctEndpointData([EnumeratorCancellation] CancellationToken cancellationToken)

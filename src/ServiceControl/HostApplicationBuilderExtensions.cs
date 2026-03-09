@@ -24,6 +24,7 @@ namespace Particular.ServiceControl
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Transport;
+    using Particular.LicensingComponent;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -54,6 +55,7 @@ namespace Particular.ServiceControl
 
             services.AddSingleton<MessageStreamerHub>();
             services.AddSingleton(settings);
+            services.AddEnvironmentDataProvider<ServiceControlErrorInstanceEnvironmentDataProvider>();
 
             services.AddHttpLogging(options =>
             {
@@ -121,6 +123,7 @@ Ingest Error Messages:              {settings.IngestErrorMessages}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
 ServiceControl Logging Level:       {settings.LoggingSettings.LogLevel}
 Selected Transport Customization:   {settings.TransportType}
+Integrated ServicePulse:            {(settings.EnableIntegratedServicePulse ? "Enabled" : "Disabled")}
 -------------------------------------------------------------";
 
             var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel);

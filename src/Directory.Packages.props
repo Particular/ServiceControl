@@ -54,16 +54,17 @@
     <PackageVersion Include="NServiceBus.Transport.SqlServer" Version="9.0.0" />
     <PackageVersion Include="NServiceBus.Transport.IBMMQ" Version="1.0.0-alpha.1" />
     <PackageVersion Include="NuGet.Versioning" Version="7.3.0" />
-    <PackageVersion Include="NUnit" Version="4.5.0" />
+    <PackageVersion Include="NUnit" Version="4.5.1" />
     <PackageVersion Include="NUnit.Analyzers" Version="4.11.2" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.1.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.15.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.0" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0" />
     <PackageVersion Include="Particular.Approvals" Version="2.0.1" />
-    <PackageVersion Include="Particular.LicensingComponent.Report" Version="1.0.0" />
+    <PackageVersion Include="Particular.LicensingComponent.Report" Version="1.1.1" />
     <PackageVersion Include="Particular.Licensing.Sources" Version="6.1.0" />
     <PackageVersion Include="Particular.Obsoletes" Version="1.0.0" />
+    <PackageVersion Include="Particular.ServicePulse.Core" Version="2.6.0" />
     <PackageVersion Include="Polly.Core" Version="8.6.5" />
     <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
     <PackageVersion Include="PropertyChanging.Fody" Version="1.31.0" />
@@ -81,6 +82,7 @@
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="10.0.3" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="10.0.3" />
+    <PackageVersion Include="ServicePulse.Core" Version="2.5.0-alpha.0.58" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>

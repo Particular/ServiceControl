@@ -61,7 +61,7 @@
                 }
                 catch (Exception ex)
                 {
-                    logger.Error(ex.Message);
+                    logger.Error("Error installing the service: {0}", ex);
                     return false;
                 }
 
@@ -131,7 +131,7 @@
             }
             catch (Exception ex)
             {
-                logger.Error("Upgrade Failed: {0}", ex.Message);
+                logger.Error("Upgrade Failed: {0}", ex);
                 return false;
             }
             finally
@@ -175,7 +175,7 @@
             }
             catch (Exception ex)
             {
-                logger.Error("Update failed: {0}", ex.Message);
+                logger.Error("Update failed: {0}", ex);
                 return false;
             }
             finally
@@ -270,7 +270,7 @@
             }
             catch (Exception ex)
             {
-                logger.Error("Adding remote instances Failed: {0}", ex.Message);
+                logger.Error("Adding remote instances Failed: {0}", ex);
                 return false;
             }
             finally
@@ -310,7 +310,7 @@
             }
             catch (Exception ex)
             {
-                logger.Error("Removing remote instances Failed: {0}", ex.Message);
+                logger.Error("Removing remote instances Failed: {0}", ex);
                 return false;
             }
             finally
