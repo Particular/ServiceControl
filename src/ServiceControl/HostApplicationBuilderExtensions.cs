@@ -21,6 +21,7 @@ namespace Particular.ServiceControl
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Hosting.WindowsServices;
     using Microsoft.Extensions.Logging;
+    using ModelContextProtocol.AspNetCore;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Transport;
@@ -102,6 +103,13 @@ namespace Particular.ServiceControl
             }
 
             hostBuilder.AddServiceControlComponents(settings, transportCustomization, ServiceControlMainInstance.Components);
+
+            if (settings.EnableMcpServer)
+            {
+                hostBuilder.Services.AddMcpServer()
+                    .WithHttpTransport()
+                    .WithToolsFromAssembly(typeof(HostApplicationBuilderExtensions).Assembly);
+            }
         }
 
         public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder, Settings settings)

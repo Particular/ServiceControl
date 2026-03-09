@@ -95,6 +95,8 @@ namespace ServiceControl.Monitoring
 
         public string ServiceControlThroughputDataQueue { get; set; }
 
+        public bool EnableMcpServer { get; } = SettingsReader.Read(SettingsRootNamespace, "EnableMcpServer", false);
+
         public bool ValidateConfiguration => SettingsReader.Read(SettingsRootNamespace, "ValidateConfig", true);
 
         // The default value is set to the maximum allowed time by the most

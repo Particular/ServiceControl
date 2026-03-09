@@ -15,6 +15,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.WindowsServices;
 using Microsoft.Extensions.Logging;
 using Monitoring;
+using ModelContextProtocol.AspNetCore;
 using NServiceBus;
 using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Transport;
@@ -82,6 +83,13 @@ static class HostApplicationBuilderExtensions
         {
             // The if is added for clarity, internally AddWindowsService has a similar logic
             builder.AddWindowsServiceWithRequestTimeout();
+        }
+
+        if (settings.EnableMcpServer)
+        {
+            builder.Services.AddMcpServer()
+                .WithHttpTransport()
+                .WithToolsFromAssembly(typeof(HostApplicationBuilderExtensions).Assembly);
         }
     }
 

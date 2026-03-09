@@ -5,6 +5,7 @@ namespace ServiceControl.Monitoring
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
     using NServiceBus;
+    using ModelContextProtocol.AspNetCore;
     using ServiceControl.Hosting.Auth;
     using ServiceControl.Hosting.Https;
 
@@ -23,6 +24,11 @@ namespace ServiceControl.Monitoring
             var app = hostBuilder.Build();
             app.UseServiceControlMonitoring(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings.CorsSettings);
             app.UseServiceControlAuthentication(authenticationEnabled: settings.OpenIdConnectSettings.Enabled);
+
+            if (settings.EnableMcpServer)
+            {
+                app.MapMcp("/mcp");
+            }
 
             await app.RunAsync(settings.RootUrl);
         }

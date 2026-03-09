@@ -114,6 +114,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool AllowMessageEditing { get; set; }
 
         public bool EnableIntegratedServicePulse { get; set; }
+        public bool EnableMcpServer { get; } = SettingsReader.Read(SettingsRootNamespace, "EnableMcpServer", false);
         public ServicePulseSettings ServicePulseSettings { get; set; }
 
         //HINT: acceptance tests only

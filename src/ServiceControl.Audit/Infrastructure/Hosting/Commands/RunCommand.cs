@@ -3,6 +3,7 @@
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Builder;
     using NServiceBus;
+    using ModelContextProtocol.AspNetCore;
     using ServiceControl.Hosting.Auth;
     using ServiceControl.Hosting.Https;
     using Settings;
@@ -30,6 +31,11 @@
             var app = hostBuilder.Build();
             app.UseServiceControlAudit(settings.ForwardedHeadersSettings, settings.HttpsSettings);
             app.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
+
+            if (settings.EnableMcpServer)
+            {
+                app.MapMcp("/mcp");
+            }
 
             await app.RunAsync(settings.RootUrl);
         }

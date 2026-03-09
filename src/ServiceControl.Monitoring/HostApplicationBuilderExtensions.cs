@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.WindowsServices;
+using ModelContextProtocol.AspNetCore;
 using NServiceBus;
 using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Features;
@@ -77,6 +78,13 @@ public static class HostApplicationBuilderExtensions
         hostBuilder.UseNServiceBus(endpointConfiguration);
 
         hostBuilder.AddAsyncTimer();
+
+        if (settings.EnableMcpServer)
+        {
+            hostBuilder.Services.AddMcpServer()
+                .WithHttpTransport()
+                .WithToolsFromAssembly(typeof(HostApplicationBuilderExtensions).Assembly);
+        }
     }
 
     static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings, IServiceCollection services)

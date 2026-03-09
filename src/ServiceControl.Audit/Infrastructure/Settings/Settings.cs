@@ -186,6 +186,7 @@
         public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
 
         public bool EnableFullTextSearchOnBodies { get; set; }
+        public bool EnableMcpServer { get; } = SettingsReader.Read(SettingsRootNamespace, "EnableMcpServer", false);
 
         // The default value is set to the maximum allowed time by the most
         // restrictive hosting platform, which is Linux containers. Linux
