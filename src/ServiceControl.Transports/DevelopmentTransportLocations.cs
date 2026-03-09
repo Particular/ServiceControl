@@ -19,13 +19,13 @@
             {
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.ASBS"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.ASQ"));
+                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.IBMMQ"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.Learning"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.Msmq", "net10.0-windows"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.RabbitMQ"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.SqlServer"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.SQS"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.PostgreSql"));
-                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.IBMMQ"));
             }
         }
 
