@@ -125,7 +125,7 @@
                 hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControl(settings, configuration);
                 hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
-                hostBuilder.AddServiceControlApi(settings.CorsSettings);
+                hostBuilder.AddServiceControlApi(settings);
 
                 hostBuilder.AddServiceControlTesting(settings);
 
@@ -135,7 +135,7 @@
 
                 host.UseTestRemoteIp();
                 host.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
-                host.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings);
+                host.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings);
                 await host.StartAsync();
                 DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
                 // Bring this back and look into the base address of the client
