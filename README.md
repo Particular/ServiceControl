@@ -102,3 +102,9 @@ Steps:
      -ErrorRetentionPeriod 10:00:00:00 `
      -Acknowledgements RabbitMQBrokerVersion310
   ```
+
+## Integrated ServicePulse
+
+Since version 6.13, ServiceControl ships with a copy of ServicePulse and [can host it from an Error instance](https://docs.particular.net/servicecontrol/servicecontrol-instances/integrated-servicepulse).
+
+ServiceControl Error instances have a reference to the Particular.ServicePulse.Core package; this contains the ServicePulse assets, along with the code required to serve them out of an ASP.NET web host.
