@@ -20,7 +20,7 @@ docker run -d --name servicecontrol -p 33333:33333 \
     -e CONNECTIONSTRING="host=rabbitmq" \
     -e RAVENDB_CONNECTIONSTRING="http://servicecontrol-db:8080" \
     -e REMOTEINSTANCES='[{"api_uri":"http://audit:44444/api"}]' \
-    -e ENABLEDINTEGRATEDSERVICEPULSE="true" \
+    -e ENABLEINTEGRATEDSERVICEPULSE="true" \
     particular/servicecontrol:latest --setup-and-run
 ```
 
