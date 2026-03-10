@@ -42,5 +42,13 @@ static class RabbitMQTransportExtensions
             _ = bool.TryParse(useExternalAuthMechanismString, out var useExternalAuthMechanism);
             transport.UseExternalAuthMechanism = useExternalAuthMechanism;
         }
+
+        if (dictionary.TryGetValue("DisableBrokerRequirementChecks", out var disableBrokerRequirementChecksString)
+            && bool.TryParse(disableBrokerRequirementChecksString, out var disableBrokerRequirementChecks)
+            && disableBrokerRequirementChecks)
+        {
+            transport.DisabledBrokerRequirementChecks =
+                BrokerRequirementChecks.Version310OrNewer | BrokerRequirementChecks.StreamsEnabled;
+        }
     }
 }
