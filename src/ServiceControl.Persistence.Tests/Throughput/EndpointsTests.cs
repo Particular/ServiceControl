@@ -199,6 +199,38 @@ class EndpointsTests : PersistenceTestBase
         Assert.That(foundEndpointMonitoring.UserIndicator, Is.EqualTo(userIndicator));
     }
 
+    [Test]
+    public async Task Should_update_user_indicators_on_more_than_30_endpoints_without_hitting_session_request_limit()
+    {
+        // Arrange
+        // Each pair shares a sanitized name but has different raw names.
+        // Updating by raw name (not sanitized name) triggers a sibling propagation query.
+        // In the original code, that was one DB query per endpoint, exceeding RavenDB's
+        // default limit of 30 requests per session when 30+ endpoints are updated at once.
+        const int endpointCount = 30;
+        var userIndicator = "someIndicator";
+
+        for (var i = 0; i < endpointCount; i++)
+        {
+            var sanitizedName = $"Endpoint{i}";
+            await LicensingDataStore.SaveEndpoint(new Endpoint(sanitizedName, ThroughputSource.Audit) { SanitizedName = sanitizedName }, default);
+            await LicensingDataStore.SaveEndpoint(new Endpoint($"schema.{sanitizedName}", ThroughputSource.Monitoring) { SanitizedName = sanitizedName }, default);
+        }
+
+        var updates = Enumerable.Range(0, endpointCount)
+            .Select(i => new UpdateUserIndicator { Name = $"schema.Endpoint{i}", UserIndicator = userIndicator })
+            .ToList();
+
+        // Act - must not throw InvalidOperationException due to exceeding session request limit
+        await LicensingDataStore.UpdateUserIndicatorOnEndpoints(updates, default);
+
+        // Assert
+        var allEndpoints = (await LicensingDataStore.GetAllEndpoints(true, default)).ToList();
+
+        Assert.That(allEndpoints, Has.Count.EqualTo(endpointCount * 2));
+        Assert.That(allEndpoints, Has.All.Matches<Endpoint>(e => e.UserIndicator == userIndicator));
+    }
+
     [TestCase(10, 5, false)]
     [TestCase(10, 20, true)]
     public async Task Should_correctly_report_throughput_existence_for_X_days(int daysSinceLastThroughputEntry, int timeFrameToCheck, bool expectedValue)

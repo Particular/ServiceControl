@@ -190,6 +190,10 @@ class LicensingDataStore(
             .Where(document => document.SanitizedName.In(updates.Keys) || document.EndpointId.Name.In(updates.Keys));
 
         var documents = await query.ToListAsync(cancellationToken);
+
+        // Collect sanitized names needing sibling propagation to avoid issuing a query per document in the loop below.
+        var sanitizedNameToUserIndicator = new Dictionary<string, string>();
+
         foreach (var document in documents)
         {
             if (updates.TryGetValue(document.SanitizedName, out var newValueFromSanitizedName))
@@ -199,14 +203,25 @@ class LicensingDataStore(
             else if (updates.TryGetValue(document.EndpointId.Name, out var newValueFromEndpoint))
             {
                 document.UserIndicator = newValueFromEndpoint;
-                //update all that match this sanitized name
-                var sanitizedMatchingQuery = session.Query<EndpointDocument>()
-                    .Where(sanitizedDocument => sanitizedDocument.SanitizedName == document.SanitizedName && sanitizedDocument.EndpointId.Name != document.EndpointId.Name);
-                var sanitizedMatchingDocuments = await sanitizedMatchingQuery.ToListAsync(cancellationToken);
+                sanitizedNameToUserIndicator[document.SanitizedName] = newValueFromEndpoint;
+            }
+        }
 
-                foreach (var matchingDocumentOnSanitizedName in sanitizedMatchingDocuments)
+        if (sanitizedNameToUserIndicator.Count > 0)
+        {
+            // One batched query for all sibling documents, instead of one query per document.
+            var sanitizedNames = sanitizedNameToUserIndicator.Keys.ToList();
+            var alreadyLoadedIds = documents.Select(d => d.Id).ToHashSet();
+
+            var siblingDocuments = await session.Query<EndpointDocument>()
+                .Where(d => d.SanitizedName.In(sanitizedNames))
+                .ToListAsync(cancellationToken);
+
+            foreach (var sibling in siblingDocuments.Where(d => !alreadyLoadedIds.Contains(d.Id)))
+            {
+                if (sanitizedNameToUserIndicator.TryGetValue(sibling.SanitizedName, out var indicator))
                 {
-                    matchingDocumentOnSanitizedName.UserIndicator = newValueFromEndpoint;
+                    sibling.UserIndicator = indicator;
                 }
             }
         }
