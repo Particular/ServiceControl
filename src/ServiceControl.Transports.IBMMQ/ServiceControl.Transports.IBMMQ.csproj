@@ -19,9 +19,6 @@
 
 <ItemGroup>
   <None Update="transport.manifest" CopyToOutputDirectory="PreserveNewest" />
-  <None Update="transport.manifest">
-    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-  </None>
 </ItemGroup>
 
 <ItemGroup>
