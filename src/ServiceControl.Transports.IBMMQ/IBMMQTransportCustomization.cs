@@ -25,10 +25,13 @@ public class IBMMQTransportCustomization : TransportCustomization<IBMMQTransport
 
     protected override IBMMQTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
     {
-        var overrides = transportSettings.Get<Action<IBMMQTransportOptions>>();
         var transport = new IBMMQTransport(o =>
         {
-            overrides(o);
+            if (transportSettings.TryGet<Action<IBMMQTransportOptions>>(out var overrides))
+            {
+                overrides(o);
+            }
+
             TestConnectionDetails.Apply(o);
         });
         transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode)
