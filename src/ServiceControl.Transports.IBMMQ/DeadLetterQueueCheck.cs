@@ -1,121 +1,66 @@
-﻿// namespace ServiceControl.Transports.IBMMQ;
-//
-//     using System;
-//     using System.Configuration;
-//     using System.Diagnostics;
-//     using System.Threading;
-//     using System.Threading.Tasks;
-//     using Microsoft.Extensions.Logging;
-//     using NServiceBus.CustomChecks;
-//     using Transports;
-//
-//     public class DeadLetterQueueCheck : CustomCheck
-//     {
-//         public DeadLetterQueueCheck(TransportSettings settings, ILogger<DeadLetterQueueCheck> logger) :
-//             base("Dead Letter Queue", "Transport", TimeSpan.FromHours(1))
-//         {
-//             runCheck = settings.RunCustomChecks;
-//             if (!runCheck)
-//             {
-//                 return;
-//             }
-//
-//             logger.LogDebug("MSMQ Dead Letter Queue custom check starting");
-//
-//             categoryName = Read("Msmq/PerformanceCounterCategoryName", "MSMQ Queue");
-//             counterName = Read("Msmq/PerformanceCounterName", "Messages in Queue");
-//             counterInstanceName = Read("Msmq/PerformanceCounterInstanceName", "Computer Queues");
-//
-//             try
-//             {
-//                 dlqPerformanceCounter = new PerformanceCounter(categoryName, counterName, counterInstanceName, readOnly: true);
-//             }
-//             catch (InvalidOperationException ex)
-//             {
-//                 logger.LogError(ex, CounterMightBeLocalized("CategoryName", "CounterName", "CounterInstanceName"), categoryName, counterName, counterInstanceName);
-//             }
-//
-//             this.logger = logger;
-//         }
-//
-//         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
-//         {
-//             if (!runCheck)
-//             {
-//                 return CheckResult.Pass;
-//             }
-//
-//             logger.LogDebug("Checking Dead Letter Queue length");
-//             float currentValue;
-//             try
-//             {
-//                 if (dlqPerformanceCounter == null)
-//                 {
-//                     throw new InvalidOperationException("Unable to create performance counter instance.");
-//                 }
-//
-//                 currentValue = dlqPerformanceCounter.NextValue();
-//             }
-//             catch (InvalidOperationException ex)
-//             {
-//                 logger.LogWarning(ex, CounterMightBeLocalized("CategoryName", "CounterName", "CounterInstanceName"), categoryName, counterName, counterInstanceName);
-//                 return CheckResult.Failed(CounterMightBeLocalized(categoryName, counterName, counterInstanceName));
-//             }
-//
-//             if (currentValue <= 0)
-//             {
-//                 logger.LogDebug("No messages in Dead Letter Queue");
-//                 return CheckResult.Pass;
-//             }
-//
-//             logger.LogWarning("{DeadLetterMessageCount} messages in the Dead Letter Queue on {MachineName}. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages", currentValue, Environment.MachineName);
-//             return CheckResult.Failed($"{currentValue} messages in the Dead Letter Queue on {Environment.MachineName}. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.");
-//         }
-//
-//         static string CounterMightBeLocalized(string categoryName, string counterName, string counterInstanceName)
-//         {
-//             return
-//                 $"Unable to read the Dead Letter Queue length. The performance counter with category '{categoryName}' and name '{counterName}' and instance name '{counterInstanceName}' is not available. "
-//                 + "It is possible that the counter category, name and instance name have been localized into different languages. "
-//                 + @"Consider overriding the counter category, name and instance name in the application configuration file by adding:
-//    <appSettings>
-//      <add key=""ServiceControl/Msmq/PerformanceCounterCategoryName"" value=""LocalizedCategoryName"" />
-//      <add key=""ServiceControl/Msmq/PerformanceCounterName"" value=""LocalizedCounterName"" />
-//      <add key=""ServiceControl/Msmq/PerformanceCounterInstanceName"" value=""LocalizedCounterInstanceName"" />
-//    </appSettings>
-// ";
-//         }
-//
-//         // from ConfigFileSettingsReader since we cannot reference ServiceControl
-//         static string Read(string name, string defaultValue = default)
-//         {
-//             return Read("ServiceControl", name, defaultValue);
-//         }
-//
-//         static string Read(string root, string name, string defaultValue = default)
-//         {
-//             return TryRead(root, name, out var value) ? value : defaultValue;
-//         }
-//
-//         static bool TryRead(string root, string name, out string value)
-//         {
-//             var fullKey = $"{root}/{name}";
-//
-//             if (ConfigurationManager.AppSettings[fullKey] != null)
-//             {
-//                 value = ConfigurationManager.AppSettings[fullKey];
-//                 return true;
-//             }
-//
-//             value = default;
-//             return false;
-//         }
-//
-//         PerformanceCounter dlqPerformanceCounter;
-//         string categoryName;
-//         string counterName;
-//         string counterInstanceName;
-//         bool runCheck;
-//
-//         readonly ILogger logger;
-//     }
+namespace ServiceControl.Transports.IBMMQ;
+
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using IBM.WMQ;
+using Microsoft.Extensions.Logging;
+using NServiceBus.CustomChecks;
+using ServiceControl.Infrastructure;
+
+public class DeadLetterQueueCheck : CustomCheck
+{
+    public DeadLetterQueueCheck(TransportSettings settings) : base(id: "Dead Letter Queue", category: "Transport", repeatAfter: TimeSpan.FromHours(1))
+    {
+        Logger.LogDebug("IBM MQ Dead Letter Queue custom check starting");
+
+        (queueManagerName, connectionProperties) = ConnectionProperties.Parse(settings.ConnectionString);
+        runCheck = settings.RunCustomChecks;
+    }
+
+    public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
+    {
+        if (!runCheck)
+        {
+            return Task.FromResult(CheckResult.Pass);
+        }
+
+        Logger.LogDebug("Checking Dead Letter Queue length");
+
+        try
+        {
+            using var queueManager = new MQQueueManager(queueManagerName, connectionProperties);
+
+            var dlqName = queueManager.DeadLetterQueueName?.Trim();
+            if (string.IsNullOrEmpty(dlqName))
+            {
+                return Task.FromResult(CheckResult.Pass);
+            }
+
+            using var dlq = queueManager.AccessQueue(dlqName, MQC.MQOO_INQUIRE | MQC.MQOO_FAIL_IF_QUIESCING);
+            var depth = dlq.CurrentDepth;
+
+            if (depth > 0)
+            {
+                var message = $"{depth} messages in the Dead Letter Queue '{dlqName}' on queue manager '{queueManagerName}'. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.";
+                Logger.LogWarning("{DeadLetterMessageCount} messages in the Dead Letter Queue '{DeadLetterQueueName}' on queue manager '{QueueManagerName}'", depth, dlqName, queueManagerName);
+                return Task.FromResult(CheckResult.Failed(message));
+            }
+
+            Logger.LogDebug("No messages in Dead Letter Queue");
+            return Task.FromResult(CheckResult.Pass);
+        }
+        catch (MQException e)
+        {
+            var message = $"Unable to check Dead Letter Queue on queue manager '{queueManagerName}'. Reason: {e.Message} (RC={e.ReasonCode})";
+            Logger.LogWarning(e, "Unable to check Dead Letter Queue on queue manager '{QueueManagerName}'", queueManagerName);
+            return Task.FromResult(CheckResult.Failed(message));
+        }
+    }
+
+    readonly string queueManagerName;
+    readonly System.Collections.Hashtable connectionProperties;
+    readonly bool runCheck;
+
+    static readonly ILogger Logger = LoggerUtil.CreateStaticLogger(typeof(DeadLetterQueueCheck));
+}

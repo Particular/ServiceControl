@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using IBM.WMQ;
 using Microsoft.Extensions.Logging;
 
@@ -16,58 +15,7 @@ class QueueLengthProvider : AbstractQueueLengthProvider
         : base(settings, store)
     {
         this.logger = logger;
-
-        var connectionUri = new Uri(ConnectionString);
-        var query = HttpUtility.ParseQueryString(connectionUri.Query);
-
-        queueManagerName = connectionUri.AbsolutePath.Trim('/') is { Length: > 0 } path
-            ? Uri.UnescapeDataString(path)
-            : "QM1";
-
-        connectionProperties = new Hashtable
-        {
-            [MQC.TRANSPORT_PROPERTY] = MQC.TRANSPORT_MQSERIES_MANAGED,
-            [MQC.HOST_NAME_PROPERTY] = connectionUri.Host,
-            [MQC.PORT_PROPERTY] = connectionUri.Port > 0 ? connectionUri.Port : 1414,
-            [MQC.CHANNEL_PROPERTY] = query["channel"] ?? "DEV.ADMIN.SVRCONN"
-        };
-
-        var userInfo = connectionUri.UserInfo;
-        if (!string.IsNullOrEmpty(userInfo))
-        {
-            var parts = userInfo.Split(':');
-            var user = Uri.UnescapeDataString(parts[0]);
-
-            if (!string.IsNullOrWhiteSpace(user))
-            {
-                connectionProperties[MQC.USE_MQCSP_AUTHENTICATION_PROPERTY] = true;
-                connectionProperties[MQC.USER_ID_PROPERTY] = user;
-            }
-
-            if (parts.Length > 1)
-            {
-                var password = Uri.UnescapeDataString(parts[1]);
-                if (!string.IsNullOrWhiteSpace(password))
-                {
-                    connectionProperties[MQC.PASSWORD_PROPERTY] = password;
-                }
-            }
-        }
-
-        if (query["sslkeyrepo"] is { } sslKeyRepo)
-        {
-            connectionProperties[MQC.SSL_CERT_STORE_PROPERTY] = sslKeyRepo;
-        }
-
-        if (query["cipherspec"] is { } cipherSpec)
-        {
-            connectionProperties[MQC.SSL_CIPHER_SPEC_PROPERTY] = cipherSpec;
-        }
-
-        if (query["sslpeername"] is { } sslPeerName)
-        {
-            connectionProperties[MQC.SSL_PEER_NAME_PROPERTY] = sslPeerName;
-        }
+        (queueManagerName, connectionProperties) = ConnectionProperties.Parse(ConnectionString);
     }
 
     public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack) =>
