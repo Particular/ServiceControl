@@ -49,6 +49,7 @@ static class RabbitMQTransportExtensions
         {
             transport.DisabledBrokerRequirementChecks =
                 BrokerRequirementChecks.Version310OrNewer | BrokerRequirementChecks.StreamsEnabled;
+            transport.ValidateDeliveryLimits = false;
         }
     }
 }
