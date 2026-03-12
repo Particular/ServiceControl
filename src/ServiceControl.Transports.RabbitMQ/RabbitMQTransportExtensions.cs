@@ -8,6 +8,22 @@ using NServiceBus;
 
 static class RabbitMQTransportExtensions
 {
+    public static bool HasBrokerRequirementChecksDisabled(string connectionString)
+    {
+        if (connectionString.StartsWith("amqp", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var dictionary = new DbConnectionStringBuilder { ConnectionString = connectionString }
+            .OfType<KeyValuePair<string, object>>()
+            .ToDictionary(pair => pair.Key, pair => pair.Value.ToString(), StringComparer.OrdinalIgnoreCase);
+
+        return dictionary.TryGetValue("DisableBrokerRequirementChecks", out var value)
+            && bool.TryParse(value, out var disabled)
+            && disabled;
+    }
+
     public static void ApplySettingsFromConnectionString(this RabbitMQTransport transport, string connectionString)
     {
         if (connectionString.StartsWith("amqp", StringComparison.OrdinalIgnoreCase))

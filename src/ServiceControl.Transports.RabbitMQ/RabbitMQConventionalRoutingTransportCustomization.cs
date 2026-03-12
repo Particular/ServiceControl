@@ -53,11 +53,24 @@
         }
 
         protected override void AddTransportForPrimaryCore(IServiceCollection services, TransportSettings transportSettings)
-            => services.AddSingleton<IBrokerThroughputQuery, RabbitMQQuery>();
+        {
+            if (!RabbitMQTransportExtensions.HasBrokerRequirementChecksDisabled(transportSettings.ConnectionString))
+            {
+                services.AddSingleton<IBrokerThroughputQuery, RabbitMQQuery>();
+            }
+        }
 
         protected sealed override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
         {
-            services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
+            if (RabbitMQTransportExtensions.HasBrokerRequirementChecksDisabled(transportSettings.ConnectionString))
+            {
+                services.AddSingleton<IProvideQueueLength, NoOpQueueLengthProvider>();
+            }
+            else
+            {
+                services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
+            }
+
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
     }
