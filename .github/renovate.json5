@@ -5,6 +5,33 @@
       matchFileNames: ["**/ServiceControl.Management.PowerShell.csproj"],
       matchPackageNames: ["Microsoft.Extensions.DependencyModel"],
       allowedVersions: "<9.0.0"
+    },
+    {
+      // Group .NET patch
+      matchDatasources: ['nuget'],
+      matchPackageNames: [
+        'System.Configuration.ConfigurationManager',
+        'System.DirectoryServices.AccountManagement',
+        'System.Diagnostics.PerformanceCounter',
+        'System.IO.Hashing',
+        'System.Management',
+        'System.Reflection.MetadataLoadContext',
+        'System.ServiceProcess.ServiceController',
+        'Microsoft.AspNetCore.Authentication.OpenIdConnect',
+        'Microsoft.AspNetCore.Authentication.JwtBearer',
+        'Microsoft.AspNetCore.SignalR.Client',
+        'Microsoft.AspNetCore.Mvc.Testing',
+        'Microsoft.Extensions.DependencyModel',
+        'Microsoft.Extensions.DependencyInjection',
+        'Microsoft.Extensions.Hosting.Abstractions',
+        'Microsoft.Extensions.Hosting.WindowsServices',
+        'Microsoft.Extensions.Hosting',
+        'Microsoft.Extensions.Logging.Abstractions',
+        'Microsoft.Extensions.Logging.Console',
+        'Microsoft.Extensions.TimeProvider.Testing',
+      ],
+      groupName: ".NET patch",
+      groupSlug: 'dotnet-patch'
     }
   ]
 }
