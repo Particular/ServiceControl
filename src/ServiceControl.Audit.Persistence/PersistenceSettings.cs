@@ -25,6 +25,8 @@
 
         public int MaxBodySizeToStore { get; set; }
 
+        public int? TargetMessageIngestionRate { get; set; }
+
         public IDictionary<string, string> PersisterSpecificSettings { get; }
     }
 }
