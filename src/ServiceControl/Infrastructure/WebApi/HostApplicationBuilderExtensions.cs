@@ -9,10 +9,11 @@
     using Microsoft.Extensions.Hosting;
     using Particular.LicensingComponent.WebApi;
     using Particular.ServiceControl;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     static class HostApplicationBuilderExtensions
     {
-        public static void AddServiceControlApi(this IHostApplicationBuilder builder, CorsSettings corsSettings)
+        public static void AddServiceControlApi(this IHostApplicationBuilder builder, Settings settings)
         {
             // This registers concrete classes that implement IApi. Currently it is hard to find out to what
             // component those APIs should belong to so we leave it here for now.
@@ -20,7 +21,15 @@
 
             builder.AddServiceControlApis();
 
-            builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy(corsSettings)));
+            if (settings.EnableMcpServer)
+            {
+                builder.Services
+                    .AddMcpServer()
+                    .WithHttpTransport()
+                    .WithToolsFromAssembly();
+            }
+
+            builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy(settings.CorsSettings)));
 
             // We're not explicitly adding Gzip here because it's already in the default list of supported compressors
             builder.Services.AddResponseCompression();
