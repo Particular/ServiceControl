@@ -18,6 +18,16 @@
       ],
       groupName: ".NET patch",
       groupSlug: 'dotnet-patch'
+    },
+    {
+      // Group IdentityModel 
+      matchDatasources: ['nuget'],
+      matchPackageNames: [
+        '/^Microsoft.IdentityModel./',
+        '/^System.IdentityModel./'
+      ],
+      groupName: "IdentityModel",
+      groupSlug: 'identity-model'
     }
   ]
 }
