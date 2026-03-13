@@ -1,33 +1,35 @@
 {
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
   packageRules: [
+    {
+      description:"Packages that ship as part of .NET",
+      matchDatasources: ["nuget"],
+      matchPackageNames: [
+        "/^Microsoft.AspNetCore./",
+        "/^Microsoft.Extensions./",
+        "/^System./",
+        "!/^System.IdentityModel./",
+        "!/^System.Management.Automation/",
+        "!/^System.Reactive/"
+      ],
+      groupName: ".NET Packages",
+      groupSlug: "dotnet-packages"
+    },
+    {
+      description:"IdentityModel packages that release separately from .NET",
+      matchDatasources: ["nuget"],
+      matchPackageNames: [
+        "/^Microsoft.IdentityModel./",
+        "/^System.IdentityModel./"
+      ],
+      groupName: "IdentityModel",
+      groupSlug: "identity-model"
+    },
     {
       description: "Keep ServiceControl.Management.PowerShell on 8.x",
       matchFileNames: ["**/ServiceControl.Management.PowerShell.csproj"],
       matchPackageNames: ["Microsoft.Extensions.DependencyModel"],
       allowedVersions: "<9.0.0"
-    },
-    {
-      // Group .NET patch
-      matchDatasources: ['nuget'],
-      matchPackageNames: [
-        '/^System./',
-        // This one gets released out of band
-        '!/^System.Management.Automation',
-        '/^Microsoft.AspNetCore./',
-        '/^Microsoft.Extensions./'
-      ],
-      groupName: ".NET patch",
-      groupSlug: 'dotnet-patch'
-    },
-    {
-      // Group IdentityModel 
-      matchDatasources: ['nuget'],
-      matchPackageNames: [
-        '/^Microsoft.IdentityModel./',
-        '/^System.IdentityModel./'
-      ],
-      groupName: "IdentityModel",
-      groupSlug: 'identity-model'
     }
   ]
 }
