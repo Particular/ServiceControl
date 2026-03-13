@@ -26,6 +26,13 @@
       groupSlug: "identity-model"
     },
     {
+      description:"OpenTelemetry packages",
+      matchDatasources: ["nuget"],
+      matchPackageNames: ["/^OpenTelemetry./"],
+      groupName: "OpenTelemetry",
+      groupSlug: "open-telemetry"
+    },
+    {
       description: "Keep ServiceControl.Management.PowerShell on 8.x",
       matchFileNames: ["**/ServiceControl.Management.PowerShell.csproj"],
       matchPackageNames: ["Microsoft.Extensions.DependencyModel"],
