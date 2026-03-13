@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.InMemory
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -60,7 +61,7 @@
                     Stream = new MemoryStream(messageBody.Content),
                     ContentType = messageBody.ContentType,
                     BodySize = messageBody.BodySize,
-                    Etag = string.Empty
+                    Etag = Guid.NewGuid().ToString()
                 });
         }
 
