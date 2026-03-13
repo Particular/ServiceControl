@@ -73,7 +73,7 @@
     <PackageVersion Include="Seq.Extensions.Logging" Version="9.0.0" />
     <PackageVersion Include="ServiceControl.Contracts" Version="5.1.0" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="10.0.5" />
-    <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="10.0.3" />
+    <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="10.0.5" />
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="10.0.3" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
     <PackageVersion Include="System.Management" Version="10.0.3" />
