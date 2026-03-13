@@ -10,25 +10,11 @@
       // Group .NET patch
       matchDatasources: ['nuget'],
       matchPackageNames: [
-        'System.Configuration.ConfigurationManager',
-        'System.DirectoryServices.AccountManagement',
-        'System.Diagnostics.PerformanceCounter',
-        'System.IO.Hashing',
-        'System.Management',
-        'System.Reflection.MetadataLoadContext',
-        'System.ServiceProcess.ServiceController',
-        'Microsoft.AspNetCore.Authentication.OpenIdConnect',
-        'Microsoft.AspNetCore.Authentication.JwtBearer',
-        'Microsoft.AspNetCore.SignalR.Client',
-        'Microsoft.AspNetCore.Mvc.Testing',
-        'Microsoft.Extensions.DependencyModel',
-        'Microsoft.Extensions.DependencyInjection',
-        'Microsoft.Extensions.Hosting.Abstractions',
-        'Microsoft.Extensions.Hosting.WindowsServices',
-        'Microsoft.Extensions.Hosting',
-        'Microsoft.Extensions.Logging.Abstractions',
-        'Microsoft.Extensions.Logging.Console',
-        'Microsoft.Extensions.TimeProvider.Testing',
+        '/^System./',
+        // This one gets released out of band
+        '!/^System.Management.Automation',
+        '/^Microsoft.AspNetCore./',
+        '/^Microsoft.Extensions./'
       ],
       groupName: ".NET patch",
       groupSlug: 'dotnet-patch'
