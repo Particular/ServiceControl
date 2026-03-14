@@ -53,6 +53,9 @@
             MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
             ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
+            AuditIngestionBatchSize = GetAuditIngestionBatchSize();
+            AuditIngestionMaxParallelWriters = GetAuditIngestionMaxParallelWriters();
+            AuditIngestionBatchTimeout = GetAuditIngestionBatchTimeout();
             EnableFullTextSearchOnBodies = SettingsReader.Read(SettingsRootNamespace, "EnableFullTextSearchOnBodies", true);
             ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
 
@@ -185,6 +188,9 @@
 
         public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
 
+        public int AuditIngestionBatchSize { get; set; }
+        public int AuditIngestionMaxParallelWriters { get; set; }
+        public TimeSpan AuditIngestionBatchTimeout { get; set; }
         public bool EnableFullTextSearchOnBodies { get; set; }
 
         // The default value is set to the maximum allowed time by the most
@@ -313,6 +319,80 @@
             var queue = address.Substring(0, atIndex);
             var machine = address.Substring(atIndex + 1);
             return $"{queue}.log@{machine}";
+        }
+
+        int GetAuditIngestionBatchSize()
+        {
+            var value = SettingsReader.Read(SettingsRootNamespace, "AuditIngestionBatchSize", 50);
+
+            if (ValidateConfiguration && value < 1)
+            {
+                var message = $"{nameof(AuditIngestionBatchSize)} setting is invalid, minimum value is 1.";
+                InternalLogger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            if (ValidateConfiguration && value > 500)
+            {
+                var message = $"{nameof(AuditIngestionBatchSize)} setting is invalid, maximum value is 500.";
+                InternalLogger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            return value;
+        }
+
+        int GetAuditIngestionMaxParallelWriters()
+        {
+            var value = SettingsReader.Read(SettingsRootNamespace, "AuditIngestionMaxParallelWriters", 4);
+
+            if (ValidateConfiguration && value < 1)
+            {
+                var message = $"{nameof(AuditIngestionMaxParallelWriters)} setting is invalid, minimum value is 1.";
+                InternalLogger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            if (ValidateConfiguration && value > 16)
+            {
+                var message = $"{nameof(AuditIngestionMaxParallelWriters)} setting is invalid, maximum value is 16.";
+                InternalLogger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            return value;
+        }
+
+        TimeSpan GetAuditIngestionBatchTimeout()
+        {
+            var valueRead = SettingsReader.Read<string>(SettingsRootNamespace, "AuditIngestionBatchTimeout");
+            if (valueRead == null)
+            {
+                return TimeSpan.FromMilliseconds(100);
+            }
+
+            if (TimeSpan.TryParse(valueRead, out var result))
+            {
+                if (ValidateConfiguration && result < TimeSpan.FromMilliseconds(10))
+                {
+                    var message = $"{nameof(AuditIngestionBatchTimeout)} setting is invalid, minimum value is 10 milliseconds.";
+                    InternalLogger.Fatal(message);
+                    throw new Exception(message);
+                }
+
+                if (ValidateConfiguration && result > TimeSpan.FromSeconds(5))
+                {
+                    var message = $"{nameof(AuditIngestionBatchTimeout)} setting is invalid, maximum value is 5 seconds.";
+                    InternalLogger.Fatal(message);
+                    throw new Exception(message);
+                }
+
+                return result;
+            }
+
+            var parseMessage = $"{nameof(AuditIngestionBatchTimeout)} setting is invalid, please make sure it is a TimeSpan.";
+            InternalLogger.Fatal(parseMessage);
+            throw new Exception(parseMessage);
         }
 
         // logger is intentionally not static to prevent it from being initialized before LoggingConfigurator.ConfigureLogging has been called

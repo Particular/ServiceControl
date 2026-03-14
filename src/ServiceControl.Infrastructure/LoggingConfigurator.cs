@@ -70,8 +70,15 @@ namespace ServiceControl.Infrastructure
                 FinalMinLevel = LogLevel.Warn
             };
 
+            var efCoreRule = new LoggingRule()
+            {
+                LoggerNamePattern = "Microsoft.EntityFrameworkCore.*",
+                FinalMinLevel = LogLevel.Warn
+            };
+
             nlogConfig.LoggingRules.Add(aspNetCoreRule);
             nlogConfig.LoggingRules.Add(httpClientRule);
+            nlogConfig.LoggingRules.Add(efCoreRule);
 
             nlogConfig.LoggingRules.Add(new LoggingRule("*", logLevel, consoleTarget));
 
