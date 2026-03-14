@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Transports.IBMMQ\ServiceControl.Transports.IBMMQ.csproj" />
+    <!-- Needed to bring the dependencies that the transport plugin excludes -->
+    <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
+    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" />
+    <PackageReference Include="NServiceBus.Persistence.NonDurable" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="Particular.Approvals" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.Transports.Tests\*.cs" LinkBase="Shared" />
+    <Compile Remove="..\ServiceControl.Transports.Tests\TransportManifestLibraryTests.cs" />
+    <Compile Remove="..\ServiceControl.Transports.Tests\TestsFilter.cs" />
+  </ItemGroup>
+
+</Project>

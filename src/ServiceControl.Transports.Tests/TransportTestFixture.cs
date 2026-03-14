@@ -21,6 +21,11 @@
 
     abstract class TransportTestFixture
     {
+        /// <summary>
+        /// Not all transports support - as a separator, as this is not a source package this can be overridden.
+        /// </summary>
+        public static char QueueNameSeparator = '-';
+
         [SetUp]
         public virtual async Task Setup()
         {
@@ -30,7 +35,7 @@
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
             registrations = [];
-            queueSuffix = $"-{Path.GetRandomFileName().Replace(".", string.Empty)}";
+            queueSuffix = $"{QueueNameSeparator}{Path.GetRandomFileName().Replace(".", string.Empty)}";
 
             await configuration.Configure();
 
@@ -70,7 +75,7 @@
 
         protected IMessageDispatcher Dispatcher => dispatcherTransportInfrastructure.Dispatcher;
 
-        protected string GetTestQueueName(string name) => $"{name}-{queueSuffix}";
+        protected string GetTestQueueName(string name) => $"{name}{queueSuffix}";
 
         protected TaskCompletionSource<TResult> CreateTaskCompletionSource<TResult>()
         {
