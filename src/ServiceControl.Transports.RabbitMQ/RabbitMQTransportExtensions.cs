@@ -1,4 +1,5 @@
-﻿namespace ServiceControl.Transports.RabbitMQ;
+﻿#nullable enable
+namespace ServiceControl.Transports.RabbitMQ;
 
 using System;
 using System.Collections.Generic;
@@ -8,16 +9,26 @@ using NServiceBus;
 
 static class RabbitMQTransportExtensions
 {
+    public static bool HasBrokerRequirementChecksDisabled(string connectionString)
+    {
+        var dictionary = ParseConnectionString(connectionString);
+        if (dictionary is null)
+        {
+            return false;
+        }
+
+        return dictionary.TryGetValue("DisableBrokerRequirementChecks", out var value)
+            && bool.TryParse(value, out var disabled)
+            && disabled;
+    }
+
     public static void ApplySettingsFromConnectionString(this RabbitMQTransport transport, string connectionString)
     {
-        if (connectionString.StartsWith("amqp", StringComparison.OrdinalIgnoreCase))
+        var dictionary = ParseConnectionString(connectionString);
+        if (dictionary is null)
         {
             return;
         }
-
-        var dictionary = new DbConnectionStringBuilder { ConnectionString = connectionString }
-            .OfType<KeyValuePair<string, object>>()
-            .ToDictionary(pair => pair.Key, pair => pair.Value.ToString(), StringComparer.OrdinalIgnoreCase);
 
         if (dictionary.TryGetValue("ValidateDeliveryLimits", out var validateDeliveryLimitsString))
         {
@@ -42,5 +53,26 @@ static class RabbitMQTransportExtensions
             _ = bool.TryParse(useExternalAuthMechanismString, out var useExternalAuthMechanism);
             transport.UseExternalAuthMechanism = useExternalAuthMechanism;
         }
+
+        if (dictionary.TryGetValue("DisableBrokerRequirementChecks", out var disableBrokerRequirementChecksString)
+            && bool.TryParse(disableBrokerRequirementChecksString, out var disableBrokerRequirementChecks)
+            && disableBrokerRequirementChecks)
+        {
+            transport.DisabledBrokerRequirementChecks =
+                BrokerRequirementChecks.Version310OrNewer | BrokerRequirementChecks.StreamsEnabled;
+            transport.ValidateDeliveryLimits = false;
+        }
+    }
+
+    static Dictionary<string, string?>? ParseConnectionString(string connectionString)
+    {
+        if (connectionString.StartsWith("amqp", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return new DbConnectionStringBuilder { ConnectionString = connectionString }
+            .OfType<KeyValuePair<string, object>>()
+            .ToDictionary(pair => pair.Key, pair => pair.Value.ToString(), StringComparer.OrdinalIgnoreCase);
     }
 }
