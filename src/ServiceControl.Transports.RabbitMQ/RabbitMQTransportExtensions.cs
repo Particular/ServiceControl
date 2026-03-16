@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using global::RabbitMQ.Client;
 using NServiceBus;
 
 static class RabbitMQTransportExtensions
@@ -40,7 +41,7 @@ static class RabbitMQTransportExtensions
         if (dictionary.TryGetValue("UseExternalAuthMechanism", out var useExternalAuthMechanismString))
         {
             _ = bool.TryParse(useExternalAuthMechanismString, out var useExternalAuthMechanism);
-            transport.UseExternalAuthMechanism = useExternalAuthMechanism;
+            transport.AuthMechanisms = [new ExternalMechanismFactory()];
         }
     }
 }
