@@ -53,7 +53,8 @@
                     }
                     catch (ArgumentException)
                     {
-                        // If it won't decode to text, don't index it
+                        contentType = "application/octet-stream";
+                        processingAttempt.MessageMetadata["ContentType"] = contentType;
                     }
                 }
             }
