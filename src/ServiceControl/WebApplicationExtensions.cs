@@ -24,7 +24,7 @@ public static class WebApplicationExtensions
 
         if (enableMcpServer)
         {
-            app.MapMcp();
+            app.MapMcp("/mcp");
         }
     }
 }
