@@ -54,6 +54,7 @@
             ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
             EnableFullTextSearchOnBodies = SettingsReader.Read(SettingsRootNamespace, "EnableFullTextSearchOnBodies", true);
+            EnableMcpServer = SettingsReader.Read(SettingsRootNamespace, "EnableMcpServer", false);
             ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
 
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
@@ -186,6 +187,8 @@
         public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
 
         public bool EnableFullTextSearchOnBodies { get; set; }
+
+        public bool EnableMcpServer { get; set; }
 
         // The default value is set to the maximum allowed time by the most
         // restrictive hosting platform, which is Linux containers. Linux
