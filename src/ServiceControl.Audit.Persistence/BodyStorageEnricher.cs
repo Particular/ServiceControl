@@ -66,7 +66,9 @@
                     catch (DecoderFallbackException e)
                     {
                         useBodyStore = true;
-                        logger.LogInformation("Body for {BodyId} could not be stored embedded, fallback to body storage ({ErrorMessage})", bodyId, e.Message);
+                        contentType = "application/octet-stream";
+                        processedMessage.MessageMetadata["ContentType"] = contentType;
+                        logger.LogInformation("Body for {BodyId} is not valid UTF-8 despite content type header, storing as binary ({ErrorMessage})", bodyId, e.Message);
                     }
                 }
 
