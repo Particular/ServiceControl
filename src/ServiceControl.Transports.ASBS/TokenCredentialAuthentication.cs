@@ -1,4 +1,5 @@
-﻿namespace ServiceControl.Transports.ASBS
+﻿#nullable enable
+namespace ServiceControl.Transports.ASBS
 {
     using Azure.Core;
     using Azure.Identity;
@@ -13,21 +14,20 @@
             Credential = new DefaultAzureCredential();
         }
 
-        public TokenCredentialAuthentication(string fullyQualifiedNamespace, string clientId)
+        public TokenCredentialAuthentication(string fullyQualifiedNamespace, string? clientId)
         {
             FullyQualifiedNamespace = fullyQualifiedNamespace;
             ClientId = clientId;
-            Credential = new ManagedIdentityCredential(clientId);
+            Credential = new ManagedIdentityCredential(clientId is not null ? ManagedIdentityId.FromUserAssignedClientId(clientId) : ManagedIdentityId.SystemAssigned);
         }
 
         public string FullyQualifiedNamespace { get; }
 
         public TokenCredential Credential { get; }
 
-        public string ClientId { get; }
+        public string? ClientId { get; }
 
-        public override ServiceBusAdministrationClient BuildManagementClient()
-            => new ServiceBusAdministrationClient(FullyQualifiedNamespace, Credential);
+        public override ServiceBusAdministrationClient BuildManagementClient() => new(FullyQualifiedNamespace, Credential);
 
         public override AzureServiceBusTransport CreateTransportDefinition(ConnectionSettings connectionSettings, TopicTopology topology)
         {

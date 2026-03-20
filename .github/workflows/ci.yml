@@ -63,7 +63,7 @@ jobs:
         if: matrix.os-name == 'Windows'
         run: Import-Module ./deploy/PowerShellModules/Particular.ServiceControl.Management
       - name: Azure login
-        uses: azure/login@v2.3.0
+        uses: azure/login@v3.0.0
         if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ' || matrix.test-category == 'PostgreSQL'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
@@ -90,7 +90,7 @@ jobs:
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup Azure Service Bus
-        uses: Particular/setup-azureservicebus-action@v2.0.0
+        uses: Particular/setup-azureservicebus-action@v2.1.0
         if: matrix.test-category == 'AzureServiceBus'
         with:
           connection-string-name: ServiceControl_TransportTests_ASBS_ConnectionString
