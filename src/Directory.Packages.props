@@ -63,8 +63,8 @@
     <PackageVersion Include="Particular.LicensingComponent.Report" Version="1.1.1" />
     <PackageVersion Include="Particular.Licensing.Sources" Version="6.1.0" />
     <PackageVersion Include="Particular.Obsoletes" Version="1.0.0" />
-    <PackageVersion Include="Particular.ServicePulse.Core" Version="2.6.0" />
-    <PackageVersion Include="Polly.Core" Version="8.6.5" />
+    <PackageVersion Include="Polly.Core" Version="8.6.6" />
+    <PackageVersion Include="Particular.ServicePulse.Core" Version="2.7.0" />
     <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
     <PackageVersion Include="PropertyChanging.Fody" Version="1.31.0" />
     <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
