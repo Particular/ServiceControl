@@ -40,7 +40,6 @@
     <PackageReference Include="Particular.ServicePulse.Core" />
     <PackageReference Include="ServiceControl.Contracts" />
     <PackageReference Include="Yarp.ReverseProxy" />
-    <PackageReference Include="ModelContextProtocol.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>
