@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
 using Persistence;
 
@@ -15,7 +16,7 @@ using Persistence;
     "1. Use GetKnownEndpoints to discover endpoint names before calling endpoint-specific tools.\n" +
     "2. Use GetEndpointAuditCounts to spot throughput trends, traffic spikes, or drops in activity."
 )]
-public class EndpointTools(IAuditDataStore store)
+public class EndpointTools(IAuditDataStore store, ILogger<EndpointTools> logger)
 {
     [McpServerTool, Description(
         "Use this tool to discover what NServiceBus endpoints exist in the system. " +
@@ -25,7 +26,11 @@ public class EndpointTools(IAuditDataStore store)
     )]
     public async Task<string> GetKnownEndpoints(CancellationToken cancellationToken = default)
     {
+        logger.LogInformation("MCP GetKnownEndpoints invoked");
+
         var results = await store.QueryKnownEndpoints(cancellationToken);
+
+        logger.LogInformation("MCP GetKnownEndpoints returned {Count} endpoints", results.QueryStats.TotalCount);
 
         return JsonSerializer.Serialize(new
         {
@@ -44,7 +49,11 @@ public class EndpointTools(IAuditDataStore store)
         [Description("The NServiceBus endpoint name, e.g. 'Sales' or 'Shipping.MessageHandler'")] string endpointName,
         CancellationToken cancellationToken = default)
     {
+        logger.LogInformation("MCP GetEndpointAuditCounts invoked (endpoint={EndpointName})", endpointName);
+
         var results = await store.QueryAuditCounts(endpointName, cancellationToken);
+
+        logger.LogInformation("MCP GetEndpointAuditCounts returned {Count} entries for endpoint '{EndpointName}'", results.QueryStats.TotalCount, endpointName);
 
         return JsonSerializer.Serialize(new
         {

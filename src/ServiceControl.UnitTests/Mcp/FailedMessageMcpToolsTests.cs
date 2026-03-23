@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using ServiceControl.CompositeViews.Messages;
 using ServiceControl.EventLog;
@@ -29,7 +30,7 @@ class FailedMessageMcpToolsTests
     public void SetUp()
     {
         store = new StubErrorMessageDataStore();
-        tools = new FailedMessageTools(store);
+        tools = new FailedMessageTools(store, NullLogger<FailedMessageTools>.Instance);
     }
 
     [Test]

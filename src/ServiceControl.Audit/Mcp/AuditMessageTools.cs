@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Infrastructure;
+using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
 using Persistence;
 
@@ -20,7 +21,7 @@ using Persistence;
     "5. Use time filters when the user mentions a date or time window like 'today' or 'last hour'.\n" +
     "6. Only change sorting when the user explicitly asks for it."
 )]
-public class AuditMessageTools(IAuditDataStore store)
+public class AuditMessageTools(IAuditDataStore store, ILogger<AuditMessageTools> logger)
 {
     [McpServerTool, Description(
         "Use this tool to browse successfully processed audit messages when the user wants an overview rather than a text search. " +
@@ -40,11 +41,15 @@ public class AuditMessageTools(IAuditDataStore store)
         [Description("Only return messages sent before this time (ISO 8601)")] string? timeSentTo = null,
         CancellationToken cancellationToken = default)
     {
+        logger.LogInformation("MCP GetAuditMessages invoked (page={Page}, includeSystemMessages={IncludeSystem})", page, includeSystemMessages);
+
         var pagingInfo = new PagingInfo(page, perPage);
         var sortInfo = new SortInfo(sort, direction);
         var timeSentRange = new DateTimeRange(timeSentFrom, timeSentTo);
 
         var results = await store.GetMessages(includeSystemMessages, pagingInfo, sortInfo, timeSentRange, cancellationToken);
+
+        logger.LogInformation("MCP GetAuditMessages returned {Count} results", results.QueryStats.TotalCount);
 
         return JsonSerializer.Serialize(new
         {
@@ -70,11 +75,15 @@ public class AuditMessageTools(IAuditDataStore store)
         [Description("Only return messages sent before this time (ISO 8601)")] string? timeSentTo = null,
         CancellationToken cancellationToken = default)
     {
+        logger.LogInformation("MCP SearchAuditMessages invoked (query={Query}, page={Page})", query, page);
+
         var pagingInfo = new PagingInfo(page, perPage);
         var sortInfo = new SortInfo(sort, direction);
         var timeSentRange = new DateTimeRange(timeSentFrom, timeSentTo);
 
         var results = await store.QueryMessages(query, pagingInfo, sortInfo, timeSentRange, cancellationToken);
+
+        logger.LogInformation("MCP SearchAuditMessages returned {Count} results", results.QueryStats.TotalCount);
 
         return JsonSerializer.Serialize(new
         {
@@ -102,6 +111,8 @@ public class AuditMessageTools(IAuditDataStore store)
         [Description("Only return messages sent before this time (ISO 8601)")] string? timeSentTo = null,
         CancellationToken cancellationToken = default)
     {
+        logger.LogInformation("MCP GetAuditMessagesByEndpoint invoked (endpoint={EndpointName}, keyword={Keyword}, page={Page})", endpointName, keyword, page);
+
         var pagingInfo = new PagingInfo(page, perPage);
         var sortInfo = new SortInfo(sort, direction);
         var timeSentRange = new DateTimeRange(timeSentFrom, timeSentTo);
@@ -109,6 +120,8 @@ public class AuditMessageTools(IAuditDataStore store)
         var results = keyword != null
             ? await store.QueryMessagesByReceivingEndpointAndKeyword(endpointName, keyword, pagingInfo, sortInfo, timeSentRange, cancellationToken)
             : await store.QueryMessagesByReceivingEndpoint(includeSystemMessages, endpointName, pagingInfo, sortInfo, timeSentRange, cancellationToken);
+
+        logger.LogInformation("MCP GetAuditMessagesByEndpoint returned {Count} results for endpoint '{EndpointName}'", results.QueryStats.TotalCount, endpointName);
 
         return JsonSerializer.Serialize(new
         {
@@ -132,10 +145,14 @@ public class AuditMessageTools(IAuditDataStore store)
         [Description("Sort direction: asc or desc")] string direction = "desc",
         CancellationToken cancellationToken = default)
     {
+        logger.LogInformation("MCP GetAuditMessagesByConversation invoked (conversationId={ConversationId}, page={Page})", conversationId, page);
+
         var pagingInfo = new PagingInfo(page, perPage);
         var sortInfo = new SortInfo(sort, direction);
 
         var results = await store.QueryMessagesByConversationId(conversationId, pagingInfo, sortInfo, cancellationToken);
+
+        logger.LogInformation("MCP GetAuditMessagesByConversation returned {Count} results", results.QueryStats.TotalCount);
 
         return JsonSerializer.Serialize(new
         {
@@ -155,15 +172,19 @@ public class AuditMessageTools(IAuditDataStore store)
         [Description("The message ID from a previous audit message query result")] string messageId,
         CancellationToken cancellationToken = default)
     {
+        logger.LogInformation("MCP GetAuditMessageBody invoked (messageId={MessageId})", messageId);
+
         var result = await store.GetMessageBody(messageId, cancellationToken);
 
         if (!result.Found)
         {
+            logger.LogWarning("MCP GetAuditMessageBody: message '{MessageId}' not found", messageId);
             return JsonSerializer.Serialize(new { Error = $"Message '{messageId}' not found." }, McpJsonOptions.Default);
         }
 
         if (!result.HasContent)
         {
+            logger.LogWarning("MCP GetAuditMessageBody: message '{MessageId}' has no body content", messageId);
             return JsonSerializer.Serialize(new { Error = $"Message '{messageId}' has no body content." }, McpJsonOptions.Default);
         }
 

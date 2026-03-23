@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Threading.Tasks;
 using MessageFailures.Api;
+using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
 using Persistence;
 using Persistence.Infrastructure;
@@ -20,7 +21,7 @@ using Persistence.Infrastructure;
     "5. Keep page=1 unless the user asks for more results.\n" +
     "6. Only change sorting when the user explicitly asks for it."
 )]
-public class FailedMessageTools(IErrorMessageDataStore store)
+public class FailedMessageTools(IErrorMessageDataStore store, ILogger<FailedMessageTools> logger)
 {
     [McpServerTool, Description(
         "Use this tool to browse failed messages when the user wants to see what is failing. " +
@@ -38,10 +39,14 @@ public class FailedMessageTools(IErrorMessageDataStore store)
         [Description("Sort by: time_sent, message_type, or time_of_failure")] string sort = "time_of_failure",
         [Description("Sort direction: asc or desc")] string direction = "desc")
     {
+        logger.LogInformation("MCP GetFailedMessages invoked (status={Status}, queueAddress={QueueAddress}, page={Page})", status, queueAddress, page);
+
         var pagingInfo = new PagingInfo(page, perPage);
         var sortInfo = new SortInfo(sort, direction);
 
         var results = await store.ErrorGet(status, modified, queueAddress, pagingInfo, sortInfo);
+
+        logger.LogInformation("MCP GetFailedMessages returned {Count} results", results.QueryStats.TotalCount);
 
         return JsonSerializer.Serialize(new
         {
@@ -59,10 +64,13 @@ public class FailedMessageTools(IErrorMessageDataStore store)
     public async Task<string> GetFailedMessageById(
         [Description("The unique message ID from a previous query result")] string failedMessageId)
     {
+        logger.LogInformation("MCP GetFailedMessageById invoked (failedMessageId={FailedMessageId})", failedMessageId);
+
         var result = await store.ErrorBy(failedMessageId);
 
         if (result == null)
         {
+            logger.LogWarning("MCP GetFailedMessageById: message '{FailedMessageId}' not found", failedMessageId);
             return JsonSerializer.Serialize(new { Error = $"Failed message '{failedMessageId}' not found." }, McpJsonOptions.Default);
         }
 
@@ -78,10 +86,13 @@ public class FailedMessageTools(IErrorMessageDataStore store)
     public async Task<string> GetFailedMessageLastAttempt(
         [Description("The unique message ID from a previous query result")] string failedMessageId)
     {
+        logger.LogInformation("MCP GetFailedMessageLastAttempt invoked (failedMessageId={FailedMessageId})", failedMessageId);
+
         var result = await store.ErrorLastBy(failedMessageId);
 
         if (result == null)
         {
+            logger.LogWarning("MCP GetFailedMessageLastAttempt: message '{FailedMessageId}' not found", failedMessageId);
             return JsonSerializer.Serialize(new { Error = $"Failed message '{failedMessageId}' not found." }, McpJsonOptions.Default);
         }
 
@@ -96,6 +107,8 @@ public class FailedMessageTools(IErrorMessageDataStore store)
     )]
     public async Task<string> GetErrorsSummary()
     {
+        logger.LogInformation("MCP GetErrorsSummary invoked");
+
         var result = await store.ErrorsSummary();
         return JsonSerializer.Serialize(result, McpJsonOptions.Default);
     }
@@ -115,10 +128,14 @@ public class FailedMessageTools(IErrorMessageDataStore store)
         [Description("Sort by: time_sent, message_type, or time_of_failure")] string sort = "time_of_failure",
         [Description("Sort direction: asc or desc")] string direction = "desc")
     {
+        logger.LogInformation("MCP GetFailedMessagesByEndpoint invoked (endpoint={EndpointName}, status={Status}, page={Page})", endpointName, status, page);
+
         var pagingInfo = new PagingInfo(page, perPage);
         var sortInfo = new SortInfo(sort, direction);
 
         var results = await store.ErrorsByEndpointName(status, endpointName, modified, pagingInfo, sortInfo);
+
+        logger.LogInformation("MCP GetFailedMessagesByEndpoint returned {Count} results for endpoint '{EndpointName}'", results.QueryStats.TotalCount, endpointName);
 
         return JsonSerializer.Serialize(new
         {

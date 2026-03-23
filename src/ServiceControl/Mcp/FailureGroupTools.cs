@@ -5,6 +5,7 @@ namespace ServiceControl.Mcp;
 using System.ComponentModel;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
 using Persistence;
 using Recoverability;
@@ -16,7 +17,7 @@ using Recoverability;
     "2. Call GetFailureGroups with no parameters to use the default grouping by exception type and stack trace.\n" +
     "3. Use GetRetryHistory to check whether someone has already retried a group before retrying it again."
 )]
-public class FailureGroupTools(GroupFetcher fetcher, IRetryHistoryDataStore retryStore)
+public class FailureGroupTools(GroupFetcher fetcher, IRetryHistoryDataStore retryStore, ILogger<FailureGroupTools> logger)
 {
     [McpServerTool, Description(
         "Use this tool to understand why messages are failing by seeing failures grouped by root cause. " +
@@ -29,7 +30,12 @@ public class FailureGroupTools(GroupFetcher fetcher, IRetryHistoryDataStore retr
         [Description("How to group failures. The default 'Exception Type and Stack Trace' is almost always what you want. Use 'Message Type' to group by the NServiceBus message type instead.")] string classifier = "Exception Type and Stack Trace",
         [Description("Only include groups matching this filter text")] string? classifierFilter = null)
     {
+        logger.LogInformation("MCP GetFailureGroups invoked (classifier={Classifier})", classifier);
+
         var results = await fetcher.GetGroups(classifier, classifierFilter);
+
+        logger.LogInformation("MCP GetFailureGroups returned {Count} groups", results.Length);
+
         return JsonSerializer.Serialize(results, McpJsonOptions.Default);
     }
 
@@ -41,6 +47,8 @@ public class FailureGroupTools(GroupFetcher fetcher, IRetryHistoryDataStore retr
     )]
     public async Task<string> GetRetryHistory()
     {
+        logger.LogInformation("MCP GetRetryHistory invoked");
+
         var retryHistory = await retryStore.GetRetryHistory();
         return JsonSerializer.Serialize(retryHistory, McpJsonOptions.Default);
     }

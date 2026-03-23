@@ -24,7 +24,7 @@ class RetryMcpToolsTests
     {
         messageSession = new TestableMessageSession();
         retryingManager = new RetryingManager(new FakeDomainEvents(), NullLogger<RetryingManager>.Instance);
-        tools = new RetryTools(messageSession, retryingManager);
+        tools = new RetryTools(messageSession, retryingManager, NullLogger<RetryTools>.Instance);
     }
 
     [Test]

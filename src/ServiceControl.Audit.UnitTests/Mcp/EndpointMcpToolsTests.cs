@@ -13,6 +13,7 @@ using Audit.Infrastructure;
 using Audit.Mcp;
 using Audit.Monitoring;
 using Audit.Persistence;
+using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using ServiceControl.SagaAudit;
 
@@ -27,7 +28,7 @@ class EndpointMcpToolsTests
     public void SetUp()
     {
         store = new StubAuditDataStore();
-        tools = new EndpointTools(store);
+        tools = new EndpointTools(store, NullLogger<EndpointTools>.Instance);
     }
 
     [Test]

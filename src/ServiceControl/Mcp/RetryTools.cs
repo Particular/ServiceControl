@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using MessageFailures;
 using MessageFailures.InternalMessages;
+using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
 using NServiceBus;
 using Recoverability;
@@ -21,7 +22,7 @@ using Persistence;
     "5. Use RetryAllFailedMessages only as a last resort — it retries everything.\n" +
     "6. All operations are asynchronous — they return Accepted immediately and complete in the background."
 )]
-public class RetryTools(IMessageSession messageSession, RetryingManager retryingManager)
+public class RetryTools(IMessageSession messageSession, RetryingManager retryingManager, ILogger<RetryTools> logger)
 {
     [McpServerTool, Description(
         "Use this tool to reprocess a single failed message by sending it back to its original queue. " +
@@ -32,6 +33,8 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     public async Task<string> RetryFailedMessage(
         [Description("The unique message ID from a previous query result")] string failedMessageId)
     {
+        logger.LogInformation("MCP RetryFailedMessage invoked (failedMessageId={FailedMessageId})", failedMessageId);
+
         await messageSession.SendLocal<RetryMessage>(m => m.FailedMessageId = failedMessageId);
         return JsonSerializer.Serialize(new { Status = "Accepted", Message = $"Retry requested for message '{failedMessageId}'." }, McpJsonOptions.Default);
     }
@@ -44,8 +47,11 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     public async Task<string> RetryFailedMessages(
         [Description("The unique message IDs from a previous query result")] string[] messageIds)
     {
+        logger.LogInformation("MCP RetryFailedMessages invoked (count={Count})", messageIds.Length);
+
         if (messageIds.Any(string.IsNullOrEmpty))
         {
+            logger.LogWarning("MCP RetryFailedMessages: rejected due to empty message IDs");
             return JsonSerializer.Serialize(new { Error = "All message IDs must be non-empty strings." }, McpJsonOptions.Default);
         }
 
@@ -61,6 +67,8 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     public async Task<string> RetryFailedMessagesByQueue(
         [Description("The full queue address including machine name, e.g. 'Sales@machine'")] string queueAddress)
     {
+        logger.LogInformation("MCP RetryFailedMessagesByQueue invoked (queueAddress={QueueAddress})", queueAddress);
+
         await messageSession.SendLocal<RetryMessagesByQueueAddress>(m =>
         {
             m.QueueAddress = queueAddress;
@@ -76,6 +84,8 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     )]
     public async Task<string> RetryAllFailedMessages()
     {
+        logger.LogInformation("MCP RetryAllFailedMessages invoked");
+
         await messageSession.SendLocal(new RequestRetryAll());
         return JsonSerializer.Serialize(new { Status = "Accepted", Message = "Retry requested for all failed messages." }, McpJsonOptions.Default);
     }
@@ -88,6 +98,8 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     public async Task<string> RetryAllFailedMessagesByEndpoint(
         [Description("The NServiceBus endpoint name, e.g. 'Sales' or 'Shipping.MessageHandler'")] string endpointName)
     {
+        logger.LogInformation("MCP RetryAllFailedMessagesByEndpoint invoked (endpoint={EndpointName})", endpointName);
+
         await messageSession.SendLocal(new RequestRetryAll { Endpoint = endpointName });
         return JsonSerializer.Serialize(new { Status = "Accepted", Message = $"Retry requested for all failed messages in endpoint '{endpointName}'." }, McpJsonOptions.Default);
     }
@@ -102,8 +114,11 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     public async Task<string> RetryFailureGroup(
         [Description("The failure group ID from get_failure_groups results")] string groupId)
     {
+        logger.LogInformation("MCP RetryFailureGroup invoked (groupId={GroupId})", groupId);
+
         if (retryingManager.IsOperationInProgressFor(groupId, RetryType.FailureGroup))
         {
+            logger.LogInformation("MCP RetryFailureGroup: operation already in progress for group '{GroupId}'", groupId);
             return JsonSerializer.Serialize(new { Status = "InProgress", Message = $"A retry operation is already in progress for group '{groupId}'." }, McpJsonOptions.Default);
         }
 

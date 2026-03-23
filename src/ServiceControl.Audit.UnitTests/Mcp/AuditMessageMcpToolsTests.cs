@@ -13,6 +13,7 @@ using Audit.Infrastructure;
 using Audit.Mcp;
 using Audit.Monitoring;
 using Audit.Persistence;
+using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using ServiceControl.SagaAudit;
 
@@ -26,7 +27,7 @@ class AuditMessageMcpToolsTests
     public void SetUp()
     {
         store = new StubAuditDataStore();
-        tools = new AuditMessageTools(store);
+        tools = new AuditMessageTools(store, NullLogger<AuditMessageTools>.Instance);
     }
 
     [Test]

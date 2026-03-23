@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using MessageFailures.InternalMessages;
+using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
 using NServiceBus;
 using Persistence.Recoverability;
@@ -19,7 +20,7 @@ using ServiceControl.Recoverability;
     "4. Use ArchiveFailedMessages or UnarchiveFailedMessages when you have a specific set of message IDs.\n" +
     "5. All operations are asynchronous — they return Accepted immediately and complete in the background."
 )]
-public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archiver)
+public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archiver, ILogger<ArchiveTools> logger)
 {
     [McpServerTool, Description(
         "Use this tool to dismiss a single failed message that does not need to be retried. " +
@@ -31,6 +32,8 @@ public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archi
     public async Task<string> ArchiveFailedMessage(
         [Description("The unique message ID from a previous query result")] string failedMessageId)
     {
+        logger.LogInformation("MCP ArchiveFailedMessage invoked (failedMessageId={FailedMessageId})", failedMessageId);
+
         await messageSession.SendLocal<ArchiveMessage>(m => m.FailedMessageId = failedMessageId);
         return JsonSerializer.Serialize(new { Status = "Accepted", Message = $"Archive requested for message '{failedMessageId}'." }, McpJsonOptions.Default);
     }
@@ -43,8 +46,11 @@ public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archi
     public async Task<string> ArchiveFailedMessages(
         [Description("The unique message IDs from a previous query result")] string[] messageIds)
     {
+        logger.LogInformation("MCP ArchiveFailedMessages invoked (count={Count})", messageIds.Length);
+
         if (messageIds.Any(string.IsNullOrEmpty))
         {
+            logger.LogWarning("MCP ArchiveFailedMessages: rejected due to empty message IDs");
             return JsonSerializer.Serialize(new { Error = "All message IDs must be non-empty strings." }, McpJsonOptions.Default);
         }
 
@@ -65,8 +71,11 @@ public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archi
     public async Task<string> ArchiveFailureGroup(
         [Description("The failure group ID from get_failure_groups results")] string groupId)
     {
+        logger.LogInformation("MCP ArchiveFailureGroup invoked (groupId={GroupId})", groupId);
+
         if (archiver.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
         {
+            logger.LogInformation("MCP ArchiveFailureGroup: operation already in progress for group '{GroupId}'", groupId);
             return JsonSerializer.Serialize(new { Status = "InProgress", Message = $"An archive operation is already in progress for group '{groupId}'." }, McpJsonOptions.Default);
         }
 
@@ -85,6 +94,8 @@ public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archi
     public async Task<string> UnarchiveFailedMessage(
         [Description("The unique message ID to restore")] string failedMessageId)
     {
+        logger.LogInformation("MCP UnarchiveFailedMessage invoked (failedMessageId={FailedMessageId})", failedMessageId);
+
         await messageSession.SendLocal<UnArchiveMessages>(m => m.FailedMessageIds = [failedMessageId]);
         return JsonSerializer.Serialize(new { Status = "Accepted", Message = $"Unarchive requested for message '{failedMessageId}'." }, McpJsonOptions.Default);
     }
@@ -97,8 +108,11 @@ public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archi
     public async Task<string> UnarchiveFailedMessages(
         [Description("The unique message IDs to restore")] string[] messageIds)
     {
+        logger.LogInformation("MCP UnarchiveFailedMessages invoked (count={Count})", messageIds.Length);
+
         if (messageIds.Any(string.IsNullOrEmpty))
         {
+            logger.LogWarning("MCP UnarchiveFailedMessages: rejected due to empty message IDs");
             return JsonSerializer.Serialize(new { Error = "All message IDs must be non-empty strings." }, McpJsonOptions.Default);
         }
 
@@ -116,8 +130,11 @@ public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archi
     public async Task<string> UnarchiveFailureGroup(
         [Description("The failure group ID from get_failure_groups results")] string groupId)
     {
+        logger.LogInformation("MCP UnarchiveFailureGroup invoked (groupId={GroupId})", groupId);
+
         if (archiver.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
         {
+            logger.LogInformation("MCP UnarchiveFailureGroup: operation already in progress for group '{GroupId}'", groupId);
             return JsonSerializer.Serialize(new { Status = "InProgress", Message = $"An archive operation is already in progress for group '{groupId}'." }, McpJsonOptions.Default);
         }
 

@@ -30,7 +30,7 @@ class FailureGroupMcpToolsTests
         var retryingManager = new RetryingManager(domainEvents, NullLogger<RetryingManager>.Instance);
         var archiver = new StubArchiveMessages();
         var fetcher = new GroupFetcher(groupsStore, retryStore, retryingManager, archiver);
-        tools = new FailureGroupTools(fetcher, retryStore);
+        tools = new FailureGroupTools(fetcher, retryStore, NullLogger<FailureGroupTools>.Instance);
     }
 
     [Test]

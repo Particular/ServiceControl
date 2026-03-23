@@ -5,6 +5,7 @@ namespace ServiceControl.UnitTests.Mcp;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using NServiceBus.Testing;
 using NUnit.Framework;
 using ServiceControl.Mcp;
@@ -24,7 +25,7 @@ class ArchiveMcpToolsTests
     {
         messageSession = new TestableMessageSession();
         archiver = new StubArchiveMessages();
-        tools = new ArchiveTools(messageSession, archiver);
+        tools = new ArchiveTools(messageSession, archiver, NullLogger<ArchiveTools>.Instance);
     }
 
     [Test]
