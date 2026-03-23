@@ -1,0 +1,427 @@
+[
+  {
+    "name": "get_failed_messages",
+    "description": "Get a list of failed messages. Supports filtering by status (unresolved, resolved, archived, retryissued), modified date, and queue address. Returns paged results.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "description": "Filter by status: unresolved, resolved, archived, retryissued",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "modified": {
+          "description": "Filter by modified date (ISO 8601 format)",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "queueAddress": {
+          "description": "Filter by queue address",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "page": {
+          "description": "Page number (1-based). Default is 1",
+          "type": "integer",
+          "default": 1
+        },
+        "perPage": {
+          "description": "Number of results per page. Default is 50",
+          "type": "integer",
+          "default": 50
+        },
+        "sort": {
+          "description": "Sort field: time_sent, message_type, time_of_failure. Default is time_of_failure",
+          "type": "string",
+          "default": "time_of_failure"
+        },
+        "direction": {
+          "description": "Sort direction: asc or desc. Default is desc",
+          "type": "string",
+          "default": "desc"
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_failed_message_by_id",
+    "description": "Get details of a specific failed message by its unique ID.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "failedMessageId": {
+          "description": "The unique ID of the failed message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failedMessageId"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_failed_message_last_attempt",
+    "description": "Get the last processing attempt for a specific failed message.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "failedMessageId": {
+          "description": "The unique ID of the failed message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failedMessageId"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_errors_summary",
+    "description": "Get a summary of error counts grouped by status (unresolved, archived, resolved, retryissued).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_failed_messages_by_endpoint",
+    "description": "Get failed messages for a specific endpoint.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "endpointName": {
+          "description": "The name of the endpoint",
+          "type": "string"
+        },
+        "status": {
+          "description": "Filter by status: unresolved, resolved, archived, retryissued",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "modified": {
+          "description": "Filter by modified date (ISO 8601 format)",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "page": {
+          "description": "Page number (1-based). Default is 1",
+          "type": "integer",
+          "default": 1
+        },
+        "perPage": {
+          "description": "Number of results per page. Default is 50",
+          "type": "integer",
+          "default": 50
+        },
+        "sort": {
+          "description": "Sort field: time_sent, message_type, time_of_failure. Default is time_of_failure",
+          "type": "string",
+          "default": "time_of_failure"
+        },
+        "direction": {
+          "description": "Sort direction: asc or desc. Default is desc",
+          "type": "string",
+          "default": "desc"
+        }
+      },
+      "required": [
+        "endpointName"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "archive_failed_message",
+    "description": "Archive a single failed message by its unique ID. The message will be moved to the archived status.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "failedMessageId": {
+          "description": "The unique ID of the failed message to archive",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failedMessageId"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "archive_failed_messages",
+    "description": "Archive multiple failed messages by their unique IDs. All specified messages will be moved to the archived status.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageIds": {
+          "description": "Array of unique message IDs to archive",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "messageIds"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "archive_failure_group",
+    "description": "Archive all failed messages in a specific failure group. Failure groups are collections of messages grouped by exception type and stack trace.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "description": "The ID of the failure group to archive",
+          "type": "string"
+        }
+      },
+      "required": [
+        "groupId"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "unarchive_failed_message",
+    "description": "Unarchive a single failed message by its unique ID. The message will be moved back to the unresolved status.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "failedMessageId": {
+          "description": "The unique ID of the failed message to unarchive",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failedMessageId"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "unarchive_failed_messages",
+    "description": "Unarchive multiple failed messages by their unique IDs. All specified messages will be moved back to the unresolved status.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageIds": {
+          "description": "Array of unique message IDs to unarchive",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "messageIds"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "unarchive_failure_group",
+    "description": "Unarchive all failed messages in a specific failure group. Failure groups are collections of messages grouped by exception type and stack trace.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "description": "The ID of the failure group to unarchive",
+          "type": "string"
+        }
+      },
+      "required": [
+        "groupId"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_failed_message",
+    "description": "Retry a single failed message by its unique ID. The message will be sent back to its original queue for reprocessing.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "failedMessageId": {
+          "description": "The unique ID of the failed message to retry",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failedMessageId"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_failed_messages",
+    "description": "Retry multiple failed messages by their unique IDs. All specified messages will be sent back to their original queues for reprocessing.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageIds": {
+          "description": "Array of unique message IDs to retry",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "messageIds"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_failed_messages_by_queue",
+    "description": "Retry all failed messages from a specific queue address.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "queueAddress": {
+          "description": "The queue address to retry all failed messages from",
+          "type": "string"
+        }
+      },
+      "required": [
+        "queueAddress"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_all_failed_messages",
+    "description": "Retry all failed messages across all queues. Use with caution as this affects all unresolved failed messages.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_all_failed_messages_by_endpoint",
+    "description": "Retry all failed messages for a specific endpoint.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "endpointName": {
+          "description": "The name of the endpoint to retry all failed messages for",
+          "type": "string"
+        }
+      },
+      "required": [
+        "endpointName"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_failure_group",
+    "description": "Retry all failed messages in a specific failure group. Failure groups are collections of messages grouped by exception type and stack trace.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "description": "The ID of the failure group to retry",
+          "type": "string"
+        }
+      },
+      "required": [
+        "groupId"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_failure_groups",
+    "description": "Get failure groups, which are collections of failed messages grouped by a classifier (default: exception type and stack trace). Each group shows the count of failures, the first and last occurrence, and any retry operation status.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "classifier": {
+          "description": "The classifier to group by. Default is \u0027Exception Type and Stack Trace\u0027",
+          "type": "string",
+          "default": "Exception Type and Stack Trace"
+        },
+        "classifierFilter": {
+          "description": "Optional filter for the classifier",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_retry_history",
+    "description": "Get the retry history showing past retry operations and their outcomes.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  }
+]
