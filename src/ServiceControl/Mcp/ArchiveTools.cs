@@ -10,20 +10,38 @@ using NServiceBus;
 using Persistence.Recoverability;
 using ServiceControl.Recoverability;
 
-[McpServerToolType]
+[McpServerToolType, Description(
+    "Tools for archiving and unarchiving failed messages.\n\n" +
+    "Agent guidance:\n" +
+    "1. Archiving dismisses a failed message — it moves out of the unresolved list and no longer counts as an active problem.\n" +
+    "2. Unarchiving restores a previously archived message back to the unresolved list so it can be retried.\n" +
+    "3. Prefer ArchiveFailureGroup or UnarchiveFailureGroup when acting on an entire failure group — it is more efficient than archiving messages individually.\n" +
+    "4. Use ArchiveFailedMessages or UnarchiveFailedMessages when you have a specific set of message IDs.\n" +
+    "5. All operations are asynchronous — they return Accepted immediately and complete in the background."
+)]
 public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archiver)
 {
-    [McpServerTool, Description("Archive a single failed message by its unique ID. The message will be moved to the archived status.")]
+    [McpServerTool, Description(
+        "Use this tool to dismiss a single failed message that does not need to be retried. " +
+        "Good for questions like: 'archive this message', 'dismiss this failure', or 'I do not need to retry this one'. " +
+        "Archiving moves the message out of the unresolved list so it no longer shows up as an active problem. " +
+        "This is an asynchronous operation — the message will be archived shortly after the request is accepted. " +
+        "If you need to archive many messages with the same root cause, use ArchiveFailureGroup instead."
+    )]
     public async Task<string> ArchiveFailedMessage(
-        [Description("The unique ID of the failed message to archive")] string failedMessageId)
+        [Description("The unique message ID from a previous query result")] string failedMessageId)
     {
         await messageSession.SendLocal<ArchiveMessage>(m => m.FailedMessageId = failedMessageId);
         return JsonSerializer.Serialize(new { Status = "Accepted", Message = $"Archive requested for message '{failedMessageId}'." }, McpJsonOptions.Default);
     }
 
-    [McpServerTool, Description("Archive multiple failed messages by their unique IDs. All specified messages will be moved to the archived status.")]
+    [McpServerTool, Description(
+        "Use this tool to dismiss multiple failed messages at once that do not need to be retried. " +
+        "Good for questions like: 'archive these messages', 'dismiss these failures', or 'archive messages msg-1, msg-2, msg-3'. " +
+        "Prefer ArchiveFailureGroup when all messages share the same failure cause — use this tool when you have a specific set of message IDs to archive."
+    )]
     public async Task<string> ArchiveFailedMessages(
-        [Description("Array of unique message IDs to archive")] string[] messageIds)
+        [Description("The unique message IDs from a previous query result")] string[] messageIds)
     {
         if (messageIds.Any(string.IsNullOrEmpty))
         {
@@ -37,9 +55,15 @@ public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archi
         return JsonSerializer.Serialize(new { Status = "Accepted", Message = $"Archive requested for {messageIds.Length} messages." }, McpJsonOptions.Default);
     }
 
-    [McpServerTool, Description("Archive all failed messages in a specific failure group. Failure groups are collections of messages grouped by exception type and stack trace.")]
+    [McpServerTool, Description(
+        "Use this tool to dismiss an entire failure group — all messages that failed with the same exception type and stack trace. " +
+        "Good for questions like: 'archive this failure group', 'dismiss all NullReferenceException failures', or 'archive the whole group'. " +
+        "This is the most efficient way to archive many related failures at once. " +
+        "You need a group ID, which you can get from GetFailureGroups. " +
+        "Returns InProgress if an archive operation is already running for this group."
+    )]
     public async Task<string> ArchiveFailureGroup(
-        [Description("The ID of the failure group to archive")] string groupId)
+        [Description("The failure group ID from get_failure_groups results")] string groupId)
     {
         if (archiver.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
         {
@@ -52,17 +76,26 @@ public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archi
         return JsonSerializer.Serialize(new { Status = "Accepted", Message = $"Archive requested for all messages in failure group '{groupId}'." }, McpJsonOptions.Default);
     }
 
-    [McpServerTool, Description("Unarchive a single failed message by its unique ID. The message will be moved back to the unresolved status.")]
+    [McpServerTool, Description(
+        "Use this tool to restore a previously archived failed message back to the unresolved list so it can be retried. " +
+        "Good for questions like: 'unarchive this message', 'restore this failure', or 'I need to retry this archived message'. " +
+        "Use when a message was archived by mistake or when the underlying issue has been fixed and the message should be reprocessed. " +
+        "If you need to restore many messages from the same failure group, use UnarchiveFailureGroup instead."
+    )]
     public async Task<string> UnarchiveFailedMessage(
-        [Description("The unique ID of the failed message to unarchive")] string failedMessageId)
+        [Description("The unique message ID to restore")] string failedMessageId)
     {
         await messageSession.SendLocal<UnArchiveMessages>(m => m.FailedMessageIds = [failedMessageId]);
         return JsonSerializer.Serialize(new { Status = "Accepted", Message = $"Unarchive requested for message '{failedMessageId}'." }, McpJsonOptions.Default);
     }
 
-    [McpServerTool, Description("Unarchive multiple failed messages by their unique IDs. All specified messages will be moved back to the unresolved status.")]
+    [McpServerTool, Description(
+        "Use this tool to restore multiple previously archived failed messages back to the unresolved list. " +
+        "Good for questions like: 'unarchive these messages', 'restore these failures', or 'unarchive messages msg-1, msg-2, msg-3'. " +
+        "Prefer UnarchiveFailureGroup when restoring an entire group — use this tool when you have a specific set of message IDs."
+    )]
     public async Task<string> UnarchiveFailedMessages(
-        [Description("Array of unique message IDs to unarchive")] string[] messageIds)
+        [Description("The unique message IDs to restore")] string[] messageIds)
     {
         if (messageIds.Any(string.IsNullOrEmpty))
         {
@@ -73,9 +106,15 @@ public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archi
         return JsonSerializer.Serialize(new { Status = "Accepted", Message = $"Unarchive requested for {messageIds.Length} messages." }, McpJsonOptions.Default);
     }
 
-    [McpServerTool, Description("Unarchive all failed messages in a specific failure group. Failure groups are collections of messages grouped by exception type and stack trace.")]
+    [McpServerTool, Description(
+        "Use this tool to restore an entire archived failure group back to the unresolved list. " +
+        "Good for questions like: 'unarchive this failure group', 'restore all archived NullReferenceException failures', or 'unarchive the whole group'. " +
+        "All messages that were archived together under this group will become available for retry again. " +
+        "You need a group ID, which you can get from GetFailureGroups. " +
+        "Returns InProgress if an unarchive operation is already running for this group."
+    )]
     public async Task<string> UnarchiveFailureGroup(
-        [Description("The ID of the failure group to unarchive")] string groupId)
+        [Description("The failure group ID from get_failure_groups results")] string groupId)
     {
         if (archiver.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
         {

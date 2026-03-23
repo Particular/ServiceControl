@@ -1,36 +1,36 @@
 [
   {
     "name": "search_audit_messages",
-    "description": "Search audit messages by a keyword or phrase. Searches across message content and metadata.",
+    "description": "Use this tool to find audit messages by a keyword or phrase. Good for questions like: \u0027find messages containing order 12345\u0027, \u0027search for CustomerCreated messages\u0027, or \u0027look for messages mentioning this ID\u0027. Searches across message body content, headers, and metadata using full-text search. Prefer this tool over GetAuditMessages when the user provides a specific term, identifier, or phrase to search for. If the user just wants to browse recent messages without a search term, use GetAuditMessages instead.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "query": {
-          "description": "The search query string",
+          "description": "Free-text search query \u2014 matches against message body, headers, and metadata",
           "type": "string"
         },
         "page": {
-          "description": "Page number (1-based). Default is 1",
+          "description": "Page number, 1-based",
           "type": "integer",
           "default": 1
         },
         "perPage": {
-          "description": "Number of results per page. Default is 50",
+          "description": "Results per page",
           "type": "integer",
           "default": 50
         },
         "sort": {
-          "description": "Sort field: time_sent, processed_at, message_type, critical_time, delivery_time, processing_time. Default is time_sent",
+          "description": "Sort by: time_sent, processed_at, message_type, critical_time, delivery_time, or processing_time",
           "type": "string",
           "default": "time_sent"
         },
         "direction": {
-          "description": "Sort direction: asc or desc. Default is desc",
+          "description": "Sort direction: asc or desc",
           "type": "string",
           "default": "desc"
         },
         "timeSentFrom": {
-          "description": "Filter by time sent start (ISO 8601 format)",
+          "description": "Only return messages sent after this time (ISO 8601)",
           "type": [
             "string",
             "null"
@@ -38,7 +38,7 @@
           "default": null
         },
         "timeSentTo": {
-          "description": "Filter by time sent end (ISO 8601 format)",
+          "description": "Only return messages sent before this time (ISO 8601)",
           "type": [
             "string",
             "null"
@@ -56,31 +56,31 @@
   },
   {
     "name": "get_audit_messages_by_conversation",
-    "description": "Get all audit messages that belong to a specific conversation. A conversation groups related messages that were triggered by the same initial message.",
+    "description": "Use this tool to trace the full chain of messages triggered by an initial message. Good for questions like: \u0027what happened after this message was sent?\u0027, \u0027show me the full message flow\u0027, or \u0027trace this conversation\u0027. A conversation groups all related messages together \u2014 the original command and every event, reply, or saga message it caused. You need a conversation ID, which you can get from any audit message query result. Essential for understanding message flow and debugging cascading issues.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "conversationId": {
-          "description": "The conversation ID to filter by",
+          "description": "The conversation ID from a previous audit message query result",
           "type": "string"
         },
         "page": {
-          "description": "Page number (1-based). Default is 1",
+          "description": "Page number, 1-based",
           "type": "integer",
           "default": 1
         },
         "perPage": {
-          "description": "Number of results per page. Default is 50",
+          "description": "Results per page",
           "type": "integer",
           "default": 50
         },
         "sort": {
-          "description": "Sort field: time_sent, processed_at, message_type, critical_time, delivery_time, processing_time. Default is time_sent",
+          "description": "Sort by: time_sent, processed_at, message_type, critical_time, delivery_time, or processing_time",
           "type": "string",
           "default": "time_sent"
         },
         "direction": {
-          "description": "Sort direction: asc or desc. Default is desc",
+          "description": "Sort direction: asc or desc",
           "type": "string",
           "default": "desc"
         }
@@ -95,12 +95,12 @@
   },
   {
     "name": "get_audit_message_body",
-    "description": "Get the body content of a specific audit message by its message ID.",
+    "description": "Use this tool to inspect the actual payload of a processed message. Good for questions like: \u0027show me the message body\u0027, \u0027what data was in this message?\u0027, or \u0027let me see the content of message X\u0027. Returns the serialized message body content, typically JSON. You need a message ID, which you can get from any audit message query result. Use this when the user wants to see what data was actually sent, not just message metadata.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "messageId": {
-          "description": "The message ID",
+          "description": "The message ID from a previous audit message query result",
           "type": "string"
         }
       },
@@ -114,16 +114,16 @@
   },
   {
     "name": "get_audit_messages_by_endpoint",
-    "description": "Get audit messages received by a specific endpoint. Can optionally filter by keyword.",
+    "description": "Use this tool to see what messages a specific NServiceBus endpoint has processed. Good for questions like: \u0027what messages did Sales process?\u0027, \u0027show messages handled by Shipping\u0027, or \u0027find OrderPlaced messages in the Billing endpoint\u0027. Returns the same metadata as GetAuditMessages but scoped to one endpoint. Prefer this tool over GetAuditMessages when the user mentions a specific endpoint name. Optionally pass a keyword to search within that endpoint\u0027s messages.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "endpointName": {
-          "description": "The name of the receiving endpoint",
+          "description": "The NServiceBus endpoint name, e.g. \u0027Sales\u0027 or \u0027Shipping.MessageHandler\u0027",
           "type": "string"
         },
         "keyword": {
-          "description": "Optional keyword to filter messages",
+          "description": "Optional keyword to search within this endpoint\u0027s messages",
           "type": [
             "string",
             "null"
@@ -131,32 +131,32 @@
           "default": null
         },
         "includeSystemMessages": {
-          "description": "Whether to include system messages in results. Default is false",
+          "description": "Set to true to include NServiceBus infrastructure messages",
           "type": "boolean",
           "default": false
         },
         "page": {
-          "description": "Page number (1-based). Default is 1",
+          "description": "Page number, 1-based",
           "type": "integer",
           "default": 1
         },
         "perPage": {
-          "description": "Number of results per page. Default is 50",
+          "description": "Results per page",
           "type": "integer",
           "default": 50
         },
         "sort": {
-          "description": "Sort field: time_sent, processed_at, message_type, critical_time, delivery_time, processing_time. Default is time_sent",
+          "description": "Sort by: time_sent, processed_at, message_type, critical_time, delivery_time, or processing_time",
           "type": "string",
           "default": "time_sent"
         },
         "direction": {
-          "description": "Sort direction: asc or desc. Default is desc",
+          "description": "Sort direction: asc or desc",
           "type": "string",
           "default": "desc"
         },
         "timeSentFrom": {
-          "description": "Filter by time sent start (ISO 8601 format)",
+          "description": "Only return messages sent after this time (ISO 8601)",
           "type": [
             "string",
             "null"
@@ -164,7 +164,7 @@
           "default": null
         },
         "timeSentTo": {
-          "description": "Filter by time sent end (ISO 8601 format)",
+          "description": "Only return messages sent before this time (ISO 8601)",
           "type": [
             "string",
             "null"
@@ -182,12 +182,12 @@
   },
   {
     "name": "get_endpoint_audit_counts",
-    "description": "Get audit message counts per day for a specific endpoint. Useful for understanding message throughput.",
+    "description": "Use this tool to see daily message volume trends for a specific endpoint. Good for questions like: \u0027how much traffic does Sales handle?\u0027, \u0027has throughput changed recently?\u0027, or \u0027show me message counts for this endpoint\u0027. Returns message counts per day, which helps identify throughput changes, traffic spikes, or drops in activity that might indicate problems. You need an endpoint name \u2014 use GetKnownEndpoints first if you do not have one.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "endpointName": {
-          "description": "The name of the endpoint",
+          "description": "The NServiceBus endpoint name, e.g. \u0027Sales\u0027 or \u0027Shipping.MessageHandler\u0027",
           "type": "string"
         }
       },
@@ -201,7 +201,7 @@
   },
   {
     "name": "get_known_endpoints",
-    "description": "Get a list of all known endpoints that have sent or received audit messages.",
+    "description": "Use this tool to discover what NServiceBus endpoints exist in the system. Good for questions like: \u0027what endpoints do we have?\u0027, \u0027what services are running?\u0027, or \u0027list all endpoints\u0027. Returns all endpoints that have processed audit messages, including their name and host information. This is a good starting point when you need an endpoint name for other tools like GetAuditMessagesByEndpoint or GetEndpointAuditCounts.",
     "inputSchema": {
       "type": "object",
       "properties": {}
@@ -212,37 +212,37 @@
   },
   {
     "name": "get_audit_messages",
-    "description": "Get a list of successfully processed audit messages. Supports paging and sorting. Returns message metadata including endpoints, timing information, and message type.",
+    "description": "Use this tool to browse successfully processed audit messages when the user wants an overview rather than a text search. Good for questions like: \u0027show recent audit messages\u0027, \u0027what messages were processed today?\u0027, \u0027list messages from endpoint X\u0027, or \u0027show slow messages\u0027. Returns message metadata such as message type, endpoints, sent time, processed time, and timing metrics. For broad requests, use the default paging and sorting. Prefer this tool over SearchAuditMessages when the user does not provide a specific keyword or phrase. If the user is looking for a specific term, id, or text fragment, use SearchAuditMessages instead.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "includeSystemMessages": {
-          "description": "Whether to include system messages in results. Default is false",
+          "description": "Set to true to include NServiceBus infrastructure messages. Usually leave as false to see only business messages.",
           "type": "boolean",
           "default": false
         },
         "page": {
-          "description": "Page number (1-based). Default is 1",
+          "description": "Page number, 1-based",
           "type": "integer",
           "default": 1
         },
         "perPage": {
-          "description": "Number of results per page. Default is 50",
+          "description": "Results per page",
           "type": "integer",
           "default": 50
         },
         "sort": {
-          "description": "Sort field: time_sent, processed_at, message_type, critical_time, delivery_time, processing_time. Default is time_sent",
+          "description": "Sort by: time_sent, processed_at, message_type, critical_time, delivery_time, or processing_time",
           "type": "string",
           "default": "time_sent"
         },
         "direction": {
-          "description": "Sort direction: asc or desc. Default is desc",
+          "description": "Sort direction: asc or desc",
           "type": "string",
           "default": "desc"
         },
         "timeSentFrom": {
-          "description": "Filter by time sent start (ISO 8601 format)",
+          "description": "Only return messages sent after this time (ISO 8601). Use with timeSentTo to query a specific time window.",
           "type": [
             "string",
             "null"
@@ -250,7 +250,7 @@
           "default": null
         },
         "timeSentTo": {
-          "description": "Filter by time sent end (ISO 8601 format)",
+          "description": "Only return messages sent before this time (ISO 8601)",
           "type": [
             "string",
             "null"
